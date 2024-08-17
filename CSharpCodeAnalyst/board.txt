@@ -1,0 +1,66 @@
+﻿IMPROVEMENTS
+---------------------
+
+- Documentation
+- Include global namspace if there is anything contained, or generally. This avoids
+  a single assembly in a cycle group
+
+
+BUGS
+---------------------
+
+TEST CASES
+---------------------
+
+
+Parser
+--------------------
+
+
+In C#, we say a type depends on another when there's a relationship between them that affects compilation 
+or runtime behavior. Here are the main scenarios where type dependencies occur:
+
+1. Inheritance: When a class inherits from another class or implements an interface.
+
+2. Composition: When a type contains a field or property of another type.
+
+3. Method parameters: When a type uses another type as a parameter in its methods.
+
+4. Return types: When a method returns an instance of another type.
+
+5. Generic type arguments: When a type is used as a generic type argument.
+
+6. Local variables: When a type is used as a local variable within methods of another type.
+
+7. Static member access: When a type uses static members of another type.
+
+8. Attribute usage: When a type is decorated with attributes of another type.
+
+9. Events: When a type defines events using delegate types.
+
+10. Exception handling: When a type uses another type in catch blocks or throws exceptions of that type.
+
+These dependencies can be direct or indirect. Direct dependencies occur when a type explicitly references another type. Indirect dependencies happen when a type depends on another type through intermediary types.
+
+
+IDEs like Visual Studio and JetBrains IDEs:
+
+Namespace: Light Blue (#4EC9B0)
+Class: Bright Yellow (#FFD700)
+Interface: Light Green (#B8D7A3)
+Struct: Light Orange (#FFA500)
+Enum: Purple (#9370DB)
+Method: Blue (#569CD6)
+Property: Teal (#4EC9B0)
+Field: Dark Yellow (#D7BA7D)
+Event: Pink (#FF69B4)
+Delegate: Light Purple (#C586C0)
+
+For dependencies:
+
+Inheritance: Dark Green (#008000)
+Implementation: Light Green (#90EE90)
+Calls: Blue (#0000FF)
+Uses: Gray (#808080)
+Creates: Orange (#FFA500)
+Overrides: Dark Blue (#00008B)

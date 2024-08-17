@@ -1,0 +1,5 @@
+Build from:
+https://github.com/ATrefzer/automatic-graph-layout
+
+1. The NuGet package wasn't updated for years, but the original main branch has some bug fixes.
+2. I added a workaround that prevents crashing when collapsing subgraphs.

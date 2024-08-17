@@ -1,0 +1,497 @@
+﻿<Window x:Class="CSharpCodeAnalyst.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
+        mc:Ignorable="d"
+        x:Name="RootWindow"
+        Closing="RootWindow_Closing"
+        Title="C# Code Analyst" Height="450" Width="800" d:DataContext="{d:DesignInstance analyst:MainViewModel}">
+    <Window.Resources>
+        <ResourceDictionary>
+
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
+                <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
+        </ResourceDictionary>
+    </Window.Resources>
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Ribbon>
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu>
+                    <RibbonApplicationMenuItem Header="Exit" Click="Exit_Click" />
+                </RibbonApplicationMenu>
+            </Ribbon.ApplicationMenu>
+            <RibbonTab Header="Home">
+                <RibbonGroup Header="File">
+                    <RibbonButton Label="Import Solution"
+                                  LargeImageSource="/Resources/import_solution.png"
+                                  Command="{Binding LoadSolutionCommand}" />
+
+                    <RibbonButton Label="Project filter" 
+                                  LargeImageSource="/Resources/filter_32.png"
+                                  Command="{Binding OpenFilterDialogCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Set project exclusion filters via regular expressions" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="Load Project"
+                                  LargeImageSource="/Resources/load_project.png"
+                                  Command="{Binding LoadProjectCommand}" />
+                    <RibbonButton Label="Save Project"
+                                  LargeImageSource="/Resources/save_project.png"
+                                  Command="{Binding SaveProjectCommand}" />
+
+                    <RibbonButton Label="Export Dsi" LargeImageSource="/Resources/spreadsheet_32.png"
+                                  Command="{Binding ExportToDsiCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Exports the whole project to dsi" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                </RibbonGroup>
+
+                <RibbonGroup Header="Tools">
+                    <RibbonButton Label="Find"
+                                  LargeImageSource="/Resources/cycle_32.png"
+                                  Command="{Binding FindCyclesCommand}" />
+                </RibbonGroup>
+
+
+                <RibbonGroup Header="Code Explorer">
+                    <RibbonButton Label="Clear" LargeImageSource="/Resources/trash-can_32.png"
+                                  Command="{Binding GraphClearCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Clear the content of the graph" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="Reset" LargeImageSource="/Resources/four-arrows_32.png"
+                                  Command="{Binding GraphResetZoomCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Resets zoom level and fits to screen" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="Export Dgml" LargeImageSource="/Resources/document-xml_32.png"
+                                  Command="{Binding ExportToDgmlCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Exports the current graph to dgml" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="Save Png" LargeImageSource="/Resources/png-file_32.png"
+                                  Command="{Binding ExportToPngCommand}"
+                                  CommandParameter="{Binding ElementName=ExplorationGraphPanel}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Saves the current canvas to png" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <!--<RibbonButton Label="Save Svg" LargeImageSource="/Resources/svg-file_32.png"
+                                  Command="{Binding ExportToSvgCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Exports the current graph to svg. NOTE: Sub-graphs are not implemented!" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>-->
+
+                    <RibbonButton Label="Undo" LargeImageSource="/Resources/undo_32.png"
+                                  Command="{Binding GraphViewModel.UndoCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Undo the last operation in graph." />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+
+                </RibbonGroup>
+
+                <RibbonGroup Header="Settings" LargeImageSource="Resources/gear_32.png">
+
+                    <Grid Margin="0, 0, 0, 0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <RibbonToggleButton Grid.Row="0" Grid.Column="0"
+                                            Label="Quick Info"
+                                            SmallImageSource="/Resources/question_small.png"
+                                            IsChecked="{Binding IsInfoPanelVisible, Mode=TwoWay}">
+                            <RibbonToggleButton.ToolTip>
+                                <ToolTip
+                                    Content="Show or hide the information panel. Only shown in the code graph explorer." />
+                            </RibbonToggleButton.ToolTip>
+                        </RibbonToggleButton>
+
+                        <RibbonToggleButton Grid.Row="1" Grid.Column="0" Label="Flat Graph"
+                                            SmallImageSource="/Resources/left-right_small.png"
+                                            IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}">
+                            <RibbonToggleButton.ToolTip>
+                                <ToolTip Content="Shows the graph flat or hierarchical" />
+                            </RibbonToggleButton.ToolTip>
+                        </RibbonToggleButton>
+
+
+                        <TextBlock VerticalAlignment="Center"
+                                   Grid.Row="0" Grid.Column="2"
+                                   Text="Rendering" />
+                        <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
+                                  VerticalContentAlignment="Center"
+                                  Grid.Row="0" Grid.Column="3"
+                                  ItemsSource="{Binding GraphViewModel.RenderOptions}"
+                                  SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
+                        <TextBlock VerticalAlignment="Center"
+                                   Grid.Row="1" Grid.Column="2"
+                                   Text="Highlighting" />
+                        <ComboBox VerticalAlignment="Center"
+                                  Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
+                                  VerticalContentAlignment="Center"
+                                  Grid.Row="1" Grid.Column="3"
+                                  ItemsSource="{Binding GraphViewModel.HighlightOptions}"
+                                  SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
+                    </Grid>
+                </RibbonGroup>
+            </RibbonTab>
+        </Ribbon>
+
+        <Grid Grid.Row="1" x:Name="SplitterGrid">
+            <Grid.ColumnDefinitions>
+
+
+                <ColumnDefinition x:Name="LeftColumn" Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Tree area -->
+            <Expander Grid.Column="0" ExpandDirection="Right" IsExpanded="{Binding IsLeftPanelExpanded}"
+                      x:Name="LeftExpander"
+                      HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Collapsed="LeftExpander_Collapsed">
+                <Expander.Header>
+                    <TextBlock Text="Code Structure" FontWeight="Bold">
+                        <TextBlock.LayoutTransform>
+                            <RotateTransform Angle="90" />
+                        </TextBlock.LayoutTransform>
+                    </TextBlock>
+                </Expander.Header>
+
+                <Expander.Style>
+                    <Style TargetType="Expander">
+                        <Setter Property="MinWidth"
+                                Value="{x:Static analyst:Constants.TreeMinWidthCollapsed}" />
+                        <Style.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter Property="MinWidth"
+                                        Value="{x:Static analyst:Constants.TreeMinWidthExpanded}" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Expander.Style>
+
+                <Grid
+                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
+                               DataContext="{Binding TreeViewModel}">
+                        <Button Command="{Binding CollapseTreeCommand}" ToolTip="Collapse all" DockPanel.Dock="Right"
+                                Width="22" Height="22">
+                            <Image Source="Resources/Collapse_16.png" />
+                        </Button>
+
+                        <!-- middle element has margin -->
+                        <Button Command="{Binding ClearSearchCommand}" ToolTip="Clear search" DockPanel.Dock="Right"
+                                Width="22" Height="22" Margin="2 0 2 0">
+                            <Image Source="Resources/clear_32.png" />
+                        </Button>
+                        <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
+                            <TextBox.InputBindings>
+                                <!-- Send to main view model to show a progress -->
+                                <KeyBinding Key="Enter"
+                                            Command="{Binding DataContext.SearchCommand, ElementName=RootWindow}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+
+                    </DockPanel>
+                    <TreeView Grid.Row="1"
+                              x:Name="CodeTree"
+                              DataContext="{Binding TreeViewModel}"
+                              ContextMenuOpening="TreeView_ContextMenuOpening"
+                              ItemsSource="{Binding TreeItems}"
+                              Margin="5">
+
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add to graph" Command="{Binding AddNodeToGraphCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
+                                <MenuItem Header="Delete from model" Command="{Binding DeleteFromModelCommand}"
+                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
+                        <TreeView.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
+                                    <TextBlock Text="{Binding Name}" />
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.ItemTemplate>
+
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItem_MouseRightButtonDown" />
+
+                                <!-- If this slows down the tree loading remove it,
+                                remove also the context menu item "Find in tree" -->
+                                <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
+                                <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
+
+                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                <Setter Property="Visibility"
+                                        Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                        <Setter Property="Background" Value="LightYellow" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                    </TreeView>
+                </Grid>
+            </Expander>
+
+            <!-- If the expander is collapse we don't show the splitter-->
+            <GridSplitter Grid.Column="1"
+                          Width="5"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Stretch"
+                          ShowsPreview="False"
+                          DragDelta="GridSplitter_DragDelta"
+                          Visibility="{Binding IsExpanded, ElementName=LeftExpander, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+
+            <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
+            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex}">
+                <TabItem>
+                    <TabItem.Header>Code Explorer</TabItem.Header>
+                    <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
+                        <StackPanel
+                            Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="10">
+                            <TextBlock Text="Panning: Shift + Mouse" FontSize="24" Margin="10" />
+                            <TextBlock Text="Hold quick help: Ctrl + Click" FontSize="24" Margin="10" />
+                        </StackPanel>
+                        <Border ClipToBounds="True">
+                            <DockPanel Name="ExplorationGraphPanel" Margin="5" />
+                        </Border>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Cycle summary">
+                    <Grid DataContext="{Binding CycleSummaryViewModel}">
+
+                        <DataGrid
+                            Style="{StaticResource ScrollableDataGridStyleKey}"
+                            ItemsSource="{Binding CycleGroupViewModels}"
+                            Tag="{Binding DataContext, ElementName=RootWindow}"
+
+                            AutoGenerateColumns="False"
+                            IsReadOnly="True"
+                            HeadersVisibility="Column">
+
+
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="DetailsVisibility" Value="Collapsed" />
+                                    <Setter Property="ContextMenu">
+                                        <Setter.Value>
+                                            <ContextMenu>
+                                                <MenuItem Header="Copy to explorer graph"
+                                                          Command="{Binding DataContext.CopyToExplorerGraphCommand, Source={x:Reference RootWindow}}"
+                                                          CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                            <Setter Property="DetailsVisibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Level" Binding="{Binding Level}" Width="Auto" />
+                                <DataGridTextColumn Header="Element Count" Binding="{Binding ElementCount}"
+                                                    Width="Auto" />
+                                <DataGridTemplateColumn Header="Code Elements" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <DockPanel LastChildFill="True">
+                                                <ToggleButton DockPanel.Dock="Left"
+                                                              Style="{StaticResource ExpandCollapseButtonStyle}"
+                                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                              Margin="0,0,5,0" />
+                                                <TextBlock Text="{Binding CodeElementsDescription}"
+                                                           VerticalAlignment="Center" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                            <DataGrid.RowDetailsTemplate>
+                                <DataTemplate>
+                                    <ItemsControl ItemsSource="{Binding CodeElements}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="20 0 0 0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
+                                                        <ColumnDefinition />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Column="0" Text="{Binding ElementTypeName}"
+                                                               FontWeight="Bold"
+                                                               Margin="0,0,5,0" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding FullName}"
+                                                               TextWrapping="Wrap" />
+
+
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+
+                                        <ItemsControl.Template>
+                                            <ControlTemplate>
+                                                <Grid IsSharedSizeScope="True">
+                                                    <ItemsPresenter />
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </ItemsControl.Template>
+                                    </ItemsControl>
+                                </DataTemplate>
+                            </DataGrid.RowDetailsTemplate>
+                        </DataGrid>
+
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+
+            <!-- Info panel -->
+            <Border Grid.Column="2" Name="InfoPanel" Width="300" MaxWidth="300" Height="Auto" MinHeight="120"
+                    VerticalAlignment="Top" HorizontalAlignment="Right"
+                    IsHitTestVisible="true"
+                    Background="LightYellow"
+                    BorderBrush="Black" BorderThickness="1"
+                    Visibility="{Binding IsInfoPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0 25 3 10" Padding="5" Opacity="0.8">
+
+                <ScrollViewer>
+                    <!-- List of quick infos, mostly one -->
+                    <ItemsControl ItemsSource="{Binding QuickInfo}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+
+                                <StackPanel Margin="0 0 0 10">
+                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+
+                                    <!-- Inner list for the describing lines -->
+                                    <ItemsControl ItemsSource="{Binding Lines}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+                                        <ItemsControl.Template>
+                                            <ControlTemplate>
+                                                <Grid IsSharedSizeScope="True">
+                                                    <ItemsPresenter />
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </ItemsControl.Template>
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
+                                                        <ColumnDefinition />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold"
+                                                               Margin="0,0,5,0" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                               TextWrapping="Wrap" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+
+                                    </ItemsControl>
+
+                                    <!-- Another list for the source code -->
+                                    <StackPanel Orientation="Vertical"
+                                                Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
+                                        <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
+                                        <ItemsControl ItemsSource="{Binding SourceLocations}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="Transparent">
+                                                        <Border.InputBindings>
+                                                            <MouseBinding MouseAction="LeftClick"
+                                                                          Command="{Binding DataContext.OpenSourceLocationCommand, ElementName=RootWindow}"
+                                                                          CommandParameter="{Binding}" />
+                                                        </Border.InputBindings>
+                                                        <TextBlock
+                                                            Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap"
+                                                            Foreground="Blue" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+            </Border>
+        </Grid>
+
+
+        <!-- Loading Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              Background="#80000000"
+              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding LoadMessage}" Foreground="White" FontSize="16" Margin="0,0,0,10" />
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
