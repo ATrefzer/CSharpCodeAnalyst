@@ -1,0 +1,38 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="ExpandCollapseButtonStyle" TargetType="ToggleButton">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent">
+                        <Grid>
+                            <Path x:Name="ExpandIcon"
+                                  Data="M0,0 L8,8 L16,0 Z"
+                                  Fill="#444444"
+                                  Stretch="Uniform"
+                                  Width="12"
+                                  Height="12" />
+                            <Path x:Name="CollapseIcon"
+                                  Data="M0,8 L8,0 L16,8 Z"
+                                  Fill="#444444"
+                                  Stretch="Uniform"
+                                  Width="12"
+                                  Height="12"
+                                  Visibility="Collapsed" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="ExpandIcon" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="CollapseIcon" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ExpandIcon" Property="Fill" Value="#666666" />
+                            <Setter TargetName="CollapseIcon" Property="Fill" Value="#666666" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,129 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<ApplicationIcon>lamp.ico</ApplicationIcon>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="DependencyGraphViewer\**" />
+	  <EmbeddedResource Remove="DependencyGraphViewer\**" />
+	  <None Remove="DependencyGraphViewer\**" />
+	  <Page Remove="DependencyGraphViewer\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Resources\filter_32.png" />
+	</ItemGroup>
+
+
+
+	<ItemGroup>
+	  <Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.deps.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.deps.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="lamp.ico" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+    <Resource Include="Resources\filter_32.png" />
+    <Resource Include="Resources\undo_32.png" />
+    <Resource Include="Resources\redo_32.png" />
+    <Resource Include="Resources\clear_32.png" />
+    <Resource Include="Resources\Collapse_16.png" />
+		<Resource Include="Resources\complexity_32.png" />
+		<Resource Include="Resources\cycle_32.png" />
+		<Resource Include="Resources\document-xml.png" />
+		<Resource Include="Resources\document_graph_32.png" />
+		<Resource Include="Resources\document-xml_32.png" />
+		<Resource Include="Resources\four-arrows.png" />
+		<Resource Include="Resources\four-arrows_32.png" />
+    <Resource Include="Resources\gear_32.png" />
+		<Resource Include="Resources\import_solution.png" />
+		<Resource Include="Resources\info_large.png" />
+		<Resource Include="Resources\lamp.png" />
+		<Resource Include="Resources\left-right.png" />
+		<Resource Include="Resources\left-right_small.png" />
+		<Resource Include="Resources\load_project.png" />
+		<Resource Include="Resources\png-file_32.png" />
+		<Resource Include="Resources\question.png" />
+		<Resource Include="Resources\question_small.png" />
+		<Resource Include="Resources\save_project.png" />
+		<Resource Include="Resources\spreadsheet_32.png" />
+		<Resource Include="Resources\svg-file_32.png" />
+		<Resource Include="Resources\switch.png" />
+		<Resource Include="Resources\trash-can.png" />
+		<Resource Include="Resources\trash-can_32.png" />
+		<Resource Include="Resources\workflow.png" />
+		<Resource Include="Resources\cycle.png" />
+		<Resource Include="Resources\unstructured-data_32.png" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+		<PackageReference Include="Prism.Core" Version="8.1.97" />
+	</ItemGroup>
+
+	<!--<ItemGroup>
+		<PackageReference Include="AutomaticGraphLayout.WpfGraphControl" Version="1.1.12" />
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+		<PackageReference Include="Prism.Core" Version="8.1.97" />
+	</ItemGroup>-->
+
+	<ItemGroup>
+		<ProjectReference Include="..\CodeParser\CodeParser.csproj" />
+		<ProjectReference Include="..\Contracts\Contracts.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="ExternalApplications\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\ExternalApplications\DsmSuite.Analyzer.Model.dll" Link="ExternalApplications\DsmSuite.Analyzer.Model.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.Common.Model.dll" Link="ExternalApplications\DsmSuite.Common.Model.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.Common.Util.dll" Link="ExternalApplications\DsmSuite.Common.Util.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.Application.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Application.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.Model.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Model.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.dll" Link="ExternalApplications\DsmSuite.DsmViewer.View.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.exe" Link="ExternalApplications\DsmSuite.DsmViewer.View.exe">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll" Link="ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+   <ItemGroup>
+	  <Reference Include="Microsoft.Msagl">
+	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Microsoft.Msagl.Drawing">
+	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.Drawing.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Microsoft.Msagl.WpfGraphControl">
+	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.WpfGraphControl.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+</Project>
