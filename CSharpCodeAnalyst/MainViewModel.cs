@@ -376,6 +376,11 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadMessage = "Searching Cycles ...";
             await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(_codeGraph); });
         }
+        catch(Exception ex)
+        {
+            MessageBox.Show($"Error finding cycles: {ex.Message}", "Error", MessageBoxButton.OK,
+               MessageBoxImage.Error);
+        }
         finally
         {
             LoadMessage = string.Empty;

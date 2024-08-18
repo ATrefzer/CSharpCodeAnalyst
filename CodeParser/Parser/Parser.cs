@@ -64,14 +64,19 @@ public partial class Parser(ParserConfig config)
         var assemblies = _codeGraph.Nodes.Values.Where(n => n.Parent is null);
         Debug.Assert(assemblies.All(a => a.ElementType == CodeElementType.Assembly));
         var isGlobalNsUsed = assemblies.Any(a => a.Children.Any(c => c.ElementType != CodeElementType.Namespace));
+
+        var newGlobalNamespaces = new List<CodeElement>();
         if (isGlobalNsUsed)
         {
-            foreach (var assembly in assemblies) {
-
+            foreach (var assembly in assemblies) 
+            {                           
                 var children = assembly.Children.ToList();
 
+                var id = Guid.NewGuid().ToString();
                 var fullName = assembly.FullName + "." + global;
-                var globalNs = new CodeElement(Guid.NewGuid().ToString(), CodeElementType.Namespace, global, fullName, assembly);
+                var globalNs = new CodeElement(id, CodeElementType.Namespace, global, fullName, assembly);
+                newGlobalNamespaces.Add(globalNs);
+
                 assembly.Children.Add(globalNs);
 
                 // Move elements
@@ -79,6 +84,12 @@ public partial class Parser(ParserConfig config)
                 {
                     child.MoveTo(globalNs);
                 }
+            }
+
+            // Don't modify collection during iteration
+            foreach (var globalNs in newGlobalNamespaces)
+            {
+                _codeGraph.Nodes[globalNs.Id] = globalNs;
             }
         }
     }

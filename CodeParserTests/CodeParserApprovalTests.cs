@@ -1,3 +1,4 @@
+using CodeParser.Analysis.Cycles;
 using CodeParser.Parser;
 using Contracts.Graph;
 
@@ -286,5 +287,12 @@ public class CodeParserApprovalTests
 
         // Not detected!
         Assert.IsTrue(load.Dependencies.Any(d => d.TargetId == iLoad.Id && d.Type == DependencyType.Implements));
+    }
+
+    [Test]
+    public void Find_all_cycles()
+    {
+        var result = CycleFinder.FindCycleGroups(_graph);
+        Assert.AreEqual(8, result.Count);
     }
 }
