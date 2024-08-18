@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using Prism.Commands;
@@ -33,29 +32,6 @@ public class TreeViewModel : INotifyPropertyChanged
         AddNodeToGraphCommand = new DelegateCommand<TreeItemViewModel>(AddNodeToGraph);
         _filteredTreeItems = [];
         _treeItems = [];
-    }
-
-    private void DeleteFromModel(TreeItemViewModel obj)
-    {
-        var id = obj?.CodeElement?.Id;
-        if (id is null || _codeGraph is null)
-        {
-            return;
-        }
-
-        if (MessageBox.Show("Deleting model elements will clear the code graph. Do you want to proceed?",
-                "Proceed?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
-        {
-            return;
-        }
-
-        _messaging.Publish(new DeleteFromModelRequest(id));
-    }
-
-    private void ClearSearch()
-    {
-        SearchText = string.Empty;
-        ExecuteSearch();
     }
 
 
@@ -100,6 +76,29 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand DeleteFromModelCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void DeleteFromModel(TreeItemViewModel obj)
+    {
+        var id = obj?.CodeElement?.Id;
+        if (id is null || _codeGraph is null)
+        {
+            return;
+        }
+
+        if (MessageBox.Show("Deleting model elements will clear the code graph. Do you want to proceed?",
+                "Proceed?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        _messaging.Publish(new DeleteFromModelRequest(id));
+    }
+
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
+        ExecuteSearch();
+    }
 
     public void HandleAddParentContainerRequest(AddParentContainerRequest obj)
     {
@@ -147,7 +146,6 @@ public class TreeViewModel : INotifyPropertyChanged
         {
             TreeItems.Add(CreateTreeViewItem(rootNode));
         }
-
     }
 
     private static TreeItemViewModel CreateTreeViewItem(CodeElement element)

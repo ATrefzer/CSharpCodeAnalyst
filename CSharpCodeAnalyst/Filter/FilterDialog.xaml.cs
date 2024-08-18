@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Filter;
 
 public partial class FilterDialog : Window
 {
-    private ProjectExclusionRegExCollection _filter;
+    private readonly ProjectExclusionRegExCollection _filter;
 
     public FilterDialog(ProjectExclusionRegExCollection filter)
     {
@@ -17,14 +17,15 @@ public partial class FilterDialog : Window
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
         var expressions = FiltersTextBox.Text
-         .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
-         .Select(f => f.Trim())
-         .Where(f => !string.IsNullOrWhiteSpace(f))
-         .ToList();
+            .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(f => f.Trim())
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .ToList();
 
         if (expressions.Any(f => f.Contains(";")))
         {
-            MessageBox.Show("Filters cannot contain semicolons (;).", "Invalid Filter", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show("Filters cannot contain semicolons (;).", "Invalid Filter", MessageBoxButton.OK,
+                MessageBoxImage.Error);
             return;
         }
 

@@ -1,10 +1,8 @@
-﻿using System.Text.RegularExpressions;
-
-namespace CodeParser.Parser.Config;
+﻿namespace CodeParser.Parser.Config;
 
 public class ParserConfig
 {
-    private ProjectExclusionRegExCollection _projectExclusionFilters;
+    private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters)
     {

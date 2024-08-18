@@ -32,8 +32,8 @@ public class CycleFinder
     }
 
     /// <summary>
-    /// When determining the SCC we collected the relevant nodes, but did not
-    /// remove the orphaned dependencies, yet.
+    ///     When determining the SCC we collected the relevant nodes, but did not
+    ///     remove the orphaned dependencies, yet.
     /// </summary>
     private static void RemoveOrphanedDependencies(Scc scc)
     {

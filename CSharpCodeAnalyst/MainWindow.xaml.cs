@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -144,7 +145,7 @@ public partial class MainWindow
         }
     }
 
-    private void RootWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+    private void RootWindow_Closing(object sender, CancelEventArgs e)
     {
         if (DataContext is MainViewModel mainVm)
         {

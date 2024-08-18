@@ -145,11 +145,10 @@ public partial class Parser
             case EventDeclarationSyntax:
                 symbol = semanticModel.GetDeclaredSymbol(node) as IEventSymbol;
                 elementType = CodeElementType.Event;
-                break;
-       
+
 
                 break;
-                // Add more cases as needed (e.g., for events, delegates, etc.)
+            // Add more cases as needed (e.g., for events, delegates, etc.)
         }
 
         if (symbol != null)

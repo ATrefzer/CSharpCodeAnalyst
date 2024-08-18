@@ -128,7 +128,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     }
 
     /// <summary>
-    /// Moves the CodeElement to the new parent.
+    ///     Moves the CodeElement to the new parent.
     /// </summary>
     public void MoveTo(CodeElement newParent)
     {

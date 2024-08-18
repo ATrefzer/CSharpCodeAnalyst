@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
+        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
         mc:Ignorable="d"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
@@ -40,7 +41,7 @@
                                   LargeImageSource="/Resources/import_solution.png"
                                   Command="{Binding LoadSolutionCommand}" />
 
-                    <RibbonButton Label="Project filter" 
+                    <RibbonButton Label="Project filter"
                                   LargeImageSource="/Resources/filter_32.png"
                                   Command="{Binding OpenFilterDialogCommand}">
                         <RibbonButton.ToolTip>
@@ -398,6 +399,10 @@
                         </DataGrid>
 
                     </Grid>
+                </TabItem>
+
+                <TabItem Header="Metrics">
+                    <metricArea:MetricView Data="{Binding Metrics}" />
                 </TabItem>
             </TabControl>
 

@@ -385,7 +385,7 @@ public partial class Parser
                 AddTypeDependency(sourceElement, pointerTypeSymbol.PointedAtType, DependencyType.Uses, location);
                 break;
             case IFunctionPointerTypeSymbol functionPointerType:
-                
+
                 // The function pointer has a return type and parameters.
                 // we could add these dependencies here.
 

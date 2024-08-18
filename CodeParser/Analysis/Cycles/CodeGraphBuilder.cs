@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CodeParser.Analysis.Shared;
+﻿using CodeParser.Analysis.Shared;
 using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
@@ -22,7 +21,7 @@ public class CodeGraphBuilder
 
             // All edges in the search graph are expanded with equivalent edges in the original graph
             var allSources = proxySource.GetChildrenIncludingSelf();
-        
+
             foreach (var searchGraphDependency in searchGraphSource.Dependencies)
             {
                 var proxyTarget = searchGraphDependency.OriginalElement;
@@ -84,7 +83,8 @@ public class CodeGraphBuilder
         return detailedGraph;
     }
 
-    private static List<Dependency> GetOriginalDependencies(CodeGraph originalGraph, HashSet<string> sources, HashSet<string> targets)
+    private static List<Dependency> GetOriginalDependencies(CodeGraph originalGraph, HashSet<string> sources,
+        HashSet<string> targets)
     {
         // All original edges causing the same dependency as proxy used in search graph.
 
