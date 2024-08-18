@@ -1,7 +1,6 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Profile cycle detection, make multithreaded or come up with a better solution.
 - Plugin Interface
 - Allow override colors (For plugins)
 - Write restriction detection as plugin

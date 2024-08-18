@@ -1,4 +1,5 @@
-﻿using CodeParser.Analysis.Shared;
+﻿using System.Diagnostics;
+using CodeParser.Analysis.Shared;
 using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
@@ -13,10 +14,6 @@ public class CodeGraphBuilder
     /// </summary>
     public static CodeGraph GenerateDetailedCodeGraph(List<SearchNode> searchGraph, CodeGraph originalGraph)
     {
-        var allDependencies = originalGraph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => DependencyClassifier.IsDependencyRelevantForCycle(originalGraph, d)).ToList();
-
         var detailedGraph = new CodeGraph();
         foreach (var searchGraphSource in searchGraph)
         {
@@ -66,12 +63,7 @@ public class CodeGraphBuilder
                     targets = targets.Except(sources).ToHashSet();
                 }
 
-                // The containers are beside each others.
-                // the children are disjoint.
-                // All original edges causing the same dependency as proxy used in search graph.
-                var originalDependencies = allDependencies
-                    .Where(d => sources.Contains(d.SourceId) && targets.Contains(d.TargetId)).ToList();
-
+                var originalDependencies = GetOriginalDependencies(originalGraph, sources, targets);
                 foreach (var originalDependency in originalDependencies)
                 {
                     // Ensure the vertices exist
@@ -90,6 +82,24 @@ public class CodeGraphBuilder
 
         FillContainerGaps(originalGraph, detailedGraph);
         return detailedGraph;
+    }
+
+    private static List<Dependency> GetOriginalDependencies(CodeGraph originalGraph, HashSet<string> sources, HashSet<string> targets)
+    {
+        // All original edges causing the same dependency as proxy used in search graph.
+
+        var sourceElements = sources.Select(s => originalGraph.Nodes[s]);
+        var fromSource = sourceElements.SelectMany(s => s.Dependencies);
+        var originalDependencies = fromSource
+            .Where(d => targets.Contains(d.TargetId))
+            .Where(d => DependencyClassifier.IsDependencyRelevantForCycle(originalGraph, d))
+            .ToList();
+
+        // Performance nightmare
+        //var originalDependencies_old = allDependencies
+        //    .Where(d => sources.Contains(d.SourceId) && targets.Contains(d.TargetId)).ToList();
+
+        return originalDependencies;
     }
 
     /// <summary>
