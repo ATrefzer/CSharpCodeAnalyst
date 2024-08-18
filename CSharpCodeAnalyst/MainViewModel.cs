@@ -1,19 +1,12 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
-using CodeParser.Analysis.Cycles;
+﻿using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Export;
 using CodeParser.Extensions;
 using CodeParser.Parser;
+using CodeParser.Parser.Config;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Filter;
@@ -23,12 +16,21 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
     private readonly MessageBus _messaging;
+    private readonly ApplicationSettings? _settings;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
 
@@ -51,12 +53,21 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private TreeViewModel? _treeViewModel;
 
-    List<string> _projectExcludeRegEx = [];
+    ProjectExclusionRegExCollection _projectExclusionFilters;
+    private int _warningCodeElementLimitForCycle;
 
-    internal MainViewModel(MessageBus messaging)
+    internal MainViewModel(MessageBus messaging, Configuration.ApplicationSettings? settings)
     {
-        _messaging = messaging;
+        if (settings != null)
+        {
+            _projectExclusionFilters = new ProjectExclusionRegExCollection();
+            _isInfoPanelVisible = settings.DefaultShowQuickHelp;
+            _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
+            _warningCodeElementLimitForCycle = settings.WarningCodeElementLimitForCycle;
+        }
 
+        _messaging = messaging;
+        _settings = settings;
         SearchCommand = new DelegateCommand(Search);
         LoadSolutionCommand = new DelegateCommand(LoadSolution);
         LoadProjectCommand = new DelegateCommand(LoadProject);
@@ -77,19 +88,9 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private void OpenFilterDialog()
     {
-        var filterDialog = new FilterDialog(_projectExcludeRegEx);
-        if (filterDialog.ShowDialog() == true)
-        {
-            var newFilters = filterDialog.Filters;
-            if (newFilters.Any(f => f.Contains(";")))
-            {
-                MessageBox.Show("Filters cannot contain semicolons (;).", "Invalid Filter", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            _projectExcludeRegEx = newFilters;
-        }
+        var filterDialog = new FilterDialog(_projectExclusionFilters);
+        filterDialog.ShowDialog();
     }
-
 
     public CycleSummaryViewModel? CycleSummaryViewModel
     {
@@ -376,7 +377,7 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadMessage = "Searching Cycles ...";
             await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(_codeGraph); });
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             MessageBox.Show($"Error finding cycles: {ex.Message}", "Error", MessageBoxButton.OK,
                MessageBoxImage.Error);
@@ -425,7 +426,7 @@ internal class MainViewModel : INotifyPropertyChanged
             // Debug output for the parser result.
             //DgmlHierarchyExport.Export(@"d:\test_hierarchy.dgml", codeStructure);
             //DgmlDependencyExport.Export(@"d:\test_dependency.dgml", codeStructure);
-            
+
             // Imported a new solution
             _isSaved = false;
         }
@@ -444,7 +445,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private async Task<CodeGraph> LoadAsync(string solutionPath)
     {
         LoadMessage = "Loading ...";
-        var parser = new Parser(new ParserConfig(_projectExcludeRegEx));
+        var parser = new Parser(new ParserConfig(_projectExclusionFilters));
         parser.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 
@@ -452,65 +453,6 @@ internal class MainViewModel : INotifyPropertyChanged
         return graph;
     }
 
-    private void LoadProject()
-    {
-        try
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "JSON files (*.json)|*.json",
-                Title = "Load Project"
-            };
-
-            if (openFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            var json = File.ReadAllText(openFileDialog.FileName);
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve
-            };
-            var projectData = JsonSerializer.Deserialize<ProjectData>(json, options);
-            if (projectData is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            var codeGraph = projectData.CreateCodeStructure();
-          
-
-            // Load settings
-            if (projectData.Settings.TryGetValue(nameof(IsInfoPanelVisible), out var isInfoPanelVisibleString))
-            {
-                IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
-            }
-
-            if (GraphViewModel != null &&
-                projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
-            {
-                GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
-            }
-
-            if (projectData.Settings.TryGetValue(nameof(_projectExcludeRegEx), out var projectExcludeRegEx))
-            {
-                _projectExcludeRegEx =
-                    projectExcludeRegEx.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
-            }
-
-            LoadCodeGraph(codeGraph);
-            _isSaved = true;
-        }
-        catch (Exception)
-        {
-            MessageBox.Show("Failed loading project file", "Load error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsCanvasHintsVisible = false;
-        }
-    }
 
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
@@ -627,6 +569,66 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
+
+    private void LoadProject()
+    {
+        try
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json",
+                Title = "Load Project"
+            };
+
+            if (openFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var json = File.ReadAllText(openFileDialog.FileName);
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+            var projectData = JsonSerializer.Deserialize<ProjectData>(json, options);
+            if (projectData is null)
+            {
+                throw new NullReferenceException();
+            }
+
+            var codeGraph = projectData.CreateCodeStructure();
+
+
+            // Load settings
+            if (projectData.Settings.TryGetValue(nameof(IsInfoPanelVisible), out var isInfoPanelVisibleString))
+            {
+                IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
+            }
+
+            if (GraphViewModel != null &&
+                projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
+            {
+                GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
+            }
+
+            if (projectData.Settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
+            {
+                _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
+            }
+
+            LoadCodeGraph(codeGraph);
+            _isSaved = true;
+        }
+        catch (Exception)
+        {
+            MessageBox.Show("Failed loading project file", "Load error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsCanvasHintsVisible = false;
+        }
+    }
+
     private void SaveProject()
     {
         if (_codeGraph is null || _graphViewModel is null)
@@ -649,8 +651,8 @@ internal class MainViewModel : INotifyPropertyChanged
         projectData.AddCodeStructure(_codeGraph);
         projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
-        projectData.Settings[nameof(_projectExcludeRegEx)] = string.Join(';', _projectExcludeRegEx);
-        
+        projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
+
         // Add other settings here
 
         var options = new JsonSerializerOptions
@@ -666,6 +668,15 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var graph = vm.CycleGroup.CodeGraph;
         var codeElements = graph.Nodes.Values;
+        var numberOfElements = codeElements.Count();
+
+        if (numberOfElements > _warningCodeElementLimitForCycle)
+        {
+            if (MessageBoxResult.Yes != MessageBox.Show($"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?", "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+            {
+                return;
+            }
+        }
 
         var dependencies = new List<Dependency>();
         graph.DfsHierarchy(n => dependencies.AddRange(n.Dependencies));
