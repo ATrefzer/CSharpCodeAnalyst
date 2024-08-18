@@ -1,4 +1,5 @@
 ﻿using CodeParser.Analysis.Cycles;
+using CodeParser.Export;
 using Contracts.Graph;
 
 namespace CodeParserTests;
@@ -32,12 +33,14 @@ public partial class CycleFinderTests
         var owner = codeGraph.CreateField("AutomationPeer._owner", peer);
         var ctor = codeGraph.CreateMethod("AutomationPeer.ctor", peer);
 
-        view.Dependencies.Add(new Dependency(createPeer.Id, peer.Id, DependencyType.Creates));
-        view.Dependencies.Add(new Dependency(ctor.Id, view.Id, DependencyType.Uses));
-        peer.Dependencies.Add(new Dependency(owner.Id, view.Id, DependencyType.Uses));
-
+        createPeer.Dependencies.Add(new Dependency(createPeer.Id, peer.Id, DependencyType.Creates));
+        ctor.Dependencies.Add(new Dependency(ctor.Id, view.Id, DependencyType.Uses));
+        owner.Dependencies.Add(new Dependency(owner.Id, view.Id, DependencyType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
+
+        //var export = new DgmlExport();
+        //export.Export("d:\\out.dgml", codeGraph);
 
         Assert.AreEqual(1, groups.Count);
         Assert.AreEqual(5, groups.First().CodeGraph.Nodes.Count);
