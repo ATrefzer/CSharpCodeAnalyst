@@ -1,8 +1,39 @@
 # Uncovered C# Syntax
 
-I think its an pointless task to cover all dependencies possible in a language like C#. Some of them would cause large effort for very little  benefit. Instead I focus on the most important code elements.
+According to GPT, we say a type depends on another when there's a relationship between them that affects compilation 
+or runtime behavior. Here are the main scenarios where type dependencies occur:
 
-Following is a list of potential uncovered language constructs. I'm sure there are many more. I did not test yet.
+1. Inheritance: When a class inherits from another class or implements an interface.
+
+2. Composition: When a type contains a field or property of another type.
+
+3. Method parameters: When a type uses another type as a parameter in its methods.
+
+4. Return types: When a method returns an instance of another type.
+
+5. Generic type arguments: When a type is used as a generic type argument.
+
+6. Local variables: When a type is used as a local variable within methods of another type.
+
+7. Static member access: When a type uses static members of another type.
+
+8. Attribute usage: When a type is decorated with attributes of another type.
+
+9. Events: When a type defines events using delegate types.
+
+10. Exception handling: When a type uses another type in catch blocks or throws exceptions of that type.
+
+These dependencies can be direct or indirect. Direct dependencies occur when a type explicitly references another type. Indirect dependencies happen when a type depends on another type through intermediary types.
+
+
+
+**These are the basic dependencies this application should focus on.**
+
+**I think it is a pointless task to cover all dependencies possible in a language like C#. Some of them would cause large effort for very little benefit.**
+
+Following is a list of uncovered language constructs. However, there are many more.
+
+
 
 - Generic Type Constraints:
 
@@ -305,7 +336,7 @@ unsafe delegate*<int, int> functionPointer = &SomeMethod;
 // Dependencies through function pointers might be missed
 ```
 
-# Implemented
+# Meanwhile implemented
 
 - Delegates and Event Handlers:
 

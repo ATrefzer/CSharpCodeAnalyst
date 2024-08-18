@@ -126,4 +126,20 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
 
         return childrenIncludingSelf;
     }
+
+    /// <summary>
+    /// Moves the CodeElement to the new parent.
+    /// </summary>
+    public void MoveTo(CodeElement newParent)
+    {
+        ArgumentNullException.ThrowIfNull(newParent, nameof(newParent));
+
+        // Remove child from old parent
+        var oldParent = Parent;
+        oldParent?.Children.RemoveWhere(c => c.Id == Id);
+
+        // Set new parent
+        Parent = newParent;
+        newParent.Children.Add(this);
+    }
 }

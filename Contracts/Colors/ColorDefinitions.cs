@@ -4,6 +4,30 @@ namespace Contracts.Colors;
 
 public static class ColorDefinitions
 {
+    /// <summary>
+    /// Claude.ai suggested following colors as used by IDEs like Visual Studio and JetBrains.
+    /// I don't know if this is true but the colors look good.
+    /// 
+    /// Types:
+    /// Namespace: Light Blue(#4EC9B0)
+    /// Class: Bright Yellow (#FFD700)
+    /// Interface: Light Green (#B8D7A3)
+    /// Struct: Light Orange (#FFA500)
+    /// Enum: Purple (#9370DB)
+    /// Method: Blue (#569CD6)
+    /// Property: Teal (#4EC9B0)
+    /// Field: Dark Yellow (#D7BA7D)
+    /// Event: Pink (#FF69B4)
+    /// Delegate: Light Purple (#C586C0)
+    /// 
+    /// Dependencies:
+    /// Inheritance: Dark Green (#008000)
+    /// Implementation: Light Green (#90EE90)
+    /// Calls: Blue (#0000FF)
+    /// Uses: Gray (#808080)
+    /// Creates: Orange (#FFA500)
+    /// Overrides: Dark Blue (#00008B)
+    /// </summary>
     public static int GetRbgOf(CodeElementType codeElement)
     {
         return codeElement switch
