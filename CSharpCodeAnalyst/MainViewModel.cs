@@ -1,4 +1,14 @@
-﻿using CodeParser.Analysis.Cycles;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
+using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Export;
 using CodeParser.Extensions;
@@ -12,25 +22,21 @@ using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.MetricArea;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
     private readonly MessageBus _messaging;
+
+    private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly ApplicationSettings? _settings;
+    private readonly int _warningCodeElementLimitForCycle;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
 
@@ -44,19 +50,17 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private bool _isLoading;
 
-    private string _loadMessage;
-
     private bool _isSaved = true;
+
+    private string _loadMessage;
+    private ObservableCollection<IMetric> _metrics = [];
 
     private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
     private int _selectedTabIndex;
 
     private TreeViewModel? _treeViewModel;
 
-    ProjectExclusionRegExCollection _projectExclusionFilters;
-    private int _warningCodeElementLimitForCycle;
-
-    internal MainViewModel(MessageBus messaging, Configuration.ApplicationSettings? settings)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
         if (settings != null)
         {
@@ -84,12 +88,6 @@ internal class MainViewModel : INotifyPropertyChanged
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
         _loadMessage = string.Empty;
-    }
-
-    private void OpenFilterDialog()
-    {
-        var filterDialog = new FilterDialog(_projectExclusionFilters);
-        filterDialog.ShowDialog();
     }
 
     public CycleSummaryViewModel? CycleSummaryViewModel
@@ -247,8 +245,24 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public ICommand OpenFilterDialogCommand { get; }
 
+    public ObservableCollection<IMetric> Metrics
+    {
+        set
+        {
+            _metrics = value;
+            OnPropertyChanged(nameof(Metrics));
+        }
+        get => _metrics;
+    }
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OpenFilterDialog()
+    {
+        var filterDialog = new FilterDialog(_projectExclusionFilters);
+        filterDialog.ShowDialog();
+    }
 
     private void Search()
     {
@@ -380,7 +394,7 @@ internal class MainViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             MessageBox.Show($"Error finding cycles: {ex.Message}", "Error", MessageBoxButton.OK,
-               MessageBoxImage.Error);
+                MessageBoxImage.Error);
         }
         finally
         {
@@ -473,6 +487,14 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             CycleSummaryViewModel.Clear();
         }
+
+        // Default output: summary of graph
+        var numberOfDependencies = codeGraph.Nodes.Values.SelectMany(n => n.Dependencies).Count();
+        var outputs = new ObservableCollection<IMetric>();
+        outputs.Clear();
+        outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
+        outputs.Add(new MetricOutput("# Dependencies", numberOfDependencies.ToString(CultureInfo.InvariantCulture)));
+        Metrics = outputs;
     }
 
     private async void LoadSolution()
@@ -672,7 +694,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
         if (numberOfElements > _warningCodeElementLimitForCycle)
         {
-            if (MessageBoxResult.Yes != MessageBox.Show($"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?", "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+            if (MessageBoxResult.Yes !=
+                MessageBox.Show(
+                    $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
+                    "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
             {
                 return;
             }
@@ -693,19 +718,21 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             return;
         }
+
         _codeGraph.RemoveCodeElementAndAllChildren(request.Id);
         LoadCodeGraph(_codeGraph);
         _isSaved = false;
     }
 
     /// <summary>
-    /// return true if you allow to close
+    ///     return true if you allow to close
     /// </summary>
     internal bool OnClosing()
     {
         if (_isSaved is false)
         {
-            if (MessageBox.Show("Do you wan't to save the project so you don't have to import it again?", "Save", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show("Do you wan't to save the project so you don't have to import it again?", "Save",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SaveProject();
             }

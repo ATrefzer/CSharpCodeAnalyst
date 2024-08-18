@@ -1,5 +1,4 @@
 ﻿using CodeParser.Analysis.Cycles;
-using CodeParser.Export;
 using Contracts.Graph;
 
 namespace CodeParserTests;

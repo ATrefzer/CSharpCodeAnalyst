@@ -1,4 +1,6 @@
-﻿using CodeParser.Parser;
+﻿using System.IO;
+using System.Windows;
+using CodeParser.Parser;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
@@ -6,8 +8,6 @@ using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using System.Windows;
 
 namespace CSharpCodeAnalyst;
 
@@ -25,7 +25,7 @@ public partial class App
         // Load application settings
         var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            .AddJsonFile("appsettings.json", false, true);
 
         IConfiguration configuration = builder.Build();
         var settings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();

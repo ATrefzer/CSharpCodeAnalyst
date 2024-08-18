@@ -99,15 +99,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         UndoCommand = new DelegateCommand(Undo);
     }
 
-
-    private void Undo()
-    {
-        if (!_viewer.Undo())
-        { 
-            MessageBox.Show("Nothing to undo!", "", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-    }
-
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
 
@@ -164,6 +155,15 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+
+    private void Undo()
+    {
+        if (!_viewer.Undo())
+        {
+            MessageBox.Show("Nothing to undo!", "", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
 
     private void UpdateGraphRenderOption()
     {

@@ -94,7 +94,7 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
             CodeElementType.Interface or
             CodeElementType.Enum or
             CodeElementType.Delegate or
-            CodeElementType.Struct or 
+            CodeElementType.Struct or
             CodeElementType.Record;
     }
 

@@ -27,6 +27,8 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     private readonly IPublisher _publisher;
     private readonly LinkedList<CodeGraph> _undoStack = new();
 
+    private readonly int _undoStackSize = 10;
+
     /// <summary>
     ///     Held to read the help
     /// </summary>
@@ -46,8 +48,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
-
-    private readonly int _undoStackSize = 10;
 
     /// <summary>
     ///     Note:

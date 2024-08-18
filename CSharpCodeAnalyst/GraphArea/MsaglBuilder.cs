@@ -172,7 +172,6 @@ internal class MsaglBuilder
             // No unique styling possible when we collapse multiple edges
             // Mark the multi edges with a bold line
             existingEdge.Attr.AddStyle(Style.Bold);
-
         }
         else
         {

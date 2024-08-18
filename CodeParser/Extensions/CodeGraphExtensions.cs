@@ -1,5 +1,4 @@
-﻿using CodeParser.Analysis.Shared;
-using Contracts.Graph;
+﻿using Contracts.Graph;
 
 namespace CodeParser.Extensions;
 
