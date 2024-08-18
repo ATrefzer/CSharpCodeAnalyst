@@ -1,5 +1,6 @@
 using CodeParser.Analysis.Cycles;
 using CodeParser.Parser;
+using CodeParser.Parser.Config;
 using Contracts.Graph;
 
 namespace CodeParserTests;
@@ -12,7 +13,7 @@ public class CodeParserApprovalTests
     public async Task FixtureSetup()
     {
         Initializer.InitializeMsBuildLocator();
-        var parser = new Parser(new ParserConfig([]));
+        var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection()));
         _graph = await parser.ParseSolution(@"..\..\..\..\SampleProject\SampleProject.sln");
     }
 

@@ -1,7 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using CodeParser.Analysis.Shared;
+﻿using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
 
 namespace CSharpCodeAnalyst.CycleArea;
 
@@ -26,7 +27,7 @@ internal class CycleSummaryViewModel : INotifyPropertyChanged
 
 
     public void HandleCycleCalculationComplete(CycleCalculationComplete result)
-    {
+    {    
         _cycleGroups = result.CycleGroups;
         var vms = _cycleGroups.Select(g => new CycleGroupViewModel(g));
         var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.ElementCount);

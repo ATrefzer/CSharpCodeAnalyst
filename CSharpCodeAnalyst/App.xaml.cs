@@ -1,10 +1,13 @@
-﻿using System.Windows;
-using CodeParser.Parser;
+﻿using CodeParser.Parser;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.TreeArea;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using System.Windows;
 
 namespace CSharpCodeAnalyst;
 
@@ -19,6 +22,15 @@ public partial class App
 
         Initializer.InitializeMsBuildLocator();
 
+        // Load application settings
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+        IConfiguration configuration = builder.Build();
+        var settings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
+
+
         var messaging = new MessageBus();
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
@@ -26,7 +38,7 @@ public partial class App
         var explorationGraphViewer = new DependencyGraphViewer(messaging);
 
         mainWindow.SetViewer(explorationGraphViewer);
-        var viewModel = new MainViewModel(messaging);
+        var viewModel = new MainViewModel(messaging, settings);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer);
         var treeViewModel = new TreeViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();

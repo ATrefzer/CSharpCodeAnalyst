@@ -3,7 +3,6 @@
 
 - Profile cycle detection, make multithreaded or come up with a better solution.
 - Plugin Interface
-- Configuration file with settings
 - Allow override colors (For plugins)
 - Write restriction detection as plugin
 - Recognize Attributes
