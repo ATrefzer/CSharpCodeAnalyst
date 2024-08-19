@@ -35,7 +35,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
-    private readonly ApplicationSettings? _settings;
     private readonly int _warningCodeElementLimitForCycle;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
@@ -62,16 +61,16 @@ internal class MainViewModel : INotifyPropertyChanged
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
+        _projectExclusionFilters = new ProjectExclusionRegExCollection();
+
         if (settings != null)
         {
-            _projectExclusionFilters = new ProjectExclusionRegExCollection();
             _isInfoPanelVisible = settings.DefaultShowQuickHelp;
             _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
             _warningCodeElementLimitForCycle = settings.WarningCodeElementLimitForCycle;
         }
 
         _messaging = messaging;
-        _settings = settings;
         SearchCommand = new DelegateCommand(Search);
         LoadSolutionCommand = new DelegateCommand(LoadSolution);
         LoadProjectCommand = new DelegateCommand(LoadProject);
@@ -430,13 +429,10 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             IsLoading = true;
 
-            var codeStructure = await Task.Run(async () => await LoadAsync(solutionPath));
+            var codeGraph = await Task.Run(async () => await LoadAsync(solutionPath));
 
-            _codeGraph = codeStructure;
-            _treeViewModel?.LoadCodeGraph(_codeGraph);
-            _graphViewModel?.LoadCodeGraph(_codeGraph);
-            _cycleSummaryViewModel?.Clear();
-
+            LoadCodeGraph(codeGraph);
+            
             // Debug output for the parser result.
             //DgmlHierarchyExport.Export(@"d:\test_hierarchy.dgml", codeStructure);
             //DgmlDependencyExport.Export(@"d:\test_dependency.dgml", codeStructure);
