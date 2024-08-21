@@ -6,6 +6,10 @@
 - Write restriction detection as plugin
 - Recognize Attributes
 
+- Do not collapse single node in cycle graph
+- Delete all children
+- Show shortest path
+
 BUGS
 ---------------------
 

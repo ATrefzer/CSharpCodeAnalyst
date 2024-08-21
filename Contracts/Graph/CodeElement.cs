@@ -49,7 +49,6 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     }
 
     /// <summary>
-    ///     Does not include the element itself.
     ///     Index 0 is the root.
     /// </summary>
     public List<CodeElement> GetPathToRoot(bool includeSelf)

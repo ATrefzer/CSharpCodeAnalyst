@@ -1,10 +1,4 @@
-﻿//#define GENERATE_DEBUG_OUTPUT
-
-#if GENERATE_DEBUG_OUTPUT
-    using System.Diagnostics;
-#endif
-
-using Contracts.Colors;
+﻿using Contracts.Colors;
 using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
 
@@ -15,113 +9,15 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class MsaglBuilder
 {
-    private readonly Dictionary<(string, string), Edge> _edges = new();
-
-    public Graph CreateGraphFromCodeStructure(CodeGraph codeGraph, bool showFlatGraph)
+    public Graph CreateGraphFromCodeStructure(CodeGraph codeGraph, PresentationState presentationState,
+        bool showFlatGraph)
     {
         if (showFlatGraph)
         {
             return CreateGraphFromCodeStructureFlat(codeGraph);
         }
 
-        return CreateGraphFromCodeStructureHierarchical(codeGraph);
-    }
-
-    private Graph CreateGraphFromCodeStructureHierarchical(CodeGraph codeGraph)
-    {
-        // Since we start with a fresh graph we don't need to check for existing nodes and edges.
-
-        _edges.Clear();
-
-        var graph = new Graph("graph");
-
-        // Pre create all sub-graphs.
-        var subGraphs = codeGraph.Nodes.Values
-            .Where(n => n.Children.Any())
-            .Select(n => new Subgraph(n.Id))
-            .ToDictionary(s => s.Id, s => s);
-
-
-        // Label the sub-graphs
-        foreach (var subgraph in subGraphs.Values)
-        {
-            // Works
-            var node = codeGraph.Nodes[subgraph.Id];
-            subgraph.Attr.FillColor = Color.AliceBlue;
-            subgraph.LabelText = node.Name;
-            subgraph.UserData = node;
-            subgraph.Attr.FillColor = GetColor(node);
-        }
-
-#if GENERATE_DEBUG_OUTPUT
-        Debug.WriteLine("Create sub graphs");
-        Debug.WriteLine("var dict = new Dictionary<string, Subgraph>();");
-        Debug.WriteLine("Subgraph subGraph = null;");
-        Debug.WriteLine("Subgraph parentSubGraph = null;");
-        Debug.WriteLine("Node newNode = null;");
-        Debug.WriteLine("var graph = new Graph(\"test\");");
-        foreach (var subGraph in subGraphs.Values)
-        {
-            Debug.WriteLine($"subGraph = new Subgraph(\"{subGraph.LabelText}\");");
-            Debug.WriteLine("dict.Add(subGraph.Id, subGraph);");
-        }
-#endif
-
-
-        // Add nodes and sub graphs. Each node that has children becomes a subgraph.
-        foreach (var node in codeGraph.Nodes.Values)
-        {
-            if (subGraphs.TryGetValue(node.Id, out var subGraph))
-            {
-                // Container nodes
-                if (node.Parent == null)
-                {
-#if GENERATE_DEBUG_OUTPUT
-                    Debug.WriteLine($"graph.RootSubgraph.AddSubgraph(dict[\"{subGraph.LabelText}\"]);");
-#endif
-                    graph.RootSubgraph.AddSubgraph(subGraph);
-                }
-                else
-                {
-#if GENERATE_DEBUG_OUTPUT
-                    Debug.WriteLine($"parentSubGraph = dict[\"{node.Parent.Name}\"]");
-                    Debug.WriteLine($"parentSubGraph.AddSubgraph(dict[\"{subGraph.LabelText}\"]);");
-#endif
-                    var parentSubGraph = subGraphs[node.Parent.Id];
-                    parentSubGraph.AddSubgraph(subGraph);
-                }
-            }
-            else
-            {
-                // Non container nodes
-                var newNode = CreateNode(graph, node);
-                if (node.Parent != null)
-                {
-#if GENERATE_DEBUG_OUTPUT
-                    Debug.WriteLine($"newNode = graph.AddNode(\"{newNode.LabelText}\");");
-                    Debug.WriteLine($"parentSubGraph = dict[\"{node.Parent.Name}\"];");
-                    Debug.WriteLine("parentSubGraph.AddNode(newNode);");
-#endif
-                    var parentSubGraph = subGraphs[node.Parent.Id];
-                    parentSubGraph.AddNode(newNode);
-                }
-            }
-        }
-
-        // Add edges
-        codeGraph.DfsHierarchy(AddDependenciesFunc);
-
-        _edges.Clear();
-        return graph;
-
-
-        void AddDependenciesFunc(CodeElement element)
-        {
-            foreach (var dependency in element.Dependencies)
-            {
-                CreateEdgeForHierarchicalStructure(graph, dependency);
-            }
-        }
+        return CreateGraphFromCodeStructureHierarchical(codeGraph, presentationState);
     }
 
     private Graph CreateGraphFromCodeStructureFlat(CodeGraph codeGraph)
@@ -156,41 +52,190 @@ internal class MsaglBuilder
         }
     }
 
-    private void CreateEdgeForHierarchicalStructure(Graph graph, Dependency dependency)
+    private Graph CreateGraphFromCodeStructureHierarchical(CodeGraph codeGraph, PresentationState presentationState)
     {
-        // MSAGL does not allow two same edges with different labels to the same subgraph.
-        // So I collapse them to a single one that carries all the user data and merge the labels.
+        var visibleGraph = GetVisibleGraph(codeGraph, presentationState);
+        var graph = new Graph("graph");
+        var subGraphs = CreateSubGraphs(codeGraph, visibleGraph);
 
-        var key = (dependency.SourceId, dependency.TargetId);
-        if (_edges.TryGetValue(key, out var existingEdge))
+        AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs);
+        AddEdgesToHierarchicalGraph(graph, codeGraph, visibleGraph);
+
+        return graph;
+    }
+
+    private CodeGraph GetVisibleGraph(CodeGraph codeGraph, PresentationState state)
+    {
+        var visibleGraph = new CodeGraph();
+        var roots = codeGraph.Nodes.Values.Where(n => n.Parent is null);
+        foreach (var root in roots)
         {
-            var userData = (List<Dependency>)existingEdge.UserData;
-            userData.Add(dependency);
+            CollectVisibleNodes(root, state, visibleGraph);
+        }
 
-            existingEdge.LabelText = "*";
+        // Graph has no dependencies yet.
+        return visibleGraph;
+    }
 
-            // No unique styling possible when we collapse multiple edges
-            // Mark the multi edges with a bold line
-            existingEdge.Attr.AddStyle(Style.Bold);
+    private void CollectVisibleNodes(CodeElement root, PresentationState state, CodeGraph visibleGraph)
+    {
+        visibleGraph.IntegrateCodeElementFromOriginal(root);
+
+        if (state.IsCollapsed(root.Id))
+        {
+            // Children are not visible
+            return;
+        }
+
+        foreach (var child in root.Children)
+        {
+            CollectVisibleNodes(child, state, visibleGraph);
+        }
+    }
+
+
+    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
+        Dictionary<string, Subgraph> subGraphs)
+    {
+        // Add nodes and sub graphs. Each node that has children becomes a subgraph.
+        foreach (var visibleNode in visibleGraph.Nodes.Values)
+        {
+            if (subGraphs.TryGetValue(visibleNode.Id, out var subGraph))
+            {
+                // Container nodes
+                AddSubgraphToParent(graph, visibleNode, subGraph, subGraphs);
+            }
+            else
+            {
+                // Non container nodes
+
+                // We need to assign the node without visibility restrictions.
+                // The collapse/expand context menu handler needs the children.
+                AddNodeToParent(graph, codeGraph.Nodes[visibleNode.Id], subGraphs);
+            }
+        }
+    }
+
+    private void AddSubgraphToParent(Graph graph, CodeElement visibleNode, Subgraph subGraph,
+        Dictionary<string, Subgraph> subGraphs)
+    {
+        if (visibleNode.Parent == null)
+        {
+            graph.RootSubgraph.AddSubgraph(subGraph);
         }
         else
         {
+            subGraphs[visibleNode.Parent.Id].AddSubgraph(subGraph);
+        }
+    }
+
+    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs)
+    {
+        var newNode = CreateNode(graph, node);
+        if (node.Parent != null)
+        {
+            subGraphs[node.Parent.Id].AddNode(newNode);
+        }
+    }
+
+    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph)
+    {
+        var dependencies = GetCollapsedDependencies(codeGraph, visibleGraph);
+        foreach (var dependency in dependencies)
+        {
+            CreateEdgeForHierarchicalStructure(graph, dependency);
+        }
+    }
+
+    private Dictionary<(string, string), List<Dependency>> GetCollapsedDependencies(CodeGraph codeGraph,
+        CodeGraph visibleGraph)
+    {
+        var allDependencies = codeGraph.GetAllDependencies();
+        var dependencies = new Dictionary<(string, string), List<Dependency>>();
+
+        foreach (var dependency in allDependencies)
+        {
+            // Move edges to collapsed nodes.
+            var source = GetHighestVisibleParentOrSelf(dependency.SourceId, codeGraph, visibleGraph);
+            var target = GetHighestVisibleParentOrSelf(dependency.TargetId, codeGraph, visibleGraph);
+
+            if (!dependencies.TryGetValue((source, target), out var list))
+            {
+                list = new List<Dependency>();
+                dependencies[(source, target)] = list;
+            }
+
+            list.Add(dependency);
+        }
+
+        return dependencies;
+    }
+
+    /// <summary>
+    ///     Pre-creates all sub-graphs
+    /// </summary>
+    private Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph)
+    {
+        return visibleGraph.Nodes.Values
+            .Where(n => visibleGraph.Nodes[n.Id].Children.Any())
+            .ToDictionary(n => n.Id, n => new Subgraph(n.Id)
+            {
+                LabelText = n.Name,
+                UserData = codeGraph.Nodes[n.Id],
+                Attr = { FillColor = GetColor(n) }
+            });
+    }
+
+    private string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
+    {
+        // Assume the parent is always visible!
+        var current = codeGraph.Nodes[id];
+        while (current != null && visibleGraph.Nodes.Keys.Contains(current.Id) is false)
+        {
+            current = current.Parent;
+        }
+
+        if (current is null)
+        {
+            throw new NullReferenceException("No visible parent found!");
+        }
+
+        return current.Id;
+    }
+
+    private void CreateEdgeForHierarchicalStructure(Graph graph,
+        KeyValuePair<(string source, string target), List<Dependency>> mappedDependency)
+    {
+        // MSAGL does not allow two same edges with different labels to the same subgraph.
+        // So I collapse them to a single one that carries all the user data.
+
+        var dependencies = mappedDependency.Value;
+        if (mappedDependency.Value.Count == 1 && mappedDependency.Key.source == dependencies[0].SourceId &&
+            mappedDependency.Key.target == dependencies[0].TargetId)
+        {
+            // Single, unmapped dependency
+            var dependency = dependencies[0];
             var edge = graph.AddEdge(dependency.SourceId, dependency.TargetId);
 
-#if GENERATE_DEBUG_OUTPUT
-            var sourceName = codeGraph.Nodes[dependency.SourceId].Name;
-            var targetName = codeGraph.Nodes[dependency.TargetId].Name;
-            Debug.WriteLine($"graph.AddEdge(\"{sourceName}\", \"{targetName}\");");
-#endif
             edge.LabelText = GetLabelText(dependency);
             if (dependency.Type == DependencyType.Implements)
             {
                 edge.Attr.AddStyle(Style.Dotted);
             }
 
-            edge.Attr.AddStyle(Style.Rounded);
             edge.UserData = new List<Dependency> { dependency };
-            _edges.Add(key, edge);
+        }
+        else
+        {
+            // More than one or mapped to collapsed container.
+            var edge = graph.AddEdge(mappedDependency.Key.source, mappedDependency.Key.target);
+
+            edge.UserData = dependencies;
+            edge.LabelText = dependencies.Count.ToString();
+
+            // No unique styling possible when we collapse multiple edges
+            // Mark the multi edges with a bold line
+            edge.Attr.AddStyle(Style.Bold);
         }
     }
 

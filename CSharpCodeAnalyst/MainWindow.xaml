@@ -80,8 +80,8 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Reset" LargeImageSource="/Resources/four-arrows_32.png"
-                                  Command="{Binding GraphResetZoomCommand}">
+                    <RibbonButton Label="Layout" LargeImageSource="/Resources/four-arrows_32.png"
+                                  Command="{Binding GraphLayoutCommand}">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="Resets zoom level and fits to screen" />
                         </RibbonButton.ToolTip>

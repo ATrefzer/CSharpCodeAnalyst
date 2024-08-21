@@ -18,6 +18,7 @@ public class Dependency(string sourceId, string targetId, DependencyType type)
             return false;
         }
 
+        // Yes source, target and type are unique. For this triple we store all source locations.
         return
             SourceId == other.SourceId &&
             TargetId == other.TargetId &&
