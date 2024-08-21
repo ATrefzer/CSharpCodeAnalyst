@@ -75,7 +75,13 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor",
             "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load",
             "CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load",
-            "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.Method"
+            "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.Method",
+
+            // Extension method
+            "CSharpLanguage.CSharpLanguage.Extensions.Slice", 
+
+            // Called by extension method
+            "CSharpLanguage.CSharpLanguage.TheExtendedType.Do"
         };
 
 

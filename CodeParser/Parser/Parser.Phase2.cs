@@ -109,6 +109,13 @@ public partial class Parser
             AddTypeDependency(methodElement, methodSymbol.ReturnType, DependencyType.Uses);
         }
 
+        //if (methodSymbol.IsExtensionMethod)
+        //{
+        //    // The first parameter of an extension method is the extended type
+        //    var extendedType = methodSymbol.Parameters[0].Type;
+        //    AddTypeDependency(methodElement, extendedType, DependencyType.Uses);
+        //}
+
         // If this method is an interface method or an abstract method, find its implementations
         if (methodSymbol.IsAbstract || methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
@@ -300,10 +307,15 @@ public partial class Parser
         }
     }
 
-
     private void AddCallsDependency(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
     {
         //Trace.WriteLine($"Adding call dependency: {sourceElement.Name} -> {methodSymbol.Name}");
+
+        if (methodSymbol.IsExtensionMethod)
+        {
+            // Handle calls to extension methods
+            methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
+        }
 
         if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(methodSymbol), out var targetElement))
         {
@@ -414,6 +426,8 @@ public partial class Parser
     private void AnalyzeExpressionBody(CodeElement sourceElement, ArrowExpressionClauseSyntax expressionBody,
         SemanticModel semanticModel)
     {
+        // TODO atr. Can we just call AnalyzeMethodBody?
+        // The InvocationExpressionSyntax handles more cases here. But all other methods are also handled in AnalyzeMethodBody
         AnalyzeExpression(sourceElement, expressionBody.Expression, semanticModel);
     }
 
