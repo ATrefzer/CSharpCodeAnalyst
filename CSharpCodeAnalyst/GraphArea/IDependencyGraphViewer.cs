@@ -19,7 +19,7 @@ internal interface IDependencyGraphViewer
     /// <summary>
     ///     Renders the graph and re-layouts it.
     /// </summary>
-    void Reset();
+    void Layout();
 
     /// <summary>
     ///     Note:
@@ -36,4 +36,5 @@ internal interface IDependencyGraphViewer
     void SetHighlightMode(HighlightMode valueMode);
     void ShowGlobalContextMenu();
     bool Undo();
+    void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies);
 }

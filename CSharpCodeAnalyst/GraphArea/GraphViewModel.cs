@@ -238,9 +238,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.Clear();
     }
 
-    internal void ResetZoom()
+    internal void Layout()
     {
-        _viewer.Reset();
+        _viewer.Layout();
     }
 
     internal void FindIncomingCalls(CodeElement method)
@@ -324,5 +324,10 @@ internal class GraphViewModel : INotifyPropertyChanged
     public void ShowGlobalContextMenu()
     {
         _viewer.ShowGlobalContextMenu();
+    }
+
+    public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
+    {
+        _viewer.ImportCycleGroup(codeElements, dependencies);
     }
 }

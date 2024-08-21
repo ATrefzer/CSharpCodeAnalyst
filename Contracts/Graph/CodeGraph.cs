@@ -21,8 +21,7 @@ public class CodeGraph
     /// </summary>
     public void RemoveCodeElement(string elementId)
     {
-        RemoveCodeElements(new HashSet<string>
-            { elementId });
+        RemoveCodeElements(new HashSet<string>() { elementId });
     }
 
     /// <summary>
@@ -32,10 +31,9 @@ public class CodeGraph
     public void RemoveCodeElements(HashSet<string> elementIds)
     {
         foreach (var elementId in elementIds)
-        {
-            Nodes.Remove(elementId);
+        { 
+            Nodes.Remove(elementId); 
         }
-
         DfsHierarchy(CleanupFunc);
         return;
 
@@ -107,5 +105,10 @@ public class CodeGraph
 
         Nodes.TryAdd(newElement.Id, newElement);
         return newElement;
+    }
+
+    public IEnumerable<Dependency> GetAllDependencies()
+    {
+        return Nodes.Values.SelectMany(n => n.Dependencies).ToList();
     }
 }

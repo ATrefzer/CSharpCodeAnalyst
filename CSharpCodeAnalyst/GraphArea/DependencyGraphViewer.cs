@@ -11,6 +11,7 @@ using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.WpfGraphControl;
 using Color = Microsoft.Msagl.Drawing.Color;
+using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -20,12 +21,13 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
 ///     in the parser. In this case the dependency holds all source references.
 /// </summary>
-internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
+internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
     private readonly List<IContextCommand> _contextCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
     private readonly IPublisher _publisher;
-    private readonly LinkedList<CodeGraph> _undoStack = new();
+
+    private readonly LinkedList<UndoState> _undoStack = new();
 
     private readonly int _undoStackSize = 10;
 
@@ -45,6 +47,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     private IViewerEdge? _lastHighlightedEdge;
 
     private GraphViewer? _msaglViewer;
+    private PresentationState _presentationState = new();
 
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
@@ -77,19 +80,12 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
-    /// <summary>
-    ///     Adding an existing element or dependency is prevented.
-    ///     Note from the originalCodeElement we don't add parent or children.
-    ///     We just use this information to integrate the node into the existing canvas.
-    /// </summary>
-    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> newDependencies)
+    private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> newDependencies)
     {
         if (_msaglViewer is null)
         {
             return;
         }
-
-        PushUndo();
 
         IntegrateNewFromOriginal(originalCodeElements);
 
@@ -104,12 +100,28 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
+    /// <summary>
+    ///     Adding an existing element or dependency is prevented.
+    ///     Note from the originalCodeElement we don't add parent or children.
+    ///     We just use this information to integrate the node into the existing canvas.
+    /// </summary>
+    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> newDependencies)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        PushUndo();
+        AddToGraphInternal(originalCodeElements, newDependencies);
+    }
+
     public void AddContextCommand(IContextCommand command)
     {
         _contextCommands.Add(command);
     }
 
-    public void Clear()
+    private void Clear(bool withUndoStack)
     {
         if (_msaglViewer is null)
         {
@@ -117,12 +129,27 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
 
         _clonedCodeGraph = new CodeGraph();
-        _undoStack.Clear();
+
+        if (withUndoStack)
+        {
+            ClearUndo();
+        }
+
+        // Nothing collapsed by default
+        _presentationState = new PresentationState();
         RefreshGraph();
     }
+    public void Clear()
+    {
+      Clear(true);
+    }
 
+    private void ClearUndo()
+    {
+        _undoStack.Clear();
+    }
 
-    public void Reset()
+    public void Layout()
     {
         //_msaglViewer?.SetInitialTransform();
         RefreshGraph();
@@ -187,6 +214,8 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         globalContextMenu.IsOpen = true;
     }
 
+
+  
     public bool Undo()
     {
         if (_undoStack.Any() is false)
@@ -194,10 +223,25 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             return false;
         }
 
-        _clonedCodeGraph = _undoStack.First();
+        var state = _undoStack.First();       
         _undoStack.RemoveFirst();
+
+        _clonedCodeGraph = state.CodeGraph;
+        _presentationState = state.PresentationState;
+
         RefreshGraph();
         return true;
+    }
+
+    public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
+    {
+        PushUndo();
+        Clear(false);
+
+        // Everything is collapsed by default. This allows to import large graphs.
+        var defaultState = codeElements.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
+        _presentationState = new PresentationState(defaultState);
+        AddToGraphInternal(codeElements, dependencies);
     }
 
 
@@ -211,7 +255,8 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             _undoStack.RemoveLast();
         }
 
-        _undoStack.AddFirst(_clonedCodeGraph.Clone(null, null));
+        var state = new UndoState(_clonedCodeGraph.Clone(null, null), _presentationState.Clone());
+        _undoStack.AddFirst(state);
     }
 
     private void ClearEdgeColoring()
@@ -264,7 +309,8 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     {
         if (_msaglViewer != null)
         {
-            var graph = _msaglBuilder.CreateGraphFromCodeStructure(_clonedCodeGraph, _showFlatGraph);
+            var graph = _msaglBuilder.CreateGraphFromCodeStructure(_clonedCodeGraph, _presentationState,
+                _showFlatGraph);
 
             _renderOption.Apply(graph);
             _msaglViewer.Graph = graph;
@@ -400,18 +446,38 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             var node = clickedObject.Node;
             var contextMenu = new ContextMenu();
 
-            var addParentMenuItem = new MenuItem { Header = "Add parent" };
-            addParentMenuItem.Click += (_, _) => AddParentRequest(node);
+            MenuItem item = null;
+            if (node.UserData is CodeElement codeElement)
+            {
+                if (_presentationState.IsCollapsed(codeElement.Id) &&
+                    codeElement.Children.Any())
+                {
+                    item = new MenuItem { Header = "Expand" };
+                    item.Click += (_, _) => Expand(codeElement.Id);
+                    contextMenu.Items.Add(item);
+                }
 
-            var findInTreeMenuItem = new MenuItem { Header = "Find in Tree" };
-            findInTreeMenuItem.Click += (_, _) => FindInTree(node);
+                if (!_presentationState.IsCollapsed(codeElement.Id) &&
+                    codeElement.Children.Any())
+                {
+                    item = new MenuItem { Header = "Collapse" };
+                    item.Click += (_, _) => Collapse(codeElement.Id);
+                    contextMenu.Items.Add(item);
+                }
+            }
 
-            var deleteMenuItem = new MenuItem { Header = "Delete Node" };
-            deleteMenuItem.Click += (_, _) => DeleteNode(node);
+            item = new MenuItem { Header = "Delete Node" };
+            item.Click += (_, _) => DeleteNode(node);
+            contextMenu.Items.Add(item);
 
-            contextMenu.Items.Add(deleteMenuItem);
-            contextMenu.Items.Add(findInTreeMenuItem);
-            contextMenu.Items.Add(addParentMenuItem);
+            item = new MenuItem { Header = "Find in Tree" };
+            item.Click += (_, _) => FindInTree(node);
+            contextMenu.Items.Add(item);
+
+            item = new MenuItem { Header = "Add parent" };
+            item.Click += (_, _) => AddParentRequest(node);
+            contextMenu.Items.Add(item);
+
             contextMenu.Items.Add(new Separator());
             var lastItemIsSeparator = true;
 
@@ -449,6 +515,21 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         {
             e.Handled = false;
         }
+    }
+
+    private void Collapse(string id)
+    {
+        PushUndo();
+        _presentationState.SetCollapsedState(id, true);
+        RefreshGraph();
+    }
+
+    private void Expand(string id)
+    {
+        PushUndo();
+        _presentationState.SetCollapsedState(id, false);
+
+        RefreshGraph();
     }
 
     private void DeleteAllMarkedElements()

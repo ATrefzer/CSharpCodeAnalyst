@@ -130,7 +130,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         ArgumentNullException.ThrowIfNull(codeGraph);
         ArgumentNullException.ThrowIfNull(element);
 
-        var dependencies = codeGraph.Nodes.Values.SelectMany(n => n.Dependencies)
+        var dependencies = codeGraph.GetAllDependencies()
             .Where(d => (d.Type == DependencyType.Overrides ||
                          d.Type == DependencyType.Implements) &&
                         d.TargetId == element.Id).ToList();

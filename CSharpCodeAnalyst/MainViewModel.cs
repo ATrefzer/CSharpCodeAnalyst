@@ -35,7 +35,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
-    private readonly int _warningCodeElementLimitForCycle;
+    private readonly int _warningCodeElementLimit;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
 
@@ -67,7 +67,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _isInfoPanelVisible = settings.DefaultShowQuickHelp;
             _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
-            _warningCodeElementLimitForCycle = settings.WarningCodeElementLimitForCycle;
+            _warningCodeElementLimit = settings.WarningCodeElementLimit;
         }
 
         _messaging = messaging;
@@ -76,7 +76,7 @@ internal class MainViewModel : INotifyPropertyChanged
         LoadProjectCommand = new DelegateCommand(LoadProject);
         SaveProjectCommand = new DelegateCommand(SaveProject);
         GraphClearCommand = new DelegateCommand(GraphClear);
-        GraphResetZoomCommand = new DelegateCommand(GraphResetZoom);
+        GraphLayoutCommand = new DelegateCommand(GraphLayout);
         ExportToDgmlCommand = new DelegateCommand(ExportToDgml);
         ExportToSvgCommand = new DelegateCommand(ExportToSvg);
         FindCyclesCommand = new DelegateCommand(FindCycles);
@@ -185,7 +185,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
-    public ICommand GraphResetZoomCommand { get; }
+    public ICommand GraphLayoutCommand { get; }
 
     public ICommand ExportToDgmlCommand { get; }
 
@@ -408,9 +408,9 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void GraphResetZoom()
+    private void GraphLayout()
     {
-        _graphViewModel?.ResetZoom();
+        _graphViewModel?.Layout();
     }
 
     private void GraphClear()
@@ -485,7 +485,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         // Default output: summary of graph
-        var numberOfDependencies = codeGraph.Nodes.Values.SelectMany(n => n.Dependencies).Count();
+        var numberOfDependencies = codeGraph.GetAllDependencies().Count();
         var outputs = new ObservableCollection<IMetric>();
         outputs.Clear();
         outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
@@ -686,24 +686,24 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var graph = vm.CycleGroup.CodeGraph;
         var codeElements = graph.Nodes.Values;
-        var numberOfElements = codeElements.Count();
 
-        if (numberOfElements > _warningCodeElementLimitForCycle)
-        {
-            if (MessageBoxResult.Yes !=
-                MessageBox.Show(
-                    $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
-                    "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
-            {
-                return;
-            }
-        }
+        // Meanwhile we collapse the graph.
+        //var numberOfElements = codeElements.Count();
+        //if (numberOfElements > _warningCodeElementLimit)
+        //{
+        //    if (MessageBoxResult.Yes !=
+        //        MessageBox.Show(
+        //            $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
+        //            "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
+        //    {
+        //        return;
+        //    }
+        //}
 
         var dependencies = new List<Dependency>();
         graph.DfsHierarchy(n => dependencies.AddRange(n.Dependencies));
 
-        GraphViewModel?.Clear();
-        GraphViewModel?.AddToGraph(codeElements, dependencies);
+        GraphViewModel?.ImportCycleGroup(codeElements.ToList(), dependencies);
 
         SelectedTabIndex = 0;
     }
