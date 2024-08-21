@@ -1,6 +1,7 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+- Investigate self circles in cycles. Where do they come from?
 - Plugin Interface
 - Allow override colors (For plugins)
 - Write restriction detection as plugin
@@ -9,6 +10,8 @@
 - Do not collapse single node in cycle graph
 - Delete all children
 - Show shortest path
+- Highlight of aggregated edges takes too long. If quick help not visible skip?
+
 
 BUGS
 ---------------------
