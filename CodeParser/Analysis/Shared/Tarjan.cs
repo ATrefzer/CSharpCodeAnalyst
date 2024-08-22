@@ -1,41 +1,49 @@
-﻿namespace CodeParser.Analysis.Shared;
+﻿using GraphLib.Contracts;
 
-public class Scc
+namespace GraphLib.Algorithms.StronglyConnectedComponents;
+
+/// <summary>
+///     Returns the strongly connected components.
+///     Cycles are restricted by these components.
+/// </summary>
+public class Scc<TVertex>
 {
-    public HashSet<SearchNode> Vertices { get; } = [];
+    public HashSet<TVertex> Vertices = new();
 }
 
 public static class Tarjan
 {
     /// <summary>
-    ///     O(|E| + |V|)
+    /// O(|E| + |V|)
     /// </summary>
-    public static List<Scc> FindStronglyConnectedComponents(List<SearchNode> graph)
+    public static List<Scc<TVertex>> FindStronglyConnectedComponents<TVertex>(IGraphRepresentation<TVertex> graph)
+        where TVertex : notnull
     {
-        var sccs = new List<Scc>();
+        var sccs = new List<Scc<TVertex>>();
 
-        var idMap = new Dictionary<SearchNode, int>();
-        var lowMap = new Dictionary<SearchNode, int>();
-        var stack = new Stack<SearchNode>();
-        var inStack = new HashSet<SearchNode>();
+        var idMap = new Dictionary<TVertex, int>();
+        var lowMap = new Dictionary<TVertex, int>();
+        var stack = new Stack<TVertex>();
+        var inStack = new HashSet<TVertex>();
 
-        foreach (var vertex in graph)
+        foreach (var vertex in graph.GetVertices())
         {
             if (!idMap.ContainsKey(vertex))
             {
-                Dfs(vertex, idMap, lowMap, stack, inStack, sccs);
+                Dfs(graph, vertex, idMap, lowMap, stack, inStack, sccs);
             }
         }
 
         return sccs;
     }
 
-    private static void Dfs(SearchNode u,
-        Dictionary<SearchNode, int> idMap,
-        Dictionary<SearchNode, int> lowMap,
-        Stack<SearchNode> stack,
-        HashSet<SearchNode> inStack, // visited
-        List<Scc> sccs)
+    private static void Dfs<TVertex>(IGraphRepresentation<TVertex> graph,
+        TVertex u,
+        Dictionary<TVertex, int> idMap,
+        Dictionary<TVertex, int> lowMap,
+        Stack<TVertex> stack,
+        HashSet<TVertex> inStack, // visited
+        List<Scc<TVertex>> sccs) where TVertex : notnull
 
 
     {
@@ -45,12 +53,12 @@ public static class Tarjan
         stack.Push(u);
         inStack.Add(u);
 
-        foreach (var v in u.Dependencies)
+        foreach (var v in graph.GetNeighbors(u))
         {
             if (idMap.ContainsKey(v) is false)
             {
                 // Unvisited vertex
-                Dfs(v, idMap, lowMap, stack, inStack, sccs);
+                Dfs(graph, v, idMap, lowMap, stack, inStack, sccs);
                 lowMap[u] = Math.Min(lowMap[u], lowMap[v]);
             }
             else if (inStack.Contains(v))
@@ -64,7 +72,7 @@ public static class Tarjan
         if (lowMap[u] == idMap[u])
         {
             // Vertex is root of SCC.
-            var scc = new Scc();
+            var scc = new Scc<TVertex>();
             while (stack.Any())
             {
                 var popped = stack.Pop();

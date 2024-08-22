@@ -3,9 +3,10 @@ using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
 
-public class SearchGraphBuilder
+public partial class SearchGraphBuilder
 {
-    public static List<SearchNode> BuildSearchGraph(CodeGraph codeGraph)
+
+    public static SearchGraph BuildSearchGraph(CodeGraph codeGraph)
     {
         var searchNodes = new Dictionary<string, SearchNode>();
 
@@ -41,7 +42,7 @@ public class SearchGraphBuilder
             searchSource.Dependencies.Add(searchTarget);
         }
 
-        return searchNodes.Values.ToList();
+        return new SearchGraph(searchNodes.Values.ToList());
     }
 
     private static bool IsMethod(CodeGraph codeGraph, string id)

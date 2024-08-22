@@ -20,7 +20,7 @@ public class CodeGraphGeneratorTests
         originalGraph.Nodes["B"] = classB;
 
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
-        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph, originalGraph);
+        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
         Assert.AreEqual(2, detailedGraph.Nodes.Count);
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A"));
@@ -47,7 +47,7 @@ public class CodeGraphGeneratorTests
         originalGraph.Nodes["B.M"] = methodB;
 
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
-        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph, originalGraph);
+        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
         Assert.AreEqual(4, detailedGraph.Nodes.Count);
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A"));
@@ -79,7 +79,7 @@ public class CodeGraphGeneratorTests
         originalGraph.Nodes["B.M"] = methodB;
 
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
-        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph, originalGraph);
+        var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
         Assert.AreEqual(5, detailedGraph.Nodes.Count);
         Assert.AreEqual(1, detailedGraph.Nodes["A.M1"].Dependencies.Count);

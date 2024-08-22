@@ -1,5 +1,6 @@
 ﻿using CodeParser.Analysis.Shared;
 using Contracts.Graph;
+using GraphLib.Algorithms.StronglyConnectedComponents;
 
 namespace CodeParser.Analysis.Cycles;
 
@@ -35,7 +36,7 @@ public class CycleFinder
     ///     When determining the SCC we collected the relevant nodes, but did not
     ///     remove the orphaned dependencies, yet.
     /// </summary>
-    private static void RemoveOrphanedDependencies(Scc scc)
+    private static void RemoveOrphanedDependencies(Scc<SearchNode> scc)
     {
         var existingIds = scc.Vertices.Select(v => v.Id).ToHashSet();
         foreach (var vertex in scc.Vertices)
