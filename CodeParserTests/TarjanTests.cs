@@ -1,4 +1,6 @@
-﻿using CodeParser.Analysis.Shared;
+﻿using CodeParser.Analysis.Cycles;
+using CodeParser.Analysis.Shared;
+using GraphLib.Algorithms.StronglyConnectedComponents;
 
 namespace CodeParserTests;
 
@@ -18,7 +20,7 @@ public class TarjanTests
 
         var graph = new List<SearchNode> { nodeA, nodeB, nodeC };
 
-        var sccs = Tarjan.FindStronglyConnectedComponents(graph);
+        var sccs = Tarjan.FindStronglyConnectedComponents(new SearchGraph(graph));
 
         Assert.AreEqual(1, sccs.Count);
         Assert.AreEqual(3, sccs[0].Vertices.Count);

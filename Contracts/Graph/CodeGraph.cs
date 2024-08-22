@@ -1,8 +1,13 @@
-﻿namespace Contracts.Graph;
+﻿using GraphLib.Contracts;
+using System.Reflection.Metadata.Ecma335;
 
-public class CodeGraph
+namespace Contracts.Graph;
+
+public class CodeGraph : IGraphRepresentation<CodeElement>
 {
     public Dictionary<string, CodeElement> Nodes = new();
+
+    public uint VertexCount => (uint)Nodes.Count();
 
     public CodeElement? TryGetCodeElement(string? id)
     {
@@ -110,5 +115,25 @@ public class CodeGraph
     public IEnumerable<Dependency> GetAllDependencies()
     {
         return Nodes.Values.SelectMany(n => n.Dependencies).ToList();
+    }
+
+    public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
+    {
+        return vertex.Dependencies.Select(d => Nodes[d.TargetId]).ToList();
+    }
+
+    public bool IsVertex(CodeElement vertex)
+    {
+        return Nodes.ContainsKey(vertex.Id);
+    }
+
+    public bool IsEdge(CodeElement source, CodeElement target)
+    {
+        return Nodes[source.Id].Dependencies.Any(d => d.TargetId == target.Id);
+    }
+
+    public IReadOnlyCollection<CodeElement> GetVertices()
+    {
+        return Nodes.Values;
     }
 }
