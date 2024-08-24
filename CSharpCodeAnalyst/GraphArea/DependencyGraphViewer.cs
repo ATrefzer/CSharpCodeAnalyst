@@ -1,16 +1,16 @@
-﻿using System.ComponentModel;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Windows.Controls;
-using System.Windows.Input;
-using CodeParser.Extensions;
+﻿using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.GraphArea.Highlighig;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.WpfGraphControl;
-using Color = Microsoft.Msagl.Drawing.Color;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
@@ -35,20 +35,10 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
     ///     Held to read the help
     /// </summary>
     private IViewerObject? _clickedObject;
-
     private CodeGraph _clonedCodeGraph = new();
-
-
     private IQuickInfoFactory? _factory;
-
-    private HighlightMode _highlightMode;
-    private Color _lastHighlightedColor;
-
-    private IViewerEdge? _lastHighlightedEdge;
-
     private GraphViewer? _msaglViewer;
     private PresentationState _presentationState = new();
-
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
 
@@ -64,7 +54,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         _msaglBuilder = new MsaglBuilder();
         SetHighlightMode(HighlightMode.EdgeHovered);
     }
-
     public void Bind(Panel graphPanel)
     {
         _msaglViewer = new GraphViewer();
@@ -95,7 +84,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             var sourceElement = _clonedCodeGraph.Nodes[newDependency.SourceId];
             sourceElement.Dependencies.Add(newDependency);
         }
-
 
         RefreshGraph();
     }
@@ -141,9 +129,8 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
     }
     public void Clear()
     {
-      Clear(true);
+        Clear(true);
     }
-
     private void ClearUndo()
     {
         _undoStack.Clear();
@@ -179,10 +166,23 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
 
     public void SetHighlightMode(HighlightMode valueMode)
     {
-        _highlightMode = valueMode;
-        ClearEdgeColoring();
+        _activeHighlighting?.Clear(_msaglViewer);
+        switch (valueMode)
+        {
+            case HighlightMode.EdgeHovered:
+                _activeHighlighting = new EdgeHoveredHighlighting();
+                break;
+            case HighlightMode.OutgoingEdgesChildrenAndSelf:
+                _activeHighlighting = new OutgointEdgesOfChildrenAndSelfHighlighting();
+                break;
+            case HighlightMode.ShortestNonSelfCircuit:
+                _activeHighlighting = new HighligtShortestNonSelfCircuit();
+                break;
+            default:
+                _activeHighlighting = new EdgeHoveredHighlighting();
+                break;
+        }
     }
-
 
     public void SetQuickInfoFactory(IQuickInfoFactory factory)
     {
@@ -207,15 +207,83 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         globalContextMenu.Items.Add(item);
 
 
-        item = new MenuItem { Header = "Delete all marked elements" };
+        item = new MenuItem { Header = "Delete marked (with children)" };
         item.Click += (_, _) => DeleteAllMarkedElements();
+        globalContextMenu.Items.Add(item);
+
+
+        item = new MenuItem { Header = "Focus on marked elements" };
+        item.Click += (_, _) => FocusOnMarkedElements();
         globalContextMenu.Items.Add(item);
 
         globalContextMenu.IsOpen = true;
     }
 
+    private void DeleteAllMarkedElements()
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
 
-  
+        PushUndo();
+
+        var ids = _msaglViewer.Entities.Where(e => e.MarkedForDragging).OfType<IViewerNode>().Select(n => n.Node.Id);
+
+        var idsToRemove = ids.ToHashSet();
+
+        // All children
+        foreach (var id in ids)
+        {
+            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
+            idsToRemove.UnionWith(children);
+        }
+
+        _clonedCodeGraph.RemoveCodeElements(idsToRemove);     
+        _presentationState.RemoveStates(idsToRemove);
+
+        RefreshGraph();
+    }
+
+    private void FocusOnMarkedElements()
+    {
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        var ids = _msaglViewer.Entities
+            .Where(e => e.MarkedForDragging)
+            .OfType<IViewerNode>().Select(n => n.Node.Id);
+
+        if (ids.Any() is false)
+        {
+            return;
+        }
+
+        PushUndo();
+        var idsToKeep = ids.ToHashSet();
+
+        // All children
+        foreach (var id in ids)
+        {
+            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        var newGraph = _clonedCodeGraph.SubGraphOf(idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = _clonedCodeGraph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+        _presentationState.RemoveStates(idsToRemove);
+
+        _clonedCodeGraph = newGraph;
+        RefreshGraph();
+    }
+
     public bool Undo()
     {
         if (_undoStack.Any() is false)
@@ -223,7 +291,7 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             return false;
         }
 
-        var state = _undoStack.First();       
+        var state = _undoStack.First();
         _undoStack.RemoveFirst();
 
         _clonedCodeGraph = state.CodeGraph;
@@ -244,7 +312,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         AddToGraphInternal(codeElements, dependencies);
     }
 
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void PushUndo()
@@ -257,20 +324,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
 
         var state = new UndoState(_clonedCodeGraph.Clone(null, null), _presentationState.Clone());
         _undoStack.AddFirst(state);
-    }
-
-    private void ClearEdgeColoring()
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        var edges = _msaglViewer.Entities.OfType<IViewerEdge>();
-        foreach (var edge in edges)
-        {
-            edge.Edge.Attr.Color = Color.Black;
-        }
     }
 
     /// <summary>
@@ -287,7 +340,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
         }
     }
-
 
     private void DeleteNode(Node node)
     {
@@ -317,24 +369,8 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         }
     }
 
-    private void HighlightEdge(IViewerEdge? newEdge)
-    {
-        // Reset last highlighted edge
-        if (_lastHighlightedEdge != null)
-        {
-            _lastHighlightedEdge.Edge.Attr.Color = _lastHighlightedColor;
-            _msaglViewer?.Invalidate(_lastHighlightedEdge);
-        }
 
-        // Highlight new edge, if any
-        if (newEdge != null)
-        {
-            _lastHighlightedColor = newEdge.Edge.Attr.Color;
-            _lastHighlightedEdge = newEdge;
-            newEdge.Edge.Attr.Color = Color.Red;
-            _msaglViewer?.Invalidate(newEdge);
-        }
-    }
+    IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {
@@ -344,45 +380,7 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             UpdateQuickInfoPanel(e.NewObject);
         }
 
-        if (_highlightMode == HighlightMode.EdgeHovered)
-        {
-            HighlightEdge(e.NewObject as IViewerEdge);
-        }
-
-        if (_highlightMode == HighlightMode.OutgoingEdgesChildrenAndSelf)
-        {
-            HighlightOutgoingEdgesOfChildrenAndSelf(e.NewObject as IViewerNode);
-        }
-    }
-
-    private void HighlightOutgoingEdgesOfChildrenAndSelf(IViewerNode? node)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        var ids = new HashSet<string>();
-        if (node != null)
-        {
-            var id = node.Node.Id;
-            var vertex = _clonedCodeGraph.Nodes[id];
-            ids = vertex.GetChildrenIncludingSelf();
-        }
-
-        var edges = _msaglViewer.Entities.OfType<IViewerEdge>();
-        foreach (var edge in edges)
-        {
-            var sourceId = edge.Edge.Source;
-            if (ids.Contains(sourceId))
-            {
-                edge.Edge.Attr.Color = Color.Red;
-            }
-            else
-            {
-                edge.Edge.Attr.Color = Color.Black;
-            }
-        }
+        _activeHighlighting.Highlight(_msaglViewer, e.NewObject, _clonedCodeGraph);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -433,7 +431,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
                 return;
             }
         }
-
 
         if (e.RightButtonIsPressed)
         {
@@ -532,32 +529,23 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         RefreshGraph();
     }
 
-    private void DeleteAllMarkedElements()
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
 
-        var ids = _msaglViewer.Entities.Where(e => e.MarkedForDragging).OfType<IViewerNode>().Select(n => n.Node.Id);
-        foreach (var id in ids)
-        {
-            _clonedCodeGraph.RemoveCodeElement(id);
-        }
-
-        RefreshGraph();
-    }
 
     private void AddMissingDependencies()
     {
+        PushUndo();
+
+        // We do not know the original graph.
         _publisher.Publish(new AddMissingDependenciesRequest());
     }
 
     private void AddParentRequest(Node node)
     {
+        PushUndo();
+
+        // We do not know the original graph.
         _publisher.Publish(new AddParentContainerRequest(node.Id));
     }
-
 
     private void FindInTree(Node node)
     {

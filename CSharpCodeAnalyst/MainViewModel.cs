@@ -1,14 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
-using CodeParser.Analysis.Cycles;
+﻿using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Export;
 using CodeParser.Extensions;
@@ -27,6 +17,16 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
@@ -432,7 +432,7 @@ internal class MainViewModel : INotifyPropertyChanged
             var codeGraph = await Task.Run(async () => await LoadAsync(solutionPath));
 
             LoadCodeGraph(codeGraph);
-            
+
             // Debug output for the parser result.
             //DgmlHierarchyExport.Export(@"d:\test_hierarchy.dgml", codeStructure);
             //DgmlDependencyExport.Export(@"d:\test_dependency.dgml", codeStructure);
@@ -686,20 +686,6 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var graph = vm.CycleGroup.CodeGraph;
         var codeElements = graph.Nodes.Values;
-
-        // Meanwhile we collapse the graph.
-        //var numberOfElements = codeElements.Count();
-        //if (numberOfElements > _warningCodeElementLimit)
-        //{
-        //    if (MessageBoxResult.Yes !=
-        //        MessageBox.Show(
-        //            $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
-        //            "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning))
-        //    {
-        //        return;
-        //    }
-        //}
-
         var dependencies = new List<Dependency>();
         graph.DfsHierarchy(n => dependencies.AddRange(n.Dependencies));
 

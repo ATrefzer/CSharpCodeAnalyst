@@ -36,7 +36,7 @@
 		<Resource Include="Resources\document-xml_32.png" />
 		<Resource Include="Resources\four-arrows.png" />
 		<Resource Include="Resources\four-arrows_32.png" />
-    <Resource Include="Resources\gear_32.png" />
+		<Resource Include="Resources\gear_32.png" />
 		<Resource Include="Resources\import_solution.png" />
 		<Resource Include="Resources\info_large.png" />
 		<Resource Include="Resources\lamp.png" />
