@@ -39,7 +39,7 @@ public partial class App
 
         mainWindow.SetViewer(explorationGraphViewer);
         var viewModel = new MainViewModel(messaging, settings);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer);
+        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, settings);
         var treeViewModel = new TreeViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();
         viewModel.GraphViewModel = graphViewModel;

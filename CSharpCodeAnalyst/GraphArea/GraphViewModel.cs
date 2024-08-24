@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
@@ -15,7 +16,7 @@ namespace CSharpCodeAnalyst.GraphArea;
 internal class GraphViewModel : INotifyPropertyChanged
 {
     private readonly ICodeGraphExplorer _explorer;
-
+    private readonly ApplicationSettings? _settings;
     private readonly IDependencyGraphViewer _viewer;
 
     private CodeGraph? _originalCodeGraph;
@@ -23,10 +24,11 @@ internal class GraphViewModel : INotifyPropertyChanged
     private RenderOption _selectedRenderOption;
     private bool _showFlatGraph;
 
-    internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer)
+    internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer, Configuration.ApplicationSettings? settings)
     {
         _viewer = viewer;
         _explorer = explorer;
+        _settings = settings;
 
         // Initialize RenderOptions
         RenderOptions = new ObservableCollection<RenderOption>
@@ -39,7 +41,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         HighlightOptions = new ObservableCollection<HighlightOption>
         {
             HighlightOption.Default,
-            new(HighlightMode.OutgoingEdgesChildrenAndSelf, "Outgoing edges")
+            new(HighlightMode.OutgoingEdgesChildrenAndSelf, "Outgoing edges"),
+            new(HighlightMode.ShortestNonSelfCircuit, "Shortest non self circuit")
         };
 
         // Set defaults
@@ -126,6 +129,13 @@ internal class GraphViewModel : INotifyPropertyChanged
         {
             if (value == _showFlatGraph)
             {
+                return;
+            }
+
+            var codeGraph = _viewer.GetStructure();
+            if (!ProceedWithLargeGraph(codeGraph.Nodes.Count))
+            {
+                // No collapsing in flat graph. We show everything
                 return;
             }
 
@@ -326,8 +336,32 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.ShowGlobalContextMenu();
     }
 
+    bool ProceedWithLargeGraph(int numberOfElements)
+    {
+        if (_settings is null)
+        {
+            return true;
+        }
+
+        // Meanwhile we collapse the graph.
+        if (numberOfElements > _settings.WarningCodeElementLimit)
+        {
+            var result = MessageBox.Show(
+                    $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
+                    "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            return MessageBoxResult.Yes == result;
+        }
+
+        return true;
+    }
+
     public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
     {
+        // We start with all nodes collapsed. It is not that critical anymore.
+        //if (!ProceedWithLargeGraph(codeElements.Count))
+        //{
+        //    return;
+        //}
         _viewer.ImportCycleGroup(codeElements, dependencies);
     }
 }

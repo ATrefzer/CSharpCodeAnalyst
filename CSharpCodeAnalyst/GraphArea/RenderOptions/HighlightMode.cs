@@ -3,5 +3,6 @@
 public enum HighlightMode
 {
     EdgeHovered,
-    OutgoingEdgesChildrenAndSelf
+    OutgoingEdgesChildrenAndSelf,
+    ShortestNonSelfCircuit
 }

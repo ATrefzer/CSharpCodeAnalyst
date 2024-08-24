@@ -10,12 +10,13 @@ public static class CodeGraphExtensions
     /// <summary>
     ///     Clones the given code graph.
     ///     Dependencies and code element can be filtered to generate sub graphs.
+    ///     If no code element list is given (null) all code elements are returned.
     /// </summary>
     public static CodeGraph Clone(this CodeGraph originalCodeGraph, Func<Dependency, bool>? dependencyFilter,
         HashSet<string>? codeElementIds)
     {
         List<CodeElement> includedOriginalElements;
-        if (codeElementIds is null || codeElementIds.Any() is false)
+        if (codeElementIds is null)
         {
             includedOriginalElements = originalCodeGraph.Nodes.Values.ToList();
         }
