@@ -30,9 +30,38 @@ A strongly connected component is a sub-graph where a path exists between any tw
 
 Use the context menu to copy the related code elements to the explorer graph for further investigation.
 
+![](assets\cycle-graph.png)
+
+
+
+### **Why Look for Cycles?**
+
+More than 50 years ago, in his often-cited paper "On the Criteria to Be Used in Decomposing Systems into Modules," David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
+
+This idea of having cycle-free modules is quite intuitive. Let's look at an example outside the software world: Imagine a project plan with two tasks, A and B, depending on each other, forming a cycle. How would you tackle these tasks? You'd have to do them together as a whole. It's similar in software. If there are cycles in the area you want to change, you might end up reading and understanding all the classes involved in the cycle. Changes can easily have side effects in unexpected areas. Consequently, a software system with circular dependencies is more difficult to maintain.
+
+The preference for hierarchical structures in software isn't arbitrary. It's deeply rooted in how our brains process information:
+
+1. Research in cognitive psychology has consistently shown that the human brain understands and processes hierarchical structures more easily than non-hierarchical or cyclic ones.
+2. We naturally organize our knowledge hierarchically, which makes hierarchical code structures more intuitive to understand and remember.
+
+Therefore, I see this advice as a timeless principle. While studies on how we learn and understand things may be old, they will never be outdated. The main tool we use to write software, our brain, will be the same tomorrow.
+
+There are other attributes associated with hierarchical and cycle-free systems like testability, maintainability, etc. For me, the matter of understanding the system is the most important. I doubt that you can have maintainability in a hard-to-understand codebase.
+
+**C# Code Analyst** helps you identify cycles in your code, offering a higher-level perspective on your code structure. By using this tool, you can:
+
+- Gain insights into your code's organization that might not be apparent when working at the detailed level.
+- Identify opportunities to refactor and improve your code's structure.
+- Enhance the overall readability and maintainability of your codebase.
+
+Remember, the goal isn't to eliminate every cycle but to be aware of your code's structure and make informed decisions about its organization. Some cycles may be intended, even some design patterns use them. By focusing on readability, you're investing in code that's not just functional, but also easier to understand, maintain, and evolve.
+
+**In general, I think it's a good guideline to keep your software system free of cycles at the namespace level.**
+
 ## Dependency Structure Matrix (DSM)
 
-**Not tested.**
+**Not tested!**
 
 A **DSM** (Dependency Structure Matrix) displays all the dependencies in your codebase in a condensed matrix. It may take some time to become familiar with it. For further explanation, you can visit https://dsmsuite.github.io/.
 
@@ -49,14 +78,11 @@ https://github.com/dsmsuite/dsmsuite.sourcecode
 
 Please take note of the following issues:
 
-- There is a bug in the graph layout package that may cause the application to crash when you collapse sub-graphs.
-- The graph package does not support multiple edges between the same code elements when sub-graphs are used; the edges are combined in this case.
-- Collapsing sub-graphs does not remap the incoming dependencies to the collapsed sub-graph. To observe this, export the graph to DGML and open it in Visual Studio.
+- The graph layout package does not support multiple edges between the same code elements when sub-graphs are used; the edges are combined in this case.
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
 - The tree view search may be very slow, depending on the result.
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
 - External code is ignored.
-
 - The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Documentation\Uncovered C# Syntax.md](Documentation/Uncovered C# Syntax.md)
 
 ## Thank you
