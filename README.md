@@ -30,9 +30,7 @@ A strongly connected component is a sub-graph where a path exists between any tw
 
 Use the context menu to copy the related code elements to the explorer graph for further investigation.
 
-![](assets\cycle-graph.png)
-
-
+![](assets/cycle-graph.png)
 
 ### **Why Look for Cycles?**
 
