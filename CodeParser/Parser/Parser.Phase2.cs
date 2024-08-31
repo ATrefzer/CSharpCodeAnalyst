@@ -69,6 +69,7 @@ public partial class Parser
     {
         // I do not have the syntax node where the attribute is used. Only the attribute type itself.
         // So no location information is available.
+        element.Attributes.Add(attributeTypeSymbol.Name);
         AddTypeDependency(element, attributeTypeSymbol, DependencyType.UsesAttribute);
     }
 

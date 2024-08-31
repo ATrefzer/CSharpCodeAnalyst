@@ -614,7 +614,7 @@ internal class MainViewModel : INotifyPropertyChanged
                 throw new NullReferenceException();
             }
 
-            var codeGraph = projectData.CreateCodeStructure();
+            var codeGraph = projectData.CreateCodeGraph();
 
 
             // Load settings
@@ -666,7 +666,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         var projectData = new ProjectData();
-        projectData.AddCodeStructure(_codeGraph);
+        projectData.AddCodeGraph(_codeGraph);
         projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
