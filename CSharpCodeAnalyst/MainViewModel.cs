@@ -35,7 +35,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
-    private readonly int _warningCodeElementLimit;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
 
@@ -67,7 +66,6 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _isInfoPanelVisible = settings.DefaultShowQuickHelp;
             _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
-            _warningCodeElementLimit = settings.WarningCodeElementLimit;
         }
 
         _messaging = messaging;
@@ -713,7 +711,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         if (_isSaved is false)
         {
-            if (MessageBox.Show("Do you wan't to save the project so you don't have to import it again?", "Save",
+            if (MessageBox.Show("Do you want to save the project so you don't have to import it again?", "Save",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SaveProject();

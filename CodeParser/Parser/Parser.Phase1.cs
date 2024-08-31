@@ -7,8 +7,7 @@ namespace CodeParser.Parser;
 
 public partial class Parser
 {
-    private readonly Dictionary<string, List<INamedTypeSymbol>> _attributeInfo = new();
-    private readonly List<INamedTypeSymbol> AllNamedTypesInSolution = new();
+    private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = new();
 
     private async Task BuildHierarchy(Solution solution)
     {
@@ -29,7 +28,7 @@ public partial class Parser
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve dependencies
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
-            AllNamedTypesInSolution.AddRange(types);
+            _allNamedTypesInSolution.AddRange(types);
 
 
             BuildHierarchy(compilation);
@@ -146,16 +145,17 @@ public partial class Parser
             case EventDeclarationSyntax:
                 symbol = semanticModel.GetDeclaredSymbol(node) as IEventSymbol;
                 elementType = CodeElementType.Event;
-
-
                 break;
             // Add more cases as needed (e.g., for events, delegates, etc.)
         }
 
         if (symbol != null)
         {
+            // Note. We do not capture method parameter attributes
+            //if (node is ParameterSyntax parameterSyntax && parameterSyntax.AttributeLists.Any())
+            //    StoreAttributeInfo(element, parameterSyntax, semanticModel);
+
             var element = GetOrCreateCodeElementWithNamespaceHierarchy(symbol, elementType, parent, location);
-            StoreAttributesForLaterAnalysis(element, node, semanticModel);
             foreach (var childNode in node.ChildNodes())
             {
                 ProcessNodeForHierarchy(childNode, semanticModel, element);
@@ -167,43 +167,6 @@ public partial class Parser
             foreach (var childNode in node.ChildNodes())
             {
                 ProcessNodeForHierarchy(childNode, semanticModel, parent);
-            }
-        }
-    }
-
-    private void StoreAttributesForLaterAnalysis(CodeElement element, SyntaxNode node, SemanticModel semanticModel)
-    {
-        var attributeLists = node switch
-        {
-            MemberDeclarationSyntax memberDeclaration => memberDeclaration.AttributeLists,
-            ParameterSyntax parameter => parameter.AttributeLists,
-            TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
-            CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
-            _ => Enumerable.Empty<AttributeListSyntax>()
-        };
-
-        foreach (var attributeList in attributeLists)
-        {
-            foreach (var attribute in attributeList.Attributes)
-            {
-                var attributeSymbol = semanticModel.GetSymbolInfo(attribute).Symbol;
-                if (attributeSymbol is IMethodSymbol attributeMethodSymbol)
-                {
-                    if (attributeMethodSymbol.ContainingType is null)
-                    {
-                        continue;
-                    }
-
-                    // The attribute typically refers to the called constructor.
-                    var attributeTypeSymbol = attributeMethodSymbol.ContainingType;
-
-                    if (!_attributeInfo.ContainsKey(element.Id))
-                    {
-                        _attributeInfo[element.Id] = [];
-                    }
-
-                    _attributeInfo[element.Id].Add(attributeTypeSymbol);
-                }
             }
         }
     }
