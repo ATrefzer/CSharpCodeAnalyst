@@ -151,10 +151,6 @@ public partial class Parser
 
         if (symbol != null)
         {
-            // Note. We do not capture method parameter attributes
-            //if (node is ParameterSyntax parameterSyntax && parameterSyntax.AttributeLists.Any())
-            //    StoreAttributeInfo(element, parameterSyntax, semanticModel);
-
             var element = GetOrCreateCodeElementWithNamespaceHierarchy(symbol, elementType, parent, location);
             foreach (var childNode in node.ChildNodes())
             {
