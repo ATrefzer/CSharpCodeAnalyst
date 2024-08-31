@@ -31,9 +31,13 @@ These dependencies can be direct or indirect. Direct dependencies occur when a t
 
 **I think it is a pointless task to cover all dependencies possible in a language like C#. Some of them would cause large effort for very little benefit.**
 
+## Know limitations
+
+- Attributes are not captured at method parameter level.
+
+## Known uncovered code constructs
+
 Following is a list of uncovered language constructs. However, there are many more.
-
-
 
 - Generic Type Constraints:
 
@@ -335,27 +339,3 @@ Console.WriteLine("Hello World!");
 unsafe delegate*<int, int> functionPointer = &SomeMethod;
 // Dependencies through function pointers might be missed
 ```
-
-# Meanwhile implemented
-
-- Delegates and Event Handlers:
-
-```c#
-public delegate void MyEventHandler(object sender, EventArgs e);
-
-public class MyClass
-{
-    public event MyEventHandler MyEvent;
-    // The dependency on MyEventHandler might be missed
-}
-```
-
-- Record types (C# 9.0+):
-
-```csharp
-public record Person(string FirstName, string LastName);
-// Dependencies introduced by the compiler-generated members of records might be missed
-```
-
-
-
