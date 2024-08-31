@@ -1,4 +1,9 @@
-﻿using CodeParser.Extensions;
+﻿using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Windows.Controls;
+using System.Windows.Input;
+using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighig;
@@ -6,11 +11,6 @@ using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.WpfGraphControl;
-using System.ComponentModel;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Windows.Controls;
-using System.Windows.Input;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
@@ -21,7 +21,7 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
 ///     in the parser. In this case the dependency holds all source references.
 /// </summary>
-internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
+internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
     private readonly List<IContextCommand> _contextCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
@@ -31,10 +31,14 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
 
     private readonly int _undoStackSize = 10;
 
+
+    private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
+
     /// <summary>
     ///     Held to read the help
     /// </summary>
     private IViewerObject? _clickedObject;
+
     private CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
     private GraphViewer? _msaglViewer;
@@ -54,6 +58,7 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         _msaglBuilder = new MsaglBuilder();
         SetHighlightMode(HighlightMode.EdgeHovered);
     }
+
     public void Bind(Panel graphPanel)
     {
         _msaglViewer = new GraphViewer();
@@ -66,25 +71,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
     public void ShowFlatGraph(bool value)
     {
         _showFlatGraph = value;
-        RefreshGraph();
-    }
-
-    private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> newDependencies)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        IntegrateNewFromOriginal(originalCodeElements);
-
-        // Add dependencies we explicitly requested.
-        foreach (var newDependency in newDependencies)
-        {
-            var sourceElement = _clonedCodeGraph.Nodes[newDependency.SourceId];
-            sourceElement.Dependencies.Add(newDependency);
-        }
-
         RefreshGraph();
     }
 
@@ -102,6 +88,7 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
 
         PushUndo();
         AddToGraphInternal(originalCodeElements, newDependencies);
+        RefreshGraph();
     }
 
     public void AddContextCommand(IContextCommand command)
@@ -109,31 +96,9 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         _contextCommands.Add(command);
     }
 
-    private void Clear(bool withUndoStack)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        _clonedCodeGraph = new CodeGraph();
-
-        if (withUndoStack)
-        {
-            ClearUndo();
-        }
-
-        // Nothing collapsed by default
-        _presentationState = new PresentationState();
-        RefreshGraph();
-    }
     public void Clear()
     {
         Clear(true);
-    }
-    private void ClearUndo()
-    {
-        _undoStack.Clear();
     }
 
     public void Layout()
@@ -219,71 +184,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         globalContextMenu.IsOpen = true;
     }
 
-    private void DeleteAllMarkedElements()
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        PushUndo();
-
-        var ids = _msaglViewer.Entities.Where(e => e.MarkedForDragging).OfType<IViewerNode>().Select(n => n.Node.Id);
-
-        var idsToRemove = ids.ToHashSet();
-
-        // All children
-        foreach (var id in ids)
-        {
-            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
-            idsToRemove.UnionWith(children);
-        }
-
-        _clonedCodeGraph.RemoveCodeElements(idsToRemove);     
-        _presentationState.RemoveStates(idsToRemove);
-
-        RefreshGraph();
-    }
-
-    private void FocusOnMarkedElements()
-    {
-        // We want to include all children of the collapsed code elements
-        // and keep also the presentation state. Just less information
-
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        var ids = _msaglViewer.Entities
-            .Where(e => e.MarkedForDragging)
-            .OfType<IViewerNode>().Select(n => n.Node.Id);
-
-        if (ids.Any() is false)
-        {
-            return;
-        }
-
-        PushUndo();
-        var idsToKeep = ids.ToHashSet();
-
-        // All children
-        foreach (var id in ids)
-        {
-            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
-            idsToKeep.UnionWith(children);
-        }
-
-        var newGraph = _clonedCodeGraph.SubGraphOf(idsToKeep);
-
-        // Cleanup unused states
-        var idsToRemove = _clonedCodeGraph.Nodes.Keys.Except(idsToKeep).ToHashSet();
-        _presentationState.RemoveStates(idsToRemove);
-
-        _clonedCodeGraph = newGraph;
-        RefreshGraph();
-    }
-
     public bool Undo()
     {
         if (_undoStack.Any() is false)
@@ -310,9 +210,145 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         var defaultState = codeElements.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
         _presentationState = new PresentationState(defaultState);
         AddToGraphInternal(codeElements, dependencies);
+
+        var roots = _clonedCodeGraph.GetRoots();
+        if (roots.Count == 1)
+        {
+            // Usability. If we have a single root, we expand it.
+            _presentationState.SetCollapsedState(roots[0].Id, false);
+        }
+        
+        RefreshGraph();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
+        IEnumerable<Dependency> newDependencies)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        IntegrateNewFromOriginal(originalCodeElements);
+
+        // Add dependencies we explicitly requested.
+        foreach (var newDependency in newDependencies)
+        {
+            var sourceElement = _clonedCodeGraph.Nodes[newDependency.SourceId];
+            sourceElement.Dependencies.Add(newDependency);
+        }
+    }
+
+    private void Clear(bool withUndoStack)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        _clonedCodeGraph = new CodeGraph();
+
+        if (withUndoStack)
+        {
+            ClearUndo();
+        }
+
+        // Nothing collapsed by default
+        _presentationState = new PresentationState();
+        RefreshGraph();
+    }
+
+    private void ClearUndo()
+    {
+        _undoStack.Clear();
+    }
+
+    private void DeleteAllMarkedElements()
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        var markedIds = _msaglViewer.Entities
+            .Where(e => e.MarkedForDragging)
+            .OfType<IViewerNode>()
+            .Select(n => n.Node.Id)
+            .ToHashSet();
+
+
+        DeleteFromGraph(markedIds, true);
+    }
+
+
+    private void DeleteFromGraph(HashSet<string> ids, bool withChildren)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        var idsToRemove = ids.ToHashSet();
+
+        // Include children
+        if (withChildren)
+        {
+            foreach (var id in ids)
+            {
+                var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
+                idsToRemove.UnionWith(children);
+            }
+        }
+
+        PushUndo();
+
+        _clonedCodeGraph.RemoveCodeElements(idsToRemove);
+        _presentationState.RemoveStates(idsToRemove);
+
+        RefreshGraph();
+    }
+
+
+    private void FocusOnMarkedElements()
+    {
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        var ids = _msaglViewer.Entities
+            .Where(e => e.MarkedForDragging)
+            .OfType<IViewerNode>().Select(n => n.Node.Id).ToList();
+
+        if (ids.Any() is false)
+        {
+            return;
+        }
+
+        PushUndo();
+        var idsToKeep = ids.ToHashSet();
+
+        // All children
+        foreach (var id in ids)
+        {
+            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        var newGraph = _clonedCodeGraph.SubGraphOf(idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = _clonedCodeGraph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+        _presentationState.RemoveStates(idsToRemove);
+
+        _clonedCodeGraph = newGraph;
+        RefreshGraph();
+    }
 
     private void PushUndo()
     {
@@ -341,20 +377,18 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
         }
     }
 
-    private void DeleteNode(Node node)
+    private void DeleteNode(Node node, bool withChildren)
     {
         if (_msaglViewer is null)
         {
             return;
         }
 
-        PushUndo();
-
         var element = (CodeElement)node.UserData;
-        _clonedCodeGraph.RemoveCodeElement(element.Id);
+        var ids = new HashSet<string>
+            { element.Id };
 
-
-        RefreshGraph();
+        DeleteFromGraph(ids, withChildren);
     }
 
     private void RefreshGraph()
@@ -368,9 +402,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             _msaglViewer.Graph = graph;
         }
     }
-
-
-    IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {
@@ -443,74 +474,92 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
             var node = clickedObject.Node;
             var contextMenu = new ContextMenu();
 
-            MenuItem item = null;
-            if (node.UserData is CodeElement codeElement)
-            {
-                if (_presentationState.IsCollapsed(codeElement.Id) &&
-                    codeElement.Children.Any())
-                {
-                    item = new MenuItem { Header = "Expand" };
-                    item.Click += (_, _) => Expand(codeElement.Id);
-                    contextMenu.Items.Add(item);
-                }
-
-                if (!_presentationState.IsCollapsed(codeElement.Id) &&
-                    codeElement.Children.Any())
-                {
-                    item = new MenuItem { Header = "Collapse" };
-                    item.Click += (_, _) => Collapse(codeElement.Id);
-                    contextMenu.Items.Add(item);
-                }
-            }
-
-            item = new MenuItem { Header = "Delete Node" };
-            item.Click += (_, _) => DeleteNode(node);
-            contextMenu.Items.Add(item);
-
-            item = new MenuItem { Header = "Find in Tree" };
-            item.Click += (_, _) => FindInTree(node);
-            contextMenu.Items.Add(item);
-
-            item = new MenuItem { Header = "Add parent" };
-            item.Click += (_, _) => AddParentRequest(node);
-            contextMenu.Items.Add(item);
-
-            contextMenu.Items.Add(new Separator());
-            var lastItemIsSeparator = true;
-
-            // Dynamic parts
-            if (node.UserData is CodeElement)
-            {
-                foreach (var cmd in _contextCommands)
-                {
-                    // Add separator command only if the last element was a real menu item.
-                    if (cmd is SeparatorCommand)
-                    {
-                        if (lastItemIsSeparator is false)
-                        {
-                            contextMenu.Items.Add(new Separator());
-                        }
-
-                        continue;
-                    }
-
-                    if (!cmd.CanHandle(node.UserData))
-                    {
-                        continue;
-                    }
-
-                    var menuItem = new MenuItem { Header = cmd.Label };
-                    menuItem.Click += (_, _) => cmd.Invoke(node.UserData);
-                    contextMenu.Items.Add(menuItem);
-                    lastItemIsSeparator = false;
-                }
-            }
+            AddToContextMenuExpanding(node, contextMenu);
+            AddToContextMenuGenericFunctions(node, contextMenu);
+            AddToContextMenuDynamicEntries(node, contextMenu);
 
             contextMenu.IsOpen = true;
         }
         else
         {
             e.Handled = false;
+        }
+    }
+
+    /// <summary>
+    ///     Commands registered for type of nodes
+    /// </summary>
+    private void AddToContextMenuDynamicEntries(Node node, ContextMenu contextMenu)
+    {
+        contextMenu.Items.Add(new Separator());
+        var lastItemIsSeparator = true;
+
+        if (node.UserData is CodeElement)
+        {
+            foreach (var cmd in _contextCommands)
+            {
+                // Add separator command only if the last element was a real menu item.
+                if (cmd is SeparatorCommand)
+                {
+                    if (lastItemIsSeparator is false)
+                    {
+                        contextMenu.Items.Add(new Separator());
+                    }
+
+                    continue;
+                }
+
+                if (!cmd.CanHandle(node.UserData))
+                {
+                    continue;
+                }
+
+                var menuItem = new MenuItem { Header = cmd.Label };
+                menuItem.Click += (_, _) => cmd.Invoke(node.UserData);
+                contextMenu.Items.Add(menuItem);
+                lastItemIsSeparator = false;
+            }
+        }
+    }
+
+    private void AddToContextMenuGenericFunctions(Node node, ContextMenu contextMenu)
+    {
+        var item = new MenuItem { Header = "Delete Node" };
+        item.Click += (_, _) => DeleteNode(node, false);
+        contextMenu.Items.Add(item);
+
+        item = new MenuItem { Header = "Delete Node (with children)" };
+        item.Click += (_, _) => DeleteNode(node, true);
+        contextMenu.Items.Add(item);
+
+        item = new MenuItem { Header = "Find in Tree" };
+        item.Click += (_, _) => FindInTree(node);
+        contextMenu.Items.Add(item);
+
+        item = new MenuItem { Header = "Add parent" };
+        item.Click += (_, _) => AddParentRequest(node);
+        contextMenu.Items.Add(item);
+    }
+
+    private void AddToContextMenuExpanding(Node node, ContextMenu contextMenu)
+    {
+        if (node.UserData is CodeElement codeElement)
+        {
+            if (_presentationState.IsCollapsed(codeElement.Id) &&
+                codeElement.Children.Any())
+            {
+                var item = new MenuItem { Header = "Expand" };
+                item.Click += (_, _) => Expand(codeElement.Id);
+                contextMenu.Items.Add(item);
+            }
+
+            if (!_presentationState.IsCollapsed(codeElement.Id) &&
+                codeElement.Children.Any())
+            {
+                var item = new MenuItem { Header = "Collapse" };
+                item.Click += (_, _) => Collapse(codeElement.Id);
+                contextMenu.Items.Add(item);
+            }
         }
     }
 
@@ -528,7 +577,6 @@ internal partial class DependencyGraphViewer : IDependencyGraphViewer, IDependen
 
         RefreshGraph();
     }
-
 
 
     private void AddMissingDependencies()
