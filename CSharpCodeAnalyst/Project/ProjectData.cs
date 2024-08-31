@@ -15,10 +15,10 @@ public class ProjectData
     /// <summary>
     ///     Flatten the recursive structures.
     /// </summary>
-    public void AddCodeStructure(CodeGraph codeGraph)
+    public void AddCodeGraph(CodeGraph codeGraph)
     {
         CodeElements = codeGraph.Nodes.Values
-            .Select(n => new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations)
+            .Select(n => new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes)
                 { SourceLocations = n.SourceLocations }).ToList();
 
         // We iterate over children, so we expect to have a parent
@@ -33,7 +33,7 @@ public class ProjectData
             .ToList();
     }
 
-    public CodeGraph CreateCodeStructure()
+    public CodeGraph CreateCodeGraph()
     {
         var codeStructure = new CodeGraph();
 
@@ -42,6 +42,7 @@ public class ProjectData
         {
             var element = new CodeElement(se.Id, se.ElementType, se.Name, se.FullName, null!);
             element.SourceLocations = se.SourceLocations;
+            element.Attributes = se.Attributes;
             codeStructure.Nodes.Add(element.Id, element);
         }
 

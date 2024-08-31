@@ -44,6 +44,9 @@ public partial class Parser
                 AnalyzeFieldDependencies(element, fieldSymbol);
             }
 
+            // For all type of symbols check if decorated with an attribute.
+            AnalyzeAttributeDependencies(element, symbol);
+
             if (loop % 10 == 0)
             {
                 ParserProgress?.Invoke(this, new ParserProgressArg
@@ -53,6 +56,22 @@ public partial class Parser
             }
 
             ++loop;
+        }
+    }
+
+    private void AnalyzeAttributeDependencies(CodeElement element, ISymbol symbol)
+    {
+        foreach (var attributeData in symbol.GetAttributes())
+        {
+            if (attributeData.AttributeClass != null)
+            {
+                var location = attributeData.ApplicationSyntaxReference != null
+                    ? GetLocation(attributeData.ApplicationSyntaxReference.GetSyntax())
+                    : null;
+
+                element.Attributes.Add(attributeData.AttributeClass.Name);
+                AddTypeDependency(element, attributeData.AttributeClass, DependencyType.UsesAttribute, location);
+            }
         }
     }
 
@@ -119,7 +138,7 @@ public partial class Parser
         // If this method is an interface method or an abstract method, find its implementations
         if (methodSymbol.IsAbstract || methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementations(solution, methodElement, methodSymbol);
+            FindImplementations(methodElement, methodSymbol);
         }
 
         // Check for method override
@@ -150,7 +169,7 @@ public partial class Parser
     }
 
 
-    private void FindImplementations(Solution solution, CodeElement methodElement, IMethodSymbol methodSymbol)
+    private void FindImplementations(CodeElement methodElement, IMethodSymbol methodSymbol)
     {
         var implementingTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
 
@@ -183,13 +202,13 @@ public partial class Parser
 
     private IEnumerable<INamedTypeSymbol> FindTypesImplementingInterface(INamedTypeSymbol interfaceSymbol)
     {
-        return AllNamedTypesInSolution
+        return _allNamedTypesInSolution
             .Where(type => type.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, interfaceSymbol)));
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
     {
-        return AllNamedTypesInSolution
+        return _allNamedTypesInSolution
             .Where(type => IsTypeDerivedFrom(type, baseType));
     }
 

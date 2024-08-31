@@ -2,13 +2,13 @@
 
 
 
-![](assets/traffic-barrier.png) **Under development**
+![](Images/traffic-barrier.png) **Under development**
 
 This application helps you to explore, understand, and maintain C# code.
 
 ## Exploring your codebase
 
-![image-20240731123233438](assets/code-explorer.png)
+![image-20240731123233438](Images/code-explorer.png)
 
 - Use the tree view to add code elements to the canvas.
 - You can explore relationships between code elements using the context menu on a code element.
@@ -24,13 +24,13 @@ This application helps you to explore, understand, and maintain C# code.
 
 
 
-![](assets/cycle-summary.png)
+![](Images/cycle-summary.png)
 
 A strongly connected component is a sub-graph where a path exists between any two nodes. There may be more than one elementary cycle in the same strongly connected component.
 
 Use the context menu to copy the related code elements to the explorer graph for further investigation.
 
-![](assets/cycle-graph.png)
+![](Images/cycle-graph.png)
 
 ### **Why Look for Cycles?**
 
@@ -65,7 +65,7 @@ A **DSM** (Dependency Structure Matrix) displays all the dependencies in your co
 
 The **DSM Suite Viewer** is integrated into C# Code Analyst
 
-<img src="assets/dsm-suite.png"  />
+<img src="Images/dsm-suite.png"  />
 
 The viewer can be found in this repository:
 https://github.com/ernstaii/dsmsuite.sourcecode,
