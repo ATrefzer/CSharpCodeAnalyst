@@ -44,6 +44,15 @@ public partial class Parser
                 AnalyzeFieldDependencies(element, fieldSymbol);
             }
 
+            // Analyze attribute dependencies
+            if (_attributeInfo.TryGetValue(element.Id, out var attributes))
+            {
+                foreach (var attribute in attributes)
+                {
+                    AnalyzeAttributeDependencies(element, attribute);
+                }
+            }
+
             if (loop % 10 == 0)
             {
                 ParserProgress?.Invoke(this, new ParserProgressArg
@@ -54,6 +63,13 @@ public partial class Parser
 
             ++loop;
         }
+    }
+
+    private void AnalyzeAttributeDependencies(CodeElement element, INamedTypeSymbol attributeTypeSymbol)
+    {
+        // I do not have the syntax node where the attribute is used. Only the attribute type itself.
+        // So no location information is available.
+        AddTypeDependency(element, attributeTypeSymbol, DependencyType.UsesAttribute);
     }
 
     private void AnalyzeDelegateDependencies(CodeElement delegateElement, INamedTypeSymbol delegateSymbol)

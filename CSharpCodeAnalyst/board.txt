@@ -1,9 +1,6 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Recognize Attributes
-
-- Do not collapse single node in cycle graph
 - Highlight of aggregated edges takes too long. If quick help not visible skip?
 - Performance in general
 

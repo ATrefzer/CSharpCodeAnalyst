@@ -15,5 +15,7 @@ public enum DependencyType
     // Special dependency to model the hierarchy.
     // In the CodeElement this dependency is modeled via.
     // Parent / Children 
-    Containment
+    Containment,
+
+    UsesAttribute,
 }

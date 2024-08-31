@@ -274,6 +274,11 @@ internal class MsaglBuilder
             return string.Empty;
         }
 
+        if (dependency.Type == DependencyType.UsesAttribute)
+        {
+            return string.Empty;
+        }
+
         return dependency.Type.ToString();
     }
 
