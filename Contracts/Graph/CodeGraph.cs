@@ -136,4 +136,9 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     {
         return Nodes.Values;
     }
+
+    public List<CodeElement> GetRoots()
+    {
+        return Nodes.Values.Where(n => n.Parent == null).ToList();
+    }
 }
