@@ -8,17 +8,17 @@ The current cycle detection algorithm for code graphs has room for improvement. 
 
 Initially, we attempted to detect cycles between code elements based on dependencies analyzed by the code parser. The naive assumption was that cycles between dependencies would induce cycles in higher-level containers (e.g., classes, namespaces). 
 
-![](Examples\class-by-field.png)
+![](Images/class-by-field.png)
 
 The two classes reference each other by their fields and form a class cycle. If the classes are in different namespaces there would be a cycle between the namespaces. The dependency arrows would cross the namespace boundaries.
 
 The algorithm could do this automatically if we include the parent-child relationships in the search graph.
 
-![](Examples\class-by-field-with-containment.png)
+![](Images/class-by-field-with-containment.png)
 
 However other situations do not automatically connect all related elements. In the image below there is no cycle formed, even by including the parent-child relationships.
 
-![](Examples\class-by-method-with-containment.png)
+![](Images/class-by-method-with-containment.png)
 
 Adding artificial **is-child-of** dependencies would cause cycles everywhere. 
 
@@ -32,7 +32,7 @@ Assume the following code graph is extracted from the source code.
 
 There is a cycle between **Namespace 2** and **Namespace 3,** caused by **Method 1** calling **Method 2** and **_field1** holding a reference to **Class 1.**
 
-![](Examples\solution-problem.png)
+![](Images/solution-problem.png)
 
 
 
@@ -48,7 +48,7 @@ Process:
 
 Here is what the search graph looks like:
 
-![](Examples\search-graph.png)
+![](Images/search-graph.png)
 
 Assume the call from **Method 1** to **Method 2.** The least common ancestor is **Namespace 1**, which is excluded. This results in **Namespace 2** and **Namespace 3** being the highest involved code elements in this **call** dependency.
 
@@ -80,7 +80,7 @@ Assume the following code graph. Here we have a namespace cycle between **Namesp
 
 
 
-![](Examples\edge-case-source-graph.png)
+![](Images/edge-case-source-graph.png)
 
 #### Handling containment in step 1
 
@@ -118,7 +118,7 @@ Following this procedure, only the green elements in the image below are conside
 
 The set difference operation is necessary because the sources should not be included in the targets, as **Namespace 2** is a child of **Namespace 1**.
 
-![](Examples\containment.png)
+![](Images/containment.png)
 
 
 
@@ -128,7 +128,7 @@ In the previously discussed scenario, namespaces play a crucial role. Is it poss
 
 Assume following scenario:
 
-![](Examples\nested_classes_code_graph.png)
+![](Images/nested_classes_code_graph.png)
 
 
 
@@ -138,7 +138,7 @@ The proxy dependencies are between **DirectClass** and **MiddleClass**.
 
 The resulting cycle looks like this
 
-![](Examples\nested_classes_scc.png)
+![](Images/nested_classes_scc.png)
 
 ## Conclusion
 

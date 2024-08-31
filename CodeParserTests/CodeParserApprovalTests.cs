@@ -77,6 +77,9 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load",
             "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.Method",
 
+            "CSharpLanguage.CSharpLanguage.IStructInterface.Method",
+            "CSharpLanguage.CSharpLanguage.StructWithInterface.Method",
+
             // Extension method
             "CSharpLanguage.CSharpLanguage.Extensions.Slice", 
 
@@ -177,7 +180,8 @@ public class CodeParserApprovalTests
         var expected = new HashSet<string>
         {
             "ModuleLevel1.ModuleLevel1.ServiceBase.Do -> ModuleLevel1.ModuleLevel1.IServiceC.Do",
-            "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load"
+            "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load",
+            "CSharpLanguage.CSharpLanguage.StructWithInterface.Method -> CSharpLanguage.CSharpLanguage.IStructInterface.Method"
         };
 
 

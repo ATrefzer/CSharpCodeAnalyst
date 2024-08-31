@@ -40,7 +40,7 @@ public class DgmlExport
         foreach (var edge in normal)
         {
             // Omit the calls label for better readability.
-            var edgeLabel = edge.Type == DependencyType.Calls ? string.Empty : edge.Type.ToString();
+            var edgeLabel = GetEdgeLabel(edge);
             builder.AddEdgeById(edge.SourceId, edge.TargetId, edgeLabel);
         }
 
@@ -58,6 +58,33 @@ public class DgmlExport
         }
 
         builder.WriteOutput(fileName);
+    }
+
+    private static string GetEdgeLabel(Dependency dependency)
+    {
+        // Omit the label text for now. The color makes it clear that it is a call dependency
+        if (dependency.Type == DependencyType.Calls)
+        {
+            return string.Empty;
+        }
+
+        // We can see this by the dotted line
+        if (dependency.Type == DependencyType.Implements || dependency.Type == DependencyType.Inherits)
+        {
+            return string.Empty;
+        }
+
+        if (dependency.Type == DependencyType.Uses)
+        {
+            return string.Empty;
+        }
+
+        if (dependency.Type == DependencyType.UsesAttribute)
+        {
+            return string.Empty;
+        }
+
+        return dependency.Type.ToString();
     }
 
     private static void WriteCategories(DgmlFileBuilder writer)

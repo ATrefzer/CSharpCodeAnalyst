@@ -368,3 +368,4 @@ FodyWeavers.xsd
 /Documentation/.$CSharpAnalyst.drawio.bkp
 *.dtmp
 /tmp
+/SampleProject/project.json

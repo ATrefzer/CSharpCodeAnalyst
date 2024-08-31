@@ -7,7 +7,7 @@ namespace CodeParser.Parser;
 
 public partial class Parser
 {
-    private readonly List<INamedTypeSymbol> AllNamedTypesInSolution = new();
+    private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = new();
 
     private async Task BuildHierarchy(Solution solution)
     {
@@ -28,7 +28,7 @@ public partial class Parser
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve dependencies
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
-            AllNamedTypesInSolution.AddRange(types);
+            _allNamedTypesInSolution.AddRange(types);
 
 
             BuildHierarchy(compilation);
@@ -145,8 +145,6 @@ public partial class Parser
             case EventDeclarationSyntax:
                 symbol = semanticModel.GetDeclaredSymbol(node) as IEventSymbol;
                 elementType = CodeElementType.Event;
-
-
                 break;
             // Add more cases as needed (e.g., for events, delegates, etc.)
         }
@@ -161,6 +159,7 @@ public partial class Parser
         }
         else
         {
+            // The parent gets the indirect children assigned as children
             foreach (var childNode in node.ChildNodes())
             {
                 ProcessNodeForHierarchy(childNode, semanticModel, parent);
