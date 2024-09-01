@@ -1,7 +1,7 @@
 ﻿
 namespace CSharpCodeAnalyst.GraphArea;
 
-class PresentationState
+public class PresentationState
 {
     public PresentationState(Dictionary<string, bool> defaultState)
     {
@@ -27,7 +27,7 @@ class PresentationState
     }
 
     private readonly Dictionary<string, bool> _defaultState;
-    private Dictionary<string, bool> _nodeIdToCollapsed;
+    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
 
 
     public bool IsCollapsed(string id)

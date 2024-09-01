@@ -16,15 +16,41 @@ public class SeparatorCommand : IContextCommand
     }
 }
 
-public class ContextCommand(string label, CodeElementType type, Action<CodeElement> action) : IContextCommand
+public class ContextCommand : IContextCommand
 {
-    public string Label { get; } = label;
+    private readonly Action<CodeElement> _action;
+    private readonly CodeElementType? _type;
+
+    public ContextCommand(string label, CodeElementType type, Action<CodeElement> action)
+    {
+        _type = type;
+        _action = action;
+        Label = label;
+    }
+
+    /// <summary>
+    /// Generic for all code elements
+    /// </summary>
+    public ContextCommand(string label, Action<CodeElement> action)
+    {
+        _type = null;
+        _action = action;
+        Label = label;
+    }
+
+    public string Label { get; }
 
     public bool CanHandle(object item)
     {
         if (item is CodeElement element)
         {
-            return element.ElementType == type;
+            if (_type == null)
+            {
+                // Handling all elements
+                return true;
+            }
+
+            return element.ElementType == _type;
         }
 
         return false;
@@ -34,7 +60,7 @@ public class ContextCommand(string label, CodeElementType type, Action<CodeEleme
     {
         if (item is CodeElement element)
         {
-            action.Invoke(element);
+            _action.Invoke(element);
         }
     }
 }

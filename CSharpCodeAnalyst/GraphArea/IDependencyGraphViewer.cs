@@ -7,9 +7,13 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 internal interface IDependencyGraphViewer
 {
+    event EventHandler BeforeChange;
+
     void ShowFlatGraph(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
-    void AddContextCommand(IContextCommand command);
+    void DeleteFromGraph(HashSet<string> idsToRemove);
+    void AddDynamicContextCommand(IContextCommand command);
+    void AddStaticContextCommand(IContextCommand command);
 
     /// <summary>
     ///     Clear the internal code graph. The graph is empty after this.
@@ -30,11 +34,18 @@ internal interface IDependencyGraphViewer
     /// </summary>
     void SetQuickInfoFactory(IQuickInfoFactory factory);
 
-    CodeGraph GetStructure();
+    CodeGraph GetGraph();
     void UpdateRenderOption(RenderOption renderOption);
     void SaveToSvg(FileStream stream);
     void SetHighlightMode(HighlightMode valueMode);
     void ShowGlobalContextMenu();
-    bool Undo();
     void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies);
+
+    /// <summary>
+    ///     Current content of the graph for persistence and undo/redo.
+    /// </summary>
+    GraphSessionState GetSessionState();
+
+    void RestoreSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
+   
 }
