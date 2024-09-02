@@ -6,7 +6,7 @@ using System.Windows.Input;
 using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.GraphArea.Highlighig;
+using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;

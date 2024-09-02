@@ -1,5 +1,4 @@
 ﻿using GraphLib.Contracts;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Contracts.Graph;
 
@@ -8,6 +7,26 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     public Dictionary<string, CodeElement> Nodes = new();
 
     public uint VertexCount => (uint)Nodes.Count();
+
+    public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
+    {
+        return vertex.Dependencies.Select(d => Nodes[d.TargetId]).ToList();
+    }
+
+    public bool IsVertex(CodeElement vertex)
+    {
+        return Nodes.ContainsKey(vertex.Id);
+    }
+
+    public bool IsEdge(CodeElement source, CodeElement target)
+    {
+        return Nodes[source.Id].Dependencies.Any(d => d.TargetId == target.Id);
+    }
+
+    public IReadOnlyCollection<CodeElement> GetVertices()
+    {
+        return Nodes.Values;
+    }
 
     public CodeElement? TryGetCodeElement(string? id)
     {
@@ -26,7 +45,8 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     /// </summary>
     public void RemoveCodeElement(string elementId)
     {
-        RemoveCodeElements(new HashSet<string>() { elementId });
+        RemoveCodeElements(new HashSet<string>
+            { elementId });
     }
 
     /// <summary>
@@ -36,9 +56,10 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     public void RemoveCodeElements(HashSet<string> elementIds)
     {
         foreach (var elementId in elementIds)
-        { 
-            Nodes.Remove(elementId); 
+        {
+            Nodes.Remove(elementId);
         }
+
         DfsHierarchy(CleanupFunc);
         return;
 
@@ -115,26 +136,6 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     public IEnumerable<Dependency> GetAllDependencies()
     {
         return Nodes.Values.SelectMany(n => n.Dependencies).ToList();
-    }
-
-    public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
-    {
-        return vertex.Dependencies.Select(d => Nodes[d.TargetId]).ToList();
-    }
-
-    public bool IsVertex(CodeElement vertex)
-    {
-        return Nodes.ContainsKey(vertex.Id);
-    }
-
-    public bool IsEdge(CodeElement source, CodeElement target)
-    {
-        return Nodes[source.Id].Dependencies.Any(d => d.TargetId == target.Id);
-    }
-
-    public IReadOnlyCollection<CodeElement> GetVertices()
-    {
-        return Nodes.Values;
     }
 
     public List<CodeElement> GetRoots()

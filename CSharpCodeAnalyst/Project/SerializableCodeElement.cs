@@ -8,7 +8,7 @@ public class SerializableCodeElement(
     string name,
     string fullName,
     CodeElementType elementType,
-    List<SourceLocation> sourceLocations, 
+    List<SourceLocation> sourceLocations,
     HashSet<string> attributes)
 {
     public string Id { get; set; } = id;

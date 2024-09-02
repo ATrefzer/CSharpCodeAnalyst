@@ -17,5 +17,5 @@ public enum DependencyType
     // Parent / Children 
     Containment,
 
-    UsesAttribute,
+    UsesAttribute
 }

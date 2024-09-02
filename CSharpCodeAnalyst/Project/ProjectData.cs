@@ -20,8 +20,9 @@ public class ProjectData
     public void AddCodeGraph(CodeGraph codeGraph)
     {
         CodeElements = codeGraph.Nodes.Values
-            .Select(n => new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes)
-                { SourceLocations = n.SourceLocations }).ToList();
+            .Select(n =>
+                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes)
+                    { SourceLocations = n.SourceLocations }).ToList();
 
         // We iterate over children, so we expect to have a parent
         Children = codeGraph.Nodes.Values

@@ -3,7 +3,7 @@
 namespace CSharpCodeAnalyst.GraphArea;
 
 /// <summary>
-/// Global command to work on all marked code elements
+///     Global command to work on all marked code elements
 /// </summary>
 public class GlobalContextCommand : IGlobalContextCommand
 {
@@ -30,18 +30,18 @@ public class GlobalContextCommand : IGlobalContextCommand
     public string Label { get; }
 
 
-    public void Invoke(List<CodeElement> elements)
+    public void Invoke(List<CodeElement> markedElements)
     {
-        _action.Invoke(elements);
+        _action.Invoke(markedElements);
     }
 
-    public bool CanHandle(List<CodeElement> elements)
+    public bool CanHandle(List<CodeElement> markedElements)
     {
         var canHandle = true;
 
         if (_canExecute != null)
         {
-            canHandle = canHandle && _canExecute.Invoke(elements);
+            canHandle = canHandle && _canExecute.Invoke(markedElements);
         }
 
         return canHandle;

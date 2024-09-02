@@ -3,9 +3,8 @@ using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
 
-public partial class SearchGraphBuilder
+public class SearchGraphBuilder
 {
-
     public static SearchGraph BuildSearchGraph(CodeGraph codeGraph)
     {
         var searchNodes = new Dictionary<string, SearchNode>();

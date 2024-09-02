@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
@@ -127,15 +126,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         UndoCommand = new DelegateCommand(Undo);
     }
 
-    private void CompleteDependencies(List<CodeElement> _)
-    {
-        // Not interested in the marked elements!
-        var viewerGraph = _viewer.GetGraph();
-        var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var dependencies = _explorer.FindAllDependencies(ids);
-        AddToGraph([], dependencies);
-    }
-
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
 
@@ -199,6 +189,15 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void CompleteDependencies(List<CodeElement> _)
+    {
+        // Not interested in the marked elements!
+        var viewerGraph = _viewer.GetGraph();
+        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var dependencies = _explorer.FindAllDependencies(ids);
+        AddToGraph([], dependencies);
+    }
 
     private bool CanCollapse(CodeElement codeElement)
     {

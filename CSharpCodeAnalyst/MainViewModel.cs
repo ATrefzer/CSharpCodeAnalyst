@@ -264,10 +264,10 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         var editor = new GalleryEditor();
-        var viewModel = new GalleryEditorViewModel(_gallery, 
-            PreviewSession, 
-            AddSession, 
-            RemoveSession, 
+        var viewModel = new GalleryEditorViewModel(_gallery,
+            PreviewSession,
+            AddSession,
+            RemoveSession,
             LoadSession);
 
         var backup = _graphViewModel.GetSessionState();
@@ -277,12 +277,11 @@ internal class MainViewModel : INotifyPropertyChanged
         editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         var result = editor.ShowDialog();
 
-        if (result is false && ReferenceEquals(backup, preview) is false) 
+        if (result is false && ReferenceEquals(backup, preview) is false)
         {
             // Restore original state if previews were shown
             _graphViewModel.LoadSession(backup, false);
         }
-
 
 
         void RemoveSession(GraphSessionState session)
