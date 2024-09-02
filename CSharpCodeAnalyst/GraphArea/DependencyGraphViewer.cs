@@ -25,9 +25,9 @@ namespace CSharpCodeAnalyst.GraphArea;
 internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
     private readonly List<IContextCommand> _dynamicContextCommands = [];
-    private readonly List<IContextCommand> _staticContextCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
     private readonly IPublisher _publisher;
+    private readonly List<IContextCommand> _staticContextCommands = [];
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
@@ -90,11 +90,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
-    private bool IsBoundToPanel()
-    {
-        return _msaglViewer is not null;
-    }
-
     public void AddDynamicContextCommand(IContextCommand command)
     {
         _dynamicContextCommands.Add(command);
@@ -102,7 +97,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     public void AddStaticContextCommand(IContextCommand command)
     {
-       _staticContextCommands.Add(command);
+        _staticContextCommands.Add(command);
     }
 
     public void Layout()
@@ -250,7 +245,51 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
+    public void DeleteFromGraph(HashSet<string> idsToRemove)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        if (idsToRemove.Any() is false)
+        {
+            return;
+        }
+
+        RaiseBeforeChange();
+
+        _clonedCodeGraph.RemoveCodeElements(idsToRemove);
+        _presentationState.RemoveStates(idsToRemove);
+
+        RefreshGraph();
+    }
+
+    public void Collapse(string id)
+    {
+        RaiseBeforeChange();
+        _presentationState.SetCollapsedState(id, true);
+        RefreshGraph();
+    }
+
+    public void Expand(string id)
+    {
+        RaiseBeforeChange();
+        _presentationState.SetCollapsedState(id, false);
+        RefreshGraph();
+    }
+
+    public bool IsCollapsed(string id)
+    {
+        return _presentationState.IsCollapsed(id);
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool IsBoundToPanel()
+    {
+        return _msaglViewer is not null;
+    }
 
     private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
         IEnumerable<Dependency> newDependencies)
@@ -304,26 +343,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
 
         DeleteFromGraph(idsToRemove);
-    }
-
-    public void DeleteFromGraph(HashSet<string> idsToRemove)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        if (idsToRemove.Any() is false)
-        {
-            return;
-        }
-
-        RaiseBeforeChange();
-
-        _clonedCodeGraph.RemoveCodeElements(idsToRemove);
-        _presentationState.RemoveStates(idsToRemove);
-
-        RefreshGraph();
     }
 
     private void RaiseBeforeChange()
@@ -482,8 +501,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     private void AddToContextMenuStaticEntries(Node node, ContextMenu contextMenu)
     {
-        AddToContextMenuExpanding(node, contextMenu);
-
         foreach (var cmd in _staticContextCommands)
         {
             if (cmd.CanHandle(node.UserData))
@@ -531,48 +548,9 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
     }
 
-    private void AddToContextMenuExpanding(Node node, ContextMenu contextMenu)
-    {
-        if (node.UserData is CodeElement codeElement)
-        {
-            if (_presentationState.IsCollapsed(codeElement.Id) &&
-                codeElement.Children.Any())
-            {
-                var item = new MenuItem { Header = "Expand" };
-                item.Click += (_, _) => Expand(codeElement.Id);
-                contextMenu.Items.Add(item);
-            }
-
-            if (!_presentationState.IsCollapsed(codeElement.Id) &&
-                codeElement.Children.Any())
-            {
-                var item = new MenuItem { Header = "Collapse" };
-                item.Click += (_, _) => Collapse(codeElement.Id);
-                contextMenu.Items.Add(item);
-            }
-        }
-    }
-
-    private void Collapse(string id)
-    {
-        RaiseBeforeChange();
-        _presentationState.SetCollapsedState(id, true);
-        RefreshGraph();
-    }
-
-    private void Expand(string id)
-    {
-        RaiseBeforeChange();
-        _presentationState.SetCollapsedState(id, false);
-
-        RefreshGraph();
-    }
-
-
     private void AddMissingDependencies()
     {
         // We do not know the original graph.
         _publisher.Publish(new AddMissingDependenciesRequest());
     }
 }
-

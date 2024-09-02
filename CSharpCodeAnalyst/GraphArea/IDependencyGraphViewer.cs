@@ -47,5 +47,8 @@ internal interface IDependencyGraphViewer
     GraphSessionState GetSessionState();
 
     void RestoreSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
-   
+
+    void Collapse(string id);
+    void Expand(string id);
+    bool IsCollapsed(string id);
 }

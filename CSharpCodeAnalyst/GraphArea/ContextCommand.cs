@@ -19,6 +19,7 @@ public class SeparatorCommand : IContextCommand
 public class ContextCommand : IContextCommand
 {
     private readonly Action<CodeElement> _action;
+    private readonly Func<CodeElement, bool>? _canExecute;
     private readonly CodeElementType? _type;
 
     public ContextCommand(string label, CodeElementType type, Action<CodeElement> action)
@@ -31,10 +32,11 @@ public class ContextCommand : IContextCommand
     /// <summary>
     /// Generic for all code elements
     /// </summary>
-    public ContextCommand(string label, Action<CodeElement> action)
+    public ContextCommand(string label, Action<CodeElement> action, Func<CodeElement, bool>? canExecute = null)
     {
         _type = null;
         _action = action;
+        _canExecute = canExecute;
         Label = label;
     }
 
@@ -42,18 +44,27 @@ public class ContextCommand : IContextCommand
 
     public bool CanHandle(object item)
     {
+        var canHandle = false;
         if (item is CodeElement element)
         {
             if (_type == null)
             {
                 // Handling all elements
-                return true;
+                canHandle = true;
+            }
+            else
+            {
+                canHandle = element.ElementType == _type;
             }
 
-            return element.ElementType == _type;
+            if (_canExecute != null)
+            {
+                // Further restrict the handling
+                canHandle = canHandle && _canExecute.Invoke(element);
+            }
         }
 
-        return false;
+        return canHandle;
     }
 
     public void Invoke(object item)

@@ -56,6 +56,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         _selectedHighlightOption = HighlightOptions[0];
 
         // Static commands
+        _viewer.AddStaticContextCommand(new ContextCommand("Expand", Expand, CanExpand));
+        _viewer.AddStaticContextCommand(new ContextCommand("Collapse", Collapse, CanCollapse));
+
         _viewer.AddStaticContextCommand(new ContextCommand("Delete", DeleteWithoutChildren));
         _viewer.AddStaticContextCommand(new ContextCommand("Delete (with children)", DeleteWithChildren));
         _viewer.AddStaticContextCommand(new ContextCommand("Find in tree", FindInTreeRequest));
@@ -122,6 +125,28 @@ internal class GraphViewModel : INotifyPropertyChanged
         }
 
         UndoCommand = new DelegateCommand(Undo);
+    }
+
+    private bool CanCollapse(CodeElement codeElement)
+    {
+        return !_viewer.IsCollapsed(codeElement.Id) &&
+               codeElement.Children.Any();
+    }
+
+    private void Collapse(CodeElement codeElement)
+    {
+        _viewer.Collapse(codeElement.Id);
+    }
+
+    private bool CanExpand(CodeElement codeElement)
+    {
+        return _viewer.IsCollapsed(codeElement.Id) &&
+               codeElement.Children.Any();
+    }
+
+    private void Expand(CodeElement codeElement)
+    {
+        _viewer.Expand(codeElement.Id);
     }
 
     private void AddParentRequest(CodeElement codeElement)
