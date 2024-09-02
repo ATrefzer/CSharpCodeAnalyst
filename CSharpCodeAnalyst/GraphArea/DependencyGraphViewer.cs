@@ -24,10 +24,10 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
-    private readonly List<IContextCommand> _dynamicContextCommands = [];
+    private readonly List<IContextCommand> _contextMenuCommands = [];
+    private readonly List<IGlobalContextCommand> _globalContextMenuCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
     private readonly IPublisher _publisher;
-    private readonly List<IContextCommand> _staticContextCommands = [];
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
@@ -90,14 +90,14 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
-    public void AddDynamicContextCommand(IContextCommand command)
+    public void AddContextMenuCommand(IContextCommand command)
     {
-        _dynamicContextCommands.Add(command);
+        _contextMenuCommands.Add(command);
     }
 
-    public void AddStaticContextCommand(IContextCommand command)
+    public void AddGlobalContextMenuCommand(IGlobalContextCommand command)
     {
-        _staticContextCommands.Add(command);
+        _globalContextMenuCommands.Add(command);
     }
 
     public void Layout()
@@ -166,12 +166,23 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
         var globalContextMenu = new ContextMenu();
 
-        var item = new MenuItem { Header = "Complete dependencies" };
-        item.Click += (_, _) => AddMissingDependencies();
-        globalContextMenu.Items.Add(item);
+        var markedElements = GetMarkedElementIds()
+            .Select(id => _clonedCodeGraph.Nodes[id])
+            .ToList();
 
+        foreach (var command in _globalContextMenuCommands)
+        {
+            if (command.CanHandle(markedElements) is false)
+            {
+                continue;
+            }
 
-        item = new MenuItem { Header = "Delete marked (with children)" };
+            var menuItem = new MenuItem { Header = command.Label };
+            menuItem.Click += (_, _) => command.Invoke(markedElements);
+            globalContextMenu.Items.Add(menuItem);
+        }
+
+        var item = new MenuItem { Header = "Delete marked (with children)" };
         item.Click += (_, _) => DeleteAllMarkedElements();
         globalContextMenu.Items.Add(item);
 
@@ -317,14 +328,23 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             return;
         }
 
+        var markedIds = GetMarkedElementIds();
+        DeleteFromGraph(markedIds, true);
+    }
+
+    private HashSet<string> GetMarkedElementIds()
+    {
+        if (_msaglViewer is null)
+        {
+            return [];
+        }
+
         var markedIds = _msaglViewer.Entities
             .Where(e => e.MarkedForDragging)
             .OfType<IViewerNode>()
             .Select(n => n.Node.Id)
             .ToHashSet();
-
-
-        DeleteFromGraph(markedIds, true);
+        return markedIds;
     }
 
 
@@ -488,8 +508,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             var node = clickedObject.Node;
             var contextMenu = new ContextMenu();
 
-            AddToContextMenuStaticEntries(node, contextMenu);
-            AddToContextMenuDynamicEntries(node, contextMenu);
+            AddToContextMenuEntries(node, contextMenu);
 
             contextMenu.IsOpen = true;
         }
@@ -499,30 +518,17 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
     }
 
-    private void AddToContextMenuStaticEntries(Node node, ContextMenu contextMenu)
-    {
-        foreach (var cmd in _staticContextCommands)
-        {
-            if (cmd.CanHandle(node.UserData))
-            {
-                var menuItem = new MenuItem { Header = cmd.Label };
-                menuItem.Click += (_, _) => cmd.Invoke(node.UserData);
-                contextMenu.Items.Add(menuItem);
-            }
-        }
-    }
 
     /// <summary>
-    ///     Commands registered for type of nodes
+    ///     Commands registered for nodes
     /// </summary>
-    private void AddToContextMenuDynamicEntries(Node node, ContextMenu contextMenu)
+    private void AddToContextMenuEntries(Node node, ContextMenu contextMenu)
     {
-        contextMenu.Items.Add(new Separator());
         var lastItemIsSeparator = true;
 
-        if (node.UserData is CodeElement)
+        if (node.UserData is CodeElement element)
         {
-            foreach (var cmd in _dynamicContextCommands)
+            foreach (var cmd in _contextMenuCommands)
             {
                 // Add separator command only if the last element was a real menu item.
                 if (cmd is SeparatorCommand)
@@ -530,27 +536,22 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
                     if (lastItemIsSeparator is false)
                     {
                         contextMenu.Items.Add(new Separator());
+                        lastItemIsSeparator = true;
                     }
 
                     continue;
                 }
 
-                if (!cmd.CanHandle(node.UserData))
+                if (!cmd.CanHandle(element))
                 {
                     continue;
                 }
 
                 var menuItem = new MenuItem { Header = cmd.Label };
-                menuItem.Click += (_, _) => cmd.Invoke(node.UserData);
+                menuItem.Click += (_, _) => cmd.Invoke(element);
                 contextMenu.Items.Add(menuItem);
                 lastItemIsSeparator = false;
             }
         }
-    }
-
-    private void AddMissingDependencies()
-    {
-        // We do not know the original graph.
-        _publisher.Publish(new AddMissingDependenciesRequest());
     }
 }

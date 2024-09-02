@@ -64,8 +64,6 @@ public partial class App
 
         messaging.Subscribe<CycleCalculationComplete>(cycleViewModel.HandleCycleCalculationComplete);
 
-        messaging.Subscribe<AddMissingDependenciesRequest>(graphViewModel.HandleAddMissingDependenciesRequest);
-
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
 
         mainWindow.DataContext = viewModel;

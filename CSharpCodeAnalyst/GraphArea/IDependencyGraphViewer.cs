@@ -12,8 +12,8 @@ internal interface IDependencyGraphViewer
     void ShowFlatGraph(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
     void DeleteFromGraph(HashSet<string> idsToRemove);
-    void AddDynamicContextCommand(IContextCommand command);
-    void AddStaticContextCommand(IContextCommand command);
+    void AddContextMenuCommand(IContextCommand command);
+    void AddGlobalContextMenuCommand(IGlobalContextCommand command);
 
     /// <summary>
     ///     Clear the internal code graph. The graph is empty after this.

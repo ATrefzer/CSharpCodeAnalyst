@@ -1,15 +1,17 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+- Move remaining global commands to GraphViewModel
+- Move Undo/Redo to GraphViewModel
+
 - Highlight of aggregated edges takes too long. If quick help not visible skip?
 - Performance in general
 
 - Locations are stored for Gallery. This is not necessary. Remove it.
-- Save Jso without spaces. This will reduce the size of the file.
-
 
 
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
+
 
 
 BUGS

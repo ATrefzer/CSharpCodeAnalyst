@@ -733,7 +733,8 @@ internal class MainViewModel : INotifyPropertyChanged
 
         var options = new JsonSerializerOptions
         {
-            WriteIndented = true
+            // The file gets quite large, so we don't want to have it indented.
+            WriteIndented = false
         };
         var json = JsonSerializer.Serialize(projectData, options);
         File.WriteAllText(saveFileDialog.FileName, json);
