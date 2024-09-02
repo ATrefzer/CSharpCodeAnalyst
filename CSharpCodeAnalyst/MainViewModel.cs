@@ -1,4 +1,14 @@
-﻿using CodeParser.Analysis.Cycles;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
+using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Export;
 using CodeParser.Extensions;
@@ -10,6 +20,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Filter;
+using CSharpCodeAnalyst.Gallery;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.MetricArea;
@@ -17,16 +28,6 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
@@ -37,6 +38,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
+    private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
 
@@ -69,6 +71,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         _messaging = messaging;
+        _gallery = new Gallery.Gallery();
         SearchCommand = new DelegateCommand(Search);
         LoadSolutionCommand = new DelegateCommand(LoadSolution);
         LoadProjectCommand = new DelegateCommand(LoadProject);
@@ -78,6 +81,7 @@ internal class MainViewModel : INotifyPropertyChanged
         ExportToDgmlCommand = new DelegateCommand(ExportToDgml);
         ExportToSvgCommand = new DelegateCommand(ExportToSvg);
         FindCyclesCommand = new DelegateCommand(FindCycles);
+        ShowGalleryCommand = new DelegateCommand(ShowGallery);
         ExportToDsiCommand = new DelegateCommand(ExportToDsi);
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
@@ -86,6 +90,9 @@ internal class MainViewModel : INotifyPropertyChanged
 
         _loadMessage = string.Empty;
     }
+
+    public ICommand ShowGalleryCommand { get; }
+
 
     public CycleSummaryViewModel? CycleSummaryViewModel
     {
@@ -178,19 +185,13 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     public ICommand LoadProjectCommand { get; }
-
     public ICommand LoadSolutionCommand { get; }
-
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
-
     public ICommand ExportToDgmlCommand { get; }
-
     public ICommand ExportToSvgCommand { get; set; }
-
     public ICommand CopyToExplorerGraphCommand { get; set; }
-
     public ICommand FindCyclesCommand { get; }
     public ICommand ExportToDsiCommand { get; }
     public ICommand OpenSourceLocationCommand { get; }
@@ -254,6 +255,62 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void ShowGallery()
+    {
+        if (_graphViewModel is null || _gallery is null || _codeGraph is null)
+        {
+            return;
+        }
+
+        var editor = new GalleryEditor();
+        var viewModel = new GalleryEditorViewModel(_gallery, 
+            PreviewSession, 
+            AddSession, 
+            RemoveSession, 
+            LoadSession);
+
+        var backup = _graphViewModel.GetSessionState();
+        GraphSessionState? preview = null;
+
+        editor.DataContext = viewModel;
+        editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        var result = editor.ShowDialog();
+
+        if (result is false && ReferenceEquals(backup, preview) is false) 
+        {
+            // Restore original state if previews were shown
+            _graphViewModel.LoadSession(backup, false);
+        }
+
+
+
+        void RemoveSession(GraphSessionState session)
+        {
+            _gallery.Sessions.Remove(session);
+            _isSaved = false;
+        }
+
+        void PreviewSession(GraphSessionState session)
+        {
+            _graphViewModel.LoadSession(session, false);
+        }
+
+        void LoadSession(GraphSessionState session)
+        {
+            _graphViewModel.LoadSession(session, true);
+            editor.DialogResult = true;
+        }
+
+        GraphSessionState AddSession(string name)
+        {
+            var session = _graphViewModel.GetSessionState();
+            session.Name = name;
+            _gallery.AddSession(session);
+            _isSaved = false;
+            return session;
+        }
+    }
 
     private void OpenFilterDialog()
     {
@@ -633,6 +690,8 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             LoadCodeGraph(codeGraph);
+            _gallery = projectData.Gallery;
+
             _isSaved = true;
         }
         catch (Exception)
@@ -665,6 +724,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
         var projectData = new ProjectData();
         projectData.AddCodeGraph(_codeGraph);
+        projectData.Gallery = _gallery;
         projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();

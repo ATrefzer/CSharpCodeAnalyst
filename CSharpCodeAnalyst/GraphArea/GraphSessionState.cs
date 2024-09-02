@@ -5,8 +5,17 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// <summary>
 /// Minimum state required to restore a graph session.
 /// </summary>
+[Serializable]
 public class GraphSessionState
 {
+    public GraphSessionState()
+    {
+        Name = string.Empty;
+        CodeElementIds = [];
+        Dependencies = [];
+        PresentationState = new();
+    }
+
     private GraphSessionState(string name, List<string> codeElementIds, List<Dependency> dependencies,
         PresentationState presentationState)
     {

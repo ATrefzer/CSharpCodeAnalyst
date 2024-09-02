@@ -437,4 +437,27 @@ internal class GraphViewModel : INotifyPropertyChanged
             _viewModel._undoStackLocked = false;
         }
     }
+
+    public GraphSessionState GetSessionState()
+    {
+        return _viewer.GetSessionState();
+    }
+
+    public void LoadSession(GraphSessionState session, bool withUndo)
+    {
+        var elements = _explorer.GetElements(session.CodeElementIds);
+
+        if (withUndo)
+        {
+            _viewer.RestoreSession(elements, session.Dependencies, session.PresentationState);
+           
+        }
+        else
+        {
+            using (new UndoStackLock(this))
+            {
+                _viewer.RestoreSession(elements, session.Dependencies, session.PresentationState);
+            }
+        }
+    }
 }

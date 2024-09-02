@@ -2,6 +2,7 @@
 
 namespace CSharpCodeAnalyst.Project;
 
+[Serializable]
 public class ProjectData
 {
     public List<SerializableChild> Children { get; set; } = [];
@@ -11,6 +12,7 @@ public class ProjectData
     public List<SerializableDependency> Dependencies { get; set; } = [];
 
     public Dictionary<string, string> Settings { get; set; } = new();
+    public Gallery.Gallery Gallery { get; set; } = new();
 
     /// <summary>
     ///     Flatten the recursive structures.
