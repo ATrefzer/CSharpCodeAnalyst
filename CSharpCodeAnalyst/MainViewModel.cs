@@ -666,7 +666,7 @@ internal class MainViewModel : INotifyPropertyChanged
                 throw new NullReferenceException();
             }
 
-            var codeGraph = projectData.CreateCodeGraph();
+            var codeGraph = projectData.GetCodeGraph();
 
 
             // Load settings
@@ -687,7 +687,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             LoadCodeGraph(codeGraph);
-            _gallery = projectData.Gallery;
+            _gallery = projectData.GetGallery();
 
             _isSaved = true;
         }
@@ -720,8 +720,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         var projectData = new ProjectData();
-        projectData.AddCodeGraph(_codeGraph);
-        projectData.Gallery = _gallery;
+        projectData.SetCodeGraph(_codeGraph);
+        projectData.SetGallery(_gallery ?? new Gallery.Gallery());
         projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();

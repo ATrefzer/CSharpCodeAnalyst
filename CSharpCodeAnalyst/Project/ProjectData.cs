@@ -12,12 +12,29 @@ public class ProjectData
     public List<SerializableDependency> Dependencies { get; set; } = [];
 
     public Dictionary<string, string> Settings { get; set; } = new();
+
+    /// <summary>
+    /// Gallery is already serializable.
+    /// </summary>
     public Gallery.Gallery Gallery { get; set; } = new();
+
+    public void SetGallery(Gallery.Gallery gallery)
+    {
+        // TODO Consider to introduce a serializable Gallery not storing the source locations for dependencies.
+        // This would save space. But we have to restore the dependencies.
+        Gallery = gallery;
+    }
+
+    public Gallery.Gallery GetGallery()
+    {
+        return Gallery;
+    }
+
 
     /// <summary>
     ///     Flatten the recursive structures.
     /// </summary>
-    public void AddCodeGraph(CodeGraph codeGraph)
+    public void SetCodeGraph(CodeGraph codeGraph)
     {
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
@@ -36,7 +53,7 @@ public class ProjectData
             .ToList();
     }
 
-    public CodeGraph CreateCodeGraph()
+    public CodeGraph GetCodeGraph()
     {
         var codeStructure = new CodeGraph();
 

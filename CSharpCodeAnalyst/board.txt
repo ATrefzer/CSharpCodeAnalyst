@@ -1,12 +1,8 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-
 - Highlight of aggregated edges takes too long. If quick help not visible skip?
 - Performance in general
-
-- Locations are stored for Gallery. This is not necessary. Remove it.
-
 
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
 - Main method is required
