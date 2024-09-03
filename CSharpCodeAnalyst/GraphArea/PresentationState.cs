@@ -1,12 +1,21 @@
-﻿
-namespace CSharpCodeAnalyst.GraphArea;
+﻿namespace CSharpCodeAnalyst.GraphArea;
 
-class PresentationState
+public class PresentationState
 {
+    private readonly Dictionary<string, bool> _defaultState;
+    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
+
     public PresentationState(Dictionary<string, bool> defaultState)
     {
         _defaultState = defaultState.ToDictionary(p => p.Key, propa => propa.Value);
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
+    }
+
+    public PresentationState()
+    {
+        // Nothing is collapsed
+        _defaultState = new Dictionary<string, bool>();
+        _nodeIdToCollapsed = new Dictionary<string, bool>();
     }
 
     public PresentationState Clone()
@@ -16,18 +25,9 @@ class PresentationState
         {
             clone.SetCollapsedState(pair.Key, pair.Value);
         }
+
         return clone;
     }
-
-    public PresentationState()
-    {
-        // Nothing is collapsed
-        _defaultState = new();
-        _nodeIdToCollapsed = new();
-    }
-
-    private readonly Dictionary<string, bool> _defaultState;
-    private Dictionary<string, bool> _nodeIdToCollapsed;
 
 
     public bool IsCollapsed(string id)

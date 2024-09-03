@@ -4,8 +4,8 @@
 - Highlight of aggregated edges takes too long. If quick help not visible skip?
 - Performance in general
 
-
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
+- Main method is required
 
 
 BUGS

@@ -39,7 +39,7 @@ public partial class App
 
         mainWindow.SetViewer(explorationGraphViewer);
         var viewModel = new MainViewModel(messaging, settings);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, settings);
+        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();
         viewModel.GraphViewModel = graphViewModel;
@@ -63,8 +63,6 @@ public partial class App
         messaging.Subscribe<AddParentContainerRequest>(treeViewModel.HandleAddParentContainerRequest);
 
         messaging.Subscribe<CycleCalculationComplete>(cycleViewModel.HandleCycleCalculationComplete);
-
-        messaging.Subscribe<AddMissingDependenciesRequest>(graphViewModel.HandleAddMissingDependenciesRequest);
 
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
 
