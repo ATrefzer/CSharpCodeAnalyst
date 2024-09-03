@@ -2,39 +2,56 @@
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-public class SeparatorCommand : IContextCommand
+public class ContextCommand : IContextCommand
 {
-    public string Label => throw new NotImplementedException();
+    private readonly Action<CodeElement> _action;
+    private readonly Func<CodeElement, bool>? _canExecute;
+    private readonly CodeElementType? _type;
 
-    public bool CanHandle(object item)
+    public ContextCommand(string label, CodeElementType type, Action<CodeElement> action)
     {
-        return true;
+        _type = type;
+        _action = action;
+        Label = label;
     }
 
-    public void Invoke(object item)
+    /// <summary>
+    ///     Generic for all code elements
+    /// </summary>
+    public ContextCommand(string label, Action<CodeElement> action, Func<CodeElement, bool>? canExecute = null)
     {
+        _type = null;
+        _action = action;
+        _canExecute = canExecute;
+        Label = label;
     }
-}
 
-public class ContextCommand(string label, CodeElementType type, Action<CodeElement> action) : IContextCommand
-{
-    public string Label { get; } = label;
+    public string Label { get; }
 
-    public bool CanHandle(object item)
+    public bool CanHandle(CodeElement element)
     {
-        if (item is CodeElement element)
+        var canHandle = false;
+        if (_type == null)
         {
-            return element.ElementType == type;
+            // Handling all elements
+            canHandle = true;
+        }
+        else
+        {
+            canHandle = element.ElementType == _type;
         }
 
-        return false;
+        if (_canExecute != null)
+        {
+            // Further restrict the handling
+            canHandle = canHandle && _canExecute.Invoke(element);
+        }
+
+        return canHandle;
     }
 
-    public void Invoke(object item)
+    public void Invoke(CodeElement element)
     {
-        if (item is CodeElement element)
-        {
-            action.Invoke(element);
-        }
+        _action.Invoke(element);
     }
 }

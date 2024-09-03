@@ -14,7 +14,7 @@ public class Scc<TVertex>
 public static class Tarjan
 {
     /// <summary>
-    /// O(|E| + |V|)
+    ///     O(|E| + |V|)
     /// </summary>
     public static List<Scc<TVertex>> FindStronglyConnectedComponents<TVertex>(IGraphRepresentation<TVertex> graph)
         where TVertex : notnull

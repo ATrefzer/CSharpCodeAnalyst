@@ -9,7 +9,9 @@ internal interface IDependencyGraphViewer
 {
     void ShowFlatGraph(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
-    void AddContextCommand(IContextCommand command);
+    void DeleteFromGraph(HashSet<string> idsToRemove);
+    void AddContextMenuCommand(IContextCommand command);
+    void AddGlobalContextMenuCommand(IGlobalContextCommand command);
 
     /// <summary>
     ///     Clear the internal code graph. The graph is empty after this.
@@ -30,11 +32,28 @@ internal interface IDependencyGraphViewer
     /// </summary>
     void SetQuickInfoFactory(IQuickInfoFactory factory);
 
-    CodeGraph GetStructure();
+    CodeGraph GetGraph();
     void UpdateRenderOption(RenderOption renderOption);
     void SaveToSvg(FileStream stream);
     void SetHighlightMode(HighlightMode valueMode);
     void ShowGlobalContextMenu();
-    bool Undo();
-    void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies);
+
+    /// <summary>
+    ///     Current content of the graph for persistence and undo/redo.
+    /// </summary>
+    GraphSession GetSession();
+
+    void Collapse(string id);
+    void Expand(string id);
+    bool IsCollapsed(string id);
+
+    /// <summary>
+    /// Undo and gallery.
+    /// </summary>
+    void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
+
+    /// <summary>
+    /// Cycle groups, focus on marked elements
+    /// </summary>    
+    void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 }

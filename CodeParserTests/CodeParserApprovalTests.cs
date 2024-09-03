@@ -81,7 +81,7 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.StructWithInterface.Method",
 
             // Extension method
-            "CSharpLanguage.CSharpLanguage.Extensions.Slice", 
+            "CSharpLanguage.CSharpLanguage.Extensions.Slice",
 
             // Called by extension method
             "CSharpLanguage.CSharpLanguage.TheExtendedType.Do"

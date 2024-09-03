@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -10,24 +11,29 @@ using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Prism.Commands;
+using CodeParser.Extensions;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
 internal class GraphViewModel : INotifyPropertyChanged
 {
     private readonly ICodeGraphExplorer _explorer;
+    private readonly IPublisher _publisher;
     private readonly ApplicationSettings? _settings;
+    private readonly LinkedList<GraphSession> _undoStack = new();
+    private readonly int _undoStackSize = 10;
     private readonly IDependencyGraphViewer _viewer;
 
-    private CodeGraph? _originalCodeGraph;
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
     private bool _showFlatGraph;
 
-    internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer, Configuration.ApplicationSettings? settings)
+    internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
+        ApplicationSettings? settings)
     {
         _viewer = viewer;
         _explorer = explorer;
+        _publisher = publisher;
         _settings = settings;
 
         // Initialize RenderOptions
@@ -49,6 +55,22 @@ internal class GraphViewModel : INotifyPropertyChanged
         _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
 
+        // Global commands
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Complete dependencies", CompleteDependencies));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Delete marked (with children)", DeleteMarkedWithChildren));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Focus on marked elements", FocusOnMarkedElements));
+
+
+        // Static commands
+        _viewer.AddContextMenuCommand(new ContextCommand("Expand", Expand, CanExpand));
+        _viewer.AddContextMenuCommand(new ContextCommand("Collapse", Collapse, CanCollapse));
+
+        _viewer.AddContextMenuCommand(new ContextCommand("Delete", DeleteWithoutChildren));
+        _viewer.AddContextMenuCommand(new ContextCommand("Delete (with children)", DeleteWithChildren));
+        _viewer.AddContextMenuCommand(new ContextCommand("Find in tree", FindInTreeRequest));
+        _viewer.AddContextMenuCommand(new ContextCommand("Add parent", AddParentRequest));
+        _viewer.AddContextMenuCommand(new SeparatorCommand());
+
         var findOutgoingCalls = "Find outgoing Calls";
         var findIncomingCalls = "Find incoming Calls";
         var findIncomingCallsRecursive = "Find incoming Calls (recursive)";
@@ -57,49 +79,101 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
         // Methods
-        _viewer.AddContextCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Method, FindOutgoingCalls));
-        _viewer.AddContextCommand(new ContextCommand(findIncomingCalls, CodeElementType.Method, FindIncomingCalls));
-        _viewer.AddContextCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Method,
+        _viewer.AddContextMenuCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Method,
+            FindOutgoingCalls));
+        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Method,
+            FindIncomingCalls));
+        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Method,
             FindIncomingCallsRecursive));
-        _viewer.AddContextCommand(new ContextCommand(findSpecializations, CodeElementType.Method, FindSpecializations));
-        _viewer.AddContextCommand(new ContextCommand(findAbstractions, CodeElementType.Method, FindAbstractions));
+        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Method,
+            FindSpecializations));
+        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Method,
+            FindAbstractions));
 
 
         // Properties
-        _viewer.AddContextCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Property, FindOutgoingCalls));
-        _viewer.AddContextCommand(new ContextCommand(findIncomingCalls, CodeElementType.Property, FindIncomingCalls));
-        _viewer.AddContextCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Property,
+        _viewer.AddContextMenuCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Property,
+            FindOutgoingCalls));
+        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Property,
+            FindIncomingCalls));
+        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Property,
             FindIncomingCallsRecursive));
-        _viewer.AddContextCommand(
+        _viewer.AddContextMenuCommand(
             new ContextCommand(findSpecializations, CodeElementType.Property, FindSpecializations));
-        _viewer.AddContextCommand(new ContextCommand(findAbstractions, CodeElementType.Property, FindAbstractions));
+        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Property,
+            FindAbstractions));
 
 
         // Classes
-        _viewer.AddContextCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Class,
+        _viewer.AddContextMenuCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Class,
             FindSpecializationAndAbstractions));
-        _viewer.AddContextCommand(new ContextCommand(findSpecializations, CodeElementType.Class, FindSpecializations));
-        _viewer.AddContextCommand(new ContextCommand(findAbstractions, CodeElementType.Class, FindAbstractions));
+        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Class,
+            FindSpecializations));
+        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Class, FindAbstractions));
 
         // Interfaces
-        _viewer.AddContextCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Interface,
+        _viewer.AddContextMenuCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Interface,
             FindSpecializationAndAbstractions));
-        _viewer.AddContextCommand(new ContextCommand(findSpecializations, CodeElementType.Interface,
+        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Interface,
             FindSpecializations));
-        _viewer.AddContextCommand(new ContextCommand(findAbstractions, CodeElementType.Interface, FindAbstractions));
+        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Interface,
+            FindAbstractions));
 
 
         // Everyone gets the in/out dependencies
-        _viewer.AddContextCommand(new SeparatorCommand());
-        foreach (var type in Enum.GetValues<CodeElementType>())
-        {
-            _viewer.AddContextCommand(new ContextCommand("All incoming dependencies", type,
-                FindAllIncomingDependencies));
-            _viewer.AddContextCommand(new ContextCommand("All outgoing dependencies", type,
-                FindAllOutgoingDependencies));
-        }
+        _viewer.AddContextMenuCommand(new SeparatorCommand());
+        _viewer.AddContextMenuCommand(new ContextCommand("All incoming dependencies", FindAllIncomingDependencies));
+        _viewer.AddContextMenuCommand(new ContextCommand("All outgoing dependencies", FindAllOutgoingDependencies));
 
         UndoCommand = new DelegateCommand(Undo);
+    }
+
+    private void FocusOnMarkedElements(List<CodeElement> markedElements)
+    {
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        if (!markedElements.Any())
+        {
+            return;
+        }
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        var idsToKeep = new HashSet<string>();
+
+        // All children
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        var newGraph = graph.SubGraphOf(idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+
+        var presentationState = session.PresentationState.Clone();
+        presentationState.RemoveStates(idsToRemove);
+
+        _viewer.LoadSession(newGraph, presentationState);
+    }
+
+    private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
+    {
+        var graph = _viewer.GetGraph();
+        var idsToRemove = new HashSet<string>();
+
+        // Include children      
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToRemove.UnionWith(children);
+        }
+
+        _viewer.DeleteFromGraph(idsToRemove);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -132,7 +206,7 @@ internal class GraphViewModel : INotifyPropertyChanged
                 return;
             }
 
-            var codeGraph = _viewer.GetStructure();
+            var codeGraph = _viewer.GetGraph();
             if (!ProceedWithLargeGraph(codeGraph.Nodes.Count))
             {
                 // No collapsing in flat graph. We show everything
@@ -166,13 +240,92 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private void CompleteDependencies(List<CodeElement> _)
+    {
+        // Not interested in the marked elements!
+        var viewerGraph = _viewer.GetGraph();
+        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var dependencies = _explorer.FindAllDependencies(ids);
+        AddToGraph([], dependencies);
+    }
+
+    private bool CanCollapse(CodeElement codeElement)
+    {
+        return !_viewer.IsCollapsed(codeElement.Id) &&
+               codeElement.Children.Any();
+    }
+
+    private void Collapse(CodeElement codeElement)
+    {
+        PushUndo();
+        _viewer.Collapse(codeElement.Id);
+    }
+
+    private bool CanExpand(CodeElement codeElement)
+    {
+        return _viewer.IsCollapsed(codeElement.Id) &&
+               codeElement.Children.Any();
+    }
+
+    private void Expand(CodeElement codeElement)
+    {
+        PushUndo();
+        _viewer.Expand(codeElement.Id);
+    }
+
+    private void AddParentRequest(CodeElement codeElement)
+    {
+        // We do not know the original graph.
+        _publisher.Publish(new AddParentContainerRequest(codeElement.Id));
+    }
+
+    private void FindInTreeRequest(CodeElement codeElement)
+    {
+        _publisher.Publish(new LocateInTreeRequest(codeElement.Id));
+    }
+
+    private void DeleteWithoutChildren(CodeElement element)
+    {
+        PushUndo();
+        _viewer.DeleteFromGraph([element.Id]);
+    }
+
+    private void DeleteWithChildren(CodeElement element)
+    {
+        PushUndo();
+        var graph = _viewer.GetGraph();
+        var idsToRemove = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+        _viewer.DeleteFromGraph(idsToRemove);
+    }
+
+    private void PushUndo()
+    {
+        if (_undoStack.Count >= _undoStackSize)
+        {
+            // Make space
+            _undoStack.RemoveLast();
+        }
+
+        var session = _viewer.GetSession();
+        _undoStack.AddFirst(session);
+    }
 
     private void Undo()
     {
-        if (!_viewer.Undo())
+        if (_undoStack.Any() is false)
         {
             MessageBox.Show("Nothing to undo!", "", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
         }
+
+        var state = _undoStack.First();
+        _undoStack.RemoveFirst();
+
+        // Restore code elements. We only save the ids in the persistence.
+        var elements = _explorer.GetElements(state.CodeElementIds);
+
+        // No undo stack operations while restoring the session.      
+        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);      
     }
 
     private void UpdateGraphRenderOption()
@@ -182,61 +335,43 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void FindAllOutgoingDependencies(CodeElement element)
     {
-        if (_originalCodeGraph is null)
-        {
-            return;
-        }
-
-        var result = _explorer.FindOutgoingDependencies(_originalCodeGraph!, _originalCodeGraph.Nodes[element.Id]);
-        _viewer.AddToGraph(result.Elements, result.Dependencies);
+        var result = _explorer.FindOutgoingDependencies(element.Id);
+        AddToGraph(result.Elements, result.Dependencies);
     }
 
     private void FindAllIncomingDependencies(CodeElement element)
     {
-        if (_originalCodeGraph is null)
-        {
-            return;
-        }
-
-        var result = _explorer.FindIncomingDependencies(_originalCodeGraph!, _originalCodeGraph.Nodes[element.Id]);
-        _viewer.AddToGraph(result.Elements, result.Dependencies);
+        var result = _explorer.FindIncomingDependencies(element.Id);
+        AddToGraph(result.Elements, result.Dependencies);
     }
 
     private void FindSpecializations(CodeElement method)
     {
-        if (_originalCodeGraph is null)
-        {
-            return;
-        }
-
-        var result = _explorer.FindSpecializations(_originalCodeGraph!, _originalCodeGraph.Nodes[method.Id]);
-        _viewer.AddToGraph(result.Elements, result.Dependencies);
+        var result = _explorer.FindSpecializations(method.Id);
+        AddToGraph(result.Elements, result.Dependencies);
     }
 
     private void FindAbstractions(CodeElement method)
     {
-        if (_originalCodeGraph is null)
-        {
-            return;
-        }
+        var result = _explorer.FindAbstractions(method.Id);
+        AddToGraph(result.Elements, result.Dependencies);
+    }
 
-        var result = _explorer.FindAbstractions(_originalCodeGraph!, _originalCodeGraph.Nodes[method.Id]);
-        _viewer.AddToGraph(result.Elements, result.Dependencies);
+    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies)
+    {
+        PushUndo();
+        _viewer.AddToGraph(originalCodeElements, dependencies);
     }
 
     public void LoadCodeGraph(CodeGraph codeGraph)
     {
-        _originalCodeGraph = codeGraph;
+        _explorer.LoadCodeGraph(codeGraph);
         Clear();
 
         // Only update after we change the code graph.
-        _viewer.SetQuickInfoFactory(new QuickInfoFactory(_originalCodeGraph));
+        _viewer.SetQuickInfoFactory(new QuickInfoFactory(codeGraph));
     }
 
-    internal void AddToGraph(IEnumerable<CodeElement> nodes, IEnumerable<Dependency> dependencies)
-    {
-        _viewer.AddToGraph(nodes, dependencies);
-    }
 
     internal void HandleAddNodeToGraphRequest(AddNodeToGraphRequest request)
     {
@@ -245,6 +380,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void Clear()
     {
+        _undoStack.Clear();
         _viewer.Clear();
     }
 
@@ -255,48 +391,48 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void FindIncomingCalls(CodeElement method)
     {
-        if (_originalCodeGraph is null || !IsMethodOrProperty(method))
+        if (!IsMethodOrProperty(method))
         {
             return;
         }
 
         // Use the node from the original graph
-        var callee = _explorer.FindIncomingCalls(_originalCodeGraph!, _originalCodeGraph.Nodes[method.Id]);
+        var callee = _explorer.FindIncomingCalls(method.Id);
         AddToGraph(callee.Methods, callee.Calls);
     }
 
     internal void FindIncomingCallsRecursive(CodeElement method)
     {
-        if (_originalCodeGraph is null || !IsMethodOrProperty(method))
+        if (!IsMethodOrProperty(method))
         {
             return;
         }
 
         var callers =
-            _explorer.FindIncomingCallsRecursive(_originalCodeGraph!, _originalCodeGraph.Nodes[method.Id]);
+            _explorer.FindIncomingCallsRecursive(method.Id);
         AddToGraph(callers.Methods, callers.Calls);
     }
 
     internal void FindSpecializationAndAbstractions(CodeElement? type)
     {
-        if (_originalCodeGraph is null || type is null)
+        if (type is null)
         {
             return;
         }
 
         var relationships =
-            _explorer.FindFullInheritanceTree(_originalCodeGraph!, _originalCodeGraph.Nodes[type.Id]);
+            _explorer.FindFullInheritanceTree(type.Id);
         AddToGraph(relationships.Elements, relationships.Dependencies);
     }
 
     internal void FindOutgoingCalls(CodeElement? method)
     {
-        if (_originalCodeGraph is null || method is null || !IsMethodOrProperty(method))
+        if (method is null || !IsMethodOrProperty(method))
         {
             return;
         }
 
-        var callers = _explorer.FindOutgoingCalls(_originalCodeGraph!, _originalCodeGraph.Nodes[method.Id]);
+        var callers = _explorer.FindOutgoingCalls(method.Id);
         AddToGraph(callers.Methods, callers.Calls);
     }
 
@@ -315,15 +451,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     /// </summary>
     public CodeGraph ExportGraph()
     {
-        return _viewer.GetStructure();
-    }
-
-    public void HandleAddMissingDependenciesRequest(AddMissingDependenciesRequest obj)
-    {
-        var viewerGraph = _viewer.GetStructure();
-        var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var dependencies = _explorer.FindAllDependencies(ids, _originalCodeGraph);
-        _viewer.AddToGraph([], dependencies);
+        return _viewer.GetGraph();
     }
 
     public void SaveToSvg(FileStream stream)
@@ -336,7 +464,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.ShowGlobalContextMenu();
     }
 
-    bool ProceedWithLargeGraph(int numberOfElements)
+    private bool ProceedWithLargeGraph(int numberOfElements)
     {
         if (_settings is null)
         {
@@ -347,21 +475,47 @@ internal class GraphViewModel : INotifyPropertyChanged
         if (numberOfElements > _settings.WarningCodeElementLimit)
         {
             var result = MessageBox.Show(
-                    $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
-                    "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
+                "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             return MessageBoxResult.Yes == result;
         }
 
         return true;
     }
 
-    public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
+    public void ImportCycleGroup(CodeGraph graph)
     {
-        // We start with all nodes collapsed. It is not that critical anymore.
-        //if (!ProceedWithLargeGraph(codeElements.Count))
-        //{
-        //    return;
-        //}
-        _viewer.ImportCycleGroup(codeElements, dependencies);
+        PushUndo();
+        _viewer.Clear();
+
+        // Everything is collapsed by default. This allows to import large graphs.
+        var defaultState = graph.Nodes.Values.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
+        var presentationState = new PresentationState(defaultState);
+
+        var roots = graph.GetRoots();
+        if (roots.Count == 1)
+        {
+            // Usability. If we have a single root, we expand it.
+            presentationState.SetCollapsedState(roots[0].Id, false);
+        }
+
+        PushUndo();
+        _viewer.LoadSession(graph, presentationState);
+    }
+
+
+    public GraphSession GetSession()
+    {
+        return _viewer.GetSession();
+    }
+
+    public void LoadSession(GraphSession session, bool withUndo)
+    {
+        if (withUndo)
+        {
+            PushUndo();
+        }
+        var elements = _explorer.GetElements(session.CodeElementIds);    
+        _viewer.LoadSession(elements, session.Dependencies, session.PresentationState);
     }
 }

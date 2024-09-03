@@ -116,6 +116,13 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
+                    <RibbonButton Label="Gallery" LargeImageSource="/Resources/document_graph_32.png"
+                                  Command="{Binding ShowGalleryCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Show gallery of available graphs." />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
 
                 </RibbonGroup>
 

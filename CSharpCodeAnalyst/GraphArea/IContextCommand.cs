@@ -1,9 +1,11 @@
-﻿namespace CSharpCodeAnalyst.GraphArea;
+﻿using Contracts.Graph;
+
+namespace CSharpCodeAnalyst.GraphArea;
 
 public interface IContextCommand
 {
     string Label { get; }
 
-    bool CanHandle(object item);
-    void Invoke(object item);
+    bool CanHandle(CodeElement item);
+    void Invoke(CodeElement item);
 }
