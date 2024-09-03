@@ -421,6 +421,10 @@ public partial class Parser
                 // we could add these dependencies here.
 
                 break;
+            case IDynamicTypeSymbol:
+                // Noting to gain on this branch
+                // For example: Dictionary<string, dynamic>
+                break;
             default:
                 // Handle other type symbols (e.g., type parameters)
                 symbolKey = GetSymbolKey(typeSymbol);
