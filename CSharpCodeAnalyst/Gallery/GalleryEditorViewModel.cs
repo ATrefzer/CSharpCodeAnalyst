@@ -8,19 +8,19 @@ namespace CSharpCodeAnalyst.Gallery;
 
 public class GalleryEditorViewModel : INotifyPropertyChanged
 {
-    private readonly Func<string, GraphSessionState> _addItemAction;
-    private readonly Action<GraphSessionState> _applySelectionAction;
+    private readonly Func<string, GraphSession> _addItemAction;
+    private readonly Action<GraphSession> _applySelectionAction;
     private readonly Gallery _gallery;
-    private readonly Action<GraphSessionState> _removeItemAction;
-    private readonly Action<GraphSessionState> _selectItemAction;
+    private readonly Action<GraphSession> _removeItemAction;
+    private readonly Action<GraphSession> _selectItemAction;
 
     private string _newItemName = string.Empty;
 
-    private GraphSessionState? _selectedItem;
+    private GraphSession? _selectedItem;
 
-    public GalleryEditorViewModel(Gallery gallery, Action<GraphSessionState> selectItemAction,
-        Func<string, GraphSessionState> addItemAction, Action<GraphSessionState> removeItemAction,
-        Action<GraphSessionState> applySelectionAction)
+    public GalleryEditorViewModel(Gallery gallery, Action<GraphSession> selectItemAction,
+        Func<string, GraphSession> addItemAction, Action<GraphSession> removeItemAction,
+        Action<GraphSession> applySelectionAction)
     {
         _gallery = gallery;
         _selectItemAction = selectItemAction;
@@ -29,15 +29,15 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         _applySelectionAction = applySelectionAction;
 
 
-        Items = new ObservableCollection<GraphSessionState>(gallery.Sessions);
+        Items = new ObservableCollection<GraphSession>(gallery.Sessions);
 
         AddItemCommand = new DelegateCommand(AddItem, CanAddItem);
-        RemoveItemCommand = new DelegateCommand<GraphSessionState>(RemoveItem);
-        PreviewSelectedItemCommand = new DelegateCommand<GraphSessionState>(SelectItem);
+        RemoveItemCommand = new DelegateCommand<GraphSession>(RemoveItem);
+        PreviewSelectedItemCommand = new DelegateCommand<GraphSession>(SelectItem);
         LoadSelectedItemCommand = new DelegateCommand(Apply, CanApply);
     }
 
-    public GraphSessionState? SelectedItem
+    public GraphSession? SelectedItem
     {
         get => _selectedItem;
         set
@@ -50,7 +50,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
 
     public DelegateCommand LoadSelectedItemCommand { get; set; }
 
-    public ObservableCollection<GraphSessionState> Items { get; }
+    public ObservableCollection<GraphSession> Items { get; }
     public DelegateCommand AddItemCommand { get; }
     public ICommand RemoveItemCommand { get; }
     public ICommand PreviewSelectedItemCommand { get; }
@@ -93,13 +93,13 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         return !string.IsNullOrWhiteSpace(NewItemName.Trim());
     }
 
-    private void RemoveItem(GraphSessionState item)
+    private void RemoveItem(GraphSession item)
     {
         _removeItemAction(item);
         Items.Remove(item);
     }
 
-    private void SelectItem(GraphSessionState item)
+    private void SelectItem(GraphSession item)
     {
         _selectItemAction(item);
     }

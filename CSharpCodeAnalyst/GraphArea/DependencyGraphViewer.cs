@@ -13,7 +13,6 @@ using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.WpfGraphControl;
 using Node = Microsoft.Msagl.Drawing.Node;
 
-
 namespace CSharpCodeAnalyst.GraphArea;
 
 /// <summary>
@@ -21,6 +20,8 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     Between nodes we can have multiple dependencies if the dependency type is different.
 ///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
 ///     in the parser. In this case the dependency holds all source references.
+///     
+///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
 internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
@@ -65,8 +66,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         _msaglViewer.MouseDown += Viewer_MouseDown!;
     }
 
-    public event EventHandler? BeforeChange;
-
     public void ShowFlatGraph(bool value)
     {
         _showFlatGraph = value;
@@ -85,7 +84,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             return;
         }
 
-        RaiseBeforeChange();
         AddToGraphInternal(originalCodeElements, newDependencies);
         RefreshGraph();
     }
@@ -182,63 +180,12 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             globalContextMenu.Items.Add(menuItem);
         }
 
-        var item = new MenuItem { Header = "Delete marked (with children)" };
-        item.Click += (_, _) => DeleteAllMarkedElements();
-        globalContextMenu.Items.Add(item);
-
-
-        item = new MenuItem { Header = "Focus on marked elements" };
-        item.Click += (_, _) => FocusOnMarkedElements();
-        globalContextMenu.Items.Add(item);
-
         globalContextMenu.IsOpen = true;
     }
 
-
-    public void RestoreSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state)
+    public GraphSession GetSession()
     {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        RaiseBeforeChange();
-        Clear();
-
-        AddToGraphInternal(codeElements, dependencies);
-        _presentationState = state;
-
-        RefreshGraph();
-    }
-
-    public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        RaiseBeforeChange();
-        Clear();
-
-        // Everything is collapsed by default. This allows to import large graphs.
-        var defaultState = codeElements.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
-        _presentationState = new PresentationState(defaultState);
-        AddToGraphInternal(codeElements, dependencies);
-
-        var roots = _clonedCodeGraph.GetRoots();
-        if (roots.Count == 1)
-        {
-            // Usability. If we have a single root, we expand it.
-            _presentationState.SetCollapsedState(roots[0].Id, false);
-        }
-
-        RefreshGraph();
-    }
-
-    public GraphSessionState GetSessionState()
-    {
-        return GraphSessionState.Create("", _clonedCodeGraph, _presentationState);
+        return GraphSession.Create("", _clonedCodeGraph, _presentationState);
     }
 
 
@@ -268,8 +215,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             return;
         }
 
-        RaiseBeforeChange();
-
         _clonedCodeGraph.RemoveCodeElements(idsToRemove);
         _presentationState.RemoveStates(idsToRemove);
 
@@ -278,14 +223,12 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     public void Collapse(string id)
     {
-        RaiseBeforeChange();
         _presentationState.SetCollapsedState(id, true);
         RefreshGraph();
     }
 
     public void Expand(string id)
     {
-        RaiseBeforeChange();
         _presentationState.SetCollapsedState(id, false);
         RefreshGraph();
     }
@@ -320,18 +263,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
     }
 
-
-    private void DeleteAllMarkedElements()
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        var markedIds = GetMarkedElementIds();
-        DeleteFromGraph(markedIds, true);
-    }
-
     private HashSet<string> GetMarkedElementIds()
     {
         if (_msaglViewer is null)
@@ -346,70 +277,6 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             .ToHashSet();
         return markedIds;
     }
-
-
-    private void DeleteFromGraph(HashSet<string> ids, bool withChildren)
-    {
-        var idsToRemove = ids.ToHashSet();
-
-        // Include children
-        if (withChildren)
-        {
-            foreach (var id in ids)
-            {
-                var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
-                idsToRemove.UnionWith(children);
-            }
-        }
-
-        DeleteFromGraph(idsToRemove);
-    }
-
-    private void RaiseBeforeChange()
-    {
-        BeforeChange?.Invoke(this, EventArgs.Empty);
-    }
-
-
-    private void FocusOnMarkedElements()
-    {
-        // We want to include all children of the collapsed code elements
-        // and keep also the presentation state. Just less information
-
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        var ids = _msaglViewer.Entities
-            .Where(e => e.MarkedForDragging)
-            .OfType<IViewerNode>().Select(n => n.Node.Id).ToList();
-
-        if (ids.Any() is false)
-        {
-            return;
-        }
-
-        RaiseBeforeChange();
-        var idsToKeep = ids.ToHashSet();
-
-        // All children
-        foreach (var id in ids)
-        {
-            var children = _clonedCodeGraph.Nodes[id].GetChildrenIncludingSelf();
-            idsToKeep.UnionWith(children);
-        }
-
-        var newGraph = _clonedCodeGraph.SubGraphOf(idsToKeep);
-
-        // Cleanup unused states
-        var idsToRemove = _clonedCodeGraph.Nodes.Keys.Except(idsToKeep).ToHashSet();
-        _presentationState.RemoveStates(idsToRemove);
-
-        _clonedCodeGraph = newGraph;
-        RefreshGraph();
-    }
-
 
     /// <summary>
     ///     Adds the new nodes, integrating hierarchical relationships from
@@ -553,5 +420,31 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
                 lastItemIsSeparator = false;
             }
         }
+    }
+
+    public void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        Clear();
+        AddToGraphInternal(codeElements, dependencies);
+        _presentationState = state;
+
+        RefreshGraph();
+    }
+
+    public void LoadSession(CodeGraph newGraph, PresentationState? presentationState)
+    {
+        if (presentationState is null)
+        {
+            presentationState = new PresentationState();
+        }
+
+        _presentationState = presentationState;
+        _clonedCodeGraph = newGraph;
+        RefreshGraph(); 
     }
 }

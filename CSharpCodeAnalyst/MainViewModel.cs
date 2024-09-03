@@ -270,8 +270,8 @@ internal class MainViewModel : INotifyPropertyChanged
             RemoveSession,
             LoadSession);
 
-        var backup = _graphViewModel.GetSessionState();
-        GraphSessionState? preview = null;
+        var backup = _graphViewModel.GetSession();
+        GraphSession? preview = null;
 
         editor.DataContext = viewModel;
         editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -283,27 +283,26 @@ internal class MainViewModel : INotifyPropertyChanged
             _graphViewModel.LoadSession(backup, false);
         }
 
-
-        void RemoveSession(GraphSessionState session)
+        void RemoveSession(GraphSession session)
         {
             _gallery.Sessions.Remove(session);
             _isSaved = false;
         }
 
-        void PreviewSession(GraphSessionState session)
+        void PreviewSession(GraphSession session)
         {
             _graphViewModel.LoadSession(session, false);
         }
 
-        void LoadSession(GraphSessionState session)
+        void LoadSession(GraphSession session)
         {
             _graphViewModel.LoadSession(session, true);
             editor.DialogResult = true;
         }
 
-        GraphSessionState AddSession(string name)
+        GraphSession AddSession(string name)
         {
-            var session = _graphViewModel.GetSessionState();
+            var session = _graphViewModel.GetSession();
             session.Name = name;
             _gallery.AddSession(session);
             _isSaved = false;
@@ -516,7 +515,6 @@ internal class MainViewModel : INotifyPropertyChanged
         parser.ParserProgress -= OnProgress;
         return graph;
     }
-
 
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
@@ -743,11 +741,8 @@ internal class MainViewModel : INotifyPropertyChanged
     private void CopyToExplorerGraph(CycleGroupViewModel vm)
     {
         var graph = vm.CycleGroup.CodeGraph;
-        var codeElements = graph.Nodes.Values;
-        var dependencies = new List<Dependency>();
-        graph.DfsHierarchy(n => dependencies.AddRange(n.Dependencies));
-
-        GraphViewModel?.ImportCycleGroup(codeElements.ToList(), dependencies);
+   
+        GraphViewModel?.ImportCycleGroup(graph);
 
         SelectedTabIndex = 0;
     }

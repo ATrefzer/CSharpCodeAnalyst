@@ -7,8 +7,6 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 internal interface IDependencyGraphViewer
 {
-    event EventHandler BeforeChange;
-
     void ShowFlatGraph(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
     void DeleteFromGraph(HashSet<string> idsToRemove);
@@ -39,16 +37,23 @@ internal interface IDependencyGraphViewer
     void SaveToSvg(FileStream stream);
     void SetHighlightMode(HighlightMode valueMode);
     void ShowGlobalContextMenu();
-    void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies);
 
     /// <summary>
     ///     Current content of the graph for persistence and undo/redo.
     /// </summary>
-    GraphSessionState GetSessionState();
-
-    void RestoreSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
+    GraphSession GetSession();
 
     void Collapse(string id);
     void Expand(string id);
     bool IsCollapsed(string id);
+
+    /// <summary>
+    /// Undo and gallery.
+    /// </summary>
+    void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
+
+    /// <summary>
+    /// Cycle groups, focus on marked elements
+    /// </summary>    
+    void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 }

@@ -6,9 +6,9 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     Minimum state required to restore a graph session.
 /// </summary>
 [Serializable]
-public class GraphSessionState
+public class GraphSession
 {
-    public GraphSessionState()
+    public GraphSession()
     {
         Name = string.Empty;
         CodeElementIds = [];
@@ -16,7 +16,7 @@ public class GraphSessionState
         PresentationState = new PresentationState();
     }
 
-    private GraphSessionState(string name, List<string> codeElementIds, List<Dependency> dependencies,
+    private GraphSession(string name, List<string> codeElementIds, List<Dependency> dependencies,
         PresentationState presentationState)
     {
         Name = name;
@@ -30,13 +30,13 @@ public class GraphSessionState
     public string Name { get; set; }
     public PresentationState PresentationState { get; set; }
 
-    public static GraphSessionState Create(string name, CodeGraph codeGraph, PresentationState presentationState)
+    public static GraphSession Create(string name, CodeGraph codeGraph, PresentationState presentationState)
     {
         // No references in this state should be shared with the original state
         var codeElementIds = codeGraph.Nodes.Keys.ToList();
         var dependencies = codeGraph.GetAllDependencies().ToList();
         var clonedPresentationState = presentationState.Clone();
-        var sessionState = new GraphSessionState(name, codeElementIds, dependencies, clonedPresentationState);
+        var sessionState = new GraphSession(name, codeElementIds, dependencies, clonedPresentationState);
         return sessionState;
     }
 }

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -10,6 +11,7 @@ using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Prism.Commands;
+using CodeParser.Extensions;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -18,20 +20,17 @@ internal class GraphViewModel : INotifyPropertyChanged
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly ApplicationSettings? _settings;
-    private readonly LinkedList<GraphSessionState> _undoStack = new();
+    private readonly LinkedList<GraphSession> _undoStack = new();
     private readonly int _undoStackSize = 10;
     private readonly IDependencyGraphViewer _viewer;
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
     private bool _showFlatGraph;
-    private bool _undoStackLocked;
-
 
     internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         ApplicationSettings? settings)
     {
-        viewer.BeforeChange += HandleBeforeChange;
         _viewer = viewer;
         _explorer = explorer;
         _publisher = publisher;
@@ -58,6 +57,9 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         // Global commands
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Complete dependencies", CompleteDependencies));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Delete marked (with children)", DeleteMarkedWithChildren));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Focus on marked elements", FocusOnMarkedElements));
+
 
         // Static commands
         _viewer.AddContextMenuCommand(new ContextCommand("Expand", Expand, CanExpand));
@@ -124,6 +126,54 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new ContextCommand("All outgoing dependencies", FindAllOutgoingDependencies));
 
         UndoCommand = new DelegateCommand(Undo);
+    }
+
+    private void FocusOnMarkedElements(List<CodeElement> markedElements)
+    {
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        if (!markedElements.Any())
+        {
+            return;
+        }
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        var idsToKeep = new HashSet<string>();
+
+        // All children
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        var newGraph = graph.SubGraphOf(idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+
+        var presentationState = session.PresentationState.Clone();
+        presentationState.RemoveStates(idsToRemove);
+
+        _viewer.LoadSession(newGraph, presentationState);
+    }
+
+    private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
+    {
+        var graph = _viewer.GetGraph();
+        var idsToRemove = new HashSet<string>();
+
+        // Include children      
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToRemove.UnionWith(children);
+        }
+
+        _viewer.DeleteFromGraph(idsToRemove);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -207,6 +257,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void Collapse(CodeElement codeElement)
     {
+        PushUndo();
         _viewer.Collapse(codeElement.Id);
     }
 
@@ -218,6 +269,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void Expand(CodeElement codeElement)
     {
+        PushUndo();
         _viewer.Expand(codeElement.Id);
     }
 
@@ -234,37 +286,28 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void DeleteWithoutChildren(CodeElement element)
     {
+        PushUndo();
         _viewer.DeleteFromGraph([element.Id]);
     }
 
     private void DeleteWithChildren(CodeElement element)
     {
+        PushUndo();
         var graph = _viewer.GetGraph();
         var idsToRemove = graph.Nodes[element.Id].GetChildrenIncludingSelf();
         _viewer.DeleteFromGraph(idsToRemove);
     }
 
-    private void HandleBeforeChange(object? sender, EventArgs e)
-    {
-        PushUndo();
-    }
-
-
     private void PushUndo()
     {
-        if (_undoStackLocked)
-        {
-            return;
-        }
-
         if (_undoStack.Count >= _undoStackSize)
         {
             // Make space
             _undoStack.RemoveLast();
         }
 
-        var state = _viewer.GetSessionState();
-        _undoStack.AddFirst(state);
+        var session = _viewer.GetSession();
+        _undoStack.AddFirst(session);
     }
 
     private void Undo()
@@ -281,11 +324,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Restore code elements. We only save the ids in the persistence.
         var elements = _explorer.GetElements(state.CodeElementIds);
 
-        // No undo stack operations while restoring the session.
-        using (new UndoStackLock(this))
-        {
-            _viewer.RestoreSession(elements, state.Dependencies, state.PresentationState);
-        }
+        // No undo stack operations while restoring the session.      
+        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);      
     }
 
     private void UpdateGraphRenderOption()
@@ -319,6 +359,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies)
     {
+        PushUndo();
         _viewer.AddToGraph(originalCodeElements, dependencies);
     }
 
@@ -442,46 +483,39 @@ internal class GraphViewModel : INotifyPropertyChanged
         return true;
     }
 
-    public void ImportCycleGroup(List<CodeElement> codeElements, List<Dependency> dependencies)
+    public void ImportCycleGroup(CodeGraph graph)
     {
-        _viewer.ImportCycleGroup(codeElements, dependencies);
+        PushUndo();
+        _viewer.Clear();
+
+        // Everything is collapsed by default. This allows to import large graphs.
+        var defaultState = graph.Nodes.Values.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
+        var presentationState = new PresentationState(defaultState);
+
+        var roots = graph.GetRoots();
+        if (roots.Count == 1)
+        {
+            // Usability. If we have a single root, we expand it.
+            presentationState.SetCollapsedState(roots[0].Id, false);
+        }
+
+        PushUndo();
+        _viewer.LoadSession(graph, presentationState);
     }
 
-    public GraphSessionState GetSessionState()
+
+    public GraphSession GetSession()
     {
-        return _viewer.GetSessionState();
+        return _viewer.GetSession();
     }
 
-    public void LoadSession(GraphSessionState session, bool withUndo)
+    public void LoadSession(GraphSession session, bool withUndo)
     {
-        var elements = _explorer.GetElements(session.CodeElementIds);
-
         if (withUndo)
         {
-            _viewer.RestoreSession(elements, session.Dependencies, session.PresentationState);
+            PushUndo();
         }
-        else
-        {
-            using (new UndoStackLock(this))
-            {
-                _viewer.RestoreSession(elements, session.Dependencies, session.PresentationState);
-            }
-        }
-    }
-
-    private class UndoStackLock : IDisposable
-    {
-        private readonly GraphViewModel _viewModel;
-
-        public UndoStackLock(GraphViewModel viewModel)
-        {
-            _viewModel = viewModel;
-            _viewModel._undoStackLocked = true;
-        }
-
-        public void Dispose()
-        {
-            _viewModel._undoStackLocked = false;
-        }
+        var elements = _explorer.GetElements(session.CodeElementIds);    
+        _viewer.LoadSession(elements, session.Dependencies, session.PresentationState);
     }
 }
