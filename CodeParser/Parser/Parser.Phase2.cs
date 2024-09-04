@@ -258,9 +258,9 @@ public partial class Parser
     /// <summary>
     ///     For method and property bodies.
     /// </summary>
-    private void AnalyzeMethodBody(CodeElement methodElement, SyntaxNode node, SemanticModel semanticModel)
+    private void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel)
     {
-        foreach (var descendantNode in node.DescendantNodes())
+        foreach (var descendantNode in node.DescendantNodesAndSelf())
         {
             switch (descendantNode)
             {
@@ -269,29 +269,44 @@ public partial class Parser
                     if (typeInfo.Type != null)
                     {
                         var location = GetLocation(objectCreationSyntax);
-                        AddTypeDependency(methodElement, typeInfo.Type, DependencyType.Creates, location);
+                        AddTypeDependency(sourceElement, typeInfo.Type, DependencyType.Creates, location);
                     }
 
                     break;
-
 
                 case InvocationExpressionSyntax invocationSyntax:
                     var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
                     if (symbolInfo.Symbol is IMethodSymbol calledMethod)
                     {
                         var location = GetLocation(invocationSyntax);
-                        AddCallsDependency(methodElement, calledMethod, location);
+                        AddCallsDependency(sourceElement, calledMethod, location);
+
+                        // Handle generic method invocations
+                        if (calledMethod.IsGenericMethod)
+                        {
+                            foreach (var typeArg in calledMethod.TypeArguments)
+                            {
+                                AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
+                            }
+                        }
+                    }
+
+                    // Handle event invocations
+                    var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
+                    if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol2 })
+                    {
+                        // Capture cases where an event is directly invoked 
+                        AddEventUsageDependency(sourceElement, eventSymbol2);
                     }
 
                     break;
 
                 case IdentifierNameSyntax identifierSyntax:
-                    AnalyzeIdentifier(methodElement, identifierSyntax, semanticModel);
+                    AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
                     break;
 
                 case MemberAccessExpressionSyntax memberAccessSyntax:
-                    // Accessing properties.
-                    AnalyzeMemberAccess(methodElement, memberAccessSyntax, semanticModel);
+                    AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
                     break;
 
                 case AssignmentExpressionSyntax assignmentExpression:
@@ -303,7 +318,7 @@ public partial class Parser
                         var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
                         if (leftSymbol is IEventSymbol eventSymbol)
                         {
-                            AddEventUsageDependency(methodElement, eventSymbol);
+                            AddEventUsageDependency(sourceElement, eventSymbol);
                         }
                     }
 
@@ -434,59 +449,6 @@ public partial class Parser
                 }
 
                 break;
-        }
-    }
-
-    // Optional method to track external dependencies if needed
-    private void AddExternalDependency(CodeElement sourceElement, ITypeSymbol typeSymbol, DependencyType dependencyType,
-        SourceLocation? location)
-    {
-        // Implement if you want to track external dependencies
-        // This could involve creating a special CodeElement for external types
-        // or simply logging the dependency information
-    }
-
-    private void AnalyzeExpressionBody(CodeElement sourceElement, ArrowExpressionClauseSyntax expressionBody,
-        SemanticModel semanticModel)
-    {
-        // TODO atr. Can we just call AnalyzeMethodBody?
-        // The InvocationExpressionSyntax handles more cases here. But all other methods are also handled in AnalyzeMethodBody
-        AnalyzeExpression(sourceElement, expressionBody.Expression, semanticModel);
-    }
-
-    private void AnalyzeExpression(CodeElement sourceElement, ExpressionSyntax expression, SemanticModel semanticModel)
-    {
-        foreach (var node in expression.DescendantNodesAndSelf())
-        {
-            switch (node)
-            {
-                case IdentifierNameSyntax identifierSyntax:
-                    AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
-                    break;
-                case MemberAccessExpressionSyntax memberAccessSyntax:
-                    AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
-                    break;
-                case InvocationExpressionSyntax invocationSyntax:
-
-                    var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
-                    if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol })
-                    {
-                        // Capture cases where an event is directly invoked 
-                        AddEventUsageDependency(sourceElement, eventSymbol);
-                    }
-
-                    var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
-                    if (symbolInfo.Symbol is IMethodSymbol calledMethod)
-                    {
-                        var location = GetLocation(invocationSyntax);
-                        AddCallsDependency(sourceElement, calledMethod, location);
-                    }
-
-                    break;
-
-
-                // Add more cases as needed
-            }
         }
     }
 
