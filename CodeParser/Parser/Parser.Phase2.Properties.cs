@@ -53,7 +53,7 @@ public partial class Parser
                 {
                     if (propertyDeclaration.ExpressionBody != null)
                     {
-                        AnalyzeExpressionBody(propertyElement, propertyDeclaration.ExpressionBody, semanticModel);
+                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression, semanticModel);
                     }
                     else if (propertyDeclaration.AccessorList != null)
                     {
@@ -61,7 +61,7 @@ public partial class Parser
                         {
                             if (accessor.ExpressionBody != null)
                             {
-                                AnalyzeExpressionBody(propertyElement, accessor.ExpressionBody, semanticModel);
+                                AnalyzeMethodBody(propertyElement, accessor.ExpressionBody.Expression, semanticModel);
                             }
                             else if (accessor.Body != null)
                             {
@@ -73,7 +73,6 @@ public partial class Parser
             }
         }
     }
-
     private void AddPropertyDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
         DependencyType dependencyType, List<SourceLocation> locations)
     {
