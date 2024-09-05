@@ -57,8 +57,57 @@ public partial class Parser
 
             ++loop;
         }
+
+        // Analyze global statements for each assembly
+        AnalyzeGlobalStatementsForAssembly(solution);
     }
 
+
+    private void AnalyzeGlobalStatementsForAssembly(Solution solution)
+    {
+        foreach (var statement in _globalStatementsByAssembly)
+        {
+            var assemblySymbol = statement.Key;
+            var globalStatements = statement.Value;
+            if (globalStatements.Count == 0)
+            {
+                continue;
+            }
+
+            // Find the existing assembly element
+            var symbolKey = GetSymbolKey(assemblySymbol);
+            var assemblyElement = _symbolKeyToElementMap[symbolKey];
+
+            // Create a dummy class for this assembly's global statements
+            var dummyClassId = Guid.NewGuid().ToString();
+            var dummyClassName = "GlobalStatements";
+            var dummyClassFullName = BuildSymbolName(assemblySymbol) + "." + dummyClassName;
+            var dummyClass = new CodeElement(dummyClassId, CodeElementType.Class, dummyClassName, dummyClassFullName,
+                assemblyElement);
+            _codeGraph.Nodes[dummyClassId] = dummyClass;
+            assemblyElement.Children.Add(dummyClass);
+
+            // Create a dummy method to contain global statements
+            var dummyMethodId = Guid.NewGuid().ToString();
+            var dummyMethodName = "Execute";
+            var dummyMethodFullName = $"{dummyClassName}.{dummyMethodName}";
+            var dummyMethod = new CodeElement(dummyMethodId, CodeElementType.Method, dummyMethodName,
+                dummyMethodFullName, dummyClass);
+            _codeGraph.Nodes[dummyMethodId] = dummyMethod;
+            dummyClass.Children.Add(dummyMethod);
+
+            // Analyze global statements within the context of the dummy method
+            foreach (var globalStatement in globalStatements)
+            {
+                var document = solution.GetDocument(globalStatement.SyntaxTree);
+                var semanticModel = document?.GetSemanticModelAsync().Result;
+                if (semanticModel != null)
+                {
+                    AnalyzeMethodBody(dummyMethod, globalStatement, semanticModel);
+                }
+            }
+        }
+    }
     private void AnalyzeAttributeDependencies(CodeElement element, ISymbol symbol)
     {
         foreach (var attributeData in symbol.GetAttributes())

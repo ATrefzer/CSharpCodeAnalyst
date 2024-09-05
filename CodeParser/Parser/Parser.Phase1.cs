@@ -9,6 +9,9 @@ public partial class Parser
 {
     private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = new();
 
+    private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly = new(SymbolEqualityComparer.Default);
+
+
     private async Task BuildHierarchy(Solution solution)
     {
         foreach (var project in solution.Projects)
@@ -40,6 +43,7 @@ public partial class Parser
         // Assembly has no source location.
         var assemblySymbol = compilation.Assembly;
         var assemblyElement = GetOrCreateCodeElement(assemblySymbol, CodeElementType.Assembly, null!, null!);
+        _globalStatementsByAssembly[assemblySymbol] = new List<GlobalStatementSyntax>();
 
         foreach (var syntaxTree in compilation.SyntaxTrees)
         {
@@ -146,6 +150,12 @@ public partial class Parser
                 symbol = semanticModel.GetDeclaredSymbol(node) as IEventSymbol;
                 elementType = CodeElementType.Event;
                 break;
+
+            case GlobalStatementSyntax globalStatementSyntax:
+                var assemblySymbol = semanticModel.Compilation.Assembly;
+                _globalStatementsByAssembly[assemblySymbol].Add(globalStatementSyntax);
+                return; // We'll handle these collectively later
+                        
             // Add more cases as needed (e.g., for events, delegates, etc.)
         }
 
