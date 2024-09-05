@@ -30,7 +30,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish
-      run: dotnet publish -c Release -o publish
+      run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish
     
     - name: Zip Release
       run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
