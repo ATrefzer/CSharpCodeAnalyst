@@ -9,7 +9,8 @@ public partial class Parser
 {
     private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = new();
 
-    private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly = new(SymbolEqualityComparer.Default);
+    private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
+        new(SymbolEqualityComparer.Default);
 
 
     private async Task BuildHierarchy(Solution solution)
@@ -30,6 +31,7 @@ public partial class Parser
 
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve dependencies
+            // Constructed types are not contained in this list!
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             _allNamedTypesInSolution.AddRange(types);
 
@@ -155,7 +157,7 @@ public partial class Parser
                 var assemblySymbol = semanticModel.Compilation.Assembly;
                 _globalStatementsByAssembly[assemblySymbol].Add(globalStatementSyntax);
                 return; // We'll handle these collectively later
-                        
+
             // Add more cases as needed (e.g., for events, delegates, etc.)
         }
 
