@@ -53,7 +53,8 @@ public partial class Parser
                 {
                     if (propertyDeclaration.ExpressionBody != null)
                     {
-                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression, semanticModel);
+                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression,
+                            semanticModel);
                     }
                     else if (propertyDeclaration.AccessorList != null)
                     {
@@ -73,19 +74,11 @@ public partial class Parser
             }
         }
     }
+
     private void AddPropertyDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
         DependencyType dependencyType, List<SourceLocation> locations)
     {
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(propertySymbol), out var targetElement))
-        {
-            AddDependency(sourceElement, dependencyType, targetElement, locations);
-        }
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(propertySymbol.ContainingType),
-                     out var containingTypeElement))
-        {
-            // If we don't have the property itself in our map, add a dependency to its containing type
-            AddDependency(sourceElement, dependencyType, containingTypeElement, locations);
-        }
+        AddDependencyWithFallbackToContainingType(sourceElement, propertySymbol, dependencyType, locations);
     }
 
     private IPropertySymbol? GetImplementedInterfaceProperty(IPropertySymbol propertySymbol)

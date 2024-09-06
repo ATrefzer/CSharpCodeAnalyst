@@ -1,12 +1,15 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+- SybolEqualityComparer does not work for this application well. Remove it where it is used.
+- Check if the map key -> Symbol is unique. If not use a list of symbols!
+  _elementIdToSymbolMap. Are all locations captured in this case?
+
+
 - Highlight of aggregated edges takes too long. If quick help not visible skip?
 - Performance in general
 
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
-- Main method is required
-
 
 BUGS
 ---------------------

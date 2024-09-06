@@ -50,10 +50,11 @@ public class CodeParserApprovalTests
 
         var methods = codeElements
             .Where(n => n.ElementType == CodeElementType.Method)
-            .Select(m => m.FullName);
+            .Select(m => m.FullName).ToList();
 
 
-        var expectedMethods = new HashSet<string>
+        // No HashSet because some methods are overloaded
+        var expectedMethods = new List<string>
         {
             "ModuleLevel0.ModuleLevel0.Bootstrapper.Run", "ModuleLevel1.ModuleLevel1.FactoryC.Create",
             "ModuleLevel1.ModuleLevel1.IServiceC.Do", "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor",
@@ -84,7 +85,14 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Extensions.Slice",
 
             // Called by extension method
-            "CSharpLanguage.CSharpLanguage.TheExtendedType.Do"
+            "CSharpLanguage.CSharpLanguage.TheExtendedType.Do",
+
+            // Generic method calls
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.M1",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.M1",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.M2",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.M2",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Run"
         };
 
 

@@ -112,19 +112,19 @@ public partial class Parser(ParserConfig config)
         }
     }
 
-    private string GetSymbolKey(ISymbol symbol)
-    {
-        var fullName = BuildSymbolName(symbol);
+    //private string GetSymbolKey(ISymbol symbol)
+    //{
+    //    var fullName = BuildSymbolName(symbol);
 
-        if (symbol is IMethodSymbol methodSymbol)
-        {
-            // Overloaded methods should have a unique key
-            var parameters = string.Join("_ ", methodSymbol.Parameters.Select(p => p.Type.ToString()));
-            return $"{fullName}_{parameters}_{symbol.Kind}";
-        }
+    //    if (symbol is IMethodSymbol methodSymbol)
+    //    {
+    //        // Overloaded methods should have a unique key
+    //        var parameters = string.Join("_ ", methodSymbol.Parameters.Select(p => p.Type.ToString()));
+    //        return $"{fullName}_{parameters}_{symbol.Kind}";
+    //    }
 
-        return $"{fullName}_{symbol.Kind}";
-    }
+    //    return $"{fullName}_{symbol.Kind}";
+    //}
 
     /// <summary>
     ///     Since I iterate over the compilation units (to get rid of external code)
@@ -169,10 +169,11 @@ public partial class Parser(ParserConfig config)
         return GetOrCreateCodeElement(symbol, elementType, initialParent, location);
     }
 
+
     private CodeElement GetOrCreateCodeElement(ISymbol symbol, CodeElementType elementType, CodeElement? parent,
         SourceLocation? location)
     {
-        var symbolKey = GetSymbolKey(symbol);
+        var symbolKey = symbol.Key();
 
         // We may encounter namespace declarations in many files.
         if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var existingElement))
@@ -186,7 +187,7 @@ public partial class Parser(ParserConfig config)
         }
 
         var name = symbol.Name;
-        var fullName = BuildSymbolName(symbol);
+        var fullName = symbol.BuildSymbolName();
         var newId = Guid.NewGuid().ToString();
 
         var element = new CodeElement(newId, elementType, name, fullName, parent);
@@ -198,49 +199,10 @@ public partial class Parser(ParserConfig config)
         parent?.Children.Add(element);
         _codeGraph.Nodes[element.Id] = element;
         _symbolKeyToElementMap[symbolKey] = element;
+
+        // We need the symbol in phase2 when analyzing the dependencies.
         _elementIdToSymbolMap[element.Id] = symbol;
         return element;
-    }
-
-    /// <summary>
-    ///     Sometimes when walking up the parent chain:
-    ///     After the global namespace the containing symbol is not reliable.
-    ///     If we do not end up at an assembly it is added manually.
-    /// </summary>
-    public static string BuildSymbolName(ISymbol symbol)
-    {
-        var parts = new List<string>();
-
-        var currentSymbol = symbol;
-        ISymbol? lastKnownSymbol = null;
-
-        while (currentSymbol != null)
-        {
-            if (currentSymbol is IModuleSymbol)
-            {
-                // Skip the module symbol
-                currentSymbol = currentSymbol.ContainingSymbol;
-            }
-
-            lastKnownSymbol = currentSymbol;
-
-            var name = currentSymbol.Name;
-            parts.Add(name);
-            currentSymbol = currentSymbol.ContainingSymbol;
-        }
-
-        if (lastKnownSymbol is not IAssemblySymbol)
-        {
-            // global namespace has the ContainingCompilation set.
-            Debug.Assert(lastKnownSymbol is INamespaceSymbol { IsGlobalNamespace: true });
-            var namespaceSymbol = lastKnownSymbol as INamespaceSymbol;
-            var assemblySymbol = namespaceSymbol.ContainingCompilation.Assembly;
-            parts.Add(assemblySymbol.Name);
-        }
-
-        parts.Reverse();
-        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p)));
-        return fullName;
     }
 
     /// <summary>
