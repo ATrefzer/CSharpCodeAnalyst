@@ -16,6 +16,7 @@ public partial class Parser
         var loop = 0;
         foreach (var element in _codeGraph.Nodes.Values)
         {
+            // TODO atr Analyze if we can have more than one symbol!
             var symbol = _elementIdToSymbolMap[element.Id];
 
             if (symbol is IEventSymbol eventSymbol)
@@ -75,13 +76,13 @@ public partial class Parser
             }
 
             // Find the existing assembly element
-            var symbolKey = GetSymbolKey(assemblySymbol);
+            var symbolKey = assemblySymbol.Key();
             var assemblyElement = _symbolKeyToElementMap[symbolKey];
 
             // Create a dummy class for this assembly's global statements
             var dummyClassId = Guid.NewGuid().ToString();
             var dummyClassName = "GlobalStatements";
-            var dummyClassFullName = BuildSymbolName(assemblySymbol) + "." + dummyClassName;
+            var dummyClassFullName = assemblySymbol.BuildSymbolName() + "." + dummyClassName;
             var dummyClass = new CodeElement(dummyClassId, CodeElementType.Class, dummyClassName, dummyClassFullName,
                 assemblyElement);
             _codeGraph.Nodes[dummyClassId] = dummyClass;
@@ -108,6 +109,7 @@ public partial class Parser
             }
         }
     }
+
     private void AnalyzeAttributeDependencies(CodeElement element, ISymbol symbol)
     {
         foreach (var attributeData in symbol.GetAttributes())
@@ -238,7 +240,7 @@ public partial class Parser
             var implementingMethod = implementingType.FindImplementationForInterfaceMember(methodSymbol);
             if (implementingMethod != null)
             {
-                var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(GetSymbolKey(implementingMethod));
+                var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(implementingMethod.Key());
                 if (implementingElement != null)
                 {
                     // Note: Implementations for external methods are not in our map
@@ -283,20 +285,10 @@ public partial class Parser
     private void AddMethodOverrideDependency(CodeElement sourceElement, IMethodSymbol methodSymbol,
         List<SourceLocation> locations)
     {
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(methodSymbol), out var targetElement))
-        {
-            AddDependency(sourceElement, DependencyType.Overrides, targetElement, locations);
-        }
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(methodSymbol.ContainingType),
-                     out var containingTypeElement))
-        {
-            // Trace.WriteLine("Method override not captured. It is likely that the base method is generic or external code.");
-
-            // If we don't have the method itself in our map, add a dependency to its containing type
-            // Maybe we override a framework method. Happens also if the base method is a generic one.
-            // In this case the GetSymbolKey is different. One uses T, the overriding method uses the actual type.
-            AddDependency(sourceElement, DependencyType.Overrides, containingTypeElement, locations);
-        }
+        // If we don't have the method itself in our map, add a dependency to its containing type
+        // Maybe we override a framework method. Happens also if the base method is a generic one.
+        // In this case the GetSymbolKey is different. One uses T, the overriding method uses the actual type.
+        AddDependencyWithFallbackToContainingType(sourceElement, methodSymbol, DependencyType.Overrides, locations);
     }
 
     private void AnalyzeFieldDependencies(CodeElement fieldElement, IFieldSymbol fieldSymbol)
@@ -378,20 +370,13 @@ public partial class Parser
 
     private void AddEventUsageDependency(CodeElement sourceElement, IEventSymbol eventSymbol)
     {
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(eventSymbol), out var eventElement))
-        {
-            AddDependency(sourceElement, DependencyType.Uses, eventElement, []);
-        }
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(eventSymbol.ContainingType),
-                     out var containingTypeElement))
-        {
-            // If we don't have the event itself in our map, add a dependency to its containing type
-            AddDependency(sourceElement, DependencyType.Uses, containingTypeElement, []);
-        }
+        // If we don't have the event itself in our map, add a dependency to its containing type
+        AddDependencyWithFallbackToContainingType(sourceElement, eventSymbol, DependencyType.Uses, []);
     }
 
     private void AddCallsDependency(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
     {
+        //Debug.Assert(FindCodeElement(methodSymbol)!= null);
         //Trace.WriteLine($"Adding call dependency: {sourceElement.Name} -> {methodSymbol.Name}");
 
         if (methodSymbol.IsExtensionMethod)
@@ -400,16 +385,13 @@ public partial class Parser
             methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
         }
 
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(methodSymbol), out var targetElement))
+        if (methodSymbol.IsGenericMethod && FindCodeElement(methodSymbol) is null)
         {
-            AddDependency(sourceElement, DependencyType.Calls, targetElement, [location]);
+            methodSymbol = methodSymbol.OriginalDefinition;
         }
+
         // If the method is not in our map, we might want to add a dependency to its containing type
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(methodSymbol.ContainingType),
-                     out var containingTypeElement))
-        {
-            AddDependency(sourceElement, DependencyType.Calls, containingTypeElement, [location]);
-        }
+        AddDependencyWithFallbackToContainingType(sourceElement, methodSymbol, DependencyType.Calls, [location]);
     }
 
 
@@ -442,38 +424,8 @@ public partial class Parser
                 break;
 
             case INamedTypeSymbol namedTypeSymbol:
-                var symbolKey = GetSymbolKey(namedTypeSymbol);
-                if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
-                {
-                    // The type is internal (part of our codebase)
-                    AddDependency(sourceElement, dependencyType, targetElement, location != null ? [location] : []);
 
-                    if (namedTypeSymbol.IsGenericType)
-                    {
-                        // Add "Uses" dependencies to type arguments
-                        foreach (var typeArg in namedTypeSymbol.TypeArguments)
-                        {
-                            AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
-                        }
-                    }
-                }
-                else
-                {
-                    // The type is external
-
-                    // Optionally, you might want to track external dependencies
-                    // AddExternalDependency(sourceElement, namedTypeSymbol, dependencyType, location);
-                    if (namedTypeSymbol.IsGenericType)
-                    {
-                        // For example List<MyType>
-                        // Add "Uses" dependencies to type arguments, which might be internal
-                        foreach (var typeArg in namedTypeSymbol.TypeArguments)
-                        {
-                            AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
-                        }
-                    }
-                }
-
+                AddNamedTypeDependency(sourceElement, namedTypeSymbol, dependencyType, location);
                 break;
 
             case IPointerTypeSymbol pointerTypeSymbol:
@@ -491,8 +443,8 @@ public partial class Parser
                 break;
             default:
                 // Handle other type symbols (e.g., type parameters)
-                symbolKey = GetSymbolKey(typeSymbol);
-                if (_symbolKeyToElementMap.TryGetValue(symbolKey, out targetElement))
+                var symbolKey = typeSymbol.Key();
+                if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
                 {
                     AddDependency(sourceElement, dependencyType, targetElement, location != null ? [location] : []);
                 }
@@ -500,6 +452,44 @@ public partial class Parser
                 break;
         }
     }
+
+    private void AddNamedTypeDependency(CodeElement sourceElement, INamedTypeSymbol namedTypeSymbol,
+        DependencyType dependencyType,
+        SourceLocation? location)
+    {
+        var targetElement = FindCodeElement(namedTypeSymbol);
+        if (targetElement != null)
+        {
+            // The type is internal (part of our codebase)
+            AddDependency(sourceElement, dependencyType, targetElement, location != null ? [location] : []);
+        }
+        else
+        {
+            // The type is external or a constructed generic type
+            // Note the constructed type is not in our CodeElement map!
+            // It is not found in phase1 the way we parse it but the original definition is.
+            var originalDefinition = namedTypeSymbol.OriginalDefinition;
+            var originalSymbolKey = originalDefinition.Key();
+
+            if (_symbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
+            {
+                // We found the original definition, add dependency to it
+                AddDependency(sourceElement, dependencyType, originalTargetElement, location != null ? [location] : []);
+            }
+            // The type is truly external, you might want to log this or handle it differently
+            // AddExternalDependency(sourceElement, namedTypeSymbol, dependencyType, location);
+        }
+
+        if (namedTypeSymbol.IsGenericType)
+        {
+            // Add "Uses" dependencies to type arguments
+            foreach (var typeArg in namedTypeSymbol.TypeArguments)
+            {
+                AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
+            }
+        }
+    }
+
 
     private void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
@@ -517,7 +507,7 @@ public partial class Parser
 
         if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
         {
-            AddFieldDependency(sourceElement, fieldSymbol, DependencyType.Uses);
+            AddDependencyWithFallbackToContainingType(sourceElement, fieldSymbol, DependencyType.Uses);
         }
     }
 
@@ -533,7 +523,7 @@ public partial class Parser
         }
         else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
         {
-            AddFieldDependency(sourceElement, fieldSymbol, DependencyType.Uses);
+            AddDependencyWithFallbackToContainingType(sourceElement, fieldSymbol, DependencyType.Uses);
         }
     }
 
@@ -543,27 +533,40 @@ public partial class Parser
     private void AddPropertyCallDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
         List<SourceLocation> locations)
     {
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(propertySymbol), out var targetElement))
+        AddDependencyWithFallbackToContainingType(sourceElement, propertySymbol, DependencyType.Calls, locations);
+    }
+
+    private void AddDependencyWithFallbackToContainingType(CodeElement sourceElement, ISymbol symbol,
+        DependencyType dependencyType, List<SourceLocation>? locations = null)
+    {
+        // If we don't have the property itself in our map, add a dependency to its containing type
+        if (locations == null)
         {
-            AddDependency(sourceElement, DependencyType.Calls, targetElement, locations);
+            locations = [];
         }
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(propertySymbol.ContainingType),
-                     out var containingTypeElement))
+
+        var targetElement = FindCodeElement(symbol);
+        if (targetElement != null)
         {
-            AddDependency(sourceElement, DependencyType.Calls, containingTypeElement, locations);
+            AddDependency(sourceElement, dependencyType, targetElement, locations);
+            return;
+        }
+
+        var containingTypeElement = FindCodeElement(symbol.ContainingType);
+        if (containingTypeElement != null)
+        {
+            AddDependency(sourceElement, dependencyType, containingTypeElement, locations);
         }
     }
 
-    private void AddFieldDependency(CodeElement sourceElement, IFieldSymbol fieldSymbol, DependencyType dependencyType)
+    private CodeElement? FindCodeElement(ISymbol? symbol)
     {
-        if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(fieldSymbol), out var targetElement))
+        if (symbol is null)
         {
-            AddDependency(sourceElement, dependencyType, targetElement, []);
+            return null;
         }
-        else if (_symbolKeyToElementMap.TryGetValue(GetSymbolKey(fieldSymbol.ContainingType),
-                     out var containingTypeElement))
-        {
-            AddDependency(sourceElement, dependencyType, containingTypeElement, []);
-        }
+
+        _symbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
+        return element;
     }
 }
