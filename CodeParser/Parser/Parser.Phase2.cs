@@ -13,6 +13,8 @@ public partial class Parser
     /// </summary>
     private void AnalyzeDependencies(Solution solution)
     {
+        var numberOfCodeElements = _codeGraph.Nodes.Count;
+
         var loop = 0;
         foreach (var element in _codeGraph.Nodes.Values)
         {
@@ -48,21 +50,24 @@ public partial class Parser
             // For all type of symbols check if decorated with an attribute.
             AnalyzeAttributeDependencies(element, symbol);
 
-            if (loop % 10 == 0)
-            {
-                ParserProgress?.Invoke(this, new ParserProgressArg
-                {
-                    NumberOfParsedElements = loop
-                });
-            }
-
-            ++loop;
+            SendParserPhase2Progress(loop++, numberOfCodeElements);
         }
 
         // Analyze global statements for each assembly
         AnalyzeGlobalStatementsForAssembly(solution);
     }
 
+    private void SendParserPhase2Progress(int loop, int numberOfCodeElements)
+    {
+        if (loop % 10 == 0)
+        {
+            var percent = Math.Floor(loop / (double)numberOfCodeElements * 100);
+            var msg = $"Phase 2/2: Analyzing dependencies. Finished {percent}%.";
+            var args = new ParserProgressArg(msg);
+
+            ParserProgress?.Invoke(this, args);
+        }
+    }
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)
     {
@@ -342,6 +347,11 @@ public partial class Parser
 
                     break;
 
+                case AssignmentExpressionSyntax assignmentExpression:
+                    // Handle property assignments
+                    AnalyzeAssignment(sourceElement, assignmentExpression, semanticModel);
+                    break;
+
                 case IdentifierNameSyntax identifierSyntax:
                     AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
                     break;
@@ -349,22 +359,44 @@ public partial class Parser
                 case MemberAccessExpressionSyntax memberAccessSyntax:
                     AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
                     break;
-
-                case AssignmentExpressionSyntax assignmentExpression:
-
-                    // Event registration and un-registration.
-                    if (assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression) ||
-                        assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression))
-                    {
-                        var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
-                        if (leftSymbol is IEventSymbol eventSymbol)
-                        {
-                            AddEventUsageDependency(sourceElement, eventSymbol);
-                        }
-                    }
-
-                    break;
             }
+        }
+    }
+
+
+    private void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+        SemanticModel semanticModel)
+    {
+        // Analyze the left side of the assignment (target)
+        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Left, semanticModel);
+
+        // Analyze the right side of the assignment (value)
+        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel);
+
+        // Handle event registration and un-registration
+        if (assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression) ||
+            assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression))
+        {
+            var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
+            if (leftSymbol is IEventSymbol eventSymbol)
+            {
+                AddEventUsageDependency(sourceElement, eventSymbol);
+            }
+        }
+    }
+
+    private void AnalyzeExpressionForPropertyAccess(CodeElement sourceElement, ExpressionSyntax expression,
+        SemanticModel semanticModel)
+    {
+        switch (expression)
+        {
+            case IdentifierNameSyntax identifierSyntax:
+                AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
+                break;
+            case MemberAccessExpressionSyntax memberAccessSyntax:
+                AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
+                break;
+            // Add more cases if needed for other types of expressions
         }
     }
 
@@ -495,37 +527,43 @@ public partial class Parser
         SemanticModel semanticModel)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
+        var symbol = symbolInfo.Symbol;
 
-        // Note: I treat accessing a property as a call to the getter / setter.
-        // The dependency is added in AnalyzeMemberAccess.
-        //
-        //if (symbolInfo.Symbol is IPropertySymbol propertySymbol)
-        //{
-        //    AddPropertyCallDependency(sourceElement, propertySymbol, DependencyType.Uses);
-        //}
-        //else
-
-        if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            var location = GetLocation(identifierSyntax);
+            AddPropertyCallDependency(sourceElement, propertySymbol, [location]);
+        }
+        else if (symbol is IFieldSymbol fieldSymbol)
         {
             AddDependencyWithFallbackToContainingType(sourceElement, fieldSymbol, DependencyType.Uses);
         }
     }
+
 
     private void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-        if (symbolInfo.Symbol is IPropertySymbol propertySymbol)
+        var symbol = symbolInfo.Symbol;
+
+        if (symbol is IPropertySymbol propertySymbol)
         {
-            // I treat accessing a property as a call to the getter / setter.
             var location = GetLocation(memberAccessSyntax);
             AddPropertyCallDependency(sourceElement, propertySymbol, [location]);
         }
-        else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
+        else if (symbol is IFieldSymbol fieldSymbol)
         {
             AddDependencyWithFallbackToContainingType(sourceElement, fieldSymbol, DependencyType.Uses);
         }
+
+        // Recursively analyze the expression in case of nested property access
+        if (memberAccessSyntax.Expression is MemberAccessExpressionSyntax nestedMemberAccess)
+        {
+            AnalyzeMemberAccess(sourceElement, nestedMemberAccess, semanticModel);
+        }
     }
+
 
     /// <summary>
     ///     Calling a property is treated like calling a method.

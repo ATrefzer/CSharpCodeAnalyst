@@ -20,6 +20,16 @@
             _modelB.Initialize(_modelC, new StructA(), arrayOfD);
         }
 
+        void AccessToPropertiesSetter()
+        {
+            ModelCPropertyOfModelA = new ModelC();
+        }
+
+        void AccessToPropertiesGetter()
+        {
+            var modelC = ModelCPropertyOfModelA;
+        }
+
         public ModelC ModelCPropertyOfModelA
         {
             get
@@ -27,10 +37,14 @@
                 int x = _modelC.IntPropertyOfModelC;
                 return _modelC;
             }
+            set => throw new NotImplementedException();
         }
 
         public ModelC GetModelC()
         {
+
+
+
             return _modelC;
         }
 

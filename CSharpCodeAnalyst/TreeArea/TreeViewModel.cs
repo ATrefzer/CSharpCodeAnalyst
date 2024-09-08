@@ -100,21 +100,6 @@ public class TreeViewModel : INotifyPropertyChanged
         ExecuteSearch();
     }
 
-    public void HandleAddParentContainerRequest(AddParentContainerRequest obj)
-    {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
-        var parent = _codeGraph.Nodes[obj.Id].Parent;
-        if (parent != null)
-        {
-            _messaging.Publish(new AddNodeToGraphRequest(parent));
-        }
-    }
-
-
     private void CollapseTree()
     {
         CollapseTree(TreeItems);
@@ -128,7 +113,6 @@ public class TreeViewModel : INotifyPropertyChanged
             _messaging.Publish(new AddNodeToGraphRequest(item.CodeElement));
         }
     }
-
 
     public void LoadCodeGraph(CodeGraph codeGraph)
     {

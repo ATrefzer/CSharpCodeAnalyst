@@ -564,7 +564,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private void OnProgress(object? sender, ParserProgressArg e)
     {
-        LoadMessage = $"Loading ... (already parsed {e.NumberOfParsedElements} elements)";
+        LoadMessage = e.Message;
     }
 
     private void ExportToDgml()

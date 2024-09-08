@@ -296,7 +296,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     {
         if (_msaglViewer != null)
         {
-            var graph = _msaglBuilder.CreateGraphFromCodeStructure(_clonedCodeGraph, _presentationState,
+            var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
                 _showFlatGraph);
 
             _renderOption.Apply(graph);

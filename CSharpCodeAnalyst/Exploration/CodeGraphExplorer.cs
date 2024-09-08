@@ -4,11 +4,15 @@ namespace CSharpCodeAnalyst.Exploration;
 
 public class CodeGraphExplorer : ICodeGraphExplorer
 {
+    private List<Dependency> _allDependencies = [];
     private CodeGraph? _codeGraph;
 
     public void LoadCodeGraph(CodeGraph graph)
     {
         _codeGraph = graph;
+
+        // Clear all cached data
+        _allDependencies = [];
     }
 
     public List<CodeElement> GetElements(List<string> ids)
@@ -31,6 +35,28 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
 
         return elements;
+    }
+
+    public SearchResult FindParents(List<string> ids)
+    {
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var parents = new HashSet<CodeElement>();
+        foreach (var id in ids)
+        {
+            if (_codeGraph.Nodes.TryGetValue(id, out var element))
+            {
+                if (element.Parent is not null)
+                {
+                    parents.Add(element.Parent);
+                }
+            }
+        }
+
+        return new SearchResult(parents, []);
     }
 
     /// <summary>
@@ -62,12 +88,13 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var method = _codeGraph.Nodes[id];
 
-        var callDependencies = GetCallDependencies();
-        var calls = callDependencies.Where(call => call.TargetId == method.Id).ToArray();
+        var allCalls = GetDependencies(d => d.Type == DependencyType.Calls);
+        var calls = allCalls.Where(call => call.TargetId == method.Id).ToArray();
         var methods = calls.Select(d => _codeGraph.Nodes[d.SourceId]);
 
         return new Invocation(methods, calls);
     }
+
 
     public Invocation FindIncomingCallsRecursive(string id)
     {
@@ -83,10 +110,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var processingQueue = new Queue<CodeElement>();
         processingQueue.Enqueue(method);
 
-        var allCalls = new HashSet<Dependency>();
-        var allMethods = new HashSet<CodeElement>();
+        var foundCalls = new HashSet<Dependency>();
+        var foundMethods = new HashSet<CodeElement>();
 
-        var callDependencies = GetCallDependencies();
+        var allCalls = GetDependencies(d => d.Type == DependencyType.Calls);
 
         var processed = new HashSet<string>();
         while (processingQueue.Any())
@@ -97,11 +124,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue;
             }
 
-            var calls = callDependencies.Where(call => call.TargetId == element.Id).ToArray();
-            allCalls.UnionWith(calls);
+            var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
+            foundCalls.UnionWith(calls);
 
             var methods = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToArray();
-            allMethods.UnionWith(methods);
+            foundMethods.UnionWith(methods);
 
             foreach (var methodToExplore in methods)
             {
@@ -109,7 +136,62 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             }
         }
 
-        return new Invocation(allMethods, allCalls);
+        return new Invocation(foundMethods, foundCalls);
+    }
+
+
+    public SearchResult FollowIncomingCallsRecursive(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var allImplementsAndOverrides =
+            GetDependencies(d => d.Type is DependencyType.Implements or DependencyType.Overrides);
+        var allCalls = GetDependencies(d => d.Type == DependencyType.Calls);
+
+        var method = _codeGraph.Nodes[id];
+
+        var processingQueue = new Queue<CodeElement>();
+        processingQueue.Enqueue(method);
+
+        var foundDependencies = new HashSet<Dependency>();
+        var foundElements = new HashSet<CodeElement>();
+
+
+        var processed = new HashSet<string>();
+        while (processingQueue.Any())
+        {
+            var element = processingQueue.Dequeue();
+            if (!processed.Add(element.Id))
+            {
+                continue;
+            }
+
+            // Calls
+            var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
+            foundDependencies.UnionWith(calls);
+            var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+            foundElements.UnionWith(callSources);
+
+            // Abstractions. Sometimes the abstractions is called.
+            var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
+            foundDependencies.UnionWith(abstractions);
+            var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
+            foundElements.UnionWith(abstractionTargets);
+
+            // Follow new leads
+            var methodsToExplore = abstractionTargets.Union(callSources);
+            foreach (var methodToExplore in methodsToExplore)
+            {
+                processingQueue.Enqueue(_codeGraph.Nodes[methodToExplore.Id]);
+            }
+        }
+
+        return new SearchResult(foundElements, foundDependencies);
     }
 
     /// <summary>
@@ -264,18 +346,24 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, dependencies);
     }
 
-    private List<Dependency> GetCallDependencies()
+    private List<Dependency> GetCachedDependencies()
     {
         if (_codeGraph is null)
         {
             return [];
         }
 
-        var callDependencies = _codeGraph.Nodes.Values
-            .SelectMany(node => node.Dependencies)
-            .Where(d => d.Type == DependencyType.Calls)
-            .ToList();
-        return callDependencies;
+        if (_allDependencies.Count == 0)
+        {
+            _allDependencies = _codeGraph.GetAllDependencies().ToList();
+        }
+
+        return _allDependencies;
+    }
+
+    private List<Dependency> GetDependencies(Func<Dependency, bool> filter)
+    {
+        return GetCachedDependencies().Where(filter).ToList();
     }
 
     private HashSet<Dependency> FindInheritsAndImplementsRelationships()

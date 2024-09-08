@@ -6,10 +6,18 @@
   _elementIdToSymbolMap. Are all locations captured in this case?
 
 
-- Highlight of aggregated edges takes too long. If quick help not visible skip?
+- Highlighting aggregated edges takes too long. If quick help is not visible then skip.
 - Performance in general
 
+- Replace Guid with symbol key. Does it have an impact on memory or performance?
+  Having the symbol key would allow synchronization with a project in the future.
+
+
+UNHANDLED CASES
+---------------------
+
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
+
 
 BUGS
 ---------------------
