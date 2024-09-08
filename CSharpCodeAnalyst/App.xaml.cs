@@ -58,10 +58,6 @@ public partial class App
         // Context-sensitive help triggered in the graph, handled in the main view model
         messaging.Subscribe<QuickInfoUpdate>(viewModel.HandleUpdateQuickInfo);
 
-        // Adding parent container triggered in graph, handled in the tree view model
-        // Sends back a AddNodeToGraphRequest.
-        messaging.Subscribe<AddParentContainerRequest>(treeViewModel.HandleAddParentContainerRequest);
-
         messaging.Subscribe<CycleCalculationComplete>(cycleViewModel.HandleCycleCalculationComplete);
 
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);

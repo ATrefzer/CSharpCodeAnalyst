@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CodeParser.Parser;
 
-public class ParserProgressArg : EventArgs
+public class ParserProgressArg(string message) : EventArgs
 {
-    public int NumberOfParsedElements { get; set; }
+    public string Message { get; set; } = message;
 }
 
 public partial class Parser(ParserConfig config)
@@ -25,6 +25,8 @@ public partial class Parser(ParserConfig config)
     public async Task<CodeGraph> ParseSolution(string solutionPath)
     {
         Clear();
+
+        ParserProgress?.Invoke(this, new ParserProgressArg("Compiling ..."));
 
         var workspace = MSBuildWorkspace.Create();
         var solution = await workspace.OpenSolutionAsync(solutionPath);
@@ -112,20 +114,6 @@ public partial class Parser(ParserConfig config)
         }
     }
 
-    //private string GetSymbolKey(ISymbol symbol)
-    //{
-    //    var fullName = BuildSymbolName(symbol);
-
-    //    if (symbol is IMethodSymbol methodSymbol)
-    //    {
-    //        // Overloaded methods should have a unique key
-    //        var parameters = string.Join("_ ", methodSymbol.Parameters.Select(p => p.Type.ToString()));
-    //        return $"{fullName}_{parameters}_{symbol.Kind}";
-    //    }
-
-    //    return $"{fullName}_{symbol.Kind}";
-    //}
-
     /// <summary>
     ///     Since I iterate over the compilation units (to get rid of external code)
     ///     any seen namespace, even "namespace X.Y.Z;", ends up as
@@ -178,11 +166,7 @@ public partial class Parser(ParserConfig config)
         // We may encounter namespace declarations in many files.
         if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var existingElement))
         {
-            if (location != null)
-            {
-                existingElement.SourceLocations.Add(location);
-            }
-
+            UpdateCodeElementLocations(existingElement, location);
             return existingElement;
         }
 
@@ -191,10 +175,8 @@ public partial class Parser(ParserConfig config)
         var newId = Guid.NewGuid().ToString();
 
         var element = new CodeElement(newId, elementType, name, fullName, parent);
-        if (location != null)
-        {
-            element.SourceLocations.Add(location);
-        }
+
+        UpdateCodeElementLocations(element, location);
 
         parent?.Children.Add(element);
         _codeGraph.Nodes[element.Id] = element;
@@ -202,7 +184,37 @@ public partial class Parser(ParserConfig config)
 
         // We need the symbol in phase2 when analyzing the dependencies.
         _elementIdToSymbolMap[element.Id] = symbol;
+
+        SendParserPhase1Progress(_codeGraph.Nodes.Count);
+
         return element;
+    }
+
+    private static void UpdateCodeElementLocations(CodeElement element, SourceLocation? location)
+    {
+        if (element.ElementType == CodeElementType.Namespace)
+        {
+            // Namespaces are spread over many files,
+            // and it is useless for the user to see all of them.
+            return;
+        }
+
+        if (location != null)
+        {
+            element.SourceLocations.Add(location);
+        }
+    }
+
+
+    private void SendParserPhase1Progress(int numberOfCodeElements)
+    {
+        if (numberOfCodeElements % 10 == 0)
+        {
+            var msg = $"Phase 1/2: Already found {numberOfCodeElements} code elements.";
+            var args = new ParserProgressArg(msg);
+
+            ParserProgress?.Invoke(this, args);
+        }
     }
 
     /// <summary>

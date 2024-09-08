@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using System.Xml.Linq;
+using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -11,7 +11,6 @@ using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Prism.Commands;
-using CodeParser.Extensions;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -57,8 +56,12 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         // Global commands
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Complete dependencies", CompleteDependencies));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Delete marked (with children)", DeleteMarkedWithChildren));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Focus on marked elements", FocusOnMarkedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Focus", FocusOnMarkedElements,
+            CanHandleIfMarkedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Delete (with children)",
+            DeleteMarkedWithChildren, CanHandleIfMarkedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Add Parent", AddParents,
+            CanHandleIfMarkedElements));
 
 
         // Static commands
@@ -68,12 +71,12 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new ContextCommand("Delete", DeleteWithoutChildren));
         _viewer.AddContextMenuCommand(new ContextCommand("Delete (with children)", DeleteWithChildren));
         _viewer.AddContextMenuCommand(new ContextCommand("Find in tree", FindInTreeRequest));
-        _viewer.AddContextMenuCommand(new ContextCommand("Add parent", AddParentRequest));
+        _viewer.AddContextMenuCommand(new ContextCommand("Add parent", AddParent));
         _viewer.AddContextMenuCommand(new SeparatorCommand());
 
         var findOutgoingCalls = "Find outgoing Calls";
         var findIncomingCalls = "Find incoming Calls";
-        var findIncomingCallsRecursive = "Find incoming Calls (recursive)";
+        var followIncomingCalls = "Follow incoming Calls";
         var findSpecializations = "Find specializations";
         var findAbstractions = "Find abstractions";
 
@@ -83,8 +86,10 @@ internal class GraphViewModel : INotifyPropertyChanged
             FindOutgoingCalls));
         _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Method,
             FindIncomingCalls));
-        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Method,
-            FindIncomingCallsRecursive));
+        //_viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Method,
+        //    FindIncomingCallsRecursive));
+        _viewer.AddContextMenuCommand(new ContextCommand(followIncomingCalls, CodeElementType.Method,
+            FollowIncomingCallsRecursive));
         _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Method,
             FindSpecializations));
         _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Method,
@@ -96,8 +101,10 @@ internal class GraphViewModel : INotifyPropertyChanged
             FindOutgoingCalls));
         _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Property,
             FindIncomingCalls));
-        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Property,
-            FindIncomingCallsRecursive));
+        //_viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Property,
+        //    FindIncomingCallsRecursive));
+        _viewer.AddContextMenuCommand(new ContextCommand(followIncomingCalls, CodeElementType.Property,
+            FollowIncomingCallsRecursive));
         _viewer.AddContextMenuCommand(
             new ContextCommand(findSpecializations, CodeElementType.Property, FindSpecializations));
         _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Property,
@@ -126,54 +133,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new ContextCommand("All outgoing dependencies", FindAllOutgoingDependencies));
 
         UndoCommand = new DelegateCommand(Undo);
-    }
-
-    private void FocusOnMarkedElements(List<CodeElement> markedElements)
-    {
-        // We want to include all children of the collapsed code elements
-        // and keep also the presentation state. Just less information
-
-        if (!markedElements.Any())
-        {
-            return;
-        }
-
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
-
-        var idsToKeep = new HashSet<string>();
-
-        // All children
-        foreach (var element in markedElements)
-        {
-            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
-            idsToKeep.UnionWith(children);
-        }
-
-        var newGraph = graph.SubGraphOf(idsToKeep);
-
-        // Cleanup unused states
-        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
-
-        var presentationState = session.PresentationState.Clone();
-        presentationState.RemoveStates(idsToRemove);
-
-        _viewer.LoadSession(newGraph, presentationState);
-    }
-
-    private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
-    {
-        var graph = _viewer.GetGraph();
-        var idsToRemove = new HashSet<string>();
-
-        // Include children      
-        foreach (var element in markedElements)
-        {
-            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
-            idsToRemove.UnionWith(children);
-        }
-
-        _viewer.DeleteFromGraph(idsToRemove);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -240,12 +199,65 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private bool CanHandleIfMarkedElements(List<CodeElement> markedElements)
+    {
+        return markedElements.Any();
+    }
+
+    private void FocusOnMarkedElements(List<CodeElement> markedElements)
+    {
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        PushUndo();
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        var idsToKeep = new HashSet<string>();
+
+        // All children
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        var newGraph = graph.SubGraphOf(idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+
+        var presentationState = session.PresentationState.Clone();
+        presentationState.RemoveStates(idsToRemove);
+
+        _viewer.LoadSession(newGraph, presentationState);
+    }
+
+    private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
+    {
+        PushUndo();
+
+        var graph = _viewer.GetGraph();
+        var idsToRemove = new HashSet<string>();
+
+        // Include children      
+        foreach (var element in markedElements)
+        {
+            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            idsToRemove.UnionWith(children);
+        }
+     
+        _viewer.DeleteFromGraph(idsToRemove);
+    }
+
     private void CompleteDependencies(List<CodeElement> _)
     {
         // Not interested in the marked elements!
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
         var dependencies = _explorer.FindAllDependencies(ids);
+
         AddToGraph([], dependencies);
     }
 
@@ -273,10 +285,17 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.Expand(codeElement.Id);
     }
 
-    private void AddParentRequest(CodeElement codeElement)
+    private void AddParent(CodeElement codeElement)
+    {
+        AddParents([codeElement]);
+    }
+
+    private void AddParents(List<CodeElement> codeElements)
     {
         // We do not know the original graph.
-        _publisher.Publish(new AddParentContainerRequest(codeElement.Id));
+        var ids = codeElements.Select(c => c.Id).ToList();
+        var result = _explorer.FindParents(ids);
+        AddToGraph(result.Elements, []);
     }
 
     private void FindInTreeRequest(CodeElement codeElement)
@@ -325,7 +344,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var elements = _explorer.GetElements(state.CodeElementIds);
 
         // No undo stack operations while restoring the session.      
-        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);      
+        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);
     }
 
     private void UpdateGraphRenderOption()
@@ -413,6 +432,19 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(callers.Methods, callers.Calls);
     }
 
+
+    internal void FollowIncomingCallsRecursive(CodeElement method)
+    {
+        if (!IsMethodOrProperty(method))
+        {
+            return;
+        }
+
+        var result =
+            _explorer.FollowIncomingCallsRecursive(method.Id);
+        AddToGraph(result.Elements, result.Dependencies);
+    }
+
     internal void FindSpecializationAndAbstractions(CodeElement? type)
     {
         if (type is null)
@@ -489,7 +521,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.Clear();
 
         // Everything is collapsed by default. This allows to import large graphs.
-        var defaultState = graph.Nodes.Values.Where(c => c.Children.Any()).ToDictionary(c => c.Id, c => true);
+        var defaultState = graph.Nodes.Values.Where(c => c.Children.Any()).ToDictionary(c => c.Id, _ => true);
         var presentationState = new PresentationState(defaultState);
 
         var roots = graph.GetRoots();
@@ -515,7 +547,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         {
             PushUndo();
         }
-        var elements = _explorer.GetElements(session.CodeElementIds);    
+
+        var elements = _explorer.GetElements(session.CodeElementIds);
         _viewer.LoadSession(elements, session.Dependencies, session.PresentationState);
     }
 }

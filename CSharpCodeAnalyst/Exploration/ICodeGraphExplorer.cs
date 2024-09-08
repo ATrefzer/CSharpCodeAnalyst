@@ -6,7 +6,17 @@ public interface ICodeGraphExplorer
 {
     Invocation FindIncomingCalls(string id);
     Invocation FindOutgoingCalls(string id);
+
+    /// <summary>
+    /// Follows all incoming calls recursively.
+    /// </summary>
     Invocation FindIncomingCallsRecursive(string id);
+
+    /// <summary>
+    /// Traces back callers of the given method. Includes also abstractions and their callers
+    /// </summary>
+    SearchResult FollowIncomingCallsRecursive(string id);
+
     SearchResult FindFullInheritanceTree(string id);
 
     /// <summary>
@@ -28,4 +38,5 @@ public interface ICodeGraphExplorer
     SearchResult FindIncomingDependencies(string id);
     void LoadCodeGraph(CodeGraph graph);
     List<CodeElement> GetElements(List<string> ids);
+    SearchResult FindParents(List<string> ids);
 }

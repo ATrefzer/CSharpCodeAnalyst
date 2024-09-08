@@ -9,18 +9,18 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class MsaglBuilder
 {
-    public Graph CreateGraphFromCodeStructure(CodeGraph codeGraph, PresentationState presentationState,
+    public Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
         bool showFlatGraph)
     {
         if (showFlatGraph)
         {
-            return CreateGraphFromCodeStructureFlat(codeGraph);
+            return CreateFlatGraph(codeGraph);
         }
 
-        return CreateGraphFromCodeStructureHierarchical(codeGraph, presentationState);
+        return CreateHierarchicalGraph(codeGraph, presentationState);
     }
 
-    private Graph CreateGraphFromCodeStructureFlat(CodeGraph codeGraph)
+    private Graph CreateFlatGraph(CodeGraph codeGraph)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
@@ -52,7 +52,7 @@ internal class MsaglBuilder
         }
     }
 
-    private Graph CreateGraphFromCodeStructureHierarchical(CodeGraph codeGraph, PresentationState presentationState)
+    private Graph CreateHierarchicalGraph(CodeGraph codeGraph, PresentationState presentationState)
     {
         var visibleGraph = GetVisibleGraph(codeGraph, presentationState);
         var graph = new Graph("graph");

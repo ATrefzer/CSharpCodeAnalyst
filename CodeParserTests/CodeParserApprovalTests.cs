@@ -92,11 +92,60 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.MoreGenerics.M1",
             "CSharpLanguage.CSharpLanguage.MoreGenerics.M2",
             "CSharpLanguage.CSharpLanguage.MoreGenerics.M2",
-            "CSharpLanguage.CSharpLanguage.MoreGenerics.Run"
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Run",
+
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter"
         };
 
 
         CollectionAssert.AreEquivalent(expectedMethods, methods);
+    }
+
+    [Test]
+    public void FindsAllCalls()
+    {
+        var calls = _graph.GetAllDependencies().Where(d => d.Type == DependencyType.Calls);
+
+        var actual = calls.Select(d => $"{_graph.Nodes[d.SourceId].FullName} -> {_graph.Nodes[d.TargetId].FullName}")
+            .ToHashSet();
+
+        var expected = new HashSet<string>
+        {
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.Extensions.Slice",
+            "CSharpLanguage.CSharpLanguage.Extensions.Slice -> CSharpLanguage.CSharpLanguage.TheExtendedType.Do",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Run -> CSharpLanguage.CSharpLanguage.MoreGenerics.M1",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Run -> CSharpLanguage.CSharpLanguage.MoreGenerics.M2",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.FactoryC.Create",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.IServiceC.Do",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -> ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -> ModuleLevel1.ModuleLevel1.Model.ModelB.Value",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.StructA.Fill",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC -> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.Fill -> ModuleLevel1.ModuleLevel1.Model.ModelB.Value",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel1.ModuleLevel1.ServiceC.Execute",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass..ctor -> ModuleLevel2.ModuleLevel2.SelfReferencingClass.CommitHash",
+            "ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1 -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod2",
+            "ModuleLevel2.ModuleLevel2.Utility.UtilityMethod2 -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1",
+
+            // Property calling a property
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -> ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC",
+
+            // Property calling a function
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC -> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC",
+
+            // Access to properties, setter and getter included.
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA"
+        };
+
+        CollectionAssert.AreEquivalent(expected, actual);
     }
 
     [Test]
