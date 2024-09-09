@@ -7,9 +7,11 @@
         xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
         xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
         mc:Ignorable="d"
+        xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
-        Title="C# Code Analyst" Height="450" Width="800" d:DataContext="{d:DesignInstance analyst:MainViewModel}">
+        Title="{x:Static resources:Strings.AppTitle}" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance analyst:MainViewModel}">
     <Window.Resources>
         <ResourceDictionary>
 
@@ -32,73 +34,78 @@
         <Ribbon>
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu>
-                    <RibbonApplicationMenuItem Header="Exit" Click="Exit_Click" />
+                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" />
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home">
-                <RibbonGroup Header="File">
-                    <RibbonButton Label="Import Solution"
+                <RibbonGroup Header="{x:Static resources:Strings.File_Header}">
+                    <RibbonButton Label="{x:Static resources:Strings.ImportSolution_Label}"
                                   LargeImageSource="/Resources/import_solution.png"
                                   Command="{Binding LoadSolutionCommand}" />
 
-                    <RibbonButton Label="Project filter"
+                    <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
                                   Command="{Binding OpenFilterDialogCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Set project exclusion filters via regular expressions" />
+                            <ToolTip Content="{x:Static resources:Strings.ProjectFilter_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Load Project"
+                    <RibbonButton Label="{x:Static resources:Strings.LoadProject_Label}"
                                   LargeImageSource="/Resources/load_project.png"
                                   Command="{Binding LoadProjectCommand}" />
-                    <RibbonButton Label="Save Project"
+                    <RibbonButton Label="{x:Static resources:Strings.SaveProject_Label}"
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" />
 
-                    <RibbonButton Label="Export Dsi" LargeImageSource="/Resources/spreadsheet_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.ExportDsi_Label}"
+                                  LargeImageSource="/Resources/spreadsheet_32.png"
                                   Command="{Binding ExportToDsiCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Exports the whole project to dsi" />
+                            <ToolTip Content="{x:Static resources:Strings.ExportDsi_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
                 </RibbonGroup>
 
                 <RibbonGroup Header="Tools">
-                    <RibbonButton Label="Find"
+                    <RibbonButton Label="{x:Static resources:Strings.Find_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
                 </RibbonGroup>
 
 
-                <RibbonGroup Header="Code Explorer">
-                    <RibbonButton Label="Clear" LargeImageSource="/Resources/trash-can_32.png"
+                <RibbonGroup Header="{x:Static resources:Strings.CodeExplorer_Header}">
+                    <RibbonButton Label="{x:Static resources:Strings.Clear_Label}"
+                                  LargeImageSource="/Resources/trash-can_32.png"
                                   Command="{Binding GraphClearCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Clear the content of the graph" />
+                            <ToolTip Content="{x:Static resources:Strings.Clear_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Layout" LargeImageSource="/Resources/four-arrows_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.Layout_Label}"
+                                  LargeImageSource="/Resources/four-arrows_32.png"
                                   Command="{Binding GraphLayoutCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Resets zoom level and fits to screen" />
+                            <ToolTip Content="{x:Static resources:Strings.Layout_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Export Dgml" LargeImageSource="/Resources/document-xml_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.ExportDgml_Label}"
+                                  LargeImageSource="/Resources/document-xml_32.png"
                                   Command="{Binding ExportToDgmlCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Exports the current graph to dgml" />
+                            <ToolTip Content="{x:Static resources:Strings.ExportDgml_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Save Png" LargeImageSource="/Resources/png-file_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.SavePng_Label}"
+                                  LargeImageSource="/Resources/png-file_32.png"
                                   Command="{Binding ExportToPngCommand}"
                                   CommandParameter="{Binding ElementName=ExplorationGraphPanel}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Saves the current canvas to png" />
+                            <ToolTip Content="{x:Static resources:Strings.SavePng_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
@@ -109,24 +116,27 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>-->
 
-                    <RibbonButton Label="Undo" LargeImageSource="/Resources/undo_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"
+                                  LargeImageSource="/Resources/undo_32.png"
                                   Command="{Binding GraphViewModel.UndoCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Undo the last operation in graph." />
+                            <ToolTip Content="{x:Static resources:Strings.Undo_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Gallery" LargeImageSource="/Resources/document_graph_32.png"
+                    <RibbonButton Label="{x:Static resources:Strings.Gallery_Label}"
+                                  LargeImageSource="/Resources/document_graph_32.png"
                                   Command="{Binding ShowGalleryCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Show gallery of available graphs." />
+                            <ToolTip Content="{x:Static resources:Strings.Gallery_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
 
                 </RibbonGroup>
 
-                <RibbonGroup Header="Settings" LargeImageSource="Resources/gear_32.png">
+                <RibbonGroup Header="{x:Static resources:Strings.Settings_Header}"
+                             LargeImageSource="Resources/gear_32.png">
 
                     <Grid Margin="0, 0, 0, 0">
                         <Grid.ColumnDefinitions>
@@ -144,27 +154,28 @@
                         </Grid.RowDefinitions>
 
                         <RibbonToggleButton Grid.Row="0" Grid.Column="0"
-                                            Label="Quick Info"
+                                            Label="{x:Static resources:Strings.QuickInfo_Label}"
                                             SmallImageSource="/Resources/question_small.png"
                                             IsChecked="{Binding IsInfoPanelVisible, Mode=TwoWay}">
                             <RibbonToggleButton.ToolTip>
                                 <ToolTip
-                                    Content="Show or hide the information panel. Only shown in the code graph explorer." />
+                                    Content="{x:Static resources:Strings.QuickInfo_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
                         </RibbonToggleButton>
 
-                        <RibbonToggleButton Grid.Row="1" Grid.Column="0" Label="Flat Graph"
+                        <RibbonToggleButton Grid.Row="1" Grid.Column="0"
+                                            Label="{x:Static resources:Strings.FlatGraph_Label}"
                                             SmallImageSource="/Resources/left-right_small.png"
                                             IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}">
                             <RibbonToggleButton.ToolTip>
-                                <ToolTip Content="Shows the graph flat or hierarchical" />
+                                <ToolTip Content="{x:Static resources:Strings.FlatGraph_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
                         </RibbonToggleButton>
 
 
                         <TextBlock VerticalAlignment="Center"
                                    Grid.Row="0" Grid.Column="2"
-                                   Text="Rendering" />
+                                   Text="{x:Static resources:Strings.Rendering_Label}" />
                         <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
                                   Grid.Row="0" Grid.Column="3"
@@ -172,7 +183,7 @@
                                   SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
                         <TextBlock VerticalAlignment="Center"
                                    Grid.Row="1" Grid.Column="2"
-                                   Text="Highlighting" />
+                                   Text="{x:Static resources:Strings.Highlighting_Label}" />
                         <ComboBox VerticalAlignment="Center"
                                   Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
@@ -198,7 +209,7 @@
                       x:Name="LeftExpander"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Collapsed="LeftExpander_Collapsed">
                 <Expander.Header>
-                    <TextBlock Text="Code Structure" FontWeight="Bold">
+                    <TextBlock Text="{x:Static resources:Strings.CodeStructure_Header}" FontWeight="Bold">
                         <TextBlock.LayoutTransform>
                             <RotateTransform Angle="90" />
                         </TextBlock.LayoutTransform>
@@ -226,13 +237,15 @@
                     </Grid.RowDefinitions>
                     <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
                                DataContext="{Binding TreeViewModel}">
-                        <Button Command="{Binding CollapseTreeCommand}" ToolTip="Collapse all" DockPanel.Dock="Right"
+                        <Button Command="{Binding CollapseTreeCommand}"
+                                ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}" DockPanel.Dock="Right"
                                 Width="22" Height="22">
                             <Image Source="Resources/Collapse_16.png" />
                         </Button>
 
                         <!-- middle element has margin -->
-                        <Button Command="{Binding ClearSearchCommand}" ToolTip="Clear search" DockPanel.Dock="Right"
+                        <Button Command="{Binding ClearSearchCommand}"
+                                ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" DockPanel.Dock="Right"
                                 Width="22" Height="22" Margin="2 0 2 0">
                             <Image Source="Resources/clear_32.png" />
                         </Button>
@@ -255,10 +268,12 @@
 
                         <TreeView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Add to graph" Command="{Binding AddNodeToGraphCommand}"
+                                <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
+                                          Command="{Binding AddNodeToGraphCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                                <MenuItem Header="Delete from model" Command="{Binding DeleteFromModelCommand}"
+                                <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
+                                          Command="{Binding DeleteFromModelCommand}"
                                           CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             </ContextMenu>
                         </TreeView.ContextMenu>
@@ -312,8 +327,8 @@
                         <StackPanel
                             Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                             HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="10">
-                            <TextBlock Text="Panning: Shift + Mouse" FontSize="24" Margin="10" />
-                            <TextBlock Text="Hold quick help: Ctrl + Click" FontSize="24" Margin="10" />
+                            <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" FontSize="24" Margin="10" />
+                            <TextBlock Text="{x:Static resources:Strings.Hint_HoldQuickInfo}" FontSize="24" Margin="10" />
                         </StackPanel>
                         <Border ClipToBounds="True">
                             <DockPanel Name="ExplorationGraphPanel" Margin="5" />
@@ -339,9 +354,10 @@
                                     <Setter Property="ContextMenu">
                                         <Setter.Value>
                                             <ContextMenu>
-                                                <MenuItem Header="Copy to explorer graph"
-                                                          Command="{Binding DataContext.CopyToExplorerGraphCommand, Source={x:Reference RootWindow}}"
-                                                          CommandParameter="{Binding}" />
+                                                <MenuItem
+                                                    Header="{x:Static resources:Strings.CopyToExplorerGraph_MenuItem}"
+                                                    Command="{Binding DataContext.CopyToExplorerGraphCommand, Source={x:Reference RootWindow}}"
+                                                    CommandParameter="{Binding}" />
                                             </ContextMenu>
                                         </Setter.Value>
                                     </Setter>
@@ -353,8 +369,10 @@
                                 </Style>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Level" Binding="{Binding Level}" Width="Auto" />
-                                <DataGridTextColumn Header="Element Count" Binding="{Binding ElementCount}"
+                                <DataGridTextColumn Header="{x:Static resources:Strings.Level_Header}"
+                                                    Binding="{Binding Level}" Width="Auto" />
+                                <DataGridTextColumn Header="{x:Static resources:Strings.ElementCount_Header}"
+                                                    Binding="{Binding ElementCount}"
                                                     Width="Auto" />
                                 <DataGridTemplateColumn Header="Code Elements" Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -408,7 +426,7 @@
                     </Grid>
                 </TabItem>
 
-                <TabItem Header="Metrics">
+                <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
                     <metricArea:MetricView Data="{Binding Metrics}" />
                 </TabItem>
             </TabControl>

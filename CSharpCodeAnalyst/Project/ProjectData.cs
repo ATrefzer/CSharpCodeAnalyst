@@ -14,7 +14,7 @@ public class ProjectData
     public Dictionary<string, string> Settings { get; set; } = new();
 
     /// <summary>
-    /// Gallery is already serializable.
+    ///     Gallery is already serializable.
     /// </summary>
     public Gallery.Gallery Gallery { get; set; } = new();
 

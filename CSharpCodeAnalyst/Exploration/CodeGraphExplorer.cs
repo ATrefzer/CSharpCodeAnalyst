@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using CodeParser.Analysis.Cycles;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Exploration;
 
@@ -35,6 +36,38 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
 
         return elements;
+    }
+
+    public SearchResult CompleteToContainingTypes(HashSet<string> ids)
+    {
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var parents = new List<CodeElement>();
+
+        foreach (var id in ids)
+        {
+            if (_codeGraph.Nodes.TryGetValue(id, out var element))
+            {
+                var current = element;
+                while (current.Parent is not null &&
+                       CodeElementClassifier.GetContainerLevel(current.ElementType) == 0)
+                {
+                    // We need a parent
+                    var parent = current.Parent;
+                    if (ids.Contains(parent.Id) is false)
+                    {
+                        parents.Add(parent);
+                    }
+
+                    current = current.Parent;
+                }
+            }
+        }
+
+        return new SearchResult(parents, []);
     }
 
     public SearchResult FindParents(List<string> ids)
@@ -211,16 +244,19 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var types = new HashSet<CodeElement>();
         var relationships = new HashSet<Dependency>();
         var processingQueue = new Queue<CodeElement>();
-        processingQueue.Enqueue(type);
+
         var processed = new HashSet<string>();
 
         var inheritsAndImplements = FindInheritsAndImplementsRelationships();
+
+        // Find base classes recursive
+        processingQueue.Enqueue(type);
+        processed.Clear();
         while (processingQueue.Any())
         {
             var typeToAnalyze = processingQueue.Dequeue();
             if (!processed.Add(typeToAnalyze.Id))
             {
-                // Since we evaluate both direction in one iteration, an already processed node is added again.
                 continue;
             }
 
@@ -233,6 +269,19 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 types.Add(baseType);
                 relationships.Add(abstraction);
                 processingQueue.Enqueue(baseType);
+            }
+        }
+
+        // Find sub-classes recursive
+        processingQueue.Enqueue(type);
+        processed.Clear();
+        while (processingQueue.Any())
+        {
+            var typeToAnalyze = processingQueue.Dequeue();
+            if (!processed.Add(typeToAnalyze.Id))
+            {
+                // Since we evaluate both direction in one iteration, an already processed node is added again.
+                continue;
             }
 
             // Case typeToAnalyze is base class: typeToAnalyze is implemented by X or Y inherits from it.
@@ -379,7 +428,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         void Collect(CodeElement c)
         {
-            if (c.ElementType is not (CodeElementType.Class or CodeElementType.Interface))
+            if (c.ElementType is not (CodeElementType.Class or CodeElementType.Interface or CodeElementType.Struct))
             {
                 return;
             }

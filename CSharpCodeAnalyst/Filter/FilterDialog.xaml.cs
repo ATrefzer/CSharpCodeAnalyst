@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Filter;
 
@@ -24,7 +25,7 @@ public partial class FilterDialog : Window
 
         if (expressions.Any(f => f.Contains(";")))
         {
-            MessageBox.Show("Filters cannot contain semicolons (;).", "Invalid Filter", MessageBoxButton.OK,
+            MessageBox.Show(Strings.InvalidFilter_Message, Strings.InvalidFilter_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
             return;
         }

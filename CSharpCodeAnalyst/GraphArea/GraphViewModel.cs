@@ -10,6 +10,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst.GraphArea;
@@ -46,8 +47,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         HighlightOptions = new ObservableCollection<HighlightOption>
         {
             HighlightOption.Default,
-            new(HighlightMode.OutgoingEdgesChildrenAndSelf, "Outgoing edges"),
-            new(HighlightMode.ShortestNonSelfCircuit, "Shortest non self circuit")
+            new(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
+            new(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
         };
 
         // Set defaults
@@ -55,85 +56,64 @@ internal class GraphViewModel : INotifyPropertyChanged
         _selectedHighlightOption = HighlightOptions[0];
 
         // Global commands
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Complete dependencies", CompleteDependencies));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Focus", FocusOnMarkedElements,
+        _viewer.AddGlobalContextMenuCommand(
+            new GlobalContextCommand(Strings.CompleteDependencies, CompleteDependencies));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.CompleteToTypes, CompleteToTypes));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedFocus, FocusOnMarkedElements,
             CanHandleIfMarkedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Delete (with children)",
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedDelete,
             DeleteMarkedWithChildren, CanHandleIfMarkedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand("Marked: Add Parent", AddParents,
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedAddParent, AddParents,
             CanHandleIfMarkedElements));
 
 
         // Static commands
-        _viewer.AddContextMenuCommand(new ContextCommand("Expand", Expand, CanExpand));
-        _viewer.AddContextMenuCommand(new ContextCommand("Collapse", Collapse, CanCollapse));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Expand, Expand, CanExpand));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Collapse, Collapse, CanCollapse));
 
-        _viewer.AddContextMenuCommand(new ContextCommand("Delete", DeleteWithoutChildren));
-        _viewer.AddContextMenuCommand(new ContextCommand("Delete (with children)", DeleteWithChildren));
-        _viewer.AddContextMenuCommand(new ContextCommand("Find in tree", FindInTreeRequest));
-        _viewer.AddContextMenuCommand(new ContextCommand("Add parent", AddParent));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Delete, DeleteWithoutChildren));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindInTree, FindInTreeRequest));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AddParent, AddParent));
         _viewer.AddContextMenuCommand(new SeparatorCommand());
 
-        var findOutgoingCalls = "Find outgoing Calls";
-        var findIncomingCalls = "Find incoming Calls";
-        var followIncomingCalls = "Follow incoming Calls";
-        var findSpecializations = "Find specializations";
-        var findAbstractions = "Find abstractions";
+        // Methods and properties
+        var elementTypes
+            = new HashSet<CodeElementType>
+                { CodeElementType.Method, CodeElementType.Property };
+        foreach (var elementType in elementTypes)
+        {
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindOutgoingCalls, elementType,
+                FindOutgoingCalls));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindIncomingCalls, elementType,
+                FindIncomingCalls));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FollowIncomingCalls, elementType,
+                FollowIncomingCallsRecursive));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindSpecializations, elementType,
+                FindSpecializations));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+        }
 
-
-        // Methods
-        _viewer.AddContextMenuCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Method,
-            FindOutgoingCalls));
-        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Method,
-            FindIncomingCalls));
-        //_viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Method,
-        //    FindIncomingCallsRecursive));
-        _viewer.AddContextMenuCommand(new ContextCommand(followIncomingCalls, CodeElementType.Method,
-            FollowIncomingCallsRecursive));
-        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Method,
-            FindSpecializations));
-        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Method,
-            FindAbstractions));
-
-
-        // Properties
-        _viewer.AddContextMenuCommand(new ContextCommand(findOutgoingCalls, CodeElementType.Property,
-            FindOutgoingCalls));
-        _viewer.AddContextMenuCommand(new ContextCommand(findIncomingCalls, CodeElementType.Property,
-            FindIncomingCalls));
-        //_viewer.AddContextMenuCommand(new ContextCommand(findIncomingCallsRecursive, CodeElementType.Property,
-        //    FindIncomingCallsRecursive));
-        _viewer.AddContextMenuCommand(new ContextCommand(followIncomingCalls, CodeElementType.Property,
-            FollowIncomingCallsRecursive));
-        _viewer.AddContextMenuCommand(
-            new ContextCommand(findSpecializations, CodeElementType.Property, FindSpecializations));
-        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Property,
-            FindAbstractions));
-
-
-        // Classes
-        _viewer.AddContextMenuCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Class,
-            FindSpecializationAndAbstractions));
-        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Class,
-            FindSpecializations));
-        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Class, FindAbstractions));
-
-        // Interfaces
-        _viewer.AddContextMenuCommand(new ContextCommand("Find full inheritance tree", CodeElementType.Interface,
-            FindSpecializationAndAbstractions));
-        _viewer.AddContextMenuCommand(new ContextCommand(findSpecializations, CodeElementType.Interface,
-            FindSpecializations));
-        _viewer.AddContextMenuCommand(new ContextCommand(findAbstractions, CodeElementType.Interface,
-            FindAbstractions));
-
+        // Classes, structs and interfaces
+        elementTypes = new HashSet<CodeElementType>
+            { CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct };
+        foreach (var elementType in elementTypes)
+        {
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindInheritanceTree, elementType,
+                FindSpecializationAndAbstractions));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindSpecializations, elementType,
+                FindSpecializations));
+            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+        }
 
         // Everyone gets the in/out dependencies
         _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new ContextCommand("All incoming dependencies", FindAllIncomingDependencies));
-        _viewer.AddContextMenuCommand(new ContextCommand("All outgoing dependencies", FindAllOutgoingDependencies));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AllIncomingDependencies, FindAllIncomingDependencies));
+        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AllOutgoingDependencies, FindAllOutgoingDependencies));
 
         UndoCommand = new DelegateCommand(Undo);
     }
+
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
@@ -247,8 +227,16 @@ internal class GraphViewModel : INotifyPropertyChanged
             var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
             idsToRemove.UnionWith(children);
         }
-     
+
         _viewer.DeleteFromGraph(idsToRemove);
+    }
+
+    private void CompleteToTypes(List<CodeElement> obj)
+    {
+        var viewerGraph = _viewer.GetGraph();
+        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var result = _explorer.CompleteToContainingTypes(ids);
+        AddToGraph(result.Elements, []);
     }
 
     private void CompleteDependencies(List<CodeElement> _)
@@ -333,7 +321,8 @@ internal class GraphViewModel : INotifyPropertyChanged
     {
         if (_undoStack.Any() is false)
         {
-            MessageBox.Show("Nothing to undo!", "", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(Strings.NothingToUndo_Message, Strings.NothingToUndo_Title, MessageBoxButton.OK,
+                MessageBoxImage.Information);
             return;
         }
 
@@ -506,9 +495,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Meanwhile we collapse the graph.
         if (numberOfElements > _settings.WarningCodeElementLimit)
         {
-            var result = MessageBox.Show(
-                $"There are {numberOfElements} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?",
-                "Proceed?", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var msg = string.Format(Strings.TooMuchElementsMessage, numberOfElements);
+            var title = Strings.TooMuchElementsTitle;
+            var result = MessageBox.Show(msg, title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             return MessageBoxResult.Yes == result;
         }
 
