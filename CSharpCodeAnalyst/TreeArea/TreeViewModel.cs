@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst.TreeArea;
@@ -85,8 +86,8 @@ public class TreeViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (MessageBox.Show("Deleting model elements will clear the code graph. Do you want to proceed?",
-                "Proceed?", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
+        if (MessageBox.Show(Strings.DeleteFromModel_Message,
+                Strings.Proceed_Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
         {
             return;
         }

@@ -8,12 +8,12 @@ public interface ICodeGraphExplorer
     Invocation FindOutgoingCalls(string id);
 
     /// <summary>
-    /// Follows all incoming calls recursively.
+    ///     Follows all incoming calls recursively.
     /// </summary>
     Invocation FindIncomingCallsRecursive(string id);
 
     /// <summary>
-    /// Traces back callers of the given method. Includes also abstractions and their callers
+    ///     Traces back callers of the given method. Includes also abstractions and their callers
     /// </summary>
     SearchResult FollowIncomingCallsRecursive(string id);
 
@@ -39,4 +39,10 @@ public interface ICodeGraphExplorer
     void LoadCodeGraph(CodeGraph graph);
     List<CodeElement> GetElements(List<string> ids);
     SearchResult FindParents(List<string> ids);
+
+    /// <summary>
+    ///     Completes the list of Ids such that at least the containing type is present.
+    ///     If we already have a type the search stops.
+    /// </summary>
+    SearchResult CompleteToContainingTypes(HashSet<string> ids);
 }

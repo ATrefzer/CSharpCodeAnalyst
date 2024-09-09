@@ -3,7 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighting;
@@ -20,7 +19,6 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     Between nodes we can have multiple dependencies if the dependency type is different.
 ///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
 ///     in the parser. In this case the dependency holds all source references.
-///     
 ///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
 internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
@@ -238,6 +236,32 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         return _presentationState.IsCollapsed(id);
     }
 
+    public void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        Clear();
+        AddToGraphInternal(codeElements, dependencies);
+        _presentationState = state;
+
+        RefreshGraph();
+    }
+
+    public void LoadSession(CodeGraph newGraph, PresentationState? presentationState)
+    {
+        if (presentationState is null)
+        {
+            presentationState = new PresentationState();
+        }
+
+        _presentationState = presentationState;
+        _clonedCodeGraph = newGraph;
+        RefreshGraph();
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private bool IsBoundToPanel()
@@ -420,31 +444,5 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
                 lastItemIsSeparator = false;
             }
         }
-    }
-
-    public void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state)
-    {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        Clear();
-        AddToGraphInternal(codeElements, dependencies);
-        _presentationState = state;
-
-        RefreshGraph();
-    }
-
-    public void LoadSession(CodeGraph newGraph, PresentationState? presentationState)
-    {
-        if (presentationState is null)
-        {
-            presentationState = new PresentationState();
-        }
-
-        _presentationState = presentationState;
-        _clonedCodeGraph = newGraph;
-        RefreshGraph(); 
     }
 }

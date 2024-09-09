@@ -1,7 +1,8 @@
 ﻿IMPROVEMENTS
 ---------------------
+- Show at least containing types (global context menu)
 
-- SybolEqualityComparer does not work for this application well. Remove it where it is used.
+- SymbolEqualityComparer does not work for this application well. Remove it where it is used.
 - Check if the map key -> Symbol is unique. If not use a list of symbols!
   _elementIdToSymbolMap. Are all locations captured in this case?
 

@@ -47,11 +47,11 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    /// Returns a unique key for the symbol
-    /// We may have for example multiple symbols for the same namespace (X.Y.Z vs X.Y{Z})
-    /// See INamespaceSymbol.ConstituentNamespaces
-    /// Method overloads and generics are considered in the key.
-    /// This key more or less replaces the SymbolEqualityComparer not useful for this application.
+    ///     Returns a unique key for the symbol
+    ///     We may have for example multiple symbols for the same namespace (X.Y.Z vs X.Y{Z})
+    ///     See INamespaceSymbol.ConstituentNamespaces
+    ///     Method overloads and generics are considered in the key.
+    ///     This key more or less replaces the SymbolEqualityComparer not useful for this application.
     /// </summary>
     public static string Key(this ISymbol symbol)
     {
@@ -79,7 +79,8 @@ public static class SymbolExtensions
                     if (!namedTypeSymbol.IsDefinition)
                     {
                         // This is a constructed type (e.g., List<int>)
-                        result = $"<{string.Join(",", namedTypeSymbol.TypeArguments.Select(t => t.ToDisplayString()))}>";
+                        result =
+                            $"<{string.Join(",", namedTypeSymbol.TypeArguments.Select(t => t.ToDisplayString()))}>";
                     }
                     else
                     {
@@ -105,6 +106,7 @@ public static class SymbolExtensions
                         result = $"<{string.Join(",", methodSymbol.TypeParameters.Select(t => t.Name))}>";
                     }
                 }
+
                 break;
         }
 

@@ -48,12 +48,12 @@ internal interface IDependencyGraphViewer
     bool IsCollapsed(string id);
 
     /// <summary>
-    /// Undo and gallery.
+    ///     Undo and gallery.
     /// </summary>
     void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
 
     /// <summary>
-    /// Cycle groups, focus on marked elements
-    /// </summary>    
+    ///     Cycle groups, focus on marked elements
+    /// </summary>
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 }

@@ -16,6 +16,7 @@ public static class CodeElementClassifier
             CodeElementType.Interface or
             CodeElementType.Struct or
             CodeElementType.Enum or
+            CodeElementType.Record or
             CodeElementType.Delegate)
         {
             return 20;

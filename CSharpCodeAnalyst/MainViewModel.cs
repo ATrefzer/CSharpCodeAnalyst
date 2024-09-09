@@ -25,6 +25,7 @@ using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.MetricArea;
 using CSharpCodeAnalyst.Project;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
@@ -328,7 +329,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error searching: {ex.Message}", "Error", MessageBoxButton.OK,
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
         finally
@@ -362,7 +364,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error opening source file: {ex.Message}", "Error", MessageBoxButton.OK,
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
     }
@@ -420,7 +423,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error converting solution to dsi file: {ex.Message}", "Error", MessageBoxButton.OK,
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
         finally
@@ -440,12 +444,13 @@ internal class MainViewModel : INotifyPropertyChanged
         try
         {
             IsLoading = true;
-            LoadMessage = "Searching Cycles ...";
+            LoadMessage = Strings.SearchingCycles_Message;
             await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(_codeGraph); });
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error finding cycles: {ex.Message}", "Error", MessageBoxButton.OK,
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
         finally
@@ -495,7 +500,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error loading solution: {ex.Message}", "Error", MessageBoxButton.OK,
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
         finally
@@ -691,9 +697,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
             _isSaved = true;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            MessageBox.Show("Failed loading project file", "Load error", MessageBoxButton.OK, MessageBoxImage.Error);
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {
@@ -741,7 +748,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private void CopyToExplorerGraph(CycleGroupViewModel vm)
     {
         var graph = vm.CycleGroup.CodeGraph;
-   
+
         GraphViewModel?.ImportCycleGroup(graph);
 
         SelectedTabIndex = 0;
@@ -766,7 +773,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         if (_isSaved is false)
         {
-            if (MessageBox.Show("Do you want to save the project so you don't have to import it again?", "Save",
+            if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 SaveProject();
