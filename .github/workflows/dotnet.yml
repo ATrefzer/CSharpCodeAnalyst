@@ -4,10 +4,15 @@
 name: .NET
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # Commenting out automatic triggers
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+  # Manually trigger release
+  workflow_dispatch:
+  
 
 permissions:
   contents: write    
