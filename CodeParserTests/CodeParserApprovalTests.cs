@@ -95,7 +95,15 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.MoreGenerics.Run",
 
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter",
-            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter"
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter",
+
+            // Show event registration
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething", 
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1", 
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor", 
+            "CSharpLanguage.CSharpLanguage.EventSink.Handler"
         };
 
 
@@ -142,7 +150,11 @@ public class CodeParserApprovalTests
 
             // Access to properties, setter and getter included.
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
-            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA"
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
+            
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise1",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -270,6 +282,102 @@ public class CodeParserApprovalTests
 
 
     [Test]
+    public void FindsAllEventUsages()
+    {
+        // Registration and un-registration
+        var actual = _graph.Nodes.Values
+            .SelectMany(n => n.Dependencies)
+            .Where(d => d.Type == DependencyType.Uses)
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
+            .Where(t => t.Item2.ElementType == CodeElementType.Event)
+            .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
+            .ToList();
+
+
+        var expected = new HashSet<string>
+        {
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+
+    [Test]
+    public void FindsAllEventInvocation()
+    {
+        var actual = _graph.Nodes.Values
+            .SelectMany(n => n.Dependencies)
+            .Where(d => d.Type == DependencyType.Invokes)
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
+            .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
+            .ToList();
+
+
+        var expected = new HashSet<string>
+        {
+            "CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.OnEvent -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1 -> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise2 -> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise3 -> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+
+    [Test]
+    public void FindsAllEventImplementations()
+    {
+        // Registration and unregistration
+        var actual = _graph.Nodes.Values
+            .SelectMany(n => n.Dependencies)
+            .Where(d => d.Type == DependencyType.Implements)
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
+            .Where(t => t.Item1.ElementType == CodeElementType.Event &&
+                        t.Item2.ElementType == CodeElementType.Event)
+            .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
+            .ToList();
+
+
+        var expected = new HashSet<string>
+        {
+            "CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+
+    [Test]
+    public void FindsAllEventHandlers()
+    {
+        var actual = _graph.Nodes.Values
+            .SelectMany(n => n.Dependencies)
+            .Where(d => d.Type == DependencyType.Handles)
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))      
+            .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
+            .ToList();
+
+
+        var expected = new HashSet<string>
+        {
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1", 
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.EventSink.Handler -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+
+    [Test]
     public void FindsAllInterfaceImplementations()
     {
         var actual = _graph.Nodes.Values
@@ -285,7 +393,8 @@ public class CodeParserApprovalTests
         var expected = new HashSet<string>
         {
             "ModuleLevel1.ModuleLevel1.ServiceBase -> ModuleLevel1.ModuleLevel1.IServiceC",
-            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage"
+            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage",
+            "CSharpLanguage.CSharpLanguage.EventInvocation -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent"
         };
 
 

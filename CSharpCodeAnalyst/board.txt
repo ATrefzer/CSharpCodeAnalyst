@@ -1,6 +1,7 @@
 ﻿IMPROVEMENTS
 ---------------------
-- Show at least containing types (global context menu)
+
+- Anonymous methods like PdsOnElementCreated, lambdas
 
 - SymbolEqualityComparer does not work for this application well. Remove it where it is used.
 - Check if the map key -> Symbol is unique. If not use a list of symbols!

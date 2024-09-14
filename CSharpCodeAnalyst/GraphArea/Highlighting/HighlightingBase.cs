@@ -11,6 +11,9 @@ internal abstract class HighlightingBase : IHighlighting
 
     private readonly Color _normalColor = Color.Black;
     private readonly int _normalWeight = 1;
+
+    private readonly Color _grayColor = Color.LightGray;
+
     public abstract void Highlight(GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph);
 
     public abstract void Clear(GraphViewer? graphViewer);
@@ -28,7 +31,15 @@ internal abstract class HighlightingBase : IHighlighting
             return;
         }
 
-        edge.Edge.Attr.Color = _normalColor;
+        if (edge.Edge.UserData is Dependency { Type: DependencyType.Containment })
+        {
+            edge.Edge.Attr.Color = _grayColor;
+        }
+        else
+        {
+            edge.Edge.Attr.Color = _normalColor;
+        }
+    
         edge.Edge.Attr.LineWidth = _normalWeight;
     }
 

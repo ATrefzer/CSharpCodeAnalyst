@@ -749,7 +749,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var graph = vm.CycleGroup.CodeGraph;
 
-        GraphViewModel?.ImportCycleGroup(graph);
+        GraphViewModel?.ImportCycleGroup(graph.Clone());
 
         SelectedTabIndex = 0;
     }

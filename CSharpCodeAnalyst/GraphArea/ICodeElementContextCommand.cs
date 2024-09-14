@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-public interface IContextCommand
+public interface ICodeElementContextCommand
 {
     string Label { get; }
 

@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-public class SeparatorCommand : IContextCommand
+public class SeparatorCommand : ICodeElementContextCommand
 {
     public string Label => throw new NotImplementedException();
 

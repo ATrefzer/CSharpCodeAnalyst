@@ -186,6 +186,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             GetDependencies(d => d.Type is DependencyType.Implements or DependencyType.Overrides);
         var allCalls = GetDependencies(d => d.Type == DependencyType.Calls);
 
+        var allHandles = GetDependencies(d => d.Type == DependencyType.Handles);
+        var allInvokes = GetDependencies(d => d.Type == DependencyType.Invokes);
+
         var method = _codeGraph.Nodes[id];
 
         var processingQueue = new Queue<CodeElement>();
@@ -204,6 +207,24 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue;
             }
 
+            // An event is raised by the specialization
+            var specializations = allImplementsAndOverrides.Where(d => d.TargetId == element.Id).ToArray();
+            foundDependencies.UnionWith(specializations);
+            var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+            foundElements.UnionWith(specializedSources);
+
+            // Add all methods that invoke the event
+            var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
+            foundDependencies.UnionWith(invokes);
+            var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+            foundElements.UnionWith(invokeSources);
+
+            // Add Events that are handled by this method.
+            var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
+            foundDependencies.UnionWith(handles);
+            var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
+            foundElements.UnionWith(events);
+
             // Calls
             var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
             foundDependencies.UnionWith(calls);
@@ -217,10 +238,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             foundElements.UnionWith(abstractionTargets);
 
             // Follow new leads
-            var methodsToExplore = abstractionTargets.Union(callSources);
-            foreach (var methodToExplore in methodsToExplore)
+            var elementsToExplore = abstractionTargets
+                .Union(callSources)
+                .Union(events)
+                .Union(invokeSources)
+                .Union(specializedSources);
+            foreach (var elementToExplore in elementsToExplore)
             {
-                processingQueue.Enqueue(_codeGraph.Nodes[methodToExplore.Id]);
+                processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id]);
             }
         }
 

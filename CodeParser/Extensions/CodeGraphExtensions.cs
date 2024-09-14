@@ -7,6 +7,11 @@ namespace CodeParser.Extensions;
 /// </summary>
 public static class CodeGraphExtensions
 {
+    public static CodeGraph Clone(this CodeGraph originalCodeGraph)
+    {
+        return originalCodeGraph.Clone(null, null);
+    }
+
     /// <summary>
     ///     Clones the given code graph.
     ///     Dependencies and code element can be filtered to generate sub graphs.

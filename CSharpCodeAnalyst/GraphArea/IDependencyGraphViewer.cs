@@ -10,7 +10,9 @@ internal interface IDependencyGraphViewer
     void ShowFlatGraph(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
     void DeleteFromGraph(HashSet<string> idsToRemove);
-    void AddContextMenuCommand(IContextCommand command);
+    void DeleteFromGraph(List<Dependency> dependencies);
+
+    void AddContextMenuCommand(ICodeElementContextCommand command);
     void AddGlobalContextMenuCommand(IGlobalContextCommand command);
 
     /// <summary>
@@ -56,4 +58,6 @@ internal interface IDependencyGraphViewer
     ///     Cycle groups, focus on marked elements
     /// </summary>
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
+
+    void AddContextMenuCommand(IDependencyContextCommand command);
 }
