@@ -55,6 +55,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
 
+        // Edge commands
+        _viewer.AddContextMenuCommand(new DependencyContextCommand(Strings.Delete, DeleteEdges));
+
         // Global commands
         _viewer.AddGlobalContextMenuCommand(
             new GlobalContextCommand(Strings.CompleteDependencies, CompleteDependencies));
@@ -68,52 +71,57 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
         // Static commands
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Expand, Expand, CanExpand));
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Collapse, Collapse, CanCollapse));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse));
 
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.Delete, DeleteWithoutChildren));
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindInTree, FindInTreeRequest));
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AddParent, AddParent));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
         _viewer.AddContextMenuCommand(new SeparatorCommand());
 
         // Methods and properties
-        var elementTypes
-            = new HashSet<CodeElementType>
-                { CodeElementType.Method, CodeElementType.Property };
+        HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindOutgoingCalls, elementType,
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
                 FindOutgoingCalls));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindIncomingCalls, elementType,
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
                 FindIncomingCalls));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FollowIncomingCalls, elementType,
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
                 FollowIncomingCallsRecursive));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindSpecializations, elementType,
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
         }
 
         // Classes, structs and interfaces
-        elementTypes = new HashSet<CodeElementType>
-            { CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct };
+        elementTypes = [CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindInheritanceTree, elementType,
-                FindSpecializationAndAbstractions));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindSpecializations, elementType,
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
+                FindInheritanceTree));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new ContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
         }
+
+        // Events
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
+            FindSpecializations));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
+            FindAbstractions));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
+            FollowIncomingCallsRecursive));
+
 
         // Everyone gets the in/out dependencies
         _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AllIncomingDependencies, FindAllIncomingDependencies));
-        _viewer.AddContextMenuCommand(new ContextCommand(Strings.AllOutgoingDependencies, FindAllOutgoingDependencies));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingDependencies, FindAllIncomingDependencies));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingDependencies, FindAllOutgoingDependencies));
 
         UndoCommand = new DelegateCommand(Undo);
     }
-
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
@@ -212,6 +220,12 @@ internal class GraphViewModel : INotifyPropertyChanged
         presentationState.RemoveStates(idsToRemove);
 
         _viewer.LoadSession(newGraph, presentationState);
+    }
+
+    private void DeleteEdges(List<Dependency> dependencies)
+    {
+        PushUndo();
+        _viewer.DeleteFromGraph(dependencies);
     }
 
     private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
@@ -375,6 +389,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     {
         _explorer.LoadCodeGraph(codeGraph);
         Clear();
+        _undoStack.Clear();
 
         // Only update after we change the code graph.
         _viewer.SetQuickInfoFactory(new QuickInfoFactory(codeGraph));
@@ -388,7 +403,8 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void Clear()
     {
-        _undoStack.Clear();
+        PushUndo();
+        //_undoStack.Clear();
         _viewer.Clear();
     }
 
@@ -399,7 +415,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void FindIncomingCalls(CodeElement method)
     {
-        if (!IsMethodOrProperty(method))
+        if (!IsCallable(method))
         {
             return;
         }
@@ -411,7 +427,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void FindIncomingCallsRecursive(CodeElement method)
     {
-        if (!IsMethodOrProperty(method))
+        if (!IsCallable(method))
         {
             return;
         }
@@ -422,19 +438,19 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
 
-    internal void FollowIncomingCallsRecursive(CodeElement method)
+    internal void FollowIncomingCallsRecursive(CodeElement element)
     {
-        if (!IsMethodOrProperty(method))
+        if (!IsCallable(element))
         {
             return;
         }
 
         var result =
-            _explorer.FollowIncomingCallsRecursive(method.Id);
+            _explorer.FollowIncomingCallsRecursive(element.Id);
         AddToGraph(result.Elements, result.Dependencies);
     }
 
-    internal void FindSpecializationAndAbstractions(CodeElement? type)
+    internal void FindInheritanceTree(CodeElement? type)
     {
         if (type is null)
         {
@@ -448,7 +464,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void FindOutgoingCalls(CodeElement? method)
     {
-        if (method is null || !IsMethodOrProperty(method))
+        if (method is null || !IsCallable(method))
         {
             return;
         }
@@ -457,9 +473,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(callers.Methods, callers.Calls);
     }
 
-    private static bool IsMethodOrProperty(CodeElement? method)
+    private static bool IsCallable(CodeElement? method)
     {
-        return method is { ElementType: CodeElementType.Method or CodeElementType.Property };
+        return method is { ElementType: CodeElementType.Method or CodeElementType.Property or CodeElementType.Event };
     }
 
     protected virtual void OnPropertyChanged(string propertyName)
@@ -520,7 +536,6 @@ internal class GraphViewModel : INotifyPropertyChanged
             presentationState.SetCollapsedState(roots[0].Id, false);
         }
 
-        PushUndo();
         _viewer.LoadSession(graph, presentationState);
     }
 

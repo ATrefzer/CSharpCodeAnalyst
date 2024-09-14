@@ -155,6 +155,14 @@ public partial class Parser
         // Analyze event type (usually a delegate type)
         AddTypeDependency(eventElement, eventSymbol.Type, DependencyType.Uses);
 
+        // Check if this event implements an interface event
+        var implementedInterfaceEvent = GetImplementedInterfaceEvent(eventSymbol);
+        if (implementedInterfaceEvent != null)
+        {
+            var locations = GetLocations(eventSymbol);
+            AddEventDependency(eventElement, implementedInterfaceEvent, DependencyType.Implements, locations);
+        }
+
         // If the event has add/remove accessors, analyze them
         if (eventSymbol.AddMethod != null)
         {
@@ -166,6 +174,32 @@ public partial class Parser
             AnalyzeMethodDependencies(solution, eventElement, eventSymbol.RemoveMethod);
         }
     }
+
+    private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
+    {
+        var containingType = eventSymbol.ContainingType;
+        foreach (var @interface in containingType.AllInterfaces)
+        {
+            var interfaceMembers = @interface.GetMembers().OfType<IEventSymbol>();
+            foreach (var interfaceEvent in interfaceMembers)
+            {
+                var implementingEvent = containingType.FindImplementationForInterfaceMember(interfaceEvent);
+                if (implementingEvent != null && SymbolEqualityComparer.Default.Equals(implementingEvent, eventSymbol))
+                {
+                    return interfaceEvent;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private void AddEventDependency(CodeElement sourceElement, IEventSymbol eventSymbol,
+        DependencyType dependencyType, List<SourceLocation> locations)
+    {
+        AddDependencyWithFallbackToContainingType(sourceElement, eventSymbol, dependencyType, locations);
+    }
+
 
     /// <summary>
     ///     Use solution, not the compilation. The syntax tree may not be found.
@@ -321,34 +355,11 @@ public partial class Parser
                     break;
 
                 case InvocationExpressionSyntax invocationSyntax:
-                    var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
-                    if (symbolInfo.Symbol is IMethodSymbol calledMethod)
-                    {
-                        var location = GetLocation(invocationSyntax);
-                        AddCallsDependency(sourceElement, calledMethod, location);
-
-                        // Handle generic method invocations
-                        if (calledMethod.IsGenericMethod)
-                        {
-                            foreach (var typeArg in calledMethod.TypeArguments)
-                            {
-                                AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
-                            }
-                        }
-                    }
-
-                    // Handle event invocations
-                    var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
-                    if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol eventSymbol2 })
-                    {
-                        // Capture cases where an event is directly invoked 
-                        AddEventUsageDependency(sourceElement, eventSymbol2);
-                    }
-
+                    AnalyzeInvocation(sourceElement, invocationSyntax, semanticModel);
                     break;
 
                 case AssignmentExpressionSyntax assignmentExpression:
-                    // Handle property assignments
+                    // Property assignments, event registration
                     AnalyzeAssignment(sourceElement, assignmentExpression, semanticModel);
                     break;
 
@@ -363,6 +374,75 @@ public partial class Parser
         }
     }
 
+    private void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
+        SemanticModel semanticModel)
+    {
+        var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
+        {
+            var location = GetLocation(invocationSyntax);
+            AddCallsDependency(sourceElement, calledMethod, location);
+
+            // Handle generic method invocations
+            if (calledMethod.IsGenericMethod)
+            {
+                foreach (var typeArg in calledMethod.TypeArguments)
+                {
+                    AddTypeDependency(sourceElement, typeArg, DependencyType.Uses, location);
+                }
+            }
+
+            // Check if this is an event invocation using Invoke method
+            // Check if this is an event invocation using Invoke method
+            if (calledMethod.Name == "Invoke")
+            {
+                IEventSymbol? eventSymbol = null;
+
+                if (invocationSyntax.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    eventSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IEventSymbol;
+                }
+                else if (invocationSyntax.Expression is MemberBindingExpressionSyntax memberBinding)
+                {
+                    // Traverse up to find the ConditionalAccessExpressionSyntax
+                    var currentNode = memberBinding.Parent;
+                    while (currentNode != null && !(currentNode is ConditionalAccessExpressionSyntax))
+                    {
+                        currentNode = currentNode.Parent;
+                    }
+
+                    if (currentNode is ConditionalAccessExpressionSyntax conditionalAccess)
+                    {
+                        eventSymbol = semanticModel.GetSymbolInfo(conditionalAccess.Expression).Symbol as IEventSymbol;
+                    }
+                }
+
+                if (eventSymbol != null)
+                {
+                    AddEventInvocationDependency(sourceElement, eventSymbol, location);
+                }
+            }
+        }
+
+        // Handle direct event invocations (if any)
+        var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
+        //if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol symbol })
+        if (invokedSymbol is IEventSymbol symbol)
+        {
+            AddEventInvocationDependency(sourceElement, symbol, GetLocation(invocationSyntax));
+        }
+    }
+
+    private void AddEventInvocationDependency(CodeElement sourceElement, IEventSymbol eventSymbol,
+        SourceLocation location)
+    {
+        AddDependencyWithFallbackToContainingType(sourceElement, eventSymbol, DependencyType.Invokes, [location]);
+    }
+
+    private void AddEventUsageDependency(CodeElement sourceElement, IEventSymbol eventSymbol, SourceLocation location)
+    {
+        AddDependencyWithFallbackToContainingType(sourceElement, eventSymbol, DependencyType.Uses, [location]);
+    }
 
     private void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel)
@@ -378,10 +458,37 @@ public partial class Parser
             assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression))
         {
             var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
+            var rightSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Right).Symbol;
+
             if (leftSymbol is IEventSymbol eventSymbol)
             {
-                AddEventUsageDependency(sourceElement, eventSymbol);
+                AddEventUsageDependency(sourceElement, eventSymbol, GetLocation(assignmentExpression));
+
+                // If the right side is a method, add a Handles dependency
+                if (rightSymbol is IMethodSymbol methodSymbol)
+                {
+                    AddEventHandlerDependency(methodSymbol, eventSymbol, GetLocation(assignmentExpression));
+                }
             }
+        }
+    }
+
+    private void AddEventHandlerDependency(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
+        SourceLocation location)
+    {
+        var handlerElement = FindCodeElement(handlerMethod);
+        var eventElement = FindCodeElement(eventSymbol);
+
+        if (handlerElement != null && eventElement != null)
+        {
+            AddDependency(handlerElement, DependencyType.Handles, eventElement, [location]);
+        }
+        else
+        {
+            // If either the event or the handler method is not in our codebase,
+            // we might want to log this or handle it in some way
+            Debug.WriteLine(
+                $"Unable to add Handles dependency: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
         }
     }
 
@@ -555,6 +662,11 @@ public partial class Parser
         else if (symbol is IFieldSymbol fieldSymbol)
         {
             AddDependencyWithFallbackToContainingType(sourceElement, fieldSymbol, DependencyType.Uses);
+        }
+        else if (symbol is IEventSymbol eventSymbol)
+        {
+            // This handles cases where the event is accessed but not necessarily invoked
+            AddEventUsageDependency(sourceElement, eventSymbol, GetLocation(memberAccessSyntax));
         }
 
         // Recursively analyze the expression in case of nested property access

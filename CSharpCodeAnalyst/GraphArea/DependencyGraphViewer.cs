@@ -23,9 +23,10 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
 {
-    private readonly List<IContextCommand> _contextMenuCommands = [];
-    private readonly List<IGlobalContextCommand> _globalContextMenuCommands = [];
+    private readonly List<IDependencyContextCommand> _edgeCommands = [];
+    private readonly List<IGlobalContextCommand> _globalCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
+    private readonly List<ICodeElementContextCommand> _nodeCommands = [];
     private readonly IPublisher _publisher;
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
@@ -86,14 +87,19 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
-    public void AddContextMenuCommand(IContextCommand command)
+    public void AddContextMenuCommand(ICodeElementContextCommand command)
     {
-        _contextMenuCommands.Add(command);
+        _nodeCommands.Add(command);
+    }
+
+    public void AddContextMenuCommand(IDependencyContextCommand command)
+    {
+        _edgeCommands.Add(command);
     }
 
     public void AddGlobalContextMenuCommand(IGlobalContextCommand command)
     {
-        _globalContextMenuCommands.Add(command);
+        _globalCommands.Add(command);
     }
 
     public void Layout()
@@ -126,7 +132,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     public void SetHighlightMode(HighlightMode valueMode)
     {
-        _activeHighlighting?.Clear(_msaglViewer);
+        _activeHighlighting.Clear(_msaglViewer);
         switch (valueMode)
         {
             case HighlightMode.EdgeHovered:
@@ -166,7 +172,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
             .Select(id => _clonedCodeGraph.Nodes[id])
             .ToList();
 
-        foreach (var command in _globalContextMenuCommands)
+        foreach (var command in _globalCommands)
         {
             if (command.CanHandle(markedElements) is false)
             {
@@ -198,6 +204,21 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
         // Nothing collapsed by default
         _presentationState = new PresentationState();
+        RefreshGraph();
+    }
+
+    public void DeleteFromGraph(List<Dependency> dependencies)
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+
+        foreach (var dependency in dependencies)
+        {
+            _clonedCodeGraph.Nodes[dependency.SourceId].Dependencies.Remove(dependency);
+        }
+
         RefreshGraph();
     }
 
@@ -390,18 +411,35 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
         if (e.RightButtonIsPressed)
         {
-            if (_msaglViewer?.ObjectUnderMouseCursor is not IViewerNode clickedObject)
+            if (_msaglViewer?.ObjectUnderMouseCursor is IViewerNode clickedObject)
             {
-                return;
+                // Click on specific node
+                var node = clickedObject.Node;
+                var contextMenu = new ContextMenu();
+                var element = GetCodeElementFromUserData(node);
+                AddToContextMenuEntries(element, contextMenu);
+                if (contextMenu.Items.Count > 0)
+                {
+                    contextMenu.IsOpen = true;
+                }
             }
-
-            // Click on specific node
-            var node = clickedObject.Node;
-            var contextMenu = new ContextMenu();
-
-            AddToContextMenuEntries(node, contextMenu);
-
-            contextMenu.IsOpen = true;
+            else if (_msaglViewer?.ObjectUnderMouseCursor is IViewerEdge viewerEdge)
+            {
+                // Click on specific edge
+                var edge = viewerEdge.Edge;
+                var contextMenu = new ContextMenu();
+                var dependencies = GetDependenciesFromUserData(edge);
+                AddContextMenuEntries(dependencies, contextMenu);
+                if (contextMenu.Items.Count > 0)
+                {
+                    contextMenu.IsOpen = true;
+                }
+            }
+            else
+            {
+                // Click on free space
+                ShowGlobalContextMenu();
+            }
         }
         else
         {
@@ -409,40 +447,80 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
     }
 
+    private void AddContextMenuEntries(List<Dependency> dependencies, ContextMenu contextMenu)
+    {
+        if (dependencies.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var cmd in _edgeCommands)
+        {
+            var menuItem = new MenuItem { Header = cmd.Label };
+            if (cmd.CanHandle(dependencies))
+            {
+                menuItem.Click += (_, _) => cmd.Invoke(dependencies);
+                contextMenu.Items.Add(menuItem);
+            }
+        }
+    }
+
+    private static List<Dependency> GetDependenciesFromUserData(Edge edge)
+    {
+        var result = new List<Dependency>();
+        switch (edge.UserData)
+        {
+            case Dependency dependency:
+                result.Add(dependency);
+                break;
+            case List<Dependency> dependencies:
+                result.AddRange(dependencies);
+                break;
+        }
+
+        return result;
+    }
+
+    private CodeElement? GetCodeElementFromUserData(Node node)
+    {
+        return node.UserData as CodeElement;
+    }
 
     /// <summary>
     ///     Commands registered for nodes
     /// </summary>
-    private void AddToContextMenuEntries(Node node, ContextMenu contextMenu)
+    private void AddToContextMenuEntries(CodeElement? element, ContextMenu contextMenu)
     {
+        if (element is null)
+        {
+            return;
+        }
+
         var lastItemIsSeparator = true;
 
-        if (node.UserData is CodeElement element)
+        foreach (var cmd in _nodeCommands)
         {
-            foreach (var cmd in _contextMenuCommands)
+            // Add separator command only if the last element was a real menu item.
+            if (cmd is SeparatorCommand)
             {
-                // Add separator command only if the last element was a real menu item.
-                if (cmd is SeparatorCommand)
+                if (lastItemIsSeparator is false)
                 {
-                    if (lastItemIsSeparator is false)
-                    {
-                        contextMenu.Items.Add(new Separator());
-                        lastItemIsSeparator = true;
-                    }
-
-                    continue;
+                    contextMenu.Items.Add(new Separator());
+                    lastItemIsSeparator = true;
                 }
 
-                if (!cmd.CanHandle(element))
-                {
-                    continue;
-                }
-
-                var menuItem = new MenuItem { Header = cmd.Label };
-                menuItem.Click += (_, _) => cmd.Invoke(element);
-                contextMenu.Items.Add(menuItem);
-                lastItemIsSeparator = false;
+                continue;
             }
+
+            if (!cmd.CanHandle(element))
+            {
+                continue;
+            }
+
+            var menuItem = new MenuItem { Header = cmd.Label };
+            menuItem.Click += (_, _) => cmd.Invoke(element);
+            contextMenu.Items.Add(menuItem);
+            lastItemIsSeparator = false;
         }
     }
 }

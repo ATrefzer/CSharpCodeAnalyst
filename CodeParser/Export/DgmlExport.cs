@@ -63,7 +63,7 @@ public class DgmlExport
     private static string GetEdgeLabel(Dependency dependency)
     {
         // Omit the label text for now. The color makes it clear that it is a call dependency
-        if (dependency.Type == DependencyType.Calls)
+        if (dependency.Type == DependencyType.Calls || dependency.Type ==  DependencyType.Invokes)
         {
             return string.Empty;
         }

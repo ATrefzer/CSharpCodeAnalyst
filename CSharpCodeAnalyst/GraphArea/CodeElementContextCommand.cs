@@ -2,13 +2,13 @@
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-public class ContextCommand : IContextCommand
+public class CodeElementContextCommand : ICodeElementContextCommand
 {
     private readonly Action<CodeElement> _action;
     private readonly Func<CodeElement, bool>? _canExecute;
     private readonly CodeElementType? _type;
 
-    public ContextCommand(string label, CodeElementType type, Action<CodeElement> action)
+    public CodeElementContextCommand(string label, CodeElementType type, Action<CodeElement> action)
     {
         _type = type;
         _action = action;
@@ -18,7 +18,7 @@ public class ContextCommand : IContextCommand
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
-    public ContextCommand(string label, Action<CodeElement> action, Func<CodeElement, bool>? canExecute = null)
+    public CodeElementContextCommand(string label, Action<CodeElement> action, Func<CodeElement, bool>? canExecute = null)
     {
         _type = null;
         _action = action;

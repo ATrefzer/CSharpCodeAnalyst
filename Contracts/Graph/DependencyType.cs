@@ -17,5 +17,11 @@ public enum DependencyType
     // Parent / Children 
     Containment,
 
-    UsesAttribute
+    UsesAttribute,
+
+    // Dependency type for event invocation
+    Invokes,
+
+    // Dependency type for event handler registration
+    Handles
 }
