@@ -18,8 +18,11 @@ public partial class Parser
         var loop = 0;
         foreach (var element in _codeGraph.Nodes.Values)
         {
-            // TODO atr Analyze if we can have more than one symbol!
-            var symbol = _elementIdToSymbolMap[element.Id];
+            if (!_elementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+            {
+                // INamespaceSymbol
+                continue;
+            }
 
             if (symbol is IEventSymbol eventSymbol)
             {

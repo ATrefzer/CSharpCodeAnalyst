@@ -167,6 +167,14 @@ public partial class Parser(ParserConfig config)
         if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var existingElement))
         {
             UpdateCodeElementLocations(existingElement, location);
+
+            if (symbol is not INamespaceSymbol)
+            {
+                // This works. A partial class has two symbols but the same key.
+                // Regardless we can store only one symbol to find all methods.
+                // Debug.Assert(_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default));
+            }
+
             return existingElement;
         }
 
@@ -183,7 +191,10 @@ public partial class Parser(ParserConfig config)
         _symbolKeyToElementMap[symbolKey] = element;
 
         // We need the symbol in phase2 when analyzing the dependencies.
-        _elementIdToSymbolMap[element.Id] = symbol;
+        if (symbol is not INamespaceSymbol)
+        {
+            _elementIdToSymbolMap[element.Id] = symbol;
+        }
 
         SendParserPhase1Progress(_codeGraph.Nodes.Count);
 
