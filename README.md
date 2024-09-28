@@ -1,9 +1,5 @@
 # C# Code Analyst
 
-
-
-![](Images/traffic-barrier.png) **Under development**
-
 This application helps you to explore, understand, and maintain C# code.
 
 ## Exploring your codebase
@@ -63,7 +59,7 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 A **DSM** (Dependency Structure Matrix) displays all the dependencies in your codebase in a condensed matrix. It may take some time to become familiar with it. For further explanation, you can visit https://dsmsuite.github.io/.
 
-The **DSM Suite Viewer** is integrated into C# Code Analyst
+C# Code Analyst uses the **DSM Suite Viewer** to visualize your code as a DSM.
 
 <img src="Images/dsm-suite.png"  />
 
