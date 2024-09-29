@@ -486,13 +486,8 @@ public partial class Parser
         {
             AddDependency(handlerElement, DependencyType.Handles, eventElement, [location]);
         }
-        else
-        {
-            // If either the event or the handler method is not in our codebase,
-            // we might want to log this or handle it in some way
-            Debug.WriteLine(
-                $"Unable to add Handles dependency: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
-        }
+        //Trace.WriteLine(
+        //    $"Unable to add Handles dependency: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
     }
 
     private void AnalyzeExpressionForPropertyAccess(CodeElement sourceElement, ExpressionSyntax expression,

@@ -14,7 +14,7 @@ UNHANDLED CASES
 ---------------------
 
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
-
+- Two projects with same name
 
 BUGS
 ---------------------

@@ -27,7 +27,6 @@ internal class OutgointEdgesOfChildrenAndSelfHighlighting : HighlightingBase
         var ids = new HashSet<string>();
         if (node != null)
         {
-            // TODO atr How to iterate the graph?
             var id = node.Node.Id;
             var vertex = codeGraph.Nodes[id];
             ids = vertex.GetChildrenIncludingSelf();

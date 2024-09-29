@@ -98,12 +98,16 @@ public class CodeParserApprovalTests
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter",
 
             // Show event registration
-            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething", 
-            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1", 
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1",
             "CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
             "CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
-            "CSharpLanguage.CSharpLanguage.EventSink..ctor", 
-            "CSharpLanguage.CSharpLanguage.EventSink.Handler"
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor",
+            "CSharpLanguage.CSharpLanguage.EventSink.Handler",
+
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance",
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
         };
 
 
@@ -151,10 +155,13 @@ public class CodeParserApprovalTests
             // Access to properties, setter and getter included.
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
-            
+
             "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise1",
             "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
-            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3"
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
+
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -297,7 +304,7 @@ public class CodeParserApprovalTests
         var expected = new HashSet<string>
         {
             "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
             "CSharpLanguage.CSharpLanguage.EventSink..ctor -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
         };
 
@@ -360,15 +367,15 @@ public class CodeParserApprovalTests
         var actual = _graph.Nodes.Values
             .SelectMany(n => n.Dependencies)
             .Where(d => d.Type == DependencyType.Handles)
-            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))      
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToList();
 
 
         var expected = new HashSet<string>
         {
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1", 
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
             "CSharpLanguage.CSharpLanguage.EventSink.Handler -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
         };
 

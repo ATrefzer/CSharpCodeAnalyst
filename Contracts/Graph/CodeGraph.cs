@@ -142,4 +142,15 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     {
         return Nodes.Values.Where(n => n.Parent == null).ToList();
     }
+
+    public string ToDebug()
+    {
+        var dependencies = GetAllDependencies().Select(d => (Nodes[d.SourceId].FullName, Nodes[d.TargetId].FullName));
+
+        var elementNames = Nodes.Values.OrderBy(v => v.FullName).Select(e => e.FullName);
+        var dependencyNames = dependencies.Select(d => $"{d.Item1} -> {d.Item2}");
+        return string.Join("\n", elementNames) +
+               string.Join("\n", dependencyNames);
+
+    }
 }
