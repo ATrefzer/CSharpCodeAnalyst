@@ -22,7 +22,7 @@ public interface ICodeGraphExplorer
     /// <summary>
     ///     Finds all dependencies connect the given nodes.
     /// </summary>
-    IEnumerable<Relationship> FindAllDependencies(HashSet<string> ids);
+    IEnumerable<Relationship> FindAllRelationships(HashSet<string> ids);
 
     /// <summary>
     ///     Methods that implement or overload the given method

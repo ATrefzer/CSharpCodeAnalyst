@@ -539,11 +539,11 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         // Default output: summary of graph
-        var numberOfDependencies = codeGraph.GetAllRelationships().Count();
+        var numberOfRelationships = codeGraph.GetAllRelationships().Count();
         var outputs = new ObservableCollection<IMetric>();
         outputs.Clear();
         outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
-        outputs.Add(new MetricOutput("# Relationships", numberOfDependencies.ToString(CultureInfo.InvariantCulture)));
+        outputs.Add(new MetricOutput("# Relationships", numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
         Metrics = outputs;
     }
 

@@ -141,14 +141,14 @@ internal class MsaglBuilder
 
     private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph)
     {
-        var dependencies = GetCollapsedDependencies(codeGraph, visibleGraph);
-        foreach (var dependency in dependencies)
+        var relationships = GetCollapsedRelationships(codeGraph, visibleGraph);
+        foreach (var dependency in relationships)
         {
             CreateEdgeForHierarchicalStructure(graph, dependency);
         }
     }
 
-    private Dictionary<(string, string), List<Relationship>> GetCollapsedDependencies(CodeGraph codeGraph,
+    private Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph codeGraph,
         CodeGraph visibleGraph)
     {
         var allRelationships = codeGraph.GetAllRelationships();
@@ -210,12 +210,12 @@ internal class MsaglBuilder
         // MSAGL does not allow two same edges with different labels to the same subgraph.
         // So I collapse them to a single one that carries all the user data.
 
-        var dependencies = mappedRelationships.Value;
-        if (mappedRelationships.Value.Count == 1 && mappedRelationships.Key.source == dependencies[0].SourceId &&
-            mappedRelationships.Key.target == dependencies[0].TargetId)
+        var relationships = mappedRelationships.Value;
+        if (mappedRelationships.Value.Count == 1 && mappedRelationships.Key.source == relationships[0].SourceId &&
+            mappedRelationships.Key.target == relationships[0].TargetId)
         {
             // Single, unmapped dependency
-            var relationship = dependencies[0];
+            var relationship = relationships[0];
             var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
 
             edge.LabelText = GetLabelText(relationship);
@@ -231,8 +231,8 @@ internal class MsaglBuilder
             // More than one or mapped to collapsed container.
             var edge = graph.AddEdge(mappedRelationships.Key.source, mappedRelationships.Key.target);
 
-            edge.UserData = dependencies;
-            edge.LabelText = dependencies.Count.ToString();
+            edge.UserData = relationships;
+            edge.LabelText = relationships.Count.ToString();
 
             // No unique styling possible when we collapse multiple edges
             // Mark the multi edges with a bold line

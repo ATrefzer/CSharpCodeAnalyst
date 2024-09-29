@@ -34,9 +34,9 @@ public class GraphSession
     {
         // No references in this state should be shared with the original state
         var codeElementIds = codeGraph.Nodes.Keys.ToList();
-        var dependencies = codeGraph.GetAllRelationships().ToList();
+        var relationships = codeGraph.GetAllRelationships().ToList();
         var clonedPresentationState = presentationState.Clone();
-        var sessionState = new GraphSession(name, codeElementIds, dependencies, clonedPresentationState);
+        var sessionState = new GraphSession(name, codeElementIds, relationships, clonedPresentationState);
         return sessionState;
     }
 }

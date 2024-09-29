@@ -262,7 +262,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Not interested in the marked elements!
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var dependencies = _explorer.FindAllDependencies(ids);
+        var dependencies = _explorer.FindAllRelationships(ids);
 
         AddToGraph([], dependencies);
     }
