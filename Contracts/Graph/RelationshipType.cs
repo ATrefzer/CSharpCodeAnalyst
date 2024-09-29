@@ -1,6 +1,6 @@
 ﻿namespace Contracts.Graph;
 
-public enum DependencyType
+public enum RelationshipType
 {
     Calls,
     Creates,
@@ -19,9 +19,10 @@ public enum DependencyType
 
     UsesAttribute,
 
-    // Dependency type for event invocation
+    // Relationship type for event invocation
     Invokes,
 
-    // Dependency type for event handler registration
+    // Relationship type for event handler registration
+    // This is not a code dependency. It is actually the other direction.
     Handles
 }

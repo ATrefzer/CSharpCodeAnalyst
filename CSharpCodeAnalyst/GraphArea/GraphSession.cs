@@ -16,7 +16,7 @@ public class GraphSession
         PresentationState = new PresentationState();
     }
 
-    private GraphSession(string name, List<string> codeElementIds, List<Dependency> dependencies,
+    private GraphSession(string name, List<string> codeElementIds, List<Relationship> dependencies,
         PresentationState presentationState)
     {
         Name = name;
@@ -26,7 +26,7 @@ public class GraphSession
     }
 
     public List<string> CodeElementIds { get; set; }
-    public List<Dependency> Dependencies { get; set; }
+    public List<Relationship> Dependencies { get; set; }
     public string Name { get; set; }
     public PresentationState PresentationState { get; set; }
 
@@ -34,7 +34,7 @@ public class GraphSession
     {
         // No references in this state should be shared with the original state
         var codeElementIds = codeGraph.Nodes.Keys.ToList();
-        var dependencies = codeGraph.GetAllDependencies().ToList();
+        var dependencies = codeGraph.GetAllRelationships().ToList();
         var clonedPresentationState = presentationState.Clone();
         var sessionState = new GraphSession(name, codeElementIds, dependencies, clonedPresentationState);
         return sessionState;

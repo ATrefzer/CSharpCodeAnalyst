@@ -39,7 +39,7 @@ public class DsiExport
         // Add dependencies (relation)
         foreach (var node in codeGraph.Nodes.Values)
         {
-            foreach (var dependency in node.Dependencies)
+            foreach (var dependency in node.Relationships)
             {
                 relations.Add(new XElement(ns + "relation",
                     new XAttribute("from", idMap[node.Id]),

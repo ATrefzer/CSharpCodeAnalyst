@@ -120,11 +120,11 @@
   <data name="AddParent" xml:space="preserve">
     <value>Add Parent</value>
   </data>
-  <data name="AllIncomingDependencies" xml:space="preserve">
-    <value>All incoming dependencies</value>
+  <data name="AllIncomingRelationships" xml:space="preserve">
+    <value>All incoming relationships</value>
   </data>
-  <data name="AllOutgoingDependencies" xml:space="preserve">
-    <value>All outgoingdependencies</value>
+  <data name="AllOutgoingRelationships" xml:space="preserve">
+    <value>All outgoing relationships</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>C# Code Analyst</value>
@@ -132,8 +132,8 @@
   <data name="Collapse" xml:space="preserve">
     <value>Collapse</value>
   </data>
-  <data name="CompleteDependencies" xml:space="preserve">
-    <value>Complete dependencies</value>
+  <data name="CompleteRelationships" xml:space="preserve">
+    <value>Complete relationships</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>

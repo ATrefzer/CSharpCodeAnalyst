@@ -9,7 +9,7 @@ public class ProjectData
 
     public List<SerializableCodeElement> CodeElements { get; set; } = [];
 
-    public List<SerializableDependency> Dependencies { get; set; } = [];
+    public List<SerializableRelationship> Relationships { get; set; } = [];
 
     public Dictionary<string, string> Settings { get; set; } = new();
 
@@ -45,10 +45,10 @@ public class ProjectData
             .SelectMany(element => element.Children)
             .Select(child => new SerializableChild(child.Id, child.Parent!.Id)).ToList();
 
-        Dependencies = codeGraph.Nodes.Values
-            .SelectMany(element => element.Dependencies)
-            .Select(dependency => new SerializableDependency(dependency.SourceId, dependency.TargetId, dependency.Type,
-                dependency.SourceLocations))
+        Relationships = codeGraph.Nodes.Values
+            .SelectMany(element => element.Relationships)
+            .Select(relationship => new SerializableRelationship(relationship.SourceId, relationship.TargetId, relationship.Type,
+                relationship.SourceLocations))
             .ToList();
     }
 
@@ -74,12 +74,12 @@ public class ProjectData
             parent.Children.Add(child);
         }
 
-        foreach (var sd in Dependencies)
+        foreach (var sd in Relationships)
         {
             var source = codeStructure.Nodes[sd.SourceId];
-            var dependency = new Dependency(sd.SourceId, sd.TargetId, sd.Type);
-            dependency.SourceLocations = sd.SourceLocations;
-            source.Dependencies.Add(dependency);
+            var relationship = new Relationship(sd.SourceId, sd.TargetId, sd.Type);
+            relationship.SourceLocations = sd.SourceLocations;
+            source.Relationships.Add(relationship);
         }
 
 

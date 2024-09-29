@@ -3,17 +3,17 @@
 namespace Contracts.Graph;
 
 [DebuggerDisplay("{Type}")]
-public class Dependency(string sourceId, string targetId, DependencyType type)
+public class Relationship(string sourceId, string targetId, RelationshipType type)
 {
     public string SourceId { get; } = sourceId;
     public string TargetId { get; } = targetId;
-    public DependencyType Type { get; } = type;
+    public RelationshipType Type { get; } = type;
 
     public List<SourceLocation> SourceLocations { get; set; } = [];
 
     public override bool Equals(object? obj)
     {
-        if (obj is not Dependency other)
+        if (obj is not Relationship other)
         {
             return false;
         }
@@ -30,9 +30,9 @@ public class Dependency(string sourceId, string targetId, DependencyType type)
         return HashCode.Combine(SourceId, TargetId, Type);
     }
 
-    public Dependency Clone()
+    public Relationship Clone()
     {
-        var newDependency = new Dependency(SourceId, TargetId, Type);
+        var newDependency = new Relationship(SourceId, TargetId, Type);
         newDependency.SourceLocations.AddRange(SourceLocations);
         return newDependency;
     }

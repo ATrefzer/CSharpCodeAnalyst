@@ -36,7 +36,7 @@ public partial class Parser(ParserConfig config)
         // First Pass: Build Hierarchy
         await BuildHierarchy(solution);
 
-        // Second Pass: Build Dependencies
+        // Second Pass: Build Relationships
         // We don't need to iterate over the projects
         AnalyzeDependencies(solution);
 
@@ -268,16 +268,11 @@ public partial class Parser(ParserConfig config)
     }
 
 
-    private static void AddDependency(CodeElement source, DependencyType type,
+    private static void AddRelationship(CodeElement source, RelationshipType type,
         CodeElement target,
         List<SourceLocation> sourceLocations)
     {
-        if (type == DependencyType.Handles && target.FullName.Contains("ConsistencyState"))
-        {
-            Debugger.Break();
-        }
-
-        var existingDependency = source.Dependencies.FirstOrDefault(d =>
+        var existingDependency = source.Relationships.FirstOrDefault(d =>
             d.TargetId == target.Id && d.Type == type);
 
         if (existingDependency != null)
@@ -289,9 +284,9 @@ public partial class Parser(ParserConfig config)
         }
         else
         {
-            var newDependency = new Dependency(source.Id, target.Id, type);
+            var newDependency = new Relationship(source.Id, target.Id, type);
             newDependency.SourceLocations.AddRange(sourceLocations);
-            source.Dependencies.Add(newDependency);
+            source.Relationships.Add(newDependency);
         }
     }
 }

@@ -15,14 +15,14 @@ public partial class Parser
         IPropertySymbol propertySymbol)
     {
         // Analyze the property type
-        AddTypeDependency(propertyElement, propertySymbol.Type, DependencyType.Uses);
+        AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses);
 
         // Check for interface implementation
         var implementedInterfaceProperty = GetImplementedInterfaceProperty(propertySymbol);
         if (implementedInterfaceProperty != null)
         {
             var locations = GetLocations(propertySymbol);
-            AddPropertyDependency(propertyElement, implementedInterfaceProperty, DependencyType.Implements, locations);
+            AddPropertyDependency(propertyElement, implementedInterfaceProperty, RelationshipType.Implements, locations);
         }
 
         // Check for property override
@@ -32,7 +32,7 @@ public partial class Parser
             if (overriddenProperty != null)
             {
                 var locations = GetLocations(propertySymbol);
-                AddPropertyDependency(propertyElement, overriddenProperty, DependencyType.Overrides, locations);
+                AddPropertyDependency(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
             }
         }
 
@@ -76,9 +76,9 @@ public partial class Parser
     }
 
     private void AddPropertyDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
-        DependencyType dependencyType, List<SourceLocation> locations)
+        RelationshipType relationshipType, List<SourceLocation> locations)
     {
-        AddDependencyWithFallbackToContainingType(sourceElement, propertySymbol, dependencyType, locations);
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
     }
 
     private IPropertySymbol? GetImplementedInterfaceProperty(IPropertySymbol propertySymbol)

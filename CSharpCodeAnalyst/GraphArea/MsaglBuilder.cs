@@ -40,14 +40,14 @@ internal class MsaglBuilder
 
         void AddDependenciesFunc(CodeElement element)
         {
-            foreach (var dependency in element.Dependencies)
+            foreach (var dependency in element.Relationships)
             {
                 CreateEdgeForFlatStructure(graph, dependency);
             }
 
             if (element.Parent != null)
             {
-                CreateContainmentEdge(graph, new Dependency(element.Parent.Id, element.Id, DependencyType.Containment));
+                CreateContainmentEdge(graph, new Relationship(element.Parent.Id, element.Id, RelationshipType.Containment));
             }
         }
     }
@@ -147,28 +147,28 @@ internal class MsaglBuilder
         }
     }
 
-    private Dictionary<(string, string), List<Dependency>> GetCollapsedDependencies(CodeGraph codeGraph,
+    private Dictionary<(string, string), List<Relationship>> GetCollapsedDependencies(CodeGraph codeGraph,
         CodeGraph visibleGraph)
     {
-        var allDependencies = codeGraph.GetAllDependencies();
-        var dependencies = new Dictionary<(string, string), List<Dependency>>();
+        var allRelationships = codeGraph.GetAllRelationships();
+        var relationships = new Dictionary<(string, string), List<Relationship>>();
 
-        foreach (var dependency in allDependencies)
+        foreach (var relationship in allRelationships)
         {
             // Move edges to collapsed nodes.
-            var source = GetHighestVisibleParentOrSelf(dependency.SourceId, codeGraph, visibleGraph);
-            var target = GetHighestVisibleParentOrSelf(dependency.TargetId, codeGraph, visibleGraph);
+            var source = GetHighestVisibleParentOrSelf(relationship.SourceId, codeGraph, visibleGraph);
+            var target = GetHighestVisibleParentOrSelf(relationship.TargetId, codeGraph, visibleGraph);
 
-            if (!dependencies.TryGetValue((source, target), out var list))
+            if (!relationships.TryGetValue((source, target), out var list))
             {
-                list = new List<Dependency>();
-                dependencies[(source, target)] = list;
+                list = new List<Relationship>();
+                relationships[(source, target)] = list;
             }
 
-            list.Add(dependency);
+            list.Add(relationship);
         }
 
-        return dependencies;
+        return relationships;
     }
 
     /// <summary>
@@ -204,31 +204,31 @@ internal class MsaglBuilder
     }
 
     private void CreateEdgeForHierarchicalStructure(Graph graph,
-        KeyValuePair<(string source, string target), List<Dependency>> mappedDependency)
+        KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
         // So I collapse them to a single one that carries all the user data.
 
-        var dependencies = mappedDependency.Value;
-        if (mappedDependency.Value.Count == 1 && mappedDependency.Key.source == dependencies[0].SourceId &&
-            mappedDependency.Key.target == dependencies[0].TargetId)
+        var dependencies = mappedRelationships.Value;
+        if (mappedRelationships.Value.Count == 1 && mappedRelationships.Key.source == dependencies[0].SourceId &&
+            mappedRelationships.Key.target == dependencies[0].TargetId)
         {
             // Single, unmapped dependency
-            var dependency = dependencies[0];
-            var edge = graph.AddEdge(dependency.SourceId, dependency.TargetId);
+            var relationship = dependencies[0];
+            var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
 
-            edge.LabelText = GetLabelText(dependency);
-            if (dependency.Type == DependencyType.Implements)
+            edge.LabelText = GetLabelText(relationship);
+            if (relationship.Type == RelationshipType.Implements)
             {
                 edge.Attr.AddStyle(Style.Dotted);
             }
 
-            edge.UserData = new List<Dependency> { dependency };
+            edge.UserData = new List<Relationship> { relationship };
         }
         else
         {
             // More than one or mapped to collapsed container.
-            var edge = graph.AddEdge(mappedDependency.Key.source, mappedDependency.Key.target);
+            var edge = graph.AddEdge(mappedRelationships.Key.source, mappedRelationships.Key.target);
 
             edge.UserData = dependencies;
             edge.LabelText = dependencies.Count.ToString();
@@ -239,55 +239,55 @@ internal class MsaglBuilder
         }
     }
 
-    private static void CreateEdgeForFlatStructure(Graph graph, Dependency dependency)
+    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
 
-        var edge = graph.AddEdge(dependency.SourceId, dependency.TargetId);
+        var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
 
-        edge.LabelText = GetLabelText(dependency);
+        edge.LabelText = GetLabelText(relationship);
 
-        if (dependency.Type == DependencyType.Implements)
+        if (relationship.Type == RelationshipType.Implements)
         {
             edge.Attr.AddStyle(Style.Dotted);
         }
 
-        edge.UserData = dependency;
+        edge.UserData = relationship;
     }
 
-    private static string GetLabelText(Dependency dependency)
+    private static string GetLabelText(Relationship relationship)
     {
-        // Omit the label text for now. The color makes it clear that it is a call dependency
-        if (dependency.Type == DependencyType.Calls || dependency.Type == DependencyType.Invokes)
+        // Omit the label text for now. The color makes it clear that it is a call relationship
+        if (relationship.Type == RelationshipType.Calls || relationship.Type == RelationshipType.Invokes)
         {
             return string.Empty;
         }
 
         // We can see this by the dotted line
-        if (dependency.Type == DependencyType.Implements || dependency.Type == DependencyType.Inherits)
+        if (relationship.Type == RelationshipType.Implements || relationship.Type == RelationshipType.Inherits)
         {
             return string.Empty;
         }
 
-        if (dependency.Type == DependencyType.Uses)
+        if (relationship.Type == RelationshipType.Uses)
         {
             return string.Empty;
         }
 
-        if (dependency.Type == DependencyType.UsesAttribute)
+        if (relationship.Type == RelationshipType.UsesAttribute)
         {
             return string.Empty;
         }
 
-        return dependency.Type.ToString();
+        return relationship.Type.ToString();
     }
 
-    private static void CreateContainmentEdge(Graph graph, Dependency dependency)
+    private static void CreateContainmentEdge(Graph graph, Relationship relationship)
     {
-        var edge = graph.AddEdge(dependency.SourceId, dependency.TargetId);
+        var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
         edge.LabelText = "";
         edge.Attr.Color = Color.LightGray;
-        edge.UserData = dependency;
+        edge.UserData = relationship;
     }
 
     private static Node CreateNode(Graph graph, CodeElement codeElement)

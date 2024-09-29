@@ -14,10 +14,10 @@ public static class CodeGraphExtensions
 
     /// <summary>
     ///     Clones the given code graph.
-    ///     Dependencies and code element can be filtered to generate sub graphs.
+    ///     Relationships and code element can be filtered to generate sub graphs.
     ///     If no code element list is given (null) all code elements are returned.
     /// </summary>
-    public static CodeGraph Clone(this CodeGraph originalCodeGraph, Func<Dependency, bool>? dependencyFilter,
+    public static CodeGraph Clone(this CodeGraph originalCodeGraph, Func<Relationship, bool>? relationshipFilter,
         HashSet<string>? codeElementIds)
     {
         List<CodeElement> includedOriginalElements;
@@ -68,16 +68,16 @@ public static class CodeGraphExtensions
             }
 
             // Set dependencies
-            foreach (var originalDependency in originalElement.Dependencies)
+            foreach (var originalRelationship in originalElement.Relationships)
             {
-                if (dependencyFilter == null || dependencyFilter(originalDependency))
+                if (relationshipFilter == null || relationshipFilter(originalRelationship))
                 {
-                    if (clonedCodeStructure.Nodes.ContainsKey(originalDependency.TargetId))
+                    if (clonedCodeStructure.Nodes.ContainsKey(originalRelationship.TargetId))
                     {
-                        clonedElement.Dependencies.Add(new Dependency(
+                        clonedElement.Relationships.Add(new Relationship(
                             clonedElement.Id,
-                            originalDependency.TargetId,
-                            originalDependency.Type
+                            originalRelationship.TargetId,
+                            originalRelationship.Type
                         ));
                     }
                 }

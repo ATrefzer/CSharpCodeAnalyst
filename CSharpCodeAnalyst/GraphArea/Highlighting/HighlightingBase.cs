@@ -14,9 +14,9 @@ internal abstract class HighlightingBase : IHighlighting
 
     private readonly Color _grayColor = Color.LightGray;
 
-    public abstract void Highlight(GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph);
+    public abstract void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph);
 
-    public abstract void Clear(GraphViewer? graphViewer);
+    public abstract void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer);
 
     protected void Highlight(IViewerEdge edge)
     {
@@ -31,7 +31,7 @@ internal abstract class HighlightingBase : IHighlighting
             return;
         }
 
-        if (edge.Edge.UserData is Dependency { Type: DependencyType.Containment })
+        if (edge.Edge.UserData is Relationship { Type: RelationshipType.Containment })
         {
             edge.Edge.Attr.Color = _grayColor;
         }
@@ -43,7 +43,7 @@ internal abstract class HighlightingBase : IHighlighting
         edge.Edge.Attr.LineWidth = _normalWeight;
     }
 
-    protected void ClearAllEdges(GraphViewer? graphViewer)
+    protected void ClearAllEdges(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
     {
         if (graphViewer is null)
         {

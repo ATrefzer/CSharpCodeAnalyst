@@ -22,7 +22,7 @@ public interface ICodeGraphExplorer
     /// <summary>
     ///     Finds all dependencies connect the given nodes.
     /// </summary>
-    IEnumerable<Dependency> FindAllDependencies(HashSet<string> ids);
+    IEnumerable<Relationship> FindAllDependencies(HashSet<string> ids);
 
     /// <summary>
     ///     Methods that implement or overload the given method
@@ -34,8 +34,8 @@ public interface ICodeGraphExplorer
     /// </summary>
     SearchResult FindAbstractions(string id);
 
-    SearchResult FindOutgoingDependencies(string id);
-    SearchResult FindIncomingDependencies(string id);
+    SearchResult FindOutgoingRelationships(string id);
+    SearchResult FindIncomingRelationships(string id);
     void LoadCodeGraph(CodeGraph graph);
     List<CodeElement> GetElements(List<string> ids);
     SearchResult FindParents(List<string> ids);

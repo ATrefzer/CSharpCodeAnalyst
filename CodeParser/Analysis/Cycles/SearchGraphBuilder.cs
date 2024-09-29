@@ -17,16 +17,12 @@ public class SearchGraphBuilder
         }
 
         // Second pass: Add dependencies for the search graph
-        var allDependencies = codeGraph.Nodes.Values.SelectMany(c => c.Dependencies);
-
+        var allDependencies = codeGraph.Nodes.Values
+            .SelectMany(c => c.Relationships)
+            .Where(r => RelationshipClassifier.IsRelationshipRelevantForCycle(codeGraph, r));
 
         foreach (var dependency in allDependencies)
         {
-            if (!DependencyClassifier.IsDependencyRelevantForCycle(codeGraph, dependency))
-            {
-                continue;
-            }
-
             var (source, target) = GetHighestElementsInvolvedInDependency(codeGraph, dependency);
             if (source.Id == target.Id && !IsMethod(codeGraph, source.Id))
             {
@@ -55,10 +51,10 @@ public class SearchGraphBuilder
     }
 
     public static (CodeElement, CodeElement) GetHighestElementsInvolvedInDependency(CodeGraph codeGraph,
-        Dependency dependency)
+        Relationship relationship)
     {
-        var source = codeGraph.Nodes[dependency.SourceId];
-        var target = codeGraph.Nodes[dependency.TargetId];
+        var source = codeGraph.Nodes[relationship.SourceId];
+        var target = codeGraph.Nodes[relationship.TargetId];
 
         if (source.Id == target.Id)
         {
@@ -87,7 +83,7 @@ public class SearchGraphBuilder
         }
 
         // Remove the common ancestors.
-        // However, if we end up having a proxy dependency between a namespace and a type, go up to the namespace.
+        // However, if we end up having a proxy relationship between a namespace and a type, go up to the namespace.
         var highestSource = sourcePath[sourceIndex];
         var highestTarget = targetPath[targetIndex];
 

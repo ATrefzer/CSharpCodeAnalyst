@@ -114,7 +114,7 @@ public static class SymbolExtensions
                     else
                     {
                         // This is a generic type definition (e.g., List<T>)
-                        // When processing the solution hierarchy or dependency to original definition symbol
+                        // When processing the solution hierarchy or relationship to original definition symbol
                         result = $"<{string.Join(",", namedTypeSymbol.TypeParameters.Select(t => t.Name))}>";
                     }
                 }

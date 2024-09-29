@@ -3,14 +3,14 @@
 namespace CSharpCodeAnalyst.Project;
 
 [Serializable]
-public class SerializableDependency(
+public class SerializableRelationship(
     string sourceId,
     string targetId,
-    DependencyType type,
+    RelationshipType type,
     List<SourceLocation> sourceLocations)
 {
     public string SourceId { get; set; } = sourceId;
     public string TargetId { get; set; } = targetId;
-    public DependencyType Type { get; set; } = type;
+    public RelationshipType Type { get; set; } = type;
     public List<SourceLocation> SourceLocations { get; set; } = sourceLocations;
 }

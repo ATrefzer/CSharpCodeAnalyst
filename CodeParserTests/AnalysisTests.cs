@@ -35,12 +35,12 @@ public class AnalysisTests
         var nodeD = new CodeElement("D", CodeElementType.Class, "ClassD", "", null);
 
         // Create dependencies to form a cycle: A -> B -> C -> A
-        nodeA.Dependencies.Add(new Dependency("A", "B", DependencyType.Calls));
-        nodeB.Dependencies.Add(new Dependency("B", "C", DependencyType.Calls));
-        nodeC.Dependencies.Add(new Dependency("C", "A", DependencyType.Calls));
+        nodeA.Relationships.Add(new Relationship("A", "B", RelationshipType.Calls));
+        nodeB.Relationships.Add(new Relationship("B", "C", RelationshipType.Calls));
+        nodeC.Relationships.Add(new Relationship("C", "A", RelationshipType.Calls));
 
         // Additional dependency: D -> A (to ensure D is not part of the SCC)
-        nodeD.Dependencies.Add(new Dependency("D", "A", DependencyType.Calls));
+        nodeD.Relationships.Add(new Relationship("D", "A", RelationshipType.Calls));
 
         // Add nodes to the code graph
         codeStructure.Nodes["A"] = nodeA;
