@@ -11,18 +11,19 @@ public partial class Parser
     ///     We treat the property like a method and do not distinguish between getter and setter.
     ///     A property can have a getter, setter or an expression body.
     /// </summary>
-    private void AnalyzePropertyDependencies(Solution solution, CodeElement propertyElement,
+    private void AnalyzePropertyRelationships(Solution solution, CodeElement propertyElement,
         IPropertySymbol propertySymbol)
     {
         // Analyze the property type
-        AddTypeDependency(propertyElement, propertySymbol.Type, DependencyType.Uses);
+        AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses);
 
         // Check for interface implementation
         var implementedInterfaceProperty = GetImplementedInterfaceProperty(propertySymbol);
         if (implementedInterfaceProperty != null)
         {
             var locations = GetLocations(propertySymbol);
-            AddPropertyDependency(propertyElement, implementedInterfaceProperty, DependencyType.Implements, locations);
+            AddPropertyRelationship(propertyElement, implementedInterfaceProperty, RelationshipType.Implements,
+                locations);
         }
 
         // Check for property override
@@ -32,7 +33,7 @@ public partial class Parser
             if (overriddenProperty != null)
             {
                 var locations = GetLocations(propertySymbol);
-                AddPropertyDependency(propertyElement, overriddenProperty, DependencyType.Overrides, locations);
+                AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
             }
         }
 
@@ -75,10 +76,10 @@ public partial class Parser
         }
     }
 
-    private void AddPropertyDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
-        DependencyType dependencyType, List<SourceLocation> locations)
+    private void AddPropertyRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
+        RelationshipType relationshipType, List<SourceLocation> locations)
     {
-        AddDependencyWithFallbackToContainingType(sourceElement, propertySymbol, dependencyType, locations);
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
     }
 
     private IPropertySymbol? GetImplementedInterfaceProperty(IPropertySymbol propertySymbol)

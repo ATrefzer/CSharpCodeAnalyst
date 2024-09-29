@@ -4,7 +4,8 @@ using Contracts.Graph;
 namespace CodeParser.Export;
 
 /// <summary>
-///     Exports a CodeGraph's hierarchy to a DGML file.
+///     Debug class to export the hierarchy of a code graph to a dgml file.
+///     See <see cref="DgmlExport" /> for hierarchy and relationships.
 /// </summary>
 public class DgmlHierarchyExport
 {

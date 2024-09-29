@@ -5,12 +5,12 @@ using CSharpCodeAnalyst.Help;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-internal interface IDependencyGraphViewer
+internal interface IGraphViewer
 {
     void ShowFlatGraph(bool value);
-    void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies);
+    void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships);
     void DeleteFromGraph(HashSet<string> idsToRemove);
-    void DeleteFromGraph(List<Dependency> dependencies);
+    void DeleteFromGraph(List<Relationship> relationships);
 
     void AddContextMenuCommand(ICodeElementContextCommand command);
     void AddGlobalContextMenuCommand(IGlobalContextCommand command);
@@ -52,12 +52,12 @@ internal interface IDependencyGraphViewer
     /// <summary>
     ///     Undo and gallery.
     /// </summary>
-    void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state);
+    void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state);
 
     /// <summary>
     ///     Cycle groups, focus on marked elements
     /// </summary>
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 
-    void AddContextMenuCommand(IDependencyContextCommand command);
+    void AddContextMenuCommand(IRelationshipContextCommand command);
 }

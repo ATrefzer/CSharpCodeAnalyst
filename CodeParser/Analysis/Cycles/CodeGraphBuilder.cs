@@ -74,7 +74,7 @@ public class CodeGraphBuilder
                         originalGraph.Nodes[originalDependency.TargetId]);
 
                     // Include dependency
-                    source.Dependencies.Add(originalDependency);
+                    source.Relationships.Add(originalDependency);
                 }
             }
         }
@@ -83,16 +83,16 @@ public class CodeGraphBuilder
         return detailedGraph;
     }
 
-    private static List<Dependency> GetOriginalDependencies(CodeGraph originalGraph, HashSet<string> sources,
+    private static List<Relationship> GetOriginalDependencies(CodeGraph originalGraph, HashSet<string> sources,
         HashSet<string> targets)
     {
         // All original edges causing the same dependency as proxy used in search graph.
 
         var sourceElements = sources.Select(s => originalGraph.Nodes[s]);
-        var fromSource = sourceElements.SelectMany(s => s.Dependencies);
+        var fromSource = sourceElements.SelectMany(s => s.Relationships);
         var originalDependencies = fromSource
             .Where(d => targets.Contains(d.TargetId))
-            .Where(d => DependencyClassifier.IsDependencyRelevantForCycle(originalGraph, d))
+            .Where(d => RelationshipClassifier.IsRelationshipRelevantForCycle(originalGraph, d))
             .ToList();
 
         // Performance nightmare

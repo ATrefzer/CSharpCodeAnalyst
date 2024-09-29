@@ -31,14 +31,14 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
         else if (obj is IViewerEdge viewerEdge)
         {
             var edge = viewerEdge.Edge;
-            if (edge.UserData is Dependency dependency)
+            if (edge.UserData is Relationship relationship)
             {
-                return CreateEdgeQuickInfos([dependency]);
+                return CreateEdgeQuickInfos([relationship]);
             }
 
-            if (edge.UserData is List<Dependency> dependencies)
+            if (edge.UserData is List<Relationship> relationships)
             {
-                return CreateEdgeQuickInfos(dependencies);
+                return CreateEdgeQuickInfos(relationships);
             }
         }
 
@@ -60,28 +60,28 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
         return contextInfo;
     }
 
-    private List<QuickInfo> CreateEdgeQuickInfos(List<Dependency> dependencies)
+    private List<QuickInfo> CreateEdgeQuickInfos(List<Relationship> relationships)
     {
         var quickInfos = new List<QuickInfo>();
-        foreach (var d in dependencies)
+        foreach (var r in relationships)
         {
-            quickInfos.Add(CreateEdgeQuickInfo(d));
+            quickInfos.Add(CreateEdgeQuickInfo(r));
         }
 
         return quickInfos;
     }
 
-    private QuickInfo CreateEdgeQuickInfo(Dependency dependency)
+    private QuickInfo CreateEdgeQuickInfo(Relationship relationship)
     {
         var contextInfo = new QuickInfo
         {
-            Title = $"Dependency: {dependency.Type.ToString()}",
+            Title = $"Relationship: {relationship.Type.ToString()}",
             Lines =
             [
-                new ContextInfoLine { Label = "Source:", Value = GetElementName(dependency.SourceId) },
-                new ContextInfoLine { Label = "Target:", Value = GetElementName(dependency.TargetId) }
+                new ContextInfoLine { Label = "Source:", Value = GetElementName(relationship.SourceId) },
+                new ContextInfoLine { Label = "Target:", Value = GetElementName(relationship.TargetId) }
             ],
-            SourceLocations = dependency.SourceLocations
+            SourceLocations = relationship.SourceLocations
         };
         return contextInfo;
     }

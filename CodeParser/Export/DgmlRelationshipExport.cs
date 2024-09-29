@@ -3,7 +3,11 @@ using Contracts.Graph;
 
 namespace CodeParser.Export;
 
-public class DgmlDependencyExport
+/// <summary>
+///     Debug class to export the relationship information of a code graph to a dgml file.
+///     See <see cref="DgmlExport" /> for hierarchy and relationships.
+/// </summary>
+public class DgmlRelationshipExport
 {
     public static void Export(string fileName, CodeGraph codeGraph)
     {
@@ -33,7 +37,7 @@ public class DgmlDependencyExport
     {
         foreach (var node in nodes)
         {
-            foreach (var child in node.Dependencies)
+            foreach (var child in node.Relationships)
             {
                 writer.AddEdgeById(node.Id, child.TargetId, child.Type.ToString());
             }
@@ -45,12 +49,12 @@ public class DgmlDependencyExport
     {
         // Find all nodes we need for the graph.
         var allNodes = new HashSet<CodeElement>();
-        foreach (var node in nodes.Where(n => n.Dependencies.Count != 0))
+        foreach (var node in nodes.Where(n => n.Relationships.Count != 0))
         {
             allNodes.Add(node);
-            foreach (var dependency in node.Dependencies)
+            foreach (var relationship in node.Relationships)
             {
-                var targetElement = codeGraph.Nodes[dependency.TargetId];
+                var targetElement = codeGraph.Nodes[relationship.TargetId];
                 allNodes.Add(targetElement);
             }
         }

@@ -3,46 +3,19 @@ using Microsoft.CodeAnalysis;
 
 namespace CodeParser.Parser;
 
+/// <summary>
+///     Symbol identification across compilations.
+///     One of the main problems is that the symbols do not have a unique identifier.
+///     For example a IMethodSymbol defined in one compilation may not the same as a IMethodSymbol
+///     used in an invocation in another compilation.
+/// </summary>
 public static class SymbolExtensions
 {
-    /// <summary>
-    ///     Sometimes when walking up the parent chain:
-    ///     After the global namespace the containing symbol is not reliable.
-    ///     If we do not end up at an assembly it is added manually.
-    /// </summary>
     public static string BuildSymbolName(this ISymbol symbol)
     {
-        var parts = new List<string>();
-
-        var currentSymbol = symbol;
-        ISymbol? lastKnownSymbol = null;
-
-        while (currentSymbol != null)
-        {
-            if (currentSymbol is IModuleSymbol)
-            {
-                // Skip the module symbol
-                currentSymbol = currentSymbol.ContainingSymbol;
-            }
-
-            lastKnownSymbol = currentSymbol;
-
-            var name = currentSymbol.Name;
-            parts.Add(name);
-            currentSymbol = currentSymbol.ContainingSymbol;
-        }
-
-        if (lastKnownSymbol is not IAssemblySymbol)
-        {
-            // global namespace has the ContainingCompilation set.
-            Debug.Assert(lastKnownSymbol is INamespaceSymbol { IsGlobalNamespace: true });
-            var namespaceSymbol = lastKnownSymbol as INamespaceSymbol;
-            var assemblySymbol = namespaceSymbol.ContainingCompilation.Assembly;
-            parts.Add(assemblySymbol.Name);
-        }
-
+        var parts = GetParentChain(symbol);
         parts.Reverse();
-        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p)));
+        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.Name));
         return fullName;
     }
 
@@ -55,17 +28,65 @@ public static class SymbolExtensions
     /// </summary>
     public static string Key(this ISymbol symbol)
     {
-        var fullName = BuildSymbolName(symbol);
+        // A generic method may be in a generic type. So we have to consider the generic part of the parent, too
+
+        var parts = GetParentChain(symbol);
+        return string.Join(".", parts.Select(GetKeyInternal));
+    }
+
+    /// <summary>
+    ///     Sometimes when walking up the parent chain:
+    ///     After the global namespace the containing symbol is not reliable.
+    ///     If we do not end up at an assembly it is added manually.
+    ///     0 = symbol itself
+    ///     n = assembly
+    /// </summary>
+    private static List<ISymbol> GetParentChain(this ISymbol symbol)
+    {
+        var parts = new List<ISymbol>();
+
+        while (symbol != null)
+        {
+            if (symbol is IModuleSymbol)
+            {
+                symbol = symbol.ContainingSymbol;
+                continue; // Skip the module symbol
+            }
+
+            parts.Add(symbol);
+            symbol = symbol.ContainingSymbol;
+        }
+
+        // Check if the last symbol is a global namespace and add the assembly
+        if (parts.LastOrDefault() is INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
+        {
+            parts.Add(globalNamespace.ContainingCompilation.Assembly);
+        }
+
+        return parts;
+    }
+
+
+    private static string GetKeyInternal(ISymbol symbol)
+    {
+        var name = symbol.Name;
         var genericPart = GetGenericPart(symbol);
         var kind = symbol.Kind.ToString();
+
+        if (symbol is IAssemblySymbol assemblySymbol)
+        {
+            // Yes, people exist who add two projects with the same name in one solution
+            // Ignore this for the moment
+            return $"{name}";
+        }
 
         if (symbol is IMethodSymbol methodSymbol)
         {
             var parameters = string.Join("_", methodSymbol.Parameters.Select(p => p.Type.ToDisplayString()));
-            return $"{fullName}{genericPart}_{parameters}_{kind}";
+            return $"{name}{genericPart}_{parameters}_{kind}";
         }
 
-        return $"{fullName}{genericPart}_{kind}";
+        return $"{name}{genericPart}_{kind}";
     }
 
     private static string GetGenericPart(ISymbol symbol)
@@ -85,7 +106,7 @@ public static class SymbolExtensions
                     else
                     {
                         // This is a generic type definition (e.g., List<T>)
-                        // When processing the solution hierarchy or dependency to original definition symbol
+                        // When processing the solution hierarchy or relationship to original definition symbol
                         result = $"<{string.Join(",", namedTypeSymbol.TypeParameters.Select(t => t.Name))}>";
                     }
                 }

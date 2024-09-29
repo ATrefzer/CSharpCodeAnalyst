@@ -14,10 +14,10 @@ public static class CodeGraphExtensions
 
     /// <summary>
     ///     Clones the given code graph.
-    ///     Dependencies and code element can be filtered to generate sub graphs.
+    ///     Relationships and code element can be filtered to generate sub graphs.
     ///     If no code element list is given (null) all code elements are returned.
     /// </summary>
-    public static CodeGraph Clone(this CodeGraph originalCodeGraph, Func<Dependency, bool>? dependencyFilter,
+    public static CodeGraph Clone(this CodeGraph originalCodeGraph, Func<Relationship, bool>? relationshipFilter,
         HashSet<string>? codeElementIds)
     {
         List<CodeElement> includedOriginalElements;
@@ -42,7 +42,7 @@ public static class CodeGraphExtensions
             clonedCodeStructure.Nodes[clonedElement.Id] = clonedElement;
         }
 
-        // Second pass: Set relationships (parent / child / dependencies)
+        // Second pass: Set relationships (parent / child / relationships)
         foreach (var originalElement in includedOriginalElements)
         {
             var clonedElement = clonedCodeStructure.Nodes[originalElement.Id];
@@ -67,17 +67,17 @@ public static class CodeGraphExtensions
                 clonedElement.Children.Add(clonedChild);
             }
 
-            // Set dependencies
-            foreach (var originalDependency in originalElement.Dependencies)
+            // Set relationships
+            foreach (var originalRelationship in originalElement.Relationships)
             {
-                if (dependencyFilter == null || dependencyFilter(originalDependency))
+                if (relationshipFilter == null || relationshipFilter(originalRelationship))
                 {
-                    if (clonedCodeStructure.Nodes.ContainsKey(originalDependency.TargetId))
+                    if (clonedCodeStructure.Nodes.ContainsKey(originalRelationship.TargetId))
                     {
-                        clonedElement.Dependencies.Add(new Dependency(
+                        clonedElement.Relationships.Add(new Relationship(
                             clonedElement.Id,
-                            originalDependency.TargetId,
-                            originalDependency.Type
+                            originalRelationship.TargetId,
+                            originalRelationship.Type
                         ));
                     }
                 }
@@ -94,7 +94,7 @@ public static class CodeGraphExtensions
 
     public static CodeGraph SubGraphOf(this CodeGraph graph, HashSet<string> codeElementIds)
     {
-        // Include only dependencies to code elements in the subgraph
+        // Include only relationships to code elements in the subgraph
         return graph.Clone(d => codeElementIds.Contains(d.TargetId), codeElementIds);
     }
 

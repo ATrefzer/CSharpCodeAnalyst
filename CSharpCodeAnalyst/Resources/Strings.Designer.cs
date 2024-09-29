@@ -79,20 +79,20 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All incoming dependencies.
+        ///   Looks up a localized string similar to All incoming relationships.
         /// </summary>
-        public static string AllIncomingDependencies {
+        public static string AllIncomingRelationships {
             get {
-                return ResourceManager.GetString("AllIncomingDependencies", resourceCulture);
+                return ResourceManager.GetString("AllIncomingRelationships", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All outgoingdependencies.
+        ///   Looks up a localized string similar to All outgoing relationships.
         /// </summary>
-        public static string AllOutgoingDependencies {
+        public static string AllOutgoingRelationships {
             get {
-                return ResourceManager.GetString("AllOutgoingDependencies", resourceCulture);
+                return ResourceManager.GetString("AllOutgoingRelationships", resourceCulture);
             }
         }
         
@@ -187,11 +187,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Complete dependencies.
+        ///   Looks up a localized string similar to Complete relationships.
         /// </summary>
-        public static string CompleteDependencies {
+        public static string CompleteRelationships {
             get {
-                return ResourceManager.GetString("CompleteDependencies", resourceCulture);
+                return ResourceManager.GetString("CompleteRelationships", resourceCulture);
             }
         }
         

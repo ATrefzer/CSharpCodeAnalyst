@@ -10,7 +10,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
     {
-        return vertex.Dependencies.Select(d => Nodes[d.TargetId]).ToList();
+        return vertex.Relationships.Select(d => Nodes[d.TargetId]).ToList();
     }
 
     public bool IsVertex(CodeElement vertex)
@@ -20,7 +20,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public bool IsEdge(CodeElement source, CodeElement target)
     {
-        return Nodes[source.Id].Dependencies.Any(d => d.TargetId == target.Id);
+        return Nodes[source.Id].Relationships.Any(d => d.TargetId == target.Id);
     }
 
     public IReadOnlyCollection<CodeElement> GetVertices()
@@ -71,7 +71,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
             }
 
             element.Children.RemoveWhere(e => elementIds.Contains(e.Id));
-            element.Dependencies.RemoveWhere(d => elementIds.Contains(d.SourceId) || elementIds.Contains(d.TargetId));
+            element.Relationships.RemoveWhere(d => elementIds.Contains(d.SourceId) || elementIds.Contains(d.TargetId));
         }
     }
 
@@ -133,13 +133,23 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         return newElement;
     }
 
-    public IEnumerable<Dependency> GetAllDependencies()
+    public IEnumerable<Relationship> GetAllRelationships()
     {
-        return Nodes.Values.SelectMany(n => n.Dependencies).ToList();
+        return Nodes.Values.SelectMany(n => n.Relationships).ToList();
     }
 
     public List<CodeElement> GetRoots()
     {
         return Nodes.Values.Where(n => n.Parent == null).ToList();
+    }
+
+    public string ToDebug()
+    {
+        var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, Nodes[d.TargetId].FullName));
+
+        var elementNames = Nodes.Values.OrderBy(v => v.FullName).Select(e => e.FullName);
+        var relationshipNames = relationships.Select(d => $"{d.Item1} -> {d.Item2}");
+        return string.Join("\n", elementNames) +
+               string.Join("\n", relationshipNames);
     }
 }

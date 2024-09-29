@@ -12,8 +12,8 @@ public partial class CycleFinderTests
         var codeGraph = new TestCodeGraph();
         var classA = codeGraph.CreateClass("ClassA");
         var classB = codeGraph.CreateClass("ClassB");
-        classA.Dependencies.Add(new Dependency(classA.Id, classB.Id, DependencyType.Uses));
-        classB.Dependencies.Add(new Dependency(classB.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(classA.Id, classB.Id, RelationshipType.Uses));
+        classB.Relationships.Add(new Relationship(classB.Id, classA.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -32,9 +32,9 @@ public partial class CycleFinderTests
         var owner = codeGraph.CreateField("AutomationPeer._owner", peer);
         var ctor = codeGraph.CreateMethod("AutomationPeer.ctor", peer);
 
-        createPeer.Dependencies.Add(new Dependency(createPeer.Id, peer.Id, DependencyType.Creates));
-        ctor.Dependencies.Add(new Dependency(ctor.Id, view.Id, DependencyType.Uses));
-        owner.Dependencies.Add(new Dependency(owner.Id, view.Id, DependencyType.Uses));
+        createPeer.Relationships.Add(new Relationship(createPeer.Id, peer.Id, RelationshipType.Creates));
+        ctor.Relationships.Add(new Relationship(ctor.Id, view.Id, RelationshipType.Uses));
+        owner.Relationships.Add(new Relationship(owner.Id, view.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -68,9 +68,9 @@ public partial class CycleFinderTests
         var field2 = codeGraph.CreateField("_field2", classChild2);
 
 
-        field1.Dependencies.Add(new Dependency(field1.Id, enumInParent.Id, DependencyType.Uses));
-        field2.Dependencies.Add(new Dependency(field2.Id, enumInParent.Id, DependencyType.Uses));
-        methodInParent.Dependencies.Add(new Dependency(methodInParent.Id, classChild1.Id, DependencyType.Uses));
+        field1.Relationships.Add(new Relationship(field1.Id, enumInParent.Id, RelationshipType.Uses));
+        field2.Relationships.Add(new Relationship(field2.Id, enumInParent.Id, RelationshipType.Uses));
+        methodInParent.Relationships.Add(new Relationship(methodInParent.Id, classChild1.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -103,9 +103,9 @@ public partial class CycleFinderTests
         var classNsIrrelevant = codeGraph.CreateClass("ClassNsIrrelevant", nsIrrelevant);
         var field2 = codeGraph.CreateField("_delegate2", classNsIrrelevant);
 
-        field1.Dependencies.Add(new Dependency(field1.Id, delegateNsChild.Id, DependencyType.Uses));
-        field2.Dependencies.Add(new Dependency(field2.Id, delegateNsChild.Id, DependencyType.Uses));
-        method.Dependencies.Add(new Dependency(method.Id, classNsParent.Id, DependencyType.Uses));
+        field1.Relationships.Add(new Relationship(field1.Id, delegateNsChild.Id, RelationshipType.Uses));
+        field2.Relationships.Add(new Relationship(field2.Id, delegateNsChild.Id, RelationshipType.Uses));
+        method.Relationships.Add(new Relationship(method.Id, classNsParent.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -125,8 +125,8 @@ public partial class CycleFinderTests
 
         var fieldA = codeGraph.CreateField("ClassA.FieldA", classA);
         var fieldB = codeGraph.CreateField("ClassA.FieldB", classB);
-        classA.Dependencies.Add(new Dependency(fieldA.Id, classB.Id, DependencyType.Uses));
-        classB.Dependencies.Add(new Dependency(fieldB.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(fieldA.Id, classB.Id, RelationshipType.Uses));
+        classB.Relationships.Add(new Relationship(fieldB.Id, classA.Id, RelationshipType.Uses));
 
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
@@ -149,8 +149,8 @@ public partial class CycleFinderTests
         var methodBA = codeGraph.CreateMethod("ClassB.MethodA", classB);
         var methodBB = codeGraph.CreateMethod("ClassB.MethodB", classB);
 
-        methodAA.Dependencies.Add(new Dependency(methodAA.Id, methodBA.Id, DependencyType.Calls));
-        methodBB.Dependencies.Add(new Dependency(methodBB.Id, methodAB.Id, DependencyType.Calls));
+        methodAA.Relationships.Add(new Relationship(methodAA.Id, methodBA.Id, RelationshipType.Calls));
+        methodBB.Relationships.Add(new Relationship(methodBB.Id, methodAB.Id, RelationshipType.Calls));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -167,8 +167,8 @@ public partial class CycleFinderTests
         var classB = codeGraph.CreateClass("ClassB");
         var methodA = codeGraph.CreateMethod("ClassA.MethodA", classA);
         var methodB = codeGraph.CreateMethod("ClassB.MethodB", classB);
-        methodA.Dependencies.Add(new Dependency(methodA.Id, methodB.Id, DependencyType.Calls));
-        methodB.Dependencies.Add(new Dependency(methodB.Id, methodA.Id, DependencyType.Calls));
+        methodA.Relationships.Add(new Relationship(methodA.Id, methodB.Id, RelationshipType.Calls));
+        methodB.Relationships.Add(new Relationship(methodB.Id, methodA.Id, RelationshipType.Calls));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -186,8 +186,8 @@ public partial class CycleFinderTests
         var ns2 = codeGraph.CreateNamespace("NS1.NS2", ns1);
         var classA = codeGraph.CreateClass("ClassA", ns1);
         var classB = codeGraph.CreateClass("ClassB", ns2);
-        classA.Dependencies.Add(new Dependency(classA.Id, classB.Id, DependencyType.Uses));
-        classB.Dependencies.Add(new Dependency(classB.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(classA.Id, classB.Id, RelationshipType.Uses));
+        classB.Relationships.Add(new Relationship(classB.Id, classA.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -204,8 +204,8 @@ public partial class CycleFinderTests
         var outerClass = codeGraph.CreateClass("OuterClass");
         var innerClassA = codeGraph.CreateClass("InnerClassA", outerClass);
         var innerClassB = codeGraph.CreateClass("InnerClassB", outerClass);
-        innerClassA.Dependencies.Add(new Dependency(innerClassA.Id, innerClassB.Id, DependencyType.Uses));
-        innerClassB.Dependencies.Add(new Dependency(innerClassB.Id, innerClassA.Id, DependencyType.Uses));
+        innerClassA.Relationships.Add(new Relationship(innerClassA.Id, innerClassB.Id, RelationshipType.Uses));
+        innerClassB.Relationships.Add(new Relationship(innerClassB.Id, innerClassA.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -222,8 +222,8 @@ public partial class CycleFinderTests
         var outerClass = codeGraph.CreateClass("OuterClass");
         var innerClass = codeGraph.CreateClass("InnerClass", outerClass);
         var method = codeGraph.CreateMethod("OuterClass.Method", outerClass);
-        method.Dependencies.Add(new Dependency(method.Id, innerClass.Id, DependencyType.Uses));
-        innerClass.Dependencies.Add(new Dependency(innerClass.Id, method.Id, DependencyType.Calls));
+        method.Relationships.Add(new Relationship(method.Id, innerClass.Id, RelationshipType.Uses));
+        innerClass.Relationships.Add(new Relationship(innerClass.Id, method.Id, RelationshipType.Calls));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -242,8 +242,8 @@ public partial class CycleFinderTests
         var ns2 = codeGraph.CreateNamespace("NS2");
         var classA = codeGraph.CreateClass("ClassA", ns1);
         var classB = codeGraph.CreateClass("ClassB", ns2);
-        ns1.Dependencies.Add(new Dependency(ns1.Id, classB.Id, DependencyType.Uses));
-        classB.Dependencies.Add(new Dependency(classB.Id, ns1.Id, DependencyType.Uses));
+        ns1.Relationships.Add(new Relationship(ns1.Id, classB.Id, RelationshipType.Uses));
+        classB.Relationships.Add(new Relationship(classB.Id, ns1.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -262,8 +262,8 @@ public partial class CycleFinderTests
         var ns = codeGraph.CreateNamespace("NS");
         var classA = codeGraph.CreateClass("ClassA", ns);
         var methodA = codeGraph.CreateMethod("ClassA.MethodA", classA);
-        ns.Dependencies.Add(new Dependency(ns.Id, classA.Id, DependencyType.Containment));
-        classA.Dependencies.Add(new Dependency(classA.Id, methodA.Id, DependencyType.Containment));
+        ns.Relationships.Add(new Relationship(ns.Id, classA.Id, RelationshipType.Containment));
+        classA.Relationships.Add(new Relationship(classA.Id, methodA.Id, RelationshipType.Containment));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -278,8 +278,8 @@ public partial class CycleFinderTests
         var codeGraph = new TestCodeGraph();
         var interfaceA = codeGraph.CreateInterface("InterfaceA");
         var classA = codeGraph.CreateClass("ClassA");
-        classA.Dependencies.Add(new Dependency(classA.Id, interfaceA.Id, DependencyType.Implements));
-        interfaceA.Dependencies.Add(new Dependency(interfaceA.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(classA.Id, interfaceA.Id, RelationshipType.Implements));
+        interfaceA.Relationships.Add(new Relationship(interfaceA.Id, classA.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -295,8 +295,8 @@ public partial class CycleFinderTests
         var codeGraph = new TestCodeGraph();
         var enumA = codeGraph.CreateEnum("EnumA");
         var classA = codeGraph.CreateClass("ClassA");
-        classA.Dependencies.Add(new Dependency(classA.Id, enumA.Id, DependencyType.Uses));
-        enumA.Dependencies.Add(new Dependency(enumA.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(classA.Id, enumA.Id, RelationshipType.Uses));
+        enumA.Relationships.Add(new Relationship(enumA.Id, classA.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
@@ -315,11 +315,11 @@ public partial class CycleFinderTests
         var classC = codeGraph.CreateClass("ClassC");
         var classD = codeGraph.CreateClass("ClassD");
 
-        classA.Dependencies.Add(new Dependency(classA.Id, classB.Id, DependencyType.Uses));
-        classB.Dependencies.Add(new Dependency(classB.Id, classA.Id, DependencyType.Uses));
+        classA.Relationships.Add(new Relationship(classA.Id, classB.Id, RelationshipType.Uses));
+        classB.Relationships.Add(new Relationship(classB.Id, classA.Id, RelationshipType.Uses));
 
-        classC.Dependencies.Add(new Dependency(classC.Id, classD.Id, DependencyType.Uses));
-        classD.Dependencies.Add(new Dependency(classD.Id, classC.Id, DependencyType.Uses));
+        classC.Relationships.Add(new Relationship(classC.Id, classD.Id, RelationshipType.Uses));
+        classD.Relationships.Add(new Relationship(classD.Id, classC.Id, RelationshipType.Uses));
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 

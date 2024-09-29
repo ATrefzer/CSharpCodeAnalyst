@@ -22,13 +22,13 @@ internal class GraphViewModel : INotifyPropertyChanged
     private readonly ApplicationSettings? _settings;
     private readonly LinkedList<GraphSession> _undoStack = new();
     private readonly int _undoStackSize = 10;
-    private readonly IDependencyGraphViewer _viewer;
+    private readonly IGraphViewer _viewer;
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
     private bool _showFlatGraph;
 
-    internal GraphViewModel(IDependencyGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
+    internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         ApplicationSettings? settings)
     {
         _viewer = viewer;
@@ -56,11 +56,11 @@ internal class GraphViewModel : INotifyPropertyChanged
         _selectedHighlightOption = HighlightOptions[0];
 
         // Edge commands
-        _viewer.AddContextMenuCommand(new DependencyContextCommand(Strings.Delete, DeleteEdges));
+        _viewer.AddContextMenuCommand(new RelationshipContextCommand(Strings.Delete, DeleteEdges));
 
         // Global commands
         _viewer.AddGlobalContextMenuCommand(
-            new GlobalContextCommand(Strings.CompleteDependencies, CompleteDependencies));
+            new GlobalContextCommand(Strings.CompleteRelationships, CompleteRelationships));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.CompleteToTypes, CompleteToTypes));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedFocus, FocusOnMarkedElements,
             CanHandleIfMarkedElements));
@@ -92,7 +92,8 @@ internal class GraphViewModel : INotifyPropertyChanged
                 FollowIncomingCallsRecursive));
             _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+                FindAbstractions));
         }
 
         // Classes, structs and interfaces
@@ -103,7 +104,8 @@ internal class GraphViewModel : INotifyPropertyChanged
                 FindInheritanceTree));
             _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+                FindAbstractions));
         }
 
         // Events
@@ -115,10 +117,12 @@ internal class GraphViewModel : INotifyPropertyChanged
             FollowIncomingCallsRecursive));
 
 
-        // Everyone gets the in/out dependencies
+        // Everyone gets the in/out relationships
         _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingDependencies, FindAllIncomingDependencies));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingDependencies, FindAllOutgoingDependencies));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
+            FindAllIncomingRelationships));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
+            FindAllOutgoingRelationships));
 
         UndoCommand = new DelegateCommand(Undo);
     }
@@ -222,10 +226,10 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(newGraph, presentationState);
     }
 
-    private void DeleteEdges(List<Dependency> dependencies)
+    private void DeleteEdges(List<Relationship> relationships)
     {
         PushUndo();
-        _viewer.DeleteFromGraph(dependencies);
+        _viewer.DeleteFromGraph(relationships);
     }
 
     private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
@@ -253,14 +257,14 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, []);
     }
 
-    private void CompleteDependencies(List<CodeElement> _)
+    private void CompleteRelationships(List<CodeElement> _)
     {
         // Not interested in the marked elements!
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var dependencies = _explorer.FindAllDependencies(ids);
+        var relationships = _explorer.FindAllRelationships(ids);
 
-        AddToGraph([], dependencies);
+        AddToGraph([], relationships);
     }
 
     private bool CanCollapse(CodeElement codeElement)
@@ -347,7 +351,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var elements = _explorer.GetElements(state.CodeElementIds);
 
         // No undo stack operations while restoring the session.      
-        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);
+        _viewer.LoadSession(elements, state.Relationships, state.PresentationState);
     }
 
     private void UpdateGraphRenderOption()
@@ -355,34 +359,34 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.UpdateRenderOption(SelectedRenderOption);
     }
 
-    private void FindAllOutgoingDependencies(CodeElement element)
+    private void FindAllOutgoingRelationships(CodeElement element)
     {
-        var result = _explorer.FindOutgoingDependencies(element.Id);
-        AddToGraph(result.Elements, result.Dependencies);
+        var result = _explorer.FindOutgoingRelationships(element.Id);
+        AddToGraph(result.Elements, result.Relationships);
     }
 
-    private void FindAllIncomingDependencies(CodeElement element)
+    private void FindAllIncomingRelationships(CodeElement element)
     {
-        var result = _explorer.FindIncomingDependencies(element.Id);
-        AddToGraph(result.Elements, result.Dependencies);
+        var result = _explorer.FindIncomingRelationships(element.Id);
+        AddToGraph(result.Elements, result.Relationships);
     }
 
     private void FindSpecializations(CodeElement method)
     {
         var result = _explorer.FindSpecializations(method.Id);
-        AddToGraph(result.Elements, result.Dependencies);
+        AddToGraph(result.Elements, result.Relationships);
     }
 
     private void FindAbstractions(CodeElement method)
     {
         var result = _explorer.FindAbstractions(method.Id);
-        AddToGraph(result.Elements, result.Dependencies);
+        AddToGraph(result.Elements, result.Relationships);
     }
 
-    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> dependencies)
+    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships)
     {
         PushUndo();
-        _viewer.AddToGraph(originalCodeElements, dependencies);
+        _viewer.AddToGraph(originalCodeElements, relationships);
     }
 
     public void LoadCodeGraph(CodeGraph codeGraph)
@@ -447,7 +451,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var result =
             _explorer.FollowIncomingCallsRecursive(element.Id);
-        AddToGraph(result.Elements, result.Dependencies);
+        AddToGraph(result.Elements, result.Relationships);
     }
 
     internal void FindInheritanceTree(CodeElement? type)
@@ -459,7 +463,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var relationships =
             _explorer.FindFullInheritanceTree(type.Id);
-        AddToGraph(relationships.Elements, relationships.Dependencies);
+        AddToGraph(relationships.Elements, relationships.Relationships);
     }
 
     internal void FindOutgoingCalls(CodeElement? method)
@@ -484,7 +488,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Note that dependency type "Contains" is treated special
+    ///     Note that relationship type "Contains" is treated special
     /// </summary>
     public CodeGraph ExportGraph()
     {
@@ -553,6 +557,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         }
 
         var elements = _explorer.GetElements(session.CodeElementIds);
-        _viewer.LoadSession(elements, session.Dependencies, session.PresentationState);
+        _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
     }
 }
