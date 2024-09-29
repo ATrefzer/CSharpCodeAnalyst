@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Contracts.Graph;
-using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -38,7 +37,7 @@ public partial class Parser
     }
 
     /// <summary>
-    /// Remove all projects that do not pass our include filter or cannot be parsed.
+    ///     Remove all projects that do not pass our include filter or cannot be parsed.
     /// </summary>
     private async Task<List<Project>> GetValidProjects(Solution solution)
     {

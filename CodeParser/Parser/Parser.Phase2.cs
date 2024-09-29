@@ -544,7 +544,8 @@ public partial class Parser
         }
     }
 
-    private void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol, RelationshipType relationshipType,
+    private void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol,
+        RelationshipType relationshipType,
         SourceLocation? location = null)
     {
         switch (typeSymbol)
@@ -605,7 +606,8 @@ public partial class Parser
             if (_symbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
             {
                 // We found the original definition, add dependency to it
-                AddRelationship(sourceElement, relationshipType, originalTargetElement, location != null ? [location] : []);
+                AddRelationship(sourceElement, relationshipType, originalTargetElement,
+                    location != null ? [location] : []);
             }
             // The type is truly external, you might want to log this or handle it differently
             // AddExternalDependency(sourceElement, namedTypeSymbol, relationshipType, location);

@@ -5,7 +5,7 @@ namespace CodeParser.Export;
 
 /// <summary>
 ///     Debug class to export the hierarchy of a code graph to a dgml file.
-///     See <see cref="DgmlExport"/> for hierarchy and relationships.
+///     See <see cref="DgmlExport" /> for hierarchy and relationships.
 /// </summary>
 public class DgmlHierarchyExport
 {

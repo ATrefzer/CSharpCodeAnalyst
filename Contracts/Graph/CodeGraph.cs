@@ -151,6 +151,5 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         var relationshipNames = relationships.Select(d => $"{d.Item1} -> {d.Item2}");
         return string.Join("\n", elementNames) +
                string.Join("\n", relationshipNames);
-
     }
 }

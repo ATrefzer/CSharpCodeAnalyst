@@ -38,7 +38,8 @@ public class ProjectData
     {
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
-                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes)).ToList();
+                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes))
+            .ToList();
 
         // We iterate over children, so we expect to have a parent
         Children = codeGraph.Nodes.Values
@@ -47,7 +48,8 @@ public class ProjectData
 
         Relationships = codeGraph.Nodes.Values
             .SelectMany(element => element.Relationships)
-            .Select(relationship => new SerializableRelationship(relationship.SourceId, relationship.TargetId, relationship.Type,
+            .Select(relationship => new SerializableRelationship(relationship.SourceId, relationship.TargetId,
+                relationship.Type,
                 relationship.SourceLocations))
             .ToList();
     }

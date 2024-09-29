@@ -1,20 +1,19 @@
 ﻿using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
 
 namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
 internal abstract class HighlightingBase : IHighlighting
 {
+    private readonly Color _grayColor = Color.LightGray;
     private readonly Color _highlightColor = Color.Red;
     private readonly int _highlightWeight = 3;
 
     private readonly Color _normalColor = Color.Black;
     private readonly int _normalWeight = 1;
 
-    private readonly Color _grayColor = Color.LightGray;
-
-    public abstract void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph);
+    public abstract void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
+        IViewerObject? viewerObject, CodeGraph? codeGraph);
 
     public abstract void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer);
 
@@ -39,7 +38,7 @@ internal abstract class HighlightingBase : IHighlighting
         {
             edge.Edge.Attr.Color = _normalColor;
         }
-    
+
         edge.Edge.Attr.LineWidth = _normalWeight;
     }
 

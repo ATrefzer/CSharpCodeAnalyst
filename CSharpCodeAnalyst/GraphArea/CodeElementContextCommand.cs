@@ -18,7 +18,8 @@ public class CodeElementContextCommand : ICodeElementContextCommand
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
-    public CodeElementContextCommand(string label, Action<CodeElement> action, Func<CodeElement, bool>? canExecute = null)
+    public CodeElementContextCommand(string label, Action<CodeElement> action,
+        Func<CodeElement, bool>? canExecute = null)
     {
         _type = null;
         _action = action;

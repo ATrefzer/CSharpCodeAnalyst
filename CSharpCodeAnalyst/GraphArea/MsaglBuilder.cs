@@ -47,7 +47,8 @@ internal class MsaglBuilder
 
             if (element.Parent != null)
             {
-                CreateContainmentEdge(graph, new Relationship(element.Parent.Id, element.Id, RelationshipType.Containment));
+                CreateContainmentEdge(graph,
+                    new Relationship(element.Parent.Id, element.Id, RelationshipType.Containment));
             }
         }
     }

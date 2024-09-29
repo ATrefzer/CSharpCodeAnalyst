@@ -92,7 +92,8 @@ internal class GraphViewModel : INotifyPropertyChanged
                 FollowIncomingCallsRecursive));
             _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+                FindAbstractions));
         }
 
         // Classes, structs and interfaces
@@ -103,7 +104,8 @@ internal class GraphViewModel : INotifyPropertyChanged
                 FindInheritanceTree));
             _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType, FindAbstractions));
+            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+                FindAbstractions));
         }
 
         // Events
@@ -117,8 +119,10 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         // Everyone gets the in/out dependencies
         _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships, FindAllIncomingRelationships));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships, FindAllOutgoingRelationships));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
+            FindAllIncomingRelationships));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
+            FindAllOutgoingRelationships));
 
         UndoCommand = new DelegateCommand(Undo);
     }

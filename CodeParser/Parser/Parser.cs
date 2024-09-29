@@ -165,7 +165,7 @@ public partial class Parser(ParserConfig config)
     }
 
     /// <summary>
-    /// Note: We store the symbol used to build the hierarchy.
+    ///     Note: We store the symbol used to build the hierarchy.
     /// </summary>
     private CodeElement GetOrCreateCodeElement(ISymbol symbol, CodeElementType elementType, CodeElement? parent,
         SourceLocation? location)

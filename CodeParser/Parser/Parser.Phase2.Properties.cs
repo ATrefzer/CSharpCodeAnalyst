@@ -22,7 +22,8 @@ public partial class Parser
         if (implementedInterfaceProperty != null)
         {
             var locations = GetLocations(propertySymbol);
-            AddPropertyDependency(propertyElement, implementedInterfaceProperty, RelationshipType.Implements, locations);
+            AddPropertyDependency(propertyElement, implementedInterfaceProperty, RelationshipType.Implements,
+                locations);
         }
 
         // Check for property override

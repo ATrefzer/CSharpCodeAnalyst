@@ -15,7 +15,7 @@ public static class SymbolExtensions
     {
         var parts = GetParentChain(symbol);
         parts.Reverse();
-        var fullName = string.Join(".",  parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.Name));
+        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.Name));
         return fullName;
     }
 
@@ -38,7 +38,6 @@ public static class SymbolExtensions
     ///     Sometimes when walking up the parent chain:
     ///     After the global namespace the containing symbol is not reliable.
     ///     If we do not end up at an assembly it is added manually.
-    /// 
     ///     0 = symbol itself
     ///     n = assembly
     /// </summary>

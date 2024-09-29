@@ -9,7 +9,6 @@ using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;

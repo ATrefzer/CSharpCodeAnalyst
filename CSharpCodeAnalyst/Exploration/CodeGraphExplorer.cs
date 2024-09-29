@@ -287,7 +287,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             // Case typeToAnalyze is subclass: typeToAnalyze implements X or inherits from Y
             var abstractionsOfAnalyzedType =
-                typeToAnalyze.Relationships.Where(d => d.Type is RelationshipType.Implements or RelationshipType.Inherits);
+                typeToAnalyze.Relationships.Where(d =>
+                    d.Type is RelationshipType.Implements or RelationshipType.Inherits);
             foreach (var abstraction in abstractionsOfAnalyzedType)
             {
                 var baseType = _codeGraph.Nodes[abstraction.TargetId];

@@ -466,8 +466,10 @@ public class CodeParserApprovalTests
         var iLoad = iStorage.Children.Single();
         var load = baseStorage.Children.Single();
 
-        Assert.IsTrue(storage.Relationships.Any(d => d.TargetId == iStorage.Id && d.Type == RelationshipType.Implements));
-        Assert.IsTrue(storage.Relationships.Any(d => d.TargetId == baseStorage.Id && d.Type == RelationshipType.Inherits));
+        Assert.IsTrue(
+            storage.Relationships.Any(d => d.TargetId == iStorage.Id && d.Type == RelationshipType.Implements));
+        Assert.IsTrue(
+            storage.Relationships.Any(d => d.TargetId == baseStorage.Id && d.Type == RelationshipType.Inherits));
 
         // Not detected!
         Assert.IsTrue(load.Relationships.Any(d => d.TargetId == iLoad.Id && d.Type == RelationshipType.Implements));
