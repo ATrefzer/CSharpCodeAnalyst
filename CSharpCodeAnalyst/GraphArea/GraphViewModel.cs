@@ -60,7 +60,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         // Global commands
         _viewer.AddGlobalContextMenuCommand(
-            new GlobalContextCommand(Strings.CompleteRelationships, CompleteDependencies));
+            new GlobalContextCommand(Strings.CompleteRelationships, CompleteRelationships));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.CompleteToTypes, CompleteToTypes));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedFocus, FocusOnMarkedElements,
             CanHandleIfMarkedElements));
@@ -117,7 +117,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             FollowIncomingCallsRecursive));
 
 
-        // Everyone gets the in/out dependencies
+        // Everyone gets the in/out relationships
         _viewer.AddContextMenuCommand(new SeparatorCommand());
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships));
@@ -226,10 +226,10 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(newGraph, presentationState);
     }
 
-    private void DeleteEdges(List<Relationship> dependencies)
+    private void DeleteEdges(List<Relationship> relationships)
     {
         PushUndo();
-        _viewer.DeleteFromGraph(dependencies);
+        _viewer.DeleteFromGraph(relationships);
     }
 
     private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
@@ -257,14 +257,14 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, []);
     }
 
-    private void CompleteDependencies(List<CodeElement> _)
+    private void CompleteRelationships(List<CodeElement> _)
     {
         // Not interested in the marked elements!
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var dependencies = _explorer.FindAllRelationships(ids);
+        var relationships = _explorer.FindAllRelationships(ids);
 
-        AddToGraph([], dependencies);
+        AddToGraph([], relationships);
     }
 
     private bool CanCollapse(CodeElement codeElement)
@@ -351,7 +351,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var elements = _explorer.GetElements(state.CodeElementIds);
 
         // No undo stack operations while restoring the session.      
-        _viewer.LoadSession(elements, state.Dependencies, state.PresentationState);
+        _viewer.LoadSession(elements, state.Relationships, state.PresentationState);
     }
 
     private void UpdateGraphRenderOption()
@@ -383,10 +383,10 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, result.Relationships);
     }
 
-    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> dependencies)
+    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships)
     {
         PushUndo();
-        _viewer.AddToGraph(originalCodeElements, dependencies);
+        _viewer.AddToGraph(originalCodeElements, relationships);
     }
 
     public void LoadCodeGraph(CodeGraph codeGraph)
@@ -488,7 +488,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Note that dependency type "Contains" is treated special
+    ///     Note that relationship type "Contains" is treated special
     /// </summary>
     public CodeGraph ExportGraph()
     {
@@ -557,6 +557,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         }
 
         var elements = _explorer.GetElements(session.CodeElementIds);
-        _viewer.LoadSession(elements, session.Dependencies, session.PresentationState);
+        _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
     }
 }

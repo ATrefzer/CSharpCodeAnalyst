@@ -60,12 +60,12 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
         return contextInfo;
     }
 
-    private List<QuickInfo> CreateEdgeQuickInfos(List<Relationship> dependencies)
+    private List<QuickInfo> CreateEdgeQuickInfos(List<Relationship> relationships)
     {
         var quickInfos = new List<QuickInfo>();
-        foreach (var d in dependencies)
+        foreach (var r in relationships)
         {
-            quickInfos.Add(CreateEdgeQuickInfo(d));
+            quickInfos.Add(CreateEdgeQuickInfo(r));
         }
 
         return quickInfos;

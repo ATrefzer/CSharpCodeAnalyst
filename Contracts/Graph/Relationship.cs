@@ -32,8 +32,8 @@ public class Relationship(string sourceId, string targetId, RelationshipType typ
 
     public Relationship Clone()
     {
-        var newDependency = new Relationship(SourceId, TargetId, Type);
-        newDependency.SourceLocations.AddRange(SourceLocations);
-        return newDependency;
+        var newRelationship = new Relationship(SourceId, TargetId, Type);
+        newRelationship.SourceLocations.AddRange(SourceLocations);
+        return newRelationship;
     }
 }

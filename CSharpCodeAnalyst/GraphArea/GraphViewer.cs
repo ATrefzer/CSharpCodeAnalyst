@@ -15,9 +15,9 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 /// <summary>
 ///     Note:
-///     Between nodes we can have multiple dependencies if the dependency type is different.
+///     Between nodes we can have multiple relationships if the relationship type is different.
 ///     Relationships of the same type (i.e a method Calls another multiple times) are handled
-///     in the parser. In this case the dependency holds all source references.
+///     in the parser. In this case the relationship holds all source references.
 ///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
 internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
@@ -44,9 +44,9 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     /// <summary>
     ///     Note:
-    ///     Between nodes we can have multiple dependencies if the dependency type is different.
+    ///     Between nodes we can have multiple relationships if the relationship type is different.
     ///     Relationships of the same type (i.e a method Calls another multiple times) are handled
-    ///     in the parser. In this case the dependency holds all source references.
+    ///     in the parser. In this case the relationship holds all source references.
     /// </summary>
     public GraphViewer(IPublisher publisher)
     {
@@ -71,18 +71,18 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Adding an existing element or dependency is prevented.
+    ///     Adding an existing element or relationship is prevented.
     ///     Note from the originalCodeElement we don't add parent or children.
     ///     We just use this information to integrate the node into the existing canvas.
     /// </summary>
-    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newDependencies)
+    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships)
     {
         if (!IsBoundToPanel())
         {
             return;
         }
 
-        AddToGraphInternal(originalCodeElements, newDependencies);
+        AddToGraphInternal(originalCodeElements, newRelationships);
         RefreshGraph();
     }
 
@@ -206,16 +206,16 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         RefreshGraph();
     }
 
-    public void DeleteFromGraph(List<Relationship> dependencies)
+    public void DeleteFromGraph(List<Relationship> relationships)
     {
         if (_msaglViewer is null)
         {
             return;
         }
 
-        foreach (var dependency in dependencies)
+        foreach (var relationship in relationships)
         {
-            _clonedCodeGraph.Nodes[dependency.SourceId].Relationships.Remove(dependency);
+            _clonedCodeGraph.Nodes[relationship.SourceId].Relationships.Remove(relationship);
         }
 
         RefreshGraph();
@@ -256,7 +256,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         return _presentationState.IsCollapsed(id);
     }
 
-    public void LoadSession(List<CodeElement> codeElements, List<Relationship> dependencies, PresentationState state)
+    public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
     {
         if (_msaglViewer is null)
         {
@@ -264,7 +264,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
 
         Clear();
-        AddToGraphInternal(codeElements, dependencies);
+        AddToGraphInternal(codeElements, relationships);
         _presentationState = state;
 
         RefreshGraph();
@@ -290,7 +290,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     }
 
     private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
-        IEnumerable<Relationship> newDependencies)
+        IEnumerable<Relationship> newRelationships)
     {
         if (_msaglViewer is null)
         {
@@ -299,11 +299,11 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         IntegrateNewFromOriginal(originalCodeElements);
 
-        // Add dependencies we explicitly requested.
-        foreach (var newDependency in newDependencies)
+        // Add relationships we explicitly requested.
+        foreach (var newRelationship in newRelationships)
         {
-            var sourceElement = _clonedCodeGraph.Nodes[newDependency.SourceId];
-            sourceElement.Relationships.Add(newDependency);
+            var sourceElement = _clonedCodeGraph.Nodes[newRelationship.SourceId];
+            sourceElement.Relationships.Add(newRelationship);
         }
     }
 
@@ -427,8 +427,8 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                 // Click on specific edge
                 var edge = viewerEdge.Edge;
                 var contextMenu = new ContextMenu();
-                var dependencies = GetDependenciesFromUserData(edge);
-                AddContextMenuEntries(dependencies, contextMenu);
+                var relationships = GetRelationshipsFromUserData(edge);
+                AddContextMenuEntries(relationships, contextMenu);
                 if (contextMenu.Items.Count > 0)
                 {
                     contextMenu.IsOpen = true;
@@ -446,9 +446,9 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-    private void AddContextMenuEntries(List<Relationship> dependencies, ContextMenu contextMenu)
+    private void AddContextMenuEntries(List<Relationship> relationships, ContextMenu contextMenu)
     {
-        if (dependencies.Count == 0)
+        if (relationships.Count == 0)
         {
             return;
         }
@@ -456,24 +456,24 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         foreach (var cmd in _edgeCommands)
         {
             var menuItem = new MenuItem { Header = cmd.Label };
-            if (cmd.CanHandle(dependencies))
+            if (cmd.CanHandle(relationships))
             {
-                menuItem.Click += (_, _) => cmd.Invoke(dependencies);
+                menuItem.Click += (_, _) => cmd.Invoke(relationships);
                 contextMenu.Items.Add(menuItem);
             }
         }
     }
 
-    private static List<Relationship> GetDependenciesFromUserData(Edge edge)
+    private static List<Relationship> GetRelationshipsFromUserData(Edge edge)
     {
         var result = new List<Relationship>();
         switch (edge.UserData)
         {
-            case Relationship dependency:
-                result.Add(dependency);
+            case Relationship relationship:
+                result.Add(relationship);
                 break;
-            case List<Relationship> dependencies:
-                result.AddRange(dependencies);
+            case List<Relationship> relationships:
+                result.AddRange(relationships);
                 break;
         }
 

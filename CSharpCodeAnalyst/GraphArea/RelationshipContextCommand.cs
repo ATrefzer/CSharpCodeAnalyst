@@ -56,8 +56,8 @@ public class RelationshipContextCommand : IRelationshipContextCommand
     }
 
 
-    public void Invoke(List<Relationship> dependencies)
+    public void Invoke(List<Relationship> relationships)
     {
-        _action.Invoke(dependencies);
+        _action.Invoke(relationships);
     }
 }

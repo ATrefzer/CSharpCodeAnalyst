@@ -26,7 +26,7 @@ public partial class Parser
             }
 
             // Build also a list of all named types in the solution
-            // We need this in phase 2 to resolve dependencies
+            // We need this in phase 2 to resolve relationships
             // Constructed types are not contained in this list!
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             _allNamedTypesInSolution.AddRange(types);

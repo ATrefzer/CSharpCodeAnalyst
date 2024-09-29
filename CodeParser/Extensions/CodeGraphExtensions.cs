@@ -42,7 +42,7 @@ public static class CodeGraphExtensions
             clonedCodeStructure.Nodes[clonedElement.Id] = clonedElement;
         }
 
-        // Second pass: Set relationships (parent / child / dependencies)
+        // Second pass: Set relationships (parent / child / relationships)
         foreach (var originalElement in includedOriginalElements)
         {
             var clonedElement = clonedCodeStructure.Nodes[originalElement.Id];
@@ -67,7 +67,7 @@ public static class CodeGraphExtensions
                 clonedElement.Children.Add(clonedChild);
             }
 
-            // Set dependencies
+            // Set relationships
             foreach (var originalRelationship in originalElement.Relationships)
             {
                 if (relationshipFilter == null || relationshipFilter(originalRelationship))
@@ -94,7 +94,7 @@ public static class CodeGraphExtensions
 
     public static CodeGraph SubGraphOf(this CodeGraph graph, HashSet<string> codeElementIds)
     {
-        // Include only dependencies to code elements in the subgraph
+        // Include only relationships to code elements in the subgraph
         return graph.Clone(d => codeElementIds.Contains(d.TargetId), codeElementIds);
     }
 

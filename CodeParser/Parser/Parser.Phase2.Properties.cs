@@ -11,7 +11,7 @@ public partial class Parser
     ///     We treat the property like a method and do not distinguish between getter and setter.
     ///     A property can have a getter, setter or an expression body.
     /// </summary>
-    private void AnalyzePropertyDependencies(Solution solution, CodeElement propertyElement,
+    private void AnalyzePropertyRelationships(Solution solution, CodeElement propertyElement,
         IPropertySymbol propertySymbol)
     {
         // Analyze the property type
@@ -22,7 +22,7 @@ public partial class Parser
         if (implementedInterfaceProperty != null)
         {
             var locations = GetLocations(propertySymbol);
-            AddPropertyDependency(propertyElement, implementedInterfaceProperty, RelationshipType.Implements,
+            AddPropertyRelationship(propertyElement, implementedInterfaceProperty, RelationshipType.Implements,
                 locations);
         }
 
@@ -33,7 +33,7 @@ public partial class Parser
             if (overriddenProperty != null)
             {
                 var locations = GetLocations(propertySymbol);
-                AddPropertyDependency(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
+                AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
             }
         }
 
@@ -76,7 +76,7 @@ public partial class Parser
         }
     }
 
-    private void AddPropertyDependency(CodeElement sourceElement, IPropertySymbol propertySymbol,
+    private void AddPropertyRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
         RelationshipType relationshipType, List<SourceLocation> locations)
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);

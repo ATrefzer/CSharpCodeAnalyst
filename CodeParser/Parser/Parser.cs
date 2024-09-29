@@ -38,12 +38,12 @@ public partial class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
-        AnalyzeDependencies(solution);
+        AnalyzeRelationships(solution);
 
         Clear();
 
         // Makes the cycle detection easier because I never get to the assembly as shared ancestor
-        // for a nested dependency.
+        // for a nested relationships.
         InsertGlobalNamespaceIfUsed();
 
         // Debug.Assert(_codeGraph.Nodes.Values.All(c => IsDistinct(c.SourceLocations)));
@@ -176,18 +176,7 @@ public partial class Parser(ParserConfig config)
         if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var existingElement))
         {
             UpdateCodeElementLocations(existingElement, location);
-
-            if (symbol is not INamespaceSymbol)
-            {
-                // Get warning if we have different symbols for the same element.
-                if (_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default) is false)
-                {
-                    // Happens if two projects in the solution have the same name.
-                    // You lose one of them.
-                    Trace.WriteLine("(!) Found element with multiple symbols: " + symbol.ToDisplayString());
-                }
-            }
-
+            WarnIfCodeElementHasMultipleSymbols(symbol, existingElement);
             return existingElement;
         }
 
@@ -203,7 +192,7 @@ public partial class Parser(ParserConfig config)
         _codeGraph.Nodes[element.Id] = element;
         _symbolKeyToElementMap[symbolKey] = element;
 
-        // We need the symbol in phase2 when analyzing the dependencies.
+        // We need the symbol in phase2 when analyzing the relationships.
         if (symbol is not INamespaceSymbol)
         {
             _elementIdToSymbolMap[element.Id] = symbol;
@@ -212,6 +201,20 @@ public partial class Parser(ParserConfig config)
         SendParserPhase1Progress(_codeGraph.Nodes.Count);
 
         return element;
+    }
+
+    private void WarnIfCodeElementHasMultipleSymbols(ISymbol symbol, CodeElement existingElement)
+    {
+        if (symbol is not INamespaceSymbol)
+        {
+            // Get warning if we have different symbols for the same element.
+            if (_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default) is false)
+            {
+                // Happens if two projects in the solution have the same name.
+                // You lose one of them.
+                Trace.WriteLine("(!) Found element with multiple symbols: " + symbol.ToDisplayString());
+            }
+        }
     }
 
     private static void UpdateCodeElementLocations(CodeElement element, SourceLocation? location)
@@ -272,21 +275,21 @@ public partial class Parser(ParserConfig config)
         CodeElement target,
         List<SourceLocation> sourceLocations)
     {
-        var existingDependency = source.Relationships.FirstOrDefault(d =>
+        var existingRelationship = source.Relationships.FirstOrDefault(d =>
             d.TargetId == target.Id && d.Type == type);
 
-        if (existingDependency != null)
+        if (existingRelationship != null)
         {
-            // Note we may read some dependencies more than once through different ways but that's fine.
+            // Note we may read some relationships more than once through different ways but that's fine.
             // For example identifier and member access of field.
-            var newLocations = sourceLocations.Except(existingDependency.SourceLocations);
-            existingDependency.SourceLocations.AddRange(newLocations);
+            var newLocations = sourceLocations.Except(existingRelationship.SourceLocations);
+            existingRelationship.SourceLocations.AddRange(newLocations);
         }
         else
         {
-            var newDependency = new Relationship(source.Id, target.Id, type);
-            newDependency.SourceLocations.AddRange(sourceLocations);
-            source.Relationships.Add(newDependency);
+            var newRelationship = new Relationship(source.Id, target.Id, type);
+            newRelationship.SourceLocations.AddRange(sourceLocations);
+            source.Relationships.Add(newRelationship);
         }
     }
 }

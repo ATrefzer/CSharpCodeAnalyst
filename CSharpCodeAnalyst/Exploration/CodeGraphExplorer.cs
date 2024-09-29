@@ -93,7 +93,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
     /// <summary>
-    ///     Returns all dependencies that link the given nodes (ids).
+    ///     Returns all relationships that link the given nodes (ids).
     /// </summary>
     public IEnumerable<Relationship> FindAllRelationships(HashSet<string> ids)
     {
@@ -121,7 +121,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var method = _codeGraph.Nodes[id];
 
-        var allCalls = GetDependencies(d => d.Type == RelationshipType.Calls);
+        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
         var calls = allCalls.Where(call => call.TargetId == method.Id).ToArray();
         var methods = calls.Select(d => _codeGraph.Nodes[d.SourceId]);
 
@@ -146,7 +146,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var foundCalls = new HashSet<Relationship>();
         var foundMethods = new HashSet<CodeElement>();
 
-        var allCalls = GetDependencies(d => d.Type == RelationshipType.Calls);
+        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
 
         var processed = new HashSet<string>();
         while (processingQueue.Any())
@@ -183,11 +183,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
 
         var allImplementsAndOverrides =
-            GetDependencies(d => d.Type is RelationshipType.Implements or RelationshipType.Overrides);
-        var allCalls = GetDependencies(d => d.Type == RelationshipType.Calls);
+            GetRelationships(d => d.Type is RelationshipType.Implements or RelationshipType.Overrides);
+        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
 
-        var allHandles = GetDependencies(d => d.Type == RelationshipType.Handles);
-        var allInvokes = GetDependencies(d => d.Type == RelationshipType.Invokes);
+        var allHandles = GetRelationships(d => d.Type == RelationshipType.Handles);
+        var allInvokes = GetRelationships(d => d.Type == RelationshipType.Invokes);
 
         var method = _codeGraph.Nodes[id];
 
@@ -421,7 +421,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, relationships);
     }
 
-    private List<Relationship> GetCachedDependencies()
+    private List<Relationship> GetCachedRelationships()
     {
         if (_codeGraph is null)
         {
@@ -436,9 +436,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return _allRelationships;
     }
 
-    private List<Relationship> GetDependencies(Func<Relationship, bool> filter)
+    private List<Relationship> GetRelationships(Func<Relationship, bool> filter)
     {
-        return GetCachedDependencies().Where(filter).ToList();
+        return GetCachedRelationships().Where(filter).ToList();
     }
 
     private HashSet<Relationship> FindInheritsAndImplementsRelationships()
@@ -459,11 +459,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 return;
             }
 
-            foreach (var dependency in c.Relationships)
+            foreach (var relationship in c.Relationships)
             {
-                if (dependency.Type is RelationshipType.Inherits or RelationshipType.Implements)
+                if (relationship.Type is RelationshipType.Inherits or RelationshipType.Implements)
                 {
-                    inheritsAndImplements.Add(dependency);
+                    inheritsAndImplements.Add(relationship);
                 }
             }
         }

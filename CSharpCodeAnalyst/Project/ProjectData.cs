@@ -20,8 +20,8 @@ public class ProjectData
 
     public void SetGallery(Gallery.Gallery gallery)
     {
-        // TODO Consider to introduce a serializable Gallery not storing the source locations for dependencies.
-        // This would save space. But we have to restore the dependencies.
+        // TODO Consider to introduce a serializable Gallery not storing the source locations for relationships.
+        // This would save space. But we have to restore the relationships.
         Gallery = gallery;
     }
 
@@ -67,7 +67,7 @@ public class ProjectData
             codeStructure.Nodes.Add(element.Id, element);
         }
 
-        // Pass two: Create dependencies and parent / child connections
+        // Pass two: Create relationships and parent / child connections
         foreach (var sc in Children)
         {
             var child = codeStructure.Nodes[sc.ChildId];

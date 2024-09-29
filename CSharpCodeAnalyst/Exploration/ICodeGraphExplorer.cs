@@ -20,7 +20,7 @@ public interface ICodeGraphExplorer
     SearchResult FindFullInheritanceTree(string id);
 
     /// <summary>
-    ///     Finds all dependencies connect the given nodes.
+    ///     Finds all relationships connect the given nodes.
     /// </summary>
     IEnumerable<Relationship> FindAllRelationships(HashSet<string> ids);
 

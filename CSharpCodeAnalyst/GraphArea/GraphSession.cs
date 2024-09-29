@@ -12,21 +12,21 @@ public class GraphSession
     {
         Name = string.Empty;
         CodeElementIds = [];
-        Dependencies = [];
+        Relationships = [];
         PresentationState = new PresentationState();
     }
 
-    private GraphSession(string name, List<string> codeElementIds, List<Relationship> dependencies,
+    private GraphSession(string name, List<string> codeElementIds, List<Relationship> relationships,
         PresentationState presentationState)
     {
         Name = name;
         CodeElementIds = codeElementIds;
-        Dependencies = dependencies;
+        Relationships = relationships;
         PresentationState = presentationState;
     }
 
     public List<string> CodeElementIds { get; set; }
-    public List<Relationship> Dependencies { get; set; }
+    public List<Relationship> Relationships { get; set; }
     public string Name { get; set; }
     public PresentationState PresentationState { get; set; }
 

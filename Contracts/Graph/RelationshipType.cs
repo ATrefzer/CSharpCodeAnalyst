@@ -12,8 +12,8 @@ public enum RelationshipType
 
     Overrides,
 
-    // Special dependency to model the hierarchy.
-    // In the CodeElement this dependency is modeled via.
+    // Special relationship to model the hierarchy.
+    // In the CodeElement this relationship is modeled via.
     // Parent / Children 
     Containment,
 

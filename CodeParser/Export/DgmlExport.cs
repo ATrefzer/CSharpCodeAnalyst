@@ -34,7 +34,7 @@ public class DgmlExport
             containsRelationships.AddRange(node.Children.Select(c => (node.Id, c.Id)));
         }
 
-        // Regular dependencies
+        // Regular relationships
         var normal = new List<Relationship>();
         graph.DfsHierarchy(e => normal.AddRange(e.Relationships));
         foreach (var edge in normal)

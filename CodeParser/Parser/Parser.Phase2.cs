@@ -9,9 +9,9 @@ namespace CodeParser.Parser;
 public partial class Parser
 {
     /// <summary>
-    ///     Entry for dependency analysis
+    ///     Entry for relationship analysis
     /// </summary>
-    private void AnalyzeDependencies(Solution solution)
+    private void AnalyzeRelationships(Solution solution)
     {
         var numberOfCodeElements = _codeGraph.Nodes.Count;
 
@@ -26,32 +26,32 @@ public partial class Parser
 
             if (symbol is IEventSymbol eventSymbol)
             {
-                AnalyzeEventDependencies(solution, element, eventSymbol);
+                AnalyzeEventRelationships(solution, element, eventSymbol);
             }
             else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } delegateSymbol)
             {
-                // Handle before the type dependencies.
-                AnalyzeDelegateDependencies(element, delegateSymbol);
+                // Handle before the type relationships.
+                AnalyzeDelegateRelationships(element, delegateSymbol);
             }
             else if (symbol is INamedTypeSymbol typeSymbol)
             {
-                AnalyzeInheritanceDependencies(element, typeSymbol);
+                AnalyzeInheritanceRelationships(element, typeSymbol);
             }
             else if (symbol is IMethodSymbol methodSymbol)
             {
-                AnalyzeMethodDependencies(solution, element, methodSymbol);
+                AnalyzeMethodRelationships(solution, element, methodSymbol);
             }
             else if (symbol is IPropertySymbol propertySymbol)
             {
-                AnalyzePropertyDependencies(solution, element, propertySymbol);
+                AnalyzePropertyRelationships(solution, element, propertySymbol);
             }
             else if (symbol is IFieldSymbol fieldSymbol)
             {
-                AnalyzeFieldDependencies(element, fieldSymbol);
+                AnalyzeFieldRelationships(element, fieldSymbol);
             }
 
             // For all type of symbols check if decorated with an attribute.
-            AnalyzeAttributeDependencies(element, symbol);
+            AnalyzeAttributeRelationships(element, symbol);
 
             SendParserPhase2Progress(loop++, numberOfCodeElements);
         }
@@ -65,7 +65,7 @@ public partial class Parser
         if (loop % 10 == 0)
         {
             var percent = Math.Floor(loop / (double)numberOfCodeElements * 100);
-            var msg = $"Phase 2/2: Analyzing dependencies. Finished {percent}%.";
+            var msg = $"Phase 2/2: Analyzing relationships. Finished {percent}%.";
             var args = new ParserProgressArg(msg);
 
             ParserProgress?.Invoke(this, args);
@@ -118,7 +118,7 @@ public partial class Parser
         }
     }
 
-    private void AnalyzeAttributeDependencies(CodeElement element, ISymbol symbol)
+    private void AnalyzeAttributeRelationships(CodeElement element, ISymbol symbol)
     {
         foreach (var attributeData in symbol.GetAttributes())
         {
@@ -134,7 +134,7 @@ public partial class Parser
         }
     }
 
-    private void AnalyzeDelegateDependencies(CodeElement delegateElement, INamedTypeSymbol delegateSymbol)
+    private void AnalyzeDelegateRelationships(CodeElement delegateElement, INamedTypeSymbol delegateSymbol)
     {
         var methodSymbol = delegateSymbol.DelegateInvokeMethod;
         if (methodSymbol is null)
@@ -153,7 +153,7 @@ public partial class Parser
         }
     }
 
-    private void AnalyzeEventDependencies(Solution solution, CodeElement eventElement, IEventSymbol eventSymbol)
+    private void AnalyzeEventRelationships(Solution solution, CodeElement eventElement, IEventSymbol eventSymbol)
     {
         // Analyze event type (usually a delegate type)
         AddTypeRelationship(eventElement, eventSymbol.Type, RelationshipType.Uses);
@@ -169,12 +169,12 @@ public partial class Parser
         // If the event has add/remove accessors, analyze them
         if (eventSymbol.AddMethod != null)
         {
-            AnalyzeMethodDependencies(solution, eventElement, eventSymbol.AddMethod);
+            AnalyzeMethodRelationships(solution, eventElement, eventSymbol.AddMethod);
         }
 
         if (eventSymbol.RemoveMethod != null)
         {
-            AnalyzeMethodDependencies(solution, eventElement, eventSymbol.RemoveMethod);
+            AnalyzeMethodRelationships(solution, eventElement, eventSymbol.RemoveMethod);
         }
     }
 
@@ -207,7 +207,7 @@ public partial class Parser
     /// <summary>
     ///     Use solution, not the compilation. The syntax tree may not be found.
     /// </summary>
-    private void AnalyzeMethodDependencies(Solution solution, CodeElement methodElement, IMethodSymbol methodSymbol)
+    private void AnalyzeMethodRelationships(Solution solution, CodeElement methodElement, IMethodSymbol methodSymbol)
     {
         // Analyze parameter types
         foreach (var parameter in methodSymbol.Parameters)
@@ -327,13 +327,13 @@ public partial class Parser
     private void AddMethodOverrideRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol,
         List<SourceLocation> locations)
     {
-        // If we don't have the method itself in our map, add a dependency to its containing type
+        // If we don't have the method itself in our map, add a relationship to its containing type
         // Maybe we override a framework method. Happens also if the base method is a generic one.
         // In this case the GetSymbolKey is different. One uses T, the overriding method uses the actual type.
         AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Overrides, locations);
     }
 
-    private void AnalyzeFieldDependencies(CodeElement fieldElement, IFieldSymbol fieldSymbol)
+    private void AnalyzeFieldRelationships(CodeElement fieldElement, IFieldSymbol fieldSymbol)
     {
         AddTypeRelationship(fieldElement, fieldSymbol.Type, RelationshipType.Uses);
     }
@@ -487,7 +487,7 @@ public partial class Parser
             AddRelationship(handlerElement, RelationshipType.Handles, eventElement, [location]);
         }
         //Trace.WriteLine(
-        //    $"Unable to add Handles dependency: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
+        //    $"Unable to add 'Handles' relationship: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
     }
 
     private void AnalyzeExpressionForPropertyAccess(CodeElement sourceElement, ExpressionSyntax expression,
@@ -508,7 +508,7 @@ public partial class Parser
     private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
     {
         //Debug.Assert(FindCodeElement(methodSymbol)!= null);
-        //Trace.WriteLine($"Adding call dependency: {sourceElement.Name} -> {methodSymbol.Name}");
+        //Trace.WriteLine($"Adding call relationship: {sourceElement.Name} -> {methodSymbol.Name}");
 
         if (methodSymbol.IsExtensionMethod)
         {
@@ -521,7 +521,7 @@ public partial class Parser
             methodSymbol = methodSymbol.OriginalDefinition;
         }
 
-        // If the method is not in our map, we might want to add a dependency to its containing type
+        // If the method is not in our map, we might want to add a relationship to its containing type
         AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Calls, [location]);
     }
 
@@ -529,7 +529,7 @@ public partial class Parser
     /// <summary>
     ///     Handle also List_T. Where List is not a code element of our project
     /// </summary>
-    private void AnalyzeInheritanceDependencies(CodeElement element, INamedTypeSymbol typeSymbol)
+    private void AnalyzeInheritanceRelationships(CodeElement element, INamedTypeSymbol typeSymbol)
     {
         // Analyze base class
         if (typeSymbol.BaseType != null && typeSymbol.BaseType.SpecialType != SpecialType.System_Object)
@@ -551,7 +551,7 @@ public partial class Parser
         switch (typeSymbol)
         {
             case IArrayTypeSymbol arrayType:
-                // For arrays, we add an "Uses" dependency to the element type. Even if we create them.
+                // For arrays, we add an "Uses" relationship to the element type. Even if we create them.
                 AddTypeRelationship(sourceElement, arrayType.ElementType, RelationshipType.Uses, location);
                 break;
 
@@ -566,7 +566,7 @@ public partial class Parser
             case IFunctionPointerTypeSymbol functionPointerType:
 
                 // The function pointer has a return type and parameters.
-                // we could add these dependencies here.
+                // we could add these relationships here.
 
                 break;
             case IDynamicTypeSymbol:
@@ -605,17 +605,17 @@ public partial class Parser
 
             if (_symbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
             {
-                // We found the original definition, add dependency to it
+                // We found the original definition, add relationship to it
                 AddRelationship(sourceElement, relationshipType, originalTargetElement,
                     location != null ? [location] : []);
             }
             // The type is truly external, you might want to log this or handle it differently
-            // AddExternalDependency(sourceElement, namedTypeSymbol, relationshipType, location);
+            // AddExternalRelationship(sourceElement, namedTypeSymbol, relationshipType, location);
         }
 
         if (namedTypeSymbol.IsGenericType)
         {
-            // Add "Uses" dependencies to type arguments
+            // Add "Uses" relationships to type arguments
             foreach (var typeArg in namedTypeSymbol.TypeArguments)
             {
                 AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);

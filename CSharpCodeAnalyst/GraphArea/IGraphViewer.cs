@@ -8,9 +8,9 @@ namespace CSharpCodeAnalyst.GraphArea;
 internal interface IGraphViewer
 {
     void ShowFlatGraph(bool value);
-    void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> dependencies);
+    void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships);
     void DeleteFromGraph(HashSet<string> idsToRemove);
-    void DeleteFromGraph(List<Relationship> dependencies);
+    void DeleteFromGraph(List<Relationship> relationships);
 
     void AddContextMenuCommand(ICodeElementContextCommand command);
     void AddGlobalContextMenuCommand(IGlobalContextCommand command);
@@ -52,7 +52,7 @@ internal interface IGraphViewer
     /// <summary>
     ///     Undo and gallery.
     /// </summary>
-    void LoadSession(List<CodeElement> codeElements, List<Relationship> dependencies, PresentationState state);
+    void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state);
 
     /// <summary>
     ///     Cycle groups, focus on marked elements

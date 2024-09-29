@@ -7,5 +7,5 @@ public interface IRelationshipContextCommand
     string Label { get; }
 
     bool CanHandle(List<Relationship> relationships);
-    void Invoke(List<Relationship> dependencies);
+    void Invoke(List<Relationship> relationships);
 }

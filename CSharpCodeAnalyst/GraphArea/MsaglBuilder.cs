@@ -33,16 +33,16 @@ internal class MsaglBuilder
         }
 
         // Add edges and hierarchy
-        codeGraph.DfsHierarchy(AddDependenciesFunc);
+        codeGraph.DfsHierarchy(AddRelationshipsFunc);
 
         return graph;
 
 
-        void AddDependenciesFunc(CodeElement element)
+        void AddRelationshipsFunc(CodeElement element)
         {
-            foreach (var dependency in element.Relationships)
+            foreach (var relationship in element.Relationships)
             {
-                CreateEdgeForFlatStructure(graph, dependency);
+                CreateEdgeForFlatStructure(graph, relationship);
             }
 
             if (element.Parent != null)
@@ -74,7 +74,7 @@ internal class MsaglBuilder
             CollectVisibleNodes(root, state, visibleGraph);
         }
 
-        // Graph has no dependencies yet.
+        // Graph has no relationships yet.
         return visibleGraph;
     }
 
@@ -142,9 +142,9 @@ internal class MsaglBuilder
     private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph)
     {
         var relationships = GetCollapsedRelationships(codeGraph, visibleGraph);
-        foreach (var dependency in relationships)
+        foreach (var relationship in relationships)
         {
-            CreateEdgeForHierarchicalStructure(graph, dependency);
+            CreateEdgeForHierarchicalStructure(graph, relationship);
         }
     }
 
@@ -214,7 +214,7 @@ internal class MsaglBuilder
         if (mappedRelationships.Value.Count == 1 && mappedRelationships.Key.source == relationships[0].SourceId &&
             mappedRelationships.Key.target == relationships[0].TargetId)
         {
-            // Single, unmapped dependency
+            // Single, unmapped relationship
             var relationship = relationships[0];
             var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
 

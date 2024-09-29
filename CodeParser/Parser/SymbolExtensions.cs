@@ -45,34 +45,27 @@ public static class SymbolExtensions
     {
         var parts = new List<ISymbol>();
 
-        var currentSymbol = symbol;
-        ISymbol? lastKnownSymbol = null;
-
-        while (currentSymbol != null)
+        while (symbol != null)
         {
-            if (currentSymbol is IModuleSymbol)
+            if (symbol is IModuleSymbol)
             {
-                // Skip the module symbol
-                currentSymbol = currentSymbol.ContainingSymbol;
+                symbol = symbol.ContainingSymbol;
+                continue; // Skip the module symbol
             }
 
-            lastKnownSymbol = currentSymbol;
-
-            parts.Add(currentSymbol);
-            currentSymbol = currentSymbol.ContainingSymbol;
+            parts.Add(symbol);
+            symbol = symbol.ContainingSymbol;
         }
 
-        if (lastKnownSymbol is not IAssemblySymbol)
+        // Check if the last symbol is a global namespace and add the assembly
+        if (parts.LastOrDefault() is INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
         {
-            // global namespace has the ContainingCompilation set.
-            Debug.Assert(lastKnownSymbol is INamespaceSymbol { IsGlobalNamespace: true });
-            var namespaceSymbol = lastKnownSymbol as INamespaceSymbol;
-            var assemblySymbol = namespaceSymbol.ContainingCompilation.Assembly;
-            parts.Add(assemblySymbol);
+            parts.Add(globalNamespace.ContainingCompilation.Assembly);
         }
 
         return parts;
     }
+
 
     private static string GetKeyInternal(ISymbol symbol)
     {
