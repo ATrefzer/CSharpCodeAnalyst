@@ -35,7 +35,7 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        var explorationGraphViewer = new DependencyGraphViewer(messaging);
+        var explorationGraphViewer = new GraphViewer(messaging);
 
         mainWindow.SetViewer(explorationGraphViewer);
         var viewModel = new MainViewModel(messaging, settings);

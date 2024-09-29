@@ -15,13 +15,9 @@ public partial class Parser
 
     private async Task BuildHierarchy(Solution solution)
     {
-        foreach (var project in solution.Projects)
+        var projects = await GetValidProjects(solution);
+        foreach (var project in projects)
         {
-            if (_config.IsProjectIncluded(project.Name) is false)
-            {
-                continue;
-            }
-
             var compilation = await project.GetCompilationAsync();
             if (compilation == null)
             {
@@ -30,7 +26,7 @@ public partial class Parser
             }
 
             // Build also a list of all named types in the solution
-            // We need this in phase 2 to resolve dependencies
+            // We need this in phase 2 to resolve relationships
             // Constructed types are not contained in this list!
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             _allNamedTypesInSolution.AddRange(types);
@@ -38,6 +34,46 @@ public partial class Parser
 
             BuildHierarchy(compilation);
         }
+    }
+
+    /// <summary>
+    ///     Remove all projects that do not pass our include filter or cannot be parsed.
+    /// </summary>
+    private async Task<List<Project>> GetValidProjects(Solution solution)
+    {
+        // At the moment I cannot handle more than one project with the same assembly name
+        // So I remove them.
+
+        var assemblyNameToProject = new Dictionary<string, Project>();
+        var duplicates = new HashSet<string>();
+        foreach (var project in solution.Projects)
+        {
+            // Regular expression patterns.
+            if (_config.IsProjectIncluded(project.Name) is false)
+            {
+                continue;
+            }
+
+            var compilation = await project.GetCompilationAsync();
+            if (compilation != null)
+            {
+                var assemblyName = compilation.Assembly.Name;
+                if (assemblyNameToProject.ContainsKey(assemblyName))
+                {
+                    duplicates.Add(assemblyName);
+                }
+
+                assemblyNameToProject[assemblyName] = project;
+            }
+        }
+
+        foreach (var name in duplicates)
+        {
+            assemblyNameToProject.Remove(name);
+            Trace.WriteLine($"Removed assembly with duplicate name in solution: {name}");
+        }
+
+        return assemblyNameToProject.Values.ToList();
     }
 
     private void BuildHierarchy(Compilation compilation)

@@ -1,6 +1,5 @@
 ﻿using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
 
 namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
@@ -8,13 +7,14 @@ internal class EdgeHoveredHighlighting : HighlightingBase
 {
     private IViewerEdge? _lastHighlightedEdge;
 
-    public override void Clear(GraphViewer? graphViewer)
+    public override void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
     {
         ClearAllEdges(graphViewer);
         _lastHighlightedEdge = null;
     }
 
-    public override void Highlight(GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph)
+    public override void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
+        IViewerObject? viewerObject, CodeGraph? codeGraph)
     {
         if (graphViewer is null || codeGraph is null)
         {

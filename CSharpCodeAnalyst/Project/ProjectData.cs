@@ -9,7 +9,7 @@ public class ProjectData
 
     public List<SerializableCodeElement> CodeElements { get; set; } = [];
 
-    public List<SerializableDependency> Dependencies { get; set; } = [];
+    public List<SerializableRelationship> Relationships { get; set; } = [];
 
     public Dictionary<string, string> Settings { get; set; } = new();
 
@@ -20,8 +20,8 @@ public class ProjectData
 
     public void SetGallery(Gallery.Gallery gallery)
     {
-        // TODO Consider to introduce a serializable Gallery not storing the source locations for dependencies.
-        // This would save space. But we have to restore the dependencies.
+        // TODO Consider to introduce a serializable Gallery not storing the source locations for relationships.
+        // This would save space. But we have to restore the relationships.
         Gallery = gallery;
     }
 
@@ -38,18 +38,19 @@ public class ProjectData
     {
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
-                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes)
-                    { SourceLocations = n.SourceLocations }).ToList();
+                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes))
+            .ToList();
 
         // We iterate over children, so we expect to have a parent
         Children = codeGraph.Nodes.Values
             .SelectMany(element => element.Children)
             .Select(child => new SerializableChild(child.Id, child.Parent!.Id)).ToList();
 
-        Dependencies = codeGraph.Nodes.Values
-            .SelectMany(element => element.Dependencies)
-            .Select(dependency => new SerializableDependency(dependency.SourceId, dependency.TargetId, dependency.Type,
-                dependency.SourceLocations))
+        Relationships = codeGraph.Nodes.Values
+            .SelectMany(element => element.Relationships)
+            .Select(relationship => new SerializableRelationship(relationship.SourceId, relationship.TargetId,
+                relationship.Type,
+                relationship.SourceLocations))
             .ToList();
     }
 
@@ -66,7 +67,7 @@ public class ProjectData
             codeStructure.Nodes.Add(element.Id, element);
         }
 
-        // Pass two: Create dependencies and parent / child connections
+        // Pass two: Create relationships and parent / child connections
         foreach (var sc in Children)
         {
             var child = codeStructure.Nodes[sc.ChildId];
@@ -75,12 +76,12 @@ public class ProjectData
             parent.Children.Add(child);
         }
 
-        foreach (var sd in Dependencies)
+        foreach (var sd in Relationships)
         {
             var source = codeStructure.Nodes[sd.SourceId];
-            var dependency = new Dependency(sd.SourceId, sd.TargetId, sd.Type);
-            dependency.SourceLocations = sd.SourceLocations;
-            source.Dependencies.Add(dependency);
+            var relationship = new Relationship(sd.SourceId, sd.TargetId, sd.Type);
+            relationship.SourceLocations = sd.SourceLocations;
+            source.Relationships.Add(relationship);
         }
 
 

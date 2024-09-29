@@ -8,14 +8,14 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public List<SourceLocation> SourceLocations { get; set; } = [];
 
     /// <summary>
-    ///     Unlike in the dependency graph where external dependencies are omitted
+    ///     Unlike in the graph where external relationships are omitted
     ///     I want to keep all attributes here.
     /// </summary>
     public HashSet<string> Attributes { get; set; } = [];
 
     public HashSet<CodeElement> Children { get; } = [];
 
-    public HashSet<Dependency> Dependencies { get; } = [];
+    public HashSet<Relationship> Relationships { get; } = [];
 
     public CodeElementType ElementType { get; set; } = elementType;
 

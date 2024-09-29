@@ -98,12 +98,16 @@ public class CodeParserApprovalTests
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter",
 
             // Show event registration
-            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething", 
-            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1", 
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething",
+            "CSharpLanguage.CSharpLanguage.EventInvocation.Raise1",
             "CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
             "CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
-            "CSharpLanguage.CSharpLanguage.EventSink..ctor", 
-            "CSharpLanguage.CSharpLanguage.EventSink.Handler"
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor",
+            "CSharpLanguage.CSharpLanguage.EventSink.Handler",
+
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance",
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
         };
 
 
@@ -113,7 +117,7 @@ public class CodeParserApprovalTests
     [Test]
     public void FindsAllCalls()
     {
-        var calls = _graph.GetAllDependencies().Where(d => d.Type == DependencyType.Calls);
+        var calls = _graph.GetAllRelationships().Where(d => d.Type == RelationshipType.Calls);
 
         var actual = calls.Select(d => $"{_graph.Nodes[d.SourceId].FullName} -> {_graph.Nodes[d.TargetId].FullName}")
             .ToHashSet();
@@ -151,10 +155,13 @@ public class CodeParserApprovalTests
             // Access to properties, setter and getter included.
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
             "ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
-            
+
             "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise1",
             "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise2",
-            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3"
+            "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
+
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -193,8 +200,8 @@ public class CodeParserApprovalTests
     {
         // Realize an interface
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Implements)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Property &&
                         t.Item2.ElementType == CodeElementType.Property)
@@ -215,8 +222,8 @@ public class CodeParserApprovalTests
     public void FindsAllPropertyOverrides()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Overrides)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Overrides)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Property &&
                         t.Item2.ElementType == CodeElementType.Property)
@@ -237,8 +244,8 @@ public class CodeParserApprovalTests
     public void FindsAllMethodImplementations()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Implements)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Method &&
                         t.Item2.ElementType == CodeElementType.Method)
@@ -262,8 +269,8 @@ public class CodeParserApprovalTests
     public void FindsAllMethodOverrides()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Overrides)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Overrides)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Method &&
                         t.Item2.ElementType == CodeElementType.Method)
@@ -286,8 +293,8 @@ public class CodeParserApprovalTests
     {
         // Registration and un-registration
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Uses)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Uses)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item2.ElementType == CodeElementType.Event)
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
@@ -297,7 +304,7 @@ public class CodeParserApprovalTests
         var expected = new HashSet<string>
         {
             "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
             "CSharpLanguage.CSharpLanguage.EventSink..ctor -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
         };
 
@@ -310,8 +317,8 @@ public class CodeParserApprovalTests
     public void FindsAllEventInvocation()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Invokes)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Invokes)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToList();
@@ -335,8 +342,8 @@ public class CodeParserApprovalTests
     {
         // Registration and unregistration
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Implements)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Event &&
                         t.Item2.ElementType == CodeElementType.Event)
@@ -358,17 +365,17 @@ public class CodeParserApprovalTests
     public void FindsAllEventHandlers()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Handles)
-            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))      
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Handles)
+            .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToList();
 
 
         var expected = new HashSet<string>
         {
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1", 
-            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2", 
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
             "CSharpLanguage.CSharpLanguage.EventSink.Handler -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
         };
 
@@ -381,8 +388,8 @@ public class CodeParserApprovalTests
     public void FindsAllInterfaceImplementations()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Implements)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Class &&
                         t.Item2.ElementType == CodeElementType.Interface)
@@ -405,8 +412,8 @@ public class CodeParserApprovalTests
     public void FindsAllInheritance()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Inherits)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Inherits)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Class &&
                         t.Item2.ElementType == CodeElementType.Class)
@@ -430,8 +437,8 @@ public class CodeParserApprovalTests
     public void FindsAllUsingBetweenClasses()
     {
         var actual = _graph.Nodes.Values
-            .SelectMany(n => n.Dependencies)
-            .Where(d => d.Type == DependencyType.Uses)
+            .SelectMany(n => n.Relationships)
+            .Where(d => d.Type == RelationshipType.Uses)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
             .Where(t => t.Item1.ElementType == CodeElementType.Class &&
                         t.Item2.ElementType == CodeElementType.Class)
@@ -459,11 +466,13 @@ public class CodeParserApprovalTests
         var iLoad = iStorage.Children.Single();
         var load = baseStorage.Children.Single();
 
-        Assert.IsTrue(storage.Dependencies.Any(d => d.TargetId == iStorage.Id && d.Type == DependencyType.Implements));
-        Assert.IsTrue(storage.Dependencies.Any(d => d.TargetId == baseStorage.Id && d.Type == DependencyType.Inherits));
+        Assert.IsTrue(
+            storage.Relationships.Any(d => d.TargetId == iStorage.Id && d.Type == RelationshipType.Implements));
+        Assert.IsTrue(
+            storage.Relationships.Any(d => d.TargetId == baseStorage.Id && d.Type == RelationshipType.Inherits));
 
         // Not detected!
-        Assert.IsTrue(load.Dependencies.Any(d => d.TargetId == iLoad.Id && d.Type == DependencyType.Implements));
+        Assert.IsTrue(load.Relationships.Any(d => d.TargetId == iLoad.Id && d.Type == RelationshipType.Implements));
     }
 
     [Test]

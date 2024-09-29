@@ -7,7 +7,7 @@ public class DgmlExport
 {
     /// <summary>
     ///     Exports the given nodes and edges to a dgml file.
-    ///     Note that the "Contains" dependency is treated as hierarchy information
+    ///     Note that the "Contains" relationship is treated as hierarchy information
     ///     to build sub-graphs in the output file.
     /// </summary>
     public void Export(string fileName, CodeGraph graph)
@@ -34,9 +34,9 @@ public class DgmlExport
             containsRelationships.AddRange(node.Children.Select(c => (node.Id, c.Id)));
         }
 
-        // Regular dependencies
-        var normal = new List<Dependency>();
-        graph.DfsHierarchy(e => normal.AddRange(e.Dependencies));
+        // Regular relationships
+        var normal = new List<Relationship>();
+        graph.DfsHierarchy(e => normal.AddRange(e.Relationships));
         foreach (var edge in normal)
         {
             // Omit the calls label for better readability.
@@ -60,31 +60,31 @@ public class DgmlExport
         builder.WriteOutput(fileName);
     }
 
-    private static string GetEdgeLabel(Dependency dependency)
+    private static string GetEdgeLabel(Relationship relationship)
     {
-        // Omit the label text for now. The color makes it clear that it is a call dependency
-        if (dependency.Type == DependencyType.Calls || dependency.Type ==  DependencyType.Invokes)
+        // Omit the label text for now. The color makes it clear that it is a call relationship
+        if (relationship.Type == RelationshipType.Calls || relationship.Type == RelationshipType.Invokes)
         {
             return string.Empty;
         }
 
         // We can see this by the dotted line
-        if (dependency.Type == DependencyType.Implements || dependency.Type == DependencyType.Inherits)
+        if (relationship.Type == RelationshipType.Implements || relationship.Type == RelationshipType.Inherits)
         {
             return string.Empty;
         }
 
-        if (dependency.Type == DependencyType.Uses)
+        if (relationship.Type == RelationshipType.Uses)
         {
             return string.Empty;
         }
 
-        if (dependency.Type == DependencyType.UsesAttribute)
+        if (relationship.Type == RelationshipType.UsesAttribute)
         {
             return string.Empty;
         }
 
-        return dependency.Type.ToString();
+        return relationship.Type.ToString();
     }
 
     private static void WriteCategories(DgmlFileBuilder writer)

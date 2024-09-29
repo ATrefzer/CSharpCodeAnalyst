@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.GraphArea;
 
-public interface IDependencyGraphBinding
+public interface IGraphBinding
 {
     /// <summary>
     ///     Binds the given Panel to the viewer.

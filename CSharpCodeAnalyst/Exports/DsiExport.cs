@@ -36,15 +36,15 @@ public class DsiExport
             currentId++;
         }
 
-        // Add dependencies (relation)
+        // Add relationships (relation)
         foreach (var node in codeGraph.Nodes.Values)
         {
-            foreach (var dependency in node.Dependencies)
+            foreach (var relationship in node.Relationships)
             {
                 relations.Add(new XElement(ns + "relation",
                     new XAttribute("from", idMap[node.Id]),
-                    new XAttribute("to", idMap[dependency.TargetId]),
-                    new XAttribute("type", dependency.Type.ToString()),
+                    new XAttribute("to", idMap[relationship.TargetId]),
+                    new XAttribute("type", relationship.Type.ToString()),
                     new XAttribute("weight", "1")
                 ));
             }

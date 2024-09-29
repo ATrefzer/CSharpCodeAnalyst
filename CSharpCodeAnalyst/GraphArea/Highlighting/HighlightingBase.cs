@@ -1,22 +1,21 @@
 ﻿using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
 
 namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
 internal abstract class HighlightingBase : IHighlighting
 {
+    private readonly Color _grayColor = Color.LightGray;
     private readonly Color _highlightColor = Color.Red;
     private readonly int _highlightWeight = 3;
 
     private readonly Color _normalColor = Color.Black;
     private readonly int _normalWeight = 1;
 
-    private readonly Color _grayColor = Color.LightGray;
+    public abstract void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
+        IViewerObject? viewerObject, CodeGraph? codeGraph);
 
-    public abstract void Highlight(GraphViewer? graphViewer, IViewerObject? viewerObject, CodeGraph? codeGraph);
-
-    public abstract void Clear(GraphViewer? graphViewer);
+    public abstract void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer);
 
     protected void Highlight(IViewerEdge edge)
     {
@@ -31,7 +30,7 @@ internal abstract class HighlightingBase : IHighlighting
             return;
         }
 
-        if (edge.Edge.UserData is Dependency { Type: DependencyType.Containment })
+        if (edge.Edge.UserData is Relationship { Type: RelationshipType.Containment })
         {
             edge.Edge.Attr.Color = _grayColor;
         }
@@ -39,11 +38,11 @@ internal abstract class HighlightingBase : IHighlighting
         {
             edge.Edge.Attr.Color = _normalColor;
         }
-    
+
         edge.Edge.Attr.LineWidth = _normalWeight;
     }
 
-    protected void ClearAllEdges(GraphViewer? graphViewer)
+    protected void ClearAllEdges(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
     {
         if (graphViewer is null)
         {

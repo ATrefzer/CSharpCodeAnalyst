@@ -19,7 +19,7 @@ public partial class MainWindow
         InitializeComponent();
     }
 
-    public void SetViewer(IDependencyGraphBinding explorationGraphViewer
+    public void SetViewer(IGraphBinding explorationGraphViewer
     )
     {
         explorationGraphViewer.Bind(ExplorationGraphPanel);

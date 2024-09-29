@@ -9,21 +9,20 @@ using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using Microsoft.Msagl.Drawing;
-using Microsoft.Msagl.WpfGraphControl;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
 /// <summary>
 ///     Note:
-///     Between nodes we can have multiple dependencies if the dependency type is different.
-///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
-///     in the parser. In this case the dependency holds all source references.
+///     Between nodes we can have multiple relationships if the relationship type is different.
+///     Relationships of the same type (i.e a method Calls another multiple times) are handled
+///     in the parser. In this case the relationship holds all source references.
 ///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
-internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphBinding, INotifyPropertyChanged
+internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 {
-    private readonly List<IDependencyContextCommand> _edgeCommands = [];
+    private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalContextCommand> _globalCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
     private readonly List<ICodeElementContextCommand> _nodeCommands = [];
@@ -38,18 +37,18 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     private CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
-    private GraphViewer? _msaglViewer;
+    private Microsoft.Msagl.WpfGraphControl.GraphViewer? _msaglViewer;
     private PresentationState _presentationState = new();
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
 
     /// <summary>
     ///     Note:
-    ///     Between nodes we can have multiple dependencies if the dependency type is different.
-    ///     Dependencies of the same type (i.e a method Calls another multiple times) are handled
-    ///     in the parser. In this case the dependency holds all source references.
+    ///     Between nodes we can have multiple relationships if the relationship type is different.
+    ///     Relationships of the same type (i.e a method Calls another multiple times) are handled
+    ///     in the parser. In this case the relationship holds all source references.
     /// </summary>
-    public DependencyGraphViewer(IPublisher publisher)
+    public GraphViewer(IPublisher publisher)
     {
         _publisher = publisher;
         _msaglBuilder = new MsaglBuilder();
@@ -58,7 +57,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
     public void Bind(Panel graphPanel)
     {
-        _msaglViewer = new GraphViewer();
+        _msaglViewer = new Microsoft.Msagl.WpfGraphControl.GraphViewer();
         _msaglViewer.BindToPanel(graphPanel);
 
         _msaglViewer.ObjectUnderMouseCursorChanged += ObjectUnderMouseCursorChanged;
@@ -72,18 +71,18 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     }
 
     /// <summary>
-    ///     Adding an existing element or dependency is prevented.
+    ///     Adding an existing element or relationship is prevented.
     ///     Note from the originalCodeElement we don't add parent or children.
     ///     We just use this information to integrate the node into the existing canvas.
     /// </summary>
-    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Dependency> newDependencies)
+    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships)
     {
         if (!IsBoundToPanel())
         {
             return;
         }
 
-        AddToGraphInternal(originalCodeElements, newDependencies);
+        AddToGraphInternal(originalCodeElements, newRelationships);
         RefreshGraph();
     }
 
@@ -92,7 +91,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         _nodeCommands.Add(command);
     }
 
-    public void AddContextMenuCommand(IDependencyContextCommand command)
+    public void AddContextMenuCommand(IRelationshipContextCommand command)
     {
         _edgeCommands.Add(command);
     }
@@ -207,16 +206,16 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         RefreshGraph();
     }
 
-    public void DeleteFromGraph(List<Dependency> dependencies)
+    public void DeleteFromGraph(List<Relationship> relationships)
     {
         if (_msaglViewer is null)
         {
             return;
         }
 
-        foreach (var dependency in dependencies)
+        foreach (var relationship in relationships)
         {
-            _clonedCodeGraph.Nodes[dependency.SourceId].Dependencies.Remove(dependency);
+            _clonedCodeGraph.Nodes[relationship.SourceId].Relationships.Remove(relationship);
         }
 
         RefreshGraph();
@@ -257,7 +256,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         return _presentationState.IsCollapsed(id);
     }
 
-    public void LoadSession(List<CodeElement> codeElements, List<Dependency> dependencies, PresentationState state)
+    public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
     {
         if (_msaglViewer is null)
         {
@@ -265,7 +264,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
 
         Clear();
-        AddToGraphInternal(codeElements, dependencies);
+        AddToGraphInternal(codeElements, relationships);
         _presentationState = state;
 
         RefreshGraph();
@@ -291,7 +290,7 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
     }
 
     private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
-        IEnumerable<Dependency> newDependencies)
+        IEnumerable<Relationship> newRelationships)
     {
         if (_msaglViewer is null)
         {
@@ -300,11 +299,11 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
 
         IntegrateNewFromOriginal(originalCodeElements);
 
-        // Add dependencies we explicitly requested.
-        foreach (var newDependency in newDependencies)
+        // Add relationships we explicitly requested.
+        foreach (var newRelationship in newRelationships)
         {
-            var sourceElement = _clonedCodeGraph.Nodes[newDependency.SourceId];
-            sourceElement.Dependencies.Add(newDependency);
+            var sourceElement = _clonedCodeGraph.Nodes[newRelationship.SourceId];
+            sourceElement.Relationships.Add(newRelationship);
         }
     }
 
@@ -428,8 +427,8 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
                 // Click on specific edge
                 var edge = viewerEdge.Edge;
                 var contextMenu = new ContextMenu();
-                var dependencies = GetDependenciesFromUserData(edge);
-                AddContextMenuEntries(dependencies, contextMenu);
+                var relationships = GetRelationshipsFromUserData(edge);
+                AddContextMenuEntries(relationships, contextMenu);
                 if (contextMenu.Items.Count > 0)
                 {
                     contextMenu.IsOpen = true;
@@ -447,9 +446,9 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         }
     }
 
-    private void AddContextMenuEntries(List<Dependency> dependencies, ContextMenu contextMenu)
+    private void AddContextMenuEntries(List<Relationship> relationships, ContextMenu contextMenu)
     {
-        if (dependencies.Count == 0)
+        if (relationships.Count == 0)
         {
             return;
         }
@@ -457,24 +456,24 @@ internal class DependencyGraphViewer : IDependencyGraphViewer, IDependencyGraphB
         foreach (var cmd in _edgeCommands)
         {
             var menuItem = new MenuItem { Header = cmd.Label };
-            if (cmd.CanHandle(dependencies))
+            if (cmd.CanHandle(relationships))
             {
-                menuItem.Click += (_, _) => cmd.Invoke(dependencies);
+                menuItem.Click += (_, _) => cmd.Invoke(relationships);
                 contextMenu.Items.Add(menuItem);
             }
         }
     }
 
-    private static List<Dependency> GetDependenciesFromUserData(Edge edge)
+    private static List<Relationship> GetRelationshipsFromUserData(Edge edge)
     {
-        var result = new List<Dependency>();
+        var result = new List<Relationship>();
         switch (edge.UserData)
         {
-            case Dependency dependency:
-                result.Add(dependency);
+            case Relationship relationship:
+                result.Add(relationship);
                 break;
-            case List<Dependency> dependencies:
-                result.AddRange(dependencies);
+            case List<Relationship> relationships:
+                result.AddRange(relationships);
                 break;
         }
 

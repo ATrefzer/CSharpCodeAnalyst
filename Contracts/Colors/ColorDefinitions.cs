@@ -18,7 +18,7 @@ public static class ColorDefinitions
     ///     Field: Dark Yellow (#D7BA7D)
     ///     Event: Pink (#FF69B4)
     ///     Delegate: Light Purple (#C586C0)
-    ///     Dependencies:
+    ///     Relationships:
     ///     Inheritance: Dark Green (#008000)
     ///     Implementation: Light Green (#90EE90)
     ///     Calls: Blue (#0000FF)

@@ -15,7 +15,7 @@ public class CodeGraphGeneratorTests
         var originalGraph = new CodeGraph();
         var classA = new CodeElement("A", CodeElementType.Class, "ClassA", "", null);
         var classB = new CodeElement("B", CodeElementType.Class, "ClassB", "", null);
-        classA.Dependencies.Add(new Dependency("A", "B", DependencyType.Uses));
+        classA.Relationships.Add(new Relationship("A", "B", RelationshipType.Uses));
         originalGraph.Nodes["A"] = classA;
         originalGraph.Nodes["B"] = classB;
 
@@ -25,9 +25,9 @@ public class CodeGraphGeneratorTests
         Assert.AreEqual(2, detailedGraph.Nodes.Count);
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A"));
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B"));
-        Assert.AreEqual(1, detailedGraph.Nodes["A"].Dependencies.Count);
-        Assert.AreEqual(0, detailedGraph.Nodes["B"].Dependencies.Count);
-        Assert.AreEqual("B", detailedGraph.Nodes["A"].Dependencies.First().TargetId);
+        Assert.AreEqual(1, detailedGraph.Nodes["A"].Relationships.Count);
+        Assert.AreEqual(0, detailedGraph.Nodes["B"].Relationships.Count);
+        Assert.AreEqual("B", detailedGraph.Nodes["A"].Relationships.First().TargetId);
     }
 
     [Test]
@@ -38,7 +38,7 @@ public class CodeGraphGeneratorTests
         var methodA = new CodeElement("A.M", CodeElementType.Method, "MethodA", "", classA);
         var classB = new CodeElement("B", CodeElementType.Class, "ClassB", "", null);
         var methodB = new CodeElement("B.M", CodeElementType.Method, "MethodB", "", classB);
-        methodA.Dependencies.Add(new Dependency("A.M", "B.M", DependencyType.Calls));
+        methodA.Relationships.Add(new Relationship("A.M", "B.M", RelationshipType.Calls));
         classA.Children.Add(methodA);
         classB.Children.Add(methodB);
         originalGraph.Nodes["A"] = classA;
@@ -54,8 +54,8 @@ public class CodeGraphGeneratorTests
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A.M"));
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B"));
         Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B.M"));
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M"].Dependencies.Count);
-        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M"].Dependencies.First().TargetId);
+        Assert.AreEqual(1, detailedGraph.Nodes["A.M"].Relationships.Count);
+        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M"].Relationships.First().TargetId);
     }
 
     [Test]
@@ -67,8 +67,8 @@ public class CodeGraphGeneratorTests
         var methodA2 = new CodeElement("A.M2", CodeElementType.Method, "MethodA2", "", classA);
         var classB = new CodeElement("B", CodeElementType.Class, "ClassB", "", null);
         var methodB = new CodeElement("B.M", CodeElementType.Method, "MethodB", "", classB);
-        methodA1.Dependencies.Add(new Dependency("A.M1", "B", DependencyType.Calls));
-        methodA2.Dependencies.Add(new Dependency("A.M2", "B.M", DependencyType.Calls));
+        methodA1.Relationships.Add(new Relationship("A.M1", "B", RelationshipType.Calls));
+        methodA2.Relationships.Add(new Relationship("A.M2", "B.M", RelationshipType.Calls));
         classA.Children.Add(methodA1);
         classA.Children.Add(methodA2);
         classB.Children.Add(methodB);
@@ -82,9 +82,9 @@ public class CodeGraphGeneratorTests
         var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
         Assert.AreEqual(5, detailedGraph.Nodes.Count);
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M1"].Dependencies.Count);
-        Assert.AreEqual("B", detailedGraph.Nodes["A.M1"].Dependencies.First().TargetId);
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M2"].Dependencies.Count);
-        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M2"].Dependencies.First().TargetId);
+        Assert.AreEqual(1, detailedGraph.Nodes["A.M1"].Relationships.Count);
+        Assert.AreEqual("B", detailedGraph.Nodes["A.M1"].Relationships.First().TargetId);
+        Assert.AreEqual(1, detailedGraph.Nodes["A.M2"].Relationships.Count);
+        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M2"].Relationships.First().TargetId);
     }
 }
