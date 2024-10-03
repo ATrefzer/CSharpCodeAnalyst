@@ -1,6 +1,7 @@
 # C# Code Analyst
 
 This application helps you to explore, understand, and maintain C# code.
+
 Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
 
 ## Exploring your codebase
