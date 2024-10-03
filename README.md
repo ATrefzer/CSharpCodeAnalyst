@@ -30,7 +30,7 @@ Use the context menu to copy the related code elements to the explorer graph for
 
 ### **Why Look for Cycles?**
 
-More than 40 years ago, in his often-cited paper "Designing software for ease of extension and contraction" David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
+More than 40 years ago, in his often-cited paper ["Designing software for ease of extension and contraction"](https://courses.cs.washington.edu/courses/cse503/08wi/parnas-1979.pdf) David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
 
 This idea of having cycle-free modules is quite intuitive. Let's look at an example outside the software world: Imagine a project plan with two tasks, A and B, depending on each other, forming a cycle. How would you tackle these tasks? You'd have to do them together as a whole. It's similar in software. If there are cycles in the area you want to change, you might end up reading and understanding all the classes involved in the cycle. Changes can easily have side effects in unexpected areas. Consequently, a software system with circular dependencies is more difficult to maintain.
 
