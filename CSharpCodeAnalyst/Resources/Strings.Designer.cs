@@ -133,6 +133,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string Close_Button {
+            get {
+                return ResourceManager.GetString("Close_Button", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code Elements.
         /// </summary>
         public static string CodeElements_Header {
@@ -448,6 +457,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Help.
+        /// </summary>
+        public static string Help_Header {
+            get {
+                return ResourceManager.GetString("Help_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighting.
         /// </summary>
         public static string Highlighting_Label {
@@ -543,6 +561,141 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Layout_Tooltip {
             get {
                 return ResourceManager.GetString("Layout_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assembly.
+        /// </summary>
+        public static string Legend_Assembly {
+            get {
+                return ResourceManager.GetString("Legend_Assembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Class.
+        /// </summary>
+        public static string Legend_Class {
+            get {
+                return ResourceManager.GetString("Legend_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate.
+        /// </summary>
+        public static string Legend_Delegate {
+            get {
+                return ResourceManager.GetString("Legend_Delegate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enum.
+        /// </summary>
+        public static string Legend_Enum {
+            get {
+                return ResourceManager.GetString("Legend_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        public static string Legend_Event {
+            get {
+                return ResourceManager.GetString("Legend_Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field.
+        /// </summary>
+        public static string Legend_Field {
+            get {
+                return ResourceManager.GetString("Legend_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface.
+        /// </summary>
+        public static string Legend_Interface {
+            get {
+                return ResourceManager.GetString("Legend_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Legend.
+        /// </summary>
+        public static string Legend_Label {
+            get {
+                return ResourceManager.GetString("Legend_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method.
+        /// </summary>
+        public static string Legend_Method {
+            get {
+                return ResourceManager.GetString("Legend_Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace.
+        /// </summary>
+        public static string Legend_Namespace {
+            get {
+                return ResourceManager.GetString("Legend_Namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property.
+        /// </summary>
+        public static string Legend_Property {
+            get {
+                return ResourceManager.GetString("Legend_Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Record.
+        /// </summary>
+        public static string Legend_Record {
+            get {
+                return ResourceManager.GetString("Legend_Record", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Struct.
+        /// </summary>
+        public static string Legend_Struct {
+            get {
+                return ResourceManager.GetString("Legend_Struct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Color Legend.
+        /// </summary>
+        public static string Legend_Title {
+            get {
+                return ResourceManager.GetString("Legend_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show color legend.
+        /// </summary>
+        public static string Legend_Tooltip {
+            get {
+                return ResourceManager.GetString("Legend_Tooltip", resourceCulture);
             }
         }
         
