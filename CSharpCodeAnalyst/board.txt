@@ -1,6 +1,30 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+ private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
+    {
+        var containingType = eventSymbol.ContainingType;
+
+        // TODO are base interfaces included.
+        foreach (var @interface in containingType.AllInterfaces)
+
+
+
+
+  // calls: m1 (source) -> calls -> m2 (element, target)
+            // overrides m1 -> overrides -> m2 (element, target)
+            var callsToOwnBase = calls.Where(c => allImplementsAndOverrides.Any(r => 
+                r.SourceId == c.SourceId &&
+                r.TargetId == element.Id));
+
+            calls = calls.Except(callsToOwnBase).ToArray();
+            foundRelationships.UnionWith(calls);
+            var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+            foundElements.UnionWith(callSources);
+
+
+
+
 - Anonymous methods like PdsOnElementCreated, lambdas
 
 - Highlighting aggregated edges takes too long. If quick help is not visible then skip.

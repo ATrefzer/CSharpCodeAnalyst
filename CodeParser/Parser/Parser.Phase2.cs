@@ -181,14 +181,17 @@ public partial class Parser
     private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
     {
         var containingType = eventSymbol.ContainingType;
+
+        // TODO are base interfaces included.
         foreach (var @interface in containingType.AllInterfaces)
         {
             var interfaceMembers = @interface.GetMembers().OfType<IEventSymbol>();
             foreach (var interfaceEvent in interfaceMembers)
             {
                 var implementingEvent = containingType.FindImplementationForInterfaceMember(interfaceEvent);
-                if (implementingEvent != null && SymbolEqualityComparer.Default.Equals(implementingEvent, eventSymbol))
+                if (implementingEvent != null)
                 {
+                    Debug.Assert(implementingEvent.KeySymbolOnly() == eventSymbol.KeySymbolOnly());
                     return interfaceEvent;
                 }
             }
@@ -262,6 +265,9 @@ public partial class Parser
     }
 
 
+    /// <summary>
+    /// Adds "implements" relationships for interface methods and overrides relationships for abstract methods.
+    /// </summary>
     private void FindImplementations(CodeElement methodElement, IMethodSymbol methodSymbol)
     {
         var implementingTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
@@ -274,12 +280,19 @@ public partial class Parser
         // If it's an abstract method, find all types deriving from the containing type
         else if (methodSymbol.IsAbstract)
         {
+            // TODO zu viele Typen! Nur der erste, sonst haben wir später implements UND override
             implementingTypes.UnionWith(FindTypesDerivedFrom(methodSymbol.ContainingType));
         }
 
         foreach (var implementingType in implementingTypes)
         {
-            var implementingMethod = implementingType.FindImplementationForInterfaceMember(methodSymbol);
+            // Here we have again the problem with symbols from different compilations.
+            // var implementingMethod = implementingType.FindImplementationForInterfaceMember(methodSymbol);
+
+            var key = methodSymbol.KeySymbolOnly();
+            var members = implementingType.GetMembers().Select(m => (m.KeySymbolOnly(), m));
+            var implementingMethod = members.FirstOrDefault(m => m.Item1 == key).Item2;
+
             if (implementingMethod != null)
             {
                 var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(implementingMethod.Key());
@@ -295,8 +308,9 @@ public partial class Parser
 
     private IEnumerable<INamedTypeSymbol> FindTypesImplementingInterface(INamedTypeSymbol interfaceSymbol)
     {
+        var interfaceKey = interfaceSymbol.Key();
         return _allNamedTypesInSolution
-            .Where(type => type.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, interfaceSymbol)));
+            .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
@@ -310,7 +324,7 @@ public partial class Parser
         var currentType = type.BaseType;
         while (currentType != null)
         {
-            if (SymbolEqualityComparer.Default.Equals(currentType, baseType))
+            if (currentType.Key() == baseType.Key())
             {
                 return true;
             }
@@ -395,7 +409,6 @@ public partial class Parser
                 }
             }
 
-            // Check if this is an event invocation using Invoke method
             // Check if this is an event invocation using Invoke method
             if (calledMethod.Name == "Invoke")
             {
@@ -645,6 +658,9 @@ public partial class Parser
     private void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
     {
+        // TODO Get information about the called type.
+        // var typeInfo = semanticModel.GetTypeInfo(memberAccessSyntax.Expression);
+
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
         var symbol = symbolInfo.Symbol;
 

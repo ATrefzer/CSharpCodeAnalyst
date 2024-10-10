@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace CodeParser.Parser;
 
@@ -34,6 +33,17 @@ public static class SymbolExtensions
         return string.Join(".", parts.Select(GetKeyInternal));
     }
 
+
+    /// <summary>
+    /// Returns a key for the symbol only without the parent chain.
+    /// This key can identify the overrides of a symbol in a class hierarchy
+    /// </summary>
+    public static string KeySymbolOnly(this ISymbol symbol)
+    {
+        return GetKeyInternal(symbol);
+    }
+
+
     /// <summary>
     ///     Sometimes when walking up the parent chain:
     ///     After the global namespace the containing symbol is not reliable.
@@ -66,7 +76,7 @@ public static class SymbolExtensions
         return parts;
     }
 
-
+  
     private static string GetKeyInternal(ISymbol symbol)
     {
         var name = symbol.Name;
