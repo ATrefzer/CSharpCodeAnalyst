@@ -178,16 +178,21 @@ public partial class Parser
         }
     }
 
+    /// <summary>
+    /// Returns the interface where this event is defined.
+    /// </summary>
     private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
     {
         var containingType = eventSymbol.ContainingType;
 
-        // TODO are base interfaces included.
+        // TODO base interfaces are included.Ok, not ok
         foreach (var @interface in containingType.AllInterfaces)
         {
             var interfaceMembers = @interface.GetMembers().OfType<IEventSymbol>();
             foreach (var interfaceEvent in interfaceMembers)
             {
+                // TODO
+                // Here we have again the problem with symbols from different compilations.
                 var implementingEvent = containingType.FindImplementationForInterfaceMember(interfaceEvent);
                 if (implementingEvent != null)
                 {
@@ -288,6 +293,7 @@ public partial class Parser
         {
             // Here we have again the problem with symbols from different compilations.
             // var implementingMethod = implementingType.FindImplementationForInterfaceMember(methodSymbol);
+            var test = implementingType.FindImplementationForInterfaceMember(methodSymbol);
 
             var key = methodSymbol.KeySymbolOnly();
             var members = implementingType.GetMembers().Select(m => (m.KeySymbolOnly(), m));
@@ -306,11 +312,16 @@ public partial class Parser
         }
     }
 
+    /// <summary>
+    /// Returns the named types that directly implement the given interface.
+    /// Interfaces implemented in base types are not considered.
+    /// </summary>
     private IEnumerable<INamedTypeSymbol> FindTypesImplementingInterface(INamedTypeSymbol interfaceSymbol)
     {
+        // Note: AllInterfaces returns all interfaces found at this type, regardless if it is implemented in a base class or notl
         var interfaceKey = interfaceSymbol.Key();
         return _allNamedTypesInSolution
-            .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
+            .Where(type => type.Interfaces.Any(i => i.Key() == interfaceKey));
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)

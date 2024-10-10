@@ -1,6 +1,13 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+Events with different signatures?
+
+In the derivative find only first implements. However, this issue is not a problem with Find...
+
+Relationship between methods and events. Duplicates? Different strategy?
+
+
  private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
     {
         var containingType = eventSymbol.ContainingType;
