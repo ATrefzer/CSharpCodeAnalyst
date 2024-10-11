@@ -148,7 +148,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, Nodes[d.TargetId].FullName));
 
         var elementNames = Nodes.Values.OrderBy(v => v.FullName).Select(e => e.FullName);
-        var relationshipNames = relationships.Select(d => $"{d.Item1} -> {d.Item2}");
+        var relationshipNames = relationships.Select(d => $"{d.Item1} -> {d.Item2}").OrderBy(x => x);
         return string.Join("\n", elementNames) +
                string.Join("\n", relationshipNames);
     }
