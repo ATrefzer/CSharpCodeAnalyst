@@ -10,25 +10,27 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.deps.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.deps.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="appsettings.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="lamp.ico" />
+		<Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.deps.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.deps.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="..\ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json" Link="ExternalApplications\DsmSuite.DsmViewer.View.runtimeconfig.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="appsettings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="lamp.ico" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-    <Resource Include="Resources\filter_32.png" />
-    <Resource Include="Resources\undo_32.png" />
-    <Resource Include="Resources\redo_32.png" />
-    <Resource Include="Resources\clear_32.png" />
-    <Resource Include="Resources\Collapse_16.png" />
+		<Resource Include="Resources\help_32.png" />
+		<Resource Include="Resources\legend_32.png" />
+		<Resource Include="Resources\filter_32.png" />
+		<Resource Include="Resources\undo_32.png" />
+		<Resource Include="Resources\redo_32.png" />
+		<Resource Include="Resources\clear_32.png" />
+		<Resource Include="Resources\Collapse_16.png" />
 		<Resource Include="Resources\complexity_32.png" />
 		<Resource Include="Resources\cycle_32.png" />
 		<Resource Include="Resources\document-xml.png" />
@@ -78,60 +80,60 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="ExternalApplications\" />
+		<Folder Include="ExternalApplications\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\ExternalApplications\DsmSuite.Analyzer.Model.dll" Link="ExternalApplications\DsmSuite.Analyzer.Model.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.Common.Model.dll" Link="ExternalApplications\DsmSuite.Common.Model.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.Common.Util.dll" Link="ExternalApplications\DsmSuite.Common.Util.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.Application.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Application.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.Model.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Model.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.dll" Link="ExternalApplications\DsmSuite.DsmViewer.View.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.exe" Link="ExternalApplications\DsmSuite.DsmViewer.View.exe">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Include="..\ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll" Link="ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+		<None Include="..\ExternalApplications\DsmSuite.Analyzer.Model.dll" Link="ExternalApplications\DsmSuite.Analyzer.Model.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.Common.Model.dll" Link="ExternalApplications\DsmSuite.Common.Model.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.Common.Util.dll" Link="ExternalApplications\DsmSuite.Common.Util.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.DsmViewer.Application.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Application.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.DsmViewer.Model.dll" Link="ExternalApplications\DsmSuite.DsmViewer.Model.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.dll" Link="ExternalApplications\DsmSuite.DsmViewer.View.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.DsmViewer.View.exe" Link="ExternalApplications\DsmSuite.DsmViewer.View.exe">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll" Link="ExternalApplications\DsmSuite.DsmViewer.ViewModel.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
-   <ItemGroup>
-	  <Reference Include="Microsoft.Msagl">
-	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Microsoft.Msagl.Drawing">
-	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.Drawing.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Microsoft.Msagl.WpfGraphControl">
-	    <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.WpfGraphControl.dll</HintPath>
-	  </Reference>
+	<ItemGroup>
+		<Reference Include="Microsoft.Msagl">
+			<HintPath>..\ReferencedAssemblies\Microsoft.Msagl.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Msagl.Drawing">
+			<HintPath>..\ReferencedAssemblies\Microsoft.Msagl.Drawing.dll</HintPath>
+		</Reference>
+		<Reference Include="Microsoft.Msagl.WpfGraphControl">
+			<HintPath>..\ReferencedAssemblies\Microsoft.Msagl.WpfGraphControl.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
-   <ItemGroup>
-     <Compile Update="Resources\Strings.Designer.cs">
-       <DesignTime>True</DesignTime>
-       <AutoGen>True</AutoGen>
-       <DependentUpon>Strings.resx</DependentUpon>
-     </Compile>
-   </ItemGroup>
+	<ItemGroup>
+		<Compile Update="Resources\Strings.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-   <ItemGroup>
-     <EmbeddedResource Update="Resources\Strings.resx">
-       <Generator>PublicResXFileCodeGenerator</Generator>
-       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-     </EmbeddedResource>
-   </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Strings.resx">
+			<Generator>PublicResXFileCodeGenerator</Generator>
+			<LastGenOutput>Strings.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
 </Project>
