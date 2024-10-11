@@ -17,13 +17,9 @@ public partial class Parser
         // Analyze the property type
         AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses);
 
-        // Check for interface implementation
-        var implementedInterfaceProperty = GetImplementedInterfaceProperty(propertySymbol);
-        if (implementedInterfaceProperty != null)
+        if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            var locations = GetLocations(propertySymbol);
-            AddPropertyRelationship(propertyElement, implementedInterfaceProperty, RelationshipType.Implements,
-                locations);
+            FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
         }
 
         // Check for property override
@@ -80,24 +76,5 @@ public partial class Parser
         RelationshipType relationshipType, List<SourceLocation> locations)
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
-    }
-
-    private IPropertySymbol? GetImplementedInterfaceProperty(IPropertySymbol propertySymbol)
-    {
-        var containingType = propertySymbol.ContainingType;
-        foreach (var @interface in containingType.AllInterfaces)
-        {
-            var interfaceMembers = @interface.GetMembers().OfType<IPropertySymbol>();
-            foreach (var interfaceProperty in interfaceMembers)
-            {
-                var implementingProperty = containingType.FindImplementationForInterfaceMember(interfaceProperty);
-                if (implementingProperty != null && implementingProperty.Equals(propertySymbol))
-                {
-                    return interfaceProperty;
-                }
-            }
-        }
-
-        return null;
     }
 }

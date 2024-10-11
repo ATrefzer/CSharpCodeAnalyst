@@ -107,11 +107,88 @@ public class CodeParserApprovalTests
 
             "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance",
             "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
-            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2",
+
+            // Interface implementation from different assembly
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method",
+            "ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method",
+
+            // Regression Hierarchies
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase.MethodFromInterfaceBase",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB.MethodB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC.MethodC",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodFromInterfaceBase",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA"
         };
 
 
         CollectionAssert.AreEquivalent(expectedMethods, methods);
+    }
+
+    [Test]
+    public void FindsAllClasses()
+    {
+        var codeElements = _graph.Nodes.Values;
+
+        var actual = codeElements
+            .Where(n => n.ElementType == CodeElementType.Class)
+            .Select(m => m.FullName).ToList();
+
+        var expected = new List<string>
+        {
+            // Twice this is a generic class
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Foo",
+            "CSharpLanguage.CSharpLanguage.MoreGenerics.Foo",
+
+            "ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass",
+            "ModuleLevel2.ModuleLevel2.N1.ClassInNs1", "ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass", "ModuleLevel2.ModuleLevel2.Utility",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelD", "ModuleLevel1.ModuleLevel1.ServiceA",
+            "ModuleLevel1.ModuleLevel1.ServiceBase", "ModuleLevel1.ModuleLevel1.ServiceC",
+            "ModuleLevel2.ClassInGlobalNs", "ModuleLevel2.Insight.Analyzers",
+            "ModuleLevel2.Insight.Dialogs.TrendViewModel", "ModuleLevel2.ModuleLevel2.Constants",
+            "Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper", "ModuleLevel0.ModuleLevel0.Ns1.ClassL",
+            "ModuleLevel0.ModuleLevel0.Ns1.ClassL.InnerClassL", "ModuleLevel0.ModuleLevel0.Ns1.Ns2.ClassY",
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation",
+            "ModuleLevel1.ModuleLevel1.FactoryC", "ModuleLevel1.ModuleLevel1.Model.ModelA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB",
+
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4",
+            "CSharpLanguage.CSharpLanguage.TheExtendedType", "CSharpLanguage.CSharpLanguage.XmlFile",
+            "Cycles.Cycles.ClassLevel_Fields.Class1", "Cycles.Cycles.ClassLevel_Fields.Class2",
+            "Cycles.Cycles.OuterClass", "Cycles.Cycles.OuterClass.DirectChildClass",
+            "Cycles.Cycles.OuterClass.MiddleClass",
+            "CSharpLanguage.CSharpLanguage.Partial.Client",
+            "CSharpLanguage.CSharpLanguage.Partial.PartialClass", "CSharpLanguage.CSharpLanguage.PinSignalView",
+            "CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer",
+            "CSharpLanguage.CSharpLanguage.Project", "CSharpLanguage.CSharpLanguage.ProjectFile",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2",
+
+            "CSharpLanguage.CSharpLanguage.My2Attribute", "CSharpLanguage.CSharpLanguage.MyAttribute",
+            "CSharpLanguage.CSharpLanguage.MyEventArgs", "CSharpLanguage.CSharpLanguage.NS_Parent.ClassINparent",
+            "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild",
+            "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant",
+            "CSharpLanguage.CSharpLanguage.Ns1.ClassM", "CSharpLanguage.CSharpLanguage.Ns1.Ns2.ClassX",
+            "CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent", "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent",
+            "CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes", "CSharpLanguage.CSharpLanguage.CustomException",
+            "CSharpLanguage.CSharpLanguage.EventInvocation", "CSharpLanguage.CSharpLanguage.EventSink",
+            "CSharpLanguage.CSharpLanguage.Extensions", "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage",
+            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage", "CSharpLanguage.CSharpLanguage.MoreGenerics"
+        };
+
+        CollectionAssert.AreEquivalent(expected, actual);
     }
 
     [Test]
@@ -161,7 +238,12 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3",
 
             "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1",
-            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2"
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2",
+
+
+            // Hierarchies. Calling the base classes.
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -257,7 +339,17 @@ public class CodeParserApprovalTests
         {
             "ModuleLevel1.ModuleLevel1.ServiceBase.Do -> ModuleLevel1.ModuleLevel1.IServiceC.Do",
             "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load",
-            "CSharpLanguage.CSharpLanguage.StructWithInterface.Method -> CSharpLanguage.CSharpLanguage.IStructInterface.Method"
+            "CSharpLanguage.CSharpLanguage.StructWithInterface.Method -> CSharpLanguage.CSharpLanguage.IStructInterface.Method",
+
+            // Regression Hierarchies
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB.MethodB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodFromInterfaceBase -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase.MethodFromInterfaceBase",
+            // Yes, even if it is abstract. It is still an implementation.
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC.MethodC",
+
+
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method"
         };
 
 
@@ -280,7 +372,13 @@ public class CodeParserApprovalTests
 
         var expected = new HashSet<string>
         {
-            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel1.ModuleLevel1.ServiceBase.Do"
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel1.ModuleLevel1.ServiceBase.Do",
+
+            // Regression Hierarchies
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA"
         };
 
 
@@ -340,7 +438,6 @@ public class CodeParserApprovalTests
     [Test]
     public void FindsAllEventImplementations()
     {
-        // Registration and unregistration
         var actual = _graph.Nodes.Values
             .SelectMany(n => n.Relationships)
             .Where(d => d.Type == RelationshipType.Implements)
@@ -353,7 +450,9 @@ public class CodeParserApprovalTests
 
         var expected = new HashSet<string>
         {
-            "CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent"
+            "CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent",
+
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent"
         };
 
 
@@ -391,7 +490,8 @@ public class CodeParserApprovalTests
             .SelectMany(n => n.Relationships)
             .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (_graph.Nodes[d.SourceId], _graph.Nodes[d.TargetId]))
-            .Where(t => t.Item1.ElementType == CodeElementType.Class &&
+            .Where(t => (t.Item1.ElementType == CodeElementType.Class ||
+                         t.Item1.ElementType == CodeElementType.Interface) &&
                         t.Item2.ElementType == CodeElementType.Interface)
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToList();
@@ -401,7 +501,17 @@ public class CodeParserApprovalTests
         {
             "ModuleLevel1.ModuleLevel1.ServiceBase -> ModuleLevel1.ModuleLevel1.IServiceC",
             "CSharpLanguage.CSharpLanguage.MissingInterface.Storage -> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage",
-            "CSharpLanguage.CSharpLanguage.EventInvocation -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent"
+            "CSharpLanguage.CSharpLanguage.EventInvocation -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent",
+
+
+            // Regression Hierarchies
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC",
+
+
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation"
         };
 
 
@@ -425,7 +535,13 @@ public class CodeParserApprovalTests
         {
             "ModuleLevel1.ModuleLevel1.ServiceC -> ModuleLevel1.ModuleLevel1.ServiceBase",
             "CSharpLanguage.CSharpLanguage.ProjectFile -> CSharpLanguage.CSharpLanguage.XmlFile",
-            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage -> CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage"
+            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage -> CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage",
+
+            // Regression Hierarchies
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2",
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3"
         };
 
 

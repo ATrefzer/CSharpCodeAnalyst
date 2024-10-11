@@ -193,7 +193,7 @@
     <value>Resets zoom level and fits to screen</value>
   </data>
   <data name="TooMuchElementsMessage" xml:space="preserve">
-    <value>There are {0} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?</value>
+    <value>There would be {0} code elements in the graph. It may take extremely long to render this data. Do you want to proceed?</value>
   </data>
   <data name="TooMuchElementsTitle" xml:space="preserve">
     <value>Proceed?</value>

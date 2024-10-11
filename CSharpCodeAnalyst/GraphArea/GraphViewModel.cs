@@ -449,8 +449,14 @@ internal class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        var result =
-            _explorer.FollowIncomingCallsRecursive(element.Id);
+        var result = _explorer.FollowIncomingCallsRecursive(element.Id);
+
+        // The result may explode.
+        if (ProceedWithLargeGraph(result.Elements.Count() + (int)_viewer.GetGraph().VertexCount) is false)
+        {
+            return;
+        }
+
         AddToGraph(result.Elements, result.Relationships);
     }
 

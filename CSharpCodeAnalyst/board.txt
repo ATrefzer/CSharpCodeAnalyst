@@ -1,21 +1,11 @@
 ﻿IMPROVEMENTS
 ---------------------
+- Basic approval Test for event implementation
 
-Events with different signatures?
+- Write external approval application agains real projects.
 
-In the derivative find only first implements. However, this issue is not a problem with Find...
-
-Relationship between methods and events. Duplicates? Different strategy?
-
-
- private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
-    {
-        var containingType = eventSymbol.ContainingType;
-
-        // TODO are base interfaces included.
-        foreach (var @interface in containingType.AllInterfaces)
-
-
+- Configure editor to open text files.
+- Reduce incoming calls! There are way too much wong code elements added
 
 
   // calls: m1 (source) -> calls -> m2 (element, target)
@@ -30,12 +20,11 @@ Relationship between methods and events. Duplicates? Different strategy?
             foundElements.UnionWith(callSources);
 
 
-
-
+- Performance in general
 - Anonymous methods like PdsOnElementCreated, lambdas
 
 - Highlighting aggregated edges takes too long. If quick help is not visible then skip.
-- Performance in general
+
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
