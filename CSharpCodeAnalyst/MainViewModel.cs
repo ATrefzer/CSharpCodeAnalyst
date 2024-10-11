@@ -84,6 +84,7 @@ internal class MainViewModel : INotifyPropertyChanged
         FindCyclesCommand = new DelegateCommand(FindCycles);
         ShowGalleryCommand = new DelegateCommand(ShowGallery);
         ExportToDsiCommand = new DelegateCommand(ExportToDsi);
+        ShowLegendCommand = new DelegateCommand(ShowLegend);
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
         OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
@@ -198,6 +199,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand OpenSourceLocationCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
+    public ICommand ShowLegendCommand { get; }
 
 
     public TreeViewModel? TreeViewModel
@@ -308,6 +310,19 @@ internal class MainViewModel : INotifyPropertyChanged
             _gallery.AddSession(session);
             _isSaved = false;
             return session;
+        }
+    }
+
+    LegendDialog? _openedLegendDialog;
+
+    private void ShowLegend()
+    {
+        if (_openedLegendDialog == null)
+        {
+            _openedLegendDialog = new LegendDialog();
+            _openedLegendDialog.Owner = Application.Current.MainWindow;
+            _openedLegendDialog.Closed += (object? sender, EventArgs e) => _openedLegendDialog = null;
+            _openedLegendDialog.Show();
         }
     }
 
