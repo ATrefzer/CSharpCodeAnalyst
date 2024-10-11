@@ -20,7 +20,6 @@ public class ProjectData
 
     public void SetGallery(Gallery.Gallery gallery)
     {
-        // TODO Consider to introduce a serializable Gallery not storing the source locations for relationships.
         // This would save space. But we have to restore the relationships.
         Gallery = gallery;
     }

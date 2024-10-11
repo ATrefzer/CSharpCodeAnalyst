@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CSharpLanguage
 {
-    internal class EventSink
+    public class EventSink
     {
         public EventSink(IInterfaceWithEvent e)
         {
@@ -20,7 +20,7 @@ namespace CSharpLanguage
         }
     }
 
-    internal interface IInterfaceWithEvent
+    public interface IInterfaceWithEvent
     {
         event EventHandler<EventArgs> MyEvent;
     }

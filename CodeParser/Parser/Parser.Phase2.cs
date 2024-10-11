@@ -158,13 +158,12 @@ public partial class Parser
         // Analyze event type (usually a delegate type)
         AddTypeRelationship(eventElement, eventSymbol.Type, RelationshipType.Uses);
 
-        // Check if this event implements an interface event
-        var implementedInterfaceEvent = GetImplementedInterfaceEvent(eventSymbol);
-        if (implementedInterfaceEvent != null)
+
+        if (eventSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            var locations = GetLocations(eventSymbol);
-            AddEventRelationship(eventElement, implementedInterfaceEvent, RelationshipType.Implements, locations);
+            FindImplementationsForInterfaceMember(eventElement, eventSymbol);
         }
+
 
         // If the event has add/remove accessors, analyze them
         if (eventSymbol.AddMethod != null)
@@ -177,32 +176,6 @@ public partial class Parser
             AnalyzeMethodRelationships(solution, eventElement, eventSymbol.RemoveMethod);
         }
     }
-
-    private IEventSymbol? GetImplementedInterfaceEvent(IEventSymbol eventSymbol)
-    {
-        var containingType = eventSymbol.ContainingType;
-        foreach (var @interface in containingType.AllInterfaces)
-        {
-            var interfaceMembers = @interface.GetMembers().OfType<IEventSymbol>();
-            foreach (var interfaceEvent in interfaceMembers)
-            {
-                var implementingEvent = containingType.FindImplementationForInterfaceMember(interfaceEvent);
-                if (implementingEvent != null && SymbolEqualityComparer.Default.Equals(implementingEvent, eventSymbol))
-                {
-                    return interfaceEvent;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private void AddEventRelationship(CodeElement sourceElement, IEventSymbol eventSymbol,
-        RelationshipType relationshipType, List<SourceLocation> locations)
-    {
-        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, relationshipType, locations);
-    }
-
 
     /// <summary>
     ///     Use solution, not the compilation. The syntax tree may not be found.
@@ -228,10 +201,10 @@ public partial class Parser
         //    AddTypeRelationship(methodElement, extendedType, RelationshipType.Uses);
         //}
 
-        // If this method is an interface method or an abstract method, find its implementations
-        if (methodSymbol.IsAbstract || methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
+        // If this method is an interface method, find its implementations
+        if (methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementations(methodElement, methodSymbol);
+            FindImplementationsForInterfaceMember(methodElement, methodSymbol);
         }
 
         // Check for method override
@@ -262,41 +235,78 @@ public partial class Parser
     }
 
 
-    private void FindImplementations(CodeElement methodElement, IMethodSymbol methodSymbol)
+    /// <summary>
+    ///     Adds "implements" relationships for interface members
+    /// </summary>
+    private void FindImplementationsForInterfaceMember(CodeElement element, ISymbol symbol)
     {
-        var implementingTypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var implementingTypes = new HashSet<INamedTypeSymbol>();
 
-        // If it's an interface method, find all types implementing the interface
-        if (methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
+        if (symbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            implementingTypes.UnionWith(FindTypesImplementingInterface(methodSymbol.ContainingType));
-        }
-        // If it's an abstract method, find all types deriving from the containing type
-        else if (methodSymbol.IsAbstract)
-        {
-            implementingTypes.UnionWith(FindTypesDerivedFrom(methodSymbol.ContainingType));
+            // If it's an interface method, find all types implementing the interface
+            implementingTypes.UnionWith(FindTypesImplementingInterface(symbol.ContainingType));
         }
 
         foreach (var implementingType in implementingTypes)
         {
-            var implementingMethod = implementingType.FindImplementationForInterfaceMember(methodSymbol);
-            if (implementingMethod != null)
+            // Note: We may get a positive answer for all implementing types even if we expect exactly one type to implement it.
+            // That's ok the relationship is established only once. It is always the same implementation that is found.
+
+            var implementingSymbol = FindImplementationForInterfaceMember(symbol, implementingType);
+            if (implementingSymbol != null)
             {
-                var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(implementingMethod.Key());
+                var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(implementingSymbol.Key());
                 if (implementingElement != null)
                 {
                     // Note: Implementations for external methods are not in our map
-                    var locations = GetLocations(implementingMethod);
-                    AddRelationship(implementingElement, RelationshipType.Implements, methodElement, locations);
+                    var locations = GetLocations(implementingSymbol);
+                    AddRelationship(implementingElement, RelationshipType.Implements, element, locations);
                 }
             }
+            // That's ok, even interfaces are tested here
+            //Trace.WriteLine(
+            //    $"Implementing method {symbol.ContainingType?.Name}.{symbol.Name} not found for {implementingType.Name}");    
         }
     }
 
+    /// <summary>
+    ///     For methods and events.
+    ///     Searches the whole hierarchy of the implementing type.
+    ///     Returns the symbol (method for example) that is the first implementation of the interface member.
+    ///     The later overrides are ignored here.
+    /// </summary>
+    private static ISymbol? FindImplementationForInterfaceMember(ISymbol symbol,
+        INamedTypeSymbol implementingType)
+    {
+        var implementingSymbol = implementingType.FindImplementationForInterfaceMember(symbol);
+        if (implementingSymbol is null)
+        {
+            // If the symbol is from a different compilation than the implementing type we may have to go deeper.
+            var typeCompilation = implementingType.FindCompilation();
+            var symbolCompilation = symbol.FindCompilation();
+            if (ReferenceEquals(typeCompilation, symbolCompilation) is false)
+            {
+                if (symbol.FindCorrespondingSymbol(typeCompilation) is { } mappedSymbol)
+                {
+                    implementingSymbol = implementingType.FindImplementationForInterfaceMember(mappedSymbol);
+                }
+            }
+        }
+
+        return implementingSymbol;
+    }
+
+    /// <summary>
+    ///     Returns the named types that directly implement the given interface.
+    ///     Interfaces implemented in base types are not considered.
+    /// </summary>
     private IEnumerable<INamedTypeSymbol> FindTypesImplementingInterface(INamedTypeSymbol interfaceSymbol)
     {
+        // Note: AllInterfaces returns all interfaces found at this type, regardless if it is implemented in a base class or not.
+        var interfaceKey = interfaceSymbol.Key();
         return _allNamedTypesInSolution
-            .Where(type => type.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i, interfaceSymbol)));
+            .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
@@ -310,7 +320,7 @@ public partial class Parser
         var currentType = type.BaseType;
         while (currentType != null)
         {
-            if (SymbolEqualityComparer.Default.Equals(currentType, baseType))
+            if (currentType.Key() == baseType.Key())
             {
                 return true;
             }
@@ -395,7 +405,6 @@ public partial class Parser
                 }
             }
 
-            // Check if this is an event invocation using Invoke method
             // Check if this is an event invocation using Invoke method
             if (calledMethod.Name == "Invoke")
             {
@@ -563,7 +572,7 @@ public partial class Parser
             case IPointerTypeSymbol pointerTypeSymbol:
                 AddTypeRelationship(sourceElement, pointerTypeSymbol.PointedAtType, RelationshipType.Uses, location);
                 break;
-            case IFunctionPointerTypeSymbol functionPointerType:
+            case IFunctionPointerTypeSymbol:
 
                 // The function pointer has a return type and parameters.
                 // we could add these relationships here.
@@ -641,10 +650,12 @@ public partial class Parser
         }
     }
 
-
     private void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
     {
+        // TODO Get information about the called type.
+        // var typeInfo = semanticModel.GetTypeInfo(memberAccessSyntax.Expression);
+
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
         var symbol = symbolInfo.Symbol;
 
@@ -670,7 +681,6 @@ public partial class Parser
         }
     }
 
-
     /// <summary>
     ///     Calling a property is treated like calling a method.
     /// </summary>
@@ -680,7 +690,7 @@ public partial class Parser
         AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Calls, locations);
     }
 
-    private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol symbol,
+    private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations = null)
     {
         // If we don't have the property itself in our map, add a relationship to its containing type
@@ -689,14 +699,14 @@ public partial class Parser
             locations = [];
         }
 
-        var targetElement = FindCodeElement(symbol);
+        var targetElement = FindCodeElement(targetSymbol);
         if (targetElement != null)
         {
             AddRelationship(sourceElement, relationshipType, targetElement, locations);
             return;
         }
 
-        var containingTypeElement = FindCodeElement(symbol.ContainingType);
+        var containingTypeElement = FindCodeElement(targetSymbol.ContainingType);
         if (containingTypeElement != null)
         {
             AddRelationship(sourceElement, relationshipType, containingTypeElement, locations);

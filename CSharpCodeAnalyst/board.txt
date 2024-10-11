@@ -1,10 +1,30 @@
 ﻿IMPROVEMENTS
 ---------------------
+- Basic approval Test for event implementation
 
+- Write external approval application agains real projects.
+
+- Configure editor to open text files.
+- Reduce incoming calls! There are way too much wong code elements added
+
+
+  // calls: m1 (source) -> calls -> m2 (element, target)
+            // overrides m1 -> overrides -> m2 (element, target)
+            var callsToOwnBase = calls.Where(c => allImplementsAndOverrides.Any(r => 
+                r.SourceId == c.SourceId &&
+                r.TargetId == element.Id));
+
+            calls = calls.Except(callsToOwnBase).ToArray();
+            foundRelationships.UnionWith(calls);
+            var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+            foundElements.UnionWith(callSources);
+
+
+- Performance in general
 - Anonymous methods like PdsOnElementCreated, lambdas
 
 - Highlighting aggregated edges takes too long. If quick help is not visible then skip.
-- Performance in general
+
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
