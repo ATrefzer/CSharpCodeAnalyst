@@ -48,9 +48,7 @@ public partial class Parser(ParserConfig config)
 
         // Debug.Assert(_codeGraph.Nodes.Values.All(c => IsDistinct(c.SourceLocations)));
 
-#if DEBUG
-        await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
-#endif
+        // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
 
         return _codeGraph;
     }
