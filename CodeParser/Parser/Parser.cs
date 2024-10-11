@@ -47,6 +47,9 @@ public partial class Parser(ParserConfig config)
         InsertGlobalNamespaceIfUsed();
 
         // Debug.Assert(_codeGraph.Nodes.Values.All(c => IsDistinct(c.SourceLocations)));
+
+        // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
+
         return _codeGraph;
     }
 
@@ -166,6 +169,7 @@ public partial class Parser(ParserConfig config)
 
     /// <summary>
     ///     Note: We store the symbol used to build the hierarchy.
+    ///     If used in different a compilation unit the symbol may be another instance..
     /// </summary>
     private CodeElement GetOrCreateCodeElement(ISymbol symbol, CodeElementType elementType, CodeElement? parent,
         SourceLocation? location)

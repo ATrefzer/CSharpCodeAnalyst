@@ -5,12 +5,20 @@ namespace CodeParser.Parser;
 
 /// <summary>
 ///     Symbol identification across compilations.
-///     One of the main problems is that the symbols do not have a unique identifier.
-///     For example a IMethodSymbol defined in one compilation may not the same as a IMethodSymbol
-///     used in an invocation in another compilation.
+///     One of the main problems is that the symbols do not have a unique identifier across compilations.
+///     For example a IMethodSymbol defined in one compilation may not be the same in another compilation implementing it.
+///     Therefore, the Roslyn SymbolEqualityComparer is not useful for this application.
 /// </summary>
 public static class SymbolExtensions
 {
+    private static readonly SymbolDisplayFormat MetadataNameFormat = new(
+        SymbolDisplayGlobalNamespaceStyle.Omitted,
+        SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                              SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+    );
+
     public static string BuildSymbolName(this ISymbol symbol)
     {
         var parts = GetParentChain(symbol);
@@ -33,6 +41,17 @@ public static class SymbolExtensions
         var parts = GetParentChain(symbol);
         return string.Join(".", parts.Select(GetKeyInternal));
     }
+
+
+    /// <summary>
+    ///     Returns a key for the symbol only without the parent chain.
+    ///     This key can identify the overrides of a symbol in a class hierarchy
+    /// </summary>
+    public static string KeySymbolOnly(this ISymbol symbol)
+    {
+        return GetKeyInternal(symbol);
+    }
+
 
     /// <summary>
     ///     Sometimes when walking up the parent chain:
@@ -132,5 +151,77 @@ public static class SymbolExtensions
         }
 
         return result;
+    }
+
+    public static string GetMetadataName(this ISymbol symbol)
+    {
+        // Note: ISymbol.MetaDataName is not sufficient. It contains for example just the interface name.
+        // Compilation.GetTypeByMetadataName is very picky about the given format.
+        return symbol.ToDisplayString(MetadataNameFormat);
+    }
+
+
+    /// <summary>
+    ///     Finds the corresponding symbol in the target compilation.
+    ///     TODO Does this work for generics, too? See GetMetadataName.
+    /// </summary>
+    public static ISymbol? FindCorrespondingSymbol(this ISymbol originalSymbol, Compilation targetCompilation)
+    {
+        // Warning: 
+        // SymbolDisplayFormat.FullyQualifiedFormat is not sufficient to find the types via GetTypeByMetadataName!
+
+        ISymbol? correspondingSymbol = null;
+        switch (originalSymbol)
+        {
+            case INamedTypeSymbol:
+
+                // Note: ISymbol.MetadataName is not sufficient.
+                var metaDataName = originalSymbol.GetMetadataName();
+                correspondingSymbol = targetCompilation.GetTypeByMetadataName(metaDataName);
+                break;
+
+            case IMethodSymbol:
+            case IPropertySymbol:
+            case IEventSymbol:
+                if (FindCorrespondingSymbol(originalSymbol.ContainingType, targetCompilation) is INamedTypeSymbol
+                    containingType)
+                {
+                    correspondingSymbol = containingType.GetMembers(originalSymbol.Name)
+                        .FirstOrDefault(m => m.KeySymbolOnly() == originalSymbol.KeySymbolOnly());
+                }
+
+                break;
+            default:
+                Debug.Assert(false);
+                break;
+
+            // Add cases for other symbol types as needed (e.g., IFieldSymbol, IPropertySymbol, etc.)
+        }
+
+        return correspondingSymbol;
+    }
+
+    public static Compilation FindCompilation(this ISymbol symbol)
+    {
+        while (true)
+        {
+            if (symbol is INamespaceSymbol ns)
+            {
+                if (ns.ContainingCompilation != null)
+                {
+                    return ns.ContainingCompilation;
+                }
+            }
+
+            if (symbol is ISourceAssemblySymbol sas)
+            {
+                if (sas.Compilation != null)
+                {
+                    return sas.Compilation;
+                }
+            }
+
+            symbol = symbol.ContainingSymbol ?? throw new Exception("No compilation");
+        }
     }
 }

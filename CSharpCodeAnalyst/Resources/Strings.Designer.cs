@@ -763,7 +763,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There are {0} code elements in this cycle. It may take a long time to render this data. Do you want to proceed?.
+        ///   Looks up a localized string similar to There would be {0} code elements in the graph. It may take extremely long to render this data. Do you want to proceed?.
         /// </summary>
         public static string TooMuchElementsMessage {
             get {
