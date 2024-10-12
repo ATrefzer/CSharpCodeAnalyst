@@ -30,52 +30,6 @@ public class RelationshipAnalyzer
         _maxDegreeOfParallelism = maxDegreeOfParallelism;
     }
 
-    public async Task AnalyzeRelationshipsMultiThreaded_alt(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
-    {
-        _codeGraph = codeGraph;
-        _artifacts = artifacts;
-
-        var numberOfCodeElements = _codeGraph.Nodes.Count;
-        _processedCodeElements = 0;
-
-        var actionBlock = new ActionBlock<(CodeElement element, ISymbol symbol)>(
-            pair =>
-            {
-                AnalyzeRelationships(solution, pair.element, pair.symbol);
-
-                var loopValue = Interlocked.Increment(ref _processedCodeElements);
-                SendParserPhase2Progress(loopValue, numberOfCodeElements);
-            },
-            new ExecutionDataflowBlockOptions
-            {
-                MaxDegreeOfParallelism = _maxDegreeOfParallelism
-            }
-        );
-
-
-        foreach (var element in _codeGraph.Nodes.Values)
-        {
-            if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
-            {
-                // INamespaceSymbol
-                Interlocked.Increment(ref _processedCodeElements);
-                continue;
-            }
-
-            await actionBlock.SendAsync((element, symbol));
-        }
-
-        // Analyze global statements for each assembly
-        AnalyzeGlobalStatementsForAssembly(solution);
-
-        // Signal that we're done posting
-        actionBlock.Complete();
-
-        await actionBlock.Completion;
-
-        SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
-    }
-
     /// <summary>
     ///     Entry for relationship analysis.
     ///     The code graph is updated in place.

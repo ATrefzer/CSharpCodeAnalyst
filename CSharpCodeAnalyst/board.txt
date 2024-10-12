@@ -1,9 +1,11 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Configure editor to open text files.
 - Reduce incoming calls! There are way too much wong code elements added
 
+- Configure editor to open text files.
+
+- Why parse syntax trees to build the hiearchy at all? Try using symbols directly.
 
   // calls: m1 (source) -> calls -> m2 (element, target)
             // overrides m1 -> overrides -> m2 (element, target)
@@ -16,7 +18,7 @@
             var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
             foundElements.UnionWith(callSources);
 
-
+- Automatically add containing type for methods when calling find ...
 - Performance in general
 - Anonymous methods like PdsOnElementCreated, lambdas
 
