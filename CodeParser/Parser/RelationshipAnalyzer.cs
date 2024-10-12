@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
-using System.IO.Pipes;
 using System.Threading.Tasks.Dataflow;
-using System.Xml.Linq;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -9,61 +7,63 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeParser.Parser;
 
-public partial class Parser
+/// <summary>
+///     Phase 2/2 of the parser: Analyzing relationships between code elements.
+/// </summary>
+public class RelationshipAnalyzer
 {
-    private Task AnalyzeRelationshipsSingleThreaded(Solution solution)
-    {
-        var numberOfCodeElements = _codeGraph.Nodes.Count;
-        var loop = 0;
-        foreach (var element in _codeGraph.Nodes.Values)
-        {
-            loop++;
+    private readonly object _lock = new();
+    private readonly int _maxDegreeOfParallelism;
+    private readonly Progress _progress;
+    private Artifacts _artifacts;
+    private CodeGraph _codeGraph;
+    private long _lastProgress;
 
-            if (!_elementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
-            {
-                // INamespaceSymbol
-                continue;
-            }
+    private int _processedCodeElements;
 
-            AnalyzeRelationships(solution, element, symbol);
-            SendParserPhase2Progress(loop, numberOfCodeElements);
-        }
-
-        // Analyze global statements for each assembly
-        AnalyzeGlobalStatementsForAssembly(solution);
-
-        return Task.CompletedTask;
-    }
     /// <summary>
-    ///     Entry for relationship analysis
+    ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
     /// </summary>
-    private async Task AnalyzeRelationshipsMultiThreaded(Solution solution)
+    public RelationshipAnalyzer(Progress progress, int maxDegreeOfParallelism)
     {
+        _progress = progress;
+        _maxDegreeOfParallelism = maxDegreeOfParallelism;
+    }
+
+
+    /// <summary>
+    ///     Entry for relationship analysis.
+    ///     The code graph is updated in place.
+    /// </summary>
+    public async Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    {
+        _codeGraph = codeGraph;
+        _artifacts = artifacts;
+
         var numberOfCodeElements = _codeGraph.Nodes.Count;
-        var loop = 0;
-        
+        _processedCodeElements = 0;
+
         var actionBlock = new ActionBlock<(CodeElement element, ISymbol symbol)>(
-            (pair) =>
+            pair =>
             {
                 AnalyzeRelationships(solution, pair.element, pair.symbol);
 
-                // Yes, I know the numbers may be switched, but I don't want to lock here.
-                var loopValue = Interlocked.Increment(ref loop);
+                var loopValue = Interlocked.Increment(ref _processedCodeElements);
                 SendParserPhase2Progress(loopValue, numberOfCodeElements);
             },
             new ExecutionDataflowBlockOptions
             {
-                MaxDegreeOfParallelism = _config.MaxDegreeOfParallelism
+                MaxDegreeOfParallelism = _maxDegreeOfParallelism
             }
         );
 
 
         foreach (var element in _codeGraph.Nodes.Values)
         {
-            if (!_elementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+            if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
             {
                 // INamespaceSymbol
-                Interlocked.Increment(ref loop);
+                Interlocked.Increment(ref _processedCodeElements);
                 continue;
             }
 
@@ -81,7 +81,58 @@ public partial class Parser
         SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
     }
 
-    private long _lastProgress = 0;
+    private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
+    {
+        return _artifacts.AllNamedTypesInSolution
+            .Where(type => IsTypeDerivedFrom(type, baseType));
+    }
+
+    private bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
+    {
+        var currentType = type.BaseType;
+        while (currentType != null)
+        {
+            if (currentType.Key() == baseType.Key())
+            {
+                return true;
+            }
+
+            currentType = currentType.BaseType;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    ///     The code graph is updated, the artifacts are read only.
+    /// </summary>
+    public Task AnalyzeRelationshipsSingleThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    {
+        _codeGraph = codeGraph;
+        _artifacts = artifacts;
+
+        var numberOfCodeElements = _codeGraph.Nodes.Count;
+        var loop = 0;
+        foreach (var element in _codeGraph.Nodes.Values)
+        {
+            loop++;
+
+            if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+            {
+                // INamespaceSymbol
+                continue;
+            }
+
+            AnalyzeRelationships(solution, element, symbol);
+            SendParserPhase2Progress(loop, numberOfCodeElements);
+        }
+
+        // Analyze global statements for each assembly
+        AnalyzeGlobalStatementsForAssembly(solution);
+
+        return Task.CompletedTask;
+    }
+
     private void SendParserPhase2Progress(int processed, int total)
     {
         var currentProgress = (long)Math.Floor(processed / (double)total * 100);
@@ -92,15 +143,13 @@ public partial class Parser
             if (Interlocked.CompareExchange(ref _lastProgress, currentProgress, lastReported) == lastReported)
             {
                 var msg = $"Phase 2/2: Analyzing relationships. Finished {currentProgress}%.";
-                var args = new ParserProgressArg(msg);
-
-                ParserProgress?.Invoke(this, args);
+                _progress.SendProgress(msg);
             }
         }
     }
 
     private void AnalyzeRelationships(Solution solution, CodeElement element, ISymbol symbol)
-    {     
+    {
         if (symbol is IEventSymbol eventSymbol)
         {
             AnalyzeEventRelationships(solution, element, eventSymbol);
@@ -128,12 +177,12 @@ public partial class Parser
         }
 
         // For all type of symbols check if decorated with an attribute.
-        AnalyzeAttributeRelationships(element, symbol);      
+        AnalyzeAttributeRelationships(element, symbol);
     }
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)
     {
-        foreach (var statement in _globalStatementsByAssembly)
+        foreach (var statement in _artifacts.GlobalStatementsByAssembly)
         {
             var assemblySymbol = statement.Key;
             var globalStatements = statement.Value;
@@ -144,7 +193,7 @@ public partial class Parser
 
             // Find the existing assembly element
             var symbolKey = assemblySymbol.Key();
-            var assemblyElement = _symbolKeyToElementMap[symbolKey];
+            var assemblyElement = _artifacts.SymbolKeyToElementMap[symbolKey];
 
             // Create a dummy class for this assembly's global statements
             var dummyClassId = Guid.NewGuid().ToString();
@@ -152,8 +201,12 @@ public partial class Parser
             var dummyClassFullName = assemblySymbol.BuildSymbolName() + "." + dummyClassName;
             var dummyClass = new CodeElement(dummyClassId, CodeElementType.Class, dummyClassName, dummyClassFullName,
                 assemblyElement);
-            _codeGraph.Nodes[dummyClassId] = dummyClass;
-            assemblyElement.Children.Add(dummyClass);
+
+            lock (_lock)
+            {
+                _codeGraph.Nodes[dummyClassId] = dummyClass;
+                assemblyElement.Children.Add(dummyClass);
+            }
 
             // Create a dummy method to contain global statements
             var dummyMethodId = Guid.NewGuid().ToString();
@@ -161,8 +214,12 @@ public partial class Parser
             var dummyMethodFullName = $"{dummyClassName}.{dummyMethodName}";
             var dummyMethod = new CodeElement(dummyMethodId, CodeElementType.Method, dummyMethodName,
                 dummyMethodFullName, dummyClass);
-            _codeGraph.Nodes[dummyMethodId] = dummyMethod;
-            dummyClass.Children.Add(dummyMethod);
+
+            lock (_lock)
+            {
+                _codeGraph.Nodes[dummyMethodId] = dummyMethod;
+                dummyClass.Children.Add(dummyMethod);
+            }
 
             // Analyze global statements within the context of the dummy method
             foreach (var globalStatement in globalStatements)
@@ -184,7 +241,7 @@ public partial class Parser
             if (attributeData.AttributeClass != null)
             {
                 var location = attributeData.ApplicationSyntaxReference != null
-                    ? GetLocation(attributeData.ApplicationSyntaxReference.GetSyntax())
+                    ? attributeData.ApplicationSyntaxReference.GetSyntax().GetSyntaxLocation()
                     : null;
 
                 element.Attributes.Add(attributeData.AttributeClass.Name);
@@ -272,7 +329,7 @@ public partial class Parser
             var overriddenMethod = methodSymbol.OverriddenMethod;
             if (overriddenMethod != null)
             {
-                var locations = GetLocations(methodSymbol);
+                var locations = methodSymbol.GetSymbolLocations();
                 AddMethodOverrideRelationship(methodElement, overriddenMethod, locations);
             }
         }
@@ -292,7 +349,6 @@ public partial class Parser
             AnalyzeMethodBody(methodElement, syntax, semanticModel);
         }
     }
-
 
     /// <summary>
     ///     Adds "implements" relationships for interface members
@@ -315,11 +371,11 @@ public partial class Parser
             var implementingSymbol = FindImplementationForInterfaceMember(symbol, implementingType);
             if (implementingSymbol != null)
             {
-                var implementingElement = _symbolKeyToElementMap.GetValueOrDefault(implementingSymbol.Key());
+                var implementingElement = _artifacts.SymbolKeyToElementMap.GetValueOrDefault(implementingSymbol.Key());
                 if (implementingElement != null)
                 {
                     // Note: Implementations for external methods are not in our map
-                    var locations = GetLocations(implementingSymbol);
+                    var locations = implementingSymbol.GetSymbolLocations();
                     AddRelationship(implementingElement, RelationshipType.Implements, element, locations);
                 }
             }
@@ -364,30 +420,8 @@ public partial class Parser
     {
         // Note: AllInterfaces returns all interfaces found at this type, regardless if it is implemented in a base class or not.
         var interfaceKey = interfaceSymbol.Key();
-        return _allNamedTypesInSolution
+        return _artifacts.AllNamedTypesInSolution
             .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
-    }
-
-    private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
-    {
-        return _allNamedTypesInSolution
-            .Where(type => IsTypeDerivedFrom(type, baseType));
-    }
-
-    private bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
-    {
-        var currentType = type.BaseType;
-        while (currentType != null)
-        {
-            if (currentType.Key() == baseType.Key())
-            {
-                return true;
-            }
-
-            currentType = currentType.BaseType;
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -420,7 +454,7 @@ public partial class Parser
                     var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
                     if (typeInfo.Type != null)
                     {
-                        var location = GetLocation(objectCreationSyntax);
+                        var location = objectCreationSyntax.GetSyntaxLocation();
                         AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
                     }
 
@@ -452,7 +486,7 @@ public partial class Parser
         var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {
-            var location = GetLocation(invocationSyntax);
+            var location = invocationSyntax.GetSyntaxLocation();
             AddCallsRelationship(sourceElement, calledMethod, location);
 
             // Handle generic method invocations
@@ -500,7 +534,7 @@ public partial class Parser
         //if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol symbol })
         if (invokedSymbol is IEventSymbol symbol)
         {
-            AddEventInvocationRelationship(sourceElement, symbol, GetLocation(invocationSyntax));
+            AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
         }
     }
 
@@ -533,12 +567,12 @@ public partial class Parser
 
             if (leftSymbol is IEventSymbol eventSymbol)
             {
-                AddEventUsageRelationship(sourceElement, eventSymbol, GetLocation(assignmentExpression));
+                AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation());
 
                 // If the right side is a method, add a Handles relationship
                 if (rightSymbol is IMethodSymbol methodSymbol)
                 {
-                    AddEventHandlerRelationship(methodSymbol, eventSymbol, GetLocation(assignmentExpression));
+                    AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation());
                 }
             }
         }
@@ -593,7 +627,6 @@ public partial class Parser
         AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Calls, [location]);
     }
 
-
     /// <summary>
     ///     Handle also List_T. Where List is not a code element of our project
     /// </summary>
@@ -644,12 +677,37 @@ public partial class Parser
             default:
                 // Handle other type symbols (e.g., type parameters)
                 var symbolKey = typeSymbol.Key();
-                if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
+                if (_artifacts.SymbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
                 {
                     AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : []);
                 }
 
                 break;
+        }
+    }
+
+    private void AddRelationship(CodeElement source, RelationshipType type,
+        CodeElement target,
+        List<SourceLocation> sourceLocations)
+    {
+        lock (_lock)
+        {
+            var existingRelationship = source.Relationships.FirstOrDefault(d =>
+                d.TargetId == target.Id && d.Type == type);
+
+            if (existingRelationship != null)
+            {
+                // Note we may read some relationships more than once through different ways but that's fine.
+                // For example identifier and member access of field.
+                var newLocations = sourceLocations.Except(existingRelationship.SourceLocations);
+                existingRelationship.SourceLocations.AddRange(newLocations);
+            }
+            else
+            {
+                var newRelationship = new Relationship(source.Id, target.Id, type);
+                newRelationship.SourceLocations.AddRange(sourceLocations);
+                source.Relationships.Add(newRelationship);
+            }
         }
     }
 
@@ -671,7 +729,7 @@ public partial class Parser
             var originalDefinition = namedTypeSymbol.OriginalDefinition;
             var originalSymbolKey = originalDefinition.Key();
 
-            if (_symbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
+            if (_artifacts.SymbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
             {
                 // We found the original definition, add relationship to it
                 AddRelationship(sourceElement, relationshipType, originalTargetElement,
@@ -691,7 +749,6 @@ public partial class Parser
         }
     }
 
-
     private void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
     {
@@ -700,7 +757,7 @@ public partial class Parser
 
         if (symbol is IPropertySymbol propertySymbol)
         {
-            var location = GetLocation(identifierSyntax);
+            var location = identifierSyntax.GetSyntaxLocation();
             AddPropertyCallRelationship(sourceElement, propertySymbol, [location]);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
@@ -720,7 +777,7 @@ public partial class Parser
 
         if (symbol is IPropertySymbol propertySymbol)
         {
-            var location = GetLocation(memberAccessSyntax);
+            var location = memberAccessSyntax.GetSyntaxLocation();
             AddPropertyCallRelationship(sourceElement, propertySymbol, [location]);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
@@ -730,7 +787,7 @@ public partial class Parser
         else if (symbol is IEventSymbol eventSymbol)
         {
             // This handles cases where the event is accessed but not necessarily invoked
-            AddEventUsageRelationship(sourceElement, eventSymbol, GetLocation(memberAccessSyntax));
+            AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
         }
 
         // Recursively analyze the expression in case of nested property access
@@ -779,7 +836,79 @@ public partial class Parser
             return null;
         }
 
-        _symbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
+        _artifacts.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
+    }
+
+    /// <summary>
+    ///     Properties became quite complex.
+    ///     We treat the property like a method and do not distinguish between getter and setter.
+    ///     A property can have a getter, setter or an expression body.
+    /// </summary>
+    private void AnalyzePropertyRelationships(Solution solution, CodeElement propertyElement,
+        IPropertySymbol propertySymbol)
+    {
+        // Analyze the property type
+        AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses);
+
+        if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
+        }
+
+        // Check for property override
+        if (propertySymbol.IsOverride)
+        {
+            var overriddenProperty = propertySymbol.OverriddenProperty;
+            if (overriddenProperty != null)
+            {
+                var locations = propertySymbol.GetSymbolLocations();
+                AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
+            }
+        }
+
+        // Analyze the property body (including accessors)
+        AnalyzePropertyBody(solution, propertyElement, propertySymbol);
+    }
+
+    private void AnalyzePropertyBody(Solution solution, CodeElement propertyElement, IPropertySymbol propertySymbol)
+    {
+        foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
+        {
+            var syntax = syntaxReference.GetSyntax();
+            if (syntax is PropertyDeclarationSyntax propertyDeclaration)
+            {
+                var document = solution.GetDocument(syntax.SyntaxTree);
+                var semanticModel = document?.GetSemanticModelAsync().Result;
+                if (semanticModel != null)
+                {
+                    if (propertyDeclaration.ExpressionBody != null)
+                    {
+                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression,
+                            semanticModel);
+                    }
+                    else if (propertyDeclaration.AccessorList != null)
+                    {
+                        foreach (var accessor in propertyDeclaration.AccessorList.Accessors)
+                        {
+                            if (accessor.ExpressionBody != null)
+                            {
+                                AnalyzeMethodBody(propertyElement, accessor.ExpressionBody.Expression, semanticModel);
+                            }
+                            else if (accessor.Body != null)
+                            {
+                                AnalyzeMethodBody(propertyElement, accessor.Body, semanticModel);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void AddPropertyRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
+        RelationshipType relationshipType, List<SourceLocation> locations)
+    {
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
     }
 }

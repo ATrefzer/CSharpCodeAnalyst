@@ -15,6 +15,7 @@ using CodeParser.Export;
 using CodeParser.Extensions;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
+using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -532,10 +533,10 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         LoadMessage = "Loading ...";
         var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
-        parser.ParserProgress += OnProgress;
+        parser.Progress.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 
-        parser.ParserProgress -= OnProgress;
+        parser.Progress.ParserProgress -= OnProgress;
         return graph;
     }
 

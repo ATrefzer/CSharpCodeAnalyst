@@ -1,8 +1,6 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Extract phase 2 into a separate class hat gets reads only data structures.
-
 - Configure editor to open text files.
 - Reduce incoming calls! There are way too much wong code elements added
 
