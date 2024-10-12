@@ -1,8 +1,5 @@
 ﻿IMPROVEMENTS
 ---------------------
-- Basic approval Test for event implementation
-
-- Write external approval application agains real projects.
 
 - Configure editor to open text files.
 - Reduce incoming calls! There are way too much wong code elements added
