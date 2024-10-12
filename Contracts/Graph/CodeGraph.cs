@@ -1,4 +1,4 @@
-﻿using GraphLib.Contracts;
+﻿using Contracts.GraphInterface;
 
 namespace Contracts.Graph;
 

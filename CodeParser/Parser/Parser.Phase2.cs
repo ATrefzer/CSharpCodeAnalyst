@@ -53,8 +53,7 @@ public partial class Parser
             },
             new ExecutionDataflowBlockOptions
             {
-                // Logical cores
-                MaxDegreeOfParallelism = Environment.ProcessorCount
+                MaxDegreeOfParallelism = _config.MaxDegreeOfParallelism
             }
         );
 

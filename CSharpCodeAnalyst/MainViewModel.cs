@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -63,12 +64,16 @@ internal class MainViewModel : INotifyPropertyChanged
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
+        // Default values
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
+        _maxDegreeOfParallelism = 8;
+        _isInfoPanelVisible = false;
 
         if (settings != null)
         {
             _isInfoPanelVisible = settings.DefaultShowQuickHelp;
             _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
+            _maxDegreeOfParallelism = settings.MaxDegreeOfParallelism;
         }
 
         _messaging = messaging;
@@ -314,6 +319,7 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     LegendDialog? _openedLegendDialog;
+    private readonly int _maxDegreeOfParallelism;
 
     private void ShowLegend()
     {
@@ -525,7 +531,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private async Task<CodeGraph> LoadAsync(string solutionPath)
     {
         LoadMessage = "Loading ...";
-        var parser = new Parser(new ParserConfig(_projectExclusionFilters));
+        var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
         parser.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 

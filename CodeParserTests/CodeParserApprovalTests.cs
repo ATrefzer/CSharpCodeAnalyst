@@ -13,7 +13,7 @@ public class CodeParserApprovalTests
     public async Task FixtureSetup()
     {
         Initializer.InitializeMsBuildLocator();
-        var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection()));
+        var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection(), 1));
         _graph = await parser.ParseSolution(@"..\..\..\..\SampleProject\SampleProject.sln");
     }
 

@@ -1,4 +1,4 @@
-﻿namespace GraphLib.Contracts;
+﻿namespace Contracts.GraphInterface;
 
 public interface IGraphRepresentation<TVertex>
 {

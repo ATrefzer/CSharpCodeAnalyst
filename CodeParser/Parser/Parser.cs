@@ -29,6 +29,7 @@ public partial class Parser(ParserConfig config)
 
     public async Task<CodeGraph> ParseSolution(string solutionPath)
     {
+        var sw = Stopwatch.StartNew();
         Clear();
 
         ParserProgress?.Invoke(this, new ParserProgressArg("Compiling ..."));
@@ -38,12 +39,23 @@ public partial class Parser(ParserConfig config)
 
         CollectAllFilePathInSolution(solution);
 
+        sw.Stop();
+        Trace.WriteLine("Compiling: " + sw.Elapsed);
+        sw = Stopwatch.StartNew();
+
         // First Pass: Build Hierarchy
         await BuildHierarchy(solution);
+
+        sw.Stop();
+        Trace.WriteLine("Finding code elements: " + sw.Elapsed);
+        sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
         await AnalyzeRelationshipsMultiThreaded(solution);
+
+        sw.Stop();
+        Trace.WriteLine("Analyzing relationships: " + sw.Elapsed);
 
         Clear();
 
@@ -52,9 +64,8 @@ public partial class Parser(ParserConfig config)
         InsertGlobalNamespaceIfUsed();
 
         // Debug.Assert(_codeGraph.Nodes.Values.All(c => IsDistinct(c.SourceLocations)));
-
         // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
-
+     
         return _codeGraph;
     }
 
