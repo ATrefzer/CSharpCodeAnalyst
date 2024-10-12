@@ -240,7 +240,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             // Calls
             if (element.ElementType == CodeElementType.Method)
             {
-                var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
+                var calls = allCalls.Where(call => call.TargetId == element.Id && !IsCallToBaseClass(call, id)).ToArray();
                 foundRelationships.UnionWith(calls);
                 var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(callSources);
@@ -267,6 +267,18 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id]);
             }
         }
+    }
+
+    /// <summary>
+    /// source --> target (abstract)
+    /// TODO
+    /// </summary>
+    private bool IsCallToBaseClass(Relationship call, string originId)
+    {
+        // Is target more abstract than source
+        // target  (abstract) <-- source
+        var isCallToBaseClass = GetRelationships(d => d.Type is RelationshipType.Overrides).Any(r => r.SourceId == call.SourceId && r.TargetId == call.TargetId);        
+        return isCallToBaseClass;
     }
 
     /// <summary>
