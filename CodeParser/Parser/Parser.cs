@@ -22,7 +22,9 @@ public class Parser(ParserConfig config)
         Progress.SendProgress("Compiling ...");
 
         var workspace = MSBuildWorkspace.Create();
+        workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
         var solution = await workspace.OpenSolutionAsync(solutionPath);
+        
 
         sw.Stop();
         Trace.WriteLine("Compiling: " + sw.Elapsed);
@@ -52,6 +54,14 @@ public class Parser(ParserConfig config)
         // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
 
         return codeGraph;
+    }
+
+    private void Workspace_WorkspaceFailed(object? sender, Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs e)
+    {
+        if (e.Diagnostic.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure)
+        { 
+            throw new InvalidOperationException(e.Diagnostic.Message); 
+        }
     }
 
     private bool IsDistinct<T>(List<T> collection)
