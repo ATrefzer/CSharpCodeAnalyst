@@ -30,12 +30,7 @@ public class RelationshipAnalyzer
         _maxDegreeOfParallelism = maxDegreeOfParallelism;
     }
 
-
-    /// <summary>
-    ///     Entry for relationship analysis.
-    ///     The code graph is updated in place.
-    /// </summary>
-    public async Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    public async Task AnalyzeRelationshipsMultiThreaded_alt(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
     {
         _codeGraph = codeGraph;
         _artifacts = artifacts;
@@ -79,6 +74,43 @@ public class RelationshipAnalyzer
         await actionBlock.Completion;
 
         SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
+    }
+
+    /// <summary>
+    ///     Entry for relationship analysis.
+    ///     The code graph is updated in place.
+    /// </summary>
+    public Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    {
+        _codeGraph = codeGraph;
+        _artifacts = artifacts;
+
+        var numberOfCodeElements = _codeGraph.Nodes.Count;
+        _processedCodeElements = 0;
+
+        Parallel.ForEach(_codeGraph.Nodes.Values, AnalyzeRelationshipsLocal);
+
+        // Analyze global statements for each assembly
+        AnalyzeGlobalStatementsForAssembly(solution);
+
+        SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
+
+        void AnalyzeRelationshipsLocal(CodeElement element)
+        {
+            if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+            {
+                // INamespaceSymbol
+                Interlocked.Increment(ref _processedCodeElements);
+                return;
+            }
+
+            AnalyzeRelationships(solution, element, symbol);
+
+            var loopValue = Interlocked.Increment(ref _processedCodeElements);
+            SendParserPhase2Progress(loopValue, numberOfCodeElements);
+        }
+
+        return Task.CompletedTask;
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)

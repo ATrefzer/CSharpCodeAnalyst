@@ -207,49 +207,66 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue;
             }
 
-            // An event is raised by the specialization
-            var specializations = allImplementsAndOverrides.Where(d => d.TargetId == element.Id).ToArray();
-            foundRelationships.UnionWith(specializations);
-            var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
-            foundElements.UnionWith(specializedSources);
+            if (element.ElementType == CodeElementType.Event)
+            {
+                // An event is raised by the specialization
+                var specializations = allImplementsAndOverrides.Where(d => d.TargetId == element.Id).ToArray();
+                foundRelationships.UnionWith(specializations);
+                var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+                foundElements.UnionWith(specializedSources);
+                AddToProcessingQueue(specializedSources);
+            }
 
             // Add all methods that invoke the event
-            var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
-            foundRelationships.UnionWith(invokes);
-            var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
-            foundElements.UnionWith(invokeSources);
+            if (element.ElementType == CodeElementType.Event)
+            {
+                var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
+                foundRelationships.UnionWith(invokes);
+                var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+                foundElements.UnionWith(invokeSources);
+                AddToProcessingQueue(invokeSources);
+            }
 
             // Add Events that are handled by this method.
-            var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
-            foundRelationships.UnionWith(handles);
-            var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
-            foundElements.UnionWith(events);
+            if (element.ElementType == CodeElementType.Method)
+            {
+                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(handles);
+                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
+                foundElements.UnionWith(events);
+                AddToProcessingQueue(events);
+            }
 
             // Calls
-            var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
-            foundRelationships.UnionWith(calls);
-            var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
-            foundElements.UnionWith(callSources);
+            if (element.ElementType == CodeElementType.Method)
+            {
+                var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
+                foundRelationships.UnionWith(calls);
+                var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
+                foundElements.UnionWith(callSources);
+                AddToProcessingQueue(callSources);
+            }
 
-            // Abstractions. Sometimes the abstractions is called.
-            var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
-            foundRelationships.UnionWith(abstractions);
-            var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
-            foundElements.UnionWith(abstractionTargets);
+            // Abstractions. For methods the abstractions like interfaces are called.
+            if (element.ElementType == CodeElementType.Method)
+            {
+                var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(abstractions);
+                var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
+                foundElements.UnionWith(abstractionTargets);
+                AddToProcessingQueue(abstractionTargets);
+            }
+        }
 
-            // Follow new leads
-            var elementsToExplore = abstractionTargets
-                .Union(callSources)
-                .Union(events)
-                .Union(invokeSources)
-                .Union(specializedSources);
+        return new SearchResult(foundElements, foundRelationships);
+
+        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore)
+        {
             foreach (var elementToExplore in elementsToExplore)
             {
                 processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id]);
             }
         }
-
-        return new SearchResult(foundElements, foundRelationships);
     }
 
     /// <summary>
