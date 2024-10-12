@@ -1,4 +1,7 @@
 ﻿using System.Diagnostics;
+using System.IO.Pipes;
+using System.Threading.Tasks.Dataflow;
+using System.Xml.Linq;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -8,68 +11,125 @@ namespace CodeParser.Parser;
 
 public partial class Parser
 {
-    /// <summary>
-    ///     Entry for relationship analysis
-    /// </summary>
-    private void AnalyzeRelationships(Solution solution)
+    private Task AnalyzeRelationshipsSingleThreaded(Solution solution)
     {
         var numberOfCodeElements = _codeGraph.Nodes.Count;
-
         var loop = 0;
         foreach (var element in _codeGraph.Nodes.Values)
         {
+            loop++;
+
             if (!_elementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
             {
                 // INamespaceSymbol
                 continue;
             }
 
-            if (symbol is IEventSymbol eventSymbol)
-            {
-                AnalyzeEventRelationships(solution, element, eventSymbol);
-            }
-            else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } delegateSymbol)
-            {
-                // Handle before the type relationships.
-                AnalyzeDelegateRelationships(element, delegateSymbol);
-            }
-            else if (symbol is INamedTypeSymbol typeSymbol)
-            {
-                AnalyzeInheritanceRelationships(element, typeSymbol);
-            }
-            else if (symbol is IMethodSymbol methodSymbol)
-            {
-                AnalyzeMethodRelationships(solution, element, methodSymbol);
-            }
-            else if (symbol is IPropertySymbol propertySymbol)
-            {
-                AnalyzePropertyRelationships(solution, element, propertySymbol);
-            }
-            else if (symbol is IFieldSymbol fieldSymbol)
-            {
-                AnalyzeFieldRelationships(element, fieldSymbol);
-            }
-
-            // For all type of symbols check if decorated with an attribute.
-            AnalyzeAttributeRelationships(element, symbol);
-
-            SendParserPhase2Progress(loop++, numberOfCodeElements);
+            AnalyzeRelationships(solution, element, symbol);
+            SendParserPhase2Progress(loop, numberOfCodeElements);
         }
 
         // Analyze global statements for each assembly
         AnalyzeGlobalStatementsForAssembly(solution);
+
+        return Task.CompletedTask;
+    }
+    /// <summary>
+    ///     Entry for relationship analysis
+    /// </summary>
+    private async Task AnalyzeRelationshipsMultiThreaded(Solution solution)
+    {
+        var numberOfCodeElements = _codeGraph.Nodes.Count;
+        var loop = 0;
+        
+        var actionBlock = new ActionBlock<(CodeElement element, ISymbol symbol)>(
+            (pair) =>
+            {
+                AnalyzeRelationships(solution, pair.element, pair.symbol);
+
+                // Yes, I know the numbers may be switched, but I don't want to lock here.
+                var loopValue = Interlocked.Increment(ref loop);
+                SendParserPhase2Progress(loopValue, numberOfCodeElements);
+            },
+            new ExecutionDataflowBlockOptions
+            {
+                // Logical cores
+                MaxDegreeOfParallelism = Environment.ProcessorCount
+            }
+        );
+
+
+        foreach (var element in _codeGraph.Nodes.Values)
+        {
+            if (!_elementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+            {
+                // INamespaceSymbol
+                Interlocked.Increment(ref loop);
+                continue;
+            }
+
+            await actionBlock.SendAsync((element, symbol));
+        }
+
+        // Analyze global statements for each assembly
+        AnalyzeGlobalStatementsForAssembly(solution);
+
+        // Signal that we're done posting
+        actionBlock.Complete();
+
+        await actionBlock.Completion;
+
+        SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
     }
 
-    private void SendParserPhase2Progress(int loop, int numberOfCodeElements)
+    private long _lastProgress = 0;
+    private void SendParserPhase2Progress(int processed, int total)
     {
-        if (loop % 10 == 0)
-        {
-            var percent = Math.Floor(loop / (double)numberOfCodeElements * 100);
-            var msg = $"Phase 2/2: Analyzing relationships. Finished {percent}%.";
-            var args = new ParserProgressArg(msg);
+        var currentProgress = (long)Math.Floor(processed / (double)total * 100);
+        var lastReported = Interlocked.Read(ref _lastProgress);
 
-            ParserProgress?.Invoke(this, args);
+        if (currentProgress > lastReported)
+        {
+            if (Interlocked.CompareExchange(ref _lastProgress, currentProgress, lastReported) == lastReported)
+            {
+                var msg = $"Phase 2/2: Analyzing relationships. Finished {currentProgress}%.";
+                var args = new ParserProgressArg(msg);
+
+                ParserProgress?.Invoke(this, args);
+            }
         }
+    }
+
+    private void AnalyzeRelationships(Solution solution, CodeElement element, ISymbol symbol)
+    {     
+        if (symbol is IEventSymbol eventSymbol)
+        {
+            AnalyzeEventRelationships(solution, element, eventSymbol);
+        }
+        else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } delegateSymbol)
+        {
+            // Handle before the type relationships.
+            AnalyzeDelegateRelationships(element, delegateSymbol);
+        }
+        else if (symbol is INamedTypeSymbol typeSymbol)
+        {
+            AnalyzeInheritanceRelationships(element, typeSymbol);
+        }
+        else if (symbol is IMethodSymbol methodSymbol)
+        {
+            AnalyzeMethodRelationships(solution, element, methodSymbol);
+        }
+        else if (symbol is IPropertySymbol propertySymbol)
+        {
+            AnalyzePropertyRelationships(solution, element, propertySymbol);
+        }
+        else if (symbol is IFieldSymbol fieldSymbol)
+        {
+            AnalyzeFieldRelationships(element, fieldSymbol);
+        }
+
+        // For all type of symbols check if decorated with an attribute.
+        AnalyzeAttributeRelationships(element, symbol);      
     }
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)

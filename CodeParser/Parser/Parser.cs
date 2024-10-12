@@ -11,8 +11,13 @@ public class ParserProgressArg(string message) : EventArgs
     public string Message { get; set; } = message;
 }
 
+
+/// <summary>
+/// TODO describe why the multi threading is safe.
+/// </summary>
 public partial class Parser(ParserConfig config)
 {
+    private object _lock = new object();
     private readonly CodeGraph _codeGraph = new();
 
     private readonly ParserConfig _config = config;
@@ -38,7 +43,7 @@ public partial class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
-        AnalyzeRelationships(solution);
+        await AnalyzeRelationshipsMultiThreaded(solution);
 
         Clear();
 
@@ -275,25 +280,28 @@ public partial class Parser(ParserConfig config)
     }
 
 
-    private static void AddRelationship(CodeElement source, RelationshipType type,
+    private void AddRelationship(CodeElement source, RelationshipType type,
         CodeElement target,
         List<SourceLocation> sourceLocations)
     {
-        var existingRelationship = source.Relationships.FirstOrDefault(d =>
-            d.TargetId == target.Id && d.Type == type);
+        lock (_lock)
+        {
+            var existingRelationship = source.Relationships.FirstOrDefault(d =>
+                d.TargetId == target.Id && d.Type == type);
 
-        if (existingRelationship != null)
-        {
-            // Note we may read some relationships more than once through different ways but that's fine.
-            // For example identifier and member access of field.
-            var newLocations = sourceLocations.Except(existingRelationship.SourceLocations);
-            existingRelationship.SourceLocations.AddRange(newLocations);
-        }
-        else
-        {
-            var newRelationship = new Relationship(source.Id, target.Id, type);
-            newRelationship.SourceLocations.AddRange(sourceLocations);
-            source.Relationships.Add(newRelationship);
+            if (existingRelationship != null)
+            {
+                // Note we may read some relationships more than once through different ways but that's fine.
+                // For example identifier and member access of field.
+                var newLocations = sourceLocations.Except(existingRelationship.SourceLocations);
+                existingRelationship.SourceLocations.AddRange(newLocations);
+            }
+            else
+            {
+                var newRelationship = new Relationship(source.Id, target.Id, type);
+                newRelationship.SourceLocations.AddRange(sourceLocations);
+                source.Relationships.Add(newRelationship);
+            }
         }
     }
 }
