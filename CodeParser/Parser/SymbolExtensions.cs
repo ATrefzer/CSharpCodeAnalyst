@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 
 namespace CodeParser.Parser;
@@ -85,6 +86,19 @@ public static class SymbolExtensions
         return parts;
     }
 
+    /// <summary>
+    ///     Gets the source locations of a semantic symbol. We may have more than one location if
+    ///     the symbol is defined over several files (i.e. partial classes)
+    /// </summary>
+    public static List<SourceLocation> GetSymbolLocations(this ISymbol symbol)
+    {
+        return symbol.Locations.Select(l => new SourceLocation
+        {
+            File = l.SourceTree?.FilePath ?? "",
+            Line = l.GetLineSpan().StartLinePosition.Line + 1,
+            Column = l.GetLineSpan().StartLinePosition.Character + 1
+        }).ToList();
+    }
 
     private static string GetKeyInternal(ISymbol symbol)
     {

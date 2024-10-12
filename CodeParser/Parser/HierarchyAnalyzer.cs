@@ -1,20 +1,38 @@
 ﻿using System.Diagnostics;
+using CodeParser.Parser.Config;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeParser.Parser;
 
-public partial class Parser
+/// <summary>
+/// Extracts all code elements found in the solution together with other artifacts needed for phase 2.
+/// </summary>
+public class HierarchyAnalyzer
 {
-    private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = new();
+    private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = [];
+    private readonly CodeGraph _codeGraph = new();
+    private readonly ParserConfig _config;
+    private readonly Dictionary<string, ISymbol> _elementIdToSymbolMap = new();
 
     private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
         new(SymbolEqualityComparer.Default);
 
+    private readonly Progress _progress;
+    private readonly HashSet<string> _projectFilePaths = [];
+    private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
 
-    private async Task BuildHierarchy(Solution solution)
+    public HierarchyAnalyzer(Progress progress, ParserConfig config)
     {
+        _progress = progress;
+        _config = config;
+    }
+
+    public async Task<(CodeGraph codeGraph, Artifacts artifacts)> BuildHierarchy(Solution solution)
+    {
+        CollectAllFilePathInSolution(solution);
+
         var projects = await GetValidProjects(solution);
         foreach (var project in projects)
         {
@@ -31,9 +49,15 @@ public partial class Parser
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             _allNamedTypesInSolution.AddRange(types);
 
-
             BuildHierarchy(compilation);
         }
+
+        var result = new Artifacts(
+            _allNamedTypesInSolution.AsReadOnly(),
+            _elementIdToSymbolMap.AsReadOnly(),
+            _globalStatementsByAssembly.AsReadOnly(),
+            _symbolKeyToElementMap.AsReadOnly());
+        return (_codeGraph, result);
     }
 
     /// <summary>
@@ -104,7 +128,7 @@ public partial class Parser
         ISymbol? symbol = null;
         var elementType = CodeElementType.Other;
 
-        var location = GetLocation(node);
+        var location = node.GetSyntaxLocation();
 
         switch (node)
         {
@@ -153,7 +177,7 @@ public partial class Parser
                 {
                     if (semanticModel.GetDeclaredSymbol(variable) is IFieldSymbol fieldSymbol)
                     {
-                        var fieldLocation = GetLocation(variable);
+                        var fieldLocation = variable.GetSyntaxLocation();
                         var fieldElement =
                             GetOrCreateCodeElement(fieldSymbol, CodeElementType.Field, parent, fieldLocation);
                     }
@@ -176,7 +200,7 @@ public partial class Parser
                 {
                     if (semanticModel.GetDeclaredSymbol(variable) is IEventSymbol eventSymbol)
                     {
-                        var eventLocation = GetLocation(variable);
+                        var eventLocation = variable.GetSyntaxLocation();
                         var eventElement =
                             GetOrCreateCodeElement(eventSymbol, CodeElementType.Event, parent, eventLocation);
                     }
@@ -218,5 +242,146 @@ public partial class Parser
     private bool IsProjectFile(string filePath)
     {
         return _projectFilePaths.Contains(filePath);
+    }
+
+    /// <summary>
+    ///     Since I iterate over the compilation units (to get rid of external code)
+    ///     any seen namespace, even "namespace X.Y.Z;", ends up as
+    ///     namespace Z directly under the assembly node.
+    ///     So If I see namespace X.Y.Z I create X, Y, Z and set them as parent child.
+    /// </summary>
+    private CodeElement GetOrCreateCodeElementWithNamespaceHierarchy(ISymbol symbol,
+        CodeElementType elementType, CodeElement initialParent, SourceLocation? location)
+    {
+        if (symbol is INamespaceSymbol namespaceSymbol)
+        {
+            var namespaces = new Stack<INamespaceSymbol>();
+            var current = namespaceSymbol;
+
+            // Build the stack of nested namespaces
+            while (current is { IsGlobalNamespace: false })
+            {
+                namespaces.Push(current);
+                current = current.ContainingNamespace;
+            }
+
+            var parent = initialParent;
+
+            // Create or get each namespace in the hierarchy
+            while (namespaces.Count > 0)
+            {
+                // We create the whole chain when encountering namespace X.Y.Z;
+                // So I give all the same source location. Right?
+                var ns = namespaces.Pop();
+
+                // The location is only valid for the input namespace symbol.
+                var nsLocation = ReferenceEquals(ns, namespaceSymbol) ? location : null;
+                var nsElement = GetOrCreateCodeElement(ns, CodeElementType.Namespace, parent, nsLocation);
+                parent = nsElement;
+            }
+
+            return parent;
+        }
+
+        // For non-namespace symbols, use the original logic
+        return GetOrCreateCodeElement(symbol, elementType, initialParent, location);
+    }
+
+    /// <summary>
+    ///     Note: We store the symbol used to build the hierarchy.
+    ///     If used in different a compilation unit the symbol may be another instance..
+    /// </summary>
+    private CodeElement GetOrCreateCodeElement(ISymbol symbol, CodeElementType elementType, CodeElement? parent,
+        SourceLocation? location)
+    {
+        var symbolKey = symbol.Key();
+
+        // We may encounter namespace declarations in many files.
+        if (_symbolKeyToElementMap.TryGetValue(symbolKey, out var existingElement))
+        {
+            UpdateCodeElementLocations(existingElement, location);
+            WarnIfCodeElementHasMultipleSymbols(symbol, existingElement);
+            return existingElement;
+        }
+
+        var name = symbol.Name;
+        var fullName = symbol.BuildSymbolName();
+        var newId = Guid.NewGuid().ToString();
+
+        var element = new CodeElement(newId, elementType, name, fullName, parent);
+
+        UpdateCodeElementLocations(element, location);
+
+        parent?.Children.Add(element);
+        _codeGraph.Nodes[element.Id] = element;
+        _symbolKeyToElementMap[symbolKey] = element;
+
+        // We need the symbol in phase2 when analyzing the relationships.
+        if (symbol is not INamespaceSymbol)
+        {
+            _elementIdToSymbolMap[element.Id] = symbol;
+        }
+
+        SendParserPhase1Progress(_codeGraph.Nodes.Count);
+
+        return element;
+    }
+
+    private void WarnIfCodeElementHasMultipleSymbols(ISymbol symbol, CodeElement existingElement)
+    {
+        if (symbol is not INamespaceSymbol)
+        {
+            // Get warning if we have different symbols for the same element.
+            if (_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default) is false)
+            {
+                // Happens if two projects in the solution have the same name.
+                // You lose one of them.
+                Trace.WriteLine("(!) Found element with multiple symbols: " + symbol.ToDisplayString());
+            }
+        }
+    }
+
+    private static void UpdateCodeElementLocations(CodeElement element, SourceLocation? location)
+    {
+        if (element.ElementType == CodeElementType.Namespace)
+        {
+            // Namespaces are spread over many files,
+            // and it is useless for the user to see all of them.
+            return;
+        }
+
+        if (location != null)
+        {
+            element.SourceLocations.Add(location);
+        }
+    }
+
+    private void SendParserPhase1Progress(int numberOfCodeElements)
+    {
+        if (numberOfCodeElements % 10 == 0)
+        {
+            var msg = $"Phase 1/2: Already found {numberOfCodeElements} code elements.";
+            _progress.SendProgress(msg);
+        }
+    }
+
+
+    private void CollectAllFilePathInSolution(Solution solution)
+    {
+        foreach (var project in solution.Projects)
+        {
+            if (_config.IsProjectIncluded(project.Name) is false)
+            {
+                continue;
+            }
+
+            foreach (var document in project.Documents)
+            {
+                if (document.FilePath != null)
+                {
+                    _projectFilePaths.Add(document.FilePath);
+                }
+            }
+        }
     }
 }

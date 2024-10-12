@@ -1,5 +1,5 @@
 ﻿using CodeParser.Analysis.Shared;
-using GraphLib.Contracts;
+using Contracts.GraphInterface;
 
 namespace CodeParser.Analysis.Cycles;
 
