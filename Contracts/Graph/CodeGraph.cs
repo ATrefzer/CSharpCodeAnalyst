@@ -145,11 +145,11 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public string ToDebug()
     {
-        var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, Nodes[d.TargetId].FullName));
+        var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, d.Type.ToString(), Nodes[d.TargetId].FullName));
 
-        var elementNames = Nodes.Values.OrderBy(v => v.FullName).Select(e => e.FullName);
-        var relationshipNames = relationships.Select(d => $"{d.Item1} -> {d.Item2}").OrderBy(x => x);
-        return string.Join("\n", elementNames) +
-               string.Join("\n", relationshipNames);
+        var elementNames = Nodes.Values.Select(e => $"{e.ElementType}: {e.FullName}");
+        var relationshipNames = relationships.Select(d => $"{d.Item1} -({d.Item2})-> {d.Item3}");
+        return string.Join("\n", elementNames.OrderBy(x => x)) +
+               string.Join("\n", relationshipNames.OrderBy(x => x));
     }
 }
