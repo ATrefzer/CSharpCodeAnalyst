@@ -414,4 +414,9 @@
   <data name="Legend_Tooltip" xml:space="preserve">
     <value>Show color legend</value>
   </data>
+  <data name="Parser_FailureHeader" xml:space="preserve">
+    <value>There are failures when loading the solution. The code graph may not complete:
+
+</value>
+  </data>
 </root>

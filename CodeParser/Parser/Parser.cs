@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using CodeParser.Parser.Config;
+using Contracts.Common;
 using Contracts.Graph;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CodeParser.Parser;
@@ -15,8 +17,14 @@ public class Parser(ParserConfig config)
 {
     public Progress Progress { get; set; } = new();
 
+    private readonly ParserDiagnostics _diagnostics = new ParserDiagnostics();
+
+    public IParserDiagnostics Diagnostics => _diagnostics;
+
     public async Task<CodeGraph> ParseSolution(string solutionPath)
     {
+        _diagnostics.Clear();
+
         var sw = Stopwatch.StartNew();
 
         Progress.SendProgress("Compiling ...");
@@ -24,7 +32,7 @@ public class Parser(ParserConfig config)
         var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
         var solution = await workspace.OpenSolutionAsync(solutionPath);
-        
+
 
         sw.Stop();
         Trace.WriteLine("Compiling: " + sw.Elapsed);
@@ -56,12 +64,10 @@ public class Parser(ParserConfig config)
         return codeGraph;
     }
 
-    private void Workspace_WorkspaceFailed(object? sender, Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs e)
+    private void Workspace_WorkspaceFailed(object? sender, WorkspaceDiagnosticEventArgs e)
     {
-        if (e.Diagnostic.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure)
-        { 
-            throw new InvalidOperationException(e.Diagnostic.Message); 
-        }
+        _diagnostics.Add(e.Diagnostic);
+        Trace.WriteLine(e.Diagnostic.Message);
     }
 
     private bool IsDistinct<T>(List<T> collection)
