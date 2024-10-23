@@ -790,6 +790,17 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There are failures when loading the solution. The code graph may not complete:
+        ///
+        ///.
+        /// </summary>
+        public static string Parser_FailureHeader {
+            get {
+                return ResourceManager.GetString("Parser_FailureHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Proceed?.
         /// </summary>
         public static string Proceed_Title {

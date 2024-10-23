@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -36,6 +35,7 @@ namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
+    private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
@@ -57,6 +57,8 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
+
+    private LegendDialog? _openedLegendDialog;
 
     private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
     private int _selectedTabIndex;
@@ -319,16 +321,13 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    LegendDialog? _openedLegendDialog;
-    private readonly int _maxDegreeOfParallelism;
-
     private void ShowLegend()
     {
         if (_openedLegendDialog == null)
         {
             _openedLegendDialog = new LegendDialog();
             _openedLegendDialog.Owner = Application.Current.MainWindow;
-            _openedLegendDialog.Closed += (object? sender, EventArgs e) => _openedLegendDialog = null;
+            _openedLegendDialog.Closed += (sender, e) => _openedLegendDialog = null;
             _openedLegendDialog.Show();
         }
     }
@@ -509,7 +508,14 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             IsLoading = true;
 
-            var codeGraph = await Task.Run(async () => await LoadAsync(solutionPath));
+            var (codeGraph, diagnostics) = await Task.Run(async () => await LoadAsync(solutionPath));
+
+            var failures = diagnostics.FormatFailures();
+            if (string.IsNullOrEmpty(failures) is false)
+            {
+                var failureText = Strings.Parser_FailureHeader + failures;
+                MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
             LoadCodeGraph(codeGraph);
 
@@ -529,7 +535,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async Task<CodeGraph> LoadAsync(string solutionPath)
+    private async Task<(CodeGraph, IParserDiagnostics)> LoadAsync(string solutionPath)
     {
         LoadMessage = "Loading ...";
         var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
@@ -537,7 +543,7 @@ internal class MainViewModel : INotifyPropertyChanged
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 
         parser.Progress.ParserProgress -= OnProgress;
-        return graph;
+        return (graph, parser.Diagnostics);
     }
 
     private void LoadCodeGraph(CodeGraph codeGraph)
