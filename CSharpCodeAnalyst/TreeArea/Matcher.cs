@@ -4,7 +4,10 @@ internal class Matcher
 {
     private string _expression = string.Empty;
 
-    public bool AcceptsAll => string.IsNullOrEmpty(_expression);
+    public bool AcceptsAll
+    {
+        get => string.IsNullOrEmpty(_expression);
+    }
 
     public void LoadMatchExpression(string? expression)
     {

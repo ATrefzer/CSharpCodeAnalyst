@@ -62,8 +62,15 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
         }
     }
 
-    public int ElementCount => _highLevelElements.Count;
-    public string CodeElementsDescription => $"Involves {CycleGroup.CodeGraph.Nodes.Count} code elements";
+    public int ElementCount
+    {
+        get => _highLevelElements.Count;
+    }
+
+    public string CodeElementsDescription
+    {
+        get => $"Involves {CycleGroup.CodeGraph.Nodes.Count} code elements";
+    }
 
     public CycleLevel Level { get; }
 

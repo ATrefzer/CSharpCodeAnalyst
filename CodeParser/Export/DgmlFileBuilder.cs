@@ -313,9 +313,15 @@ public class DgmlFileBuilder
     {
         public string Category { get; set; } = "";
 
-        public bool HasCategory => !string.IsNullOrEmpty(Category);
+        public bool HasCategory
+        {
+            get => !string.IsNullOrEmpty(Category);
+        }
 
-        public bool HasTooltip => !string.IsNullOrEmpty(Tooltip);
+        public bool HasTooltip
+        {
+            get => !string.IsNullOrEmpty(Tooltip);
+        }
 
         public string Id { get; set; } = id;
 
@@ -368,5 +374,9 @@ public class Group(string id, string label, string category)
     public string Label { get; set; } = label;
     public string Category { get; set; } = category;
     public List<string> NodeIds { get; } = [];
-    public bool HasCategory => !string.IsNullOrEmpty(Category);
+
+    public bool HasCategory
+    {
+        get => !string.IsNullOrEmpty(Category);
+    }
 }

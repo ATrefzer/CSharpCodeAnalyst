@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CodeParser.Parser;
 
 /// <summary>
-/// Extracts all code elements found in the solution together with other artifacts needed for phase 2.
+///     Extracts all code elements found in the solution together with other artifacts needed for phase 2.
 /// </summary>
 public class HierarchyAnalyzer
 {

@@ -6,7 +6,10 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 {
     public Dictionary<string, CodeElement> Nodes = new();
 
-    public uint VertexCount => (uint)Nodes.Count();
+    public uint VertexCount
+    {
+        get => (uint)Nodes.Count();
+    }
 
     public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
     {

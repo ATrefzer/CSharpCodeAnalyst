@@ -311,8 +311,8 @@ internal class MsaglBuilder
     public static Color ToColor(int colorValue)
     {
         // Extract RGB components
-        var r = (colorValue >> 16) & 0xFF;
-        var g = (colorValue >> 8) & 0xFF;
+        var r = colorValue >> 16 & 0xFF;
+        var g = colorValue >> 8 & 0xFF;
         var b = colorValue & 0xFF;
 
         // Create and return the Color object
