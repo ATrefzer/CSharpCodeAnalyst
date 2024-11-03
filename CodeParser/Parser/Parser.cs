@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using CodeParser.Parser.Config;
 using Contracts.Graph;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CodeParser.Parser;
@@ -24,7 +25,7 @@ public class Parser(ParserConfig config)
         var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
         var solution = await workspace.OpenSolutionAsync(solutionPath);
-        
+
 
         sw.Stop();
         Trace.WriteLine("Compiling: " + sw.Elapsed);
@@ -40,7 +41,7 @@ public class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
-        var phase2 = new RelationshipAnalyzer(Progress, config.MaxDegreeOfParallelism);
+        var phase2 = new RelationshipAnalyzer(Progress);
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
         sw.Stop();
@@ -56,11 +57,11 @@ public class Parser(ParserConfig config)
         return codeGraph;
     }
 
-    private void Workspace_WorkspaceFailed(object? sender, Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs e)
+    private void Workspace_WorkspaceFailed(object? sender, WorkspaceDiagnosticEventArgs e)
     {
-        if (e.Diagnostic.Kind == Microsoft.CodeAnalysis.WorkspaceDiagnosticKind.Failure)
-        { 
-            throw new InvalidOperationException(e.Diagnostic.Message); 
+        if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+        {
+            throw new InvalidOperationException(e.Diagnostic.Message);
         }
     }
 

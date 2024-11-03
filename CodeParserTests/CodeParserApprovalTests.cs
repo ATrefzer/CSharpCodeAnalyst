@@ -18,40 +18,45 @@ public class CodeParserApprovalTests
         _graph = await parser.ParseSolution(@"..\..\..\..\SampleProject\SampleProject.sln");
     }
 
-
+    /// <summary>
+    ///     This test is actually wrong(!) If we could recognize that AddSlave is a call to another object we could be more
+    ///     precise. In this case we would add the base call from the second instance.
+    /// </summary>
     [Test]
     public void CodeExplorer_FollowIncomingCalls_1()
     {
+        // Scenario where base class calls base method of another instance.
         var codeElements = _graph.Nodes.Values;
 
-        CodeGraphExplorer explorer = new CodeGraphExplorer();
+        var explorer = new CodeGraphExplorer();
         explorer.LoadCodeGraph(_graph);
 
-        var origin = codeElements.First(e => e.FullName.Contains("Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave"));
+        var origin = codeElements.First(e =>
+            e.FullName.Contains("Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave"));
         var result = explorer.FollowIncomingCallsRecursive(origin.Id);
 
-        var actualRelationships = result.Relationships.Select(d => $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}")
-         .OrderBy(x => x);
+        var actualRelationships = result.Relationships.Select(d =>
+                $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}")
+            .OrderBy(x => x);
 
         var expectedRelationships = new List<string>
         {
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave"
+            // Self call but not recognized that this is on another object
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
 
-        var actualElements =  result.Elements.Select(m => m.FullName).ToList();
+        var actualElements = result.Elements.Select(m => m.FullName).ToList();
 
         var expectedElements = new List<string>
         {
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build", 
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor"
         };
         CollectionAssert.AreEquivalent(expectedElements, actualElements);
@@ -62,19 +67,20 @@ public class CodeParserApprovalTests
     {
         var codeElements = _graph.Nodes.Values;
 
-        CodeGraphExplorer explorer = new CodeGraphExplorer();
+        var explorer = new CodeGraphExplorer();
         explorer.LoadCodeGraph(_graph);
 
-        var origin = codeElements.First(e => e.FullName.Contains("Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave"));
+        var origin = codeElements.First(e =>
+            e.FullName.Contains("Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave"));
         var result = explorer.FollowIncomingCallsRecursive(origin.Id);
 
-        var actualRelationships = result.Relationships.Select(d => $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}");
+        var actualRelationships = result.Relationships.Select(d =>
+            $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}");
         var expectedRelationships = new List<string>
         {
-          "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave", 
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
@@ -96,7 +102,6 @@ public class CodeParserApprovalTests
     {
         var codeElements = _graph.Nodes.Values;
 
-        // Three assemblies
         var assemblies = codeElements.Where(n => n is { Name: "ModuleLevel0", ElementType: CodeElementType.Assembly });
         Assert.AreEqual(1, assemblies.Count());
 
@@ -198,7 +203,18 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB",
-            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA"
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA",
+
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave"
         };
 
 
@@ -258,7 +274,16 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes", "CSharpLanguage.CSharpLanguage.CustomException",
             "CSharpLanguage.CSharpLanguage.EventInvocation", "CSharpLanguage.CSharpLanguage.EventSink",
             "CSharpLanguage.CSharpLanguage.Extensions", "CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage",
-            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage", "CSharpLanguage.CSharpLanguage.MoreGenerics"
+            "CSharpLanguage.CSharpLanguage.MissingInterface.Storage", "CSharpLanguage.CSharpLanguage.MoreGenerics",
+
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -316,7 +341,18 @@ public class CodeParserApprovalTests
 
             // Hierarchies. Calling the base classes.
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA",
-            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA"
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA",
+
+
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -451,7 +487,12 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB",
-            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA"
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA",
+
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
         };
 
 
@@ -614,7 +655,13 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1",
             "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2",
-            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3"
+            "CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4 -> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3",
+
+
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base"
         };
 
 

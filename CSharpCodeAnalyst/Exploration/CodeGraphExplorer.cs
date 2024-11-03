@@ -1,4 +1,5 @@
-﻿using CodeParser.Analysis.Cycles;
+﻿using System.Diagnostics;
+using CodeParser.Analysis.Cycles;
 using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Exploration;
@@ -29,8 +30,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         foreach (var id in ids)
         {
             if (_codeGraph.Nodes.TryGetValue(id, out var element))
-            {
                 // The element is cloned internally and the relationships discarded.
+            {
                 elements.Add(element);
             }
         }
@@ -172,7 +173,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new Invocation(foundMethods, foundCalls);
     }
 
-
+    /// <summary>
+    ///     This gives a heuristic only. The graph model does not contain the information for analyzing dynamic behavior.
+    ///     For example, it makes a difference if we call Foo() in an object instance or otherInstance.Foo().
+    ///     The first case should not follow base.Foo() calls the second however should.
+    /// </summary>
     public SearchResult FollowIncomingCallsRecursive(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -191,11 +196,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var method = _codeGraph.Nodes[id];
 
+        var restriction = new FollowIncomingCallsRestriction();
         var processingQueue = new Queue<CodeElement>();
         processingQueue.Enqueue(method);
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>();
+
+        // For convenience. The element is already in the graph. But this way the result is consistent.
+        foundElements.Add(_codeGraph.Nodes[id]);
 
 
         var processed = new HashSet<string>();
@@ -207,6 +216,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue;
             }
 
+
             if (element.ElementType == CodeElementType.Event)
             {
                 // An event is raised by the specialization
@@ -215,11 +225,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(specializedSources);
                 AddToProcessingQueue(specializedSources);
-            }
 
-            // Add all methods that invoke the event
-            if (element.ElementType == CodeElementType.Event)
-            {
+                // Add all methods that invoke the event
                 var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
                 foundRelationships.UnionWith(invokes);
                 var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
@@ -227,34 +234,34 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 AddToProcessingQueue(invokeSources);
             }
 
-            // Add Events that are handled by this method.
             if (element.ElementType == CodeElementType.Method)
             {
+                // Add Events that are handled by this method.
                 var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
                 foundRelationships.UnionWith(handles);
                 var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
                 foundElements.UnionWith(events);
                 AddToProcessingQueue(events);
-            }
 
-            // Calls
-            if (element.ElementType == CodeElementType.Method)
-            {
-                var calls = allCalls.Where(call => call.TargetId == element.Id && !IsCallToBaseClass(call, id)).ToArray();
-                foundRelationships.UnionWith(calls);
-                var callSources = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
-                foundElements.UnionWith(callSources);
-                AddToProcessingQueue(callSources);
-            }
 
-            // Abstractions. For methods the abstractions like interfaces are called.
-            if (element.ElementType == CodeElementType.Method)
-            {
+                // Handle abstractions before the calls. The abstractions limit the allowed calls.
+                // Abstractions. For methods the abstractions like interfaces are called.
                 var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
                 foundRelationships.UnionWith(abstractions);
                 var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
                 foundElements.UnionWith(abstractionTargets);
+                restriction.WasAddedBecauseItsAnAbstraction.UnionWith(abstractionTargets.Select(t => t.Id));
                 AddToProcessingQueue(abstractionTargets);
+
+
+                // Calls
+                var calls = allCalls.Where(call => call.TargetId == element.Id && IsAllowedCall(call)).ToArray();
+                foundRelationships.UnionWith(calls);
+                var callSources = calls
+                    .Select(d => _codeGraph.Nodes[d.SourceId])
+                    .ToHashSet();
+                foundElements.UnionWith(callSources);
+                AddToProcessingQueue(callSources);
             }
         }
 
@@ -267,18 +274,24 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id]);
             }
         }
-    }
 
-    /// <summary>
-    /// source --> target (abstract)
-    /// TODO
-    /// </summary>
-    private bool IsCallToBaseClass(Relationship call, string originId)
-    {
-        // Is target more abstract than source
-        // target  (abstract) <-- source
-        var isCallToBaseClass = GetRelationships(d => d.Type is RelationshipType.Overrides).Any(r => r.SourceId == call.SourceId && r.TargetId == call.TargetId);        
-        return isCallToBaseClass;
+        bool IsAllowedCall(Relationship call)
+        {
+            if (restriction.WasAddedBecauseItsAnAbstraction.Contains(call.TargetId))
+            {
+                var allow = !IsCallToOwnBase(call);
+                if (!allow)
+                {
+                    var sourceName = _codeGraph.Nodes[call.SourceId].FullName;
+                    var targetName = _codeGraph.Nodes[call.TargetId].FullName;
+                    Trace.WriteLine($"Removed: {sourceName} ->  {targetName}");
+                }
+
+                return allow;
+            }
+
+            return true;
+        }
     }
 
     /// <summary>
@@ -334,8 +347,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         {
             var typeToAnalyze = processingQueue.Dequeue();
             if (!processed.Add(typeToAnalyze.Id))
-            {
                 // Since we evaluate both direction in one iteration, an already processed node is added again.
+            {
                 continue;
             }
 
@@ -450,6 +463,19 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, relationships);
     }
 
+
+    /// <summary>
+    ///     source --> target (abstract)
+    /// </summary>
+    private bool IsCallToOwnBase(Relationship call)
+    {
+        // Is target more abstract than source?
+        // target  (abstract) <-- source
+        var isCallToBaseClass = GetRelationships(d => d.Type is RelationshipType.Overrides)
+            .Any(r => r.SourceId == call.SourceId && r.TargetId == call.TargetId);
+        return isCallToBaseClass;
+    }
+
     private List<Relationship> GetCachedRelationships()
     {
         if (_codeGraph is null)
@@ -496,6 +522,16 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 }
             }
         }
+    }
+
+    private class FollowIncomingCallsRestriction
+    {
+        /// <summary>
+        ///     If we follow incoming calls we include the abstraction of the method.
+        ///     This is for example because the method may be indirectly called by the interface.
+        ///     If we proceed we may also find calls the base. But this is the wrong direction for the path we follow.
+        /// </summary>
+        public HashSet<string> WasAddedBecauseItsAnAbstraction { get; } = [];
     }
 }
 

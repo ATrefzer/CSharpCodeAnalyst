@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Threading.Tasks.Dataflow;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,7 +12,6 @@ namespace CodeParser.Parser;
 public class RelationshipAnalyzer
 {
     private readonly object _lock = new();
-    private readonly int _maxDegreeOfParallelism;
     private readonly Progress _progress;
     private Artifacts _artifacts;
     private CodeGraph _codeGraph;
@@ -24,10 +22,9 @@ public class RelationshipAnalyzer
     /// <summary>
     ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
     /// </summary>
-    public RelationshipAnalyzer(Progress progress, int maxDegreeOfParallelism)
+    public RelationshipAnalyzer(Progress progress)
     {
         _progress = progress;
-        _maxDegreeOfParallelism = maxDegreeOfParallelism;
     }
 
     /// <summary>
@@ -501,7 +498,7 @@ public class RelationshipAnalyzer
                     {
                         currentNode = currentNode.Parent;
                     }
-
+                    
                     if (currentNode is ConditionalAccessExpressionSyntax conditionalAccess)
                     {
                         eventSymbol = semanticModel.GetSymbolInfo(conditionalAccess.Expression).Symbol as IEventSymbol;

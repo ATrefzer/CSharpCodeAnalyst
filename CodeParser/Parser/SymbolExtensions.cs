@@ -219,20 +219,14 @@ public static class SymbolExtensions
     {
         while (true)
         {
-            if (symbol is INamespaceSymbol ns)
+            if (symbol is INamespaceSymbol { ContainingCompilation: not null } ns)
             {
-                if (ns.ContainingCompilation != null)
-                {
-                    return ns.ContainingCompilation;
-                }
+                return ns.ContainingCompilation;
             }
 
-            if (symbol is ISourceAssemblySymbol sas)
+            if (symbol is ISourceAssemblySymbol { Compilation: not null } sas)
             {
-                if (sas.Compilation != null)
-                {
-                    return sas.Compilation;
-                }
+                return sas.Compilation;
             }
 
             symbol = symbol.ContainingSymbol ?? throw new Exception("No compilation");
