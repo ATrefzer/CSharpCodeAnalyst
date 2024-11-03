@@ -48,7 +48,7 @@ public class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
-        var phase2 = new RelationshipAnalyzer(Progress, config.MaxDegreeOfParallelism);
+        var phase2 = new RelationshipAnalyzer(Progress);
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
         sw.Stop();
