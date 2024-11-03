@@ -4,7 +4,10 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 public class SeparatorCommand : ICodeElementContextCommand
 {
-    public string Label => throw new NotImplementedException();
+    public string Label
+    {
+        get => string.Empty;
+    }
 
     public bool CanHandle(CodeElement item)
     {

@@ -8,16 +8,15 @@ namespace ApprovalTestTool;
 internal class TestTool
 {
     /// <summary>
-    /// Automatic approval tool
-    /// For each line in the repositories.txt
+    ///     Automatic approval tool
+    ///     For each line in the repositories.txt
     ///     1. Clone or pull the repository
     ///     2. Checkout the specified commit
     ///     3. Run test code: Parse the solution and write the output to a file.
     ///     4. Compare output with reference or copy to reference folder if not exists yet.
     ///     5. Print test result
-    ///
-    /// Note: The reference files are not committed, so save space.
-    /// You can always check out an older tag and create the reference files.
+    ///     Note: The reference files are not committed, so save space.
+    ///     You can always check out an older tag and create the reference files.
     /// </summary>
     private static async Task Main(string[] args)
     {
@@ -146,7 +145,7 @@ internal class TestTool
 
         using var reader1 = new StreamReader(stream1);
         using var reader2 = new StreamReader(stream2);
-        while (reader1.ReadLine() is { } line1)
+        while (reader1.ReadLine() is {} line1)
         {
             var line2 = reader2.ReadLine();
             if (line2 == null || line1 != line2)

@@ -2,3 +2,36 @@
 
 # Default severity for all analyzer diagnostics
 dotnet_analyzer_diagnostic.severity = none
+
+[*]
+
+# Microsoft .NET properties
+csharp_new_line_before_members_in_object_initializers = false
+csharp_preferred_modifier_order = internal, public, private, protected, file, new, static, override, abstract, sealed, virtual, async, extern, unsafe, volatile, readonly, required:suggestion
+csharp_preserve_single_line_blocks = true
+
+# ReSharper properties
+resharper_accessor_owner_body = accessors_with_expression_body
+resharper_blank_lines_around_block_case_section = 1
+resharper_braces_for_foreach = required
+resharper_braces_for_ifelse = not_required
+resharper_braces_for_while = required
+resharper_braces_redundant = false
+resharper_csharp_keep_blank_lines_in_code = 100
+resharper_csharp_keep_blank_lines_in_declarations = 100
+resharper_csharp_keep_existing_enum_arrangement = false
+resharper_csharp_max_line_length = 199
+resharper_csharp_remove_blank_lines_near_braces_in_declarations = false
+resharper_indent_preprocessor_other = do_not_change
+resharper_instance_members_qualify_declared_in =
+resharper_keep_existing_declaration_block_arrangement = false
+resharper_parentheses_redundancy_style = remove
+resharper_place_accessorholder_attribute_on_same_line = true
+resharper_place_expr_accessor_on_single_line = true
+resharper_place_expr_property_on_single_line = true
+resharper_place_simple_initializer_on_single_line = false
+resharper_space_within_empty_braces = false
+resharper_wrap_before_binary_pattern_op = false
+resharper_wrap_chained_binary_patterns = chop_if_long
+resharper_wrap_list_pattern = chop_if_long
+resharper_wrap_object_and_collection_initializer_style = chop_always

@@ -390,7 +390,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         if (e.LeftButtonIsPressed)
         {
             var obj = _msaglViewer?.ObjectUnderMouseCursor;
-            if (obj == null || (!IsShiftPressed() && !IsCtrlPressed()))
+            if (obj == null || !IsShiftPressed() && !IsCtrlPressed())
             {
                 // Release the fixed info if we click on empty space or click 
                 // anywhere without holding shift or ctrl.

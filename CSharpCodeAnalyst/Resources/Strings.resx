@@ -59,7 +59,8 @@
               : using a System.ComponentModel.TypeConverter
               : and then encoded with base64 encoding.
       -->
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                id="root"
                 xmlns="">
         <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
         <xsd:element name="root" msdata:IsDataSet="true">
@@ -419,7 +420,7 @@
     <data name="Legend_Tooltip" xml:space="preserve">
     <value>Show color legend</value>
   </data>
-  <data name="Parser_FailureHeader" xml:space="preserve">
+    <data name="Parser_FailureHeader" xml:space="preserve">
     <value>There are failures when loading the solution. The code graph may not complete:
 
 </value>

@@ -10,8 +10,8 @@ public interface IQuickInfoFactory
 
 internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
 {
-    internal static readonly List<QuickInfo> DefaultInfo = [new QuickInfo("No object selected")];
-    internal static readonly List<QuickInfo> NoInfoProviderRegistered = [new QuickInfo("No info provider registered")];
+    internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
+    internal static readonly List<QuickInfo> NoInfoProviderRegistered = [new("No info provider registered")];
 
     public List<QuickInfo> CrateQuickInfo(object? obj)
     {

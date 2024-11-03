@@ -15,11 +15,14 @@ namespace CodeParser.Parser;
 /// </summary>
 public class Parser(ParserConfig config)
 {
+
+    private readonly ParserDiagnostics _diagnostics = new();
     public Progress Progress { get; set; } = new();
 
-    private readonly ParserDiagnostics _diagnostics = new ParserDiagnostics();
-
-    public IParserDiagnostics Diagnostics => _diagnostics;
+    public IParserDiagnostics Diagnostics
+    {
+        get => _diagnostics;
+    }
 
     public async Task<CodeGraph> ParseSolution(string solutionPath)
     {

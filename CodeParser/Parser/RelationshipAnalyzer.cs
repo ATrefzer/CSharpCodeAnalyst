@@ -385,7 +385,7 @@ public class RelationshipAnalyzer
             var symbolCompilation = symbol.FindCompilation();
             if (ReferenceEquals(typeCompilation, symbolCompilation) is false)
             {
-                if (symbol.FindCorrespondingSymbol(typeCompilation) is { } mappedSymbol)
+                if (symbol.FindCorrespondingSymbol(typeCompilation) is {} mappedSymbol)
                 {
                     implementingSymbol = implementingType.FindImplementationForInterfaceMember(mappedSymbol);
                 }
@@ -498,7 +498,7 @@ public class RelationshipAnalyzer
                     {
                         currentNode = currentNode.Parent;
                     }
-                    
+
                     if (currentNode is ConditionalAccessExpressionSyntax conditionalAccess)
                     {
                         eventSymbol = semanticModel.GetSymbolInfo(conditionalAccess.Expression).Symbol as IEventSymbol;

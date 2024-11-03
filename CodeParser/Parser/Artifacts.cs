@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CodeParser.Parser;
 
 /// <summary>
-/// Artifacts from the first phase of the parser.
-/// This information is needed to build the relationships in phase 2.
+///     Artifacts from the first phase of the parser.
+///     This information is needed to build the relationships in phase 2.
 /// </summary>
 public class Artifacts(
     ReadOnlyCollection<INamedTypeSymbol> allNamedTypesInSolution,

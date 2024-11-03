@@ -12,7 +12,10 @@ public class SearchGraph : IGraphRepresentation<SearchNode>
 
     public List<SearchNode> Vertices { get; }
 
-    public uint VertexCount => (uint)Vertices.Count();
+    public uint VertexCount
+    {
+        get => (uint)Vertices.Count();
+    }
 
     public IReadOnlyCollection<SearchNode> GetNeighbors(SearchNode vertex)
     {
