@@ -81,7 +81,7 @@ Please take note of the following issues:
 - The tree view search may be very slow, depending on the result.
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
 - External code is ignored.
-- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Documentation\Uncovered C# Syntax.md](Documentation/Uncovered C# Syntax.md)
+- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Documentation\Uncovered C# Syntax.md](Documentation/Uncovered%20C#%20Syntax.md")
 
 ## Thank you
 
