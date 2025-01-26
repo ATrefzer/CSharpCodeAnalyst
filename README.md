@@ -4,6 +4,8 @@ This application helps you to explore, understand, and maintain C# code.
 
 Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
 
+Note: MSBuild must be installed on your computer for the application to work.
+
 ## Exploring your codebase
 
 ![image-20240731123233438](Images/code-explorer.png)
