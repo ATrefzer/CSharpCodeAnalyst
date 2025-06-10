@@ -7,6 +7,7 @@ using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.TreeArea;
+using Microsoft.Build.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
@@ -20,7 +21,14 @@ public partial class App
     {
         base.OnStartup(e);
 
-        Initializer.InitializeMsBuildLocator();
+        try
+        {
+            Initializer.InitializeMsBuildLocator();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.ToString());
+        }
 
         // Load application settings
         var builder = new ConfigurationBuilder()
