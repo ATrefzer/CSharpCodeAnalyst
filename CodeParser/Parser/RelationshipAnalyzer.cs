@@ -13,8 +13,8 @@ public class RelationshipAnalyzer
 {
     private readonly object _lock = new();
     private readonly Progress _progress;
-    private Artifacts _artifacts;
-    private CodeGraph _codeGraph;
+    private Artifacts? _artifacts;
+    private CodeGraph? _codeGraph;
     private long _lastProgress;
 
     private int _processedCodeElements;
@@ -33,6 +33,11 @@ public class RelationshipAnalyzer
     /// </summary>
     public Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
     {
+        ArgumentNullException.ThrowIfNull(solution, nameof(solution));
+        ArgumentNullException.ThrowIfNull(codeGraph, nameof(codeGraph));
+        ArgumentNullException.ThrowIfNull(artifacts, nameof(artifacts));
+
+
         _codeGraph = codeGraph;
         _artifacts = artifacts;
 
@@ -66,7 +71,7 @@ public class RelationshipAnalyzer
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
     {
-        return _artifacts.AllNamedTypesInSolution
+        return _artifacts!.AllNamedTypesInSolution
             .Where(type => IsTypeDerivedFrom(type, baseType));
     }
 
@@ -165,7 +170,7 @@ public class RelationshipAnalyzer
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)
     {
-        foreach (var statement in _artifacts.GlobalStatementsByAssembly)
+        foreach (var statement in _artifacts!.GlobalStatementsByAssembly)
         {
             var assemblySymbol = statement.Key;
             var globalStatements = statement.Value;
@@ -187,7 +192,7 @@ public class RelationshipAnalyzer
 
             lock (_lock)
             {
-                _codeGraph.Nodes[dummyClassId] = dummyClass;
+                _codeGraph!.Nodes[dummyClassId] = dummyClass;
                 assemblyElement.Children.Add(dummyClass);
             }
 
@@ -354,7 +359,7 @@ public class RelationshipAnalyzer
             var implementingSymbol = FindImplementationForInterfaceMember(symbol, implementingType);
             if (implementingSymbol != null)
             {
-                var implementingElement = _artifacts.SymbolKeyToElementMap.GetValueOrDefault(implementingSymbol.Key());
+                var implementingElement = _artifacts!.SymbolKeyToElementMap.GetValueOrDefault(implementingSymbol.Key());
                 if (implementingElement != null)
                 {
                     // Note: Implementations for external methods are not in our map
@@ -403,7 +408,7 @@ public class RelationshipAnalyzer
     {
         // Note: AllInterfaces returns all interfaces found at this type, regardless if it is implemented in a base class or not.
         var interfaceKey = interfaceSymbol.Key();
-        return _artifacts.AllNamedTypesInSolution
+        return _artifacts!.AllNamedTypesInSolution
             .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
     }
 
@@ -660,7 +665,7 @@ public class RelationshipAnalyzer
             default:
                 // Handle other type symbols (e.g., type parameters)
                 var symbolKey = typeSymbol.Key();
-                if (_artifacts.SymbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
+                if (_artifacts!.SymbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
                 {
                     AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : []);
                 }
@@ -712,7 +717,7 @@ public class RelationshipAnalyzer
             var originalDefinition = namedTypeSymbol.OriginalDefinition;
             var originalSymbolKey = originalDefinition.Key();
 
-            if (_artifacts.SymbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
+            if (_artifacts!.SymbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
             {
                 // We found the original definition, add relationship to it
                 AddRelationship(sourceElement, relationshipType, originalTargetElement,
@@ -819,7 +824,7 @@ public class RelationshipAnalyzer
             return null;
         }
 
-        _artifacts.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
+        _artifacts!.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
     }
 

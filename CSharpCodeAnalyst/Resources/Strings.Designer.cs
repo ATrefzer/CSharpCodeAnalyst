@@ -430,7 +430,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ShowDataFlow.
+        ///   Looks up a localized string similar to Show Information Flow.
         /// </summary>
         public static string Flow_Label {
             get {
@@ -860,6 +860,204 @@ namespace CSharpCodeAnalyst.Resources {
         public static string QuickInfo_Tooltip {
             get {
                 return ResourceManager.GetString("QuickInfo_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute.
+        /// </summary>
+        public static string Relationship_Attribute {
+            get {
+                return ResourceManager.GetString("Relationship_Attribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base Class.
+        /// </summary>
+        public static string Relationship_BaseClass {
+            get {
+                return ResourceManager.GetString("Relationship_BaseClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base Method.
+        /// </summary>
+        public static string Relationship_BaseMethod {
+            get {
+                return ResourceManager.GetString("Relationship_BaseMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Callee.
+        /// </summary>
+        public static string Relationship_Callee {
+            get {
+                return ResourceManager.GetString("Relationship_Callee", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Caller.
+        /// </summary>
+        public static string Relationship_Caller {
+            get {
+                return ResourceManager.GetString("Relationship_Caller", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consumer.
+        /// </summary>
+        public static string Relationship_Consumer {
+            get {
+                return ResourceManager.GetString("Relationship_Consumer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contained Element.
+        /// </summary>
+        public static string Relationship_ContainedElement {
+            get {
+                return ResourceManager.GetString("Relationship_ContainedElement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Container.
+        /// </summary>
+        public static string Relationship_Container {
+            get {
+                return ResourceManager.GetString("Relationship_Container", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created Type.
+        /// </summary>
+        public static string Relationship_CreatedType {
+            get {
+                return ResourceManager.GetString("Relationship_CreatedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creator.
+        /// </summary>
+        public static string Relationship_Creator {
+            get {
+                return ResourceManager.GetString("Relationship_Creator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Decorated Element.
+        /// </summary>
+        public static string Relationship_DecoratedElement {
+            get {
+                return ResourceManager.GetString("Relationship_DecoratedElement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Derived Class.
+        /// </summary>
+        public static string Relationship_DerivedClass {
+            get {
+                return ResourceManager.GetString("Relationship_DerivedClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        public static string Relationship_Event {
+            get {
+                return ResourceManager.GetString("Relationship_Event", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Handler.
+        /// </summary>
+        public static string Relationship_EventHandler {
+            get {
+                return ResourceManager.GetString("Relationship_EventHandler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Invoker.
+        /// </summary>
+        public static string Relationship_EventInvoker {
+            get {
+                return ResourceManager.GetString("Relationship_EventInvoker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Source.
+        /// </summary>
+        public static string Relationship_EventSource {
+            get {
+                return ResourceManager.GetString("Relationship_EventSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Implementation.
+        /// </summary>
+        public static string Relationship_Implementation {
+            get {
+                return ResourceManager.GetString("Relationship_Implementation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface.
+        /// </summary>
+        public static string Relationship_Interface {
+            get {
+                return ResourceManager.GetString("Relationship_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Override Method.
+        /// </summary>
+        public static string Relationship_OverrideMethod {
+            get {
+                return ResourceManager.GetString("Relationship_OverrideMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source.
+        /// </summary>
+        public static string Relationship_Source {
+            get {
+                return ResourceManager.GetString("Relationship_Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target.
+        /// </summary>
+        public static string Relationship_Target {
+            get {
+                return ResourceManager.GetString("Relationship_Target", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Used Element.
+        /// </summary>
+        public static string Relationship_UsedElement {
+            get {
+                return ResourceManager.GetString("Relationship_UsedElement", resourceCulture);
             }
         }
         
