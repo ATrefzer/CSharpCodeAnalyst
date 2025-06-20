@@ -122,7 +122,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var method = _codeGraph.Nodes[id];
 
-        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
+        var allCalls = GetRelationships(d => d.Type.IsCall());
         var calls = allCalls.Where(call => call.TargetId == method.Id).ToArray();
         var methods = calls.Select(d => _codeGraph.Nodes[d.SourceId]);
 
@@ -147,7 +147,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var foundCalls = new HashSet<Relationship>();
         var foundMethods = new HashSet<CodeElement>();
 
-        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
+        var allCalls = GetRelationships(d => d.Type.IsCall());
 
         var processed = new HashSet<string>();
         while (processingQueue.Any())
@@ -173,6 +173,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new Invocation(foundMethods, foundCalls);
     }
 
+ 
+
     /// <summary>
     ///     This gives a heuristic only. The graph model does not contain the information for analyzing dynamic behavior.
     /// </summary>
@@ -187,16 +189,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var allImplementsAndOverrides =
             GetRelationships(d => d.Type is RelationshipType.Implements or RelationshipType.Overrides);
-        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
+        var allCalls = GetRelationships(d => d.Type.IsCall());
 
         var allHandles = GetRelationships(d => d.Type == RelationshipType.Handles);
         var allInvokes = GetRelationships(d => d.Type == RelationshipType.Invokes);
 
         var method = _codeGraph.Nodes[id];
 
-        var restriction = new FollowIncomingCallsRestriction();
-       var processingQueue = new PriorityQueue<CodeElement, int>();
-        processingQueue.Enqueue(method, 0); // Start with the initial method, priority 0
+       var processingQueue = new PriorityQueue<(CodeElement, Context), int>();
+        processingQueue.Enqueue((method, new Context()), 0); // Start with the initial method, priority 0
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>();
@@ -210,7 +211,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         {
             // 0 = highest priority
 
-            var element = processingQueue.Dequeue();
+            var newContext = new Context();
+
+            var (element, currentContext) = processingQueue.Dequeue();
             if (!processed.Add(element.Id))
             {
                 continue;
@@ -224,14 +227,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(specializations);
                 var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(specializedSources);
-                AddToProcessingQueue(specializedSources, 0);
+                AddToProcessingQueue(specializedSources, newContext, 0);
 
                 // Add all methods that invoke the event
                 var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
                 foundRelationships.UnionWith(invokes);
                 var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(invokeSources);
-                AddToProcessingQueue(invokeSources, 2);
+                AddToProcessingQueue(invokeSources, newContext, 2);
             }
 
             if (element.ElementType == CodeElementType.Method)
@@ -243,8 +246,17 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(abstractions);
                 var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
                 foundElements.UnionWith(abstractionTargets);
-                restriction.BlockeBaseCalls.UnionWith(abstractionTargets.Select(t => t.Id));
-                AddToProcessingQueue(abstractionTargets, 0);
+
+                if (abstractionTargets.Any())
+                {
+                    // Assume class, struct etc.
+                    var container = element.Parent;
+                    newContext.Remember.UnionWith([container.Id]);
+                }
+                
+                
+                
+                AddToProcessingQueue(abstractionTargets, newContext, 0);
 
 
                 // Add Events that are handled by this method  (priority 1).
@@ -252,47 +264,84 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(handles);
                 var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
                 foundElements.UnionWith(events);
-                AddToProcessingQueue(events, 1);
+                AddToProcessingQueue(events, newContext, 1);
     
 
                 // 3. Calls (priority 2)
-                var calls = allCalls.Where(call => call.TargetId == element.Id && IsAllowedCall(call)).ToArray();
+                var calls = allCalls.Where(call => call.TargetId == element.Id && IsAllowedCall(call, currentContext)).ToArray();
                 foundRelationships.UnionWith(calls);
                 var callSources = calls
                     .Select(d => _codeGraph.Nodes[d.SourceId])
                     .ToHashSet();
                 foundElements.UnionWith(callSources);
-                AddToProcessingQueue(callSources, 2);
+                AddToProcessingQueue(callSources, newContext, 2);
             }
         }
 
         return new SearchResult(foundElements, foundRelationships);
 
-        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, int priority)
+        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context, int priority)
         {
             foreach (var elementToExplore in elementsToExplore)
             {
-                processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id], priority);
+                processingQueue.Enqueue((_codeGraph.Nodes[elementToExplore.Id], context), priority);
             }
         }
         
-        bool IsAllowedCall(Relationship call)
+        bool IsAllowedCall(Relationship call, Context context)
         {
-            if (restriction.BlockeBaseCalls.Contains(call.TargetId))
-            {
-                var allow = !IsCallToOwnBase(call);
-                if (!allow)
-                {
-                    var sourceName = _codeGraph.Nodes[call.SourceId].FullName;
-                    var targetName = _codeGraph.Nodes[call.TargetId].FullName;
-                    Trace.WriteLine($"Removed: {sourceName} ->  {targetName}");
-                }
+            var caller = call.SourceId;
+            var method = _codeGraph.Nodes[caller];
+            var callerType = method.Parent;
 
-                return allow;
+            if (context.Remember.Any() is false)
+            {
+                // No context, no limits
+                return true;
+            }
+
+            if (context.Remember.Contains(callerType.Id))
+            {
+                return call.Type != RelationshipType.BaseCall;
+            }
+              
+            if (context.Remember.Contains(callerType.Id) is false)
+            {
+                return call.Type != RelationshipType.BaseCall;
+            }
+
+            return true;
+
+            
+            
+
+            {
+             //   var allow = !IsCallToOwnBase(call);
+                //if (!allow)
+                //{
+                //    var sourceName = _codeGraph.Nodes[call.SourceId].FullName;
+                //    var targetName = _codeGraph.Nodes[call.TargetId].FullName;
+                //    Trace.WriteLine($"Removed: {sourceName} ->  {targetName}");
+                //}
+
+                //return allow;
             }
 
             return true;
         }
+    }
+
+
+    /// <summary>
+    ///     source --> target (abstract)
+    /// </summary>
+    private bool IsCallToOwnBase(Relationship call)
+    {
+        // Is target more abstract than source?
+        // target  (abstract) <-- source
+        var isCallToBaseClass = GetRelationships(d => d.Type is RelationshipType.Overrides)
+            .Any(r => r.SourceId == call.SourceId && r.TargetId == call.TargetId);
+        return isCallToBaseClass;
     }
 
     /// <summary>
@@ -426,7 +475,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var method = _codeGraph.Nodes[id];
 
         var calls = method.Relationships
-            .Where(d => d.Type == RelationshipType.Calls).ToList();
+            .Where(d => d.Type.IsCall()).ToList();
         var methods = calls.Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
         return new Invocation(methods, calls);
     }
@@ -465,17 +514,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
 
-    /// <summary>
-    ///     source --> target (abstract)
-    /// </summary>
-    private bool IsCallToOwnBase(Relationship call)
-    {
-        // Is target more abstract than source?
-        // target  (abstract) <-- source
-        var isCallToBaseClass = GetRelationships(d => d.Type is RelationshipType.Overrides)
-            .Any(r => r.SourceId == call.SourceId && r.TargetId == call.TargetId);
-        return isCallToBaseClass;
-    }
 
     private List<Relationship> GetCachedRelationships()
     {
@@ -525,7 +563,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
     }
 
-    private class FollowIncomingCallsRestriction
+    private class Context
     {
         /// <summary>
         ///     If we follow incoming calls we include the abstraction of the method.
@@ -551,7 +589,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         ///
         ///     Hashset of target ids of base methods.
         /// </summary>
-        public HashSet<string> BlockeBaseCalls { get; } = [];
+        public HashSet<string> Remember { get; } = [];
         
         public HashSet<string> BlockedAbstraction { get; } = [];
     }

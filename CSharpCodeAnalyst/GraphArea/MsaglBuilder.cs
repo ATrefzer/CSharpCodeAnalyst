@@ -287,7 +287,7 @@ internal class MsaglBuilder
     private static string GetLabelText(Relationship relationship)
     {
         // Omit the label text for now. The color makes it clear that it is a call relationship
-        if (relationship.Type == RelationshipType.Calls || relationship.Type == RelationshipType.Invokes)
+        if (relationship.Type.IsCall() || relationship.Type == RelationshipType.Invokes)
         {
             return string.Empty;
         }

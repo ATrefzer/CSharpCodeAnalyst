@@ -104,6 +104,10 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
         return type switch
         {
             RelationshipType.Calls => (Strings.Relationship_Caller, Strings.Relationship_Callee),
+            RelationshipType.CallsInstance => (Strings.Relationship_Caller, "bae"),
+            RelationshipType.BaseCall => (Strings.Relationship_Caller, "instance"),
+
+
             RelationshipType.Creates => (Strings.Relationship_Creator, Strings.Relationship_CreatedType),
             RelationshipType.Uses => (Strings.Relationship_Consumer, Strings.Relationship_UsedElement),
             RelationshipType.Inherits => (Strings.Relationship_DerivedClass, Strings.Relationship_BaseClass),

@@ -322,6 +322,12 @@ public class RelationshipAnalyzer
             }
         }
 
+        //// Check for constructor chaining
+        //if (methodSymbol.MethodKind == MethodKind.Constructor)
+        //{
+        //    AnalyzeConstructorChaining(methodElement, methodSymbol, solution);
+        //}
+
         // Analyze method body for object creations and method calls
         foreach (var syntaxReference in methodSymbol.DeclaringSyntaxReferences)
         {
@@ -475,7 +481,11 @@ public class RelationshipAnalyzer
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {
             var location = invocationSyntax.GetSyntaxLocation();
-            AddCallsRelationship(sourceElement, calledMethod, location);
+            
+            // Check if this is a base call
+            var type = DetermineCallRelationshipType(invocationSyntax, calledMethod, semanticModel);
+            AddCallsRelationship(sourceElement, calledMethod, location, type);
+         
 
             // Handle generic method invocations
             if (calledMethod.IsGenericMethod)
@@ -517,12 +527,90 @@ public class RelationshipAnalyzer
             }
         }
 
+
+
         // Handle direct event invocations (if any)
         var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
         //if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol symbol })
         if (invokedSymbol is IEventSymbol symbol)
         {
             AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
+        }
+    }
+    private RelationshipType DetermineCallRelationshipType(InvocationExpressionSyntax invocation,
+        IMethodSymbol method, SemanticModel semanticModel)
+    {
+        // Extension methods - keep as generic Calls
+        if (method.IsExtensionMethod)
+        {
+            return RelationshipType.Calls;
+        }
+
+        switch (invocation.Expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                return AnalyzeMemberAccessCallType(memberAccess, method, semanticModel);
+
+            //case IdentifierNameSyntax identifier:
+            //    // Direct method call - could be this.Method() or static
+            //    return method.IsStatic ? RelationshipType.CallsStatic : RelationshipType.Calls;
+
+            case MemberBindingExpressionSyntax:
+                // Conditional access: obj?.Method()
+                return RelationshipType.CallsInstance;
+
+            default:
+                // Fallback for complex expressions
+                return RelationshipType.Calls;
+        }
+    }
+
+    private RelationshipType AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
+        IMethodSymbol method, SemanticModel semanticModel)
+    {
+        switch (memberAccess.Expression)
+        {
+            case BaseExpressionSyntax:
+                // base.Method()
+                return RelationshipType.BaseCall;
+
+            case ThisExpressionSyntax:
+                // this.Method()
+                return RelationshipType.Calls;
+
+            case IdentifierNameSyntax identifier:
+                var symbolInfo = semanticModel.GetSymbolInfo(identifier);
+                if (symbolInfo.Symbol is INamedTypeSymbol)
+                {
+                    // Type.StaticMethod()
+                    return RelationshipType.Calls;
+                }
+                else if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
+                {
+                    // field.Method() or property.Method()
+                    return RelationshipType.CallsInstance;
+                }
+                else
+                {
+                    // Local variable or parameter
+                    return RelationshipType.CallsInstance;
+                }
+
+            case MemberAccessExpressionSyntax:
+                // Chained calls: obj.Property.Method()
+                return RelationshipType.CallsInstance;
+
+            case InvocationExpressionSyntax:
+                // Method call result: GetObject().Method()
+                return RelationshipType.CallsInstance;
+
+            case ObjectCreationExpressionSyntax:
+                // new Object().Method()
+                return RelationshipType.CallsInstance;
+
+            default:
+                // Complex expression - default to instance call
+                return RelationshipType.CallsInstance;
         }
     }
 
@@ -595,7 +683,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
+    private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location, RelationshipType calls)
     {
         //Debug.Assert(FindCodeElement(methodSymbol)!= null);
         //Trace.WriteLine($"Adding call relationship: {sourceElement.Name} -> {methodSymbol.Name}");
@@ -612,7 +700,7 @@ public class RelationshipAnalyzer
         }
 
         // If the method is not in our map, we might want to add a relationship to its containing type
-        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Calls, [location]);
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, calls, [location]);
     }
 
     /// <summary>

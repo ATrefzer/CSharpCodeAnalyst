@@ -1,5 +1,15 @@
 ﻿namespace Contracts.Graph;
 
+public static class RelationshipExtensions
+{
+    public static bool IsCall(this RelationshipType type)
+    {
+        return type == RelationshipType.Calls ||
+               type == RelationshipType.BaseCall ||
+               type == RelationshipType.CallsInstance;
+    }
+}
+
 public enum RelationshipType
 {
     Calls,
@@ -24,5 +34,10 @@ public enum RelationshipType
 
     // Relationship type for event handler registration
     // This is not a code dependency. It is actually the other direction.
-    Handles
+    Handles,
+
+    // Base class method/property calls using 'base' keyword
+    BaseCall,
+    CallsInstance,
+
 }
