@@ -150,3 +150,67 @@ For handling generic base classes, `OriginalDefinition` is usually the more appr
 - When analyzing method invocations, focus on `TypeArguments` to see the concrete types being used.
 
 Understanding these distinctions is crucial for correctly analyzing dependencies and usage of generic methods in code parsing and analysis tasks.
+
+## What is a Compilation Unit?
+
+- In C# and Roslyn, a "compilation unit" is essentially a single source file. In Roslyn, each .cs file is parsed into a SyntaxTree, and the root node of that tree is a CompilationUnitSyntax.
+
+- However, in the context of the Roslyn API, a Compilation object represents the entire process of compiling a set of source files (all the code in a project, including references, etc.) into an assembly.
+
+------
+
+### Why can a symbol appear as different instances in different compilations?
+
+- Symbols in Roslyn (like INamedTypeSymbol, IMethodSymbol, etc.) are not just static representations of code elements. They are bound to a specific Compilation (i.e., a specific project build context).
+
+- If you have multiple projects referencing the same file or code (e.g., shared code, linked files, or multi-targeting), each project’s Compilation will create its own symbol instances for the same code element.
+
+- Even if the code is declared in only one place, each compilation context creates its own symbol graph. So, the same class in two projects will have two different INamedTypeSymbol instances, even though they represent the same source code.
+
+------
+
+### Why do you see duplicates for every symbol, not just partial classes?
+
+- Because you are likely iterating over all projects in the solution, and each project’s compilation produces its own set of symbol instances—even for the same source file.
+
+- If two projects include the same file (via linking, shared projects, or multi-targeting), or if you analyze multiple projects in a solution, you will get multiple symbol instances for the same code element.
+
+------
+
+### Example
+
+Suppose you have:
+
+- ProjectA and ProjectB both include Class1.cs.
+
+- When you call GetCompilationAsync() for each project, you get two Compilation objects.
+
+- Each Compilation will have its own INamedTypeSymbol for Class1, even though it’s the same file.
+
+------
+
+### Summary Table
+
+| Term             | Meaning in Roslyn/C#                                         |
+| :--------------- | :----------------------------------------------------------- |
+| Compilation Unit | A single source file (.cs file)                              |
+| Compilation      | The entire project’s code, references, and metadata, built into an assembly |
+| Symbol           | An object representing a code element (class, method, etc.), bound to a specific Compilation |
+
+------
+
+### Why deduplication is needed
+
+- Because you process all projects, and each project’s compilation creates its own symbol instances, you must deduplicate by a stable property (like full name) rather than by symbol instance.
+
+------
+
+Partial classes are a special case where a symbol is declared in multiple files, but the above applies to all symbols when analyzing multiple projects/compilations.
+
+------
+
+If you want more details or a visual diagram, let me know!
+
+Review changes
+
+ 

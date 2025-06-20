@@ -33,7 +33,7 @@ public class CodeParserApprovalTests
 
         var origin = codeElements.First(e =>
             e.FullName.Contains("Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave"));
-        var result = explorer.FollowIncomingCallsRecursive(origin.Id);
+        var result = explorer.FollowIncomingCallsHeuristically(origin.Id);
 
         var actualRelationships = result.Relationships.Select(d =>
                 $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}")
@@ -72,7 +72,7 @@ public class CodeParserApprovalTests
 
         var origin = codeElements.First(e =>
             e.FullName.Contains("Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave"));
-        var result = explorer.FollowIncomingCallsRecursive(origin.Id);
+        var result = explorer.FollowIncomingCallsHeuristically(origin.Id);
 
         var actualRelationships = result.Relationships.Select(d =>
             $"{_graph.Nodes[d.SourceId].FullName} -({d.Type})-> {_graph.Nodes[d.TargetId].FullName}");
