@@ -15,7 +15,7 @@ public interface ICodeGraphExplorer
     /// <summary>
     ///     Traces back callers of the given method. Includes also abstractions and their callers
     /// </summary>
-    SearchResult FollowIncomingCallsRecursive(string id);
+    SearchResult FollowIncomingCallsHeuristically(string id);
 
     SearchResult FindFullInheritanceTree(string id);
 

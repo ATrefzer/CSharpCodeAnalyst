@@ -175,10 +175,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
     /// <summary>
     ///     This gives a heuristic only. The graph model does not contain the information for analyzing dynamic behavior.
-    ///     For example, it makes a difference if we call Foo() in an object instance or otherInstance.Foo().
-    ///     The first case should not follow base.Foo() calls the second however should.
     /// </summary>
-    public SearchResult FollowIncomingCallsRecursive(string id)
+    public SearchResult FollowIncomingCallsHeuristically(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
 
@@ -197,8 +195,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var method = _codeGraph.Nodes[id];
 
         var restriction = new FollowIncomingCallsRestriction();
-        var processingQueue = new Queue<CodeElement>();
-        processingQueue.Enqueue(method);
+       var processingQueue = new PriorityQueue<CodeElement, int>();
+        processingQueue.Enqueue(method, 0); // Start with the initial method, priority 0
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>();
@@ -208,8 +206,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
 
         var processed = new HashSet<string>();
-        while (processingQueue.Any())
+        while (processingQueue.Count > 0)
         {
+            // 0 = highest priority
+
             var element = processingQueue.Dequeue();
             if (!processed.Add(element.Id))
             {
@@ -224,60 +224,61 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(specializations);
                 var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(specializedSources);
-                AddToProcessingQueue(specializedSources);
+                AddToProcessingQueue(specializedSources, 0);
 
                 // Add all methods that invoke the event
                 var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
                 foundRelationships.UnionWith(invokes);
                 var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(invokeSources);
-                AddToProcessingQueue(invokeSources);
+                AddToProcessingQueue(invokeSources, 2);
             }
 
             if (element.ElementType == CodeElementType.Method)
             {
-                // Add Events that are handled by this method.
-                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
-                foundRelationships.UnionWith(handles);
-                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
-                foundElements.UnionWith(events);
-                AddToProcessingQueue(events);
-
-
-                // Handle abstractions before the calls. The abstractions limit the allowed calls.
-                // Abstractions. For methods the abstractions like interfaces are called.
+                // 1. Abstractions (priority 0)
+                // The abstractions limit the allowed calls.
+                // For methods the abstractions like interfaces may be called.
                 var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
                 foundRelationships.UnionWith(abstractions);
                 var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
                 foundElements.UnionWith(abstractionTargets);
-                restriction.WasAddedBecauseItsAnAbstraction.UnionWith(abstractionTargets.Select(t => t.Id));
-                AddToProcessingQueue(abstractionTargets);
+                restriction.BlockeBaseCalls.UnionWith(abstractionTargets.Select(t => t.Id));
+                AddToProcessingQueue(abstractionTargets, 0);
 
 
-                // Calls
+                // Add Events that are handled by this method  (priority 1).
+                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(handles);
+                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
+                foundElements.UnionWith(events);
+                AddToProcessingQueue(events, 1);
+    
+
+                // 3. Calls (priority 2)
                 var calls = allCalls.Where(call => call.TargetId == element.Id && IsAllowedCall(call)).ToArray();
                 foundRelationships.UnionWith(calls);
                 var callSources = calls
                     .Select(d => _codeGraph.Nodes[d.SourceId])
                     .ToHashSet();
                 foundElements.UnionWith(callSources);
-                AddToProcessingQueue(callSources);
+                AddToProcessingQueue(callSources, 2);
             }
         }
 
         return new SearchResult(foundElements, foundRelationships);
 
-        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore)
+        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, int priority)
         {
             foreach (var elementToExplore in elementsToExplore)
             {
-                processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id]);
+                processingQueue.Enqueue(_codeGraph.Nodes[elementToExplore.Id], priority);
             }
         }
-
+        
         bool IsAllowedCall(Relationship call)
         {
-            if (restriction.WasAddedBecauseItsAnAbstraction.Contains(call.TargetId))
+            if (restriction.BlockeBaseCalls.Contains(call.TargetId))
             {
                 var allow = !IsCallToOwnBase(call);
                 if (!allow)
@@ -528,10 +529,31 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         /// <summary>
         ///     If we follow incoming calls we include the abstraction of the method.
-        ///     This is for example because the method may be indirectly called by the interface.
+        ///     This is because the method may be indirectly called by the interface.
         ///     If we proceed we may also find calls the base. But this is the wrong direction for the path we follow.
+        ///     So if we followed an abstraction we block the base call to this abstraction
+        ///
+        ///     <code>
+        ///     class Base
+        ///     {
+        ///         protected virtual void Foo() {}
+        ///     }
+        ///
+        ///     class Derived : Base
+        ///     {
+        ///         // We start following here! 
+        ///         protected override void Foo()
+        ///         {
+        ///             base.Foo()
+        ///         }
+        ///     }
+        ///     </code>
+        ///
+        ///     Hashset of target ids of base methods.
         /// </summary>
-        public HashSet<string> WasAddedBecauseItsAnAbstraction { get; } = [];
+        public HashSet<string> BlockeBaseCalls { get; } = [];
+        
+        public HashSet<string> BlockedAbstraction { get; } = [];
     }
 }
 

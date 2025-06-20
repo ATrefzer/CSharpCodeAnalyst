@@ -152,7 +152,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
         var elementNames = Nodes.Values.Select(e => $"{e.ElementType}: {e.FullName}");
         var relationshipNames = relationships.Select(d => $"{d.Item1} -({d.Item2})-> {d.Item3}");
-        return string.Join("\n", elementNames.OrderBy(x => x)) +
+        return string.Join("\n", elementNames.OrderBy(x => x)) + "\n" +
                string.Join("\n", relationshipNames.OrderBy(x => x));
     }
 }
