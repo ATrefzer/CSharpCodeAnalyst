@@ -705,10 +705,17 @@ internal class MainViewModel : INotifyPropertyChanged
                 IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
             }
 
-            if (GraphViewModel != null &&
-                projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
+            if (GraphViewModel != null)
+                
             {
-                GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
+                if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
+                {
+                    GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
+                }
+                if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowDataFlow), out var showFlow))
+                {
+                    GraphViewModel.ShowDataFlow = bool.Parse(showFlow);
+                }
             }
 
             if (projectData.Settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
@@ -755,6 +762,7 @@ internal class MainViewModel : INotifyPropertyChanged
         projectData.SetGallery(_gallery ?? new Gallery.Gallery());
         projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
+        projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
 
         // Add other settings here

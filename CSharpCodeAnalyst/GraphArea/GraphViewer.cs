@@ -41,6 +41,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     private PresentationState _presentationState = new();
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
+    private bool _flow;
 
     /// <summary>
     ///     Note:
@@ -67,6 +68,12 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     public void ShowFlatGraph(bool value)
     {
         _showFlatGraph = value;
+        RefreshGraph();
+    }
+
+    public void ShowInformationFlow(bool value)
+    {
+        _flow = value;
         RefreshGraph();
     }
 

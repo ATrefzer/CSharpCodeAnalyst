@@ -57,21 +57,6 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 **In general, I think it's a good guideline to keep your software system free of cycles at the namespace level.**
 
-## Dependency Structure Matrix (DSM)
-
-**Not tested!**
-
-A **DSM** (Dependency Structure Matrix) displays all the dependencies in your codebase in a condensed matrix. It may take some time to become familiar with it. For further explanation, you can visit https://dsmsuite.github.io/.
-
-C# Code Analyst uses the **DSM Suite Viewer** to visualize your code as a DSM.
-
-<img src="Images/dsm-suite.png"  />
-
-The viewer can be found in this repository:
-https://github.com/ernstaii/dsmsuite.sourcecode,
-which was forked from
-https://github.com/dsmsuite/dsmsuite.sourcecode
-
 ## Limitations
 
 Please take note of the following issues:

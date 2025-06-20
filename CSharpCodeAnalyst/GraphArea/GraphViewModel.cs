@@ -27,6 +27,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
     private bool _showFlatGraph;
+    private bool _showDataFlow;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         ApplicationSettings? settings)
@@ -170,6 +171,23 @@ internal class GraphViewModel : INotifyPropertyChanged
         }
     }
 
+
+    public bool ShowDataFlow
+    {
+        get => _showDataFlow;
+        set
+        {
+            if (value == _showDataFlow)
+            {
+                return;
+            }
+
+            _showDataFlow = value;
+            _viewer.ShowInformationFlow(value);
+            OnPropertyChanged(nameof(ShowDataFlow));
+        }
+    }
+
     public HighlightOption SelectedHighlightOption
     {
         get => _selectedHighlightOption;
@@ -187,6 +205,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
     public ICommand UndoCommand { get; }
+
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
