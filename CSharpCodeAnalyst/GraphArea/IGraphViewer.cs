@@ -8,6 +8,7 @@ namespace CSharpCodeAnalyst.GraphArea;
 internal interface IGraphViewer
 {
     void ShowFlatGraph(bool value);
+    void ShowInformationFlow(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships);
     void DeleteFromGraph(HashSet<string> idsToRemove);
     void DeleteFromGraph(List<Relationship> relationships);
@@ -60,4 +61,5 @@ internal interface IGraphViewer
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 
     void AddContextMenuCommand(IRelationshipContextCommand command);
+  
 }

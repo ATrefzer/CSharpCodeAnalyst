@@ -59,6 +59,8 @@
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" />
 
+                    <!--
+                    Nobody uses it, so keep some space in the ribbon.
                     <RibbonButton Label="{x:Static resources:Strings.ExportDsi_Label}"
                                   LargeImageSource="/Resources/spreadsheet_32.png"
                                   Command="{Binding ExportToDsiCommand}">
@@ -66,6 +68,7 @@
                             <ToolTip Content="{x:Static resources:Strings.ExportDsi_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
+                    -->
 
                 </RibbonGroup>
 
@@ -137,6 +140,7 @@
 
                 </RibbonGroup>
 
+                <!-- Settings -->
                 <RibbonGroup Header="{x:Static resources:Strings.Settings_Header}"
                              LargeImageSource="Resources/gear_32.png">
 
@@ -144,14 +148,18 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="Auto" /> <!-- Label -->
+                            <ColumnDefinition Width="Auto" /> <!-- Drop Down -->
                         </Grid.ColumnDefinitions>
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
@@ -174,22 +182,31 @@
                             </RibbonToggleButton.ToolTip>
                         </RibbonToggleButton>
 
+                        <RibbonToggleButton Grid.Row="0" Grid.Column="2"
+                                            Label="{x:Static resources:Strings.Flow_Label}"
+                                            SmallImageSource="/Resources/guidepost_small.png"
+                                            IsChecked="{Binding GraphViewModel.ShowDataFlow, Mode=TwoWay}">
+                            <RibbonToggleButton.ToolTip>
+                                <ToolTip Content="{x:Static resources:Strings.Flow_Tooltip}" />
+                            </RibbonToggleButton.ToolTip>
+                        </RibbonToggleButton>
+
 
                         <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="0" Grid.Column="2"
+                                   Grid.Row="0" Grid.Column="4"
                                    Text="{x:Static resources:Strings.Rendering_Label}" />
                         <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="0" Grid.Column="3"
+                                  Grid.Row="0" Grid.Column="5"
                                   ItemsSource="{Binding GraphViewModel.RenderOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
                         <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="1" Grid.Column="2"
+                                   Grid.Row="1" Grid.Column="4"
                                    Text="{x:Static resources:Strings.Highlighting_Label}" />
                         <ComboBox VerticalAlignment="Center"
                                   Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="1" Grid.Column="3"
+                                  Grid.Row="1" Grid.Column="5"
                                   ItemsSource="{Binding GraphViewModel.HighlightOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
                     </Grid>
