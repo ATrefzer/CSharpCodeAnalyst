@@ -420,9 +420,75 @@
 </value>
   </data>
   <data name="Flow_Label" xml:space="preserve">
-    <value>ShowDataFlow</value>
+    <value>Show Information Flow</value>
   </data>
   <data name="Flow_Tooltip" xml:space="preserve">
     <value>Shows the information flow instead of dependencies between code elements</value>
+  </data>
+  <data name="Relationship_Caller" xml:space="preserve">
+    <value>Caller</value>
+  </data>
+  <data name="Relationship_Callee" xml:space="preserve">
+    <value>Callee</value>
+  </data>
+  <data name="Relationship_Creator" xml:space="preserve">
+    <value>Creator</value>
+  </data>
+  <data name="Relationship_CreatedType" xml:space="preserve">
+    <value>Created Type</value>
+  </data>
+  <data name="Relationship_Consumer" xml:space="preserve">
+    <value>Consumer</value>
+  </data>
+  <data name="Relationship_UsedElement" xml:space="preserve">
+    <value>Used Element</value>
+  </data>
+  <data name="Relationship_DerivedClass" xml:space="preserve">
+    <value>Derived Class</value>
+  </data>
+  <data name="Relationship_BaseClass" xml:space="preserve">
+    <value>Base Class</value>
+  </data>
+  <data name="Relationship_Implementation" xml:space="preserve">
+    <value>Implementation</value>
+  </data>
+  <data name="Relationship_Interface" xml:space="preserve">
+    <value>Interface</value>
+  </data>
+  <data name="Relationship_OverrideMethod" xml:space="preserve">
+    <value>Override Method</value>
+  </data>
+  <data name="Relationship_BaseMethod" xml:space="preserve">
+    <value>Base Method</value>
+  </data>
+  <data name="Relationship_DecoratedElement" xml:space="preserve">
+    <value>Decorated Element</value>
+  </data>
+  <data name="Relationship_Attribute" xml:space="preserve">
+    <value>Attribute</value>
+  </data>
+  <data name="Relationship_EventInvoker" xml:space="preserve">
+    <value>Event Invoker</value>
+  </data>
+  <data name="Relationship_Event" xml:space="preserve">
+    <value>Event</value>
+  </data>
+  <data name="Relationship_EventHandler" xml:space="preserve">
+    <value>Event Handler</value>
+  </data>
+  <data name="Relationship_EventSource" xml:space="preserve">
+    <value>Event Source</value>
+  </data>
+  <data name="Relationship_Container" xml:space="preserve">
+    <value>Container</value>
+  </data>
+  <data name="Relationship_ContainedElement" xml:space="preserve">
+    <value>Contained Element</value>
+  </data>
+  <data name="Relationship_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Relationship_Target" xml:space="preserve">
+    <value>Target</value>
   </data>
 </root>

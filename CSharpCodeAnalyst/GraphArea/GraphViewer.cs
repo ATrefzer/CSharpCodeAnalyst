@@ -348,7 +348,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         if (_msaglViewer != null)
         {
             var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
-                _showFlatGraph);
+                _showFlatGraph, _flow);
 
             _renderOption.Apply(graph);
             _msaglViewer.Graph = graph;

@@ -1,4 +1,5 @@
 ﻿using Contracts.Graph;
+using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Help;
@@ -73,13 +74,14 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
 
     private QuickInfo CreateEdgeQuickInfo(Relationship relationship)
     {
+        var roles = GetSemanticRoles(relationship.Type);
         var contextInfo = new QuickInfo
         {
             Title = $"Relationship: {relationship.Type.ToString()}",
             Lines =
             [
-                new ContextInfoLine { Label = "Source:", Value = GetElementName(relationship.SourceId) },
-                new ContextInfoLine { Label = "Target:", Value = GetElementName(relationship.TargetId) }
+                new ContextInfoLine { Label = roles.sourceRole + ": ", Value = GetElementName(relationship.SourceId) },
+                new ContextInfoLine { Label = roles.targetRole + ": ", Value = GetElementName(relationship.TargetId) }
             ],
             SourceLocations = relationship.SourceLocations
         };
@@ -94,5 +96,24 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
     private string GetFullPath(string id)
     {
         return graph.Nodes.TryGetValue(id, out var element) ? element.FullName : id;
+    }
+
+    public static (string sourceRole, string targetRole) GetSemanticRoles(RelationshipType type)
+    {
+        
+        return type switch
+        {
+            RelationshipType.Calls => (Strings.Relationship_Caller, Strings.Relationship_Callee),
+            RelationshipType.Creates => (Strings.Relationship_Creator, Strings.Relationship_CreatedType),
+            RelationshipType.Uses => (Strings.Relationship_Consumer, Strings.Relationship_UsedElement),
+            RelationshipType.Inherits => (Strings.Relationship_DerivedClass, Strings.Relationship_BaseClass),
+            RelationshipType.Implements => (Strings.Relationship_Implementation, Strings.Relationship_Interface),
+            RelationshipType.Overrides => (Strings.Relationship_OverrideMethod, Strings.Relationship_BaseMethod),
+            RelationshipType.UsesAttribute => (Strings.Relationship_DecoratedElement, Strings.Relationship_Attribute),
+            RelationshipType.Invokes => (Strings.Relationship_EventInvoker, Strings.Relationship_Event),
+            RelationshipType.Handles => (Strings.Relationship_EventHandler, Strings.Relationship_EventSource),
+            RelationshipType.Containment => (Strings.Relationship_Container, Strings.Relationship_ContainedElement),
+            _ => (Strings.Relationship_Source, Strings.Relationship_Target)
+        };
     }
 }

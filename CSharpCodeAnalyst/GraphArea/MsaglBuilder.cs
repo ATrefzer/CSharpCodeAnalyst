@@ -10,17 +10,17 @@ namespace CSharpCodeAnalyst.GraphArea;
 internal class MsaglBuilder
 {
     public Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
-        bool showFlatGraph)
+        bool showFlatGraph, bool showInformationFlow)
     {
         if (showFlatGraph)
         {
-            return CreateFlatGraph(codeGraph);
+            return CreateFlatGraph(codeGraph, showInformationFlow);
         }
 
-        return CreateHierarchicalGraph(codeGraph, presentationState);
+        return CreateHierarchicalGraph(codeGraph, presentationState, showInformationFlow);
     }
 
-    private Graph CreateFlatGraph(CodeGraph codeGraph)
+    private Graph CreateFlatGraph(CodeGraph codeGraph, bool showInformationFlow)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
@@ -42,7 +42,7 @@ internal class MsaglBuilder
         {
             foreach (var relationship in element.Relationships)
             {
-                CreateEdgeForFlatStructure(graph, relationship);
+                CreateEdgeForFlatStructure(graph, relationship, showInformationFlow);
             }
 
             if (element.Parent != null)
@@ -53,14 +53,14 @@ internal class MsaglBuilder
         }
     }
 
-    private Graph CreateHierarchicalGraph(CodeGraph codeGraph, PresentationState presentationState)
+    private Graph CreateHierarchicalGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow)
     {
         var visibleGraph = GetVisibleGraph(codeGraph, presentationState);
         var graph = new Graph("graph");
         var subGraphs = CreateSubGraphs(codeGraph, visibleGraph);
 
         AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs);
-        AddEdgesToHierarchicalGraph(graph, codeGraph, visibleGraph);
+        AddEdgesToHierarchicalGraph(graph, codeGraph, visibleGraph, showInformationFlow);
 
         return graph;
     }
@@ -139,12 +139,12 @@ internal class MsaglBuilder
         }
     }
 
-    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph)
+    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph, bool showInformationFlow)
     {
         var relationships = GetCollapsedRelationships(codeGraph, visibleGraph);
         foreach (var relationship in relationships)
         {
-            CreateEdgeForHierarchicalStructure(graph, relationship);
+            CreateEdgeForHierarchicalStructure(graph, relationship, showInformationFlow);
         }
     }
 
@@ -205,8 +205,9 @@ internal class MsaglBuilder
     }
 
     private void CreateEdgeForHierarchicalStructure(Graph graph,
-        KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships)
+        KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships, bool showInformationFlow)
     {
+        
         // MSAGL does not allow two same edges with different labels to the same subgraph.
         // So I collapse them to a single one that carries all the user data.
 
@@ -216,7 +217,16 @@ internal class MsaglBuilder
         {
             // Single, unmapped relationship
             var relationship = relationships[0];
-            var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
+
+            var sourceId = relationship.SourceId;
+            var targetId = relationship.TargetId;
+
+            if (showInformationFlow && 
+                RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
+            {
+                (targetId, sourceId) = (sourceId, targetId);
+            }
+            var edge = graph.AddEdge(sourceId, targetId);
 
             edge.LabelText = GetLabelText(relationship);
             if (relationship.Type == RelationshipType.Implements)
@@ -228,8 +238,18 @@ internal class MsaglBuilder
         }
         else
         {
+            var sourceId = mappedRelationships.Key.source;
+            var targetId = mappedRelationships.Key.target;
+
+            if (showInformationFlow &&
+                mappedRelationships.Value.All(r => RelationshipFlowMapper.ShouldReverseInFlowMode(r.Type)))
+            {
+                (targetId, sourceId) = (sourceId, targetId);
+            }
+
             // More than one or mapped to collapsed container.
-            var edge = graph.AddEdge(mappedRelationships.Key.source, mappedRelationships.Key.target);
+            // Connect the highest visible not collapsed elements (or self)
+            var edge = graph.AddEdge(sourceId, targetId);
 
             edge.UserData = relationships;
             edge.LabelText = relationships.Count.ToString();
@@ -240,11 +260,19 @@ internal class MsaglBuilder
         }
     }
 
-    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship)
+    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship, bool showInformationFlow)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
 
-        var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
+        var sourceId = relationship.SourceId;
+        var targetId = relationship.TargetId;
+        if (showInformationFlow &&
+            RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
+        {
+            (targetId, sourceId) = (sourceId, targetId);
+        }
+
+        var edge = graph.AddEdge(sourceId, targetId);
 
         edge.LabelText = GetLabelText(relationship);
 
