@@ -899,4 +899,85 @@ public class RelationshipAnalyzer
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
     }
+
+
+
+
+    private RelationshipType DetermineCallRelationshipType(InvocationExpressionSyntax invocation,
+     IMethodSymbol method, SemanticModel semanticModel)
+    {
+        // Extension methods - keep as generic Calls
+        if (method.IsExtensionMethod)
+        {
+            return RelationshipType.Calls;
+        }
+
+        switch (invocation.Expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                return AnalyzeMemberAccessCallType(memberAccess, method, semanticModel);
+
+            //case IdentifierNameSyntax identifier:
+            //    // Direct method call - could be this.Method() or static
+            //    return method.IsStatic ? RelationshipType.CallsStatic : RelationshipType.Calls;
+
+            case MemberBindingExpressionSyntax:
+                // Conditional access: obj?.Method()
+                return RelationshipAttribute.CallsInstance;
+
+            default:
+                // Fallback for complex expressions
+                return RelationshipAttribute.Calls;
+        }
+    }
+
+    private RelationshipType AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
+        IMethodSymbol method, SemanticModel semanticModel)
+    {
+        switch (memberAccess.Expression)
+        {
+            case BaseExpressionSyntax:
+                // base.Method()
+                return RelationshipAttribute.BaseCall;
+
+            case ThisExpressionSyntax:
+                // this.Method()
+                return RelationshipType.Calls;
+
+            case IdentifierNameSyntax identifier:
+                var symbolInfo = semanticModel.GetSymbolInfo(identifier);
+                if (symbolInfo.Symbol is INamedTypeSymbol)
+                {
+                    // Type.StaticMethod()
+                    return RelationshipType.Calls;
+                }
+                else if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
+                {
+                    // field.Method() or property.Method()
+                    return RelationshipAttribute.CallsInstance;
+                }
+                else
+                {
+                    // Local variable or parameter
+                    return RelationshipAttribute.CallsInstance;
+                }
+
+            case MemberAccessExpressionSyntax:
+                // Chained calls: obj.Property.Method()
+                return RelationshipAttribute.CallsInstance;
+
+            case InvocationExpressionSyntax:
+                // Method call result: GetObject().Method()
+                return RelationshipAttribute.CallsInstance;
+
+            case ObjectCreationExpressionSyntax:
+                // new Object().Method()
+                return RelationshipAttribute.CallsInstance;
+
+            default:
+                // Complex expression - default to instance call
+                return RelationshipAttribute.CallsInstance;
+        }
+    }
+
 }
