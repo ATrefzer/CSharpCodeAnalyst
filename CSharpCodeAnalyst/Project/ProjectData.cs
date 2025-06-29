@@ -49,6 +49,7 @@ public class ProjectData
             .SelectMany(element => element.Relationships)
             .Select(relationship => new SerializableRelationship(relationship.SourceId, relationship.TargetId,
                 relationship.Type,
+                (uint)relationship.Attributes,
                 relationship.SourceLocations))
             .ToList();
     }
@@ -78,8 +79,11 @@ public class ProjectData
         foreach (var sd in Relationships)
         {
             var source = codeStructure.Nodes[sd.SourceId];
-            var relationship = new Relationship(sd.SourceId, sd.TargetId, sd.Type);
-            relationship.SourceLocations = sd.SourceLocations;
+            var relationship = new Relationship(sd.SourceId, sd.TargetId, sd.Type)
+            {
+                Attributes = (RelationshipAttribute)sd.Attributes,
+                SourceLocations = sd.SourceLocations
+            };
             source.Relationships.Add(relationship);
         }
 
