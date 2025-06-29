@@ -1,0 +1,371 @@
+Assembly: CSharpLanguage
+Assembly: Cycles
+Assembly: ModuleLevel0
+Assembly: ModuleLevel1
+Assembly: ModuleLevel2
+Class: CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent
+Class: CSharpLanguage.CSharpLanguage.ClassUsingAnEvent
+Class: CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes
+Class: CSharpLanguage.CSharpLanguage.CustomException
+Class: CSharpLanguage.CSharpLanguage.EventInvocation
+Class: CSharpLanguage.CSharpLanguage.EventSink
+Class: CSharpLanguage.CSharpLanguage.Extensions
+Class: CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage
+Class: CSharpLanguage.CSharpLanguage.MissingInterface.Storage
+Class: CSharpLanguage.CSharpLanguage.MoreGenerics
+Class: CSharpLanguage.CSharpLanguage.MoreGenerics.Foo
+Class: CSharpLanguage.CSharpLanguage.MoreGenerics.Foo
+Class: CSharpLanguage.CSharpLanguage.My2Attribute
+Class: CSharpLanguage.CSharpLanguage.MyAttribute
+Class: CSharpLanguage.CSharpLanguage.MyEventArgs
+Class: CSharpLanguage.CSharpLanguage.NS_Parent.ClassINparent
+Class: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild
+Class: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant
+Class: CSharpLanguage.CSharpLanguage.Ns1.ClassM
+Class: CSharpLanguage.CSharpLanguage.Ns1.Ns2.ClassX
+Class: CSharpLanguage.CSharpLanguage.Partial.Client
+Class: CSharpLanguage.CSharpLanguage.Partial.PartialClass
+Class: CSharpLanguage.CSharpLanguage.PinSignalView
+Class: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer
+Class: CSharpLanguage.CSharpLanguage.Project
+Class: CSharpLanguage.CSharpLanguage.ProjectFile
+Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase
+Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1
+Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2
+Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3
+Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4
+Class: CSharpLanguage.CSharpLanguage.TheExtendedType
+Class: CSharpLanguage.CSharpLanguage.XmlFile
+Class: Cycles.Cycles.ClassLevel_Fields.Class1
+Class: Cycles.Cycles.ClassLevel_Fields.Class2
+Class: Cycles.Cycles.OuterClass
+Class: Cycles.Cycles.OuterClass.DirectChildClass
+Class: Cycles.Cycles.OuterClass.MiddleClass
+Class: Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass
+Class: ModuleLevel0.ModuleLevel0.Bootstrapper
+Class: ModuleLevel0.ModuleLevel0.Ns1.ClassL
+Class: ModuleLevel0.ModuleLevel0.Ns1.ClassL.InnerClassL
+Class: ModuleLevel0.ModuleLevel0.Ns1.Ns2.ClassY
+Class: ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation
+Class: ModuleLevel1.ModuleLevel1.FactoryC
+Class: ModuleLevel1.ModuleLevel1.Model.ModelA
+Class: ModuleLevel1.ModuleLevel1.Model.ModelB
+Class: ModuleLevel1.ModuleLevel1.Model.ModelC
+Class: ModuleLevel1.ModuleLevel1.Model.ModelD
+Class: ModuleLevel1.ModuleLevel1.ServiceA
+Class: ModuleLevel1.ModuleLevel1.ServiceBase
+Class: ModuleLevel1.ModuleLevel1.ServiceC
+Class: ModuleLevel2.ClassInGlobalNs
+Class: ModuleLevel2.Insight.Analyzers
+Class: ModuleLevel2.Insight.Dialogs.TrendViewModel
+Class: ModuleLevel2.ModuleLevel2.Constants
+Class: ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass
+Class: ModuleLevel2.ModuleLevel2.N1.ClassInNs1
+Class: ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2
+Class: ModuleLevel2.ModuleLevel2.SelfReferencingClass
+Class: ModuleLevel2.ModuleLevel2.Utility
+Delegate: CSharpLanguage.CSharpLanguage.MyDelegate
+Delegate: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.DelegateInChild
+Enum: ModuleLevel2.ModuleLevel2.TheEnum
+Event: CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1
+Event: CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2
+Event: CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent
+Event: CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent
+Event: ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent
+Event: ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent
+Field: CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes._file
+Field: CSharpLanguage.CSharpLanguage.NS_Parent.ClassINparent._delegate1
+Field: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant._delegate2
+Field: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner
+Field: CSharpLanguage.CSharpLanguage.RecordA._recordB
+Field: CSharpLanguage.CSharpLanguage.RecordB._recordA
+Field: Cycles.Cycles.ClassLevel_Fields.Class1._field1
+Field: Cycles.Cycles.ClassLevel_Fields.Class2._field1
+Field: Cycles.Cycles.OuterClass.DirectChildClass.x
+Field: Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass.x
+Field: ModuleLevel1.ModuleLevel1.Model.ModelA._modelB
+Field: ModuleLevel1.ModuleLevel1.Model.ModelA._modelC
+Field: ModuleLevel1.ModuleLevel1.Model.ModelB._modelC
+Field: ModuleLevel1.ModuleLevel1.Model.ModelB._structA
+Field: ModuleLevel1.ModuleLevel1.Model.ModelD._myStructs
+Field: ModuleLevel1.ModuleLevel1.Model.StructA._value
+Field: ModuleLevel2.Insight.Analyzers._vm
+Field: ModuleLevel2.Insight.Dialogs.TrendViewModel._analyzer
+Field: ModuleLevel2.ModuleLevel2.Constants.Constant1
+Field: ModuleLevel2.ModuleLevel2.N1.ClassInNs1._x
+Field: ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2._y
+Interface: CSharpLanguage.CSharpLanguage.IInterfaceWithEvent
+Interface: CSharpLanguage.CSharpLanguage.IStructInterface
+Interface: CSharpLanguage.CSharpLanguage.MissingInterface.IStorage
+Interface: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA
+Interface: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB
+Interface: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase
+Interface: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC
+Interface: ModuleLevel1.ModuleLevel1.IServiceC
+Interface: ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation
+Method: CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.OnEvent
+Method: CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init
+Method: CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler
+Method: CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2
+Method: CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create
+Method: CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething
+Method: CSharpLanguage.CSharpLanguage.EventInvocation.Raise1
+Method: CSharpLanguage.CSharpLanguage.EventInvocation.Raise2
+Method: CSharpLanguage.CSharpLanguage.EventInvocation.Raise3
+Method: CSharpLanguage.CSharpLanguage.EventSink..ctor
+Method: CSharpLanguage.CSharpLanguage.EventSink.Handler
+Method: CSharpLanguage.CSharpLanguage.Extensions.Slice
+Method: CSharpLanguage.CSharpLanguage.IStructInterface.Method
+Method: CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load
+Method: CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load
+Method: CSharpLanguage.CSharpLanguage.MoreGenerics.M1
+Method: CSharpLanguage.CSharpLanguage.MoreGenerics.M1
+Method: CSharpLanguage.CSharpLanguage.MoreGenerics.M2
+Method: CSharpLanguage.CSharpLanguage.MoreGenerics.M2
+Method: CSharpLanguage.CSharpLanguage.MoreGenerics.Run
+Method: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.Method
+Method: CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance
+Method: CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1
+Method: CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2
+Method: CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer
+Method: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodFromInterfaceBase
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA.MethodA
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB.MethodB
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase.MethodFromInterfaceBase
+Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC.MethodC
+Method: CSharpLanguage.CSharpLanguage.StructWithInterface.Method
+Method: CSharpLanguage.CSharpLanguage.TheExtendedType.Do
+Method: ModuleLevel0.ModuleLevel0.Bootstrapper.Run
+Method: ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method
+Method: ModuleLevel1.ModuleLevel1.FactoryC.Create
+Method: ModuleLevel1.ModuleLevel1.IServiceC.Do
+Method: ModuleLevel1.ModuleLevel1.Model.ModelA..ctor
+Method: ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter
+Method: ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter
+Method: ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC
+Method: ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD
+Method: ModuleLevel1.ModuleLevel1.Model.ModelB.Do
+Method: ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize
+Method: ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC
+Method: ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda
+Method: ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC
+Method: ModuleLevel1.ModuleLevel1.Model.StructA..ctor
+Method: ModuleLevel1.ModuleLevel1.Model.StructA.Fill
+Method: ModuleLevel1.ModuleLevel1.ServiceBase.Do
+Method: ModuleLevel1.ModuleLevel1.ServiceC.Do
+Method: ModuleLevel1.ModuleLevel1.ServiceC.Execute
+Method: ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method
+Method: ModuleLevel2.ModuleLevel2.SelfReferencingClass..ctor
+Method: ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1
+Method: ModuleLevel2.ModuleLevel2.Utility.UtilityMethod2
+Namespace: CSharpLanguage.CSharpLanguage
+Namespace: CSharpLanguage.CSharpLanguage.MissingInterface
+Namespace: CSharpLanguage.CSharpLanguage.NS_Parent
+Namespace: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child
+Namespace: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant
+Namespace: CSharpLanguage.CSharpLanguage.Ns1
+Namespace: CSharpLanguage.CSharpLanguage.Ns1.Ns2
+Namespace: CSharpLanguage.CSharpLanguage.Partial
+Namespace: CSharpLanguage.CSharpLanguage.Regression_Hierarchies
+Namespace: CSharpLanguage.global
+Namespace: Cycles.Cycles
+Namespace: Cycles.Cycles.ClassLevel_Fields
+Namespace: Cycles.global
+Namespace: ModuleLevel0.global
+Namespace: ModuleLevel0.ModuleLevel0
+Namespace: ModuleLevel0.ModuleLevel0.Ns1
+Namespace: ModuleLevel0.ModuleLevel0.Ns1.Ns2
+Namespace: ModuleLevel0.ModuleLevel2
+Namespace: ModuleLevel1.global
+Namespace: ModuleLevel1.ModuleLevel1
+Namespace: ModuleLevel1.ModuleLevel1.Model
+Namespace: ModuleLevel2.A
+Namespace: ModuleLevel2.A.B
+Namespace: ModuleLevel2.A.B.C
+Namespace: ModuleLevel2.global
+Namespace: ModuleLevel2.Insight
+Namespace: ModuleLevel2.Insight.Dialogs
+Namespace: ModuleLevel2.ModuleLevel0
+Namespace: ModuleLevel2.ModuleLevel2
+Namespace: ModuleLevel2.ModuleLevel2.N1
+Namespace: ModuleLevel2.ModuleLevel2.N1.N2
+Namespace: ModuleLevel2.ModuleLevel2.N1.N2.N3
+Property: ModuleLevel1.ModuleLevel1.IServiceC.IfProperty
+Property: ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA
+Property: ModuleLevel1.ModuleLevel1.Model.ModelB.Value
+Property: ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC
+Property: ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant
+Property: ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty
+Property: ModuleLevel1.ModuleLevel1.ServiceC.IfProperty
+Property: ModuleLevel2.ModuleLevel2.SelfReferencingClass.Children
+Property: ModuleLevel2.ModuleLevel2.SelfReferencingClass.Commit
+Property: ModuleLevel2.ModuleLevel2.SelfReferencingClass.CommitHash
+Property: ModuleLevel2.ModuleLevel2.SelfReferencingClass.Parents
+Record: CSharpLanguage.CSharpLanguage.RecordA
+Record: CSharpLanguage.CSharpLanguage.RecordB
+Struct: CSharpLanguage.CSharpLanguage.StructWithInterface
+Struct: ModuleLevel0.ModuleLevel0.Ns1.ClassL.InnerStruct
+Struct: ModuleLevel1.ModuleLevel1.Model.StructA
+CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 -(Uses)-> CSharpLanguage.CSharpLanguage.MyDelegate 
+CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.OnEvent -(Invokes)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Calls)-> CSharpLanguage.CSharpLanguage.Extensions.Slice [IsExtensionMethodCall]
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Creates)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Creates)-> CSharpLanguage.CSharpLanguage.TheExtendedType 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Creates)-> CSharpLanguage.CSharpLanguage.CustomException 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Uses)-> CSharpLanguage.CSharpLanguage.MyEventArgs 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 
+CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes._file -(Uses)-> CSharpLanguage.CSharpLanguage.ProjectFile 
+CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -(Creates)-> CSharpLanguage.CSharpLanguage.XmlFile 
+CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -(Uses)-> CSharpLanguage.CSharpLanguage.Project 
+CSharpLanguage.CSharpLanguage.EventInvocation -(Implements)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent 
+CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -(Calls)-> CSharpLanguage.CSharpLanguage.EventInvocation.Raise1 
+CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -(Calls)-> CSharpLanguage.CSharpLanguage.EventInvocation.Raise2 
+CSharpLanguage.CSharpLanguage.EventInvocation.DoSomething -(Calls)-> CSharpLanguage.CSharpLanguage.EventInvocation.Raise3 
+CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent -(Implements)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent 
+CSharpLanguage.CSharpLanguage.EventInvocation.Raise1 -(Invokes)-> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent 
+CSharpLanguage.CSharpLanguage.EventInvocation.Raise2 -(Invokes)-> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent 
+CSharpLanguage.CSharpLanguage.EventInvocation.Raise3 -(Invokes)-> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent 
+CSharpLanguage.CSharpLanguage.EventSink..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent 
+CSharpLanguage.CSharpLanguage.EventSink..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent 
+CSharpLanguage.CSharpLanguage.EventSink.Handler -(Handles)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent 
+CSharpLanguage.CSharpLanguage.Extensions.Slice -(Calls)-> CSharpLanguage.CSharpLanguage.TheExtendedType.Do [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Extensions.Slice -(Uses)-> CSharpLanguage.CSharpLanguage.TheExtendedType 
+CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load -(Implements)-> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load 
+CSharpLanguage.CSharpLanguage.MissingInterface.Storage -(Implements)-> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage 
+CSharpLanguage.CSharpLanguage.MissingInterface.Storage -(Inherits)-> CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Calls)-> CSharpLanguage.CSharpLanguage.MoreGenerics.M1 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Calls)-> CSharpLanguage.CSharpLanguage.MoreGenerics.M1 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Calls)-> CSharpLanguage.CSharpLanguage.MoreGenerics.M2 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Calls)-> CSharpLanguage.CSharpLanguage.MoreGenerics.M2 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Creates)-> CSharpLanguage.CSharpLanguage.MoreGenerics.Foo 
+CSharpLanguage.CSharpLanguage.MoreGenerics.Run -(Creates)-> CSharpLanguage.CSharpLanguage.MoreGenerics.Foo 
+CSharpLanguage.CSharpLanguage.MyDelegate -(Uses)-> CSharpLanguage.CSharpLanguage.MyEventArgs 
+CSharpLanguage.CSharpLanguage.NS_Parent.ClassINparent._delegate1 -(Uses)-> CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.DelegateInChild 
+CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant._delegate2 -(Uses)-> CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.DelegateInChild 
+CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Calls)-> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart1 [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Calls)-> CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2 [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Creates)-> CSharpLanguage.CSharpLanguage.Partial.Client 
+CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Creates)-> CSharpLanguage.CSharpLanguage.Partial.PartialClass 
+CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Uses)-> CSharpLanguage.CSharpLanguage.Partial.Client 
+CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -(Creates)-> CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer 
+CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner -(Uses)-> CSharpLanguage.CSharpLanguage.PinSignalView 
+CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.PinSignalView 
+CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner 
+CSharpLanguage.CSharpLanguage.ProjectFile -(Inherits)-> CSharpLanguage.CSharpLanguage.XmlFile 
+CSharpLanguage.CSharpLanguage.ProjectFile -(Uses)-> CSharpLanguage.CSharpLanguage.Project 
+CSharpLanguage.CSharpLanguage.RecordA -(Uses)-> CSharpLanguage.CSharpLanguage.RecordA 
+CSharpLanguage.CSharpLanguage.RecordA._recordB -(Uses)-> CSharpLanguage.CSharpLanguage.RecordB 
+CSharpLanguage.CSharpLanguage.RecordB -(Uses)-> CSharpLanguage.CSharpLanguage.RecordB 
+CSharpLanguage.CSharpLanguage.RecordB._recordA -(Uses)-> CSharpLanguage.CSharpLanguage.RecordA 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA.MethodA 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB.MethodB 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC.MethodC 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodFromInterfaceBase -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase.MethodFromInterfaceBase 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodC -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3.MethodB -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived3 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived4.MethodA -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2.MethodA 
+CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceC -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceBase 
+CSharpLanguage.CSharpLanguage.StructWithInterface -(Implements)-> CSharpLanguage.CSharpLanguage.IStructInterface 
+CSharpLanguage.CSharpLanguage.StructWithInterface -(UsesAttribute)-> CSharpLanguage.CSharpLanguage.MyAttribute 
+CSharpLanguage.CSharpLanguage.StructWithInterface.Method -(Implements)-> CSharpLanguage.CSharpLanguage.IStructInterface.Method 
+CSharpLanguage.CSharpLanguage.StructWithInterface.Method -(UsesAttribute)-> CSharpLanguage.CSharpLanguage.MyAttribute 
+Cycles.Cycles.ClassLevel_Fields.Class1._field1 -(Uses)-> Cycles.Cycles.ClassLevel_Fields.Class2 
+Cycles.Cycles.ClassLevel_Fields.Class2._field1 -(Uses)-> Cycles.Cycles.ClassLevel_Fields.Class1 
+Cycles.Cycles.OuterClass.DirectChildClass.x -(Uses)-> Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass 
+Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass.x -(Uses)-> Cycles.Cycles.OuterClass.DirectChildClass 
+ModuleLevel0.ModuleLevel0.Bootstrapper.Run -(Calls)-> ModuleLevel1.ModuleLevel1.FactoryC.Create [IsInstanceCall]
+ModuleLevel0.ModuleLevel0.Bootstrapper.Run -(Calls)-> ModuleLevel1.ModuleLevel1.IServiceC.Do [IsInstanceCall]
+ModuleLevel0.ModuleLevel0.Bootstrapper.Run -(Creates)-> ModuleLevel1.ModuleLevel1.FactoryC 
+ModuleLevel0.ModuleLevel0.Bootstrapper.Run -(Uses)-> ModuleLevel2.ModuleLevel2.Constants.Constant1 
+ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation -(Implements)-> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation 
+ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -(Implements)-> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent 
+ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method -(Implements)-> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method 
+ModuleLevel1.ModuleLevel1.FactoryC.Create -(Creates)-> ModuleLevel1.ModuleLevel1.ServiceC 
+ModuleLevel1.ModuleLevel1.FactoryC.Create -(Uses)-> ModuleLevel1.ModuleLevel1.IServiceC 
+ModuleLevel1.ModuleLevel1.Model.ModelA._modelB -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB 
+ModuleLevel1.ModuleLevel1.Model.ModelA._modelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelB.Value 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelD 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.StructA 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelA._modelB 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB 
+ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesGetter -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA 
+ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA 
+ModuleLevel1.ModuleLevel1.Model.ModelA.AccessToPropertiesSetter -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelD 
+ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelD 
+ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC 
+ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelB._modelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelB._structA -(Uses)-> ModuleLevel1.ModuleLevel1.Model.StructA 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB._modelC 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Uses)-> ModuleLevel2.ModuleLevel2.TheEnum 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Calls)-> ModuleLevel1.ModuleLevel1.Model.StructA.Fill [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Creates)-> ModuleLevel1.ModuleLevel1.Model.StructA 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB._structA 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelD 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel1.ModuleLevel1.Model.StructA 
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel2.ModuleLevel2.TheEnum 
+ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB 
+ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -(Uses)-> ModuleLevel2.ModuleLevel2.TheEnum 
+ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -(Uses)-> ModuleLevel2.ModuleLevel2.TheEnum 
+ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC 
+ModuleLevel1.ModuleLevel1.Model.ModelD._myStructs -(Uses)-> ModuleLevel1.ModuleLevel1.Model.StructA 
+ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant -(Uses)-> ModuleLevel2.ModuleLevel2.Constants.Constant1 
+ModuleLevel1.ModuleLevel1.Model.StructA.Fill -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelB.Value 
+ModuleLevel1.ModuleLevel1.Model.StructA.Fill -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB 
+ModuleLevel1.ModuleLevel1.Model.StructA.Fill -(Uses)-> ModuleLevel1.ModuleLevel1.Model.StructA._value 
+ModuleLevel1.ModuleLevel1.ServiceBase -(Implements)-> ModuleLevel1.ModuleLevel1.IServiceC 
+ModuleLevel1.ModuleLevel1.ServiceBase.Do -(Implements)-> ModuleLevel1.ModuleLevel1.IServiceC.Do 
+ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty -(Implements)-> ModuleLevel1.ModuleLevel1.IServiceC.IfProperty 
+ModuleLevel1.ModuleLevel1.ServiceC -(Inherits)-> ModuleLevel1.ModuleLevel1.ServiceBase 
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.ServiceC.Execute 
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1 [IsStaticCall]
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelA 
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelB 
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Overrides)-> ModuleLevel1.ModuleLevel1.ServiceBase.Do 
+ModuleLevel1.ModuleLevel1.ServiceC.IfProperty -(Overrides)-> ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty 
+ModuleLevel2.Insight.Analyzers._vm -(Uses)-> ModuleLevel2.Insight.Dialogs.TrendViewModel 
+ModuleLevel2.Insight.Dialogs.TrendViewModel._analyzer -(Uses)-> ModuleLevel2.Insight.Analyzers 
+ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass -(Uses)-> ModuleLevel2.ModuleLevel2.SelfReferencingClass 
+ModuleLevel2.ModuleLevel2.N1.ClassInNs1._x -(Uses)-> ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2 
+ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2._y -(Uses)-> ModuleLevel2.ModuleLevel2.N1.ClassInNs1 
+ModuleLevel2.ModuleLevel2.SelfReferencingClass..ctor -(Calls)-> ModuleLevel2.ModuleLevel2.SelfReferencingClass.CommitHash 
+ModuleLevel2.ModuleLevel2.SelfReferencingClass.Children -(Uses)-> ModuleLevel2.ModuleLevel2.SelfReferencingClass 
+ModuleLevel2.ModuleLevel2.SelfReferencingClass.Parents -(Uses)-> ModuleLevel2.ModuleLevel2.SelfReferencingClass 
+ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1 -(Calls)-> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod2 [IsStaticCall]
+ModuleLevel2.ModuleLevel2.Utility.UtilityMethod2 -(Calls)-> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1 [IsStaticCall]

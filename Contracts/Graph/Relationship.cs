@@ -14,18 +14,18 @@ public class Relationship(string sourceId, string targetId, RelationshipType typ
 
     public bool GetAttribute(RelationshipAttribute attribute)
     {
-        return _attributes.HasFlag(attribute);
+        return Attributes.HasFlag(attribute);
     }
 
     public void SetAttribute(RelationshipAttribute attribute, bool value = true)
     {
         if (value)
         {
-            _attributes |= attribute;
+            Attributes |= attribute;
         }
         else
         {
-            _attributes &= ~attribute;
+            Attributes &= ~attribute;
         }
     }
 
@@ -52,7 +52,9 @@ public class Relationship(string sourceId, string targetId, RelationshipType typ
     {
         var newRelationship = new Relationship(SourceId, TargetId, Type);
         newRelationship.SourceLocations.AddRange(SourceLocations);
-        newRelationship._attributes = _attributes;
+        newRelationship.Attributes = Attributes;
         return newRelationship;
     }
+
+
 }
