@@ -1,6 +1,4 @@
-﻿using System.Windows.Markup;
-
-namespace Contracts.Graph;
+﻿namespace Contracts.Graph;
 
 [Flags]
 public enum RelationshipAttribute : uint
@@ -18,7 +16,7 @@ public enum RelationshipAttribute : uint
 
 public static class RelationshipAttributeExtensions
 {
-    private static List<RelationshipAttribute> Flags = Enum.GetValues(typeof(RelationshipAttribute))
+    private static readonly List<RelationshipAttribute> Flags = Enum.GetValues(typeof(RelationshipAttribute))
         .Cast<RelationshipAttribute>()
         .Where(r => r != RelationshipAttribute.None)
         .ToList();

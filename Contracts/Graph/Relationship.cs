@@ -12,7 +12,7 @@ public class Relationship(string sourceId, string targetId, RelationshipType typ
 
     public List<SourceLocation> SourceLocations { get; set; } = [];
 
-    public bool GetAttribute(RelationshipAttribute attribute)
+    public bool HasAttribute(RelationshipAttribute attribute)
     {
         return Attributes.HasFlag(attribute);
     }
