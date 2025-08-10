@@ -18,13 +18,12 @@ public class CodeParserApprovalTests
         _graph = await parser.ParseSolution(@"..\..\..\..\SampleProject\SampleProject.sln");
     }
 
-    /// <summary>
-    ///     This test is actually wrong(!) If we could recognize that AddSlave is a call to another object we could be more
-    ///     precise. In this case we would add the base call from the second instance.
-    /// </summary>
     [Test]
     public void CodeExplorer_FollowIncomingCalls_1()
     {
+        // TODO the excess line is not correct!
+        // We should end at the base and override. But no call from method to base!!!
+
         // Scenario where base class calls base method of another instance.
         var codeElements = _graph.Nodes.Values;
 
@@ -45,7 +44,7 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave"
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 

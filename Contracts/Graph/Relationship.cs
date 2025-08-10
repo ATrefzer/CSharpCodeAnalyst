@@ -5,11 +5,29 @@ namespace Contracts.Graph;
 [DebuggerDisplay("{Type}")]
 public class Relationship(string sourceId, string targetId, RelationshipType type)
 {
+    public RelationshipAttribute Attributes { get; set; } = RelationshipAttribute.None;
     public string SourceId { get; } = sourceId;
     public string TargetId { get; } = targetId;
     public RelationshipType Type { get; } = type;
 
     public List<SourceLocation> SourceLocations { get; set; } = [];
+
+    public bool HasAttribute(RelationshipAttribute attribute)
+    {
+        return Attributes.HasFlag(attribute);
+    }
+
+    public void SetAttribute(RelationshipAttribute attribute, bool value = true)
+    {
+        if (value)
+        {
+            Attributes |= attribute;
+        }
+        else
+        {
+            Attributes &= ~attribute;
+        }
+    }
 
     public override bool Equals(object? obj)
     {
@@ -34,6 +52,9 @@ public class Relationship(string sourceId, string targetId, RelationshipType typ
     {
         var newRelationship = new Relationship(SourceId, TargetId, Type);
         newRelationship.SourceLocations.AddRange(SourceLocations);
+        newRelationship.Attributes = Attributes;
         return newRelationship;
     }
+
+
 }
