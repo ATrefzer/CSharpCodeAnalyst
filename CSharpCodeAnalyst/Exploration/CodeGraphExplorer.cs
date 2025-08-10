@@ -393,7 +393,21 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             if (element.ElementType == CodeElementType.Method)
             {
-               
+                // 1. Abstractions (priority 0)
+                // For methods the abstractions like interfaces may be called.
+                var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(abstractions);
+                var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
+                foundElements.UnionWith(abstractionTargets);
+                AddToProcessingQueue(abstractionTargets, currentContext, 2);
+
+
+                // Add Events that are handled by this method  (priority 1).
+                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(handles);
+                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
+                foundElements.UnionWith(events);
+                AddToProcessingQueue(events, currentContext, 2);
 
 
                 // 3. Calls (priority 2)
@@ -425,21 +439,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                     AddToProcessingQueue([callSource], currentContext, 2);
                 }
 
-                // 1. Abstractions (priority 0)
-                // For methods the abstractions like interfaces may be called.
-                var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
-                foundRelationships.UnionWith(abstractions);
-                var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
-                foundElements.UnionWith(abstractionTargets);
-                AddToProcessingQueue(abstractionTargets, currentContext, 2);
-
-
-                // Add Events that are handled by this method  (priority 1).
-                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
-                foundRelationships.UnionWith(handles);
-                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
-                foundElements.UnionWith(events);
-                AddToProcessingQueue(events, currentContext, 2);
+           
 
 
             }
