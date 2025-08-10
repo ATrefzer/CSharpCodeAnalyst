@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Security.Policy;
 using CodeParser.Analysis.Cycles;
 using Contracts.Graph;
 
@@ -15,7 +16,10 @@ internal class Context(CodeGraph _codeGraph)
             return true; // No restrictions, all calls are allowed
         }
 
-        if (call.Attributes == RelationshipAttribute.None)
+        var source = _codeGraph.Nodes[call.SourceId];
+        var target = _codeGraph.Nodes[call.TargetId];
+
+        if (call.Attributes == RelationshipAttribute.None || call.HasAttribute(RelationshipAttribute.IsBaseCall))
         {
             // Normal calls not a call to an object instance.
             var sourceMethod = _codeGraph.Nodes[call.SourceId];
@@ -212,25 +216,35 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     /// <summary>
     /// Returns all allowed call sources within the hierarchy.
     /// </summary>
-    private HashSet<CodeElement> RestrictHierarchyCallSources(CodeElement baseCallSource)
+    private HashSet<CodeElement> RestrictHierarchyCallSources(CodeElement someMethodInHierarchy)
     {
         if (_codeGraph is null)
         {
             return [];
         }
 
-        var element = GetMethodContainer(baseCallSource);
+        var element = GetMethodContainer(someMethodInHierarchy);
         if (element is null)
         {
             return [];
         }
 
-        
+        var baseClasses = GetBaseClassesRecursive(element);
 
-        var allowedHierarchy = GetBaseClassesRecursive(element).Union(GetDerivedClassesRecursive(element)).ToHashSet();
+        // Non instance calls may originate from these classes.
+        var allowedHierarchy = baseClasses
+            .Union(GetDerivedClassesRecursive(element))
+            .Union([element])
+            .ToHashSet();
 
-        var result = FindFullInheritanceTree(element.Id);
-        var forbiddenHierarchy = result.Elements.Except(allowedHierarchy).ToHashSet();
+        // Side hierarchies originating from a shared base class.
+        var expandedBaseClasses = new HashSet<CodeElement>();
+        foreach (var baseClass in baseClasses)
+        {
+            expandedBaseClasses.UnionWith(FindFullInheritanceTree(baseClass.Id).Elements);
+        }
+
+        var forbiddenHierarchy = expandedBaseClasses.Except(allowedHierarchy).ToHashSet();
         return forbiddenHierarchy;
 
     }
@@ -276,7 +290,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
     public static CodeElement? GetMethodContainer(CodeElement element)
     {
-        while (element.ElementType != CodeElementType.Class && element.ElementType != CodeElementType.Struct)
+        while (element.ElementType != CodeElementType.Class 
+               && element.ElementType != CodeElementType.Struct 
+               && element.ElementType != CodeElementType.Interface 
+               && element.ElementType != CodeElementType.Record)
         {
             if (element.Parent is null)
             {
@@ -328,13 +345,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     /// </summary>
     public SearchResult FollowIncomingCallsHeuristically(string id)
     {
-        // base call. 
-        // I know the hierarchy
-        // lock all allowed calls
-        //      - Get straight hierarchy 
-        // rest calls when instance call is reached.
-
-
         ArgumentNullException.ThrowIfNull(id);
 
         if (_codeGraph is null)
@@ -352,7 +362,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var method = _codeGraph.Nodes[id];
 
         var processingQueue = new PriorityQueue<(CodeElement, Context), int>();
-        processingQueue.Enqueue((method, new Context(_codeGraph)), 0); // Start with the initial method, priority 0
+        var initialContext = InitializeContextFromMethod(method);
+        processingQueue.Enqueue((method, initialContext), 0); // Start with the initial method, priority 0
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>();
@@ -360,10 +371,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         // For convenience. The element is already in the graph. But this way the result is consistent.
         foundElements.Add(_codeGraph.Nodes[id]);
 
-
+        var dbg = 0;
         var processed = new HashSet<string>();
         while (processingQueue.Count > 0)
         {
+            dbg++;
             // 0 = highest priority
 
             var (element, context) = processingQueue.Dequeue();
@@ -391,29 +403,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 AddToProcessingQueue(invokeSources, currentContext, 2);
             }
 
+
             if (element.ElementType == CodeElementType.Method)
             {
-                // 1. Abstractions (priority 0)
-                // For methods the abstractions like interfaces may be called.
-                var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
-                foundRelationships.UnionWith(abstractions);
-                var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
-                foundElements.UnionWith(abstractionTargets);
-                AddToProcessingQueue(abstractionTargets, currentContext, 2);
 
-
-                // Add Events that are handled by this method  (priority 1).
-                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
-                foundRelationships.UnionWith(handles);
-                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
-                foundElements.UnionWith(events);
-                AddToProcessingQueue(events, currentContext, 2);
-
-
-                // 3. Calls (priority 2)
+                // Calls
                 var calls = allCalls.Where(call => call.TargetId == element.Id && currentContext.IsCallAllowed(call)).ToArray();
                 foundRelationships.UnionWith(calls);
-               
+
                 // We may restrict further paths
                 foreach (var call in calls)
                 {
@@ -421,9 +418,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                     foundElements.Add(callSource);
 
                     if (call.HasAttribute(RelationshipAttribute.IsInstanceCall) ||
-                        call.HasAttribute(RelationshipAttribute.IsStaticCall) || 
+                        call.HasAttribute(RelationshipAttribute.IsStaticCall) ||
                         call.HasAttribute(RelationshipAttribute.IsExtensionMethodCall))
-                        
+
                     {
                         // Starting on a new instance or static method we reset the context.
                         currentContext = new Context(_codeGraph);
@@ -436,8 +433,28 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                         currentContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
                     }
 
-                    AddToProcessingQueue([callSource], currentContext, 2);
+                    AddToProcessingQueue([callSource], currentContext, 0);
                 }
+
+
+                // Abstractions
+                // For methods the abstractions like interfaces may be called.
+                var abstractions = allImplementsAndOverrides.Where(d => d.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(abstractions);
+                var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
+                foundElements.UnionWith(abstractionTargets);
+                AddToProcessingQueue(abstractionTargets, currentContext, 1);
+
+
+                // Add Events that are handled by this method
+                var handles = allHandles.Where(h => h.SourceId == element.Id).ToArray();
+                foundRelationships.UnionWith(handles);
+                var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
+                foundElements.UnionWith(events);
+                AddToProcessingQueue(events, currentContext, 2);
+
+
+            
 
            
 
@@ -447,6 +464,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         return new SearchResult(foundElements, foundRelationships);
 
+
+     
+
         void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context, int priority)
         {
             foreach (var elementToExplore in elementsToExplore)
@@ -455,6 +475,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             }
         }
 
+    }
+
+    private Context InitializeContextFromMethod(CodeElement method)
+    {
+        var context = new Context(_codeGraph)
+        {
+            ForbiddenCallSourcesInHierarchy = RestrictHierarchyCallSources(method)
+        };
+        return context;
     }
 
     /// <summary>
