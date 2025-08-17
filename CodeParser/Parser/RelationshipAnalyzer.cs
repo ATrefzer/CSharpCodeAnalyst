@@ -364,7 +364,7 @@ public class RelationshipAnalyzer
                 {
                     // Note: Implementations for external methods are not in our map
                     var locations = implementingSymbol.GetSymbolLocations();
-                    AddRelationship(implementingElement, RelationshipType.Implements, element, locations);
+                    AddRelationship(implementingElement, RelationshipType.Implements, element, locations, RelationshipAttribute.None);
                 }
             }
             // That's ok, even interfaces are tested here
@@ -421,7 +421,7 @@ public class RelationshipAnalyzer
         // If we don't have the method itself in our map, add a relationship to its containing type
         // Maybe we override a framework method. Happens also if the base method is a generic one.
         // In this case the GetSymbolKey is different. One uses T, the overriding method uses the actual type.
-        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Overrides, locations);
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Overrides, locations, RelationshipAttribute.None);
     }
 
     private void AnalyzeFieldRelationships(CodeElement fieldElement, IFieldSymbol fieldSymbol)
@@ -475,7 +475,10 @@ public class RelationshipAnalyzer
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {
             var location = invocationSyntax.GetSyntaxLocation();
-            AddCallsRelationship(sourceElement, calledMethod, location);
+
+            var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
+            AddCallsRelationship(sourceElement, calledMethod, location, attributes);
+            
 
             // Handle generic method invocations
             if (calledMethod.IsGenericMethod)
@@ -529,12 +532,12 @@ public class RelationshipAnalyzer
     private void AddEventInvocationRelationship(CodeElement sourceElement, IEventSymbol eventSymbol,
         SourceLocation location)
     {
-        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Invokes, [location]);
+        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Invokes, [location], RelationshipAttribute.None);
     }
 
     private void AddEventUsageRelationship(CodeElement sourceElement, IEventSymbol eventSymbol, SourceLocation location)
     {
-        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location]);
+        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
     }
 
     private void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
@@ -574,7 +577,7 @@ public class RelationshipAnalyzer
 
         if (handlerElement != null && eventElement != null)
         {
-            AddRelationship(handlerElement, RelationshipType.Handles, eventElement, [location]);
+            AddRelationship(handlerElement, RelationshipType.Handles, eventElement, [location], RelationshipAttribute.None);
         }
         //Trace.WriteLine(
         //    $"Unable to add 'Handles' relationship: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
@@ -595,7 +598,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
+    private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location, RelationshipAttribute attributes)
     {
         //Debug.Assert(FindCodeElement(methodSymbol)!= null);
         //Trace.WriteLine($"Adding call relationship: {sourceElement.Name} -> {methodSymbol.Name}");
@@ -612,7 +615,7 @@ public class RelationshipAnalyzer
         }
 
         // If the method is not in our map, we might want to add a relationship to its containing type
-        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Calls, [location]);
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Calls, [location], attributes);
     }
 
     /// <summary>
@@ -667,16 +670,17 @@ public class RelationshipAnalyzer
                 var symbolKey = typeSymbol.Key();
                 if (_artifacts!.SymbolKeyToElementMap.TryGetValue(symbolKey, out var targetElement))
                 {
-                    AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : []);
+                    AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
                 }
 
                 break;
         }
     }
 
+
     private void AddRelationship(CodeElement source, RelationshipType type,
         CodeElement target,
-        List<SourceLocation> sourceLocations)
+        List<SourceLocation> sourceLocations, RelationshipAttribute attributes)
     {
         lock (_lock)
         {
@@ -689,11 +693,16 @@ public class RelationshipAnalyzer
                 // For example identifier and member access of field.
                 var newLocations = sourceLocations.Except(existingRelationship.SourceLocations);
                 existingRelationship.SourceLocations.AddRange(newLocations);
+
+
+                // We may get different attributes from different calls.
+                existingRelationship.Attributes |= attributes;
             }
             else
             {
                 var newRelationship = new Relationship(source.Id, target.Id, type);
                 newRelationship.SourceLocations.AddRange(sourceLocations);
+                newRelationship.Attributes = attributes;
                 source.Relationships.Add(newRelationship);
             }
         }
@@ -707,7 +716,7 @@ public class RelationshipAnalyzer
         if (targetElement != null)
         {
             // The type is internal (part of our codebase)
-            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : []);
+            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
         }
         else
         {
@@ -721,7 +730,7 @@ public class RelationshipAnalyzer
             {
                 // We found the original definition, add relationship to it
                 AddRelationship(sourceElement, relationshipType, originalTargetElement,
-                    location != null ? [location] : []);
+                    location != null ? [location] : [], RelationshipAttribute.None);
             }
             // The type is truly external, you might want to log this or handle it differently
             // AddExternalRelationship(sourceElement, namedTypeSymbol, relationshipType, location);
@@ -746,11 +755,11 @@ public class RelationshipAnalyzer
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location]);
+            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses);
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [], RelationshipAttribute.None);
         }
     }
 
@@ -766,11 +775,11 @@ public class RelationshipAnalyzer
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = memberAccessSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location]);
+            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses);
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [], RelationshipAttribute.None);
         }
         else if (symbol is IEventSymbol eventSymbol)
         {
@@ -789,13 +798,13 @@ public class RelationshipAnalyzer
     ///     Calling a property is treated like calling a method.
     /// </summary>
     private void AddPropertyCallRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
-        List<SourceLocation> locations)
+        List<SourceLocation> locations, RelationshipAttribute attributes)
     {
-        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Calls, locations);
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Calls, locations, attributes);
     }
 
     private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol targetSymbol,
-        RelationshipType relationshipType, List<SourceLocation>? locations = null)
+        RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         // If we don't have the property itself in our map, add a relationship to its containing type
         if (locations == null)
@@ -806,14 +815,14 @@ public class RelationshipAnalyzer
         var targetElement = FindCodeElement(targetSymbol);
         if (targetElement != null)
         {
-            AddRelationship(sourceElement, relationshipType, targetElement, locations);
+            AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
             return;
         }
 
         var containingTypeElement = FindCodeElement(targetSymbol.ContainingType);
         if (containingTypeElement != null)
         {
-            AddRelationship(sourceElement, relationshipType, containingTypeElement, locations);
+            AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
         }
     }
 
@@ -897,6 +906,86 @@ public class RelationshipAnalyzer
     private void AddPropertyRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
         RelationshipType relationshipType, List<SourceLocation> locations)
     {
-        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations);
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, locations, RelationshipAttribute.None);
     }
+
+
+
+
+    private RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation,
+     IMethodSymbol method, SemanticModel semanticModel)
+    {
+        if (method.IsExtensionMethod)
+        {
+            return RelationshipAttribute.IsExtensionMethodCall;
+        }
+
+        switch (invocation.Expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                return AnalyzeMemberAccessCallType(memberAccess, method, semanticModel);
+
+            case IdentifierNameSyntax identifier:
+                // Direct method call - could be this.Method() or static
+                return method.IsStatic ? RelationshipAttribute.IsStaticCall : RelationshipAttribute.None;
+
+            case MemberBindingExpressionSyntax:
+                // Conditional access: obj?.Method()
+                return RelationshipAttribute.IsInstanceCall;
+
+            default:
+                // Fallback for complex expressions
+                return RelationshipAttribute.None;
+        }
+    }
+
+    private RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
+        IMethodSymbol method, SemanticModel semanticModel)
+    {
+        switch (memberAccess.Expression)
+        {
+            case BaseExpressionSyntax:
+                // base.Method()
+                return RelationshipAttribute.IsBaseCall;
+
+            case ThisExpressionSyntax:
+                // this.Method()
+                return RelationshipAttribute.IsThisCall;
+
+            case IdentifierNameSyntax identifier:
+                var symbolInfo = semanticModel.GetSymbolInfo(identifier);
+                if (symbolInfo.Symbol is INamedTypeSymbol)
+                {
+                    // Type.StaticMethod()
+                    return RelationshipAttribute.IsStaticCall;
+                }
+                else if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
+                {
+                    // field.Method() or property.Method()
+                    return RelationshipAttribute.IsInstanceCall;
+                }
+                else
+                {
+                    // Local variable or parameter
+                    return RelationshipAttribute.IsInstanceCall;
+                }
+
+            case MemberAccessExpressionSyntax:
+                // Chained calls: obj.Property.Method()
+                return RelationshipAttribute.IsInstanceCall;
+
+            case InvocationExpressionSyntax:
+                // Method call result: GetObject().Method()
+                return RelationshipAttribute.IsInstanceCall;
+
+            case ObjectCreationExpressionSyntax:
+                // new Object().Method()
+                return RelationshipAttribute.IsInstanceCall;
+
+            default:
+                // Complex expression - default to instance call
+                return RelationshipAttribute.IsInstanceCall;
+        }
+    }
+
 }
