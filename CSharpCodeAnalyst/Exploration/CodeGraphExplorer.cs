@@ -1,48 +1,8 @@
 ﻿using System.Diagnostics;
-using System.Security.Policy;
 using CodeParser.Analysis.Cycles;
 using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Exploration;
-
-internal class Context(CodeGraph _codeGraph)
-{
-    public HashSet<CodeElement> ForbiddenCallSourcesInHierarchy { get; set; } = [];
-
-    public bool IsCallAllowed(Relationship call)
-    {
-        if (ForbiddenCallSourcesInHierarchy.Count == 0)
-        {
-            return true; // No restrictions, all calls are allowed
-        }
-
-        var source = _codeGraph.Nodes[call.SourceId];
-        var target = _codeGraph.Nodes[call.TargetId];
-
-        if (call.Attributes == RelationshipAttribute.None || call.HasAttribute(RelationshipAttribute.IsBaseCall))
-        {
-            // Normal calls not a call to an object instance.
-            var sourceMethod = _codeGraph.Nodes[call.SourceId];
-            var sourceClass = CodeGraphExplorer.GetMethodContainer(sourceMethod);
-
-            if (ForbiddenCallSourcesInHierarchy.Contains(sourceClass))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public Context Clone()
-    {
-        var clone = new Context(_codeGraph)
-        {
-            ForbiddenCallSourcesInHierarchy = ForbiddenCallSourcesInHierarchy.ToHashSet()
-        };
-        return clone;
-    }
-}
 
 public class CodeGraphExplorer : ICodeGraphExplorer
 {
@@ -213,131 +173,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new Invocation(foundMethods, foundCalls);
     }
 
-    /// <summary>
-    /// Returns all allowed call sources within the hierarchy.
-    /// </summary>
-    private HashSet<CodeElement> RestrictHierarchyCallSources(CodeElement someMethodInHierarchy)
-    {
-        if (_codeGraph is null)
-        {
-            return [];
-        }
-
-        var element = GetMethodContainer(someMethodInHierarchy);
-        if (element is null)
-        {
-            return [];
-        }
-
-        var baseClasses = GetBaseClassesRecursive(element);
-
-        // Non instance calls may originate from these classes.
-        var allowedHierarchy = baseClasses
-            .Union(GetDerivedClassesRecursive(element))
-            .Union([element])
-            .ToHashSet();
-
-        // Side hierarchies originating from a shared base class.
-        var expandedBaseClasses = new HashSet<CodeElement>();
-        foreach (var baseClass in baseClasses)
-        {
-            expandedBaseClasses.UnionWith(FindFullInheritanceTree(baseClass.Id).Elements);
-        }
-
-        var forbiddenHierarchy = expandedBaseClasses.Except(allowedHierarchy).ToHashSet();
-        return forbiddenHierarchy;
-
-    }
-
-
-
-    /// <summary>
-    /// The given element is not included in the result.
-    /// </summary>
-    private HashSet<CodeElement> GetBaseClassesRecursive(CodeElement? element)
-    {
-        if (_codeGraph is null)
-        {
-            return [];
-        }
-
-        var baseClasses = new HashSet<CodeElement>();
-
-        var queue = new Queue<CodeElement>();
-        queue.Enqueue(element);
-
-        while (queue.Any())
-        {
-            var currentElement = queue.Dequeue();
-
-            var inheritsFrom = currentElement.Relationships
-                .Where(d => d.Type == RelationshipType.Inherits && d.SourceId == element.Id)
-                .Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
-
-            Debug.Assert(inheritsFrom.Count <= 1, "Only simple inheritance in C#");
-
-            foreach (var baseClass in inheritsFrom)
-            {
-                if (baseClasses.Add(baseClass))
-                {
-                    queue.Enqueue(baseClass);
-                }
-            }
-        }
-
-        return baseClasses;
-    }
-
-    public static CodeElement? GetMethodContainer(CodeElement element)
-    {
-        while (element.ElementType != CodeElementType.Class 
-               && element.ElementType != CodeElementType.Struct 
-               && element.ElementType != CodeElementType.Interface 
-               && element.ElementType != CodeElementType.Record)
-        {
-            if (element.Parent is null)
-            {
-                return null; // No container found
-            }
-
-            element = element.Parent;
-        }
-
-        return element;
-    }
-
-
-    private HashSet<CodeElement> GetDerivedClassesRecursive(CodeElement element)
-    {
-        if (_codeGraph is null)
-        {
-            return [];
-        }
-
-        var derivedClasses = new HashSet<CodeElement>();
-
-        var queue = new Queue<CodeElement>();
-        queue.Enqueue(element);
-
-        while (queue.Any())
-        {
-            var currentElement = queue.Dequeue();
-
-            var derived = GetRelationships(d => d.Type == RelationshipType.Inherits && d.TargetId == element.Id)
-                .Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
-
-         foreach (var baseClass in derived)
-            {
-                if (derivedClasses.Add(baseClass))
-                {
-                    queue.Enqueue(baseClass);
-                }
-            }
-        }
-
-        return derivedClasses;
-    }
-
 
     /// <summary>
     ///     This gives a heuristic only.
@@ -371,13 +206,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         // For convenience. The element is already in the graph. But this way the result is consistent.
         foundElements.Add(_codeGraph.Nodes[id]);
 
-        var dbg = 0;
         var processed = new HashSet<string>();
         while (processingQueue.Count > 0)
         {
-            dbg++;
             // 0 = highest priority
-
             var (element, context) = processingQueue.Dequeue();
             if (!processed.Add(element.Id))
             {
@@ -406,7 +238,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             if (element.ElementType == CodeElementType.Method)
             {
-
                 // Calls
                 var calls = allCalls.Where(call => call.TargetId == element.Id && currentContext.IsCallAllowed(call)).ToArray();
                 foundRelationships.UnionWith(calls);
@@ -414,26 +245,34 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 // We may restrict further paths
                 foreach (var call in calls)
                 {
+                    var newContext = context;
+
                     var callSource = _codeGraph.Nodes[call.SourceId];
                     foundElements.Add(callSource);
 
-                    if (call.HasAttribute(RelationshipAttribute.IsInstanceCall) ||
-                        call.HasAttribute(RelationshipAttribute.IsStaticCall) ||
+                    if (call.HasAttribute(RelationshipAttribute.IsStaticCall) ||
                         call.HasAttribute(RelationshipAttribute.IsExtensionMethodCall))
 
                     {
                         // Starting on a new instance or static method we reset the context.
-                        currentContext = new Context(_codeGraph);
+                        newContext = new Context(_codeGraph);
+                    }
+
+                    if (call.HasAttribute(RelationshipAttribute.IsInstanceCall))
+                    {
+                        // The new instance restricts the search.
+                        newContext = new Context(_codeGraph);
+                        newContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
                     }
 
                     if (call.Attributes == RelationshipAttribute.IsBaseCall)
                     {
                         // Call to own base class restricts the possible further calls.
-                        currentContext = currentContext.Clone();
-                        currentContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
+                        newContext = currentContext.Clone();
+                        newContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
                     }
 
-                    AddToProcessingQueue([callSource], currentContext, 0);
+                    AddToProcessingQueue([callSource], newContext, 0);
                 }
 
 
@@ -452,20 +291,13 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
                 foundElements.UnionWith(events);
                 AddToProcessingQueue(events, currentContext, 2);
-
-
-            
-
-           
-
-
             }
         }
 
         return new SearchResult(foundElements, foundRelationships);
 
 
-     
+
 
         void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context, int priority)
         {
@@ -474,16 +306,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 processingQueue.Enqueue((_codeGraph.Nodes[elementToExplore.Id], context), priority);
             }
         }
-
-    }
-
-    private Context InitializeContextFromMethod(CodeElement method)
-    {
-        var context = new Context(_codeGraph)
-        {
-            ForbiddenCallSourcesInHierarchy = RestrictHierarchyCallSources(method)
-        };
-        return context;
     }
 
     /// <summary>
@@ -654,6 +476,139 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var elements = relationships.Select(d => _codeGraph.Nodes[d.SourceId]);
 
         return new SearchResult(elements, relationships);
+    }
+
+    /// <summary>
+    ///     Returns all allowed call forbidden within the hierarchy.
+    /// </summary>
+    private HashSet<CodeElement> RestrictHierarchyCallSources(CodeElement someMethodInHierarchy)
+    {
+        if (_codeGraph is null)
+        {
+            return [];
+        }
+
+        var element = GetMethodContainer(someMethodInHierarchy);
+        if (element is null)
+        {
+            return [];
+        }
+
+        var baseClasses = GetBaseClassesRecursive(element);
+
+        // Non instance calls may originate from these classes.
+        var allowedHierarchy = baseClasses
+            .Union(GetDerivedClassesRecursive(element))
+            .Union([element])
+            .ToHashSet();
+
+        // Side hierarchies originating from a shared base class.
+        var expandedBaseClasses = new HashSet<CodeElement>();
+        foreach (var baseClass in baseClasses)
+        {
+            expandedBaseClasses.UnionWith(FindFullInheritanceTree(baseClass.Id).Elements);
+        }
+
+        var forbiddenHierarchy = expandedBaseClasses.Except(allowedHierarchy).ToHashSet();
+        return forbiddenHierarchy;
+    }
+
+
+
+    /// <summary>
+    ///     The given element is not included in the result.
+    /// </summary>
+    private HashSet<CodeElement> GetBaseClassesRecursive(CodeElement? element)
+    {
+        if (_codeGraph is null || element is null)
+        {
+            return [];
+        }
+
+        var baseClasses = new HashSet<CodeElement>();
+
+        var queue = new Queue<CodeElement>();
+        queue.Enqueue(element);
+
+        while (queue.Any())
+        {
+            var currentElement = queue.Dequeue();
+
+            var inheritsFrom = currentElement.Relationships
+                .Where(d => d.Type == RelationshipType.Inherits && d.SourceId == currentElement.Id)
+                .Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
+
+            Debug.Assert(inheritsFrom.Count <= 1, "Only simple inheritance in C#");
+
+            foreach (var baseClass in inheritsFrom)
+            {
+                if (baseClasses.Add(baseClass))
+                {
+                    queue.Enqueue(baseClass);
+                }
+            }
+        }
+
+        return baseClasses;
+    }
+
+    public static CodeElement? GetMethodContainer(CodeElement element)
+    {
+        while (element.ElementType != CodeElementType.Class
+               && element.ElementType != CodeElementType.Struct
+               && element.ElementType != CodeElementType.Interface
+               && element.ElementType != CodeElementType.Record)
+        {
+            if (element.Parent is null)
+            {
+                return null; // No container found
+            }
+
+            element = element.Parent;
+        }
+
+        return element;
+    }
+
+
+    private HashSet<CodeElement> GetDerivedClassesRecursive(CodeElement element)
+    {
+        if (_codeGraph is null)
+        {
+            return [];
+        }
+
+        var result = new HashSet<CodeElement>();
+
+        var queue = new Queue<CodeElement>();
+        queue.Enqueue(element);
+
+        while (queue.Any())
+        {
+            var currentElement = queue.Dequeue();
+
+            var derivedClasses = GetRelationships(d => d.Type == RelationshipType.Inherits && d.TargetId == currentElement.Id)
+                .Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
+
+            foreach (var derived in derivedClasses)
+            {
+                if (result.Add(derived))
+                {
+                    queue.Enqueue(derived);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Context InitializeContextFromMethod(CodeElement method)
+    {
+        var context = new Context(_codeGraph!)
+        {
+            ForbiddenCallSourcesInHierarchy = RestrictHierarchyCallSources(method)
+        };
+        return context;
     }
 
 

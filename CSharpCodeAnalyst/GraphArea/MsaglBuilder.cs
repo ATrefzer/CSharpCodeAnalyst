@@ -141,15 +141,15 @@ internal class MsaglBuilder
 
     private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph, bool showInformationFlow)
     {
-        var relationships = GetCollapsedRelationships(codeGraph, visibleGraph);
+        var relationships = GetCollapsedRelationships(codeGraph, visibleGraph, showInformationFlow);
         foreach (var relationship in relationships)
         {
-            CreateEdgeForHierarchicalStructure(graph, relationship, showInformationFlow);
+            CreateEdgeForHierarchicalStructure(graph, relationship);
         }
     }
 
     private Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph codeGraph,
-        CodeGraph visibleGraph)
+        CodeGraph visibleGraph, bool showInformationFlow)
     {
         var allRelationships = codeGraph.GetAllRelationships();
         var relationships = new Dictionary<(string, string), List<Relationship>>();
@@ -160,9 +160,18 @@ internal class MsaglBuilder
             var source = GetHighestVisibleParentOrSelf(relationship.SourceId, codeGraph, visibleGraph);
             var target = GetHighestVisibleParentOrSelf(relationship.TargetId, codeGraph, visibleGraph);
 
+
+            // Reverse edges like "overrides" to better visualize information flow
+            // instead of dependencies.
+            if (showInformationFlow &&
+                RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
+            {
+                (target, source) = (source, target);
+            }
+
             if (!relationships.TryGetValue((source, target), out var list))
             {
-                list = new List<Relationship>();
+                list = [];
                 relationships[(source, target)] = list;
             }
 
@@ -205,7 +214,7 @@ internal class MsaglBuilder
     }
 
     private void CreateEdgeForHierarchicalStructure(Graph graph,
-        KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships, bool showInformationFlow)
+        KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships)
     {
         
         // MSAGL does not allow two same edges with different labels to the same subgraph.
@@ -220,12 +229,6 @@ internal class MsaglBuilder
 
             var sourceId = relationship.SourceId;
             var targetId = relationship.TargetId;
-
-            if (showInformationFlow && 
-                RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
-            {
-                (targetId, sourceId) = (sourceId, targetId);
-            }
             var edge = graph.AddEdge(sourceId, targetId);
 
             edge.LabelText = GetLabelText(relationship);
@@ -240,12 +243,6 @@ internal class MsaglBuilder
         {
             var sourceId = mappedRelationships.Key.source;
             var targetId = mappedRelationships.Key.target;
-
-            if (showInformationFlow &&
-                mappedRelationships.Value.All(r => RelationshipFlowMapper.ShouldReverseInFlowMode(r.Type)))
-            {
-                (targetId, sourceId) = (sourceId, targetId);
-            }
 
             // More than one or mapped to collapsed container.
             // Connect the highest visible not collapsed elements (or self)
