@@ -1,5 +1,7 @@
 # Guide to Roslyn Concepts (Generated via Claude.ai)
 
+This guide covers key Roslyn concepts that are essential for building code analysis tools. It focuses on practical distinctions that often cause confusion when working with the Roslyn APIs.
+
 ## Table of Contents
 [TOC]
 
@@ -58,6 +60,157 @@ if (attributeSymbol is IMethodSymbol attributeCtorSymbol)
     // Process attribute usage
 }
 ```
+
+## SymbolInfo vs ISymbol
+
+### ISymbol (Direct Symbol)
+- **What it is**: A direct reference to a semantic entity (class, method, property, etc.)
+- **When you get it**: From `GetDeclaredSymbol()` on syntax nodes that **declare** something
+- **Guarantees**: Always represents a valid, declared symbol
+- **Use case**: When you know the syntax node represents a declaration
+
+### SymbolInfo (Symbol Resolution Result)
+- **What it is**: The result of trying to resolve a symbol from an expression
+- **When you get it**: From `GetSymbolInfo()` on expressions that **reference** something
+- **Guarantees**: May or may not have a resolved symbol
+- **Use case**: When you're analyzing expressions and need to handle ambiguity
+
+### Examples from Your Codebase
+
+### ISymbol - Direct Declaration
+```csharp
+// In HierarchyAnalyzer.cs - Phase 1
+case ClassDeclarationSyntax:
+    symbol = semanticModel.GetDeclaredSymbol(node) as INamedTypeSymbol;
+    // This ALWAYS returns a symbol because ClassDeclarationSyntax declares a class
+```
+
+### SymbolInfo - Expression Resolution
+```csharp
+// In RelationshipAnalyzer.cs - Phase 2
+var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+if (symbolInfo.Symbol is IMethodSymbol calledMethod)
+{
+    // This might be null if the method call is ambiguous or unresolved
+    AddCallsRelationship(sourceElement, calledMethod, location);
+}
+```
+
+### Why This Distinction Matters
+
+#### 1. Ambiguity Handling
+```csharp
+// Consider this code:
+var result = Process(); // Which Process() method?
+
+var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+if (symbolInfo.Symbol != null)
+{
+    // We found exactly one match
+}
+else if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
+{
+    // Multiple candidates - need to handle ambiguity
+    foreach (var candidate in symbolInfo.CandidateSymbols)
+    {
+        // Handle each possible match
+    }
+}
+```
+
+#### 2. Error Recovery
+```csharp
+var symbolInfo = semanticModel.GetSymbolInfo(expression);
+switch (symbolInfo.CandidateReason)
+{
+    case CandidateReason.None:
+        // Perfect match found
+        break;
+    case CandidateReason.Ambiguous:
+        // Multiple candidates
+        break;
+    case CandidateReason.OverloadResolutionFailure:
+        // Method exists but arguments don't match
+        break;
+    case CandidateReason.NotReferenced:
+        // Symbol exists but not accessible
+        break;
+}
+```
+
+#### 3. Different Analysis Contexts
+
+**Declaration Analysis (Phase 1):**
+```csharp
+// We KNOW this declares something
+var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
+// classSymbol is guaranteed to be non-null
+```
+
+**Usage Analysis (Phase 2):**
+```csharp
+// We're trying to figure out what this expression refers to
+var symbolInfo = semanticModel.GetSymbolInfo(methodCall);
+if (symbolInfo.Symbol is IMethodSymbol method)
+{
+    // Successfully resolved the method call
+    AddCallsRelationship(sourceElement, method, location);
+}
+// If symbolInfo.Symbol is null, the method call couldn't be resolved
+```
+
+### SymbolInfo Properties
+
+```csharp
+public class SymbolInfo
+{
+    public ISymbol? Symbol { get; }           // The best match, or null
+    public ImmutableArray<ISymbol> CandidateSymbols { get; }  // All possible matches
+    public CandidateReason CandidateReason { get; }  // Why resolution succeeded/failed
+}
+```
+
+### Real-World Scenarios
+
+#### Scenario 1: Perfect Resolution
+```csharp
+var x = new MyClass();
+var symbolInfo = semanticModel.GetSymbolInfo(x);
+// symbolInfo.Symbol = MyClass constructor
+// symbolInfo.CandidateReason = CandidateReason.None
+```
+
+#### Scenario 2: Ambiguous Method
+```csharp
+Process(10); // Multiple Process methods with different signatures
+var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+// symbolInfo.Symbol = null
+// symbolInfo.CandidateReason = CandidateReason.Ambiguous
+// symbolInfo.CandidateSymbols = [Process(int), Process(object)]
+```
+
+#### Scenario 3: Unresolved Reference
+```csharp
+UndefinedMethod(); // Method doesn't exist
+var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+// symbolInfo.Symbol = null
+// symbolInfo.CandidateReason = CandidateReason.None
+// symbolInfo.CandidateSymbols = empty
+```
+
+### In Your Codebase Context
+
+Your codebase uses this distinction perfectly:
+
+1. **Phase 1**: Uses `GetDeclaredSymbol()` to find all declared elements (guaranteed to exist)
+2. **Phase 2**: Uses `GetSymbolInfo()` to analyze relationships (may fail to resolve)
+
+This allows your analyzer to:
+- Build a complete hierarchy of declared elements
+- Handle cases where method calls can't be resolved (external APIs, compilation errors, etc.)
+- Provide robust analysis even when the code has some semantic issues
+
+The distinction ensures that your code graph building is resilient to real-world code that might have unresolved references or ambiguous calls.
 
 ## OriginalDefinition vs ConstructedFrom
 
@@ -135,6 +288,24 @@ For handling generic base classes, `OriginalDefinition` is usually the more appr
   - Populated for method invocations or when the generic method is part of a constructed type.
   - Typically empty for method declarations.
 
+### Example
+
+
+```csharp
+// Declaration analysis
+public void ProcessList<T>(List<T> items) where T : IComparable<T>
+{
+    // methodSymbol.TypeParameters[0] = T
+    // methodSymbol.TypeArguments is empty (this is the declaration)
+}
+
+// Usage analysis
+ProcessList<string>(myStringList);
+// methodSymbol.TypeParameters[0] = T (still there)
+// methodSymbol.TypeArguments[0] = string (concrete type used)
+```
+
+
 ### Key Points
 - For method declarations:
   - `TypeParameters` will be populated.
@@ -209,8 +380,199 @@ Partial classes are a special case where a symbol is declared in multiple files,
 
 ------
 
-If you want more details or a visual diagram, let me know!
 
-Review changes
 
- 
+## Handling of generic methods
+
+Looking at the selected code on line 604:
+
+  ```csharp
+
+if (methodSymbol.IsGenericMethod && FindCodeElement(methodSymbol) is null)
+
+{
+
+  methodSymbol = methodSymbol.OriginalDefinition;
+
+}
+  ```
+
+This code is handling a specific issue with generic method invocations in the relationship analyzer. Let me explain why this change is necessary:
+
+### The Problem with Generic Methods
+
+When you have a generic method like:
+
+  ```csharp
+
+public void Process<T>(T item) { ... }
+
+Process<string>("hello");
+  ```
+
+The compiler creates a constructed generic method (Process<string>) from the original definition (Process<T>). These are two different symbols in the Roslyn symbol system:
+
+1. Original Definition: Process<T> - the generic method template
+
+1. Constructed Method: Process<string> - the specific instantiation
+
+### Why the Change is Needed
+
+In the code graph, only the original definition (Process<T>) is stored as a CodeElement during the parsing phase. The constructed methods (Process<string>, Process<int>, etc.) are not stored because:
+
+1. They're created dynamically by the compiler
+
+1. There could be infinite variations (every possible type combination)
+
+1. The relationship analyzer wants to track the actual method definition, not every possible instantiation
+
+### What the Code Does
+
+The condition checks:
+
+1. methodSymbol.IsGenericMethod - Is this a generic method?
+
+1. FindCodeElement(methodSymbol) is null - Can we find this specific method in our code graph?
+
+If both are true, it means we have a constructed generic method that's not in our graph. The solution is to fall back to the original definition:
+
+  ```csharp
+
+methodSymbol = methodSymbol.OriginalDefinition;
+  ```
+
+This allows the relationship analyzer to create a "Calls" relationship to the actual method definition (Process<T>) rather than failing to find the constructed method (Process<string>).
+
+## Reduced form
+
+The "reduced form" is a key concept in Roslyn's handling of **extension methods**. 
+
+When you have an extension method like this:
+
+```csharp
+public static class StringExtensions
+{
+    public static int WordCount(this string text) // 'this' makes it an extension method
+    {
+        return text.Split(' ').Length;
+    }
+}
+```
+
+And you call it like this:
+
+```csharp
+string message = "Hello world";
+int count = message.WordCount(); // Extension method call
+```
+
+Roslyn creates **two different method symbols**:
+
+### 1. Original Extension Method
+```csharp
+// This is the method as declared
+WordCount(this string text) // Has 'this' parameter
+```
+
+### 2. Reduced Form
+```csharp
+// This is how it appears when called
+WordCount(string text) // 'this' parameter becomes regular first parameter
+```
+
+### Why This Matters
+
+The `ReducedFrom` property points from the **reduced form** back to the **original extension method**:
+
+```csharp
+// When you call message.WordCount():
+var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+var calledMethod = symbolInfo.Symbol as IMethodSymbol;
+
+// calledMethod is the REDUCED form (WordCount(string text))
+// calledMethod.ReducedFrom points to the ORIGINAL extension method (WordCount(this string text))
+```
+
+### Example
+
+Looking at your selected code:
+
+```csharp
+if (methodSymbol.IsExtensionMethod)
+{
+    // Handle calls to extension methods
+    methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
+}
+```
+
+This code is saying:
+1. **If** this is an extension method call
+2. **Then** get the original extension method definition (not the reduced form)
+3. **If** `ReducedFrom` is null, fall back to the current method
+
+### Why This is Necessary
+
+**Problem**: Extension methods create two different symbols
+
+```csharp
+// Original declaration
+public static int WordCount(this string text) { ... }
+
+// When called as extension method
+message.WordCount() // Creates reduced form: WordCount(string text)
+
+// When called as static method
+StringExtensions.WordCount(message) // Uses original form: WordCount(this string text)
+```
+
+**Solution**: Always work with the original definition
+
+Your codebase wants to create relationships to the **actual method definition**, not the  compiler-generated reduced form
+
+### Example Walkthrough
+
+```csharp
+// Extension method declaration
+public static class Extensions
+{
+    public static void Process(this MyClass obj, int value) { ... }
+}
+
+// Usage
+var obj = new MyClass();
+obj.Process(42); // Extension method call
+```
+
+**What Roslyn sees:**
+
+1. **Original Method**: `Process(this MyClass obj, int value)`
+2. **Reduced Form**: `Process(MyClass obj, int value)` (created during the call)
+3. **Relationship**: `reducedForm.ReducedFrom == originalMethod`
+
+**What your code does:**
+```csharp
+var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+var methodSymbol = symbolInfo.Symbol as IMethodSymbol; // This is the reduced form
+
+if (methodSymbol.IsExtensionMethod)
+{
+    methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol; // Get the original
+}
+
+// Now methodSymbol points to the actual extension method definition
+AddCallsRelationship(sourceElement, methodSymbol, location);
+```
+
+## Common Pitfalls
+
+### Null Symbols
+- Always check if `GetDeclaredSymbol()` returns null
+- `GetSymbolInfo().Symbol` can be null for unresolved references
+
+### Generic Method Confusion
+- Remember that `List<int>.Add(item)` and `List<string>.Add(item)` are different method symbols
+- Use `OriginalDefinition` to get back to the generic template
+
+### Extension Method Calls
+- Extension method calls create reduced forms
+- Always use `ReducedFrom ?? methodSymbol` for consistent analysis

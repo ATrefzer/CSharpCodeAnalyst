@@ -1,0 +1,220 @@
+@startuml Roslyn Architecture
+
+!define RECTANGLE class
+
+package "Microsoft.CodeAnalysis" {
+    RECTANGLE Workspace {
+        + OpenSolutionAsync(path: string): Task<Solution>
+    }
+    
+    RECTANGLE MSBuildWorkspace {
+        + Create(): MSBuildWorkspace
+        + WorkspaceFailed: event
+    }
+    
+    RECTANGLE Solution {
+        + Projects: IEnumerable<Project>
+        + GetDocument(syntaxTree: SyntaxTree): Document?
+    }
+    
+    RECTANGLE Project {
+        + Name: string
+        + GetCompilationAsync(): Task<Compilation>
+    }
+    
+    RECTANGLE Compilation {
+        + Assembly: IAssemblySymbol
+        + SyntaxTrees: IEnumerable<SyntaxTree>
+        + GetSemanticModel(syntaxTree: SyntaxTree): SemanticModel
+        + GetSymbolsWithName(): IEnumerable<ISymbol>
+    }
+    
+    RECTANGLE Document {
+        + GetSemanticModelAsync(): Task<SemanticModel>
+    }
+    
+    RECTANGLE SyntaxTree {
+        + FilePath: string
+        + GetRoot(): SyntaxNode
+    }
+    
+    RECTANGLE SemanticModel {
+        + GetDeclaredSymbol(node: SyntaxNode): ISymbol?
+        + GetSymbolInfo(expression: ExpressionSyntax): SymbolInfo
+        + GetTypeInfo(expression: ExpressionSyntax): TypeInfo
+    }
+}
+
+package "Microsoft.CodeAnalysis.CSharp.Syntax" {
+    RECTANGLE SyntaxNode {
+        + SyntaxTree: SyntaxTree
+        + Parent: SyntaxNode?
+        + DescendantNodesAndSelf(): IEnumerable<SyntaxNode>
+    }
+    
+    RECTANGLE CompilationUnitSyntax {
+        + Members: SyntaxList<MemberDeclarationSyntax>
+    }
+    
+    RECTANGLE ClassDeclarationSyntax {
+        + Identifier: SyntaxToken
+        + Members: SyntaxList<MemberDeclarationSyntax>
+    }
+    
+    RECTANGLE MethodDeclarationSyntax {
+        + Identifier: SyntaxToken
+        + Body: BlockSyntax?
+        + ExpressionBody: ArrowExpressionClauseSyntax?
+    }
+    
+    RECTANGLE PropertyDeclarationSyntax {
+        + Identifier: SyntaxToken
+        + AccessorList: AccessorListSyntax?
+        + ExpressionBody: ArrowExpressionClauseSyntax?
+    }
+    
+    RECTANGLE InvocationExpressionSyntax {
+        + Expression: ExpressionSyntax
+        + ArgumentList: ArgumentListSyntax
+    }
+    
+    RECTANGLE ObjectCreationExpressionSyntax {
+        + Type: TypeSyntax
+    }
+    
+    RECTANGLE MemberAccessExpressionSyntax {
+        + Expression: ExpressionSyntax
+        + Name: SimpleNameSyntax
+    }
+    
+    RECTANGLE AssignmentExpressionSyntax {
+        + Left: ExpressionSyntax
+        + Right: ExpressionSyntax
+        + Kind: SyntaxKind
+    }
+}
+
+package "Microsoft.CodeAnalysis (Symbols)" {
+    RECTANGLE ISymbol {
+        + Name: string
+        + ContainingType: INamedTypeSymbol?
+        + ContainingNamespace: INamespaceSymbol?
+        + ContainingAssembly: IAssemblySymbol
+        + GetAttributes(): ImmutableArray<AttributeData>
+        + GetSymbolLocations(): List<SourceLocation>
+        + Key(): string
+        + BuildSymbolName(): string
+    }
+    
+    RECTANGLE INamedTypeSymbol {
+        + TypeKind: TypeKind
+        + BaseType: INamedTypeSymbol?
+        + Interfaces: ImmutableArray<INamedTypeSymbol>
+        + AllInterfaces: ImmutableArray<INamedTypeSymbol>
+        + IsGenericType: bool
+        + TypeArguments: ImmutableArray<ITypeSymbol>
+        + OriginalDefinition: INamedTypeSymbol
+        + DelegateInvokeMethod: IMethodSymbol?
+    }
+    
+    RECTANGLE IMethodSymbol {
+        + IsGenericMethod: bool
+        + IsExtensionMethod: bool
+        + IsOverride: bool
+        + Parameters: ImmutableArray<IParameterSymbol>
+        + ReturnType: ITypeSymbol
+        + ReturnsVoid: bool
+        + OverriddenMethod: IMethodSymbol?
+        + ReducedFrom: IMethodSymbol?
+        + OriginalDefinition: IMethodSymbol
+        + TypeArguments: ImmutableArray<ITypeSymbol>
+        + DeclaringSyntaxReferences: ImmutableArray<SyntaxReference>
+    }
+    
+    RECTANGLE IPropertySymbol {
+        + Type: ITypeSymbol
+        + IsOverride: bool
+        + OverriddenProperty: IPropertySymbol?
+        + GetMethod: IMethodSymbol?
+        + SetMethod: IMethodSymbol?
+        + DeclaringSyntaxReferences: ImmutableArray<SyntaxReference>
+    }
+    
+    RECTANGLE IFieldSymbol {
+        + Type: ITypeSymbol
+    }
+    
+    RECTANGLE IEventSymbol {
+        + Type: ITypeSymbol
+        + AddMethod: IMethodSymbol?
+        + RemoveMethod: IMethodSymbol?
+    }
+    
+    RECTANGLE ITypeSymbol {
+        + SpecialType: SpecialType
+    }
+    
+    RECTANGLE IArrayTypeSymbol {
+        + ElementType: ITypeSymbol
+    }
+    
+    RECTANGLE IPointerTypeSymbol {
+        + PointedAtType: ITypeSymbol
+    }
+    
+    RECTANGLE IAssemblySymbol {
+        + Name: string
+    }
+    
+    RECTANGLE INamespaceSymbol {
+        + Name: string
+    }
+}
+
+package "SymbolInfo & TypeInfo" {
+    RECTANGLE SymbolInfo {
+        + Symbol: ISymbol?
+        + CandidateReason: CandidateReason
+    }
+    
+    RECTANGLE TypeInfo {
+        + Type: ITypeSymbol?
+        + ConvertedType: ITypeSymbol?
+    }
+}
+
+' Relationships
+Workspace <|-- MSBuildWorkspace
+Solution ||--o{ Project
+Project ||--o{ Compilation
+Compilation ||--o{ SyntaxTree
+Compilation ||--o{ SemanticModel
+Document ||--o{ SemanticModel
+SyntaxTree ||--o{ SyntaxNode
+
+SyntaxNode <|-- CompilationUnitSyntax
+SyntaxNode <|-- ClassDeclarationSyntax
+SyntaxNode <|-- MethodDeclarationSyntax
+SyntaxNode <|-- PropertyDeclarationSyntax
+SyntaxNode <|-- InvocationExpressionSyntax
+SyntaxNode <|-- ObjectCreationExpressionSyntax
+SyntaxNode <|-- MemberAccessExpressionSyntax
+SyntaxNode <|-- AssignmentExpressionSyntax
+
+ISymbol <|-- INamedTypeSymbol
+ISymbol <|-- IMethodSymbol
+ISymbol <|-- IPropertySymbol
+ISymbol <|-- IFieldSymbol
+ISymbol <|-- IEventSymbol
+ISymbol <|-- ITypeSymbol
+ISymbol <|-- IAssemblySymbol
+ISymbol <|-- INamespaceSymbol
+
+ITypeSymbol <|-- INamedTypeSymbol
+ITypeSymbol <|-- IArrayTypeSymbol
+ITypeSymbol <|-- IPointerTypeSymbol
+
+SemanticModel --> SymbolInfo
+SemanticModel --> TypeInfo
+
+@enduml

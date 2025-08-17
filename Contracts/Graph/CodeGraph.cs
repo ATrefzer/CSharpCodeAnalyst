@@ -148,11 +148,14 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public string ToDebug()
     {
-        var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, d.Type.ToString(), Nodes[d.TargetId].FullName));
+      
+        var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, d.Type.ToString(), Nodes[d.TargetId].FullName, d.Attributes.FormatAttributes()));
 
         var elementNames = Nodes.Values.Select(e => $"{e.ElementType}: {e.FullName}");
-        var relationshipNames = relationships.Select(d => $"{d.Item1} -({d.Item2})-> {d.Item3}");
+        var relationshipNames = relationships.Select(d => $"{d.Item1} -({d.Item2})-> {d.Item3} {d.Item4}");
         return string.Join("\n", elementNames.OrderBy(x => x)) + "\n" +
                string.Join("\n", relationshipNames.OrderBy(x => x));
     }
+
+
 }
