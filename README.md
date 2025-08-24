@@ -65,19 +65,16 @@ Please take note of the following issues:
 - The tree view search may be very slow, depending on the result.
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
 - External code is ignored.
-- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Documentation\Uncovered C# Syntax.md](Documentation/Uncovered%20C#%20Syntax.md")
+- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Uncovered C# Syntax](Documentation/uncovered-csharp-syntax.md) 
+
+
 
 ## Thank you
 
 - The beautiful **images** in the user interface are <a href="https://de.freepik.com/search">Images from juicy_fish on Freepik</a>
   You can find the direct link to the collection here: [Icon-Portfolio des Autors Juicy_fish | Freepik](https://de.freepik.com/autor/juicy-fish/icons)
-
 - The dependency graphs are created using the **"Automatic Graph Layout" package"**. You can find more information about it at:
   https://github.com/microsoft/automatic-graph-layout
-
-- The **DSM viewer** is part of the **DSM Suite** project. You can access it at
-  https://github.com/ernstaii/dsmsuite.sourcecode
-  https://github.com/dsmsuite/dsmsuite.sourcecode
 
 ## Supporting this project
 
