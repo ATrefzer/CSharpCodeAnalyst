@@ -247,20 +247,28 @@ public class RelationshipAnalyzer
             return;
         }
 
+        // Get delegate declaration location
+        var delegateLocations = delegateSymbol.GetSymbolLocations();
+        var delegateLocation = delegateLocations.FirstOrDefault();
+
         // Analyze return type
-        AddTypeRelationship(delegateElement, methodSymbol.ReturnType, RelationshipType.Uses);
+        AddTypeRelationship(delegateElement, methodSymbol.ReturnType, RelationshipType.Uses, delegateLocation);
 
         // Analyze parameter types
         foreach (var parameter in methodSymbol.Parameters)
         {
-            AddTypeRelationship(delegateElement, parameter.Type, RelationshipType.Uses);
+            AddTypeRelationship(delegateElement, parameter.Type, RelationshipType.Uses, delegateLocation);
         }
     }
 
     private void AnalyzeEventRelationships(Solution solution, CodeElement eventElement, IEventSymbol eventSymbol)
     {
+        // Get event declaration location
+        var eventLocations = eventSymbol.GetSymbolLocations();
+        var eventLocation = eventLocations.FirstOrDefault();
+
         // Analyze event type (usually a delegate type)
-        AddTypeRelationship(eventElement, eventSymbol.Type, RelationshipType.Uses);
+        AddTypeRelationship(eventElement, eventSymbol.Type, RelationshipType.Uses, eventLocation);
 
 
         if (eventSymbol.ContainingType.TypeKind == TypeKind.Interface)
@@ -286,16 +294,20 @@ public class RelationshipAnalyzer
     /// </summary>
     private void AnalyzeMethodRelationships(Solution solution, CodeElement methodElement, IMethodSymbol methodSymbol)
     {
+        // Get method declaration location for parameter and return type references
+        var methodLocations = methodSymbol.GetSymbolLocations();
+        var methodLocation = methodLocations.FirstOrDefault();
+
         // Analyze parameter types
         foreach (var parameter in methodSymbol.Parameters)
         {
-            AddTypeRelationship(methodElement, parameter.Type, RelationshipType.Uses);
+            AddTypeRelationship(methodElement, parameter.Type, RelationshipType.Uses, methodLocation);
         }
 
         // Analyze return type
         if (!methodSymbol.ReturnsVoid)
         {
-            AddTypeRelationship(methodElement, methodSymbol.ReturnType, RelationshipType.Uses);
+            AddTypeRelationship(methodElement, methodSymbol.ReturnType, RelationshipType.Uses, methodLocation);
         }
 
         //if (methodSymbol.IsExtensionMethod)
@@ -426,7 +438,11 @@ public class RelationshipAnalyzer
 
     private void AnalyzeFieldRelationships(CodeElement fieldElement, IFieldSymbol fieldSymbol)
     {
-        AddTypeRelationship(fieldElement, fieldSymbol.Type, RelationshipType.Uses);
+        // Get field declaration location
+        var fieldLocations = fieldSymbol.GetSymbolLocations();
+        var fieldLocation = fieldLocations.FirstOrDefault();
+
+        AddTypeRelationship(fieldElement, fieldSymbol.Type, RelationshipType.Uses, fieldLocation);
     }
 
     /// <summary>
@@ -623,16 +639,20 @@ public class RelationshipAnalyzer
     /// </summary>
     private void AnalyzeInheritanceRelationships(CodeElement element, INamedTypeSymbol typeSymbol)
     {
+        // Get type declaration location for inheritance relationships
+        var typeLocations = typeSymbol.GetSymbolLocations();
+        var typeLocation = typeLocations.FirstOrDefault();
+
         // Analyze base class
         if (typeSymbol.BaseType != null && typeSymbol.BaseType.SpecialType != SpecialType.System_Object)
         {
-            AddTypeRelationship(element, typeSymbol.BaseType, RelationshipType.Inherits);
+            AddTypeRelationship(element, typeSymbol.BaseType, RelationshipType.Inherits, typeLocation);
         }
 
         // Analyze implemented interfaces
         foreach (var @interface in typeSymbol.Interfaces)
         {
-            AddTypeRelationship(element, @interface, RelationshipType.Implements);
+            AddTypeRelationship(element, @interface, RelationshipType.Implements, typeLocation);
         }
     }
 
@@ -759,7 +779,8 @@ public class RelationshipAnalyzer
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [], RelationshipAttribute.None);
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
     }
 
@@ -779,7 +800,8 @@ public class RelationshipAnalyzer
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [], RelationshipAttribute.None);
+            var location = memberAccessSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
         else if (symbol is IEventSymbol eventSymbol)
         {
@@ -845,8 +867,12 @@ public class RelationshipAnalyzer
     private void AnalyzePropertyRelationships(Solution solution, CodeElement propertyElement,
         IPropertySymbol propertySymbol)
     {
+        // Get property declaration location
+        var propertyLocations = propertySymbol.GetSymbolLocations();
+        var propertyLocation = propertyLocations.FirstOrDefault();
+
         // Analyze the property type
-        AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses);
+        AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses, propertyLocation);
 
         if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {

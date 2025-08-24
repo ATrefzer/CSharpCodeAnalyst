@@ -1,14 +1,16 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+- Settings Diaog
+	- Automatically add containing type for methods when calling find (setting)
+- Search Window with query capabilities
+
+
 - Configure editor to open text files.
-- Why parse syntax trees to build the hierarchy at all? Try using symbols directly.
-- Automatically add containing type for methods when calling find ...
 - Performance in general
 - Anonymous methods like PdsOnElementCreated, lambdas
-
+- Tree is very slow
 - Highlighting aggregated edges takes too long. If quick help is not visible then skip.
-
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
