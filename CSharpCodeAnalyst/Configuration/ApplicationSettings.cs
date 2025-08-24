@@ -1,4 +1,7 @@
-﻿namespace CSharpCodeAnalyst.Configuration;
+﻿using System.IO;
+using System.Text.Json;
+
+namespace CSharpCodeAnalyst.Configuration;
 
 public class ApplicationSettings
 {
@@ -6,4 +9,13 @@ public class ApplicationSettings
     public string DefaultProjectExcludeFilter { get; set; } = string.Empty;
     public bool DefaultShowQuickHelp { get; set; }
     public int MaxDegreeOfParallelism { get; set; } = 8;
+    public bool AutomaticallyAddContainingType { get; set; } = true;
+
+    public void Save(string appSettingsPath)
+    {
+        var root = new { ApplicationSettings = this };
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        var json = JsonSerializer.Serialize(root, options);
+        File.WriteAllText(appSettingsPath, json);
+    }
 }

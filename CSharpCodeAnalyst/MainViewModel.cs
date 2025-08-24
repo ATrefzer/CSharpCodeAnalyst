@@ -39,6 +39,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private ApplicationSettings _applicationSettings;
     private CodeGraph? _codeGraph;
     private CycleSummaryViewModel? _cycleSummaryViewModel;
     private Gallery.Gallery? _gallery;
@@ -67,17 +68,14 @@ internal class MainViewModel : INotifyPropertyChanged
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
-        // Default values
+        // Initialize settings
+        _applicationSettings = settings ?? new ApplicationSettings();
+        
+        // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
-        _maxDegreeOfParallelism = 8;
-        _isInfoPanelVisible = false;
-
-        if (settings != null)
-        {
-            _isInfoPanelVisible = settings.DefaultShowQuickHelp;
-            _projectExclusionFilters.Initialize(settings.DefaultProjectExcludeFilter, ";");
-            _maxDegreeOfParallelism = settings.MaxDegreeOfParallelism;
-        }
+        _maxDegreeOfParallelism = _applicationSettings.MaxDegreeOfParallelism;
+        _isInfoPanelVisible = _applicationSettings.DefaultShowQuickHelp;
+        _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
 
         _messaging = messaging;
         _gallery = new Gallery.Gallery();
@@ -94,6 +92,7 @@ internal class MainViewModel : INotifyPropertyChanged
         ExportToDsiCommand = new DelegateCommand(ExportToDsi);
         ShowLegendCommand = new DelegateCommand(ShowLegend);
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
+        OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
         OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
@@ -253,6 +252,7 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     public ICommand OpenFilterDialogCommand { get; }
+    public ICommand OpenSettingsDialogCommand { get; }
 
     public ObservableCollection<IMetric> Metrics
     {
@@ -327,6 +327,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _openedLegendDialog = new LegendDialog();
             _openedLegendDialog.Owner = Application.Current.MainWindow;
+            _openedLegendDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             _openedLegendDialog.Closed += (sender, e) => _openedLegendDialog = null;
             _openedLegendDialog.Show();
         }
@@ -336,6 +337,41 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var filterDialog = new FilterDialog(_projectExclusionFilters);
         filterDialog.ShowDialog();
+    }
+
+    private void OpenSettingsDialog()
+    {
+        var settingsDialog = new SettingsDialog(_applicationSettings);
+        settingsDialog.Owner = Application.Current.MainWindow;
+        settingsDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        if (settingsDialog.ShowDialog() == true)
+        {
+            _applicationSettings = settingsDialog.Settings;
+            ApplySettings();
+        }
+    }
+
+    private void ApplySettings()
+    {
+        // Settings must be reloaded
+        
+        // Save settings to configuration file
+        SaveSettings();
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+            _applicationSettings.Save(appSettingsPath);
+        }
+        catch (Exception ex)
+        {
+            // Log error or show message to user
+            MessageBox.Show($"{Strings.Settings_Save_Error} {ex.Message}", Strings.Error_Title, 
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void Search()

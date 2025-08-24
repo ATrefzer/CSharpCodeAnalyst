@@ -7,7 +7,6 @@ using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.TreeArea;
-using Microsoft.Build.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;

@@ -106,6 +106,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Cancel_Button {
+            get {
+                return ResourceManager.GetString("Cancel_Button", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Clear.
         /// </summary>
         public static string Clear_Label {
@@ -228,6 +237,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string CycleSummary_TabHeader {
             get {
                 return ResourceManager.GetString("CycleSummary_TabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default.
+        /// </summary>
+        public static string Default_Button {
+            get {
+                return ResourceManager.GetString("Default_Button", resourceCulture);
             }
         }
         
@@ -799,6 +817,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ok.
+        /// </summary>
+        public static string Ok_Button {
+            get {
+                return ResourceManager.GetString("Ok_Button", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Operation failed: {0}.
         /// </summary>
         public static string OperationFailed_Message {
@@ -1125,11 +1152,164 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatically add containing type.
+        /// </summary>
+        public static string Settings_AddContainingType {
+            get {
+                return ResourceManager.GetString("Settings_AddContainingType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code Element Warning Limit:.
+        /// </summary>
+        public static string Settings_CodeElementWarningLimit {
+            get {
+                return ResourceManager.GetString("Settings_CodeElementWarningLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shows warning when graph contains more than this number of elements.
+        /// </summary>
+        public static string Settings_CodeElementWarningLimit_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_CodeElementWarningLimit_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General settings.
+        /// </summary>
+        public static string Settings_General {
+            get {
+                return ResourceManager.GetString("Settings_General", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
         public static string Settings_Header {
             get {
                 return ResourceManager.GetString("Settings_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to These settings are applied after a restart of the application..
+        /// </summary>
+        public static string Settings_Hint {
+            get {
+                return ResourceManager.GetString("Settings_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max Degree of Parallelism:.
+        /// </summary>
+        public static string Settings_MaxDegreeOfParallelism {
+            get {
+                return ResourceManager.GetString("Settings_MaxDegreeOfParallelism", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum number of threads to use during parsing.
+        /// </summary>
+        public static string Settings_MaxDegreeOfParallelism_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_MaxDegreeOfParallelism_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Performance Settings.
+        /// </summary>
+        public static string Settings_Performance {
+            get {
+                return ResourceManager.GetString("Settings_Performance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project Filters.
+        /// </summary>
+        public static string Settings_ProjectFilters {
+            get {
+                return ResourceManager.GetString("Settings_ProjectFilters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default Project Exclude Filter:.
+        /// </summary>
+        public static string Settings_ProjectFilters_Text {
+            get {
+                return ResourceManager.GetString("Settings_ProjectFilters_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular expressions to exclude projects (separated by semicolon).
+        /// </summary>
+        public static string Settings_ProjectFilters_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_ProjectFilters_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show quick help by default.
+        /// </summary>
+        public static string Settings_QuickHelpByDefault {
+            get {
+                return ResourceManager.GetString("Settings_QuickHelpByDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rendering.
+        /// </summary>
+        public static string Settings_Rendering {
+            get {
+                return ResourceManager.GetString("Settings_Rendering", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error saving settings:.
+        /// </summary>
+        public static string Settings_Save_Error {
+            get {
+                return ResourceManager.GetString("Settings_Save_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset all settings to their default values?.
+        /// </summary>
+        public static string Settings_Save_Qustion {
+            get {
+                return ResourceManager.GetString("Settings_Save_Qustion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset to Defaults.
+        /// </summary>
+        public static string Settings_Save_Title {
+            get {
+                return ResourceManager.GetString("Settings_Save_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When adding methods or fields to the graph, automatically include their containing class/type.
+        /// </summary>
+        public static string Settings_Settings_AddContainingType_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
             }
         }
         
