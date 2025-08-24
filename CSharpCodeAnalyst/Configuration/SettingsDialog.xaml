@@ -1,0 +1,76 @@
+﻿<Window x:Class="CSharpCodeAnalyst.Configuration.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+        Title="Settings" Height="400" Width="500"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <TextBlock Margin="10 0 0 15" FontWeight="Bold" Text="{x:Static resources:Strings.Settings_Hint}" />
+
+                <GroupBox Header="{x:Static resources:Strings.Settings_General}" Margin="5,0,0,0">
+                    <StackPanel Margin="10">
+                        <CheckBox x:Name="ShowQuickHelpCheckBox"
+                                  Content="{x:Static resources:Strings.Settings_QuickHelpByDefault}"
+                                  Margin="0,5" />
+
+                        <CheckBox x:Name="AutoAddContainingTypeCheckBox"
+                                  Content="{x:Static resources:Strings.Settings_AddContainingType}"
+                                  Margin="0,5"
+                                  ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="{x:Static resources:Strings.Settings_Performance}" Margin="5,0,0,0">
+                    <StackPanel Margin="10">
+                        <TextBlock Margin="0 0 0 3"
+                                   Text="{x:Static resources:Strings.Settings_CodeElementWarningLimit}" />
+                        <TextBox x:Name="WarningLimitTextBox"
+                                 Width="100"
+                                 HorizontalAlignment="Left"
+                                 Margin="0,0,0,10"
+                                 ToolTip="{x:Static resources:Strings.Settings_CodeElementWarningLimit_Tooltip}" />
+
+                        <TextBlock Margin="0 0 0 3" Text="{x:Static resources:Strings.Settings_MaxDegreeOfParallelism}" />
+                        <TextBox x:Name="MaxParallelismTextBox"
+                                 Width="100"
+                                 HorizontalAlignment="Left"
+                                 Margin="0,0,0,10"
+                                 ToolTip="{x:Static resources:Strings.Settings_MaxDegreeOfParallelism_Tooltip}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="{x:Static resources:Strings.Settings_ProjectFilters}" Margin="5,0,0,0">
+                    <StackPanel Margin="10">
+                        <TextBlock Margin="0 0 0 3" Text="{x:Static resources:Strings.Settings_ProjectFilters_Text}" />
+                        <TextBox x:Name="ProjectExcludeFilterTextBox"
+                                 Height="80"
+
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalAlignment="Stretch"
+                                 Margin="0,0,0,10"
+                                 ToolTip="{x:Static resources:Strings.Settings_ProjectFilters_Tooltip}" />
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="{x:Static resources:Strings.Default_Button}" Width="75" Click="DefaultsButton_Click"
+                    Margin="0,0,10,0" />
+            <Button Content="{x:Static resources:Strings.Ok_Button}" Width="75" Click="OkButton_Click"
+                    Margin="0,0,10,0" IsDefault="True" />
+            <Button Content="{x:Static resources:Strings.Cancel_Button}" Width="75" Click="CancelButton_Click"
+                    IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

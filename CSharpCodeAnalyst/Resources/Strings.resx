@@ -264,6 +264,9 @@
   <data name="Settings_Header" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="Settings_Rendering" xml:space="preserve">
+    <value>Rendering</value>
+  </data>
   <data name="QuickInfo_Label" xml:space="preserve">
     <value>Quick Info</value>
   </data>
@@ -490,5 +493,62 @@
   </data>
   <data name="Relationship_Target" xml:space="preserve">
     <value>Target</value>
+  </data>
+  <data name="Settings_QuickHelpByDefault" xml:space="preserve">
+    <value>Show quick help by default</value>
+  </data>
+  <data name="Settings_AddContainingType" xml:space="preserve">
+    <value>Automatically add containing type</value>
+  </data>
+  <data name="Settings_General" xml:space="preserve">
+    <value>General settings</value>
+  </data>
+  <data name="Settings_Settings_AddContainingType_Tooltip" xml:space="preserve">
+    <value>When adding methods or fields to the graph, automatically include their containing class/type</value>
+  </data>
+  <data name="Settings_CodeElementWarningLimit" xml:space="preserve">
+    <value>Code Element Warning Limit:</value>
+  </data>
+  <data name="Settings_CodeElementWarningLimit_Tooltip" xml:space="preserve">
+    <value>Shows warning when graph contains more than this number of elements</value>
+  </data>
+  <data name="Settings_ProjectFilters" xml:space="preserve">
+    <value>Project Filters</value>
+  </data>
+  <data name="Settings_ProjectFilters_Tooltip" xml:space="preserve">
+    <value>Regular expressions to exclude projects (separated by semicolon)</value>
+  </data>
+  <data name="Settings_ProjectFilters_Text" xml:space="preserve">
+    <value>Default Project Exclude Filter:</value>
+  </data>
+  <data name="Settings_Performance" xml:space="preserve">
+    <value>Performance Settings</value>
+  </data>
+  <data name="Settings_MaxDegreeOfParallelism" xml:space="preserve">
+    <value>Max Degree of Parallelism:</value>
+  </data>
+  <data name="Settings_MaxDegreeOfParallelism_Tooltip" xml:space="preserve">
+    <value>Maximum number of threads to use during parsing</value>
+  </data>
+  <data name="Settings_Hint" xml:space="preserve">
+    <value>These settings are applied after a restart of the application.</value>
+  </data>
+  <data name="Cancel_Button" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Ok_Button" xml:space="preserve">
+    <value>Ok</value>
+  </data>
+  <data name="Default_Button" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="Settings_Save_Qustion" xml:space="preserve">
+    <value>Reset all settings to their default values?</value>
+  </data>
+  <data name="Settings_Save_Title" xml:space="preserve">
+    <value>Reset to Defaults</value>
+  </data>
+  <data name="Settings_Save_Error" xml:space="preserve">
+    <value>Error saving settings:</value>
   </data>
 </root>

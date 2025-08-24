@@ -34,7 +34,16 @@
         <Ribbon>
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu>
+                   
+                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}" 
+                                               Command="{Binding OpenSettingsDialogCommand}"
+                                               ToolTip="Open application settings dialog"
+                                               ImageSource="/Resources/slider.png"/>
+
                     <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" />
+
+
+
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home">
@@ -140,9 +149,9 @@
 
                 </RibbonGroup>
 
-                <!-- Settings -->
-                <RibbonGroup Header="{x:Static resources:Strings.Settings_Header}"
-                             LargeImageSource="Resources/gear_32.png">
+                <!-- Rendering -->
+                <RibbonGroup Header="{x:Static resources:Strings.Settings_Rendering}"
+                             LargeImageSource="Resources/rendering.png">
 
                     <Grid Margin="0, 0, 0, 0">
                         <Grid.ColumnDefinitions>

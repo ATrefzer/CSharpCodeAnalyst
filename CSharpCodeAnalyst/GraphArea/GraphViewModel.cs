@@ -405,7 +405,20 @@ internal class GraphViewModel : INotifyPropertyChanged
     private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships)
     {
         PushUndo();
-        _viewer.AddToGraph(originalCodeElements, relationships);
+        
+        var elementsToAdd = originalCodeElements.ToList();
+        var relationshipsToAdd = relationships.ToList();
+        
+        // Apply "Automatically add containing type" setting
+        if (_settings?.AutomaticallyAddContainingType == true)
+        {
+            var elementIds = elementsToAdd.Select(e => e.Id).ToHashSet();
+            var result = _explorer.CompleteToContainingTypes(elementIds);
+            elementsToAdd.AddRange(result.Elements);
+            relationshipsToAdd.AddRange(result.Relationships);
+        }
+        
+        _viewer.AddToGraph(elementsToAdd, relationshipsToAdd);
     }
 
     public void LoadCodeGraph(CodeGraph codeGraph)

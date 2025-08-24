@@ -10,10 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Resources\guidepost_small.png" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -26,6 +22,8 @@
         <Resource Include="Resources\help_32.png" />
         <Resource Include="Resources\legend_32.png" />
         <Resource Include="Resources\filter_32.png" />
+        <Resource Include="Resources\rendering.png" />
+        <Resource Include="Resources\slider.png" />
         <Resource Include="Resources\undo_32.png" />
         <Resource Include="Resources\redo_32.png" />
         <Resource Include="Resources\clear_32.png" />
