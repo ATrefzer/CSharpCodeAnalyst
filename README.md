@@ -61,7 +61,6 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 Please take note of the following issues:
 
-- The graph layout package does not support multiple edges between the same code elements when sub-graphs are used; the edges are combined in this case.
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
 - The tree view search may be very slow, depending on the result.
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
