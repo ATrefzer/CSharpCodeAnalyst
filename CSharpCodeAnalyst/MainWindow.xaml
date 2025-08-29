@@ -16,7 +16,6 @@
         <ResourceDictionary>
 
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -394,11 +393,11 @@
                                       SelectionMode="Extended"
                                       Margin="5,0,5,0">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Type" 
-                                                        Binding="{Binding Type}"
-                                                        Width="Auto" />
                                     <DataGridTextColumn Header="Name" 
                                                         Binding="{Binding Name}"
+                                                        Width="Auto" />
+                                    <DataGridTextColumn Header="Type" 
+                                                        Binding="{Binding Type}"
                                                         Width="Auto" />
                                     <DataGridTextColumn Header="Full Path" 
                                                         Binding="{Binding FullPath}"
@@ -451,7 +450,6 @@
                     <Grid DataContext="{Binding CycleSummaryViewModel}">
 
                         <DataGrid
-                            Style="{StaticResource ScrollableDataGridStyleKey}"
                             ItemsSource="{Binding CycleGroupViewModels}"
                             Tag="{Binding DataContext, ElementName=RootWindow}"
 
@@ -486,7 +484,7 @@
                                 <DataGridTextColumn Header="{x:Static resources:Strings.ElementCount_Header}"
                                                     Binding="{Binding ElementCount}"
                                                     Width="Auto" />
-                                <DataGridTemplateColumn Header="Code Elements" Width="*">
+                                <DataGridTemplateColumn Header="Code Elements" Width="Auto">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <DockPanel LastChildFill="True">

@@ -83,7 +83,7 @@ public partial class MetricView
                     //},
 
                     Binding = new Binding(prop.Name),
-                    Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Auto)
                 };
 
                 // Special formatting for certain types
