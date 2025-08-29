@@ -14,9 +14,9 @@
         d:DataContext="{d:DesignInstance analyst:MainViewModel}">
     <Window.Resources>
         <ResourceDictionary>
-
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
@@ -33,14 +33,13 @@
         <Ribbon>
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu>
-                   
-                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}" 
+
+                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}"
                                                Command="{Binding OpenSettingsDialogCommand}"
                                                ToolTip="Open application settings dialog"
-                                               ImageSource="/Resources/slider.png"/>
+                                               ImageSource="/Resources/slider.png" />
 
                     <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" />
-
 
 
                 </RibbonApplicationMenu>
@@ -156,7 +155,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
                             <ColumnDefinition Width="Auto" /> <!-- Label -->
                             <ColumnDefinition Width="Auto" /> <!-- Drop Down -->
@@ -275,7 +274,7 @@
                 <TabControl
                     Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Margin="0">
-                    
+
                     <!-- Tree View Tab -->
                     <TabItem Header="Tree View">
                         <Grid>
@@ -286,14 +285,16 @@
                             <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
                                        DataContext="{Binding TreeViewModel}">
                                 <Button Command="{Binding CollapseTreeCommand}"
-                                        ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}" DockPanel.Dock="Right"
+                                        ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}"
+                                        DockPanel.Dock="Right"
                                         Width="22" Height="22">
                                     <Image Source="Resources/Collapse_16.png" />
                                 </Button>
 
                                 <!-- middle element has margin -->
                                 <Button Command="{Binding ClearSearchCommand}"
-                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" DockPanel.Dock="Right"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                                        DockPanel.Dock="Right"
                                         Width="22" Height="22" Margin="2 0 2 0">
                                     <Image Source="Resources/clear_32.png" />
                                 </Button>
@@ -336,7 +337,8 @@
 
                                 <TreeView.ItemContainerStyle>
                                     <Style TargetType="{x:Type TreeViewItem}">
-                                        <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItem_MouseRightButtonDown" />
+                                        <EventSetter Event="MouseRightButtonDown"
+                                                     Handler="TreeViewItem_MouseRightButtonDown" />
 
                                         <!-- If this slows down the tree loading remove it,
                                         remove also the context menu item "Find in tree" -->
@@ -356,7 +358,7 @@
                             </TreeView>
                         </Grid>
                     </TabItem>
-                    
+
                     <!-- Search Tab -->
                     <TabItem Header="Advanced Search">
                         <Grid DataContext="{Binding SearchViewModel}">
@@ -384,23 +386,20 @@
                             <!-- Results List -->
                             <DataGrid Grid.Row="1"
                                       x:Name="SearchDataGrid"
+                                      Style="{StaticResource ReadOnlyGrid}"
                                       ItemsSource="{Binding FilteredItems}"
                                       AutoGenerateColumns="False"
-                                      CanUserAddRows="False"
-                                      CanUserDeleteRows="False"
-                                      CanUserResizeRows="False"
                                       GridLinesVisibility="Horizontal"
                                       SelectionMode="Extended"
-                                      HeadersVisibility="Column"
                                       Margin="5,0,5,0">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
                                                         Binding="{Binding Name}"
                                                         Width="Auto" />
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.Type_Label}" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Type_Label}"
                                                         Binding="{Binding Type}"
                                                         Width="Auto" />
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
                                                         Binding="{Binding FullPath}"
                                                         Width="Auto" />
                                 </DataGrid.Columns>
@@ -408,7 +407,7 @@
 
                             <!-- Button Area -->
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Button Content="{x:Static resources:Strings.AddSelectedToGraph_Label}" 
+                                <Button Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
                                         Command="{Binding AddSelectedToGraphCommand}"
                                         CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
                                         FontWeight="Bold"
@@ -416,7 +415,7 @@
                             </StackPanel>
                         </Grid>
                     </TabItem>
-                    
+
                 </TabControl>
             </Expander>
 
@@ -450,13 +449,10 @@
                     <Grid DataContext="{Binding CycleSummaryViewModel}">
 
                         <DataGrid
+                            Style="{StaticResource ReadOnlyGrid}"
                             ItemsSource="{Binding CycleGroupViewModels}"
                             Tag="{Binding DataContext, ElementName=RootWindow}"
-
-                            AutoGenerateColumns="False"
-                            IsReadOnly="True"
-                            HeadersVisibility="Column">
-
+                            AutoGenerateColumns="False">
 
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridRow">
