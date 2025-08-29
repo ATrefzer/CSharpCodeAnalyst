@@ -70,6 +70,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add selected to graph.
+        /// </summary>
+        public static string AddSelectedToGraph_Label {
+            get {
+                return ResourceManager.GetString("AddSelectedToGraph_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to graph.
         /// </summary>
         public static string AddToGraph_MenuItem {
@@ -475,6 +484,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Full Path.
+        /// </summary>
+        public static string FullPath_Label {
+            get {
+                return ResourceManager.GetString("FullPath_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Gallery.
         /// </summary>
         public static string Gallery_Label {
@@ -795,6 +813,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Metrics_TabHeader {
             get {
                 return ResourceManager.GetString("Metrics_TabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string Name_Label {
+            get {
+                return ResourceManager.GetString("Name_Label", resourceCulture);
             }
         }
         
@@ -1337,6 +1364,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string TooMuchElementsTitle {
             get {
                 return ResourceManager.GetString("TooMuchElementsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        public static string Type_Label {
+            get {
+                return ResourceManager.GetString("Type_Label", resourceCulture);
             }
         }
         

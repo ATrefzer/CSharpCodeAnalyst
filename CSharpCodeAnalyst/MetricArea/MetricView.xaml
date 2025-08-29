@@ -10,6 +10,7 @@
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   IsReadOnly="True"
+                  HeadersVisibility="Column"
                   ItemsSource="{Binding Data, RelativeSource={RelativeSource AncestorType=UserControl}}" />
     </Grid>
 </UserControl>

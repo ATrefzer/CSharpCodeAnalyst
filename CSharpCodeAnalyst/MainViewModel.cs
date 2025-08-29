@@ -29,7 +29,6 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
-using Microsoft.Build.ObjectModelRemoting;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -68,8 +67,6 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private TreeViewModel? _treeViewModel;
     private SearchViewModel? _searchViewModel;
-
-    public event EventHandler ProjectLoaded;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
@@ -602,25 +599,10 @@ internal class MainViewModel : INotifyPropertyChanged
         _codeGraph = codeGraph;
 
         // Rebuild tree view and graph
-        if (TreeViewModel != null)
-        {
-            TreeViewModel.LoadCodeGraph(_codeGraph);
-        }
-
-        if (SearchViewModel != null)
-        {
-            SearchViewModel.LoadCodeGraph(_codeGraph);
-        }
-
-        if (GraphViewModel != null)
-        {
-            GraphViewModel.LoadCodeGraph(_codeGraph);
-        }
-
-        if (CycleSummaryViewModel != null)
-        {
-            CycleSummaryViewModel.Clear();
-        }
+        TreeViewModel?.LoadCodeGraph(_codeGraph);
+        SearchViewModel?.LoadCodeGraph(_codeGraph);
+        GraphViewModel?.LoadCodeGraph(_codeGraph);
+        CycleSummaryViewModel?.Clear();
 
         // Default output: summary of graph
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
@@ -629,8 +611,6 @@ internal class MainViewModel : INotifyPropertyChanged
         outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
         outputs.Add(new MetricOutput("# Relationships", numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
         Metrics = outputs;
-
-        ProjectLoaded?.Invoke(this, EventArgs.Empty);
     }
 
     private async void LoadSolution()

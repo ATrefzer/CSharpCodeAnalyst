@@ -242,7 +242,7 @@
             <Grid.ColumnDefinitions>
 
 
-                <ColumnDefinition x:Name="LeftColumn" Width="Auto" />
+                <ColumnDefinition x:Name="SplitterColumn" Width="Auto" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -391,15 +391,16 @@
                                       CanUserResizeRows="False"
                                       GridLinesVisibility="Horizontal"
                                       SelectionMode="Extended"
+                                      HeadersVisibility="Column"
                                       Margin="5,0,5,0">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Name" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}" 
                                                         Binding="{Binding Name}"
                                                         Width="Auto" />
-                                    <DataGridTextColumn Header="Type" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Type_Label}" 
                                                         Binding="{Binding Type}"
                                                         Width="Auto" />
-                                    <DataGridTextColumn Header="Full Path" 
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}" 
                                                         Binding="{Binding FullPath}"
                                                         Width="Auto" />
                                 </DataGrid.Columns>
@@ -407,10 +408,9 @@
 
                             <!-- Button Area -->
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Button Content="Add Selected to Graph" 
+                                <Button Content="{x:Static resources:Strings.AddSelectedToGraph_Label}" 
                                         Command="{Binding AddSelectedToGraphCommand}"
                                         CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
-                                        Background="LightBlue"
                                         FontWeight="Bold"
                                         Padding="15,5" />
                             </StackPanel>
