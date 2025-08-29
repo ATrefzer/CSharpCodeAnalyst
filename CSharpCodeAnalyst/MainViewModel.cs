@@ -28,6 +28,7 @@ using CSharpCodeAnalyst.MetricArea;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.TreeArea;
+using CSharpCodeAnalyst.SearchArea;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -65,6 +66,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private int _selectedTabIndex;
 
     private TreeViewModel? _treeViewModel;
+    private SearchViewModel? _searchViewModel;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
@@ -216,6 +218,16 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _treeViewModel = value;
             OnPropertyChanged(nameof(TreeViewModel));
+        }
+    }
+
+    public SearchViewModel? SearchViewModel
+    {
+        get => _searchViewModel;
+        set
+        {
+            _searchViewModel = value;
+            OnPropertyChanged(nameof(SearchViewModel));
         }
     }
 
@@ -590,6 +602,11 @@ internal class MainViewModel : INotifyPropertyChanged
         if (TreeViewModel != null)
         {
             TreeViewModel.LoadCodeGraph(_codeGraph);
+        }
+
+        if (SearchViewModel != null)
+        {
+            SearchViewModel.LoadCodeGraph(_codeGraph);
         }
 
         if (GraphViewModel != null)

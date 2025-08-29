@@ -7,6 +7,7 @@ using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.TreeArea;
+using CSharpCodeAnalyst.SearchArea;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
@@ -48,9 +49,11 @@ public partial class App
         var viewModel = new MainViewModel(messaging, settings);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging);
+        var searchViewModel = new SearchViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
+        viewModel.SearchViewModel = searchViewModel;
         viewModel.CycleSummaryViewModel = cycleViewModel;
 
 

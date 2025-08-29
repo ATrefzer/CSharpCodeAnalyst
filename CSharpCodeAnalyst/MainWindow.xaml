@@ -273,84 +273,161 @@
                     </Style>
                 </Expander.Style>
 
-                <Grid
-                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
-                               DataContext="{Binding TreeViewModel}">
-                        <Button Command="{Binding CollapseTreeCommand}"
-                                ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}" DockPanel.Dock="Right"
-                                Width="22" Height="22">
-                            <Image Source="Resources/Collapse_16.png" />
-                        </Button>
+                <TabControl
+                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0">
+                    
+                    <!-- Tree View Tab -->
+                    <TabItem Header="Tree View">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
+                                       DataContext="{Binding TreeViewModel}">
+                                <Button Command="{Binding CollapseTreeCommand}"
+                                        ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}" DockPanel.Dock="Right"
+                                        Width="22" Height="22">
+                                    <Image Source="Resources/Collapse_16.png" />
+                                </Button>
 
-                        <!-- middle element has margin -->
-                        <Button Command="{Binding ClearSearchCommand}"
-                                ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" DockPanel.Dock="Right"
-                                Width="22" Height="22" Margin="2 0 2 0">
-                            <Image Source="Resources/clear_32.png" />
-                        </Button>
-                        <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
-                            <TextBox.InputBindings>
-                                <!-- Send to main view model to show a progress -->
-                                <KeyBinding Key="Enter"
-                                            Command="{Binding DataContext.SearchCommand, ElementName=RootWindow}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                                <!-- middle element has margin -->
+                                <Button Command="{Binding ClearSearchCommand}"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" DockPanel.Dock="Right"
+                                        Width="22" Height="22" Margin="2 0 2 0">
+                                    <Image Source="Resources/clear_32.png" />
+                                </Button>
+                                <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
+                                    <TextBox.InputBindings>
+                                        <!-- Send to main view model to show a progress -->
+                                        <KeyBinding Key="Enter"
+                                                    Command="{Binding DataContext.SearchCommand, ElementName=RootWindow}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
 
-                    </DockPanel>
-                    <TreeView Grid.Row="1"
-                              x:Name="CodeTree"
-                              DataContext="{Binding TreeViewModel}"
-                              ContextMenuOpening="TreeView_ContextMenuOpening"
-                              ItemsSource="{Binding TreeItems}"
-                              Margin="5">
+                            </DockPanel>
+                            <TreeView Grid.Row="1"
+                                      x:Name="CodeTree"
+                                      DataContext="{Binding TreeViewModel}"
+                                      ContextMenuOpening="TreeView_ContextMenuOpening"
+                                      ItemsSource="{Binding TreeItems}"
+                                      Margin="5">
 
-                        <TreeView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
-                                          Command="{Binding AddNodeToGraphCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <TreeView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
+                                                  Command="{Binding AddNodeToGraphCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                                <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
-                                          Command="{Binding DeleteFromModelCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                            </ContextMenu>
-                        </TreeView.ContextMenu>
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
-                                    <TextBlock Text="{Binding Name}" />
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
+                                        <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
+                                                  Command="{Binding DeleteFromModelCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    </ContextMenu>
+                                </TreeView.ContextMenu>
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
+                                            <TextBlock Text="{Binding Name}" />
+                                        </StackPanel>
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
 
-                        <TreeView.ItemContainerStyle>
-                            <Style TargetType="{x:Type TreeViewItem}">
-                                <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItem_MouseRightButtonDown" />
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="{x:Type TreeViewItem}">
+                                        <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItem_MouseRightButtonDown" />
 
-                                <!-- If this slows down the tree loading remove it,
-                                remove also the context menu item "Find in tree" -->
-                                <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
-                                <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
+                                        <!-- If this slows down the tree loading remove it,
+                                        remove also the context menu item "Find in tree" -->
+                                        <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
+                                        <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
 
-                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                <Setter Property="Visibility"
-                                        Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
-                                        <Setter Property="Background" Value="LightYellow" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TreeView.ItemContainerStyle>
-                    </TreeView>
-                </Grid>
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                        <Setter Property="Visibility"
+                                                Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                <Setter Property="Background" Value="LightYellow" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                            </TreeView>
+                        </Grid>
+                    </TabItem>
+                    
+                    <!-- Search Tab -->
+                    <TabItem Header="Advanced Search">
+                        <Grid DataContext="{Binding SearchViewModel}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Search Box Area -->
+                            <DockPanel Grid.Row="0" Margin="5" Background="LightYellow">
+                                <Button Command="{Binding ClearSearchCommand}"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                                        DockPanel.Dock="Right"
+                                        Width="22" Height="22" Margin="2,0,0,0">
+                                    <Image Source="Resources/clear_32.png" />
+                                </Button>
+                                <TextBox DockPanel.Dock="Left" Height="22"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0"
+                                         FontSize="12"
+                                         ToolTip="Enter search terms to filter code elements..." />
+                            </DockPanel>
+
+                            <!-- Results List -->
+                            <DataGrid Grid.Row="1"
+                                      ItemsSource="{Binding FilteredItems}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserDeleteRows="False"
+                                      CanUserResizeRows="False"
+                                      GridLinesVisibility="Horizontal"
+                                      SelectionMode="Extended"
+                                      Margin="5,0,5,0">
+                                <DataGrid.Columns>
+                                    <DataGridCheckBoxColumn Header="Select" 
+                                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                            Width="60" />
+                                    <DataGridTextColumn Header="Type" 
+                                                        Binding="{Binding Type}"
+                                                        Width="100" />
+                                    <DataGridTextColumn Header="Name" 
+                                                        Binding="{Binding Name}"
+                                                        Width="200" />
+                                    <DataGridTextColumn Header="Full Path" 
+                                                        Binding="{Binding FullPath}"
+                                                        Width="*" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Button Area -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+                                <Button Content="Select All" 
+                                        Command="{Binding SelectAllCommand}"
+                                        Margin="0,0,5,0"
+                                        Padding="10,3" />
+                                <Button Content="Select None" 
+                                        Command="{Binding SelectNoneCommand}"
+                                        Margin="0,0,10,0"
+                                        Padding="10,3" />
+                                <Button Content="Add to Graph" 
+                                        Command="{Binding AddSelectedToGraphCommand}"
+                                        Background="LightBlue"
+                                        FontWeight="Bold"
+                                        Padding="15,3" />
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+                    
+                </TabControl>
             </Expander>
 
             <!-- If the expander is collapse we don't show the splitter-->
