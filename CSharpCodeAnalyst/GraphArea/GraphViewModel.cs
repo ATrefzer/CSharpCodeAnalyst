@@ -434,7 +434,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void HandleAddNodeToGraphRequest(AddNodeToGraphRequest request)
     {
-        AddToGraph(new List<CodeElement> { request.Node }, []);
+        AddToGraph(request.Nodes.ToList(), []);
     }
 
     internal void Clear()

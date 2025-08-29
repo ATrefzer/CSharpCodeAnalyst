@@ -384,6 +384,7 @@
 
                             <!-- Results List -->
                             <DataGrid Grid.Row="1"
+                                      x:Name="SearchDataGrid"
                                       ItemsSource="{Binding FilteredItems}"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
@@ -393,9 +394,6 @@
                                       SelectionMode="Extended"
                                       Margin="5,0,5,0">
                                 <DataGrid.Columns>
-                                    <DataGridCheckBoxColumn Header="Select" 
-                                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
-                                                            Width="60" />
                                     <DataGridTextColumn Header="Type" 
                                                         Binding="{Binding Type}"
                                                         Width="100" />
@@ -410,19 +408,12 @@
 
                             <!-- Button Area -->
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Button Content="Select All" 
-                                        Command="{Binding SelectAllCommand}"
-                                        Margin="0,0,5,0"
-                                        Padding="10,3" />
-                                <Button Content="Select None" 
-                                        Command="{Binding SelectNoneCommand}"
-                                        Margin="0,0,10,0"
-                                        Padding="10,3" />
-                                <Button Content="Add to Graph" 
+                                <Button Content="Add Selected to Graph" 
                                         Command="{Binding AddSelectedToGraphCommand}"
+                                        CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
                                         Background="LightBlue"
                                         FontWeight="Bold"
-                                        Padding="15,3" />
+                                        Padding="15,5" />
                             </StackPanel>
                         </Grid>
                     </TabItem>

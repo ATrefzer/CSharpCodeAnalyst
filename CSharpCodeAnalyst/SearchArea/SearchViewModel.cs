@@ -38,9 +38,7 @@ public class SearchViewModel : INotifyPropertyChanged
 
         SearchCommand = new DelegateCommand(ExecuteSearch);
         ClearSearchCommand = new DelegateCommand(ClearSearch);
-        SelectAllCommand = new DelegateCommand(SelectAll);
-        SelectNoneCommand = new DelegateCommand(SelectNone);
-        AddSelectedToGraphCommand = new DelegateCommand(AddSelectedToGraph);
+        AddSelectedToGraphCommand = new DelegateCommand<object>(AddSelectedToGraph);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -78,8 +76,6 @@ public class SearchViewModel : INotifyPropertyChanged
 
     public ICommand SearchCommand { get; }
     public ICommand ClearSearchCommand { get; }
-    public ICommand SelectAllCommand { get; }
-    public ICommand SelectNoneCommand { get; }
     public ICommand AddSelectedToGraphCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -152,36 +148,20 @@ public class SearchViewModel : INotifyPropertyChanged
         ExecuteSearchInternal(); // Immediately show all items
     }
 
-    private void SelectAll()
+    private void AddSelectedToGraph(object? selectedItems)
     {
-        foreach (var item in FilteredItems)
+        if (selectedItems is System.Collections.IList list)
         {
-            item.IsSelected = true;
-        }
-    }
+            var codeElements = list.Cast<SearchItemViewModel>()
+                .Where(item => item.CodeElement != null)
+                .Select(item => item.CodeElement!)
+                .ToList();
 
-    private void SelectNone()
-    {
-        foreach (var item in FilteredItems)
-        {
-            item.IsSelected = false;
-        }
-    }
-
-    private void AddSelectedToGraph()
-    {
-        var selectedItems = FilteredItems.Where(item => item.IsSelected).ToList();
-        
-        foreach (var item in selectedItems)
-        {
-            if (item.CodeElement != null)
+            if (codeElements.Count > 0)
             {
-                _messaging.Publish(new AddNodeToGraphRequest(item.CodeElement));
+                _messaging.Publish(new AddNodeToGraphRequest(codeElements));
             }
         }
-
-        // Optionally clear selection after adding to graph
-        SelectNone();
     }
 
     protected virtual void OnPropertyChanged(string propertyName)
