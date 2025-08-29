@@ -14,10 +14,9 @@
         d:DataContext="{d:DesignInstance analyst:MainViewModel}">
     <Window.Resources>
         <ResourceDictionary>
-
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
@@ -34,14 +33,13 @@
         <Ribbon>
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu>
-                   
-                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}" 
+
+                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}"
                                                Command="{Binding OpenSettingsDialogCommand}"
                                                ToolTip="Open application settings dialog"
-                                               ImageSource="/Resources/slider.png"/>
+                                               ImageSource="/Resources/slider.png" />
 
                     <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" />
-
 
 
                 </RibbonApplicationMenu>
@@ -157,7 +155,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
                             <ColumnDefinition Width="Auto" /> <!-- Label -->
                             <ColumnDefinition Width="Auto" /> <!-- Drop Down -->
@@ -243,7 +241,7 @@
             <Grid.ColumnDefinitions>
 
 
-                <ColumnDefinition x:Name="LeftColumn" Width="Auto" />
+                <ColumnDefinition x:Name="SplitterColumn" Width="Auto" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -273,84 +271,153 @@
                     </Style>
                 </Expander.Style>
 
-                <Grid
-                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
-                               DataContext="{Binding TreeViewModel}">
-                        <Button Command="{Binding CollapseTreeCommand}"
-                                ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}" DockPanel.Dock="Right"
-                                Width="22" Height="22">
-                            <Image Source="Resources/Collapse_16.png" />
-                        </Button>
+                <TabControl
+                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0">
 
-                        <!-- middle element has margin -->
-                        <Button Command="{Binding ClearSearchCommand}"
-                                ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" DockPanel.Dock="Right"
-                                Width="22" Height="22" Margin="2 0 2 0">
-                            <Image Source="Resources/clear_32.png" />
-                        </Button>
-                        <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
-                            <TextBox.InputBindings>
-                                <!-- Send to main view model to show a progress -->
-                                <KeyBinding Key="Enter"
-                                            Command="{Binding DataContext.SearchCommand, ElementName=RootWindow}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                    <!-- Tree View Tab -->
+                    <TabItem Header="Tree View">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch"
+                                       DataContext="{Binding TreeViewModel}">
+                                <Button Command="{Binding CollapseTreeCommand}"
+                                        ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}"
+                                        DockPanel.Dock="Right"
+                                        Width="22" Height="22">
+                                    <Image Source="Resources/Collapse_16.png" />
+                                </Button>
 
-                    </DockPanel>
-                    <TreeView Grid.Row="1"
-                              x:Name="CodeTree"
-                              DataContext="{Binding TreeViewModel}"
-                              ContextMenuOpening="TreeView_ContextMenuOpening"
-                              ItemsSource="{Binding TreeItems}"
-                              Margin="5">
+                                <!-- middle element has margin -->
+                                <Button Command="{Binding ClearSearchCommand}"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                                        DockPanel.Dock="Right"
+                                        Width="22" Height="22" Margin="2 0 2 0">
+                                    <Image Source="Resources/clear_32.png" />
+                                </Button>
+                                <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
+                                    <TextBox.InputBindings>
+                                        <!-- Send to main view model to show a progress -->
+                                        <KeyBinding Key="Enter"
+                                                    Command="{Binding DataContext.SearchCommand, ElementName=RootWindow}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
 
-                        <TreeView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
-                                          Command="{Binding AddNodeToGraphCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                            </DockPanel>
+                            <TreeView Grid.Row="1"
+                                      x:Name="CodeTree"
+                                      DataContext="{Binding TreeViewModel}"
+                                      ContextMenuOpening="TreeView_ContextMenuOpening"
+                                      ItemsSource="{Binding TreeItems}"
+                                      Margin="5">
 
-                                <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
-                                          Command="{Binding DeleteFromModelCommand}"
-                                          CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                            </ContextMenu>
-                        </TreeView.ContextMenu>
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
-                                    <TextBlock Text="{Binding Name}" />
-                                </StackPanel>
-                            </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
+                                <TreeView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
+                                                  Command="{Binding AddNodeToGraphCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                        <TreeView.ItemContainerStyle>
-                            <Style TargetType="{x:Type TreeViewItem}">
-                                <EventSetter Event="MouseRightButtonDown" Handler="TreeViewItem_MouseRightButtonDown" />
+                                        <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
+                                                  Command="{Binding DeleteFromModelCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    </ContextMenu>
+                                </TreeView.ContextMenu>
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
+                                            <TextBlock Text="{Binding Name}" />
+                                        </StackPanel>
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
 
-                                <!-- If this slows down the tree loading remove it,
-                                remove also the context menu item "Find in tree" -->
-                                <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
-                                <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="{x:Type TreeViewItem}">
+                                        <EventSetter Event="MouseRightButtonDown"
+                                                     Handler="TreeViewItem_MouseRightButtonDown" />
 
-                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                <Setter Property="Visibility"
-                                        Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
-                                        <Setter Property="Background" Value="LightYellow" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TreeView.ItemContainerStyle>
-                    </TreeView>
-                </Grid>
+                                        <!-- If this slows down the tree loading remove it,
+                                        remove also the context menu item "Find in tree" -->
+                                        <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
+                                        <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
+
+                                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                                        <Setter Property="Visibility"
+                                                Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                <Setter Property="Background" Value="LightYellow" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                            </TreeView>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Search Tab -->
+                    <TabItem Header="Advanced Search">
+                        <Grid DataContext="{Binding SearchViewModel}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Search Box Area -->
+                            <DockPanel Grid.Row="0" Margin="5" Background="LightYellow">
+                                <Button Command="{Binding ClearSearchCommand}"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                                        DockPanel.Dock="Right"
+                                        Width="22" Height="22" Margin="2,0,0,0">
+                                    <Image Source="Resources/clear_32.png" />
+                                </Button>
+                                <TextBox DockPanel.Dock="Left" Height="22"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0"
+                                         Background="LightYellow"
+                                         FontSize="12"
+                                         ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
+                            </DockPanel>
+
+                            <!-- Results List -->
+                            <DataGrid Grid.Row="1"
+                                      x:Name="SearchDataGrid"
+                                      Style="{StaticResource ReadOnlyGrid}"
+                                      ItemsSource="{Binding FilteredItems}"
+                                      AutoGenerateColumns="False"
+                                      GridLinesVisibility="Horizontal"
+                                      SelectionMode="Extended"
+                                      Margin="5,0,5,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
+                                                        Binding="{Binding Name}"
+                                                        Width="Auto" />
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.Type_Label}"
+                                                        Binding="{Binding Type}"
+                                                        Width="Auto" />
+                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
+                                                        Binding="{Binding FullPath}"
+                                                        Width="Auto" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <!-- Button Area -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+                                <Button Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
+                                        Command="{Binding AddSelectedToGraphCommand}"
+                                        CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
+                                        FontWeight="Bold"
+                                        Padding="15,5" />
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                </TabControl>
             </Expander>
 
             <!-- If the expander is collapse we don't show the splitter-->
@@ -383,14 +450,10 @@
                     <Grid DataContext="{Binding CycleSummaryViewModel}">
 
                         <DataGrid
-                            Style="{StaticResource ScrollableDataGridStyleKey}"
+                            Style="{StaticResource ReadOnlyGrid}"
                             ItemsSource="{Binding CycleGroupViewModels}"
                             Tag="{Binding DataContext, ElementName=RootWindow}"
-
-                            AutoGenerateColumns="False"
-                            IsReadOnly="True"
-                            HeadersVisibility="Column">
-
+                            AutoGenerateColumns="False">
 
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridRow">
@@ -418,7 +481,7 @@
                                 <DataGridTextColumn Header="{x:Static resources:Strings.ElementCount_Header}"
                                                     Binding="{Binding ElementCount}"
                                                     Width="Auto" />
-                                <DataGridTemplateColumn Header="Code Elements" Width="*">
+                                <DataGridTemplateColumn Header="Code Elements" Width="Auto">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <DockPanel LastChildFill="True">

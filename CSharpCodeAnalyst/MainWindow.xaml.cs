@@ -14,9 +14,31 @@ public partial class MainWindow
 {
     private readonly Dictionary<string, TreeViewItem> _codeElementIdToTreeViewItem = new();
 
+
     public MainWindow()
     {
         InitializeComponent();
+        Loaded += MainWindow_Loaded;
+        LeftExpander.Expanded += LeftExpander_Expanded;
+    }
+
+    private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        // Set a fixed width for the left column on first load to prevent jumping
+        EnsureLeftColumnWidth();
+    }
+
+    private void EnsureLeftColumnWidth()
+    {
+        // Use Dispatcher to ensure this runs after all layout updates
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            // Always ensure we have a fixed width to prevent jumping
+            if (SplitterColumn.Width.IsAuto || SplitterColumn.Width.Value < Constants.TreeMinWidthExpanded)
+            {
+                SplitterColumn.Width = new GridLength(Constants.TreeMinWidthExpanded);
+            }
+        }), DispatcherPriority.Loaded);
     }
 
     public void SetViewer(IGraphBinding explorationGraphViewer
@@ -58,17 +80,22 @@ public partial class MainWindow
 
     private void LeftExpander_Collapsed(object sender, RoutedEventArgs e)
     {
-        // Once we move the splitter around the width is no longer auto
-        LeftColumn.Width = GridLength.Auto;
+        // When collapsed, set to auto but ensure it gets fixed when expanded again
+        SplitterColumn.Width = GridLength.Auto;
+    }
+
+    private void LeftExpander_Expanded(object sender, RoutedEventArgs e)
+    {
+        // When expanded, ensure we have a proper fixed width to prevent jumping
+        EnsureLeftColumnWidth();
     }
 
     private void GridSplitter_DragDelta(object sender, DragDeltaEventArgs e)
     {
         var expander = LeftExpander;
-        var leftColumn = SplitterGrid.ColumnDefinitions[0];
-
+      
         // Calculate the new width
-        var newWidth = leftColumn.ActualWidth + e.HorizontalChange;
+        var newWidth = SplitterColumn.ActualWidth + e.HorizontalChange;
 
         // Set a minimum width (adjust as needed)
         var minWidth = expander.IsExpanded ? Constants.TreeMinWidthExpanded : Constants.TreeMinWidthCollapsed;
@@ -76,11 +103,11 @@ public partial class MainWindow
         if (newWidth < minWidth)
         {
             e.Handled = true;
-            leftColumn.Width = new GridLength(minWidth);
+            SplitterColumn.Width = new GridLength(minWidth);
         }
         else
         {
-            leftColumn.Width = new GridLength(newWidth);
+            SplitterColumn.Width = new GridLength(newWidth);
         }
     }
 
