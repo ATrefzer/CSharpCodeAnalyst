@@ -1179,6 +1179,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos; &apos; for AND, &apos;|&apos; for OR condition. If you want to search for type colum use type:xxx.
+        /// </summary>
+        public static string SearchPattern_Tooltip {
+            get {
+                return ResourceManager.GetString("SearchPattern_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically add containing type.
         /// </summary>
         public static string Settings_AddContainingType {

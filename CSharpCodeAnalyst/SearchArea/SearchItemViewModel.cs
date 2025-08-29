@@ -7,9 +7,9 @@ namespace CSharpCodeAnalyst.SearchArea;
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public class SearchItemViewModel : INotifyPropertyChanged
 {
-    public string? Name { get; set; }
-    public string? Type { get; set; }
-    public string? FullPath { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string FullPath { get; set; } = string.Empty;
     public CodeElement? CodeElement { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;

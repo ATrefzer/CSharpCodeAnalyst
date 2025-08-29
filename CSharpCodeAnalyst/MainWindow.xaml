@@ -379,8 +379,9 @@
                                 <TextBox DockPanel.Dock="Left" Height="22"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                          Margin="0"
+                                         Background="LightYellow"
                                          FontSize="12"
-                                         ToolTip="Enter search terms to filter code elements..." />
+                                         ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
                             </DockPanel>
 
                             <!-- Results List -->

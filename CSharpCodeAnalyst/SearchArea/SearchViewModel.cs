@@ -1,10 +1,10 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst.SearchArea;
@@ -13,8 +13,8 @@ public class SearchViewModel : INotifyPropertyChanged
 {
     private readonly MessageBus _messaging;
     private readonly DispatcherTimer _searchTimer;
-    private CodeGraph? _codeGraph;
     private ObservableCollection<SearchItemViewModel> _allItems;
+    private CodeGraph? _codeGraph;
     private ObservableCollection<SearchItemViewModel> _filteredItems;
     private string _searchText;
 
@@ -95,7 +95,7 @@ public class SearchViewModel : INotifyPropertyChanged
             return;
 
         var items = new List<SearchItemViewModel>();
-        
+
         foreach (var node in _codeGraph.Nodes.Values.OrderBy(n => n.FullName))
         {
             items.Add(new SearchItemViewModel
@@ -125,21 +125,38 @@ public class SearchViewModel : INotifyPropertyChanged
             return;
         }
 
-        var searchTerms = SearchText.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        var filtered = AllItems.Where(item => 
-        {
-            var name = item.Name?.ToLowerInvariant() ?? string.Empty;
-            var type = item.Type?.ToLowerInvariant() ?? string.Empty;
-            var fullPath = item.FullPath?.ToLowerInvariant() ?? string.Empty;
-            
-            // All search terms must match somewhere in the item
-            return searchTerms.All(term => 
-                name.Contains(term) || 
-                type.Contains(term) || 
-                fullPath.Contains(term));
-        }).ToList();
-
+        var root = CreateSearchExpression();
+        var filtered = AllItems.Where(item => root.Evaluate(item)).ToList();
         FilteredItems = new ObservableCollection<SearchItemViewModel>(filtered);
+    }
+
+    private IExpression CreateSearchExpression()
+    {
+        // Or binds less.
+        var orTerms = SearchText
+            .ToLowerInvariant()
+            .Split(['|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var orExpressions = new List<IExpression>();
+        foreach (var orTerm in orTerms)
+        {
+            var andExpressions = orTerm
+                .Split([' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(IExpression (t) => new Term(t))
+                .ToArray();
+
+            orExpressions.Add(new And(andExpressions));
+        }
+
+
+        if (orExpressions.Count == 1)
+        {
+            return orExpressions[0];
+        }
+
+        var root = new Or(orExpressions.ToArray());
+        return root;
     }
 
     private void ClearSearch()
@@ -150,7 +167,7 @@ public class SearchViewModel : INotifyPropertyChanged
 
     private void AddSelectedToGraph(object? selectedItems)
     {
-        if (selectedItems is System.Collections.IList list)
+        if (selectedItems is IList list)
         {
             var codeElements = list.Cast<SearchItemViewModel>()
                 .Where(item => item.CodeElement != null)

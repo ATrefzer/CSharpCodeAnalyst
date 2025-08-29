@@ -563,4 +563,7 @@
   <data name="FullPath_Label" xml:space="preserve">
     <value>Full Path</value>
   </data>
+  <data name="SearchPattern_Tooltip" xml:space="preserve">
+    <value>Use ' ' for AND, '|' for OR condition. If you want to search for type colum use type:xxx</value>
+  </data>  
 </root>
