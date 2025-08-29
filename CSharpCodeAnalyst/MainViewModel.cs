@@ -29,6 +29,7 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
+using Microsoft.Build.ObjectModelRemoting;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -67,6 +68,8 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private TreeViewModel? _treeViewModel;
     private SearchViewModel? _searchViewModel;
+
+    public event EventHandler ProjectLoaded;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
@@ -626,6 +629,8 @@ internal class MainViewModel : INotifyPropertyChanged
         outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
         outputs.Add(new MetricOutput("# Relationships", numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
         Metrics = outputs;
+
+        ProjectLoaded?.Invoke(this, EventArgs.Empty);
     }
 
     private async void LoadSolution()
