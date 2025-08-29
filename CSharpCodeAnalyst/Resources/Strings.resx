@@ -551,4 +551,19 @@
   <data name="Settings_Save_Error" xml:space="preserve">
     <value>Error saving settings:</value>
   </data>
+  <data name="AddSelectedToGraph_Label" xml:space="preserve">
+    <value>Add selected to graph</value>
+  </data>
+  <data name="Name_Label" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Type_Label" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FullPath_Label" xml:space="preserve">
+    <value>Full Path</value>
+  </data>
+  <data name="SearchPattern_Tooltip" xml:space="preserve">
+    <value>Use ' ' for AND, '|' for OR condition. If you want to search for type colum use type:xxx</value>
+  </data>  
 </root>

@@ -6,9 +6,13 @@ public class AddNodeToGraphRequest
 {
     public AddNodeToGraphRequest(CodeElement node)
     {
-        Node = node;
+        Nodes = [node];
     }
 
+    public AddNodeToGraphRequest(IEnumerable<CodeElement> nodes)
+    {
+        Nodes = nodes.ToList();
+    }
 
-    public CodeElement Node { get; }
+    public IReadOnlyList<CodeElement> Nodes { get; }
 }

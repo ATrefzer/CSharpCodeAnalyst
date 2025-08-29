@@ -7,6 +7,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
+
 namespace CSharpCodeAnalyst.TreeArea;
 
 public class TreeViewModel : INotifyPropertyChanged
