@@ -93,7 +93,7 @@ public partial class MainWindow
     private void GridSplitter_DragDelta(object sender, DragDeltaEventArgs e)
     {
         var expander = LeftExpander;
-      
+
         // Calculate the new width
         var newWidth = SplitterColumn.ActualWidth + e.HorizontalChange;
 
@@ -177,6 +177,17 @@ public partial class MainWindow
         if (DataContext is MainViewModel mainVm)
         {
             e.Cancel = !mainVm.OnClosing();
+        }
+    }
+
+    private void DropdownButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.ContextMenu != null && button.ContextMenu.Items[0] is MenuItem item)
+        {
+            button.ContextMenu.PlacementTarget = button;
+            item.Tag = SearchDataGrid;
+            button.ContextMenu.Placement = PlacementMode.Bottom;
+            button.ContextMenu.IsOpen = true;
         }
     }
 }

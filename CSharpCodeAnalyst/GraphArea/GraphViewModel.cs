@@ -402,7 +402,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, result.Relationships);
     }
 
-    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships)
+    private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships,
+        bool addCollapsed = false)
     {
         PushUndo();
         
@@ -418,7 +419,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             relationshipsToAdd.AddRange(result.Relationships);
         }
         
-        _viewer.AddToGraph(elementsToAdd, relationshipsToAdd);
+        _viewer.AddToGraph(elementsToAdd, relationshipsToAdd, addCollapsed);
     }
 
     public void LoadCodeGraph(CodeGraph codeGraph)
@@ -434,7 +435,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     internal void HandleAddNodeToGraphRequest(AddNodeToGraphRequest request)
     {
-        AddToGraph(request.Nodes.ToList(), []);
+        AddToGraph(request.Nodes.ToList(), [], request.AddCollapsed);
     }
 
     internal void Clear()
