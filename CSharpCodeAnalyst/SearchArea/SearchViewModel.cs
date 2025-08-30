@@ -39,6 +39,7 @@ public class SearchViewModel : INotifyPropertyChanged
         SearchCommand = new DelegateCommand(ExecuteSearch);
         ClearSearchCommand = new DelegateCommand(ClearSearch);
         AddSelectedToGraphCommand = new DelegateCommand<object>(AddSelectedToGraph);
+        AddSelectedToGraphCollapsedCommand = new DelegateCommand<object>(AddSelectedToGraphCollapsed);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -77,6 +78,7 @@ public class SearchViewModel : INotifyPropertyChanged
     public ICommand SearchCommand { get; }
     public ICommand ClearSearchCommand { get; }
     public ICommand AddSelectedToGraphCommand { get; }
+    public ICommand AddSelectedToGraphCollapsedCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -167,6 +169,16 @@ public class SearchViewModel : INotifyPropertyChanged
 
     private void AddSelectedToGraph(object? selectedItems)
     {
+        AddSelectedToGraphInternal(selectedItems, false);
+    }
+
+    private void AddSelectedToGraphCollapsed(object? selectedItems)
+    {
+        AddSelectedToGraphInternal(selectedItems, true);
+    }
+
+    private void AddSelectedToGraphInternal(object? selectedItems, bool addCollapsed)
+    {
         if (selectedItems is IList list)
         {
             var codeElements = list.Cast<SearchItemViewModel>()
@@ -176,7 +188,7 @@ public class SearchViewModel : INotifyPropertyChanged
 
             if (codeElements.Count > 0)
             {
-                _messaging.Publish(new AddNodeToGraphRequest(codeElements));
+                _messaging.Publish(new AddNodeToGraphRequest(codeElements, addCollapsed));
             }
         }
     }

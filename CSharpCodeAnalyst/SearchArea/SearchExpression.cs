@@ -32,7 +32,7 @@ internal class Term : IExpression
             return item.Type.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        return item.Name.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase);
+        return item.FullPath.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase);
     }
 }
 
