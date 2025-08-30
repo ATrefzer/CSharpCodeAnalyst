@@ -47,9 +47,16 @@
             <RibbonTab Header="Home">
                 <RibbonGroup Header="{x:Static resources:Strings.File_Header}"
                              LargeImageSource="/Resources/save_project.png">
-                    <RibbonButton Label="{x:Static resources:Strings.ImportSolution_Label}"
-                                  LargeImageSource="/Resources/import_solution.png"
-                                  Command="{Binding LoadSolutionCommand}" />
+                    <RibbonSplitButton Label="Import"
+                                       LargeImageSource="/Resources/import_solution.png"
+                                       Command="{Binding LoadSolutionCommand}">
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportSolution_Label}"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding LoadSolutionCommand}" />
+                        <RibbonMenuItem Header="Import from jdeps"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding ImportJdepsCommand}" />
+                    </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
@@ -408,11 +415,41 @@
 
                             <!-- Button Area -->
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Button Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                        Command="{Binding AddSelectedToGraphCommand}"
-                                        CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
-                                        FontWeight="Bold"
-                                        Padding="15,5" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Main Button -->
+                                    <Button Grid.Column="0"
+                                            Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
+                                            Command="{Binding AddSelectedToGraphCommand}"
+                                            CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
+                                            FontWeight="Bold"
+                                            Padding="15,5" />
+
+                                    <!-- Dropdown Button -->
+                                    <Button Grid.Column="1"
+                                            Content="▼"
+                                            FontSize="8"
+                                            Width="20"
+                                            Padding="0"
+                                            x:Name="DropdownButton">
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Add collapsed"
+                                                          Command="{Binding AddSelectedToGraphCollapsedCommand}"
+                                                          CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <EventSetter Event="Click" Handler="DropdownButton_Click" />
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </Grid>
                     </TabItem>

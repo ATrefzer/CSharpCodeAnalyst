@@ -29,6 +29,7 @@ using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
+using CSharpCodeAnalyst.Import;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -83,6 +84,7 @@ internal class MainViewModel : INotifyPropertyChanged
         _gallery = new Gallery.Gallery();
         SearchCommand = new DelegateCommand(Search);
         LoadSolutionCommand = new DelegateCommand(LoadSolution);
+        ImportJdepsCommand = new DelegateCommand(ImportJdeps);
         LoadProjectCommand = new DelegateCommand(LoadProject);
         SaveProjectCommand = new DelegateCommand(SaveProject);
         GraphClearCommand = new DelegateCommand(GraphClear);
@@ -197,6 +199,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public ICommand LoadProjectCommand { get; }
     public ICommand LoadSolutionCommand { get; }
+    public ICommand ImportJdepsCommand { get; }
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
@@ -628,6 +631,46 @@ internal class MainViewModel : INotifyPropertyChanged
 
         var solutionPath = openFileDialog.FileName;
         await LoadAndAnalyzeSolution(solutionPath);
+    }
+
+    private void ImportJdeps()
+    {
+        var openFileDialog = new OpenFileDialog
+        {
+            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
+            Title = "Select jdeps output file"
+        };
+
+        if (openFileDialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            IsLoading = true;
+            LoadMessage = "Importing jdeps data...";
+
+            var importer = new JdepsImporter();
+            var codeGraph = importer.ImportFromFile(openFileDialog.FileName);
+
+            LoadCodeGraph(codeGraph);
+
+            // Imported a new jdeps file
+            _isSaved = false;
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsCanvasHintsVisible = false;
+            IsLoading = false;
+            LoadMessage = string.Empty;
+        }
     }
 
     private void OnProgress(object? sender, ParserProgressArg e)

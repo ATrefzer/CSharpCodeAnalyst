@@ -82,14 +82,24 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     ///     Note from the originalCodeElement we don't add parent or children.
     ///     We just use this information to integrate the node into the existing canvas.
     /// </summary>
-    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships)
+    public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships, bool addCollapsed)
     {
         if (!IsBoundToPanel())
         {
             return;
         }
 
-        AddToGraphInternal(originalCodeElements, newRelationships);
+        var original = originalCodeElements.ToList();
+        AddToGraphInternal(original, newRelationships);
+
+        if (addCollapsed)
+        {
+            foreach (var codeElement in original.Where(c => c.ElementType == CodeElementType.Assembly || c.ElementType == CodeElementType.Namespace))
+            {
+                _presentationState.SetCollapsedState(codeElement.Id, true);
+            }
+        }
+
         RefreshGraph();
     }
 
