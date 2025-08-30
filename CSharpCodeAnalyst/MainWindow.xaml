@@ -47,13 +47,16 @@
             <RibbonTab Header="Home">
                 <RibbonGroup Header="{x:Static resources:Strings.File_Header}"
                              LargeImageSource="/Resources/save_project.png">
-                    <RibbonButton Label="{x:Static resources:Strings.ImportSolution_Label}"
-                                  LargeImageSource="/Resources/import_solution.png"
-                                  Command="{Binding LoadSolutionCommand}" />
-
-                    <RibbonButton Label="Import from jdeps"
-                                  LargeImageSource="/Resources/import_solution.png"
-                                  Command="{Binding ImportJdepsCommand}" />
+                    <RibbonSplitButton Label="Import"
+                                       LargeImageSource="/Resources/import_solution.png"
+                                       Command="{Binding LoadSolutionCommand}">
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportSolution_Label}"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding LoadSolutionCommand}" />
+                        <RibbonMenuItem Header="Import from jdeps"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding ImportJdepsCommand}" />
+                    </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
