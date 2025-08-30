@@ -26,10 +26,9 @@ public class JdepsImporter
         }
 
 
-        // Create and return the CodeGraph
         var graph = new CodeGraph
         {
-            Nodes = _codeElements.ToDictionary(c => c.Value.Id, c => c.Value)
+            Nodes = _codeElements.ToDictionary(kvp => kvp.Value.Id, c => c.Value)
         };
 
         return graph;
@@ -38,48 +37,60 @@ public class JdepsImporter
     private void ParseLine(string line)
     {
         line = line.Trim();
-        if (string.IsNullOrWhiteSpace(line) || line.Contains("not found") || line.StartsWith("classes"))
+        if (!CanParseLine(line))
         {
             return;
         }
 
-        // Parse format: "from.class.Name -> to.class.Name module"
-        // The arrow (->) separates source from target
-        var parts = line.Split([" -> ", " ", "\t"],
-            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 2)
-        {
-            return;
-        }
-
-        var fromPart = parts[0];
-        var toPart = parts[1];
-        // Skip the rest.
+        var (fromClass, toClass) = ParseDependency(line);
 
         // Create code elements for both from and to
-        var from = CreateCodeElementHierarchy(fromPart);
-        var to = CreateCodeElementHierarchy(toPart);
+        var from = GetOrCreateCodeElementHierarchy(fromClass);
+        var to = GetOrCreateCodeElementHierarchy(toClass);
 
         // Add dependency
         var relationship = new Relationship(from.Id, to.Id, RelationshipType.Uses);
         from.Relationships.Add(relationship);
     }
 
-    private CodeElement CreateCodeElementHierarchy(string fullClassName)
+    private static (string fromClass, string toClass) ParseDependency(string line)
+    {
+        // Parse format: "from.class.Name -> to.class.Name module"
+        // The arrow (->) separates source from target
+        var parts = line.Split([" -> ", " ", "\t"],
+            StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2)
+        {
+            return (null, null)!;
+        }
+
+        var fromPart = parts[0];
+        var toPart = parts[1];
+        // Skip the rest.
+
+        return (fromPart, toPart);
+    }
+
+    private static bool CanParseLine(string line)
+    {
+        return !string.IsNullOrWhiteSpace(line) && !line.Contains("not found") && !line.StartsWith("classes");
+    }
+
+    private CodeElement GetOrCreateCodeElementHierarchy(string fullClassName)
     {
         if (string.IsNullOrWhiteSpace(fullClassName))
         {
-            throw new InvalidOperationException();
+            throw new ArgumentException(nameof(fullClassName));
         }
 
-        if (_codeElements.TryGetValue(fullClassName, out var result))
+        if (_codeElements.TryGetValue(fullClassName, out var existingElement))
         {
-            return result;
+            return existingElement;
         }
 
         var parts = fullClassName.Split('.');
         var currentPath = "";
-
+        CodeElement? leafElement = null;
         for (var i = 0; i < parts.Length; i++)
         {
             var part = parts[i];
@@ -88,31 +99,29 @@ public class JdepsImporter
 
             if (!_codeElements.ContainsKey(currentPath))
             {
-                CodeElementType elementType;
-                if (i == parts.Length - 1)
-                {
-                    // Last part is always a class
-                    elementType = CodeElementType.Class;
-                }
-                else
-                {
-                    // Everything else is treated as a namespace/package
-                    elementType = CodeElementType.Namespace;
-                }
+                var elementType = GetCodeElementType(i, parts);
 
                 var parent = string.IsNullOrEmpty(previousPath) ? null : _codeElements[previousPath];
                 var codeElement = new CodeElement($"jdeps_{_nextId++}", elementType, part, currentPath, parent);
                 parent?.Children.Add(codeElement);
                 _codeElements[currentPath] = codeElement;
-                result = codeElement;
+                leafElement = codeElement;
             }
         }
 
-        if (result is null || result.ElementType != CodeElementType.Class)
+        if (leafElement is null || leafElement.ElementType != CodeElementType.Class)
         {
             throw new InvalidOperationException("Parser error");
         }
 
-        return result;
+        return leafElement;
+    }
+
+    private static CodeElementType GetCodeElementType(int i, string[] parts)
+    {
+        // Last part is always a class
+        // Everything else is treated as a namespace/package
+        var elementType = i == parts.Length - 1 ? CodeElementType.Class : CodeElementType.Namespace;
+        return elementType;
     }
 }

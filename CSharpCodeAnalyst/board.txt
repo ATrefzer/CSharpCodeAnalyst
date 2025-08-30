@@ -1,10 +1,8 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Settings Diaog
-	- Automatically add containing type for methods when calling find (setting)
-- Search Window with query capabilities
-
+- Flagging code elements 
+- Jump to tree when find in tree is called.
 
 - Configure editor to open text files.
 - Performance in general
