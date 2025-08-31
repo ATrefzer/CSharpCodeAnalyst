@@ -595,74 +595,154 @@
                     Visibility="{Binding IsInfoPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Margin="0 25 3 10" Padding="5" Opacity="0.8">
 
-                <ScrollViewer>
-                    <!-- List of quick infos, mostly one -->
-                    <ItemsControl ItemsSource="{Binding QuickInfo}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
+                <!-- List of quick infos, mostly one -->
+                <ListView ItemsSource="{Binding QuickInfo}"
+                          VirtualizingPanel.IsVirtualizing="True"
+                          VirtualizingPanel.VirtualizationMode="Recycling"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          BorderThickness="0"
+                          Background="Transparent">
+                    <ListView.Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListView">
+                                        <ScrollViewer>
+                                            <ItemsPresenter />
+                                        </ScrollViewer>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.Style>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListViewItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0 0 0 10">
+                                <TextBlock Text="{Binding Title}" FontWeight="Bold" />
 
-                                <StackPanel Margin="0 0 0 10">
-                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                                <!-- Inner list for the describing lines -->
+                                <ListView ItemsSource="{Binding Lines}"
+                                          VirtualizingPanel.IsVirtualizing="True"
+                                          VirtualizingPanel.VirtualizationMode="Recycling"
+                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                          BorderThickness="0"
+                                          Background="Transparent">
+                                    <ListView.Style>
+                                        <Style TargetType="ListView">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListView">
+                                                        <Grid IsSharedSizeScope="True">
+                                                            <ItemsPresenter />
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListView.Style>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListViewItem">
+                                                        <ContentPresenter />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel />
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold"
+                                                           Margin="0,0,5,0" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                           TextWrapping="Wrap" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
 
-                                    <!-- Inner list for the describing lines -->
-                                    <ItemsControl ItemsSource="{Binding Lines}">
-                                        <ItemsControl.ItemsPanel>
+                                <!-- Another list for the source code -->
+                                <StackPanel Orientation="Vertical"
+                                            Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
+                                    <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
+                                    <ListView ItemsSource="{Binding SourceLocations}"
+                                              VirtualizingPanel.IsVirtualizing="True"
+                                              VirtualizingPanel.VirtualizationMode="Recycling"
+                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                              BorderThickness="0"
+                                              Background="Transparent">
+                                        <ListView.Style>
+                                            <Style TargetType="ListView">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListView">
+                                                            <ItemsPresenter />
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListView.Style>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListViewItem">
+                                                            <ContentPresenter />
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                        <ListView.ItemsPanel>
                                             <ItemsPanelTemplate>
-                                                <StackPanel />
+                                                <VirtualizingStackPanel />
                                             </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-
-                                        <ItemsControl.Template>
-                                            <ControlTemplate>
-                                                <Grid IsSharedSizeScope="True">
-                                                    <ItemsPresenter />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </ItemsControl.Template>
-
-                                        <ItemsControl.ItemTemplate>
+                                        </ListView.ItemsPanel>
+                                        <ListView.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
-                                                        <ColumnDefinition />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold"
-                                                               Margin="0,0,5,0" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding Value}"
-                                                               TextWrapping="Wrap" />
-                                                </Grid>
+                                                <Border Background="Transparent">
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick"
+                                                                      Command="{Binding DataContext.OpenSourceLocationCommand, ElementName=RootWindow}"
+                                                                      CommandParameter="{Binding}" />
+                                                    </Border.InputBindings>
+                                                    <TextBlock
+                                                        Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap"
+                                                        Foreground="Blue" />
+                                                </Border>
                                             </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-
-                                    </ItemsControl>
-
-                                    <!-- Another list for the source code -->
-                                    <StackPanel Orientation="Vertical"
-                                                Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
-                                        <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
-                                        <ItemsControl ItemsSource="{Binding SourceLocations}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="Transparent">
-                                                        <Border.InputBindings>
-                                                            <MouseBinding MouseAction="LeftClick"
-                                                                          Command="{Binding DataContext.OpenSourceLocationCommand, ElementName=RootWindow}"
-                                                                          CommandParameter="{Binding}" />
-                                                        </Border.InputBindings>
-                                                        <TextBlock
-                                                            Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap"
-                                                            Foreground="Blue" />
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
                                 </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
             </Border>
         </Grid>

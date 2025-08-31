@@ -445,7 +445,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public void HandleUpdateQuickInfo(QuickInfoUpdate quickInfoUpdate)
     {
         // May come from any view
-        if (_applicationSettings.DefaultShowQuickHelp is false)
+        if (IsInfoPanelVisible is false)
         {
             // This can be very slow if updated even the help is not visible.
             return;
