@@ -1,8 +1,14 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Input;
+using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Resources;
+using Prism.Commands;
 
 namespace CSharpCodeAnalyst.InfoPanel;
 
@@ -16,7 +22,10 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     public InfoPanelViewModel(ApplicationSettings settings)
     {
         _isInfoPanelVisible = settings.DefaultShowQuickHelp;
+        OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
     }
+
+    public ICommand OpenSourceLocationCommand { get; }
 
     public bool IsInfoPanelVisible
     {
@@ -57,6 +66,36 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OpenSourceLocation(SourceLocation? location)
+    {
+        if (location is null)
+        {
+            return;
+        }
+
+        var process = new Process();
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "\"C:\\Program Files\\Notepad++\\notepad++.exe\"",
+            Arguments = $"-n{location.Line} -c{location.Column} \"{location.File}\"",
+            UseShellExecute = false,
+            RedirectStandardOutput = false,
+            CreateNoWindow = true
+        };
+
+        try
+        {
+            process.StartInfo = startInfo;
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
 
     public void HandleUpdateQuickInfo(QuickInfoUpdate quickInfoUpdate)
     {

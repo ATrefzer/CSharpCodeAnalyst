@@ -346,6 +346,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             var node = _msaglViewer?.Graph.FindNode(id);
             if (node is null)
             {
+                // Unexpected.
                 RefreshGraph();
                 break;
             }

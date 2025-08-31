@@ -70,10 +70,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private TreeViewModel? _treeViewModel;
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
     {
         // Initialize settings
-        _applicationSettings = settings ?? new ApplicationSettings();
+        _applicationSettings = settings;
 
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
@@ -99,7 +99,7 @@ internal class MainViewModel : INotifyPropertyChanged
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
-        OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
+   
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
         _loadMessage = string.Empty;
@@ -180,7 +180,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand CopyToExplorerGraphCommand { get; set; }
     public ICommand FindCyclesCommand { get; }
     public ICommand ExportToDsiCommand { get; }
-    public ICommand OpenSourceLocationCommand { get; }
+
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
     public ICommand ShowLegendCommand { get; }
@@ -382,37 +382,6 @@ internal class MainViewModel : INotifyPropertyChanged
         finally
         {
             IsLoading = false;
-        }
-    }
-
-
-    private void OpenSourceLocation(SourceLocation? location)
-    {
-        if (location is null)
-        {
-            return;
-        }
-
-        var process = new Process();
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "\"C:\\Program Files\\Notepad++\\notepad++.exe\"",
-            Arguments = $"-n{location.Line} -c{location.Column} \"{location.File}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = false,
-            CreateNoWindow = true
-        };
-
-        try
-        {
-            process.StartInfo = startInfo;
-            process.Start();
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
         }
     }
 
