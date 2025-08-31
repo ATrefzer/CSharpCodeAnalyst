@@ -14,13 +14,13 @@ internal class MsaglBuilder
     {
         if (showFlatGraph)
         {
-            return CreateFlatGraph(codeGraph, showInformationFlow);
+            return CreateFlatGraph(codeGraph, presentationState, showInformationFlow);
         }
 
         return CreateHierarchicalGraph(codeGraph, presentationState, showInformationFlow);
     }
 
-    private Graph CreateFlatGraph(CodeGraph codeGraph, bool showInformationFlow)
+    private Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
@@ -29,7 +29,7 @@ internal class MsaglBuilder
         // Add nodes
         foreach (var codeElement in codeGraph.Nodes.Values)
         {
-            CreateNode(graph, codeElement);
+            CreateNode(graph, codeElement, presentationState);
         }
 
         // Add edges and hierarchy
@@ -59,7 +59,7 @@ internal class MsaglBuilder
         var graph = new Graph("graph");
         var subGraphs = CreateSubGraphs(codeGraph, visibleGraph);
 
-        AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs);
+        AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs, presentationState);
         AddEdgesToHierarchicalGraph(graph, codeGraph, visibleGraph, showInformationFlow);
 
         return graph;
@@ -96,7 +96,7 @@ internal class MsaglBuilder
 
 
     private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
-        Dictionary<string, Subgraph> subGraphs)
+        Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         // Add nodes and sub graphs. Each node that has children becomes a subgraph.
         foreach (var visibleNode in visibleGraph.Nodes.Values)
@@ -112,7 +112,7 @@ internal class MsaglBuilder
 
                 // We need to assign the node without visibility restrictions.
                 // The collapse/expand context menu handler needs the children.
-                AddNodeToParent(graph, codeGraph.Nodes[visibleNode.Id], subGraphs);
+                AddNodeToParent(graph, codeGraph.Nodes[visibleNode.Id], subGraphs, presentationState);
             }
         }
     }
@@ -130,9 +130,9 @@ internal class MsaglBuilder
         }
     }
 
-    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs)
+    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
-        var newNode = CreateNode(graph, node);
+        var newNode = CreateNode(graph, node, presentationState);
         if (node.Parent != null)
         {
             subGraphs[node.Parent.Id].AddNode(newNode);
@@ -316,12 +316,19 @@ internal class MsaglBuilder
         edge.UserData = relationship;
     }
 
-    private static Node CreateNode(Graph graph, CodeElement codeElement)
+    private static Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
     {
         var node = graph.AddNode(codeElement.Id);
         node.Attr.FillColor = GetColor(codeElement);
         node.LabelText = codeElement.Name;
         node.UserData = codeElement;
+
+        // Apply flagged styling if the element is flagged
+        if (presentationState.IsFlagged(codeElement.Id))
+        {
+            node.Attr.LineWidth = 3;
+            node.Attr.Color = Color.Red;
+        }
 
         return node;
     }

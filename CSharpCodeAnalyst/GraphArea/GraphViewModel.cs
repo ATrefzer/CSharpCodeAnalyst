@@ -69,17 +69,19 @@ internal class GraphViewModel : INotifyPropertyChanged
             DeleteSelectedWithChildren, CanHandleIfSelectedElements));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedAddParent, AddParents,
             CanHandleIfSelectedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.ClearAllFlags, ClearAllFlags));
 
 
         // Static commands
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse));
-
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
         _viewer.AddContextMenuCommand(new SeparatorCommand());
+       
 
         // Methods and properties
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
@@ -321,6 +323,16 @@ internal class GraphViewModel : INotifyPropertyChanged
         var ids = codeElements.Select(c => c.Id).ToList();
         var result = _explorer.FindParents(ids);
         AddToGraph(result.Elements, []);
+    }
+
+    private void ToggleFlag(CodeElement codeElement)
+    {
+        _viewer.ToggleFlag(codeElement.Id);
+    }
+
+    private void ClearAllFlags(List<CodeElement> selectedElements)
+    {
+        _viewer.ClearAllFlags();
     }
 
     private void FindInTreeRequest(CodeElement codeElement)

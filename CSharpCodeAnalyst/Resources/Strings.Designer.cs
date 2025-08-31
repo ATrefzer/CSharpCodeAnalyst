@@ -232,6 +232,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toggle Flag.
+        /// </summary>
+        public static string ToggleFlag {
+            get {
+                return ResourceManager.GetString("ToggleFlag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear All Flags.
+        /// </summary>
+        public static string ClearAllFlags {
+            get {
+                return ResourceManager.GetString("ClearAllFlags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy to explorer graph.
         /// </summary>
         public static string CopyToExplorerGraph_MenuItem {

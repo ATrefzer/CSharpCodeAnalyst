@@ -4,11 +4,13 @@ public class PresentationState
 {
     private readonly Dictionary<string, bool> _defaultState;
     private readonly Dictionary<string, bool> _nodeIdToCollapsed;
+    private readonly Dictionary<string, bool> _nodeIdToFlagged;
 
     public PresentationState(Dictionary<string, bool> defaultState)
     {
         _defaultState = defaultState.ToDictionary(p => p.Key, propa => propa.Value);
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
+        _nodeIdToFlagged = new Dictionary<string, bool>();
     }
 
     public PresentationState()
@@ -16,6 +18,7 @@ public class PresentationState
         // Nothing is collapsed
         _defaultState = new Dictionary<string, bool>();
         _nodeIdToCollapsed = new Dictionary<string, bool>();
+        _nodeIdToFlagged = new Dictionary<string, bool>();
     }
 
     public PresentationState Clone()
@@ -24,6 +27,10 @@ public class PresentationState
         foreach (var pair in _nodeIdToCollapsed)
         {
             clone.SetCollapsedState(pair.Key, pair.Value);
+        }
+        foreach (var pair in _nodeIdToFlagged)
+        {
+            clone.SetFlaggedState(pair.Key, pair.Value);
         }
 
         return clone;
@@ -41,11 +48,28 @@ public class PresentationState
         _nodeIdToCollapsed[id] = isCollapsed;
     }
 
+    public bool IsFlagged(string id)
+    {
+        _nodeIdToFlagged.TryGetValue(id, out var isFlagged);
+        return isFlagged;
+    }
+
+    public void SetFlaggedState(string id, bool isFlagged)
+    {
+        _nodeIdToFlagged[id] = isFlagged;
+    }
+
+    public void ClearAllFlags()
+    {
+        _nodeIdToFlagged.Clear();
+    }
+
     internal void RemoveStates(HashSet<string> ids)
     {
         foreach (var id in ids)
         {
             _nodeIdToCollapsed.Remove(id);
+            _nodeIdToFlagged.Remove(id);
             _defaultState.Remove(id);
         }
     }

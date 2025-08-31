@@ -273,6 +273,24 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         return _presentationState.IsCollapsed(id);
     }
 
+    public bool IsFlagged(string id)
+    {
+        return _presentationState.IsFlagged(id);
+    }
+
+    public void ToggleFlag(string id)
+    {
+        var currentState = _presentationState.IsFlagged(id);
+        _presentationState.SetFlaggedState(id, !currentState);
+        RefreshGraphWithoutLayout();
+    }
+
+    public void ClearAllFlags()
+    {
+        _presentationState.ClearAllFlags();
+        RefreshGraphWithoutLayout();
+    }
+
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
     {
         if (_msaglViewer is null)
@@ -363,6 +381,12 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             _renderOption.Apply(graph);
             _msaglViewer.Graph = graph;
         }
+    }
+
+    private void RefreshGraphWithoutLayout()
+    {
+        // For flag changes, we need to refresh the graph to update node styling
+        RefreshGraph();
     }
 
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
