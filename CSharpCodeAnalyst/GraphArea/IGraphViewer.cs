@@ -56,7 +56,7 @@ internal interface IGraphViewer
     void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state);
 
     /// <summary>
-    ///     Cycle groups, focus on marked elements
+    ///     Cycle groups, focus on selected elements
     /// </summary>
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 

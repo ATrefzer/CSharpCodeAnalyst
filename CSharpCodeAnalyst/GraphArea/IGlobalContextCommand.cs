@@ -6,6 +6,6 @@ public interface IGlobalContextCommand
 {
     string Label { get; }
 
-    bool CanHandle(List<CodeElement> markedElements);
-    void Invoke(List<CodeElement> markedElements);
+    bool CanHandle(List<CodeElement> selectedElements);
+    void Invoke(List<CodeElement> selectedElements);
 }

@@ -3,7 +3,7 @@ using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
-internal class HighligtShortestNonSelfCircuit : HighlightingBase
+internal class HighlightShortestNonSelfCircuit : HighlightingBase
 {
     private Dictionary<string, IViewerNode> _idToViewerNode = new();
     private Graph? _lastGraph;

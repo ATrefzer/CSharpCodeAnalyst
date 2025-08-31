@@ -63,12 +63,12 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddGlobalContextMenuCommand(
             new GlobalContextCommand(Strings.CompleteRelationships, CompleteRelationships));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.CompleteToTypes, CompleteToTypes));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedFocus, FocusOnMarkedElements,
-            CanHandleIfMarkedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedDelete,
-            DeleteMarkedWithChildren, CanHandleIfMarkedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.MarkedAddParent, AddParents,
-            CanHandleIfMarkedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedFocus, FocusOnSelectedElements,
+            CanHandleIfSelectedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedDelete,
+            DeleteSelectedWithChildren, CanHandleIfSelectedElements));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedAddParent, AddParents,
+            CanHandleIfSelectedElements));
 
 
         // Static commands
@@ -210,12 +210,12 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool CanHandleIfMarkedElements(List<CodeElement> markedElements)
+    private bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
     {
-        return markedElements.Any();
+        return selectedElements.Any();
     }
 
-    private void FocusOnMarkedElements(List<CodeElement> markedElements)
+    private void FocusOnSelectedElements(List<CodeElement> selectedElements)
     {
         // We want to include all children of the collapsed code elements
         // and keep also the presentation state. Just less information
@@ -228,7 +228,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var idsToKeep = new HashSet<string>();
 
         // All children
-        foreach (var element in markedElements)
+        foreach (var element in selectedElements)
         {
             var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
             idsToKeep.UnionWith(children);
@@ -251,7 +251,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.DeleteFromGraph(relationships);
     }
 
-    private void DeleteMarkedWithChildren(List<CodeElement> markedElements)
+    private void DeleteSelectedWithChildren(List<CodeElement> selectedElements)
     {
         PushUndo();
 
@@ -259,7 +259,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var idsToRemove = new HashSet<string>();
 
         // Include children      
-        foreach (var element in markedElements)
+        foreach (var element in selectedElements)
         {
             var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
             idsToRemove.UnionWith(children);
@@ -278,7 +278,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void CompleteRelationships(List<CodeElement> _)
     {
-        // Not interested in the marked elements!
+        // Not interested in the selected elements!
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
         var relationships = _explorer.FindAllRelationships(ids);

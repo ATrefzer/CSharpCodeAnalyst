@@ -177,14 +177,14 @@
   <data name="Layout_Label" xml:space="preserve">
     <value>Layout</value>
   </data>
-  <data name="MarkedAddParent" xml:space="preserve">
-    <value>Marked: Add Parent</value>
+  <data name="SelectedAddParent" xml:space="preserve">
+    <value>Selected: Add Parent</value>
   </data>
-  <data name="MarkedDelete" xml:space="preserve">
-    <value>Marked: Delete (with children)</value>
+  <data name="SelectedDelete" xml:space="preserve">
+    <value>Selected: Delete (with children)</value>
   </data>
-  <data name="MarkedFocus" xml:space="preserve">
-    <value>Marked: Focus</value>
+  <data name="SelectedFocus" xml:space="preserve">
+    <value>Selected: Focus</value>
   </data>
   <data name="ExportDgml_Tooltip" xml:space="preserve">
     <value>Exports the current graph to dgml</value>

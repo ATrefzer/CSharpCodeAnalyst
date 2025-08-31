@@ -155,10 +155,10 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                 _activeHighlighting = new EdgeHoveredHighlighting();
                 break;
             case HighlightMode.OutgoingEdgesChildrenAndSelf:
-                _activeHighlighting = new OutgointEdgesOfChildrenAndSelfHighlighting();
+                _activeHighlighting = new OutgoingEdgesOfChildrenAndSelfHighlighting();
                 break;
             case HighlightMode.ShortestNonSelfCircuit:
-                _activeHighlighting = new HighligtShortestNonSelfCircuit();
+                _activeHighlighting = new HighlightShortestNonSelfCircuit();
                 break;
             default:
                 _activeHighlighting = new EdgeHoveredHighlighting();
@@ -184,19 +184,19 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         var globalContextMenu = new ContextMenu();
 
-        var markedElements = GetMarkedElementIds()
+        var selectedElements = GetSelectedElementIds()
             .Select(id => _clonedCodeGraph.Nodes[id])
             .ToList();
 
         foreach (var command in _globalCommands)
         {
-            if (command.CanHandle(markedElements) is false)
+            if (command.CanHandle(selectedElements) is false)
             {
                 continue;
             }
 
             var menuItem = new MenuItem { Header = command.Label };
-            menuItem.Click += (_, _) => command.Invoke(markedElements);
+            menuItem.Click += (_, _) => command.Invoke(selectedElements);
             globalContextMenu.Items.Add(menuItem);
         }
 
@@ -324,19 +324,19 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-    private HashSet<string> GetMarkedElementIds()
+    private HashSet<string> GetSelectedElementIds()
     {
         if (_msaglViewer is null)
         {
             return [];
         }
 
-        var markedIds = _msaglViewer.Entities
+        var selectedIds = _msaglViewer.Entities
             .Where(e => e.MarkedForDragging)
             .OfType<IViewerNode>()
             .Select(n => n.Node.Id)
             .ToHashSet();
-        return markedIds;
+        return selectedIds;
     }
 
     /// <summary>

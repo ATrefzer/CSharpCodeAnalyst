@@ -781,33 +781,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Marked: Add Parent.
-        /// </summary>
-        public static string MarkedAddParent {
-            get {
-                return ResourceManager.GetString("MarkedAddParent", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Marked: Delete (with children).
-        /// </summary>
-        public static string MarkedDelete {
-            get {
-                return ResourceManager.GetString("MarkedDelete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Marked: Focus.
-        /// </summary>
-        public static string MarkedFocus {
-            get {
-                return ResourceManager.GetString("MarkedFocus", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Metrics.
         /// </summary>
         public static string Metrics_TabHeader {
@@ -1184,6 +1157,33 @@ namespace CSharpCodeAnalyst.Resources {
         public static string SearchPattern_Tooltip {
             get {
                 return ResourceManager.GetString("SearchPattern_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected: Add Parent.
+        /// </summary>
+        public static string SelectedAddParent {
+            get {
+                return ResourceManager.GetString("SelectedAddParent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected: Delete (with children).
+        /// </summary>
+        public static string SelectedDelete {
+            get {
+                return ResourceManager.GetString("SelectedDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected: Focus.
+        /// </summary>
+        public static string SelectedFocus {
+            get {
+                return ResourceManager.GetString("SelectedFocus", resourceCulture);
             }
         }
         

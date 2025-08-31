@@ -3,7 +3,7 @@ using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
-internal class OutgointEdgesOfChildrenAndSelfHighlighting : HighlightingBase
+internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
 {
     public override void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
     {
