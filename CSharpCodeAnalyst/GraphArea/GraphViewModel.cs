@@ -77,13 +77,13 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Static commands
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
         {
-            IsDoubleClickable = true,
-            IsVisible = false
+            //IsDoubleClickable = true,
+            //IsVisible = false
         });
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
         {
-            IsDoubleClickable = true,
-            IsVisible = false
+            //IsDoubleClickable = true,
+            //IsVisible = false
         });
 
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: LoadIcon("Resources/flag.png")));
