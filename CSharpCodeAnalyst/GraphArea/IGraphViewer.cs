@@ -61,5 +61,8 @@ internal interface IGraphViewer
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 
     void AddContextMenuCommand(IRelationshipContextCommand command);
-  
+
+    bool IsFlagged(string id);
+    void ToggleFlag(string id);
+    void ClearAllFlags();
 }

@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using System.Windows.Media;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -8,26 +9,31 @@ public class CodeElementContextCommand : ICodeElementContextCommand
     private readonly Func<CodeElement, bool>? _canExecute;
     private readonly CodeElementType? _type;
 
-    public CodeElementContextCommand(string label, CodeElementType type, Action<CodeElement> action)
+    public CodeElementContextCommand(string label, CodeElementType type, Action<CodeElement> action, ImageSource? icon = null)
     {
         _type = type;
         _action = action;
         Label = label;
+        Icon = icon;
     }
 
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
     public CodeElementContextCommand(string label, Action<CodeElement> action,
-        Func<CodeElement, bool>? canExecute = null)
+        Func<CodeElement, bool>? canExecute = null, ImageSource? icon = null)
     {
         _type = null;
         _action = action;
         _canExecute = canExecute;
         Label = label;
+        Icon = icon;
     }
 
+    public bool IsVisible { get; set; } = true;
     public string Label { get; }
+    public ImageSource? Icon { get; }
+    public bool IsDoubleClickable { get; set; }
 
     public bool CanHandle(CodeElement element)
     {

@@ -333,6 +333,12 @@
   <data name="CompleteToTypes" xml:space="preserve">
     <value>Complete to containing types</value>
   </data>
+  <data name="ToggleFlag" xml:space="preserve">
+    <value>Toggle Flag</value>
+  </data>
+  <data name="ClearAllFlags" xml:space="preserve">
+    <value>Clear All Flags</value>
+  </data>
   <data name="DeleteFromModel_Message" xml:space="preserve">
     <value>Deleting model elements will clear the code graph. Do you want to proceed?</value>
   </data>
@@ -553,6 +559,9 @@
   </data>
   <data name="AddSelectedToGraph_Label" xml:space="preserve">
     <value>Add selected to graph</value>
+  </data>
+  <data name="AddSelectedToGraphCollapsed_Label" xml:space="preserve">
+    <value> Add selected to graph (collapsed)</value>
   </data>
   <data name="Name_Label" xml:space="preserve">
     <value>Name</value>

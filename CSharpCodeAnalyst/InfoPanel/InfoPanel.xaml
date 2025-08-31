@@ -1,0 +1,102 @@
+<UserControl x:Class="CSharpCodeAnalyst.InfoPanel.InfoPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
+             xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance infoPanel:InfoPanelViewModel}"
+             d:DesignHeight="450" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Border Width="300" MaxWidth="300" MinHeight="120"
+            VerticalAlignment="Top" HorizontalAlignment="Right"
+            IsHitTestVisible="true"
+            Background="LightYellow"
+            BorderBrush="Black" BorderThickness="1"
+            Margin="0 25 3 10" Padding="5" Opacity="0.8">
+
+        <ListView ItemsSource="{Binding QuickInfo}"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  BorderThickness="0"
+                  Background="Transparent">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="0 0 0 10">
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+
+                        <!-- Inner list for the describing lines -->
+                        <ListView ItemsSource="{Binding Lines}"
+                                  VirtualizingPanel.IsVirtualizing="True"
+                                  VirtualizingPanel.VirtualizationMode="Recycling"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                  BorderThickness="0"
+                                  Background="Transparent">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel />
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold" Margin="0,0,5,0" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Another list for the source code -->
+                        <StackPanel Orientation="Vertical"
+                                    Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
+                            <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
+                            <ListView ItemsSource="{Binding SourceLocations}"
+                                      VirtualizingPanel.IsVirtualizing="True"
+                                      VirtualizingPanel.VirtualizationMode="Recycling"
+                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                      BorderThickness="0"
+                                      Background="Transparent">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="Transparent">
+                                            <Border.InputBindings>
+                                                <MouseBinding MouseAction="LeftClick"
+                                                              Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.OpenSourceLocationCommand}"
+                                                              CommandParameter="{Binding}" />
+                                            </Border.InputBindings>
+                                            <TextBlock Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap" Foreground="Blue" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Border>
+</UserControl>

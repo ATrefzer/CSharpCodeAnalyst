@@ -79,6 +79,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  Add selected to graph (collapsed).
+        /// </summary>
+        public static string AddSelectedToGraphCollapsed_Label {
+            get {
+                return ResourceManager.GetString("AddSelectedToGraphCollapsed_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add to graph.
         /// </summary>
         public static string AddToGraph_MenuItem {
@@ -138,6 +147,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Clear_Tooltip {
             get {
                 return ResourceManager.GetString("Clear_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear All Flags.
+        /// </summary>
+        public static string ClearAllFlags {
+            get {
+                return ResourceManager.GetString("ClearAllFlags", resourceCulture);
             }
         }
         
@@ -1346,6 +1364,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_Settings_AddContainingType_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggle Flag.
+        /// </summary>
+        public static string ToggleFlag {
+            get {
+                return ResourceManager.GetString("ToggleFlag", resourceCulture);
             }
         }
         

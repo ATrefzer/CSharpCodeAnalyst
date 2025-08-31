@@ -6,6 +6,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
+using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,10 @@ public partial class App
         IConfiguration configuration = builder.Build();
         var settings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
 
+        if (settings is null)
+        {
+            settings = new ApplicationSettings();
+        }
 
         var messaging = new MessageBus();
         var explorer = new CodeGraphExplorer();
@@ -51,6 +56,9 @@ public partial class App
         var treeViewModel = new TreeViewModel(messaging);
         var searchViewModel = new SearchViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();
+        var infoPanelViewModel = new InfoPanelViewModel(settings);
+
+        viewModel.InfoPanelViewModel = infoPanelViewModel;
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
@@ -65,8 +73,8 @@ public partial class App
         // Adding a node triggered in tree view, handled in graph view
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
 
-        // Context-sensitive help triggered in the graph, handled in the main view model
-        messaging.Subscribe<QuickInfoUpdate>(viewModel.HandleUpdateQuickInfo);
+        // Context-sensitive help triggered in the graph, handled in the info panel
+        messaging.Subscribe<QuickInfoUpdate>(infoPanelViewModel.HandleUpdateQuickInfo);
 
         messaging.Subscribe<CycleCalculationComplete>(cycleViewModel.HandleCycleCalculationComplete);
 

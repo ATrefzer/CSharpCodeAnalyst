@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
@@ -22,6 +23,7 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 {
+    private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalContextCommand> _globalCommands = [];
     private readonly MsaglBuilder _msaglBuilder;
@@ -37,11 +39,11 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     private CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
+    private bool _flow;
     private Microsoft.Msagl.WpfGraphControl.GraphViewer? _msaglViewer;
     private PresentationState _presentationState = new();
     private RenderOption _renderOption = new DefaultRenderOptions();
     private bool _showFlatGraph;
-    private bool _flow;
 
     /// <summary>
     ///     Note:
@@ -196,6 +198,19 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             }
 
             var menuItem = new MenuItem { Header = command.Label };
+
+            // Add icon if provided
+            if (command.Icon != null)
+            {
+                var iconImage = new Image
+                {
+                    Width = 16,
+                    Height = 16,
+                    Source = command.Icon
+                };
+                menuItem.Icon = iconImage;
+            }
+
             menuItem.Click += (_, _) => command.Invoke(selectedElements);
             globalContextMenu.Items.Add(menuItem);
         }
@@ -273,6 +288,26 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         return _presentationState.IsCollapsed(id);
     }
 
+    public bool IsFlagged(string id)
+    {
+        return _presentationState.IsFlagged(id);
+    }
+
+    public void ToggleFlag(string id)
+    {
+        var currentState = _presentationState.IsFlagged(id);
+        var newState = !currentState;
+        _presentationState.SetFlaggedState(id, newState);
+        RefreshFlagsWithoutLayout([id], newState);
+    }
+
+    public void ClearAllFlags()
+    {
+        var ids = _presentationState.NodeIdToFlagged.Keys.ToList();
+        _presentationState.ClearAllFlags();
+        RefreshFlagsWithoutLayout(ids, false);
+    }
+
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
     {
         if (_msaglViewer is null)
@@ -300,6 +335,31 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void RefreshFlagsWithoutLayout(List<string> ids, bool isFlagged)
+    {
+        foreach (var id in ids)
+        {
+            var node = _msaglViewer?.Graph.FindNode(id);
+            if (node is null)
+            {
+                // Unexpected.
+                RefreshGraph();
+                break;
+            }
+
+            if (isFlagged)
+            {
+                node.Attr.Color = Constants.FlagColor;
+                node.Attr.LineWidth = Constants.FlagLineWidth;
+            }
+            else
+            {
+                node.Attr.Color = Constants.DefaultLineColor;
+                node.Attr.LineWidth = Constants.DefaultLineWidth;
+            }
+        }
+    }
 
     private bool IsBoundToPanel()
     {
@@ -365,6 +425,8 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
+
+
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {
         if (_clickedObject is null)
@@ -402,6 +464,11 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         bool IsCtrlPressed()
         {
             return Keyboard.IsKeyDown(Key.LeftCtrl);
+        }
+
+        if (TryEmulateDoubleClick(e))
+        {
+            return;
         }
 
         if (e.LeftButtonIsPressed)
@@ -463,6 +530,45 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
+    private bool TryEmulateDoubleClick(MsaglMouseEventArgs e)
+    {
+        if (e.LeftButtonIsPressed)
+        {
+            var elapsed = _clickStopwatch.ElapsedMilliseconds;
+            if (elapsed > 0 && elapsed < Constants.DoubleClickMilliseconds)
+            {
+                OnDoubleClick(e);
+                _clickStopwatch.Restart();
+                return true;
+            }
+
+            _clickStopwatch.Restart();
+        }
+
+        return false;
+    }
+
+    private void OnDoubleClick(MsaglMouseEventArgs args)
+    {
+        // Execute double click action if any registered
+        if (_msaglViewer?.ObjectUnderMouseCursor is IViewerNode clickedObject)
+        {
+            var node = clickedObject.Node;
+            var element = GetCodeElementFromUserData(node);
+            if (element is not null)
+            {
+                foreach (var cmd in _nodeCommands)
+                {
+                    if (cmd.IsDoubleClickable && cmd.CanHandle(element))
+                    {
+                        cmd.Invoke(element);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     private void AddContextMenuEntries(List<Relationship> relationships, ContextMenu contextMenu)
     {
         if (relationships.Count == 0)
@@ -472,9 +578,22 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         foreach (var cmd in _edgeCommands)
         {
-            var menuItem = new MenuItem { Header = cmd.Label };
             if (cmd.CanHandle(relationships))
             {
+                var menuItem = new MenuItem { Header = cmd.Label };
+
+                // Add icon if provided
+                if (cmd.Icon != null)
+                {
+                    var iconImage = new Image
+                    {
+                        Width = 16,
+                        Height = 16,
+                        Source = cmd.Icon
+                    };
+                    menuItem.Icon = iconImage;
+                }
+
                 menuItem.Click += (_, _) => cmd.Invoke(relationships);
                 contextMenu.Items.Add(menuItem);
             }
@@ -528,12 +647,25 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                 continue;
             }
 
-            if (!cmd.CanHandle(element))
+            if (!cmd.IsVisible || !cmd.CanHandle(element))
             {
                 continue;
             }
 
             var menuItem = new MenuItem { Header = cmd.Label };
+
+            // Add icon if provided
+            if (cmd.Icon != null)
+            {
+                var iconImage = new Image
+                {
+                    Width = 16,
+                    Height = 16,
+                    Source = cmd.Icon
+                };
+                menuItem.Icon = iconImage;
+            }
+
             menuItem.Click += (_, _) => cmd.Invoke(element);
             contextMenu.Items.Add(menuItem);
             lastItemIsSeparator = false;

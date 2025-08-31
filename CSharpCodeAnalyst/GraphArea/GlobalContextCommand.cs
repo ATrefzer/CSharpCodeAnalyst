@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using System.Windows.Media;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -10,24 +11,27 @@ public class GlobalContextCommand : IGlobalContextCommand
     private readonly Action<List<CodeElement>> _action;
     private readonly Func<List<CodeElement>, bool>? _canExecute;
 
-    public GlobalContextCommand(string label, Action<List<CodeElement>> action)
+    public GlobalContextCommand(string label, Action<List<CodeElement>> action, ImageSource? icon = null)
     {
         _action = action;
         Label = label;
+        Icon = icon;
     }
 
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
     public GlobalContextCommand(string label, Action<List<CodeElement>> action,
-        Func<List<CodeElement>, bool>? canExecute = null)
+        Func<List<CodeElement>, bool>? canExecute, ImageSource? icon = null)
     {
         _action = action;
         _canExecute = canExecute;
         Label = label;
+        Icon = icon;
     }
 
     public string Label { get; }
+    public ImageSource? Icon { get; }
 
 
     public void Invoke(List<CodeElement> selectedElements)

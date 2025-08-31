@@ -10,6 +10,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\flag.png" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -18,6 +22,7 @@
 
 
     <ItemGroup>
+        <Resource Include="Resources\flag.png" />
         <Resource Include="Resources\guidepost_small.png" />
         <Resource Include="Resources\help_32.png" />
         <Resource Include="Resources\legend_32.png" />
