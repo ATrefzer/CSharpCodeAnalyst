@@ -24,12 +24,13 @@ using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.Gallery;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Import;
+using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.MetricArea;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
-using CSharpCodeAnalyst.Import;
+using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -50,7 +51,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private bool _isCanvasHintsVisible = true;
 
-    private bool _isInfoPanelVisible;
+
 
     private bool _isLeftPanelExpanded = true;
 
@@ -62,22 +63,22 @@ internal class MainViewModel : INotifyPropertyChanged
     private ObservableCollection<IMetric> _metrics = [];
 
     private LegendDialog? _openedLegendDialog;
+    private SearchViewModel? _searchViewModel;
 
-    private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
+
     private int _selectedTabIndex;
 
     private TreeViewModel? _treeViewModel;
-    private SearchViewModel? _searchViewModel;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings? settings)
     {
         // Initialize settings
         _applicationSettings = settings ?? new ApplicationSettings();
-        
+
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
         _maxDegreeOfParallelism = _applicationSettings.MaxDegreeOfParallelism;
-        _isInfoPanelVisible = _applicationSettings.DefaultShowQuickHelp;
+
         _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
 
         _messaging = messaging;
@@ -122,20 +123,6 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public List<QuickInfo> QuickInfo
-    {
-        get => _quickInfo;
-        set
-        {
-            if (Equals(value, _quickInfo))
-            {
-                return;
-            }
-
-            _quickInfo = value;
-            OnPropertyChanged(nameof(QuickInfo));
-        }
-    }
 
     public GraphViewModel? GraphViewModel
     {
@@ -144,21 +131,6 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _graphViewModel = value;
             OnPropertyChanged(nameof(GraphViewModel));
-        }
-    }
-
-    public bool IsInfoPanelVisible
-    {
-        get => _isInfoPanelVisible && _selectedTabIndex == 0;
-        set
-        {
-            if (_isInfoPanelVisible == value)
-            {
-                return;
-            }
-
-            _isInfoPanelVisible = value;
-            OnPropertyChanged(nameof(IsInfoPanelVisible));
         }
     }
 
@@ -247,7 +219,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
             _selectedTabIndex = value;
             OnPropertyChanged(nameof(SelectedTabIndex));
-            OnPropertyChanged(nameof(IsInfoPanelVisible));
+            InfoPanelViewModel.Hide(_selectedTabIndex != 0);
         }
     }
 
@@ -278,6 +250,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         get => _metrics;
     }
+
+    public InfoPanelViewModel InfoPanelViewModel { get; set; }
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -369,7 +343,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private void ApplySettings()
     {
         // Settings must be reloaded
-        
+
         // Save settings to configuration file
         SaveSettings();
     }
@@ -384,7 +358,7 @@ internal class MainViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             // Log error or show message to user
-            MessageBox.Show($"{Strings.Settings_Save_Error} {ex.Message}", Strings.Error_Title, 
+            MessageBox.Show($"{Strings.Settings_Save_Error} {ex.Message}", Strings.Error_Title,
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -441,19 +415,6 @@ internal class MainViewModel : INotifyPropertyChanged
                 MessageBoxImage.Error);
         }
     }
-
-    public void HandleUpdateQuickInfo(QuickInfoUpdate quickInfoUpdate)
-    {
-        // May come from any view
-        if (IsInfoPanelVisible is false)
-        {
-            // This can be very slow if updated even the help is not visible.
-            return;
-        }
-
-        QuickInfo = quickInfoUpdate.QuickInfo;
-    }
-
 
     /// <summary>
     ///     Exports the whole project to dsi.
@@ -612,6 +573,7 @@ internal class MainViewModel : INotifyPropertyChanged
         SearchViewModel?.LoadCodeGraph(_codeGraph);
         GraphViewModel?.LoadCodeGraph(_codeGraph);
         CycleSummaryViewModel?.Clear();
+        InfoPanelViewModel?.Clear();
 
         // Default output: summary of graph
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
@@ -787,18 +749,19 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
             // Load settings
-            if (projectData.Settings.TryGetValue(nameof(IsInfoPanelVisible), out var isInfoPanelVisibleString))
+            if (projectData.Settings.TryGetValue(nameof(InfoPanelViewModel.IsInfoPanelVisible), out var isInfoPanelVisibleString))
             {
-                IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
+                InfoPanelViewModel.IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
             }
 
             if (GraphViewModel != null)
-                
+
             {
                 if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
                 {
                     GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
                 }
+
                 if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowDataFlow), out var showFlow))
                 {
                     GraphViewModel.ShowDataFlow = bool.Parse(showFlow);
@@ -847,7 +810,7 @@ internal class MainViewModel : INotifyPropertyChanged
         var projectData = new ProjectData();
         projectData.SetCodeGraph(_codeGraph);
         projectData.SetGallery(_gallery ?? new Gallery.Gallery());
-        projectData.Settings[nameof(IsInfoPanelVisible)] = IsInfoPanelVisible.ToString();
+        projectData.Settings[nameof(InfoPanelViewModel.IsInfoPanelVisible)] = InfoPanelViewModel.IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();

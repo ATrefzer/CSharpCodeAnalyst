@@ -21,7 +21,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 {
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
-    private readonly ApplicationSettings? _settings;
+    private readonly ApplicationSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack = new();
     private readonly int _undoStackSize = 10;
     private readonly IGraphViewer _viewer;
@@ -32,7 +32,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     private bool _showDataFlow;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
-        ApplicationSettings? settings)
+        ApplicationSettings settings)
     {
         _viewer = viewer;
         _explorer = explorer;
@@ -445,7 +445,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         var relationshipsToAdd = relationships.ToList();
         
         // Apply "Automatically add containing type" setting
-        if (_settings?.AutomaticallyAddContainingType == true)
+        if (_settings.AutomaticallyAddContainingType)
         {
             var elementIds = elementsToAdd.Select(e => e.Id).ToHashSet();
             var result = _explorer.CompleteToContainingTypes(elementIds);
@@ -580,11 +580,6 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private bool ProceedWithLargeGraph(int numberOfElements)
     {
-        if (_settings is null)
-        {
-            return true;
-        }
-
         // Meanwhile we collapse the graph.
         if (numberOfElements > _settings.WarningCodeElementLimit)
         {

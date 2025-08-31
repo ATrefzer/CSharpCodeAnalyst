@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
         xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
+        xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         x:Name="RootWindow"
@@ -19,7 +20,7 @@
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-            <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
+           
         </ResourceDictionary>
     </Window.Resources>
 
@@ -180,7 +181,7 @@
                         <RibbonToggleButton Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.QuickInfo_Label}"
                                             SmallImageSource="/Resources/question_small.png"
-                                            IsChecked="{Binding IsInfoPanelVisible, Mode=TwoWay}">
+                                            IsChecked="{Binding InfoPanelViewModel.IsInfoPanelVisible, Mode=TwoWay}">
                             <RibbonToggleButton.ToolTip>
                                 <ToolTip
                                     Content="{x:Static resources:Strings.QuickInfo_Tooltip}" />
@@ -587,164 +588,9 @@
 
 
             <!-- Info panel -->
-            <Border Grid.Column="2" Name="InfoPanel" Width="300" MaxWidth="300" Height="Auto" MinHeight="120"
-                    VerticalAlignment="Top" HorizontalAlignment="Right"
-                    IsHitTestVisible="true"
-                    Background="LightYellow"
-                    BorderBrush="Black" BorderThickness="1"
-                    Visibility="{Binding IsInfoPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                    Margin="0 25 3 10" Padding="5" Opacity="0.8">
-
-                <!-- List of quick infos, mostly one -->
-                <ListView ItemsSource="{Binding QuickInfo}"
-                          VirtualizingPanel.IsVirtualizing="True"
-                          VirtualizingPanel.VirtualizationMode="Recycling"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          BorderThickness="0"
-                          Background="Transparent">
-                    <ListView.Style>
-                        <Style TargetType="ListView">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListView">
-                                        <ScrollViewer>
-                                            <ItemsPresenter />
-                                        </ScrollViewer>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListView.Style>
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="ListViewItem">
-                                        <ContentPresenter />
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="0 0 0 10">
-                                <TextBlock Text="{Binding Title}" FontWeight="Bold" />
-
-                                <!-- Inner list for the describing lines -->
-                                <ListView ItemsSource="{Binding Lines}"
-                                          VirtualizingPanel.IsVirtualizing="True"
-                                          VirtualizingPanel.VirtualizationMode="Recycling"
-                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                          BorderThickness="0"
-                                          Background="Transparent">
-                                    <ListView.Style>
-                                        <Style TargetType="ListView">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="ListView">
-                                                        <Grid IsSharedSizeScope="True">
-                                                            <ItemsPresenter />
-                                                        </Grid>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </ListView.Style>
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="ListViewItem">
-                                                        <ContentPresenter />
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
-                                    <ListView.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <VirtualizingStackPanel />
-                                        </ItemsPanelTemplate>
-                                    </ListView.ItemsPanel>
-                                    <ListView.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
-                                                    <ColumnDefinition />
-                                                </Grid.ColumnDefinitions>
-                                                <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold"
-                                                           Margin="0,0,5,0" />
-                                                <TextBlock Grid.Column="1" Text="{Binding Value}"
-                                                           TextWrapping="Wrap" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListView.ItemTemplate>
-                                </ListView>
-
-                                <!-- Another list for the source code -->
-                                <StackPanel Orientation="Vertical"
-                                            Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
-                                    <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
-                                    <ListView ItemsSource="{Binding SourceLocations}"
-                                              VirtualizingPanel.IsVirtualizing="True"
-                                              VirtualizingPanel.VirtualizationMode="Recycling"
-                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                              ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                              BorderThickness="0"
-                                              Background="Transparent">
-                                        <ListView.Style>
-                                            <Style TargetType="ListView">
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ListView">
-                                                            <ItemsPresenter />
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ListView.Style>
-                                        <ListView.ItemContainerStyle>
-                                            <Style TargetType="ListViewItem">
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate TargetType="ListViewItem">
-                                                            <ContentPresenter />
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Style>
-                                        </ListView.ItemContainerStyle>
-                                        <ListView.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <VirtualizingStackPanel />
-                                            </ItemsPanelTemplate>
-                                        </ListView.ItemsPanel>
-                                        <ListView.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="Transparent">
-                                                    <Border.InputBindings>
-                                                        <MouseBinding MouseAction="LeftClick"
-                                                                      Command="{Binding DataContext.OpenSourceLocationCommand, ElementName=RootWindow}"
-                                                                      CommandParameter="{Binding}" />
-                                                    </Border.InputBindings>
-                                                    <TextBlock
-                                                        Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap"
-                                                        Foreground="Blue" />
-                                                </Border>
-                                            </DataTemplate>
-                                        </ListView.ItemTemplate>
-                                    </ListView>
-                                </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-            </Border>
+            <infoPanel:InfoPanel Grid.Column="2" 
+                                 DataContext="{Binding InfoPanelViewModel}"
+                                 IsVisible="{Binding IsInfoPanelVisibleEffective}" />
         </Grid>
 
 
