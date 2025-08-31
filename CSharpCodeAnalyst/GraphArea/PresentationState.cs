@@ -1,14 +1,16 @@
-﻿namespace CSharpCodeAnalyst.GraphArea;
+﻿using System.Text.Json.Serialization;
+
+namespace CSharpCodeAnalyst.GraphArea;
 
 public class PresentationState
 {
-    private readonly Dictionary<string, bool> _defaultState;
-    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
-    private readonly Dictionary<string, bool> _nodeIdToFlagged;
+    private Dictionary<string, bool> _defaultState;
+    private Dictionary<string, bool> _nodeIdToCollapsed;
+    private Dictionary<string, bool> _nodeIdToFlagged;
 
     public PresentationState(Dictionary<string, bool> defaultState)
     {
-        _defaultState = defaultState.ToDictionary(p => p.Key, propa => propa.Value);
+        _defaultState = defaultState?.ToDictionary(p => p.Key, propa => propa.Value) ?? new Dictionary<string, bool>();
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToFlagged = new Dictionary<string, bool>();
     }
@@ -21,6 +23,26 @@ public class PresentationState
         _nodeIdToFlagged = new Dictionary<string, bool>();
     }
 
+    // Public properties for JSON serialization
+    [JsonPropertyName("defaultState")] public Dictionary<string, bool> DefaultState
+    {
+        get => _defaultState;
+        set => _defaultState = value ?? new Dictionary<string, bool>();
+    }
+
+    [JsonPropertyName("nodeIdToCollapsed")]
+    public Dictionary<string, bool> NodeIdToCollapsed
+    {
+        get => _nodeIdToCollapsed;
+        set => _nodeIdToCollapsed = value ?? new Dictionary<string, bool>();
+    }
+
+    [JsonPropertyName("nodeIdToFlagged")] public Dictionary<string, bool> NodeIdToFlagged
+    {
+        get => _nodeIdToFlagged;
+        set => _nodeIdToFlagged = value ?? new Dictionary<string, bool>();
+    }
+
     public PresentationState Clone()
     {
         var clone = new PresentationState(_defaultState);
@@ -28,6 +50,7 @@ public class PresentationState
         {
             clone.SetCollapsedState(pair.Key, pair.Value);
         }
+
         foreach (var pair in _nodeIdToFlagged)
         {
             clone.SetFlaggedState(pair.Key, pair.Value);
