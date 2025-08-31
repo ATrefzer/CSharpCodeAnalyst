@@ -8,6 +8,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 using Node = Microsoft.Msagl.Drawing.Node;
 
@@ -281,14 +282,40 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     public void ToggleFlag(string id)
     {
         var currentState = _presentationState.IsFlagged(id);
-        _presentationState.SetFlaggedState(id, !currentState);
-        RefreshGraphWithoutLayout();
+        var newState = !currentState;
+        _presentationState.SetFlaggedState(id, newState);
+        RefreshFlagsWithoutLayout([id], newState);
     }
 
     public void ClearAllFlags()
     {
+        var ids = _presentationState.NodeIdToFlagged.Keys.ToList();
         _presentationState.ClearAllFlags();
-        RefreshGraphWithoutLayout();
+        RefreshFlagsWithoutLayout(ids, false);
+    }
+
+    private void RefreshFlagsWithoutLayout(List<string> ids, bool isFlagged)
+    {
+        foreach (var id in ids)
+        {
+            var node = _msaglViewer?.Graph.FindNode(id);
+            if (node is null)
+            {
+                RefreshGraph();
+                break;
+            }
+
+            if (isFlagged)
+            {
+                node.Attr.Color = Constants.FlagColor;
+                node.Attr.LineWidth = Constants.FlagLineWidth;
+            }
+            else
+            {
+                node.Attr.Color = Constants.DefaultLineColor;
+                node.Attr.LineWidth = Constants.DefaultLineWidth;
+            }
+        }
     }
 
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
@@ -383,11 +410,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-    private void RefreshGraphWithoutLayout()
-    {
-        // For flag changes, we need to refresh the graph to update node styling
-        RefreshGraph();
-    }
+
 
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {

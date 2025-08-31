@@ -278,7 +278,7 @@
                     </Style>
                 </Expander.Style>
 
-                <TabControl
+                <TabControl x:Name="CodeStructureTab"
                     Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Margin="0">
 

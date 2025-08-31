@@ -57,7 +57,7 @@ internal class MsaglBuilder
     {
         var visibleGraph = GetVisibleGraph(codeGraph, presentationState);
         var graph = new Graph("graph");
-        var subGraphs = CreateSubGraphs(codeGraph, visibleGraph);
+        var subGraphs = CreateSubGraphs(codeGraph, visibleGraph, presentationState);
 
         AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs, presentationState);
         AddEdgesToHierarchicalGraph(graph, codeGraph, visibleGraph, showInformationFlow);
@@ -184,16 +184,37 @@ internal class MsaglBuilder
     /// <summary>
     ///     Pre-creates all sub-graphs
     /// </summary>
-    private Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph)
+    private Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph, PresentationState state)
     {
         return visibleGraph.Nodes.Values
             .Where(n => visibleGraph.Nodes[n.Id].Children.Any())
             .ToDictionary(n => n.Id, n => new Subgraph(n.Id)
             {
+                
                 LabelText = n.Name,
                 UserData = codeGraph.Nodes[n.Id],
-                Attr = { FillColor = GetColor(n) }
+                Attr = CreateNodeAttr(n)
+
+
             });
+
+
+        NodeAttr CreateNodeAttr(CodeElement element)
+        {
+            var attr = new NodeAttr
+            {
+                Id = element.Id,
+                FillColor = GetColor(element)
+            };
+
+            if (state.IsFlagged(element.Id))
+            {
+                attr.LineWidth = Constants.FlagLineWidth;
+                attr.Color = Constants.FlagColor;
+            }
+
+            return attr;
+        }
     }
 
     private string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
@@ -216,7 +237,6 @@ internal class MsaglBuilder
     private void CreateEdgeForHierarchicalStructure(Graph graph,
         KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships)
     {
-        
         // MSAGL does not allow two same edges with different labels to the same subgraph.
         // So I collapse them to a single one that carries all the user data.
 
@@ -326,8 +346,8 @@ internal class MsaglBuilder
         // Apply flagged styling if the element is flagged
         if (presentationState.IsFlagged(codeElement.Id))
         {
-            node.Attr.LineWidth = 3;
-            node.Attr.Color = Color.Red;
+            node.Attr.LineWidth = Constants.FlagLineWidth;
+            node.Attr.Color = Constants.FlagColor;
         }
 
         return node;

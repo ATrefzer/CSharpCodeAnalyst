@@ -144,6 +144,8 @@ public partial class MainWindow
             return;
         }
 
+        CodeStructureTab.SelectedIndex = 0;
+
         // Causes TreeViewItem_Loaded
         treeViewModel.ExpandParents(request.Id);
 
