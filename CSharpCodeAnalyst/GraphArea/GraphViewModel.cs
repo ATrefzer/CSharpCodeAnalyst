@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
@@ -75,7 +77,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Static commands
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: LoadIcon("Resources/flag.png")));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
@@ -333,6 +335,26 @@ internal class GraphViewModel : INotifyPropertyChanged
     private void ClearAllFlags(List<CodeElement> selectedElements)
     {
         _viewer.ClearAllFlags();
+    }
+
+    private static ImageSource? LoadIcon(string iconPath)
+    {
+        try
+        {
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri($"pack://application:,,,/{iconPath}");
+            bitmap.DecodePixelWidth = 16;
+            bitmap.DecodePixelHeight = 16;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze(); 
+            return bitmap;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private void FindInTreeRequest(CodeElement codeElement)

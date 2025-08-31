@@ -197,6 +197,19 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             }
 
             var menuItem = new MenuItem { Header = command.Label };
+            
+            // Add icon if provided
+            if (command.Icon != null)
+            {
+                var iconImage = new Image
+                {
+                    Width = 16,
+                    Height = 16,
+                    Source = command.Icon
+                };
+                menuItem.Icon = iconImage;
+            }
+            
             menuItem.Click += (_, _) => command.Invoke(selectedElements);
             globalContextMenu.Items.Add(menuItem);
         }
@@ -519,9 +532,22 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         foreach (var cmd in _edgeCommands)
         {
-            var menuItem = new MenuItem { Header = cmd.Label };
             if (cmd.CanHandle(relationships))
             {
+                var menuItem = new MenuItem { Header = cmd.Label };
+                
+                // Add icon if provided
+                if (cmd.Icon != null)
+                {
+                    var iconImage = new Image
+                    {
+                        Width = 16,
+                        Height = 16,
+                        Source = cmd.Icon
+                    };
+                    menuItem.Icon = iconImage;
+                }
+                
                 menuItem.Click += (_, _) => cmd.Invoke(relationships);
                 contextMenu.Items.Add(menuItem);
             }
@@ -581,6 +607,19 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             }
 
             var menuItem = new MenuItem { Header = cmd.Label };
+            
+            // Add icon if provided
+            if (cmd.Icon != null)
+            {
+                var iconImage = new Image
+                {
+                    Width = 16,
+                    Height = 16,
+                    Source = cmd.Icon
+                };
+                menuItem.Icon = iconImage;
+            }
+            
             menuItem.Click += (_, _) => cmd.Invoke(element);
             contextMenu.Items.Add(menuItem);
             lastItemIsSeparator = false;

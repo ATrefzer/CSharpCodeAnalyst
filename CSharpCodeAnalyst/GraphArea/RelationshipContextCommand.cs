@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using System.Windows.Media;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -8,26 +9,29 @@ public class RelationshipContextCommand : IRelationshipContextCommand
     private readonly Func<List<Relationship>, bool>? _canExecute;
     private readonly RelationshipType? _type;
 
-    public RelationshipContextCommand(string label, RelationshipType type, Action<List<Relationship>> action)
+    public RelationshipContextCommand(string label, RelationshipType type, Action<List<Relationship>> action, ImageSource? icon = null)
     {
         _type = type;
         _action = action;
         Label = label;
+        Icon = icon;
     }
 
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
     public RelationshipContextCommand(string label, Action<List<Relationship>> action,
-        Func<List<Relationship>, bool>? canExecute = null)
+        Func<List<Relationship>, bool>? canExecute = null, ImageSource? icon = null)
     {
         _type = null;
         _action = action;
         _canExecute = canExecute;
         Label = label;
+        Icon = icon;
     }
 
     public string Label { get; }
+    public ImageSource? Icon { get; }
 
     public bool CanHandle(List<Relationship> relationships)
     {

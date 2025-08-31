@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using System.Windows.Media;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.GraphArea;
 
@@ -7,6 +8,11 @@ public class SeparatorCommand : ICodeElementContextCommand
     public string Label
     {
         get => string.Empty;
+    }
+
+    public ImageSource? Icon
+    {
+        get => null;
     }
 
     public bool CanHandle(CodeElement item)
