@@ -10,19 +10,16 @@
              d:DesignHeight="450" d:DesignWidth="300">
 
     <UserControl.Resources>
-        <ResourceDictionary>
-            <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
-        </ResourceDictionary>
+        <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
     </UserControl.Resources>
 
-    <Border Width="300" MaxWidth="300" Height="Auto" MinHeight="120"
+    <Border Width="300" MaxWidth="300" MinHeight="120"
             VerticalAlignment="Top" HorizontalAlignment="Right"
             IsHitTestVisible="true"
             Background="LightYellow"
             BorderBrush="Black" BorderThickness="1"
             Margin="0 25 3 10" Padding="5" Opacity="0.8">
 
-        <!-- List of quick infos, mostly one -->
         <ListView ItemsSource="{Binding QuickInfo}"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
@@ -30,30 +27,11 @@
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   BorderThickness="0"
                   Background="Transparent">
-            <ListView.Style>
-                <Style TargetType="ListView">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListView">
-                                <ScrollViewer>
-                                    <ItemsPresenter />
-                                </ScrollViewer>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.Style>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListViewItem">
-                                <ContentPresenter />
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.ItemContainerStyle>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="0 0 0 10">
@@ -67,30 +45,6 @@
                                   ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                   BorderThickness="0"
                                   Background="Transparent">
-                            <ListView.Style>
-                                <Style TargetType="ListView">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListView">
-                                                <Grid IsSharedSizeScope="True">
-                                                    <ItemsPresenter />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.Style>
-                            <ListView.ItemContainerStyle>
-                                <Style TargetType="ListViewItem">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ListViewItem">
-                                                <ContentPresenter />
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </ListView.ItemContainerStyle>
                             <ListView.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <VirtualizingStackPanel />
@@ -103,10 +57,8 @@
                                             <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
                                             <ColumnDefinition />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold"
-                                                   Margin="0,0,5,0" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Value}"
-                                                   TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}" FontWeight="Bold" Margin="0,0,5,0" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>
@@ -123,28 +75,6 @@
                                       ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                       BorderThickness="0"
                                       Background="Transparent">
-                                <ListView.Style>
-                                    <Style TargetType="ListView">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ListView">
-                                                    <ItemsPresenter />
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ListView.Style>
-                                <ListView.ItemContainerStyle>
-                                    <Style TargetType="ListViewItem">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ListViewItem">
-                                                    <ContentPresenter />
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ListView.ItemContainerStyle>
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <VirtualizingStackPanel />
@@ -158,9 +88,7 @@
                                                               Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.OpenSourceLocationCommand}"
                                                               CommandParameter="{Binding}" />
                                             </Border.InputBindings>
-                                            <TextBlock
-                                                Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap"
-                                                Foreground="Blue" />
+                                            <TextBlock Margin="0 0 0 3" Text="{Binding}" TextWrapping="Wrap" Foreground="Blue" />
                                         </Border>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
@@ -170,6 +98,5 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-
     </Border>
 </UserControl>
