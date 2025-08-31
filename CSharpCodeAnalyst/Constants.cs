@@ -11,4 +11,6 @@ public class Constants
     public static int FlagLineWidth = 3;
     public static double DefaultLineWidth = 1;
     public static Color DefaultLineColor = Color.Black;
+
+    public static int DoubleClickMilliseconds = 350;
 }

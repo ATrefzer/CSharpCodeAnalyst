@@ -23,9 +23,6 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 {
-    private const int DoubleClickMilliseconds = 350;
-
-
     private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalContextCommand> _globalCommands = [];
@@ -538,7 +535,7 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         if (e.LeftButtonIsPressed)
         {
             var elapsed = _clickStopwatch.ElapsedMilliseconds;
-            if (elapsed > 0 && elapsed < DoubleClickMilliseconds)
+            if (elapsed > 0 && elapsed < Constants.DoubleClickMilliseconds)
             {
                 OnDoubleClick(e);
                 _clickStopwatch.Restart();
