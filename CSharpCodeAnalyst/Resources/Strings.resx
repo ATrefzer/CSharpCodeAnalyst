@@ -560,6 +560,9 @@
   <data name="AddSelectedToGraph_Label" xml:space="preserve">
     <value>Add selected to graph</value>
   </data>
+  <data name="AddSelectedToGraphCollapsed_Label" xml:space="preserve">
+    <value> Add selected to graph (collapsed)</value>
+  </data>
   <data name="Name_Label" xml:space="preserve">
     <value>Name</value>
   </data>

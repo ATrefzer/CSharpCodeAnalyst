@@ -400,6 +400,16 @@
                                       GridLinesVisibility="Horizontal"
                                       SelectionMode="Extended"
                                       Margin="5,0,5,0">
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
+                                                  Command="{Binding AddSelectedToGraphCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                        <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
+                                                  Command="{Binding AddSelectedToGraphCollapsedCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
                                                         Binding="{Binding Name}"
@@ -438,7 +448,7 @@
                                             x:Name="DropdownButton">
                                         <Button.ContextMenu>
                                             <ContextMenu>
-                                                <MenuItem Header="Add collapsed"
+                                                <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
                                                           Command="{Binding AddSelectedToGraphCollapsedCommand}"
                                                           CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
                                             </ContextMenu>
