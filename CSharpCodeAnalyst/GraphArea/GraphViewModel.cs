@@ -28,8 +28,8 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
-    private bool _showFlatGraph;
     private bool _showDataFlow;
+    private bool _showFlatGraph;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         ApplicationSettings settings)
@@ -75,15 +75,24 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
         // Static commands
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse));
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
+        {
+            IsDoubleClickable = true,
+            IsVisible = false
+        });
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
+        {
+            IsDoubleClickable = true,
+            IsVisible = false
+        });
+
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: LoadIcon("Resources/flag.png")));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
         _viewer.AddContextMenuCommand(new SeparatorCommand());
-       
+
 
         // Methods and properties
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
@@ -348,7 +357,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             bitmap.DecodePixelHeight = 16;
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.EndInit();
-            bitmap.Freeze(); 
+            bitmap.Freeze();
             return bitmap;
         }
         catch
@@ -440,10 +449,10 @@ internal class GraphViewModel : INotifyPropertyChanged
         bool addCollapsed = false)
     {
         PushUndo();
-        
+
         var elementsToAdd = originalCodeElements.ToList();
         var relationshipsToAdd = relationships.ToList();
-        
+
         // Apply "Automatically add containing type" setting
         if (_settings.AutomaticallyAddContainingType)
         {
@@ -452,7 +461,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             elementsToAdd.AddRange(result.Elements);
             relationshipsToAdd.AddRange(result.Relationships);
         }
-        
+
         _viewer.AddToGraph(elementsToAdd, relationshipsToAdd, addCollapsed);
     }
 

@@ -30,8 +30,10 @@ public class CodeElementContextCommand : ICodeElementContextCommand
         Icon = icon;
     }
 
+    public bool IsVisible { get; set; } = true;
     public string Label { get; }
     public ImageSource? Icon { get; }
+    public bool IsDoubleClickable { get; set; }
 
     public bool CanHandle(CodeElement element)
     {

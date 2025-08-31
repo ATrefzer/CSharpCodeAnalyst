@@ -5,6 +5,8 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 public class SeparatorCommand : ICodeElementContextCommand
 {
+    public bool IsVisible { get; set; } = true;
+
     public string Label
     {
         get => string.Empty;
@@ -14,6 +16,8 @@ public class SeparatorCommand : ICodeElementContextCommand
     {
         get => null;
     }
+
+    public bool IsDoubleClickable { get; set; }
 
     public bool CanHandle(CodeElement item)
     {
