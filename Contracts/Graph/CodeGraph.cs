@@ -125,11 +125,14 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         }
 
         // Check if children of the new element are already in the graph.
-        var intersect = Nodes.Values.Intersect(originalElement.Children);
-        foreach (var child in intersect)
+        foreach (var child in originalElement.Children)
         {
-            newElement.Children.Add(child);
-            child.Parent = newElement;
+            if (Nodes.TryGetValue(child.Id, out var existingChild))
+            {
+                // Grab the child reference. The child is already in the graph.
+                newElement.Children.Add(existingChild);
+                existingChild.Parent = newElement;
+            }
         }
 
         Nodes.TryAdd(newElement.Id, newElement);
