@@ -38,6 +38,8 @@ namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
+
+    private const int INFO_PANEL_TAB_INDEX = 2;
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
@@ -260,7 +262,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             if (value == _selectedLeftTabIndex) return;
             _selectedLeftTabIndex = value;
-            InfoPanelViewModel.Hide(value != 2);
+            InfoPanelViewModel.Hide(value != INFO_PANEL_TAB_INDEX);
             OnPropertyChanged(nameof(SelectedLeftTabIndex));
         }
     }
@@ -730,11 +732,6 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
             // Load settings
-            if (projectData.Settings.TryGetValue(nameof(InfoPanelViewModel.IsInfoPanelVisible), out var isInfoPanelVisibleString))
-            {
-                InfoPanelViewModel.IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
-            }
-
             if (GraphViewModel != null)
 
             {
@@ -791,7 +788,6 @@ internal class MainViewModel : INotifyPropertyChanged
         var projectData = new ProjectData();
         projectData.SetCodeGraph(_codeGraph);
         projectData.SetGallery(_gallery ?? new Gallery.Gallery());
-        projectData.Settings[nameof(InfoPanelViewModel.IsInfoPanelVisible)] = InfoPanelViewModel.IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();

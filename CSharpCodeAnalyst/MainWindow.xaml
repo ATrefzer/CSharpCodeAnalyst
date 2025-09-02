@@ -176,17 +176,6 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!--<RibbonToggleButton Grid.Row="0" Grid.Column="0"
-                                            Label="{x:Static resources:Strings.QuickInfo_Label}"
-                                            SmallImageSource="/Resources/question_small.png"
-                                            IsChecked="{Binding InfoPanelViewModel.IsInfoPanelVisible, Mode=TwoWay}">
-                            <RibbonToggleButton.ToolTip>
-                                <ToolTip
-                                    Content="{x:Static resources:Strings.QuickInfo_Tooltip}" />
-                            </RibbonToggleButton.ToolTip>
-                        </RibbonToggleButton>-->
-
-                        
                         <RibbonToggleButton HorizontalAlignment="Left"
                             Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.Flow_Label}"

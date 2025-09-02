@@ -14,7 +14,6 @@ namespace CSharpCodeAnalyst.InfoPanel;
 internal class InfoPanelViewModel : INotifyPropertyChanged
 {
     private bool _hide;
-    private bool _isInfoPanelVisible;
 
     private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
 
@@ -26,26 +25,6 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
     public ICommand OpenSourceLocationCommand { get; }
 
-    public bool IsInfoPanelVisible
-    {
-        get => _isInfoPanelVisible;
-        set
-        {
-            if (_isInfoPanelVisible == value)
-            {
-                return;
-            }
-
-            _isInfoPanelVisible = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsInfoPanelVisibleEffective));
-        }
-    }
-
-    public bool IsInfoPanelVisibleEffective
-    {
-        get => IsInfoPanelVisible && !_hide;
-    }
 
 
     public List<QuickInfo> QuickInfo
@@ -116,16 +95,14 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     public void Clear()
     {
         _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
-        OnPropertyChanged(nameof(IsInfoPanelVisibleEffective));
     }
 
     /// <summary>
-    ///     Hide the info panel temporarily for example when the wong page is shown.
+    ///     Hide the info panel temporarily when not visible.
     ///     This does not waste computation if the info panel is hidden.
     /// </summary>
     public void Hide(bool hide)
     {
         _hide = hide;
-        OnPropertyChanged(nameof(IsInfoPanelVisibleEffective));
     }
 }
