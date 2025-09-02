@@ -13,12 +13,11 @@
         <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
     </UserControl.Resources>
 
-    <Border Width="300" MaxWidth="300" MinHeight="120"
-            VerticalAlignment="Top" HorizontalAlignment="Right"
+    <Border 
             IsHitTestVisible="true"
             Background="LightYellow"
             BorderBrush="Black" BorderThickness="1"
-            Margin="0 25 3 10" Padding="5" Opacity="0.8">
+             Padding="5" Opacity="0.8">
 
         <ListView ItemsSource="{Binding QuickInfo}"
                   VirtualizingPanel.IsVirtualizing="True"

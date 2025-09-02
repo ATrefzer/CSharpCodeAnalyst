@@ -16,7 +16,6 @@ public partial class SettingsDialog
 
     private void LoadSettingsToUi()
     {
-        ShowQuickHelpCheckBox.IsChecked = Settings.DefaultShowQuickHelp;
         AutoAddContainingTypeCheckBox.IsChecked = Settings.AutomaticallyAddContainingType;
         WarningLimitTextBox.Text = Settings.WarningCodeElementLimit.ToString();
         MaxParallelismTextBox.Text = Settings.MaxDegreeOfParallelism.ToString();
@@ -25,7 +24,6 @@ public partial class SettingsDialog
 
     private void SaveSettingsFromUi()
     {
-        Settings.DefaultShowQuickHelp = ShowQuickHelpCheckBox.IsChecked ?? false;
         Settings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
 
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)
@@ -54,7 +52,6 @@ public partial class SettingsDialog
         {
             WarningCodeElementLimit = original.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = original.DefaultProjectExcludeFilter,
-            DefaultShowQuickHelp = original.DefaultShowQuickHelp,
             MaxDegreeOfParallelism = original.MaxDegreeOfParallelism,
             AutomaticallyAddContainingType = original.AutomaticallyAddContainingType
         };

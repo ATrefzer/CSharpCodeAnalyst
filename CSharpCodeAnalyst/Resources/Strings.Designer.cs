@@ -475,7 +475,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show Information Flow.
+        ///   Looks up a localized string similar to Show Flow.
         /// </summary>
         public static string Flow_Label {
             get {
@@ -597,6 +597,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string ImportSolution_Label {
             get {
                 return ResourceManager.GetString("ImportSolution_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Info.
+        /// </summary>
+        public static string InfoPanel_TabHeader {
+            get {
+                return ResourceManager.GetString("InfoPanel_TabHeader", resourceCulture);
             }
         }
         

@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
@@ -19,10 +18,10 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
     private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
 
-    public InfoPanelViewModel(ApplicationSettings settings)
+    public InfoPanelViewModel()
     {
-        _isInfoPanelVisible = settings.DefaultShowQuickHelp;
         OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
+        Hide(true);
     }
 
     public ICommand OpenSourceLocationCommand { get; }
@@ -100,7 +99,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     public void HandleUpdateQuickInfo(QuickInfoUpdate quickInfoUpdate)
     {
         // May come from any view
-        if (IsInfoPanelVisible is false)
+        if (_hide)
         {
             // This can be very slow if updated even the help is not visible.
             return;
@@ -121,7 +120,8 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Hide the info panel temporarily for example when the wong page is shown..
+    ///     Hide the info panel temporarily for example when the wong page is shown.
+    ///     This does not waste computation if the info panel is hidden.
     /// </summary>
     public void Hide(bool hide)
     {

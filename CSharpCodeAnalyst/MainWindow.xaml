@@ -163,8 +163,6 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="10" />
                             <ColumnDefinition Width="Auto" /> <!-- Label -->
                             <ColumnDefinition Width="Auto" /> <!-- Drop Down -->
                         </Grid.ColumnDefinitions>
@@ -178,7 +176,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <RibbonToggleButton Grid.Row="0" Grid.Column="0"
+                        <!--<RibbonToggleButton Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.QuickInfo_Label}"
                                             SmallImageSource="/Resources/question_small.png"
                                             IsChecked="{Binding InfoPanelViewModel.IsInfoPanelVisible, Mode=TwoWay}">
@@ -186,18 +184,11 @@
                                 <ToolTip
                                     Content="{x:Static resources:Strings.QuickInfo_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
-                        </RibbonToggleButton>
+                        </RibbonToggleButton>-->
 
-                        <RibbonToggleButton Grid.Row="1" Grid.Column="0"
-                                            Label="{x:Static resources:Strings.FlatGraph_Label}"
-                                            SmallImageSource="/Resources/left-right_small.png"
-                                            IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}">
-                            <RibbonToggleButton.ToolTip>
-                                <ToolTip Content="{x:Static resources:Strings.FlatGraph_Tooltip}" />
-                            </RibbonToggleButton.ToolTip>
-                        </RibbonToggleButton>
-
-                        <RibbonToggleButton Grid.Row="0" Grid.Column="2"
+                        
+                        <RibbonToggleButton HorizontalAlignment="Left"
+                            Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.Flow_Label}"
                                             SmallImageSource="/Resources/guidepost_small.png"
                                             IsChecked="{Binding GraphViewModel.ShowDataFlow, Mode=TwoWay}">
@@ -207,21 +198,32 @@
                         </RibbonToggleButton>
 
 
+                        <RibbonToggleButton Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left"
+                                            Label="{x:Static resources:Strings.FlatGraph_Label}"
+                                            SmallImageSource="/Resources/left-right_small.png"
+                                            IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}">
+                            <RibbonToggleButton.ToolTip>
+                                <ToolTip Content="{x:Static resources:Strings.FlatGraph_Tooltip}" />
+                            </RibbonToggleButton.ToolTip>
+                        </RibbonToggleButton>
+
+
+
                         <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="0" Grid.Column="4"
+                                   Grid.Row="0" Grid.Column="2"
                                    Text="{x:Static resources:Strings.Rendering_Label}" />
                         <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="0" Grid.Column="5"
+                                  Grid.Row="0" Grid.Column="3"
                                   ItemsSource="{Binding GraphViewModel.RenderOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
                         <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="1" Grid.Column="4"
+                                   Grid.Row="1" Grid.Column="2"
                                    Text="{x:Static resources:Strings.Highlighting_Label}" />
                         <ComboBox VerticalAlignment="Center"
                                   Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="1" Grid.Column="5"
+                                  Grid.Row="1" Grid.Column="3"
                                   ItemsSource="{Binding GraphViewModel.HighlightOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
                     </Grid>
@@ -280,6 +282,7 @@
                 </Expander.Style>
 
                 <TabControl x:Name="CodeStructureTab"
+                            SelectedIndex="{Binding SelectedLeftTabIndex}"
                     Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
                     Margin="0">
 
@@ -465,6 +468,15 @@
                         </Grid>
                     </TabItem>
 
+                    <!-- Info Panel -->
+                    <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
+
+                        <!-- Info panel -->
+                        <infoPanel:InfoPanel 
+                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                            DataContext="{Binding InfoPanelViewModel}" />
+                    </TabItem>
+
                 </TabControl>
             </Expander>
 
@@ -479,7 +491,7 @@
 
 
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
-            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}">
                 <TabItem>
                     <TabItem.Header>Code Explorer</TabItem.Header>
                     <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
@@ -487,7 +499,6 @@
                             Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
                             HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="10">
                             <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" FontSize="24" Margin="10" />
-                            <TextBlock Text="{x:Static resources:Strings.Hint_HoldQuickInfo}" FontSize="24" Margin="10" />
                         </StackPanel>
                         <Border ClipToBounds="True">
                             <DockPanel Name="ExplorationGraphPanel" Margin="5" />
@@ -587,10 +598,7 @@
             </TabControl>
 
 
-            <!-- Info panel -->
-            <infoPanel:InfoPanel Grid.Column="2" 
-                                 DataContext="{Binding InfoPanelViewModel}"
-                                 IsVisible="{Binding IsInfoPanelVisibleEffective}" />
+         
         </Grid>
 
 

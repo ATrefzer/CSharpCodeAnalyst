@@ -64,9 +64,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private LegendDialog? _openedLegendDialog;
     private SearchViewModel? _searchViewModel;
+    private int _selectedLeftTabIndex;
 
 
-    private int _selectedTabIndex;
+    private int _selectedRightTabIndex;
 
     private TreeViewModel? _treeViewModel;
 
@@ -99,7 +100,7 @@ internal class MainViewModel : INotifyPropertyChanged
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
-   
+
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
         _loadMessage = string.Empty;
@@ -207,19 +208,18 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
 
-    public int SelectedTabIndex
+    public int SelectedRightTabIndex
     {
-        get => _selectedTabIndex;
+        get => _selectedRightTabIndex;
         set
         {
-            if (value == _selectedTabIndex)
+            if (value == _selectedRightTabIndex)
             {
                 return;
             }
 
-            _selectedTabIndex = value;
-            OnPropertyChanged(nameof(SelectedTabIndex));
-            InfoPanelViewModel.Hide(_selectedTabIndex != 0);
+            _selectedRightTabIndex = value;
+            OnPropertyChanged(nameof(SelectedRightTabIndex));
         }
     }
 
@@ -252,6 +252,18 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     public InfoPanelViewModel InfoPanelViewModel { get; set; }
+
+    public int SelectedLeftTabIndex
+    {
+        get => _selectedLeftTabIndex;
+        set
+        {
+            if (value == _selectedLeftTabIndex) return;
+            _selectedLeftTabIndex = value;
+            InfoPanelViewModel.Hide(value != 2);
+            OnPropertyChanged(nameof(SelectedLeftTabIndex));
+        }
+    }
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -470,7 +482,7 @@ internal class MainViewModel : INotifyPropertyChanged
         if (cycleGroups != null)
         {
             _messaging.Publish(new CycleCalculationComplete(cycleGroups));
-            SelectedTabIndex = 1;
+            SelectedRightTabIndex = 1;
         }
     }
 
@@ -802,7 +814,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
         GraphViewModel?.ImportCycleGroup(graph.Clone());
 
-        SelectedTabIndex = 0;
+        SelectedRightTabIndex = 0;
     }
 
     public void HandleDeleteFromModel(DeleteFromModelRequest request)
