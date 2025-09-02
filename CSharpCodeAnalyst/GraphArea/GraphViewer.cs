@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
-using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighting;
@@ -31,6 +30,8 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     private readonly IPublisher _publisher;
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
+
+    ClickController? _clickController;
 
     /// <summary>
     ///     Held to read the help
@@ -64,8 +65,14 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         _msaglViewer.BindToPanel(graphPanel);
 
         _msaglViewer.ObjectUnderMouseCursorChanged += ObjectUnderMouseCursorChanged;
-        _msaglViewer.MouseDown += Viewer_MouseDown!;
+
+        _clickController = new ClickController(_msaglViewer);
+
+        _clickController.LeftDoubleClick += OnLeftDoubleClick;
+        _clickController.LeftSingleClick += OnLeftSingleClick;
+        _clickController.OpenContextMenu += OnOpenContextMenu;
     }
+
 
     public void ShowFlatGraph(bool value)
     {
@@ -336,6 +343,76 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private void OnOpenContextMenu(IViewerObject? obj)
+    {
+        if (_msaglViewer?.ObjectUnderMouseCursor is IViewerNode clickedObject)
+        {
+            // Click on specific node
+            var node = clickedObject.Node;
+            var contextMenu = new ContextMenu();
+            var element = GetCodeElementFromUserData(node);
+            AddToContextMenuEntries(element, contextMenu);
+            if (contextMenu.Items.Count > 0)
+            {
+                contextMenu.IsOpen = true;
+            }
+        }
+        else if (_msaglViewer?.ObjectUnderMouseCursor is IViewerEdge viewerEdge)
+        {
+            // Click on specific edge
+            var edge = viewerEdge.Edge;
+            var contextMenu = new ContextMenu();
+            var relationships = GetRelationshipsFromUserData(edge);
+            AddContextMenuEntries(relationships, contextMenu);
+            if (contextMenu.Items.Count > 0)
+            {
+                contextMenu.IsOpen = true;
+            }
+        }
+        else
+        {
+            // Click on free space
+            ShowGlobalContextMenu();
+        }
+    }
+
+    private void OnLeftSingleClick(IViewerObject? obj)
+    {
+        if (obj == null)
+        {
+            // Release the fixed info if we click on empty space
+            _clickedObject = null;
+        }
+        else
+        {
+            // User wants to "hold" the current quick info.
+            _clickedObject = obj;
+        }
+
+        UpdateQuickInfoPanel(obj);
+    }
+
+    private void OnLeftDoubleClick(IViewerObject? obj)
+    {
+        // Execute double click action if any registered
+        if (obj is IViewerNode clickedObject)
+        {
+            var node = clickedObject.Node;
+            var element = GetCodeElementFromUserData(node);
+            if (element is not null)
+            {
+                foreach (var cmd in _nodeCommands)
+                {
+                    if (cmd.IsDoubleClickable && cmd.CanHandle(element))
+                    {
+                        cmd.Invoke(element);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
     private void RefreshFlagsWithoutLayout(List<string> ids, bool isFlagged)
     {
         foreach (var id in ids)
@@ -425,8 +502,6 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-
-
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {
         if (_clickedObject is null)
@@ -452,121 +527,6 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
 
         _publisher.Publish(new QuickInfoUpdate(quickInfo));
-    }
-
-    private void Viewer_MouseDown(object sender, MsaglMouseEventArgs e)
-    {
-        bool IsShiftPressed()
-        {
-            return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
-        }
-
-        bool IsCtrlPressed()
-        {
-            return Keyboard.IsKeyDown(Key.LeftCtrl);
-        }
-
-        if (TryEmulateDoubleClick(e))
-        {
-            return;
-        }
-
-        if (e.LeftButtonIsPressed)
-        {
-            var obj = _msaglViewer?.ObjectUnderMouseCursor;
-            if (obj == null || !IsShiftPressed() && !IsCtrlPressed())
-            {
-                // Release the fixed info if we click on empty space or click 
-                // anywhere without holding shift or ctrl.
-                _clickedObject = null;
-                UpdateQuickInfoPanel(obj);
-                return;
-            }
-
-            if (IsCtrlPressed())
-            {
-                // User wants to "hold" the current quick info.
-                _clickedObject = obj;
-                UpdateQuickInfoPanel(obj);
-                return;
-            }
-        }
-
-        if (e.RightButtonIsPressed)
-        {
-            if (_msaglViewer?.ObjectUnderMouseCursor is IViewerNode clickedObject)
-            {
-                // Click on specific node
-                var node = clickedObject.Node;
-                var contextMenu = new ContextMenu();
-                var element = GetCodeElementFromUserData(node);
-                AddToContextMenuEntries(element, contextMenu);
-                if (contextMenu.Items.Count > 0)
-                {
-                    contextMenu.IsOpen = true;
-                }
-            }
-            else if (_msaglViewer?.ObjectUnderMouseCursor is IViewerEdge viewerEdge)
-            {
-                // Click on specific edge
-                var edge = viewerEdge.Edge;
-                var contextMenu = new ContextMenu();
-                var relationships = GetRelationshipsFromUserData(edge);
-                AddContextMenuEntries(relationships, contextMenu);
-                if (contextMenu.Items.Count > 0)
-                {
-                    contextMenu.IsOpen = true;
-                }
-            }
-            else
-            {
-                // Click on free space
-                ShowGlobalContextMenu();
-            }
-        }
-        else
-        {
-            e.Handled = false;
-        }
-    }
-
-    private bool TryEmulateDoubleClick(MsaglMouseEventArgs e)
-    {
-        if (e.LeftButtonIsPressed)
-        {
-            var elapsed = _clickStopwatch.ElapsedMilliseconds;
-            if (elapsed > 0 && elapsed < Constants.DoubleClickMilliseconds)
-            {
-                OnDoubleClick(e);
-                _clickStopwatch.Restart();
-                return true;
-            }
-
-            _clickStopwatch.Restart();
-        }
-
-        return false;
-    }
-
-    private void OnDoubleClick(MsaglMouseEventArgs args)
-    {
-        // Execute double click action if any registered
-        if (_msaglViewer?.ObjectUnderMouseCursor is IViewerNode clickedObject)
-        {
-            var node = clickedObject.Node;
-            var element = GetCodeElementFromUserData(node);
-            if (element is not null)
-            {
-                foreach (var cmd in _nodeCommands)
-                {
-                    if (cmd.IsDoubleClickable && cmd.CanHandle(element))
-                    {
-                        cmd.Invoke(element);
-                        return;
-                    }
-                }
-            }
-        }
     }
 
     private void AddContextMenuEntries(List<Relationship> relationships, ContextMenu contextMenu)
