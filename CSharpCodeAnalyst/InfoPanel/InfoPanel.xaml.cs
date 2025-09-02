@@ -8,16 +8,6 @@ namespace CSharpCodeAnalyst.InfoPanel
     /// </summary>
     public partial class InfoPanel : UserControl
     {
-        public static readonly DependencyProperty IsVisibleProperty =
-            DependencyProperty.Register("IsVisible", typeof(bool), typeof(InfoPanel), 
-                new PropertyMetadata(true, OnIsVisibleChanged));
-
-        public bool IsVisible
-        {
-            get => (bool)GetValue(IsVisibleProperty);
-            set => SetValue(IsVisibleProperty, value);
-        }
-
         public InfoPanel()
         {
             InitializeComponent();

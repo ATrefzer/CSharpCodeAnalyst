@@ -429,7 +429,7 @@
 </value>
   </data>
   <data name="Flow_Label" xml:space="preserve">
-    <value>Show Information Flow</value>
+    <value>Show Flow</value>
   </data>
   <data name="Flow_Tooltip" xml:space="preserve">
     <value>Shows the information flow instead of dependencies between code elements</value>
@@ -574,5 +574,8 @@
   </data>
   <data name="SearchPattern_Tooltip" xml:space="preserve">
     <value>Use ' ' for AND, '|' for OR condition. If you want to search for type colum use type:xxx</value>
-  </data>  
+  </data>
+  <data name="InfoPanel_TabHeader" xml:space="preserve">
+    <value>Info</value>
+  </data>
 </root>

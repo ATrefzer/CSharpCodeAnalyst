@@ -56,7 +56,7 @@ public partial class App
         var treeViewModel = new TreeViewModel(messaging);
         var searchViewModel = new SearchViewModel(messaging);
         var cycleViewModel = new CycleSummaryViewModel();
-        var infoPanelViewModel = new InfoPanelViewModel(settings);
+        var infoPanelViewModel = new InfoPanelViewModel();
 
         viewModel.InfoPanelViewModel = infoPanelViewModel;
         viewModel.GraphViewModel = graphViewModel;

@@ -38,6 +38,8 @@ namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
+
+    private const int INFO_PANEL_TAB_INDEX = 2;
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
@@ -64,9 +66,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private LegendDialog? _openedLegendDialog;
     private SearchViewModel? _searchViewModel;
+    private int _selectedLeftTabIndex;
 
 
-    private int _selectedTabIndex;
+    private int _selectedRightTabIndex;
 
     private TreeViewModel? _treeViewModel;
 
@@ -99,7 +102,7 @@ internal class MainViewModel : INotifyPropertyChanged
         OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
         OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
-   
+
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
         _loadMessage = string.Empty;
@@ -207,19 +210,18 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
 
-    public int SelectedTabIndex
+    public int SelectedRightTabIndex
     {
-        get => _selectedTabIndex;
+        get => _selectedRightTabIndex;
         set
         {
-            if (value == _selectedTabIndex)
+            if (value == _selectedRightTabIndex)
             {
                 return;
             }
 
-            _selectedTabIndex = value;
-            OnPropertyChanged(nameof(SelectedTabIndex));
-            InfoPanelViewModel.Hide(_selectedTabIndex != 0);
+            _selectedRightTabIndex = value;
+            OnPropertyChanged(nameof(SelectedRightTabIndex));
         }
     }
 
@@ -252,6 +254,18 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     public InfoPanelViewModel InfoPanelViewModel { get; set; }
+
+    public int SelectedLeftTabIndex
+    {
+        get => _selectedLeftTabIndex;
+        set
+        {
+            if (value == _selectedLeftTabIndex) return;
+            _selectedLeftTabIndex = value;
+            InfoPanelViewModel.Hide(value != INFO_PANEL_TAB_INDEX);
+            OnPropertyChanged(nameof(SelectedLeftTabIndex));
+        }
+    }
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -470,7 +484,7 @@ internal class MainViewModel : INotifyPropertyChanged
         if (cycleGroups != null)
         {
             _messaging.Publish(new CycleCalculationComplete(cycleGroups));
-            SelectedTabIndex = 1;
+            SelectedRightTabIndex = 1;
         }
     }
 
@@ -718,11 +732,6 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
             // Load settings
-            if (projectData.Settings.TryGetValue(nameof(InfoPanelViewModel.IsInfoPanelVisible), out var isInfoPanelVisibleString))
-            {
-                InfoPanelViewModel.IsInfoPanelVisible = bool.Parse(isInfoPanelVisibleString);
-            }
-
             if (GraphViewModel != null)
 
             {
@@ -779,7 +788,6 @@ internal class MainViewModel : INotifyPropertyChanged
         var projectData = new ProjectData();
         projectData.SetCodeGraph(_codeGraph);
         projectData.SetGallery(_gallery ?? new Gallery.Gallery());
-        projectData.Settings[nameof(InfoPanelViewModel.IsInfoPanelVisible)] = InfoPanelViewModel.IsInfoPanelVisible.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
@@ -802,7 +810,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
         GraphViewModel?.ImportCycleGroup(graph.Clone());
 
-        SelectedTabIndex = 0;
+        SelectedRightTabIndex = 0;
     }
 
     public void HandleDeleteFromModel(DeleteFromModelRequest request)

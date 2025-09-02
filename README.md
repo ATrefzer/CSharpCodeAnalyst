@@ -10,12 +10,9 @@ Note: MSBuild must be installed on your computer for the application to work.
 
 ![image-20240731123233438](Images/code-explorer.png)
 
-- Use the tree view to add code elements to the canvas.
+- Use the tree or search view to add code elements to the canvas.
 - You can explore relationships between code elements using the context menu on a code element.
-- Use the context menu to automatically connect all code elements in the space around the graph.
-- Pressing **Control + Left Mouse Click** will keep the quick help for the clicked element active.
-- To pan, press **Shift + Left Mouse Button** and move the mouse in empty canvas space.
-
+- Use the context menu in the space around the graph to automatically connect all code elements.
 - You can export graphs to DGML for further analysis in Visual Studio.
 
 ## Find and visualize cycles in your codebase

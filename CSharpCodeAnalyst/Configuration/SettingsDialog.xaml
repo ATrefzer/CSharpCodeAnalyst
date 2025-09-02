@@ -17,10 +17,6 @@
 
                 <GroupBox Header="{x:Static resources:Strings.Settings_General}" Margin="5,0,0,0">
                     <StackPanel Margin="10">
-                        <CheckBox x:Name="ShowQuickHelpCheckBox"
-                                  Content="{x:Static resources:Strings.Settings_QuickHelpByDefault}"
-                                  Margin="0,5" />
-
                         <CheckBox x:Name="AutoAddContainingTypeCheckBox"
                                   Content="{x:Static resources:Strings.Settings_AddContainingType}"
                                   Margin="0,5"
