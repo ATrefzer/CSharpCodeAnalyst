@@ -578,4 +578,13 @@
   <data name="InfoPanel_TabHeader" xml:space="preserve">
     <value>Info</value>
   </data>
+  <data name="Warning_Title" xml:space="preserve">
+   <value>Warning</value>
+ </data>
+  <data name="GraphRenderingError" xml:space="preserve">
+   <value>Failed rendering graph! Undo your last operation.</value>
+ </data>
+  <data name="GraphRenderingWarning" xml:space="preserve">
+   <value>Failed rendering graph. Retry without line bundling.</value>
+ </data>
 </root>

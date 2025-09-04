@@ -529,6 +529,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed rendering graph! Undo your last operation..
+        /// </summary>
+        public static string GraphRenderingError {
+            get {
+                return ResourceManager.GetString("GraphRenderingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed rendering graph. Retry without line bundling..
+        /// </summary>
+        public static string GraphRenderingWarning {
+            get {
+                return ResourceManager.GetString("GraphRenderingWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Help.
         /// </summary>
         public static string Help_Header {
@@ -1436,6 +1454,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Undo_Tooltip {
             get {
                 return ResourceManager.GetString("Undo_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        public static string Warning_Title {
+            get {
+                return ResourceManager.GetString("Warning_Title", resourceCulture);
             }
         }
     }

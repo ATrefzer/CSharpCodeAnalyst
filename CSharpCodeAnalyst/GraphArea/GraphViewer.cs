@@ -1,14 +1,17 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Windows.Controls;
-using Contracts.Graph;
+﻿using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Drawing;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using System.Windows.Controls;
+using CSharpCodeAnalyst.Resources;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
@@ -489,16 +492,42 @@ internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
         }
     }
-
     private void RefreshGraph()
     {
-        if (_msaglViewer != null)
+        try
         {
-            var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
-                _showFlatGraph, _flow);
+            if (_msaglViewer != null)
+            {
+                var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
+                    _showFlatGraph, _flow);
 
-            _renderOption.Apply(graph);
-            _msaglViewer.Graph = graph;
+                _renderOption.Apply(graph);
+
+                Exception? renderException = null;
+                try
+                {
+                    _msaglViewer.Graph = graph;
+                }
+                catch (Exception ex)
+                {
+                    renderException = ex;
+                }
+
+                if (renderException != null)
+                {
+                    // In rare cases the rendering fails when finding attachment points for bundled edges.
+                    // As a workaround I render the graph with straight lines.
+                    MessageBox.Show(Strings.GraphRenderingWarning, Strings.Warning_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    var settings = graph.LayoutAlgorithmSettings;
+                    settings.EdgeRoutingSettings.EdgeRoutingMode = EdgeRoutingMode.StraightLine;
+                    _msaglViewer.Graph = graph;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Strings.GraphRenderingError, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
