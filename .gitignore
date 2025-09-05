@@ -370,3 +370,4 @@ FodyWeavers.xsd
 *.dtmp
 /tmp
 /SampleProject/project.json
+/deps.json

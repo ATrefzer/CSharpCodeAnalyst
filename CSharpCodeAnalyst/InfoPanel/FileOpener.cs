@@ -100,7 +100,7 @@ public class FileOpener
         process.Start();
     }
 
-    public static object? GetComObject(string progId)
+    private static object? GetComObject(string progId)
     {
         var hr = CLSIDFromProgID(progId, out var clsid);
         if (hr != 0)
@@ -115,33 +115,119 @@ public class FileOpener
     [DllImport("ole32.dll", CharSet = CharSet.Unicode)]
     private static extern int CLSIDFromProgID([MarshalAs(UnmanagedType.LPWStr)] string progId, out Guid clsid);
 
-    public static bool OpenFileInRunningVisualStudioInstance(string file, int line = 0)
+    private static bool OpenFileInRunningVisualStudioInstance(string file, int line = 0)
     {
         // "VisualStudio.DTE.17.0" (VS 2022),
         // "VisualStudio.DTE.16.0" (VS 2019)
-
         var progId = "VisualStudio.DTE.17.0";
 
-        var obj = GetComObject(progId);
-        if (obj is null)
+        object? obj = null;
+        object? mainWindow = null;
+        object? itemOperations = null;
+
+        try
         {
-            // No running instance found
+            obj = GetComObject(progId);
+            if (obj is null)
+            {
+                return false;
+            }
+
+            dynamic dte = obj;
+
+            mainWindow = dte.MainWindow;
+            ((dynamic)mainWindow).Visible = true;
+
+            itemOperations = dte.ItemOperations;
+            ((dynamic)itemOperations).OpenFile(file);
+
+            if (line > 0)
+            {
+                // Unfortunately if visual studio is busy we may fail here with RPC_E_CALL_REJECTED
+                // A retry solves this in most cases.
+                WithRetry(3, () => GotoLineInActiveDocument(dte, line));
+            }
+
+            ((dynamic)mainWindow).Activate();
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine(ex);
             return false;
         }
-
-        dynamic dte = obj;
-        dte.MainWindow.Visible = true;
-        dte.ItemOperations.OpenFile(file);
-
-        if (line > 0)
+        finally
         {
-            var sel = dte.ActiveDocument.Selection;
-            sel.GotoLine(line, true);
+            if (itemOperations != null)
+            {
+                Marshal.ReleaseComObject(itemOperations);
+            }
+
+            if (mainWindow != null)
+            {
+                Marshal.ReleaseComObject(mainWindow);
+            }
+
+            if (obj != null)
+            {
+                Marshal.ReleaseComObject(obj);
+            }
+        }
+    }
+
+
+    private static void WithRetry(int number, Action action)
+    {
+        var counter = 0;
+        while (counter < number)
+        {
+            try
+            {
+                action();
+                return;
+            }
+            catch (Exception)
+            {
+                counter++;
+                Thread.Sleep(100);
+            }
         }
 
-        dte.MainWindow.Activate();
-        return true;
+        throw new InvalidOperationException("Retry exceeded");
     }
+
+    private static void GotoLineInActiveDocument(dynamic dte, int line)
+    {
+        object? activeDoc = null;
+        object? selection = null;
+
+        try
+        {
+            activeDoc = dte.ActiveDocument;
+            if (activeDoc != null)
+            {
+                selection = ((dynamic)activeDoc).Selection;
+                if (selection != null)
+                {
+                    ((dynamic)selection).GotoLine(line, true);
+                }
+            }
+        }
+        finally
+        {
+            if (selection != null)
+            {
+                Marshal.ReleaseComObject(selection);
+            }
+
+            if (activeDoc != null)
+            {
+                Marshal.ReleaseComObject(activeDoc);
+            }
+        }
+    }
+
 
     public static class ComInterop
     {
