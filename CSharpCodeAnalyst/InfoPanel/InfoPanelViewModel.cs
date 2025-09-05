@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -24,7 +23,6 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     }
 
     public ICommand OpenSourceLocationCommand { get; }
-
 
 
     public List<QuickInfo> QuickInfo
@@ -52,20 +50,11 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
             return;
         }
 
-        var process = new Process();
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "\"C:\\Program Files\\Notepad++\\notepad++.exe\"",
-            Arguments = $"-n{location.Line} -c{location.Column} \"{location.File}\"",
-            UseShellExecute = false,
-            RedirectStandardOutput = false,
-            CreateNoWindow = true
-        };
-
         try
         {
-            process.StartInfo = startInfo;
-            process.Start();
+            // Create a new instance to find newly open studio instance.
+            var fileOpener = new FileOpener();
+            fileOpener.TryOpenFile(location.File, location.Line, location.Column);
         }
         catch (Exception ex)
         {

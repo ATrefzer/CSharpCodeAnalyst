@@ -1,14 +1,9 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Flagging code elements 
-- Jump to tree when find in tree is called.
-
-- Configure editor to open text files.
 - Performance in general
 - Anonymous methods like PdsOnElementCreated, lambdas
 - Tree is very slow
-- Highlighting aggregated edges takes too long. If quick help is not visible then skip.
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
