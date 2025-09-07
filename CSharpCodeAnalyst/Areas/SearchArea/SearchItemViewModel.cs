@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Windows.Media.Imaging;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Common;
 
 namespace CSharpCodeAnalyst.SearchArea;
 
@@ -11,6 +13,8 @@ public class SearchItemViewModel : INotifyPropertyChanged
     public string Type { get; set; } = string.Empty;
     public string FullPath { get; set; } = string.Empty;
     public CodeElement? CodeElement { get; set; }
+    
+    public BitmapImage? Icon => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
