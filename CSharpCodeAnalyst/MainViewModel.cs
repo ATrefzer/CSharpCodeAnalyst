@@ -39,7 +39,7 @@ namespace CSharpCodeAnalyst;
 internal class MainViewModel : INotifyPropertyChanged
 {
 
-    private const int INFO_PANEL_TAB_INDEX = 2;
+    private const int InfoPanelTabIndex = 2;
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
@@ -87,21 +87,21 @@ internal class MainViewModel : INotifyPropertyChanged
         _messaging = messaging;
         _gallery = new Gallery.Gallery();
         SearchCommand = new DelegateCommand(Search);
-        LoadSolutionCommand = new DelegateCommand(LoadSolution);
-        ImportJdepsCommand = new DelegateCommand(ImportJdeps);
-        LoadProjectCommand = new DelegateCommand(LoadProject);
-        SaveProjectCommand = new DelegateCommand(SaveProject);
-        GraphClearCommand = new DelegateCommand(GraphClear);
-        GraphLayoutCommand = new DelegateCommand(GraphLayout);
-        ExportToDgmlCommand = new DelegateCommand(ExportToDgml);
-        ExportToSvgCommand = new DelegateCommand(ExportToSvg);
-        FindCyclesCommand = new DelegateCommand(FindCycles);
-        ShowGalleryCommand = new DelegateCommand(ShowGallery);
-        ExportToDsiCommand = new DelegateCommand(ExportToDsi);
-        ShowLegendCommand = new DelegateCommand(ShowLegend);
-        OpenFilterDialogCommand = new DelegateCommand(OpenFilterDialog);
-        OpenSettingsDialogCommand = new DelegateCommand(OpenSettingsDialog);
-        ExportToPngCommand = new DelegateCommand<FrameworkElement>(ExportToPng);
+        LoadSolutionCommand = new DelegateCommand(OnLoadSolution);
+        ImportJdepsCommand = new DelegateCommand(OnImportJdeps);
+        LoadProjectCommand = new DelegateCommand(OnLoadProject);
+        SaveProjectCommand = new DelegateCommand(OnSaveProject);
+        GraphClearCommand = new DelegateCommand(OnGraphClear);
+        GraphLayoutCommand = new DelegateCommand(OnGraphLayout);
+        ExportToDgmlCommand = new DelegateCommand(OnExportToDgml);
+        ExportToSvgCommand = new DelegateCommand(OnExportToSvg);
+        FindCyclesCommand = new DelegateCommand(OnFindCycles);
+        ShowGalleryCommand = new DelegateCommand(OnShowGallery);
+        ExportToDsiCommand = new DelegateCommand(OnExportToDsi);
+        ShowLegendCommand = new DelegateCommand(OnShowLegend);
+        OpenFilterDialogCommand = new DelegateCommand(OnOpenFilterDialog);
+        OpenSettingsDialogCommand = new DelegateCommand(OnOpenSettingsDialog);
+        ExportToPngCommand = new DelegateCommand<FrameworkElement>(OnExportToPng);
 
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
@@ -262,7 +262,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             if (value == _selectedLeftTabIndex) return;
             _selectedLeftTabIndex = value;
-            InfoPanelViewModel.Hide(value != INFO_PANEL_TAB_INDEX);
+            InfoPanelViewModel.Hide(value != InfoPanelTabIndex);
             OnPropertyChanged(nameof(SelectedLeftTabIndex));
         }
     }
@@ -270,7 +270,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void ShowGallery()
+    private void OnShowGallery()
     {
         if (_graphViewModel is null || _gallery is null || _codeGraph is null)
         {
@@ -324,7 +324,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ShowLegend()
+    private void OnShowLegend()
     {
         if (_openedLegendDialog == null)
         {
@@ -336,13 +336,13 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OpenFilterDialog()
+    private void OnOpenFilterDialog()
     {
         var filterDialog = new FilterDialog(_projectExclusionFilters);
         filterDialog.ShowDialog();
     }
 
-    private void OpenSettingsDialog()
+    private void OnOpenSettingsDialog()
     {
         var settingsDialog = new SettingsDialog(_applicationSettings);
         settingsDialog.Owner = Application.Current.MainWindow;
@@ -402,7 +402,7 @@ internal class MainViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Exports the whole project to dsi.
     /// </summary>
-    private async void ExportToDsi()
+    private async void OnExportToDsi()
     {
         if (_codeGraph is null)
         {
@@ -455,7 +455,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async void FindCycles()
+    private async void OnFindCycles()
     {
         if (_codeGraph is null)
         {
@@ -488,12 +488,12 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void GraphLayout()
+    private void OnGraphLayout()
     {
         _graphViewModel?.Layout();
     }
 
-    private void GraphClear()
+    private void OnGraphClear()
     {
         _graphViewModel?.Clear();
     }
@@ -503,40 +503,9 @@ internal class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private async Task LoadAndAnalyzeSolution(string solutionPath)
-    {
-        try
-        {
-            IsLoading = true;
 
-            var (codeGraph, diagnostics) = await Task.Run(async () => await LoadAsync(solutionPath));
 
-            var failures = diagnostics.FormatFailures();
-            if (string.IsNullOrEmpty(failures) is false)
-            {
-                var failureText = Strings.Parser_FailureHeader + failures;
-                MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-
-            LoadCodeGraph(codeGraph);
-
-            // Imported a new solution
-            _isSaved = false;
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsCanvasHintsVisible = false;
-            IsLoading = false;
-        }
-    }
-
-    private async Task<(CodeGraph, IParserDiagnostics)> LoadAsync(string solutionPath)
+    private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
     {
         LoadMessage = "Loading ...";
         var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
@@ -567,7 +536,7 @@ internal class MainViewModel : INotifyPropertyChanged
         Metrics = outputs;
     }
 
-    private async void LoadSolution()
+    private async void OnLoadSolution()
     {
         var openFileDialog = new OpenFileDialog
         {
@@ -581,10 +550,45 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         var solutionPath = openFileDialog.FileName;
-        await LoadAndAnalyzeSolution(solutionPath);
+
+        try
+        {
+            IsLoading = true;
+
+            var codeGraph = await LoadSolutionAsync(solutionPath);
+            LoadDefaultSettings();
+            LoadCodeGraph(codeGraph);
+            _gallery = new Gallery.Gallery();
+            _isSaved = false;
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsCanvasHintsVisible = false;
+            IsLoading = false;
+        }
     }
 
-    private void ImportJdeps()
+    private async Task<CodeGraph> LoadSolutionAsync(string solutionPath)
+    {
+        var (codeGraph, diagnostics) = await Task.Run(async () => await ImportSolutionAsync(solutionPath));
+
+        var failures = diagnostics.FormatFailures();
+        if (string.IsNullOrEmpty(failures) is false)
+        {
+            var failureText = Strings.Parser_FailureHeader + failures;
+            MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        return codeGraph;
+    }
+
+    private void OnImportJdeps()
     {
         var openFileDialog = new OpenFileDialog
         {
@@ -629,7 +633,7 @@ internal class MainViewModel : INotifyPropertyChanged
         LoadMessage = e.Message;
     }
 
-    private void ExportToDgml()
+    private void OnExportToDgml()
     {
         if (_graphViewModel is null)
         {
@@ -653,7 +657,7 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
 
-    private void ExportToPng(FrameworkElement canvas)
+    private void OnExportToPng(FrameworkElement canvas)
     {
         if (_graphViewModel is null)
         {
@@ -677,7 +681,7 @@ internal class MainViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Not usable at the moment. It does not render subgraphs.
     /// </summary>
-    private void ExportToSvg()
+    private void OnExportToSvg()
     {
         if (_graphViewModel is null)
         {
@@ -702,58 +706,31 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
 
-    private void LoadProject()
+    private async void OnLoadProject()
     {
+        var openFileDialog = new OpenFileDialog
+        {
+            Filter = "JSON files (*.json)|*.json",
+            Title = "Load Project"
+        };
+
+        if (openFileDialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+
         try
         {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "JSON files (*.json)|*.json",
-                Title = "Load Project"
-            };
+            LoadMessage = "Loading ...";
+            IsLoading = true;
 
-            if (openFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
+            var fileName = openFileDialog.FileName;
+            var (codeGraph, projectData) = await Task.Run(() => LoadProject(fileName));
 
-            var json = File.ReadAllText(openFileDialog.FileName);
-            var options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve
-            };
-            var projectData = JsonSerializer.Deserialize<ProjectData>(json, options);
-            if (projectData is null)
-            {
-                throw new NullReferenceException();
-            }
-
-            var codeGraph = projectData.GetCodeGraph();
-
-
-            // Load settings
-            if (GraphViewModel != null)
-
-            {
-                if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
-                {
-                    GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
-                }
-
-                if (projectData.Settings.TryGetValue(nameof(GraphViewModel.ShowDataFlow), out var showFlow))
-                {
-                    GraphViewModel.ShowDataFlow = bool.Parse(showFlow);
-                }
-            }
-
-            if (projectData.Settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
-            {
-                _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
-            }
-
+            LoadSettings(projectData.Settings);
             LoadCodeGraph(codeGraph);
             _gallery = projectData.GetGallery();
-
             _isSaved = true;
         }
         catch (Exception ex)
@@ -763,11 +740,63 @@ internal class MainViewModel : INotifyPropertyChanged
         }
         finally
         {
+            LoadMessage = string.Empty;
             IsCanvasHintsVisible = false;
+            IsLoading = false;
         }
     }
 
-    private void SaveProject()
+    private void LoadDefaultSettings()
+    {
+        if (GraphViewModel != null)
+        {
+            GraphViewModel.ShowFlatGraph = false;
+            GraphViewModel.ShowDataFlow = false;
+        }
+
+        _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
+    }
+
+    private void LoadSettings(Dictionary<string, string> settings)
+    {
+        if (GraphViewModel != null)
+        {
+            if (settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
+            {
+                GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
+            }
+
+            if (settings.TryGetValue(nameof(GraphViewModel.ShowDataFlow), out var showFlow))
+            {
+                GraphViewModel.ShowDataFlow = bool.Parse(showFlow);
+            }
+        }
+
+        if (settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
+        {
+            _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
+        }
+    }
+
+    private (CodeGraph codeGraph, ProjectData projectData) LoadProject(string fileName)
+    {
+        var json = File.ReadAllText(fileName);
+        var options = new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.Preserve
+        };
+        var projectData = JsonSerializer.Deserialize<ProjectData>(json, options);
+        if (projectData is null)
+        {
+            throw new NullReferenceException();
+        }
+
+        var codeGraph = projectData.GetCodeGraph();
+
+        return (codeGraph, projectData);
+    }
+
+    private void OnSaveProject()
     {
         if (_codeGraph is null || _graphViewModel is null)
         {
@@ -835,7 +864,7 @@ internal class MainViewModel : INotifyPropertyChanged
             if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                SaveProject();
+                OnSaveProject();
             }
         }
 

@@ -330,7 +330,7 @@
                                 <TreeView.ItemTemplate>
                                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Type}" FontWeight="Bold" Margin="0,0,5,0" />
+                                            <Image Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
                                             <TextBlock Text="{Binding Name}" />
                                         </StackPanel>
                                     </HierarchicalDataTemplate>
@@ -405,12 +405,21 @@
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
+                                                            Width="Auto">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Image Source="{Binding Icon}" Width="16" Height="16" ToolTip="{Binding Type}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
                                     <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
                                                         Binding="{Binding Name}"
                                                         Width="Auto" />
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.Type_Label}"
-                                                        Binding="{Binding Type}"
-                                                        Width="Auto" />
+
+                                 
+
                                     <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
                                                         Binding="{Binding FullPath}"
                                                         Width="Auto" />
