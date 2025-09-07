@@ -583,6 +583,42 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to • Right-click on code element: context-sensitive commands.
+        /// </summary>
+        public static string Hint_Context {
+            get {
+                return ResourceManager.GetString("Hint_Context", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to • Left-click on code element: show detail in Info tab.
+        /// </summary>
+        public static string Hint_DetailInfo {
+            get {
+                return ResourceManager.GetString("Hint_DetailInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to • Double-click on container: expand / collapse.
+        /// </summary>
+        public static string Hint_ExpandCollapse {
+            get {
+                return ResourceManager.GetString("Hint_ExpandCollapse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to • Right-click on empty space: global context commands (i.e. selection).
+        /// </summary>
+        public static string Hint_GlobalContext {
+            get {
+                return ResourceManager.GetString("Hint_GlobalContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hold quick help: Ctrl + Click.
         /// </summary>
         public static string Hint_HoldQuickInfo {
@@ -592,11 +628,20 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Panning: Shift + Mouse.
+        ///   Looks up a localized string similar to • Shift + left-click + mouse move: panning.
         /// </summary>
         public static string Hint_Panning {
             get {
                 return ResourceManager.GetString("Hint_Panning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to • Ctrl + left-click: (multi) select code element.
+        /// </summary>
+        public static string Hint_Select {
+            get {
+                return ResourceManager.GetString("Hint_Select", resourceCulture);
             }
         }
         

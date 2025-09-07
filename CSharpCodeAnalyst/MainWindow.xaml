@@ -9,9 +9,10 @@
         xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+        xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
-        Title="{x:Static resources:Strings.AppTitle}" Height="450" Width="800"
+        Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
         d:DataContext="{d:DesignInstance analyst:MainViewModel}">
     <Window.Resources>
         <ResourceDictionary>
@@ -123,7 +124,7 @@
                     <RibbonButton Label="{x:Static resources:Strings.SavePng_Label}"
                                   LargeImageSource="/Resources/png-file_32.png"
                                   Command="{Binding ExportToPngCommand}"
-                                  CommandParameter="{Binding ElementName=ExplorationGraphPanel}">
+                                  CommandParameter="{Binding ElementName=ExplorationControl}">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.SavePng_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -483,16 +484,7 @@
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}">
                 <TabItem>
                     <TabItem.Header>Code Explorer</TabItem.Header>
-                    <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
-                        <StackPanel
-                            Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                            HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="10">
-                            <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" FontSize="24" Margin="10" />
-                        </StackPanel>
-                        <Border ClipToBounds="True">
-                            <DockPanel Name="ExplorationGraphPanel" Margin="5" />
-                        </Border>
-                    </Grid>
+                   <graphArea:CodeExplorerControl x:Name="ExplorationControl"/>
                 </TabItem>
                 <TabItem Header="Cycle summary">
                     <Grid DataContext="{Binding CycleSummaryViewModel}">

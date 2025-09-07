@@ -328,7 +328,22 @@
     <value>Hold quick help: Ctrl + Click</value>
   </data>
   <data name="Hint_Panning" xml:space="preserve">
-    <value>Panning: Shift + Mouse</value>
+    <value>• Shift + left-click + mouse move: panning</value>
+  </data>
+  <data name="Hint_ExpandCollapse" xml:space="preserve">
+    <value>• Double-click on container: expand / collapse</value>
+  </data>
+  <data name="Hint_DetailInfo" xml:space="preserve">
+    <value>• Left-click on code element: show detail in Info tab</value>
+  </data>
+  <data name="Hint_Select" xml:space="preserve">
+    <value>• Ctrl + left-click: (multi) select code element</value>
+  </data>
+  <data name="Hint_Context" xml:space="preserve">
+    <value>• Right-click on code element: context-sensitive commands</value>
+  </data>
+  <data name="Hint_GlobalContext" xml:space="preserve">
+    <value>• Right-click on empty space: global context commands (i.e. selection)</value>
   </data>
   <data name="CompleteToTypes" xml:space="preserve">
     <value>Complete to containing types</value>

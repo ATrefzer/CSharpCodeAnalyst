@@ -23,7 +23,7 @@ namespace CSharpCodeAnalyst.GraphArea;
 ///     in the parser. In this case the relationship holds all source references.
 ///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
-internal class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
+public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 {
     private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];

@@ -10,10 +10,25 @@ Note: MSBuild must be installed on your computer for the application to work.
 
 ![image-20240731123233438](Images/code-explorer.png)
 
-- Use the tree or search view to add code elements to the canvas.
-- You can explore relationships between code elements using the context menu on a code element.
-- Use the context menu in the space around the graph to automatically connect all code elements.
-- You can export graphs to DGML for further analysis in Visual Studio.
+- Import a C# solution (*.sln). 
+- Use the **Tree View** or **Advanced Search** feature to add code elements to the canvas. The **Advanced Search** allows you to add multiple code elements at once.
+- Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
+- To perform operations on multiple selected elements, use the context menu in the space surrounding the graph. 
+- You can also export graphs to DGML format for further analysis in Visual Studio.
+
+**Performance Tips**
+
+When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+
+**Other languages**
+
+The tool is written for  C#, but you can also import jdeps output for basic visualization.
+
+```
+jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
+```
+
+
 
 ## Find and visualize cycles in your codebase
 
@@ -59,12 +74,9 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 Please take note of the following issues:
 
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
-- The tree view search may be very slow, depending on the result.
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
 - External code is ignored.
 - The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Uncovered C# Syntax](Documentation/uncovered-csharp-syntax.md) 
-
-
 
 ## Thank you
 

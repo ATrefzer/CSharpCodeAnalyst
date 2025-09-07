@@ -149,6 +149,7 @@ namespace CSharpCodeAnalyst.GraphArea
             if (e.RightButtonIsPressed)
             {
                 OpenContextMenu?.Invoke(_targetObject);
+                e.Handled = true;
             }
         }
     }

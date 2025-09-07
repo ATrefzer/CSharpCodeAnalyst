@@ -23,8 +23,12 @@ public class ImageWriter
         SaveUsingEncoder(visual, fileName, encoder);
     }
 
-    public static void SaveUsingEncoder(FrameworkElement visual, string fileName, BitmapEncoder encoder)
+    public static void SaveUsingEncoder(FrameworkElement? visual, string fileName, BitmapEncoder encoder)
     {
+        if (visual is null)
+        {
+            return;
+        }
         var bitmap = new RenderTargetBitmap((int)visual.ActualWidth, (int)visual.ActualHeight, 96, 96,
             PixelFormats.Pbgra32); // todo: seems wrong - might produce huge images
         bitmap.Render(visual);

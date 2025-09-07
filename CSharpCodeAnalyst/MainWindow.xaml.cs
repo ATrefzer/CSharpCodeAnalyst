@@ -41,11 +41,7 @@ public partial class MainWindow
         }), DispatcherPriority.Loaded);
     }
 
-    public void SetViewer(IGraphBinding explorationGraphViewer
-    )
-    {
-        explorationGraphViewer.Bind(ExplorationGraphPanel);
-    }
+
 
     private void Exit_Click(object sender, RoutedEventArgs e)
     {
@@ -160,20 +156,6 @@ public partial class MainWindow
         }, DispatcherPriority.Render);
     }
 
-    private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        // Better user experience.
-        // Allow context menu in space not occupied by the graph canvas
-        if (DataContext is MainViewModel mainVm && e is
-            {
-                ButtonState: MouseButtonState.Pressed,
-                ChangedButton: MouseButton.Right
-            })
-        {
-            mainVm.GraphViewModel?.ShowGlobalContextMenu();
-        }
-    }
-
     private void RootWindow_Closing(object sender, CancelEventArgs e)
     {
         if (DataContext is MainViewModel mainVm)
@@ -191,5 +173,10 @@ public partial class MainWindow
             button.ContextMenu.Placement = PlacementMode.Bottom;
             button.ContextMenu.IsOpen = true;
         }
+    }
+
+    public void SetViewer(GraphViewer explorationGraphViewer)
+    {
+        ExplorationControl.SetViewer(explorationGraphViewer);
     }
 }
