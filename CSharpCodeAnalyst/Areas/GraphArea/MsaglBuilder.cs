@@ -156,7 +156,7 @@ internal class MsaglBuilder
 
         foreach (var relationship in allRelationships)
         {
-            // Move edges to collapsed nodes.
+            // Move edges to expanded nodes.
             var source = GetHighestVisibleParentOrSelf(relationship.SourceId, codeGraph, visibleGraph);
             var target = GetHighestVisibleParentOrSelf(relationship.TargetId, codeGraph, visibleGraph);
 
@@ -167,6 +167,12 @@ internal class MsaglBuilder
                 RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
             {
                 (target, source) = (source, target);
+            }
+
+            // Skip self-references at collapsed level for relationships inside.
+            if (source == target && relationship.SourceId != source && relationship.TargetId != target)
+            {
+                continue;
             }
 
             if (!relationships.TryGetValue((source, target), out var list))
@@ -369,5 +375,10 @@ internal class MsaglBuilder
 
         // Create and return the Color object
         return new Color((byte)r, (byte)g, (byte)b);
+    }
+
+    private static bool IsMethod(CodeGraph codeGraph, string id)
+    {
+        return codeGraph.Nodes[id].ElementType == CodeElementType.Method;
     }
 }
