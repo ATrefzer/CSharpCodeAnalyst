@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Configuration;
 
 public class ApplicationSettings
 {
-    public int WarningCodeElementLimit { get; set; } = 200;
+    public int WarningCodeElementLimit { get; set; } = 300;
     public string DefaultProjectExcludeFilter { get; set; } = string.Empty;
     public int MaxDegreeOfParallelism { get; set; } = 8;
     public bool AutomaticallyAddContainingType { get; set; } = true;
