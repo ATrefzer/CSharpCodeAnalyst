@@ -193,7 +193,11 @@
     <value>Resets zoom level and fits to screen</value>
   </data>
   <data name="TooMuchElementsMessage" xml:space="preserve">
-    <value>There would be {0} code elements in the graph. It may take extremely long to render this data. Do you want to proceed?</value>
+    <value>The graph contains {0} elements. It may take extremely long to render this data. 
+
+Do you want to proceed?
+    
+If you abort the graph is maintained but not rendered. Use undo to get to the previous state.</value>
   </data>
   <data name="TooMuchElementsTitle" xml:space="preserve">
     <value>Proceed?</value>

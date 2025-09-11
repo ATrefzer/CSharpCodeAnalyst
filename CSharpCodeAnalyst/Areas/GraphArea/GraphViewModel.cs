@@ -171,13 +171,6 @@ internal class GraphViewModel : INotifyPropertyChanged
                 return;
             }
 
-            var codeGraph = _viewer.GetGraph();
-            if (!ProceedWithLargeGraph(codeGraph.Nodes.Count))
-            {
-                // No collapsing in flat graph. We show everything
-                return;
-            }
-
             _showFlatGraph = value;
             _viewer.ShowFlatGraph(value);
             OnPropertyChanged(nameof(ShowFlatGraph));
@@ -218,8 +211,6 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
     public ICommand UndoCommand { get; }
-
-
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -527,12 +518,6 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var result = _explorer.FollowIncomingCallsHeuristically(element.Id);
 
-        // The result may explode.
-        if (ProceedWithLargeGraph(result.Elements.Count() + (int)_viewer.GetGraph().VertexCount) is false)
-        {
-            return;
-        }
-
         AddToGraph(result.Elements, result.Relationships);
     }
 
@@ -585,20 +570,6 @@ internal class GraphViewModel : INotifyPropertyChanged
     public void ShowGlobalContextMenu()
     {
         _viewer.ShowGlobalContextMenu();
-    }
-
-    private bool ProceedWithLargeGraph(int numberOfElements)
-    {
-        // Meanwhile we collapse the graph.
-        if (numberOfElements > _settings.WarningCodeElementLimit)
-        {
-            var msg = string.Format(Strings.TooMuchElementsMessage, numberOfElements);
-            var title = Strings.TooMuchElementsTitle;
-            var result = MessageBox.Show(msg, title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            return MessageBoxResult.Yes == result;
-        }
-
-        return true;
     }
 
     public void ImportCycleGroup(CodeGraph graph)

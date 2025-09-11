@@ -48,7 +48,7 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        var explorationGraphViewer = new GraphViewer(messaging);
+        var explorationGraphViewer = new GraphViewer(messaging, settings.WarningCodeElementLimit);
 
         mainWindow.SetViewer(explorationGraphViewer);
         var viewModel = new MainViewModel(messaging, settings);

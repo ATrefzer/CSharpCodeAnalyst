@@ -1,17 +1,17 @@
-﻿using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.GraphArea.Highlighting;
-using CSharpCodeAnalyst.GraphArea.RenderOptions;
-using CSharpCodeAnalyst.Help;
-using Microsoft.Msagl.Core.Routing;
-using Microsoft.Msagl.Drawing;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using Contracts.Graph;
+using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.GraphArea.Highlighting;
+using CSharpCodeAnalyst.GraphArea.RenderOptions;
+using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Resources;
+using Microsoft.Msagl.Core.Routing;
+using Microsoft.Msagl.Drawing;
 using Node = Microsoft.Msagl.Drawing.Node;
 
 namespace CSharpCodeAnalyst.GraphArea;
@@ -28,6 +28,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalContextCommand> _globalCommands = [];
+    private readonly int _maxElementWarningLimit;
     private readonly MsaglBuilder _msaglBuilder;
     private readonly List<ICodeElementContextCommand> _nodeCommands = [];
     private readonly IPublisher _publisher;
@@ -55,11 +56,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     ///     Relationships of the same type (i.e a method Calls another multiple times) are handled
     ///     in the parser. In this case the relationship holds all source references.
     /// </summary>
-    public GraphViewer(IPublisher publisher)
+    public GraphViewer(IPublisher publisher, int settings)
     {
         _publisher = publisher;
         _msaglBuilder = new MsaglBuilder();
         SetHighlightMode(HighlightMode.EdgeHovered);
+        _maxElementWarningLimit = settings;
     }
 
     public void Bind(Panel graphPanel)
@@ -492,7 +494,21 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
         }
     }
-    private void RefreshGraph()
+
+    private bool ShouldProceedWithLargeGraph(int numberOfElements)
+    {
+        if (numberOfElements > _maxElementWarningLimit)
+        {
+            var msg = string.Format(Strings.TooMuchElementsMessage, numberOfElements);
+            var title = Strings.TooMuchElementsTitle;
+            var result = MessageBox.Show(msg, title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            return MessageBoxResult.Yes == result;
+        }
+
+        return true;
+    }
+
+    private bool RefreshGraph(bool askUserToShowLargeGraphs = true)
     {
         try
         {
@@ -500,6 +516,17 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             {
                 var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
                     _showFlatGraph, _flow);
+
+                if (askUserToShowLargeGraphs)
+                {
+                    var elements = graph.Nodes.Count() + graph.Edges.Count() + graph.SubgraphMap.Count;
+                    if (!ShouldProceedWithLargeGraph(elements))
+                    {
+                        _msaglViewer.Graph = new Graph();
+                        return false;
+                    }
+                }
+
 
                 _renderOption.Apply(graph);
 
@@ -529,7 +556,10 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         {
             MessageBox.Show(Strings.GraphRenderingError, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
+        return true;
     }
+
 
     private void ObjectUnderMouseCursorChanged(object? sender, ObjectUnderMouseCursorChangedEventArgs e)
     {

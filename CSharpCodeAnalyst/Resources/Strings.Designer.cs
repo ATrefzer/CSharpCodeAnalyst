@@ -1458,7 +1458,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There would be {0} code elements in the graph. It may take extremely long to render this data. Do you want to proceed?.
+        ///   Looks up a localized string similar to The graph contains {0} elements. It may take extremely long to render this data. 
+        ///
+        ///Do you want to proceed?
+        ///    
+        ///If you abort the graph is maintained but not rendered. Use undo to get to the previous state..
         /// </summary>
         public static string TooMuchElementsMessage {
             get {
