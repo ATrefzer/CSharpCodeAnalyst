@@ -1,19 +1,16 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Performance in general
-- Anonymous methods like PdsOnElementCreated, lambdas
-- Tree is very slow
-
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
-
 
 UNHANDLED CASES
 ---------------------
 
+- Remove local functions
 - Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
 - Two projects with same name
+- Anonymous methods like PdsOnElementCreated, lambdas
 
 BUGS
 ---------------------

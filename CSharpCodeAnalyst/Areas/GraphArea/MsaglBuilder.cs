@@ -9,6 +9,23 @@ namespace CSharpCodeAnalyst.GraphArea;
 /// </summary>
 internal class MsaglBuilder
 {
+
+    private static readonly Dictionary<RelationshipType, bool> FlowReversalMap = new()
+    {
+        // Reverse these for information flow
+        { RelationshipType.Handles, true }, // Show flow: Event -> Handler
+        { RelationshipType.Implements, true }, // Show flow: Interface -> Implementation  
+        { RelationshipType.Overrides, true }, // Show flow: Base -> Override
+
+        // Keep normal direction (already show flow correctly)
+        { RelationshipType.Calls, false }, // Caller -> Callee (control flow)
+        { RelationshipType.Invokes, false }, // Invoker -> Event (event flow)
+        { RelationshipType.Creates, false }, // Creator -> Created (instantiation flow)
+        { RelationshipType.Uses, false }, // User -> Used (data flow)
+        { RelationshipType.Inherits, false }, // Child -> Parent (inheritance flow)
+        { RelationshipType.UsesAttribute, false } // Decorated -> Attribute (metadata flow)
+    };
+
     public Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
         bool showFlatGraph, bool showInformationFlow)
     {
@@ -42,7 +59,9 @@ internal class MsaglBuilder
         {
             foreach (var relationship in element.Relationships)
             {
-                CreateEdgeForFlatStructure(graph, relationship, showInformationFlow);
+                var sourceId = relationship.SourceId;
+                var reverse = showInformationFlow && ShouldReverseInFlowMode(codeGraph, sourceId, relationship.Type);
+                CreateEdgeForFlatStructure(graph, relationship, reverse);
             }
 
             if (element.Parent != null)
@@ -157,28 +176,28 @@ internal class MsaglBuilder
         foreach (var relationship in allRelationships)
         {
             // Move edges to expanded nodes.
-            var source = GetHighestVisibleParentOrSelf(relationship.SourceId, codeGraph, visibleGraph);
-            var target = GetHighestVisibleParentOrSelf(relationship.TargetId, codeGraph, visibleGraph);
+            var sourceId = GetHighestVisibleParentOrSelf(relationship.SourceId, codeGraph, visibleGraph);
+            var targetId = GetHighestVisibleParentOrSelf(relationship.TargetId, codeGraph, visibleGraph);
 
 
             // Reverse edges like "overrides" to better visualize information flow
             // instead of dependencies.
             if (showInformationFlow &&
-                RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
+                ShouldReverseInFlowMode(visibleGraph, sourceId, relationship.Type))
             {
-                (target, source) = (source, target);
+                (targetId, sourceId) = (sourceId, targetId);
             }
 
             // Skip self-references at collapsed level for relationships inside.
-            if (source == target && relationship.SourceId != source && relationship.TargetId != target)
+            if (sourceId == targetId && relationship.SourceId != sourceId && relationship.TargetId != targetId)
             {
                 continue;
             }
 
-            if (!relationships.TryGetValue((source, target), out var list))
+            if (!relationships.TryGetValue((sourceId, targetId), out var list))
             {
                 list = [];
-                relationships[(source, target)] = list;
+                relationships[(sourceId, targetId)] = list;
             }
 
             list.Add(relationship);
@@ -196,12 +215,9 @@ internal class MsaglBuilder
             .Where(n => visibleGraph.Nodes[n.Id].Children.Any())
             .ToDictionary(n => n.Id, n => new Subgraph(n.Id)
             {
-                
                 LabelText = n.Name,
                 UserData = codeGraph.Nodes[n.Id],
                 Attr = CreateNodeAttr(n)
-
-
             });
 
 
@@ -283,14 +299,13 @@ internal class MsaglBuilder
         }
     }
 
-    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship, bool showInformationFlow)
+    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship, bool reverseEdge)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
 
         var sourceId = relationship.SourceId;
         var targetId = relationship.TargetId;
-        if (showInformationFlow &&
-            RelationshipFlowMapper.ShouldReverseInFlowMode(relationship.Type))
+        if (reverseEdge)
         {
             (targetId, sourceId) = (sourceId, targetId);
         }
@@ -305,6 +320,19 @@ internal class MsaglBuilder
         }
 
         edge.UserData = relationship;
+    }
+
+    private bool ShouldReverseInFlowMode(CodeGraph graph, string sourceId, RelationshipType relationshipType)
+    {
+        if (relationshipType == RelationshipType.Implements)
+        {
+            if (graph.Nodes[sourceId].ElementType == CodeElementType.Event)
+            {
+                return false;
+            }
+        }
+
+        return FlowReversalMap.GetValueOrDefault(relationshipType, false);
     }
 
     private static string GetLabelText(Relationship relationship)

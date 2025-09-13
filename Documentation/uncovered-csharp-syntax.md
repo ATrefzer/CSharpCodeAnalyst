@@ -25,8 +25,6 @@ or runtime behavior. Here are the main scenarios where type dependencies occur:
 
 These dependencies can be direct or indirect. Direct dependencies occur when a type explicitly references another type. Indirect dependencies happen when a type depends on another type through intermediary types.
 
-
-
 **These are the basic dependencies this application should focus on.**
 
 **I think it is a pointless task to cover all dependencies possible in a language like C#. Some of them would cause large effort for very little benefit.**
@@ -39,34 +37,27 @@ These dependencies can be direct or indirect. Direct dependencies occur when a t
 
 Following is a list of uncovered language constructs. However, there are many more.
 
+- Local functions:
+
+```csharp
+public void OuterMethod()
+{
+    void LocalFunction()
+    {
+        // Some code
+    }
+    LocalFunction();
+}
+// Dependencies involving local functions are displayed wrong. It creates a call dependency to the containing claSS:
+// Innter functions should be removed completely.
+```
+
 - Generic Type Constraints:
 
 ```csharp
 public class MyClass<T> where T : IComparable<T>
 {
     // The dependency on IComparable<T> might be missed
-}
-```
-
-- Attribute Usage:
-
-```csharp
-[Serializable]
-public class MySerializableClass
-{
-    // The dependency on the Serializable attribute might be missed
-}
-```
-
-- Extension Methods:
-
-```csharp
-public static class StringExtensions
-{
-    public static bool IsNullOrEmpty(this string str)
-    {
-        // The dependency of this extension method on string might be missed
-    }
 }
 ```
 
@@ -158,38 +149,6 @@ unsafe
 Debug.WriteLine("Debug mode");
 #endif
 // Dependencies in conditional compilation blocks might be missed
-```
-
-- Partial classes and methods:
-
-```csharp
-public partial class MyClass
-{
-    partial void MyPartialMethod();
-}
-
-public partial class MyClass
-{
-    partial void MyPartialMethod()
-    {
-        // Implementation
-    }
-}
-// Dependencies across partial class implementations might be missed
-```
-
-- Local functions:
-
-```csharp
-public void OuterMethod()
-{
-    void LocalFunction()
-    {
-        // Some code
-    }
-    LocalFunction();
-}
-// Dependencies involving local functions might be missed
 ```
 
 - Expression-bodied members:

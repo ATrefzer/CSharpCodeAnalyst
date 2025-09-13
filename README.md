@@ -8,27 +8,28 @@ Note: MSBuild must be installed on your computer for the application to work.
 
 ## Exploring your codebase
 
+While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
+
+### General
+
 ![image-20240731123233438](Images/code-explorer.png)
 
 - Import a C# solution (*.sln). 
-- Use the **Tree View** or **Advanced Search** feature to add code elements to the canvas. The **Advanced Search** allows you to add multiple code elements at once.
+
+- Use the **Tree View** tab to add a single code element to the canvas.
+
+- Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas.
+
 - Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
+
 - To perform operations on multiple selected elements, use the context menu in the space surrounding the graph. 
-- You can also export graphs to DGML format for further analysis in Visual Studio.
 
-**Performance Tips**
-
-When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
-
-**Other languages**
-
-The tool is written for  C#, but you can also import jdeps output for basic visualization.
-
-```
-jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
-```
+- Note: You can also export graphs to DGML format for further analysis in Visual Studio.
 
 
+### Examples
+
+You can find some general examples of how you can use the application for code exploration  [=> here <=](Documentation\examples.md)
 
 ## Find and visualize cycles in your codebase
 
@@ -69,6 +70,18 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 **In general, I think it's a good guideline to keep your software system free of cycles at the namespace level.**
 
+## **Performance Tips**
+
+When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+
+## **Other languages**
+
+The tool is written for  C#, but you can also import jdeps output for basic visualization.
+
+```
+jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
+```
+
 ## Limitations
 
 Please take note of the following issues:
@@ -77,6 +90,7 @@ Please take note of the following issues:
 - Source locations are not extracted for all dependencies, only the ones that are easy to extract.
 - External code is ignored.
 - The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Uncovered C# Syntax](Documentation/uncovered-csharp-syntax.md) 
+- Currently, method calls in lambdas are attributed to the function that creates the lambda and not to the function that invokes the lambda.
 
 ## Thank you
 

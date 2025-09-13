@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FollowHeuristic", "FollowHeuristic\FollowHeuristic.csproj", "{B1A1B1A1-0000-0000-0000-000000000001}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderProcessingExample", "OrderProcessingExample\OrderProcessingExample.csproj", "{804CF5F0-2DE2-420F-BFE6-EF480E389A47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{B1A1B1A1-0000-0000-0000-000000000001}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1A1B1A1-0000-0000-0000-000000000001}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1A1B1A1-0000-0000-0000-000000000001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{804CF5F0-2DE2-420F-BFE6-EF480E389A47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{804CF5F0-2DE2-420F-BFE6-EF480E389A47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{804CF5F0-2DE2-420F-BFE6-EF480E389A47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{804CF5F0-2DE2-420F-BFE6-EF480E389A47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
