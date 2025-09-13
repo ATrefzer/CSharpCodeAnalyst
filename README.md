@@ -29,7 +29,7 @@ While this application was written to analyze cyclic code structures, it also of
 
 ### Examples
 
-You can find some general examples of how you can use the application for code exploration  [=> here <=](Documentation\examples.md)
+You can find some general examples of how you can use the application for code exploration  [=> here <=](Documentation/examples.md)
 
 ## Find and visualize cycles in your codebase
 
