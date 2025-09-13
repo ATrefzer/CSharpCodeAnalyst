@@ -10,7 +10,7 @@ The application allows you to follow method calls. Note that this is only a heur
 
 You want to understand what code may break if you modify the method *LogOrderCompletion*
 
-You start from the method *LogOrderCompletion* and use the Context menu to "**Follow incoming calls**"
+You start from the method *LogOrderCompletion* and use the Context menu to "**Follow incoming calls (Heuristic)**"
 
 ![](../Images/example-start.png)
 
