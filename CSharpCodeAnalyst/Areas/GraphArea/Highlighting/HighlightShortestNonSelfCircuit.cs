@@ -100,7 +100,7 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
     }
 
     /// <summary>
-    ///     Called to recreated the path when we know it exists
+    ///     Called to recreate the path when we know it exists
     ///     Returns the list of edges to get from start to end.
     /// </summary>
     private static List<IViewerEdge> Backtrace(Dictionary<string, IViewerEdge> whereICameFrom, string startNodeId,

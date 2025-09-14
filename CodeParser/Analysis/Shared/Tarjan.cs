@@ -1,6 +1,6 @@
 ﻿using Contracts.GraphInterface;
 
-namespace GraphLib.Algorithms.StronglyConnectedComponents;
+namespace CodeParser.Analysis.Shared;
 
 /// <summary>
 ///     Returns the strongly connected components.

@@ -372,3 +372,4 @@ FodyWeavers.xsd
 /tmp
 /SampleProject/project.json
 /deps.json
+/dependencies.json

@@ -16,9 +16,11 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Areas.ResultArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
+using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.Gallery;
@@ -46,7 +48,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private ApplicationSettings _applicationSettings;
     private CodeGraph? _codeGraph;
-    private CycleSummaryViewModel? _cycleSummaryViewModel;
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -70,6 +71,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
     private int _selectedRightTabIndex;
+    private TableViewModel? _tableViewModel;
 
     private TreeViewModel? _treeViewModel;
 
@@ -103,7 +105,6 @@ internal class MainViewModel : INotifyPropertyChanged
         OpenSettingsDialogCommand = new DelegateCommand(OnOpenSettingsDialog);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(OnExportToPng);
 
-        CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
         _loadMessage = string.Empty;
     }
@@ -111,21 +112,20 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand ShowGalleryCommand { get; }
 
 
-    public CycleSummaryViewModel? CycleSummaryViewModel
+    public TableViewModel? TableViewModel
     {
-        get => _cycleSummaryViewModel;
+        get => _tableViewModel;
         set
         {
-            if (Equals(value, _cycleSummaryViewModel))
+            if (Equals(value, _tableViewModel))
             {
                 return;
             }
 
-            _cycleSummaryViewModel = value;
-            OnPropertyChanged(nameof(CycleSummaryViewModel));
+            _tableViewModel = value;
+            OnPropertyChanged(nameof(TableViewModel));
         }
     }
-
 
     public GraphViewModel? GraphViewModel
     {
@@ -180,7 +180,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand GraphLayoutCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
-    public ICommand CopyToExplorerGraphCommand { get; set; }
+
     public ICommand FindCyclesCommand { get; }
     public ICommand ExportToDsiCommand { get; }
 
@@ -524,7 +524,7 @@ internal class MainViewModel : INotifyPropertyChanged
         TreeViewModel?.LoadCodeGraph(_codeGraph);
         SearchViewModel?.LoadCodeGraph(_codeGraph);
         GraphViewModel?.LoadCodeGraph(_codeGraph);
-        CycleSummaryViewModel?.Clear();
+        TableViewModel?.Clear();
         InfoPanelViewModel?.Clear();
 
         // Default output: summary of graph
@@ -833,14 +833,7 @@ internal class MainViewModel : INotifyPropertyChanged
         _isSaved = true;
     }
 
-    private void CopyToExplorerGraph(CycleGroupViewModel vm)
-    {
-        var graph = vm.CycleGroup.CodeGraph;
 
-        GraphViewModel?.ImportCycleGroup(graph.Clone());
-
-        SelectedRightTabIndex = 0;
-    }
 
     public void HandleDeleteFromModel(DeleteFromModelRequest request)
     {
@@ -869,5 +862,55 @@ internal class MainViewModel : INotifyPropertyChanged
         }
 
         return true;
+    }
+
+    public void HandleShowCycleGroupRequest(ShowCycleGroupRequest request)
+    {
+        GraphViewModel?.ImportCycleGroup(request.CycleGroup.CodeGraph.Clone());
+        SelectedRightTabIndex = 0;
+    }
+
+    public void HandleCycleCalculationComplete(CycleCalculationComplete request)
+    {
+        var cycleGroups = request.CycleGroups;
+
+        TableViewModel = new CycleGroupsViewModel(cycleGroups, _messaging);
+        SelectedRightTabIndex = 1;
+    }
+
+    public void HandleShowPartitionsRequest(ShowPartitionsRequest request)
+    {
+        // We handle this in the main view model because we need the full graph.
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        // The request code element may originate from a graph where the children are not present!
+        var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
+
+        CodeElementPartitioner partitioner = new CodeElementPartitioner();
+        var partitions = partitioner.GetPartitions(_codeGraph, originalCodeElement);
+
+        if (partitions.Count <= 1)
+        {
+            MessageBox.Show(Strings.Partitions_NoPartitions, Strings.Information_Title, MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        // Create view model and show summary in table tab.
+
+
+        var partitionsVm = new PartitionsViewModel();
+        var number = 1;
+        foreach (var partition in partitions)
+        {
+            var codeElements = partition.Select(id => new CodeElementLineViewModel(_codeGraph.Nodes[id]));
+            var vm = new PartitionViewModel($"Partition {number++}", codeElements);
+            partitionsVm.Partitions.Add(vm);
+        }
+
+        TableViewModel = partitionsVm;
+        SelectedRightTabIndex = 1;
     }
 }

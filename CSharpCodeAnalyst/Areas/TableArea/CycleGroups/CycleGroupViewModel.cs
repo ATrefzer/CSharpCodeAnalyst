@@ -1,20 +1,39 @@
-﻿using System.Collections.ObjectModel;
+﻿using CodeParser.Analysis.Shared;
+using Contracts.Graph;
+using CSharpCodeAnalyst.GraphArea;
+using Prism.Commands;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using CodeParser.Analysis.Shared;
-using Contracts.Graph;
+using System.Windows.Input;
+using CodeParser.Extensions;
+using CSharpCodeAnalyst.Areas.ResultArea;
+using CSharpCodeAnalyst.Common;
 
 namespace CSharpCodeAnalyst.CycleArea;
 
 internal class CycleGroupViewModel : INotifyPropertyChanged
 {
+    private readonly MessageBus _messaging;
     private ObservableCollection<CodeElementLineViewModel> _highLevelElements;
     private bool _isExpanded;
 
-    public CycleGroupViewModel(CycleGroup cycleGroup)
+    private void CopyToExplorerGraph(CycleGroupViewModel vm)
     {
+        var graph = vm.CycleGroup.CodeGraph;
+
+        // Send event to main view model
+        _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
+    }
+
+    public CycleGroupViewModel(CycleGroup cycleGroup, MessageBus messaging)
+    {
+        _messaging = messaging;
         _isExpanded = false;
         CycleGroup = cycleGroup;
+
+        CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
+
 
         var nodes = CycleGroup.CodeGraph.Nodes.Values;
         List<CodeElementLineViewModel> vms;
@@ -66,6 +85,8 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
     {
         get => _highLevelElements.Count;
     }
+
+    public ICommand CopyToExplorerGraphCommand { get; set; }
 
     public string CodeElementsDescription
     {

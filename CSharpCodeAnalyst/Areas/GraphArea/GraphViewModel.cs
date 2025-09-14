@@ -138,7 +138,24 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships));
 
+        // Analysis tools
+        _viewer.AddContextMenuCommand(new SeparatorCommand());
+        // Class only
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
+            PartitionClass));
+
+
         UndoCommand = new DelegateCommand(Undo);
+    }
+
+    private void PartitionClass(CodeElement? obj)
+    {
+        if (obj is not { ElementType: CodeElementType.Class })
+        {
+            return;
+        }
+
+       _publisher.Publish(new ShowPartitionsRequest(obj));
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -231,14 +248,15 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var idsToKeep = new HashSet<string>();
 
-        // All children
+        // All children of the current graph.
         foreach (var element in selectedElements)
         {
             var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
             idsToKeep.UnionWith(children);
         }
 
-        var newGraph = graph.SubGraphOf(idsToKeep);
+        // Include only relationships to code elements in the subgraph
+        var newGraph = graph.Clone(d => idsToKeep.Contains(d.TargetId), idsToKeep);
 
         // Cleanup unused states
         var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
@@ -608,3 +626,4 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
     }
 }
+

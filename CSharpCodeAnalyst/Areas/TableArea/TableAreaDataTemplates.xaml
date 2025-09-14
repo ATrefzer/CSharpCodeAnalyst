@@ -1,0 +1,147 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea"
+                    xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+        <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+
+    <!-- Template for collections of CycleGroupsViewModel -->
+    <DataTemplate x:Key="CycleGroupsViewModelTemplate">
+        <DataGrid Style="{StaticResource ReadOnlyGrid}"
+                  ItemsSource="{Binding CycleGroups}"
+                  AutoGenerateColumns="False">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="DetailsVisibility" Value="Collapsed" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="{x:Static resources:Strings.CopyToExplorerGraph_MenuItem}"
+                                          Command="{Binding CopyToExplorerGraphCommand}"
+                                          CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                            <Setter Property="DetailsVisibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="{x:Static resources:Strings.Level_Header}"
+                                    Binding="{Binding Level}" Width="Auto" />
+                <DataGridTextColumn Header="{x:Static resources:Strings.ElementCount_Header}"
+                                    Binding="{Binding ElementCount}" Width="Auto" />
+                <DataGridTemplateColumn Header="Code Elements" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <DockPanel LastChildFill="True">
+                                <ToggleButton DockPanel.Dock="Left"
+                                              Style="{StaticResource ExpandCollapseButtonStyle}"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0,0,5,0" />
+                                <TextBlock Text="{Binding CodeElementsDescription}"
+                                           VerticalAlignment="Center" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <ItemsControl ItemsSource="{Binding CodeElements}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="20 0 0 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="{Binding Icon}" Margin="0 1 5 1" />
+                                    <TextBlock Grid.Column="1" Text="{Binding FullName}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+    </DataTemplate>
+
+
+    <!-- Template for collections of PartitionsViewModel -->
+    <DataTemplate x:Key="PartitionsViewModelTemplate">
+        <DataGrid Style="{StaticResource ReadOnlyGrid}"
+                  ItemsSource="{Binding Partitions}"
+                  AutoGenerateColumns="False">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="DetailsVisibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                            <Setter Property="DetailsVisibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Partition" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <DockPanel LastChildFill="True">
+                                <ToggleButton DockPanel.Dock="Left"
+                                              Style="{StaticResource ExpandCollapseButtonStyle}"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              Margin="0,0,5,0" />
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding PartitionName}" FontWeight="Bold" />
+                                    <TextBlock Text=" - " Margin="5,0" />
+                                    <TextBlock Text="{Binding Description}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <DataGrid.RowDetailsTemplate>
+                <DataTemplate>
+                    <ItemsControl ItemsSource="{Binding CodeElements}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="40 0 0 0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="{Binding Icon}" Margin="0 1 5 1" />
+                                    <TextBlock Grid.Column="1" Text="{Binding FullName}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DataTemplate>
+            </DataGrid.RowDetailsTemplate>
+        </DataGrid>
+    </DataTemplate>
+
+    <!-- Data template selector -->
+    <resultArea:TableAreaDataTemplateSelector x:Key="ResultTableTemplateSelector"
+                                              CycleGroupCollectionTemplate="{StaticResource CycleGroupsViewModelTemplate}"
+                                              PartitionCollectionTemplate="{StaticResource PartitionsViewModelTemplate}" />
+
+
+</ResourceDictionary>

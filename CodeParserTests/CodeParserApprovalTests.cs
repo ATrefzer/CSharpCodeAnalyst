@@ -21,9 +21,6 @@ public class CodeParserApprovalTests
     [Test]
     public void CodeExplorer_FollowIncomingCalls_1()
     {
-        // TODO the excess line is not correct!
-        // We should end at the base and override. But no call from method to base!!!
-
         // Scenario where base class calls base method of another instance.
         var codeElements = _graph.Nodes.Values;
 

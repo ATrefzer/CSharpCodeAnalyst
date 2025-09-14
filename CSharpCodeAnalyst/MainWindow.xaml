@@ -10,6 +10,10 @@
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
+        xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea"
+        xmlns:cycleArea="clr-namespace:CSharpCodeAnalyst.CycleArea"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:collections="clr-namespace:System.Collections.ObjectModel;assembly=System"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -19,6 +23,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
+                <ResourceDictionary Source="Areas/TableArea/TableAreaDataTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
            
@@ -495,90 +500,9 @@
                     <TabItem.Header>Code Explorer</TabItem.Header>
                    <graphArea:CodeExplorerControl x:Name="ExplorationControl"/>
                 </TabItem>
-                <TabItem Header="Cycle summary">
-                    <Grid DataContext="{Binding CycleSummaryViewModel}">
-
-                        <DataGrid
-                            Style="{StaticResource ReadOnlyGrid}"
-                            ItemsSource="{Binding CycleGroupViewModels}"
-                            Tag="{Binding DataContext, ElementName=RootWindow}"
-                            AutoGenerateColumns="False">
-
-                            <DataGrid.Resources>
-                                <Style TargetType="DataGridRow">
-                                    <Setter Property="DetailsVisibility" Value="Collapsed" />
-                                    <Setter Property="ContextMenu">
-                                        <Setter.Value>
-                                            <ContextMenu>
-                                                <MenuItem
-                                                    Header="{x:Static resources:Strings.CopyToExplorerGraph_MenuItem}"
-                                                    Command="{Binding DataContext.CopyToExplorerGraphCommand, Source={x:Reference RootWindow}}"
-                                                    CommandParameter="{Binding}" />
-                                            </ContextMenu>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsExpanded}" Value="True">
-                                            <Setter Property="DetailsVisibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.Resources>
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="{x:Static resources:Strings.Level_Header}"
-                                                    Binding="{Binding Level}" Width="Auto" />
-                                <DataGridTextColumn Header="{x:Static resources:Strings.ElementCount_Header}"
-                                                    Binding="{Binding ElementCount}"
-                                                    Width="Auto" />
-                                <DataGridTemplateColumn Header="Code Elements" Width="Auto">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <DockPanel LastChildFill="True">
-                                                <ToggleButton DockPanel.Dock="Left"
-                                                              Style="{StaticResource ExpandCollapseButtonStyle}"
-                                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                              Margin="0,0,5,0" />
-                                                <TextBlock Text="{Binding CodeElementsDescription}"
-                                                           VerticalAlignment="Center" />
-                                            </DockPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                            <DataGrid.RowDetailsTemplate>
-                                <DataTemplate>
-                                    <ItemsControl ItemsSource="{Binding CodeElements}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="20 0 0 0">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="label" />
-                                                        <ColumnDefinition />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Grid.Column="0" Text="{Binding ElementTypeName}"
-                                                               FontWeight="Bold"
-                                                               Margin="0,0,5,0" />
-                                                    <TextBlock Grid.Column="1" Text="{Binding FullName}"
-                                                               TextWrapping="Wrap" />
-
-
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-
-                                        <ItemsControl.Template>
-                                            <ControlTemplate>
-                                                <Grid IsSharedSizeScope="True">
-                                                    <ItemsPresenter />
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </ItemsControl.Template>
-                                    </ItemsControl>
-                                </DataTemplate>
-                            </DataGrid.RowDetailsTemplate>
-                        </DataGrid>
-
+                <TabItem Header="{Binding TableViewModel.Title}">
+                    <Grid DataContext="{Binding TableViewModel}">
+                        <ContentPresenter Content="{Binding }" ContentTemplateSelector="{StaticResource ResultTableTemplateSelector}" />
                     </Grid>
                 </TabItem>
 

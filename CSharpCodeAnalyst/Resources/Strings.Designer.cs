@@ -673,6 +673,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Info.
+        /// </summary>
+        public static string Information_Title {
+            get {
+                return ResourceManager.GetString("Information_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Filters cannot contain semicolons (;)..
         /// </summary>
         public static string InvalidFilter_Message {
@@ -932,6 +941,33 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Parser_FailureHeader {
             get {
                 return ResourceManager.GetString("Parser_FailureHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partition.
+        /// </summary>
+        public static string Partition {
+            get {
+                return ResourceManager.GetString("Partition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contains {0} code elements.
+        /// </summary>
+        public static string Partition_Description {
+            get {
+                return ResourceManager.GetString("Partition_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No distinct partitions found!.
+        /// </summary>
+        public static string Partitions_NoPartitions {
+            get {
+                return ResourceManager.GetString("Partitions_NoPartitions", resourceCulture);
             }
         }
         
@@ -1436,6 +1472,33 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_Settings_AddContainingType_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summary.
+        /// </summary>
+        public static string Tab_Summary {
+            get {
+                return ResourceManager.GetString("Tab_Summary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summary - Cycle Groups.
+        /// </summary>
+        public static string Tab_Summary_Cycles {
+            get {
+                return ResourceManager.GetString("Tab_Summary_Cycles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summary - Partitions.
+        /// </summary>
+        public static string Tab_Summary_Partitions {
+            get {
+                return ResourceManager.GetString("Tab_Summary_Partitions", resourceCulture);
             }
         }
         

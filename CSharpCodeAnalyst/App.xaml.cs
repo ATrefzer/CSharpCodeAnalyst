@@ -1,15 +1,18 @@
-﻿using System.IO;
-using System.Windows;
+﻿using CodeParser.Analysis.Shared;
 using CodeParser.Parser;
+using CSharpCodeAnalyst.Areas.ResultArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.InfoPanel;
-using CSharpCodeAnalyst.TreeArea;
 using CSharpCodeAnalyst.SearchArea;
+using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Extensions.Configuration;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 
 namespace CSharpCodeAnalyst;
 
@@ -55,14 +58,13 @@ public partial class App
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging);
         var searchViewModel = new SearchViewModel(messaging);
-        var cycleViewModel = new CycleSummaryViewModel();
         var infoPanelViewModel = new InfoPanelViewModel();
 
         viewModel.InfoPanelViewModel = infoPanelViewModel;
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
-        viewModel.CycleSummaryViewModel = cycleViewModel;
+        viewModel.TableViewModel = new EmptyTableViewModel();
 
 
         // Setup messaging
@@ -76,9 +78,12 @@ public partial class App
         // Context-sensitive help triggered in the graph, handled in the info panel
         messaging.Subscribe<QuickInfoUpdate>(infoPanelViewModel.HandleUpdateQuickInfo);
 
-        messaging.Subscribe<CycleCalculationComplete>(cycleViewModel.HandleCycleCalculationComplete);
-
+        messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
+     
+        messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
+
+        messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
 
         mainWindow.DataContext = viewModel;
         mainWindow.Show();

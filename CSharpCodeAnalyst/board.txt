@@ -3,6 +3,15 @@
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
+- The context menu for partitioning should not be in the code graph canvas.
+  It always referes to the full graph.
+
+- Dependency of ctor to OpenSourceLocation is not detected.
+  public InfoPanelViewModel()
+  {
+      OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
+      Hide(true);
+  }
 
 UNHANDLED CASES
 ---------------------

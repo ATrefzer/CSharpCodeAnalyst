@@ -92,12 +92,21 @@ public static class CodeGraphExtensions
         return originalElement.CloneSimple();
     }
 
-    public static CodeGraph SubGraphOf(this CodeGraph graph, HashSet<string> codeElementIds)
+    public static CodeGraph SubGraphOf(this CodeGraph graph, HashSet<string> includedElements)
     {
-        // Include only relationships to code elements in the subgraph
-        return graph.Clone(d => codeElementIds.Contains(d.TargetId), codeElementIds);
+        return graph.Clone(IncludeRelationship, includedElements);
+
+        bool IncludeRelationship(Relationship relationship)
+        {
+            return includedElements.Contains(relationship.SourceId) && includedElements.Contains(relationship.TargetId);
+        }
     }
 
+    public static CodeGraph SubGraphOf(this CodeGraph graph, CodeElement rootElement)
+    {
+        var includedElements = rootElement.GetChildrenIncludingSelf();
+        return SubGraphOf(graph, includedElements);
+    }
 
     public static void RemoveCodeElementAndAllChildren(this CodeGraph graph, string codeElementIds)
     {
@@ -109,5 +118,8 @@ public static class CodeGraphExtensions
 
         var elementIdsToRemove = element.GetChildrenIncludingSelf().ToHashSet();
         graph.RemoveCodeElements(elementIdsToRemove);
+         
     }
+
+
 }

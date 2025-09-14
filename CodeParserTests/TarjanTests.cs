@@ -1,6 +1,5 @@
 ﻿using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
-using GraphLib.Algorithms.StronglyConnectedComponents;
 
 namespace CodeParserTests;
 
