@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Locator;
+﻿using System.Diagnostics;
+using Microsoft.Build.Locator;
 
 namespace CodeParser.Parser;
 
@@ -14,8 +15,9 @@ public class Initializer
         {
             MSBuildLocator.RegisterDefaults();
         }
-        catch
+        catch(Exception ex)
         {
+            Trace.WriteLine(ex);
             RegisterMsBuildManually();
         }
     }

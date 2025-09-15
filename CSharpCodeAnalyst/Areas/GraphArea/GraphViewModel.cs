@@ -138,24 +138,16 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships));
 
-        // Analysis tools
-        _viewer.AddContextMenuCommand(new SeparatorCommand());
-        // Class only
+        /*
+            Partition belongs to the tree view because it refers to all code elements inside the class.
+            Included the ones not in the canvas. Therefore, it more logical to show the partition context menu in the tree.
+
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
             PartitionClass));
+        */
 
 
         UndoCommand = new DelegateCommand(Undo);
-    }
-
-    private void PartitionClass(CodeElement? obj)
-    {
-        if (obj is not { ElementType: CodeElementType.Class })
-        {
-            return;
-        }
-
-       _publisher.Publish(new ShowPartitionsRequest(obj));
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -230,6 +222,16 @@ internal class GraphViewModel : INotifyPropertyChanged
     public ICommand UndoCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void PartitionClass(CodeElement? obj)
+    {
+        if (obj is not { ElementType: CodeElementType.Class })
+        {
+            return;
+        }
+
+        _publisher.Publish(new ShowPartitionsRequest(obj));
+    }
 
     private bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
     {
@@ -626,4 +628,3 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
     }
 }
-

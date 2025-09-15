@@ -32,8 +32,24 @@ public class TreeViewModel : INotifyPropertyChanged
         ClearSearchCommand = new DelegateCommand(ClearSearch);
         DeleteFromModelCommand = new DelegateCommand<TreeItemViewModel>(DeleteFromModel);
         AddNodeToGraphCommand = new DelegateCommand<TreeItemViewModel>(AddNodeToGraph);
+        PartitionTreeCommand = new DelegateCommand<TreeItemViewModel>(Partition, CanPartition);
         _filteredTreeItems = [];
         _treeItems = [];
+    }
+
+    private bool CanPartition(TreeItemViewModel? vm)
+    {
+        return vm != null && vm.CodeElement is not null && vm.CodeElement.ElementType == CodeElementType.Class;
+    }
+
+    private void Partition(TreeItemViewModel vm)
+    {
+        if (vm.CodeElement is null)
+        {
+            return;
+        }
+
+        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement));
     }
 
 
@@ -76,6 +92,7 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand SearchCommand { get; }
     public ICommand AddNodeToGraphCommand { get; private set; }
     public ICommand DeleteFromModelCommand { get; }
+    public ICommand PartitionTreeCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

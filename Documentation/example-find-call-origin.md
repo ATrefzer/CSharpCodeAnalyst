@@ -1,10 +1,6 @@
-# Examples
+# Finding the origin of a method call
 
-This document shows some examples how the C# Code Analyst can be used to explore a codebase.
-
-### Following method calls
-
-The application allows you to follow method calls. Note that this is only a heuristic since we can determine the exact behavior only at runtime.
+Note that this function is only a heuristic since we can determine the exact behavior only at runtime.
 
 #### Example ####
 
@@ -12,7 +8,7 @@ You want to understand what code may break if you modify the method *LogOrderCom
 
 You start from the method *LogOrderCompletion* and use the Context menu to "**Follow incoming calls (Heuristic)**"
 
-![](../Images/example-start.png)
+![](Images/example-start.png)
 
 
 
@@ -22,7 +18,7 @@ There are only the directly involved code elements shown. It is often easier to 
 
 
 
-![](../Images/example-call-graph2.png)
+![](Images/example-call-graph2.png)
 
 
 
@@ -30,13 +26,13 @@ Now the the picture is more complete.
 
 
 
-![](../Images/example-compile-time-dependencies2.png)
+![](Images/example-compile-time-dependencies2.png)
 
 However, the directions of the dependencies make it difficult to follow an incoming path. This is because interfaces invert the compile-time dependencies. To make the graph more straightforward to understand, you can click the **Flow** button in the Ribbon. 
 
 
 
-![](../Images/ribbon-flow.png)
+![](Images/ribbon-flow.png)
 
 
 
@@ -44,7 +40,7 @@ This mode "reverts" some of the dependencies to mimic the information flow inste
 
 
 
-![](../Images/example-information-flow2.png)
+![](Images/example-information-flow2.png)
 
 The graph now lets you see more clearly where the call chain originates from (**Main** at the bottom of the image).
 

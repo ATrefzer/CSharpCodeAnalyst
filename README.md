@@ -12,7 +12,7 @@ While this application was written to analyze cyclic code structures, it also of
 
 ### General
 
-![image-20240731123233438](Images/code-explorer.png)
+![image-20240731123233438](Documentation/Images/code-explorer.png)
 
 - Import a C# solution (*.sln). 
 
@@ -29,7 +29,11 @@ While this application was written to analyze cyclic code structures, it also of
 
 ### Examples
 
-You can find some general examples of how you can use the application for code exploration  [=> here <=](Documentation/examples.md)
+Here are some general examples how to use the application to explore a code base.
+
+-  [Essential concepts](Documentation/example-general-concepts.md)
+-  [Find the call origins of a method](Documentation/example-find-call-origin.md)
+-  [Understand how you could split a large class](Documentation/example-partition-class.md)
 
 ## Find and visualize cycles in your codebase
 
@@ -37,13 +41,13 @@ You can find some general examples of how you can use the application for code e
 
 
 
-![](Images/cycle-summary.png)
+![](Documentation/Images/cycle-summary.png)
 
 A strongly connected component is a sub-graph where a path exists between any two nodes. There may be more than one elementary cycle in the same strongly connected component.
 
 Use the context menu to copy the related code elements to the explorer graph for further investigation.
 
-![](Images/cycle-graph.png)
+![](Documentation/Images/cycle-graph.png)
 
 ### **Why Look for Cycles?**
 
