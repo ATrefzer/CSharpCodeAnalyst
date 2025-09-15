@@ -11,6 +11,7 @@ public enum RelationshipAttribute : uint
     IsThisCall = 4,
     IsInstanceCall = 8,
     IsExtensionMethodCall = 16,
+    IsMethodGroup = 32,
 }
 
 

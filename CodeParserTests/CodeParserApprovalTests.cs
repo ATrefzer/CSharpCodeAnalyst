@@ -38,12 +38,11 @@ public class CodeParserApprovalTests
         var expectedRelationships = new List<string>
         {
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
-            /* ----- */"CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            /* ----- */
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */"CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */"CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
-            /* ----- *//* ----- */  "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
-            
-
+            /* ----- */ /* ----- */ "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
@@ -79,8 +78,7 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
-            
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
@@ -214,7 +212,11 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave",
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave"
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave",
+
+            // Method groups
+            "ModuleLevel1.ModuleLevel1.ServiceC.IsLargerThanOne",
+            "ModuleLevel1.ModuleLevel1.ServiceC.TheAction"
         };
 
 
@@ -283,7 +285,9 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1",
-            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2"
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2",
+
+            "ModuleLevel1.ModuleLevel1.Command"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -353,6 +357,93 @@ public class CodeParserApprovalTests
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
             "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
+        };
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+    [Test]
+    public void FindsAllUses()
+    {
+        var calls = _graph.GetAllRelationships().Where(d => d.Type == RelationshipType.Uses);
+
+        var actual = calls.Select(d => $"{_graph.Nodes[d.SourceId].FullName} -> {_graph.Nodes[d.TargetId].FullName}")
+            .ToHashSet();
+
+        var x = string.Join(",\n", actual.Select(s => $"\"{s}\""));
+
+        var expected = new HashSet<string>
+        {
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel1.ModuleLevel1.FactoryC.Create -> ModuleLevel1.ModuleLevel1.IServiceC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA._modelB -> ModuleLevel1.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA._modelC -> ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -> ModuleLevel1.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -> ModuleLevel1.ModuleLevel1.Model.ModelA._modelB",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -> ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA -> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC -> ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC -> ModuleLevel1.ModuleLevel1.Model.ModelA._modelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD -> ModuleLevel1.ModuleLevel1.Model.ModelD",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB._modelC -> ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB._structA -> ModuleLevel1.ModuleLevel1.Model.StructA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.StructA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.ModelD",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel1.ModuleLevel1.Model.ModelB._structA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel1.ModuleLevel1.Model.ModelB._modelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel1.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelD._myStructs -> ModuleLevel1.ModuleLevel1.Model.StructA",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.Fill -> ModuleLevel1.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.Fill -> ModuleLevel1.ModuleLevel1.Model.StructA._value",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Execute -> ModuleLevel1.ModuleLevel1.ServiceC.TheAction",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Execute -> ModuleLevel1.ModuleLevel1.ServiceC.IsLargerThanOne",
+            "ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass -> ModuleLevel2.ModuleLevel2.SelfReferencingClass",
+            "ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2._y -> ModuleLevel2.ModuleLevel2.N1.ClassInNs1",
+            "ModuleLevel2.ModuleLevel2.N1.ClassInNs1._x -> ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2",
+            "ModuleLevel2.Insight.Analyzers._vm -> ModuleLevel2.Insight.Dialogs.TrendViewModel",
+            "ModuleLevel2.Insight.Dialogs.TrendViewModel._analyzer -> ModuleLevel2.Insight.Analyzers",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Parents -> ModuleLevel2.ModuleLevel2.SelfReferencingClass",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Children -> ModuleLevel2.ModuleLevel2.SelfReferencingClass",
+            "CSharpLanguage.CSharpLanguage.MyDelegate -> CSharpLanguage.CSharpLanguage.MyEventArgs",
+            "CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 -> CSharpLanguage.CSharpLanguage.MyDelegate",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
+            "CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> CSharpLanguage.CSharpLanguage.MyEventArgs",
+            "CSharpLanguage.CSharpLanguage.ProjectFile -> CSharpLanguage.CSharpLanguage.Project",
+            "CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes._file -> CSharpLanguage.CSharpLanguage.ProjectFile",
+            "CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -> CSharpLanguage.CSharpLanguage.Project",
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent",
+            "CSharpLanguage.CSharpLanguage.EventSink..ctor -> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent",
+            "CSharpLanguage.CSharpLanguage.Extensions.Slice -> CSharpLanguage.CSharpLanguage.TheExtendedType",
+            "CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant._delegate2 -> CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.DelegateInChild",
+            "CSharpLanguage.CSharpLanguage.NS_Parent.ClassINparent._delegate1 -> CSharpLanguage.CSharpLanguage.NS_Parent.NS_Child.ClassNsChild.DelegateInChild",
+            "CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> CSharpLanguage.CSharpLanguage.Partial.Client",
+            "CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner -> CSharpLanguage.CSharpLanguage.PinSignalView",
+            "CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor -> CSharpLanguage.CSharpLanguage.PinSignalView",
+            "CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor -> CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner",
+            "CSharpLanguage.CSharpLanguage.RecordA -> CSharpLanguage.CSharpLanguage.RecordA",
+            "CSharpLanguage.CSharpLanguage.RecordA._recordB -> CSharpLanguage.CSharpLanguage.RecordB",
+            "CSharpLanguage.CSharpLanguage.RecordB -> CSharpLanguage.CSharpLanguage.RecordB",
+            "CSharpLanguage.CSharpLanguage.RecordB._recordA -> CSharpLanguage.CSharpLanguage.RecordA",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base._base -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base._base",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater2 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater2 -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2",
+            "CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1",
+            "Cycles.Cycles.ClassLevel_Fields.Class1._field1 -> Cycles.Cycles.ClassLevel_Fields.Class2",
+            "Cycles.Cycles.ClassLevel_Fields.Class2._field1 -> Cycles.Cycles.ClassLevel_Fields.Class1",
+            "Cycles.Cycles.OuterClass.DirectChildClass.x -> Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass",
+            "Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass.x -> Cycles.Cycles.OuterClass.DirectChildClass"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);

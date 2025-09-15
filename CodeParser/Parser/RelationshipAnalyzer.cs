@@ -455,6 +455,8 @@ public class RelationshipAnalyzer
             switch (descendantNode)
             {
                 case ObjectCreationExpressionSyntax objectCreationSyntax:
+
+                    // new SomeClass()
                     var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
                     if (typeInfo.Type != null)
                     {
@@ -462,23 +464,41 @@ public class RelationshipAnalyzer
                         AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
                     }
 
+                    // Analyze constructor arguments for method groups
+                    if (objectCreationSyntax.ArgumentList != null)
+                    {
+                        foreach (var argument in objectCreationSyntax.ArgumentList.Arguments)
+                        {
+                            AnalyzeArgument(sourceElement, argument, semanticModel);
+                        }
+                    }
+
                     break;
 
                 case InvocationExpressionSyntax invocationSyntax:
+
+                    // Method()
                     AnalyzeInvocation(sourceElement, invocationSyntax, semanticModel);
                     break;
 
                 case AssignmentExpressionSyntax assignmentExpression:
-                    // Property assignments, event registration
+                    // Property and field assignments, event registration
                     AnalyzeAssignment(sourceElement, assignmentExpression, semanticModel);
                     break;
 
                 case IdentifierNameSyntax identifierSyntax:
+                    // Property or field access
                     AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
                     break;
 
                 case MemberAccessExpressionSyntax memberAccessSyntax:
+
+                    // obj.Property or obj.Field access
                     AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
+                    break;
+
+                case ArgumentSyntax argumentSyntax:
+                    AnalyzeArgument(sourceElement, argumentSyntax, semanticModel);
                     break;
             }
         }
@@ -533,6 +553,15 @@ public class RelationshipAnalyzer
                 {
                     AddEventInvocationRelationship(sourceElement, eventSymbol, location);
                 }
+            }
+        }
+
+        // Analyze method call arguments for method groups
+        if (invocationSyntax.ArgumentList != null)
+        {
+            foreach (var argument in invocationSyntax.ArgumentList.Arguments)
+            {
+                AnalyzeArgument(sourceElement, argument, semanticModel);
             }
         }
 
@@ -1011,6 +1040,37 @@ public class RelationshipAnalyzer
             default:
                 // Complex expression - default to instance call
                 return RelationshipAttribute.IsInstanceCall;
+        }
+    }
+
+    private void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
+    {
+        var expression = argumentSyntax.Expression;
+
+        // Handle method groups passed as arguments
+        if (expression is IdentifierNameSyntax identifierSyntax)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                // This is a method group reference
+                var location = identifierSyntax.GetSyntaxLocation();
+                
+                //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
+                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            }
+        }
+        else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                // This is a method group reference like obj.Method
+                var location = memberAccessSyntax.GetSyntaxLocation();
+
+                // AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
+                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            }
         }
     }
 

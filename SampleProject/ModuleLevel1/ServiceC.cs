@@ -24,6 +24,26 @@ namespace ModuleLevel1
         {
             // DEP_CALLS_EXTERNAL
             Console.WriteLine("ServiceC.Execute");
+
+            var d = new Command(TheAction);
+
+            int[] numbers = { 1, 2, 3, 4, 5 };
+            var result = numbers.Where(IsLargerThanOne);
         }
+
+        bool IsLargerThanOne(int n)
+        {
+            return n > 1;
+        }
+
+        void TheAction()
+        {
+
+        }
+    }
+
+    class Command(Action a)
+    {
+
     }
 }
