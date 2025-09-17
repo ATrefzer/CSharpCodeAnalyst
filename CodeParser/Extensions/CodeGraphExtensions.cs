@@ -77,7 +77,8 @@ public static class CodeGraphExtensions
                         clonedElement.Relationships.Add(new Relationship(
                             clonedElement.Id,
                             originalRelationship.TargetId,
-                            originalRelationship.Type
+                            originalRelationship.Type,
+                            originalRelationship.Attributes
                         ));
                     }
                 }
@@ -92,6 +93,9 @@ public static class CodeGraphExtensions
         return originalElement.CloneSimple();
     }
 
+    /// <summary>
+    ///     Returns a subgraph with only the included elements and their associated relationships.
+    /// </summary>
     public static CodeGraph SubGraphOf(this CodeGraph graph, HashSet<string> includedElements)
     {
         return graph.Clone(IncludeRelationship, includedElements);
@@ -102,6 +106,9 @@ public static class CodeGraphExtensions
         }
     }
 
+    /// <summary>
+    ///     Returns a subgraph with the root element and all children and associated relationships
+    /// </summary>
     public static CodeGraph SubGraphOf(this CodeGraph graph, CodeElement rootElement)
     {
         var includedElements = rootElement.GetChildrenIncludingSelf();
@@ -118,8 +125,5 @@ public static class CodeGraphExtensions
 
         var elementIdsToRemove = element.GetChildrenIncludingSelf().ToHashSet();
         graph.RemoveCodeElements(elementIdsToRemove);
-         
     }
-
-
 }

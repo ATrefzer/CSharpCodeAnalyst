@@ -1,0 +1,172 @@
+using CodeParser.Extensions;
+using Contracts.Graph;
+
+namespace CodeParserTests.ApprovalTests;
+
+[TestFixture]
+public class ModuleLevelApprovalTests : ProjectTestBase
+{
+
+    private CodeGraph GetTestGraph()
+    {
+        var g0 = GetGraph("ModuleLevel0");
+        var g1 = GetGraph("ModuleLevel1");
+        var g2 = GetGraph("ModuleLevel2");
+
+        return Graph.SubGraphOf(g0.Nodes.Keys.Union(g1.Nodes.Keys).Union(g2.Nodes.Keys).ToHashSet());
+    }
+
+    [Test]
+    public void Classes_ShouldBeDetected()
+    {
+        var classes = GetAllClasses(GetTestGraph());
+
+        var expected = new[]
+        {
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation",
+            "ModuleLevel0.ModuleLevel0.Ns1.ClassL",
+            "ModuleLevel0.ModuleLevel0.Ns1.ClassL.InnerClassL",
+            "ModuleLevel0.ModuleLevel0.Ns1.Ns2.ClassY",
+            "ModuleLevel1.ModuleLevel1.FactoryC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.ModuleLevel1.Model.ModelD",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper",
+            "ModuleLevel1.ModuleLevel1.Command",
+            "ModuleLevel1.ModuleLevel1.ServiceA",
+            "ModuleLevel1.ModuleLevel1.ServiceBase",
+            "ModuleLevel1.ModuleLevel1.ServiceC",
+            "ModuleLevel2.ClassInGlobalNs",
+            "ModuleLevel2.Insight.Analyzers",
+            "ModuleLevel2.Insight.Dialogs.TrendViewModel",
+            "ModuleLevel2.ModuleLevel2.Constants",
+            "ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass",
+            "ModuleLevel2.ModuleLevel2.N1.ClassInNs1",
+            "ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass",
+            "ModuleLevel2.ModuleLevel2.Utility"
+        };
+
+        CollectionAssert.AreEquivalent(expected, classes);
+    }
+
+    [Test]
+    public void Properties_ShouldBeDetected()
+    {
+        var properties = GetAllNodesOfType(GetTestGraph(), CodeElementType.Property);
+
+        var expectedProperties = new HashSet<string>
+        {
+            "ModuleLevel1.ModuleLevel1.IServiceC.IfProperty",
+            "ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Value",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant",
+            "ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty",
+            "ModuleLevel1.ModuleLevel1.ServiceC.IfProperty",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Commit",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.CommitHash",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Parents",
+            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Children"
+        };
+
+
+        CollectionAssert.AreEquivalent(expectedProperties, properties);
+    }
+
+    private CodeElement GetAssembly(CodeElement element)
+    {
+        var assembly = element;
+        while (assembly.ElementType != CodeElementType.Assembly)
+        {
+            assembly = assembly.Parent;
+        }
+
+        return assembly;
+    }
+
+    [Test]
+    public void CrossProjectUsages_ShouldBeDetected()
+    {
+        var graph = GetTestGraph();
+        var crossing = graph.GetAllRelationships()
+            .Where(r => GetAssembly(graph.Nodes[r.SourceId]).Id != GetAssembly(graph.Nodes[r.TargetId]).Id)
+            .Select(CreateResolvedRelationShip)
+            .ToList();
+
+
+        var actual = crossing
+            .Select(r => $"{r.Source} -> {r.Target}")
+            .ToHashSet();
+
+        var dmp = DumpRelationships(actual);
+
+        var expected = new[]
+        {
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.FactoryC",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.FactoryC.Create",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.IServiceC.Do",
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation",
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent",
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.ModuleLevel2.TheEnum",
+            "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1"
+        };
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+    [Test]
+    public void FindsAllPropertyImplementations()
+    {
+        var graph = GetTestGraph();
+
+        // Realize an interface
+        var actual = GetAllPropertyImplementations(graph);
+        var expected = new HashSet<string>
+        {
+            "ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty -> ModuleLevel1.ModuleLevel1.IServiceC.IfProperty"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+    [Test]
+    public void FindsAllEventImplementations()
+    {
+        var graph = GetTestGraph();
+        var actual = GetAllEventImplementations(graph);
+
+
+        var expected = new HashSet<string>
+        {
+            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+    [Test]
+    public void FindsAllPropertyOverrides()
+    {
+        var graph = GetTestGraph();
+        var actual = GetAllPropertyOverrides(graph);
+
+        var expected = new HashSet<string>
+        {
+            "ModuleLevel1.ModuleLevel1.ServiceC.IfProperty -> ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty"
+        };
+
+
+        CollectionAssert.AreEquivalent(expected, actual);
+    }
+
+}

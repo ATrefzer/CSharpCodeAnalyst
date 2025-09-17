@@ -15,7 +15,7 @@ public class Initializer
         {
             MSBuildLocator.RegisterDefaults();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Trace.WriteLine(ex);
             RegisterMsBuildManually();

@@ -3,12 +3,27 @@
 namespace Contracts.Graph;
 
 [DebuggerDisplay("{Type}")]
-public class Relationship(string sourceId, string targetId, RelationshipType type)
+public class Relationship
 {
+    public Relationship(string sourceId, string targetId, RelationshipType type)
+    {
+        SourceId = sourceId;
+        TargetId = targetId;
+        Type = type;
+    }
+
+    public Relationship(string sourceId, string targetId, RelationshipType type, RelationshipAttribute attributes)
+    {
+        SourceId = sourceId;
+        TargetId = targetId;
+        Type = type;
+        Attributes = attributes;
+    }
+
     public RelationshipAttribute Attributes { get; set; } = RelationshipAttribute.None;
-    public string SourceId { get; } = sourceId;
-    public string TargetId { get; } = targetId;
-    public RelationshipType Type { get; } = type;
+    public string SourceId { get; }
+    public string TargetId { get; }
+    public RelationshipType Type { get; }
 
     public List<SourceLocation> SourceLocations { get; set; } = [];
 

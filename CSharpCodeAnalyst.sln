@@ -28,10 +28,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contracts", "Contracts\Cont
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApprovalTestTool", "ApprovalTestTool\ApprovalTestTool.csproj", "{767539BE-FBE3-4B46-9A5E-21D60E1B278B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestApps", "TestApps", "{4553EF99-1D3C-14C7-0D22-5364D18C373B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FollowHeuristic", "TestApps\FollowHeuristic\FollowHeuristic.csproj", "{30665FC1-D5F2-4F4C-BBFA-277184C15E45}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,18 +54,11 @@ Global
 		{767539BE-FBE3-4B46-9A5E-21D60E1B278B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{767539BE-FBE3-4B46-9A5E-21D60E1B278B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{767539BE-FBE3-4B46-9A5E-21D60E1B278B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30665FC1-D5F2-4F4C-BBFA-277184C15E45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30665FC1-D5F2-4F4C-BBFA-277184C15E45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30665FC1-D5F2-4F4C-BBFA-277184C15E45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30665FC1-D5F2-4F4C-BBFA-277184C15E45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2BBCF792-C019-4195-AF08-45CC642B8A18}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{30665FC1-D5F2-4F4C-BBFA-277184C15E45} = {4553EF99-1D3C-14C7-0D22-5364D18C373B}
 	EndGlobalSection
 EndGlobal

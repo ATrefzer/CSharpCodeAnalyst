@@ -514,7 +514,7 @@ public class RelationshipAnalyzer
 
             var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
             AddCallsRelationship(sourceElement, calledMethod, location, attributes);
-            
+
 
             // Handle generic method invocations
             if (calledMethod.IsGenericMethod)
@@ -968,7 +968,7 @@ public class RelationshipAnalyzer
 
 
     private RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation,
-     IMethodSymbol method, SemanticModel semanticModel)
+        IMethodSymbol method, SemanticModel semanticModel)
     {
         if (method.IsExtensionMethod)
         {
@@ -1014,16 +1014,15 @@ public class RelationshipAnalyzer
                     // Type.StaticMethod()
                     return RelationshipAttribute.IsStaticCall;
                 }
-                else if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
+
+                if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
                 {
                     // field.Method() or property.Method()
                     return RelationshipAttribute.IsInstanceCall;
                 }
-                else
-                {
-                    // Local variable or parameter
-                    return RelationshipAttribute.IsInstanceCall;
-                }
+
+                // Local variable or parameter
+                return RelationshipAttribute.IsInstanceCall;
 
             case MemberAccessExpressionSyntax:
                 // Chained calls: obj.Property.Method()
@@ -1055,7 +1054,7 @@ public class RelationshipAnalyzer
             {
                 // This is a method group reference
                 var location = identifierSyntax.GetSyntaxLocation();
-                
+
                 //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
                 AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
             }
@@ -1073,5 +1072,4 @@ public class RelationshipAnalyzer
             }
         }
     }
-
 }
