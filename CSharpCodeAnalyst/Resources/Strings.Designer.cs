@@ -385,6 +385,42 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export Mermaid class diagram.
+        /// </summary>
+        public static string ExportMermaid_Lable {
+            get {
+                return ResourceManager.GetString("ExportMermaid_Lable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mermaid class diagram syntax has been copied to clipboard!.
+        /// </summary>
+        public static string ExportMermaid_Success {
+            get {
+                return ResourceManager.GetString("ExportMermaid_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;Export Successful.
+        /// </summary>
+        public static string ExportMermaid_Title {
+            get {
+                return ResourceManager.GetString("ExportMermaid_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export current (expanded) graph to Mermaid class diagram syntax and copy to clipboard.
+        /// </summary>
+        public static string ExportMermaid_Tooltip {
+            get {
+                return ResourceManager.GetString("ExportMermaid_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File.
         /// </summary>
         public static string File_Header {

@@ -6,13 +6,6 @@
 - The context menu for partitioning should not be in the code graph canvas.
   It always referes to the full graph.
 
-- Dependency of ctor to OpenSourceLocation is not detected.
-  public InfoPanelViewModel()
-  {
-      OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
-      Hide(true);
-  }
-
 UNHANDLED CASES
 ---------------------
 

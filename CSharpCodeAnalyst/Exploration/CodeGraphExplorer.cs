@@ -39,37 +39,75 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return elements;
     }
 
-    public SearchResult CompleteToContainingTypes(HashSet<string> ids)
+    /// <summary>
+    ///     Adds the containers for all low level elements like fields or methods to give more
+    ///     context.
+    ///     The method fills also any missing intermediate containers.
+    /// </summary>
+    public SearchResult CompleteToContainingTypes(HashSet<string> knownIds)
     {
         if (_codeGraph is null)
         {
             return new SearchResult([], []);
         }
 
-        var parents = new List<CodeElement>();
+        var parents = new HashSet<string>();
 
-        foreach (var id in ids)
+        var existing = knownIds.ToArray();
+        for (int i = 0; i < existing.Length; i++)
         {
-            if (_codeGraph.Nodes.TryGetValue(id, out var element))
+            // We hit each pair twice so we walk only one direction here.
+            var possibleChild = _codeGraph.Nodes[existing[i]];
+
+            // Step 1 Ensure that the parent container exists for low level elements like fields.
+            // We then can proceed with the container.
+            while (possibleChild.Parent is not null &&
+                   CodeElementClassifier.GetContainerLevel(possibleChild.ElementType) == 0)
             {
-                var current = element;
-                while (current.Parent is not null &&
-                       CodeElementClassifier.GetContainerLevel(current.ElementType) == 0)
+                // We need a parent
+                var parent = possibleChild.Parent;
+                if (knownIds.Contains(parent.Id) is false)
                 {
-                    // We need a parent
-                    var parent = current.Parent;
-                    if (ids.Contains(parent.Id) is false)
+                    parents.Add(parent.Id);
+                }
+
+                possibleChild = possibleChild.Parent;
+            }
+
+            // Step 2 
+            // Ensure all gaps are filled
+            for (int j = 0; j < existing.Length; j++)
+            {
+                if (i == j)
+                {
+                    continue;
+                }
+
+                var possibleParent = _codeGraph.Nodes[existing[j]];
+
+                // Only search for missing gaps if we have an ancestor relationship
+                if (!possibleChild.IsChildOf(possibleParent))
+                {
+                    continue;
+                }
+
+                while (possibleChild.Parent != null && possibleChild.Id != possibleParent.Id)
+                {
+                    var parent = possibleChild.Parent;
+                    if (knownIds.Contains(parent.Id) is false)
                     {
-                        parents.Add(parent);
+                        parents.Add(parent.Id);
                     }
 
-                    current = current.Parent;
+                    possibleChild = parent;
                 }
             }
         }
 
-        return new SearchResult(parents, []);
+        var elements = parents.Select(p => _codeGraph.Nodes[p]).ToHashSet();
+        return new SearchResult(elements, []);
     }
+
 
     public SearchResult FindParents(List<string> ids)
     {

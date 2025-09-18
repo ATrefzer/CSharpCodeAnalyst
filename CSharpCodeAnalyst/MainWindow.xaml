@@ -118,22 +118,29 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="{x:Static resources:Strings.ExportDgml_Label}"
-                                  LargeImageSource="/Resources/document-xml_32.png"
-                                  Command="{Binding ExportToDgmlCommand}">
-                        <RibbonButton.ToolTip>
-                            <ToolTip Content="{x:Static resources:Strings.ExportDgml_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
 
-                    <RibbonButton Label="{x:Static resources:Strings.SavePng_Label}"
-                                  LargeImageSource="/Resources/png-file_32.png"
-                                  Command="{Binding ExportToPngCommand}"
-                                  CommandParameter="{Binding ElementName=ExplorationControl}">
-                        <RibbonButton.ToolTip>
-                            <ToolTip Content="{x:Static resources:Strings.SavePng_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
+                    <RibbonSplitButton Label="Export"
+                                       LargeImageSource="/Resources/document-xml_32.png"
+                                       Command="{Binding ExportToDgmlCommand}">
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportDgml_Label}"
+                                        ImageSource="/Resources/document-xml_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportDgml_Tooltip}"
+                                        Command="{Binding ExportToDgmlCommand}" />
+                        <RibbonMenuItem Header="Export Mermaid"
+                                        ImageSource="/Resources/document-xml_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportMermaid_Tooltip}"
+                                        Command="{Binding ExportToMermaidCommand}" />
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.SavePng_Label}"
+                                        ImageSource="/Resources/png-file_32.png"
+                                        ToolTip="{x:Static resources:Strings.SavePng_Tooltip}"
+                                        Command="{Binding ExportToPngCommand}"
+                                        CommandParameter="{Binding ElementName=ExplorationControl}" />
+
+
+                    </RibbonSplitButton>
+
 
                     <!--<RibbonButton Label="Save Svg" LargeImageSource="/Resources/svg-file_32.png"
                                   Command="{Binding ExportToSvgCommand}">

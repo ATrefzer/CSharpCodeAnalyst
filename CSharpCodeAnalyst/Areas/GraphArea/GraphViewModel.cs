@@ -467,7 +467,11 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Apply "Automatically add containing type" setting
         if (_settings.AutomaticallyAddContainingType)
         {
-            var elementIds = elementsToAdd.Select(e => e.Id).ToHashSet();
+            // Merge with existing ones so that we can fill container gaps directly
+            var elementIds = elementsToAdd
+                .Select(e => e.Id)
+                .Union(_viewer.GetGraph().Nodes.Keys).ToHashSet();
+
             var result = _explorer.CompleteToContainingTypes(elementIds);
             elementsToAdd.AddRange(result.Elements);
             relationshipsToAdd.AddRange(result.Relationships);

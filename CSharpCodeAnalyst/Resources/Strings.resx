@@ -627,4 +627,17 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="GraphRenderingWarning" xml:space="preserve">
    <value>Failed rendering graph. Retry without line bundling.</value>
  </data>
+  <data name="ExportMermaid_Tooltip" xml:space="preserve">
+   <value>Export current (expanded) graph to Mermaid class diagram syntax and copy to clipboard</value>
+ </data>
+  <data name="ExportMermaid_Lable" xml:space="preserve">
+   <value>Export Mermaid class diagram</value>
+ </data>
+  <data name="ExportMermaid_Success" xml:space="preserve">
+   <value>Mermaid class diagram syntax has been copied to clipboard!</value>
+ </data>
+  <data name="ExportMermaid_Title" xml:space="preserve">
+   <value>"Export Successful</value>
+ </data>
+ 
 </root>

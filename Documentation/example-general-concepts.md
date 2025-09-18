@@ -4,7 +4,7 @@ I initially wrote this application to analyze cyclic code structures. However, i
 
 Some concepts are essential to understand. The key ideas are selective element addition, relationship discovery, and interactive graph manipulation.
 
-Many commercial applications are rigid in the code elements you see on the canvas. Most tools allow you, for example, to expand the inheritance tree of a class. But then you may get much uninteresting noise that you cannot remove, or the graph is not interactive.
+Many commercial applications are rigid in the code elements you see on the canvas. Most tools allow you, for example, to expand the inheritance tree of a class. But then you may get much uninteresting noise that you cannot remove, or the graph is not interactive. 
 
 I wanted an application where I can add specific code elements and then explore the relationship between them. If the graph gets too crowded, I want to select a subset and focus on this subgraph.
 
@@ -27,6 +27,12 @@ But as soon as you add the class, the hierarchical information is complete, show
 
 
 ![](Images/example-connected-codeelements.png)
+
+
+
+You can achieve the same by clicking the **Complete to containing types** context menu in the the space around the graph.
+
+![](Images/example-complete-to-containing-types.png)
 
 
 

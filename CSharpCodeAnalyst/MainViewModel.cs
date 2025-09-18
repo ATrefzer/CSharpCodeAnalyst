@@ -96,6 +96,7 @@ internal class MainViewModel : INotifyPropertyChanged
         GraphClearCommand = new DelegateCommand(OnGraphClear);
         GraphLayoutCommand = new DelegateCommand(OnGraphLayout);
         ExportToDgmlCommand = new DelegateCommand(OnExportToDgml);
+        ExportToMermaidCommand = new DelegateCommand(OnExportToMermaid);
         ExportToSvgCommand = new DelegateCommand(OnExportToSvg);
         FindCyclesCommand = new DelegateCommand(OnFindCycles);
         ShowGalleryCommand = new DelegateCommand(OnShowGallery);
@@ -179,6 +180,8 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
+
+    public ICommand ExportToMermaidCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
 
     public ICommand FindCyclesCommand { get; }
@@ -633,6 +636,29 @@ internal class MainViewModel : INotifyPropertyChanged
         LoadMessage = e.Message;
     }
 
+    private void OnExportToMermaid()
+    {
+        if (_graphViewModel is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var codeStructure = _graphViewModel.ExportGraph();
+            var exporter = new MermaidExport();
+            var mermaidSyntax = exporter.Export(codeStructure);
+
+            Clipboard.SetText(mermaidSyntax);
+            MessageBox.Show(Strings.ExportMermaid_Success, Strings.ExportMermaid_Title,
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
     private void OnExportToDgml()
     {
         if (_graphViewModel is null)
