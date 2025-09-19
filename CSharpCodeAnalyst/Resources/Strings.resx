@@ -171,9 +171,6 @@
   <data name="HighlightSelfCircuit" xml:space="preserve">
     <value>Shortest non self circuit</value>
   </data>
-  <data name="ExportDgml_Label" xml:space="preserve">
-    <value>Export Dgml</value>
-  </data>
   <data name="Layout_Label" xml:space="preserve">
     <value>Layout</value>
   </data>
@@ -185,9 +182,6 @@
   </data>
   <data name="SelectedFocus" xml:space="preserve">
     <value>Selected: Focus</value>
-  </data>
-  <data name="ExportDgml_Tooltip" xml:space="preserve">
-    <value>Exports the current graph to dgml</value>
   </data>
   <data name="Layout_Tooltip" xml:space="preserve">
     <value>Resets zoom level and fits to screen</value>
@@ -247,12 +241,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="SaveProject_Label" xml:space="preserve">
     <value>Save Project</value>
   </data>
-  <data name="ExportDsi_Label" xml:space="preserve">
-    <value>Export Dsi</value>
-  </data>
-  <data name="ExportDsi_Tooltip" xml:space="preserve">
-    <value>Exports the whole project to dsi</value>
-  </data>
   <data name="Tools_Header" xml:space="preserve">
     <value>Tools</value>
   </data>
@@ -267,12 +255,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   </data>
   <data name="Clear_Tooltip" xml:space="preserve">
     <value>Clear the content of the graph</value>
-  </data>
-  <data name="SavePng_Label" xml:space="preserve">
-    <value>Save Png</value>
-  </data>
-  <data name="SavePng_Tooltip" xml:space="preserve">
-    <value>Saves the current canvas to png</value>
   </data>
   <data name="Undo_Label" xml:space="preserve">
     <value>Undo</value>
@@ -627,17 +609,41 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="GraphRenderingWarning" xml:space="preserve">
    <value>Failed rendering graph. Retry without line bundling.</value>
  </data>
-  <data name="ExportMermaid_Tooltip" xml:space="preserve">
-   <value>Export current (expanded) graph to Mermaid class diagram syntax and copy to clipboard</value>
+  <data name="ExportDgml_Label" xml:space="preserve">
+    <value>Export Dgml</value>
+  </data>
+  <data name="ExportDgml_Tooltip" xml:space="preserve">
+    <value>Export canvas (expanded) graph to dgml</value>
+  </data>
+  <data name="ExportDsi_Label" xml:space="preserve">
+    <value>Export Dsi</value>
+  </data>
+  <data name="ExportDsi_Tooltip" xml:space="preserve">
+    <value>Exports the whole project to dsi</value>
+  </data>
+  <data name="SavePng_Label" xml:space="preserve">
+    <value>Export Png</value>
+  </data>
+  <data name="SavePng_Tooltip" xml:space="preserve">
+    <value>Exports the current visible canvas to png</value>
+  </data>
+  <data name="ExportPlantUml_Tooltip" xml:space="preserve">
+   <value>Export canvas (expanded) graph to PlantUml class diagram syntax and copy to clipboard</value>
  </data>
-  <data name="ExportMermaid_Lable" xml:space="preserve">
-   <value>Export Mermaid class diagram</value>
+  <data name="ExportPlantUml_Label" xml:space="preserve">
+   <value>Export PlantUml class diagram</value>
  </data>
-  <data name="ExportMermaid_Success" xml:space="preserve">
-   <value>Mermaid class diagram syntax has been copied to clipboard!</value>
+  <data name="ExportPlantUml_Success" xml:space="preserve">
+   <value>PlantUml class diagram syntax has been copied to clipboard!</value>
  </data>
-  <data name="ExportMermaid_Title" xml:space="preserve">
+  <data name="ExportPlantUml_Title" xml:space="preserve">
    <value>"Export Successful</value>
+ </data>
+  <data name="ExportSvg_Tooltip" xml:space="preserve">
+   <value>Export canvas (expanded) graph to svg. NOTE: Sub-graphs are not implemented!</value>
+ </data>
+  <data name="ExportSvg_Label" xml:space="preserve">
+   <value>Export Svg</value>
  </data>
  
 </root>

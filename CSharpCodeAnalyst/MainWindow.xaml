@@ -4,16 +4,11 @@
         xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:converters="clr-namespace:CSharpCodeAnalyst.Converters"
         xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
         xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
-        xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea"
-        xmlns:cycleArea="clr-namespace:CSharpCodeAnalyst.CycleArea"
-        xmlns:system="clr-namespace:System;assembly=mscorlib"
-        xmlns:collections="clr-namespace:System.Collections.ObjectModel;assembly=System"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -26,7 +21,7 @@
                 <ResourceDictionary Source="Areas/TableArea/TableAreaDataTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-           
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -80,17 +75,6 @@
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" />
 
-                    <!--
-                    Nobody uses it, so keep some space in the ribbon.
-                    <RibbonButton Label="{x:Static resources:Strings.ExportDsi_Label}"
-                                  LargeImageSource="/Resources/spreadsheet_32.png"
-                                  Command="{Binding ExportToDsiCommand}">
-                        <RibbonButton.ToolTip>
-                            <ToolTip Content="{x:Static resources:Strings.ExportDsi_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
-                    -->
-
                 </RibbonGroup>
 
                 <RibbonGroup Header="Tools" LargeImageSource="/Resources/cycle_32.png">
@@ -127,10 +111,10 @@
                                         ImageSource="/Resources/document-xml_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDgml_Tooltip}"
                                         Command="{Binding ExportToDgmlCommand}" />
-                        <RibbonMenuItem Header="Export Mermaid"
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlantUml_Label}"
                                         ImageSource="/Resources/document-xml_32.png"
-                                        ToolTip="{x:Static resources:Strings.ExportMermaid_Tooltip}"
-                                        Command="{Binding ExportToMermaidCommand}" />
+                                        ToolTip="{x:Static resources:Strings.ExportPlantUml_Tooltip}"
+                                        Command="{Binding ExportToPlantUmlCommand}" />
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.SavePng_Label}"
                                         ImageSource="/Resources/png-file_32.png"
@@ -138,16 +122,17 @@
                                         Command="{Binding ExportToPngCommand}"
                                         CommandParameter="{Binding ElementName=ExplorationControl}" />
 
+                        <!--<RibbonMenuItem Header="{x:Static resources:Strings.ExportDsi_Label}"
+                                        ImageSource="/Resources/spreadsheet_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
+                                        Command="{Binding ExportToDsiCommand}"/>-->
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportSvg_Label}"
+                                        ImageSource="/Resources/svg-file_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportSvg_Tooltip}"
+                                        Command="{Binding ExportToSvgCommand}" />
 
                     </RibbonSplitButton>
-
-
-                    <!--<RibbonButton Label="Save Svg" LargeImageSource="/Resources/svg-file_32.png"
-                                  Command="{Binding ExportToSvgCommand}">
-                        <RibbonButton.ToolTip>
-                            <ToolTip Content="Exports the current graph to svg. NOTE: Sub-graphs are not implemented!" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>-->
 
                     <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"
                                   LargeImageSource="/Resources/undo_32.png"
@@ -190,7 +175,7 @@
                         </Grid.RowDefinitions>
 
                         <RibbonToggleButton HorizontalAlignment="Left"
-                            Grid.Row="0" Grid.Column="0"
+                                            Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.Flow_Label}"
                                             SmallImageSource="/Resources/guidepost_small.png"
                                             IsChecked="{Binding GraphViewModel.ShowDataFlow, Mode=TwoWay}">
@@ -208,7 +193,6 @@
                                 <ToolTip Content="{x:Static resources:Strings.FlatGraph_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
                         </RibbonToggleButton>
-
 
 
                         <TextBlock VerticalAlignment="Center"
@@ -285,8 +269,8 @@
 
                 <TabControl x:Name="CodeStructureTab"
                             SelectedIndex="{Binding SelectedLeftTabIndex}"
-                    Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
-                    Margin="0">
+                            Visibility="{Binding IsLeftPanelExpanded, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Margin="0">
 
                     <!-- Tree View Tab -->
                     <TabItem Header="Tree View">
@@ -338,7 +322,7 @@
                                                   Command="{Binding DeleteFromModelCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                                        <Separator /> 
+                                        <Separator />
                                         <MenuItem Header="{x:Static resources:Strings.Partition}"
                                                   Command="{Binding PartitionTreeCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -416,9 +400,10 @@
                                         <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
                                                   Command="{Binding AddSelectedToGraphCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                        <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                                  Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                        <MenuItem
+                                            Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
+                                            Command="{Binding AddSelectedToGraphCollapsedCommand}"
+                                            CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
@@ -426,7 +411,8 @@
                                                             Width="Auto">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Source="{Binding Icon}" Width="16" Height="16" ToolTip="{Binding Type}" />
+                                                <Image Source="{Binding Icon}" Width="16" Height="16"
+                                                       ToolTip="{Binding Type}" />
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
@@ -435,7 +421,6 @@
                                                         Binding="{Binding Name}"
                                                         Width="Auto" />
 
-                                 
 
                                     <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
                                                         Binding="{Binding FullPath}"
@@ -468,9 +453,10 @@
                                             x:Name="DropdownButton">
                                         <Button.ContextMenu>
                                             <ContextMenu>
-                                                <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                                          Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                                          CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
+                                                <MenuItem
+                                                    Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
+                                                    Command="{Binding AddSelectedToGraphCollapsedCommand}"
+                                                    CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
                                             </ContextMenu>
                                         </Button.ContextMenu>
                                         <Button.Style>
@@ -488,7 +474,7 @@
                     <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
 
                         <!-- Info panel -->
-                        <infoPanel:InfoPanel 
+                        <infoPanel:InfoPanel
                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                             DataContext="{Binding InfoPanelViewModel}" />
                     </TabItem>
@@ -510,11 +496,12 @@
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}">
                 <TabItem>
                     <TabItem.Header>Code Explorer</TabItem.Header>
-                   <graphArea:CodeExplorerControl x:Name="ExplorationControl"/>
+                    <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
                 <TabItem Header="{Binding TableViewModel.Title}">
                     <Grid DataContext="{Binding TableViewModel}">
-                        <ContentPresenter Content="{Binding }" ContentTemplateSelector="{StaticResource ResultTableTemplateSelector}" />
+                        <ContentPresenter Content="{Binding }"
+                                          ContentTemplateSelector="{StaticResource ResultTableTemplateSelector}" />
                     </Grid>
                 </TabItem>
 
@@ -524,7 +511,6 @@
             </TabControl>
 
 
-         
         </Grid>
 
 

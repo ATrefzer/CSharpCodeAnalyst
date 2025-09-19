@@ -17,5 +17,7 @@ UNHANDLED CASES
 BUGS
 ---------------------
 
+- MainViewModel.OnShowGallery shows class self references due to local functions.
+
 MISSING TEST CASES
 ---------------------

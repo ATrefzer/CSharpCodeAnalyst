@@ -358,7 +358,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exports the current graph to dgml.
+        ///   Looks up a localized string similar to Export canvas (expanded) graph to dgml.
         /// </summary>
         public static string ExportDgml_Tooltip {
             get {
@@ -385,38 +385,56 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Mermaid class diagram.
+        ///   Looks up a localized string similar to Export PlantUml class diagram.
         /// </summary>
-        public static string ExportMermaid_Lable {
+        public static string ExportPlantUml_Label {
             get {
-                return ResourceManager.GetString("ExportMermaid_Lable", resourceCulture);
+                return ResourceManager.GetString("ExportPlantUml_Label", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mermaid class diagram syntax has been copied to clipboard!.
+        ///   Looks up a localized string similar to PlantUml class diagram syntax has been copied to clipboard!.
         /// </summary>
-        public static string ExportMermaid_Success {
+        public static string ExportPlantUml_Success {
             get {
-                return ResourceManager.GetString("ExportMermaid_Success", resourceCulture);
+                return ResourceManager.GetString("ExportPlantUml_Success", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to &quot;Export Successful.
         /// </summary>
-        public static string ExportMermaid_Title {
+        public static string ExportPlantUml_Title {
             get {
-                return ResourceManager.GetString("ExportMermaid_Title", resourceCulture);
+                return ResourceManager.GetString("ExportPlantUml_Title", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export current (expanded) graph to Mermaid class diagram syntax and copy to clipboard.
+        ///   Looks up a localized string similar to Export canvas (expanded) graph to PlantUml class diagram syntax and copy to clipboard.
         /// </summary>
-        public static string ExportMermaid_Tooltip {
+        public static string ExportPlantUml_Tooltip {
             get {
-                return ResourceManager.GetString("ExportMermaid_Tooltip", resourceCulture);
+                return ResourceManager.GetString("ExportPlantUml_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export Svg.
+        /// </summary>
+        public static string ExportSvg_Label {
+            get {
+                return ResourceManager.GetString("ExportSvg_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export canvas (expanded) graph to svg. NOTE: Sub-graphs are not implemented!.
+        /// </summary>
+        public static string ExportSvg_Tooltip {
+            get {
+                return ResourceManager.GetString("ExportSvg_Tooltip", resourceCulture);
             }
         }
         
@@ -1278,7 +1296,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Save Png.
+        ///   Looks up a localized string similar to Export Png.
         /// </summary>
         public static string SavePng_Label {
             get {
@@ -1287,7 +1305,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saves the current canvas to png.
+        ///   Looks up a localized string similar to Exports the current visible canvas to png.
         /// </summary>
         public static string SavePng_Tooltip {
             get {

@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -95,17 +94,16 @@ internal class MainViewModel : INotifyPropertyChanged
         SaveProjectCommand = new DelegateCommand(OnSaveProject);
         GraphClearCommand = new DelegateCommand(OnGraphClear);
         GraphLayoutCommand = new DelegateCommand(OnGraphLayout);
-        ExportToDgmlCommand = new DelegateCommand(OnExportToDgml);
-        ExportToMermaidCommand = new DelegateCommand(OnExportToMermaid);
-        ExportToSvgCommand = new DelegateCommand(OnExportToSvg);
         FindCyclesCommand = new DelegateCommand(OnFindCycles);
         ShowGalleryCommand = new DelegateCommand(OnShowGallery);
-        ExportToDsiCommand = new DelegateCommand(OnExportToDsi);
         ShowLegendCommand = new DelegateCommand(OnShowLegend);
         OpenFilterDialogCommand = new DelegateCommand(OnOpenFilterDialog);
         OpenSettingsDialogCommand = new DelegateCommand(OnOpenSettingsDialog);
+        ExportToDgmlCommand = new DelegateCommand(OnExportToDgml);
+        ExportToPlantUmlCommand = new DelegateCommand(OnExportToPlantUml);
+        ExportToSvgCommand = new DelegateCommand(OnExportToSvg);
         ExportToPngCommand = new DelegateCommand<FrameworkElement>(OnExportToPng);
-
+        ExportToDsiCommand = new DelegateCommand(OnExportToDsi);
 
         _loadMessage = string.Empty;
     }
@@ -181,7 +179,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand GraphLayoutCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
 
-    public ICommand ExportToMermaidCommand { get; }
+    public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
 
     public ICommand FindCyclesCommand { get; }
@@ -405,7 +403,7 @@ internal class MainViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Exports the whole project to dsi.
     /// </summary>
-    private async void OnExportToDsi()
+    private void OnExportToDsi()
     {
         if (_codeGraph is null)
         {
@@ -414,37 +412,21 @@ internal class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            IsLoading = true;
-
-            var exporter = new DsiExport();
-
-            var filePath = await Task.Run(() =>
+            var saveFileDialog = new SaveFileDialog
             {
-                var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                var appName = Assembly.GetExecutingAssembly().GetName().Name ?? "CodeAnalyst";
-                var directory = Path.Combine(appDataPath, appName);
-                Directory.CreateDirectory(directory);
-                var fileName = Path.GetRandomFileName() + ".dsi";
-                var filePath = Path.Combine(directory, fileName);
-
-                exporter.Export(filePath, _codeGraph);
-                return filePath;
-            });
-
-            var executablePath = @"ExternalApplications\\DsmSuite.DsmViewer.View.exe";
-
-            var process = new Process();
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = executablePath,
-                Arguments = filePath,
-                UseShellExecute = false,
-                RedirectStandardOutput = false,
-                CreateNoWindow = true
+                Filter = "DSI files (*.dsi)|*.dsi",
+                Title = "Export to DSI"
             };
 
-            process.StartInfo = startInfo;
-            process.Start();
+            if (saveFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var fileName = saveFileDialog.FileName;
+
+            var exporter = new DsiExport();
+            exporter.Export(fileName, _codeGraph);
         }
         catch (Exception ex)
         {
@@ -452,10 +434,24 @@ internal class MainViewModel : INotifyPropertyChanged
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
-        finally
+    }
+
+    private static void RunDsiViewer(string filePath)
+    {
+        var executablePath = @"ExternalApplications\\DsmSuite.DsmViewer.View.exe";
+
+        var process = new Process();
+        var startInfo = new ProcessStartInfo
         {
-            IsLoading = false;
-        }
+            FileName = executablePath,
+            Arguments = filePath,
+            UseShellExecute = false,
+            RedirectStandardOutput = false,
+            CreateNoWindow = true
+        };
+
+        process.StartInfo = startInfo;
+        process.Start();
     }
 
     private async void OnFindCycles()
@@ -636,9 +632,9 @@ internal class MainViewModel : INotifyPropertyChanged
         LoadMessage = e.Message;
     }
 
-    private void OnExportToMermaid()
+    private void OnExportToPlantUml()
     {
-        if (_graphViewModel is null)
+        if (!HasGraph())
         {
             return;
         }
@@ -646,11 +642,11 @@ internal class MainViewModel : INotifyPropertyChanged
         try
         {
             var codeStructure = _graphViewModel.ExportGraph();
-            var exporter = new MermaidExport();
-            var mermaidSyntax = exporter.Export(codeStructure);
+            var exporter = new PlantUmlExport();
+            var plantUml = exporter.Export(codeStructure);
 
-            Clipboard.SetText(mermaidSyntax);
-            MessageBox.Show(Strings.ExportMermaid_Success, Strings.ExportMermaid_Title,
+            Clipboard.SetText(plantUml);
+            MessageBox.Show(Strings.ExportPlantUml_Success, Strings.ExportPlantUml_Title,
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -659,49 +655,74 @@ internal class MainViewModel : INotifyPropertyChanged
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
     private void OnExportToDgml()
     {
-        if (_graphViewModel is null)
+        if (!HasGraph())
         {
             return;
         }
 
-        var saveFileDialog = new SaveFileDialog
+        try
         {
-            Filter = "DGML files (*.dgml)|*.dgml",
-            Title = "Export to DGML"
-        };
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "DGML files (*.dgml)|*.dgml",
+                Title = "Export to DGML"
+            };
 
-        if (saveFileDialog.ShowDialog() != true)
-        {
-            return;
+            if (saveFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var fileName = saveFileDialog.FileName;
+
+            var codeStructure = _graphViewModel.ExportGraph();
+            var exporter = new DgmlExport();
+            exporter.Export(fileName, codeStructure);
         }
-
-        var codeStructure = _graphViewModel.ExportGraph();
-        var exporter = new DgmlExport();
-        exporter.Export(saveFileDialog.FileName, codeStructure);
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
 
-    private void OnExportToPng(FrameworkElement canvas)
+    private void OnExportToPng(FrameworkElement? canvas)
     {
-        if (_graphViewModel is null)
+        if (canvas is null)
         {
             return;
         }
 
-        var saveFileDialog = new SaveFileDialog
+        try
         {
-            Filter = "PNG files (*.png)|*.png",
-            Title = "Export to DGML"
-        };
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "PNG files (*.png)|*.png",
+                Title = "Export to DGML"
+            };
 
-        if (saveFileDialog.ShowDialog() != true)
-        {
-            return;
+            if (saveFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            ImageWriter.SaveToPng(canvas, saveFileDialog.FileName);
         }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
-        ImageWriter.SaveToPng(canvas, saveFileDialog.FileName);
+    bool HasGraph()
+    {
+        var graph = _graphViewModel?.ExportGraph();
+        return graph is not null && graph.Nodes.Count != 0;
     }
 
     /// <summary>
@@ -709,25 +730,33 @@ internal class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnExportToSvg()
     {
-        if (_graphViewModel is null)
+        if (!HasGraph())
         {
             return;
         }
 
-        var saveFileDialog = new SaveFileDialog
+        try
         {
-            Filter = "SVG files (*.svg)|*.svg",
-            Title = "Export to SVG"
-        };
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "SVG files (*.svg)|*.svg",
+                Title = "Export to SVG"
+            };
 
-        if (saveFileDialog.ShowDialog() != true)
-        {
-            return;
+            if (saveFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            using (var stream = new FileStream(saveFileDialog.FileName, FileMode.Create))
+            {
+                _graphViewModel.SaveToSvg(stream);
+            }
         }
-
-        using (var stream = new FileStream(saveFileDialog.FileName, FileMode.Create))
+        catch (Exception ex)
         {
-            _graphViewModel.SaveToSvg(stream);
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
