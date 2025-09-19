@@ -72,6 +72,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedAddParent, AddParents,
             CanHandleIfSelectedElements));
         _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.ClearAllFlags, ClearAllFlags));
+        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.ExpandEverything, ExpandEverything));
 
 
         // Static commands
@@ -355,6 +356,28 @@ internal class GraphViewModel : INotifyPropertyChanged
     private void ClearAllFlags(List<CodeElement> selectedElements)
     {
         _viewer.ClearAllFlags();
+    }
+
+    private void ExpandEverything(List<CodeElement> selectedElements)
+    {
+        PushUndo();
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        // Create a new presentation state with no collapsed nodes
+        var newPresentationState = new PresentationState();
+
+        // Copy the flagged states but not the collapsed states
+        foreach (var nodeId in graph.Nodes.Keys)
+        {
+            if (session.PresentationState.IsFlagged(nodeId))
+            {
+                newPresentationState.SetFlaggedState(nodeId, true);
+            }
+        }
+
+        _viewer.LoadSession(graph, newPresentationState);
     }
 
     private static ImageSource? LoadIcon(string iconPath)

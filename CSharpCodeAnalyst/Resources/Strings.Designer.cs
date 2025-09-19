@@ -347,7 +347,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Expand", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Expand everything.
+        /// </summary>
+        public static string ExpandEverything {
+            get {
+                return ResourceManager.GetString("ExpandEverything", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Export Dgml.
         /// </summary>

@@ -144,6 +144,9 @@
   <data name="Expand" xml:space="preserve">
     <value>Expand</value>
   </data>
+  <data name="ExpandEverything" xml:space="preserve">
+    <value>Expand everything</value>
+  </data>
   <data name="FindAbstractions" xml:space="preserve">
     <value>Find abstractions</value>
   </data>

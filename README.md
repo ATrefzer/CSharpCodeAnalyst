@@ -24,7 +24,7 @@ While this application was written to analyze cyclic code structures, it also of
 
 - To perform operations on multiple selected elements, use the context menu in the space surrounding the graph. 
 
-- Note: You can also export graphs to DGML format for further analysis in Visual Studio.
+- Note: You can export graphs to DGML format for further analysis in Visual Studio. Also, PlantUML class diagrams are supported.
 
 
 ### Examples
