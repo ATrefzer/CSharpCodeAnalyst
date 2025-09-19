@@ -510,6 +510,12 @@ public class RelationshipAnalyzer
         var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {
+            // Skip local functions - they should not be part of the dependency graph
+            if (calledMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                return;
+            }
+
             var location = invocationSyntax.GetSyntaxLocation();
 
             var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
@@ -1049,9 +1055,16 @@ public class RelationshipAnalyzer
         // Handle method groups passed as arguments
         if (expression is IdentifierNameSyntax identifierSyntax)
         {
+            // Foo(MethodGroup)
             var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
             {
+                // Skip local functions - they should not be part of the dependency graph
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
+                {
+                    return;
+                }
+
                 // This is a method group reference
                 var location = identifierSyntax.GetSyntaxLocation();
 
@@ -1061,9 +1074,16 @@ public class RelationshipAnalyzer
         }
         else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
         {
+            // obj.MethodGroup
             var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
             {
+                // Skip local functions - they should not be part of the dependency graph
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
+                {
+                    return;
+                }
+
                 // This is a method group reference like obj.Method
                 var location = memberAccessSyntax.GetSyntaxLocation();
 

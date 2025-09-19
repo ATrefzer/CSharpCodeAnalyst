@@ -29,6 +29,14 @@ Class: CSharpLanguage.CSharpLanguage.PinSignalView
 Class: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer
 Class: CSharpLanguage.CSharpLanguage.Project
 Class: CSharpLanguage.CSharpLanguage.ProjectFile
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1
+Class: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2
 Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase
 Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1
 Class: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived2
@@ -79,6 +87,11 @@ Field: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant.ClassNsIrrelevant._
 Field: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner
 Field: CSharpLanguage.CSharpLanguage.RecordA._recordB
 Field: CSharpLanguage.CSharpLanguage.RecordB._recordA
+Field: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base._base
+Field: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1
+Field: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater2
+Field: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1
+Field: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater2
 Field: Cycles.Cycles.ClassLevel_Fields.Class1._field1
 Field: Cycles.Cycles.ClassLevel_Fields.Class2._field1
 Field: Cycles.Cycles.OuterClass.DirectChildClass.x
@@ -129,6 +142,16 @@ Method: CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassP
 Method: CSharpLanguage.CSharpLanguage.Partial.PartialClass.MethodInPartialClassPart2
 Method: CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer
 Method: CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave
+Method: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave
 Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA
 Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodB
 Method: CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1.MethodC
@@ -174,6 +197,8 @@ Namespace: CSharpLanguage.CSharpLanguage.NS_Parent.NS_Irrelevant
 Namespace: CSharpLanguage.CSharpLanguage.Ns1
 Namespace: CSharpLanguage.CSharpLanguage.Ns1.Ns2
 Namespace: CSharpLanguage.CSharpLanguage.Partial
+Namespace: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1
+Namespace: CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2
 Namespace: CSharpLanguage.CSharpLanguage.Regression_Hierarchies
 Namespace: CSharpLanguage.global
 Namespace: Cycles.Cycles
@@ -268,6 +293,31 @@ CSharpLanguage.CSharpLanguage.RecordA -(Uses)-> CSharpLanguage.CSharpLanguage.Re
 CSharpLanguage.CSharpLanguage.RecordA._recordB -(Uses)-> CSharpLanguage.CSharpLanguage.RecordB 
 CSharpLanguage.CSharpLanguage.RecordB -(Uses)-> CSharpLanguage.CSharpLanguage.RecordB 
 CSharpLanguage.CSharpLanguage.RecordB._recordA -(Uses)-> CSharpLanguage.CSharpLanguage.RecordA 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base._base -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base._base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1 -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater2 -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1 -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater2 -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build [IsInstanceCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2 -(Inherits)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base 
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -(Calls)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave [IsBaseCall]
+CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -(Overrides)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave 
 CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA 
 CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassBase.MethodA -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceA.MethodA 
 CSharpLanguage.CSharpLanguage.Regression_Hierarchies.ClassDerived1 -(Implements)-> CSharpLanguage.CSharpLanguage.Regression_Hierarchies.InterfaceB 
