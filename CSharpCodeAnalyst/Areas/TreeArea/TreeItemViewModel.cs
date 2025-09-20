@@ -62,7 +62,7 @@ public class TreeItemViewModel : INotifyPropertyChanged
             _isVisible = true
         };
 
-        if (resetTreeItemsStates is false)
+        if (!resetTreeItemsStates)
         {
             clone._isExpanded = IsExpanded;
             clone._isVisible = IsVisible;

@@ -347,7 +347,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Expand", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Expand everything.
         /// </summary>
@@ -356,7 +356,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("ExpandEverything", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Export Dgml.
         /// </summary>
@@ -1008,7 +1008,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partition.
+        ///   Looks up a localized string similar to Partition (base exclusive).
         /// </summary>
         public static string Partition {
             get {
@@ -1031,6 +1031,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Partitions_NoPartitions {
             get {
                 return ResourceManager.GetString("Partitions_NoPartitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partition (base inclusive).
+        /// </summary>
+        public static string PartitionWithBase {
+            get {
+                return ResourceManager.GetString("PartitionWithBase", resourceCulture);
             }
         }
         

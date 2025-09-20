@@ -24,13 +24,9 @@ internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
             return;
         }
 
-        var ids = new HashSet<string>();
-        if (node != null)
-        {
-            var id = node.Node.Id;
-            var vertex = codeGraph.Nodes[id];
-            ids = vertex.GetChildrenIncludingSelf();
-        }
+        var id = node.Node.Id;
+        var vertex = codeGraph.Nodes[id];
+        var ids = vertex.GetChildrenIncludingSelf();
 
         var edges = graphViewer.Entities.OfType<IViewerEdge>();
         foreach (var edge in edges)

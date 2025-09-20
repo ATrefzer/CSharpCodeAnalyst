@@ -1,6 +1,7 @@
 ﻿using CodeParser.Analysis.Cycles;
 using CodeParserTests.Helper;
 using Contracts.Graph;
+// ReSharper disable InconsistentNaming
 
 namespace CodeParserTests.UnitTests;
 
@@ -50,7 +51,7 @@ public partial class CycleFinderTests
     public void Regression_NestedClasses()
     {
         // Actually after thinking about this constellation I think it is not a cycle.
-        // Enum is a type like class and they should be treated equally.
+        // Enum is a type like class. They should be treated equally.
 
         var codeGraph = new TestCodeGraph();
 

@@ -89,11 +89,8 @@ public class SearchGraphBuilder
 
         var sourceLevel = CodeElementClassifier.GetContainerLevel(highestSource.ElementType);
         var targetLevel = CodeElementClassifier.GetContainerLevel(highestTarget.ElementType);
-        var levelUp = 0;
         while (sourceLevel != targetLevel)
         {
-            levelUp++;
-
             // We may climb up multiple times.
             if (sourceLevel < targetLevel)
             {

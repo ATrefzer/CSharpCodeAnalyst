@@ -243,7 +243,7 @@ internal class MsaglBuilder
     {
         // Assume the parent is always visible!
         var current = codeGraph.Nodes[id];
-        while (current != null && visibleGraph.Nodes.Keys.Contains(current.Id) is false)
+        while (current != null && !visibleGraph.Nodes.Keys.Contains(current.Id))
         {
             current = current.Parent;
         }

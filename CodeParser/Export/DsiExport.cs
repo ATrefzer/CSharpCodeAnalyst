@@ -1,12 +1,11 @@
-﻿using System.IO;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Exports;
+namespace CodeParser.Export;
 
 public class DsiExport
 {
-    internal void Export(string fileName, CodeGraph codeGraph)
+    public void Export(string fileName, CodeGraph codeGraph)
     {
         var dsiXml = Convert(codeGraph);
         File.WriteAllText(fileName, dsiXml);

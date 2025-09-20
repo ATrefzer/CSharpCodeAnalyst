@@ -14,7 +14,7 @@ public class SearchGraph : IGraphRepresentation<SearchNode>
 
     public uint VertexCount
     {
-        get => (uint)Vertices.Count();
+        get => (uint)Vertices.Count;
     }
 
     public IReadOnlyCollection<SearchNode> GetNeighbors(SearchNode vertex)

@@ -5,12 +5,9 @@ namespace CSharpCodeAnalyst.GraphArea.Highlighting;
 
 internal class EdgeHoveredHighlighting : HighlightingBase
 {
-    private IViewerEdge? _lastHighlightedEdge;
-
     public override void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
     {
         ClearAllEdges(graphViewer);
-        _lastHighlightedEdge = null;
     }
 
     public override void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
@@ -30,11 +27,7 @@ internal class EdgeHoveredHighlighting : HighlightingBase
         }
 
         // Highlight new edge, if any
-        if (newEdge != null)
-        {
-            _lastHighlightedEdge = newEdge;
-            Highlight(newEdge);
-            graphViewer?.Invalidate(newEdge);
-        }
+        Highlight(newEdge);
+        graphViewer.Invalidate(newEdge);
     }
 }

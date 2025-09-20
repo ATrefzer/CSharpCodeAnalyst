@@ -191,7 +191,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     {
         // Click on free space
         if (_msaglViewer?.ObjectUnderMouseCursor != null ||
-            _clonedCodeGraph.Nodes.Any() is false)
+            !_clonedCodeGraph.Nodes.Any())
         {
             return;
         }
@@ -204,7 +204,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         foreach (var command in _globalCommands)
         {
-            if (command.CanHandle(selectedElements) is false)
+            if (!command.CanHandle(selectedElements))
             {
                 continue;
             }
@@ -272,7 +272,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             return;
         }
 
-        if (idsToRemove.Any() is false)
+        if (!idsToRemove.Any())
         {
             return;
         }
@@ -554,6 +554,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
         catch (Exception ex)
         {
+            Trace.WriteLine(ex);
             MessageBox.Show(Strings.GraphRenderingError, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
@@ -657,7 +658,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             // Add separator command only if the last element was a real menu item.
             if (cmd is SeparatorCommand)
             {
-                if (lastItemIsSeparator is false)
+                if (!lastItemIsSeparator)
                 {
                     contextMenu.Items.Add(new Separator());
                     lastItemIsSeparator = true;

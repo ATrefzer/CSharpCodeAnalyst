@@ -38,26 +38,23 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
             _lastGraph = graphViewer.Graph;
         }
 
-
         var shortestPath = new List<IViewerEdge>();
         var minEdges = int.MaxValue;
-        if (selectedNode != null)
+
+        // We see the graph in correct representation state (collapsed nodes)
+        foreach (var edgeToNeighbor in selectedNode.OutEdges)
         {
-            // We see the graph in correct representation state (collapsed nodes)
-            foreach (var edgeToNeighbor in selectedNode.OutEdges)
+            // Since we don't want self edge we start with the direct neighbors
+            // Edge.Source is null!?
+
+            var path = BreadthFirstSearch(
+                _idToViewerNode[edgeToNeighbor.Edge.Target], selectedNode, _idToViewerNode);
+
+            if (path.Any() && path.Count + 1 < minEdges) // + 1 for the starting edge
             {
-                // Since we don't want self edge we start with the direct neighbors
-                // Edge.Source is null!?
-
-                var path = BreadthFirstSearch(
-                    _idToViewerNode[edgeToNeighbor.Edge.Target], selectedNode, _idToViewerNode);
-
-                if (path.Any() && path.Count + 1 < minEdges) // + 1 for the starting edge
-                {
-                    path.Add(edgeToNeighbor);
-                    shortestPath = path;
-                    minEdges = path.Count();
-                }
+                path.Add(edgeToNeighbor);
+                shortestPath = path;
+                minEdges = path.Count;
             }
         }
 
@@ -88,15 +85,14 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
 
             foreach (var outEdge in node.OutEdges)
             {
-                if (!whereICameFrom.ContainsKey(outEdge.Edge.Target))
+                if (whereICameFrom.TryAdd(outEdge.Edge.Target, outEdge))
                 {
-                    whereICameFrom[outEdge.Edge.Target] = outEdge;
                     queue.Enqueue(idToViewerNode[outEdge.Edge.Target]);
                 }
             }
         }
 
-        return new List<IViewerEdge>(); // No path found
+        return []; // No path found
     }
 
     /// <summary>

@@ -8,7 +8,7 @@ namespace CSharpCodeAnalyst.Areas.ResultArea;
 
 internal class CycleGroupsViewModel : TableViewModel
 {
-    private ObservableCollection<CycleGroupViewModel> _cycleGroups = new();
+    private ObservableCollection<CycleGroupViewModel> _cycleGroups = [];
 
     public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
     {

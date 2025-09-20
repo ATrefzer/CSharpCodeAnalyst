@@ -5,7 +5,7 @@ namespace CodeParser.Parser;
 
 internal class ParserDiagnostics : IParserDiagnostics
 {
-    public List<WorkspaceDiagnostic> Diagnostics { get; } = new();
+    public List<WorkspaceDiagnostic> Diagnostics { get; } = [];
 
     public string FormatFailures()
     {

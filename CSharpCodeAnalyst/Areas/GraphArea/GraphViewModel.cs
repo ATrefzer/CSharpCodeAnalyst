@@ -22,7 +22,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly ApplicationSettings _settings;
-    private readonly LinkedList<GraphSession> _undoStack = new();
+    private readonly LinkedList<GraphSession> _undoStack;
     private readonly int _undoStackSize = 10;
     private readonly IGraphViewer _viewer;
 
@@ -34,6 +34,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         ApplicationSettings settings)
     {
+        _undoStack = [];
         _viewer = viewer;
         _explorer = explorer;
         _publisher = publisher;
@@ -223,16 +224,6 @@ internal class GraphViewModel : INotifyPropertyChanged
     public ICommand UndoCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void PartitionClass(CodeElement? obj)
-    {
-        if (obj is not { ElementType: CodeElementType.Class })
-        {
-            return;
-        }
-
-        _publisher.Publish(new ShowPartitionsRequest(obj));
-    }
 
     private bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
     {
@@ -433,7 +424,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void Undo()
     {
-        if (_undoStack.Any() is false)
+        if (!_undoStack.Any())
         {
             MessageBox.Show(Strings.NothingToUndo_Message, Strings.NothingToUndo_Title, MessageBoxButton.OK,
                 MessageBoxImage.Information);

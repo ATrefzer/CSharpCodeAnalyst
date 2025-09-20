@@ -10,7 +10,6 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
 {
     private readonly Func<string, GraphSession> _addItemAction;
     private readonly Action<GraphSession> _applySelectionAction;
-    private readonly Gallery _gallery;
     private readonly Action<GraphSession> _removeItemAction;
     private readonly Action<GraphSession> _selectItemAction;
 
@@ -22,12 +21,10 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         Func<string, GraphSession> addItemAction, Action<GraphSession> removeItemAction,
         Action<GraphSession> applySelectionAction)
     {
-        _gallery = gallery;
         _selectItemAction = selectItemAction;
         _addItemAction = addItemAction;
         _removeItemAction = removeItemAction;
         _applySelectionAction = applySelectionAction;
-
 
         Items = new ObservableCollection<GraphSession>(gallery.Sessions);
 

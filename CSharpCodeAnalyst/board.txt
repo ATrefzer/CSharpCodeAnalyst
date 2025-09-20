@@ -3,8 +3,8 @@
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
-- The context menu for partitioning should not be in the code graph canvas.
-  It always referes to the full graph.
+- Consider adding the access modifieres. We could get rid of all private members.
+- Jump to pages
 
 UNHANDLED CASES
 ---------------------

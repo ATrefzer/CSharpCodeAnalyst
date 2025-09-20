@@ -16,7 +16,7 @@
             <Setter Property="StrokeThickness" Value="1" />
         </Style>
 
-        <Style x:Key="LegenTextStyle" TargetType="TextBlock">
+        <Style x:Key="LegendTextStyle" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="FontSize" Value="16" />
@@ -46,62 +46,62 @@
         <Rectangle Grid.Row="0" Grid.Column="0" Fill="{Binding AssemblyColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Assembly}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="1" Grid.Column="0" Fill="{Binding NamespaceColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Namespace}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="2" Grid.Column="0" Fill="{Binding ClassColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Class}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="3" Grid.Column="0" Fill="{Binding InterfaceColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Interface}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="4" Grid.Column="0" Fill="{Binding StructColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="4" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Struct}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="5" Grid.Column="0" Fill="{Binding RecordColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="5" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Record}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="6" Grid.Column="0" Fill="{Binding EnumColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="6" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Enum}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="7" Grid.Column="0" Fill="{Binding EventColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="7" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Event}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="8" Grid.Column="0" Fill="{Binding DelegateColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="8" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Delegate}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="9" Grid.Column="0" Fill="{Binding MethodColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="9" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Method}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="10" Grid.Column="0" Fill="{Binding PropertyColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="10" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Property}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
         <Rectangle Grid.Row="11" Grid.Column="0" Fill="{Binding FieldColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
         <TextBlock Grid.Row="11" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Field}"
-                   Style="{StaticResource LegenTextStyle}" />
+                   Style="{StaticResource LegendTextStyle}" />
 
     </Grid>
 </Window>

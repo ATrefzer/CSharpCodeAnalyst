@@ -80,7 +80,11 @@ public static class SymbolExtensions
         // Check if the last symbol is a global namespace and add the assembly
         if (parts.LastOrDefault() is INamespaceSymbol { IsGlobalNamespace: true } globalNamespace)
         {
-            parts.Add(globalNamespace.ContainingCompilation.Assembly);
+            var compilation = globalNamespace.ContainingCompilation;
+            if (compilation != null)
+            {
+                parts.Add(compilation.Assembly);
+            }
         }
 
         return parts;
@@ -106,7 +110,7 @@ public static class SymbolExtensions
         var genericPart = GetGenericPart(symbol);
         var kind = symbol.Kind.ToString();
 
-        if (symbol is IAssemblySymbol assemblySymbol)
+        if (symbol is IAssemblySymbol)
         {
             // Yes, people exist who add two projects with the same name in one solution
             // Ignore this for the moment

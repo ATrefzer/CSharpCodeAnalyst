@@ -68,9 +68,9 @@ public abstract class ProjectTestBase
     protected CodeGraph Graph = null!;
 
 
-    public static string DumpRelationships(HashSet<string> relationsships)
+    public static string DumpRelationships(HashSet<string> relationships)
     {
-        var formattedRelationships = string.Join(",\n", relationsships.Select(s => $"\"{s}\""));
+        var formattedRelationships = string.Join(",\n", relationships.Select(s => $"\"{s}\""));
         return formattedRelationships;
     }
 

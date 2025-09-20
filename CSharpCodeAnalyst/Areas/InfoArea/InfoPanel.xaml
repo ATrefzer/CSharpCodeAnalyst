@@ -10,25 +10,6 @@
              d:DesignHeight="450" d:DesignWidth="300">
 
     <UserControl.Resources>
-
-        <!-- Add this to your UserControl.Resources section -->
-        <Style x:Key="InnerListViewItemStyle" TargetType="ListViewItem">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListViewItem">
-                        <ContentPresenter />
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <ControlTemplate x:Key="NoScroll">
-            <ItemsPresenter />
-        </ControlTemplate>
-
         <converters:NumberToVisibilityConverter x:Key="NumberToVisibilityConverter" />
     </UserControl.Resources>
 

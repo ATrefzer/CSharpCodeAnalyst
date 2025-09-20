@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.Areas.ResultArea;
 
 public class PartitionsViewModel : TableViewModel
 {
-    private ObservableCollection<PartitionViewModel> _partitions = new();
+    private ObservableCollection<PartitionViewModel> _partitions = [];
 
     public PartitionsViewModel()
     {

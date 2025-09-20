@@ -1,15 +1,16 @@
-﻿using CodeParser.Analysis.Shared;
-using Contracts.Graph;
+﻿using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Common;
 
 public class ShowPartitionsRequest
 {
-    public CodeElement CodeElement { get; }
 
-    public ShowPartitionsRequest(CodeElement codeElement)
+    public ShowPartitionsRequest(CodeElement codeElement, bool includeBaseClasses)
     {
         CodeElement = codeElement;
+        IncludeBaseClasses = includeBaseClasses;
     }
 
+    public CodeElement CodeElement { get; }
+    public bool IncludeBaseClasses { get; }
 }

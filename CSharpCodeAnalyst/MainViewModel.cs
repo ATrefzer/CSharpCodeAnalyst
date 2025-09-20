@@ -9,7 +9,6 @@ using System.Windows;
 using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
-using CodeParser.Export;
 using CodeParser.Extensions;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
@@ -39,7 +38,6 @@ namespace CSharpCodeAnalyst;
 
 internal class MainViewModel : INotifyPropertyChanged
 {
-
     private const int InfoPanelTabIndex = 2;
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
@@ -50,28 +48,22 @@ internal class MainViewModel : INotifyPropertyChanged
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
+    private InfoPanelViewModel? _infoPanelViewModel;
 
     private bool _isCanvasHintsVisible = true;
-
-
-
     private bool _isLeftPanelExpanded = true;
-
     private bool _isLoading;
-
     private bool _isSaved = true;
 
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
-
     private LegendDialog? _openedLegendDialog;
     private SearchViewModel? _searchViewModel;
+
+
     private int _selectedLeftTabIndex;
-
-
     private int _selectedRightTabIndex;
     private TableViewModel? _tableViewModel;
-
     private TreeViewModel? _treeViewModel;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
@@ -106,6 +98,17 @@ internal class MainViewModel : INotifyPropertyChanged
         ExportToDsiCommand = new DelegateCommand(OnExportToDsi);
 
         _loadMessage = string.Empty;
+    }
+
+    public InfoPanelViewModel? InfoPanelViewModel
+    {
+        get => _infoPanelViewModel;
+        set
+        {
+            if (Equals(value, _infoPanelViewModel)) return;
+            _infoPanelViewModel = value;
+            OnPropertyChanged(nameof(InfoPanelViewModel));
+        }
     }
 
     public ICommand ShowGalleryCommand { get; }
@@ -254,7 +257,7 @@ internal class MainViewModel : INotifyPropertyChanged
         get => _metrics;
     }
 
-    public InfoPanelViewModel InfoPanelViewModel { get; set; }
+
 
     public int SelectedLeftTabIndex
     {
@@ -263,7 +266,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             if (value == _selectedLeftTabIndex) return;
             _selectedLeftTabIndex = value;
-            InfoPanelViewModel.Hide(value != InfoPanelTabIndex);
+            InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
             OnPropertyChanged(nameof(SelectedLeftTabIndex));
         }
     }
@@ -292,7 +295,7 @@ internal class MainViewModel : INotifyPropertyChanged
         editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         var result = editor.ShowDialog();
 
-        if (result is false && ReferenceEquals(backup, preview) is false)
+        if (result is false && !ReferenceEquals(backup, preview))
         {
             // Restore original state if previews were shown
             _graphViewModel.LoadSession(backup, false);
@@ -332,7 +335,7 @@ internal class MainViewModel : INotifyPropertyChanged
             _openedLegendDialog = new LegendDialog();
             _openedLegendDialog.Owner = Application.Current.MainWindow;
             _openedLegendDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            _openedLegendDialog.Closed += (sender, e) => _openedLegendDialog = null;
+            _openedLegendDialog.Closed += (_, _) => _openedLegendDialog = null;
             _openedLegendDialog.Show();
         }
     }
@@ -405,35 +408,7 @@ internal class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnExportToDsi()
     {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "DSI files (*.dsi)|*.dsi",
-                Title = "Export to DSI"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            var fileName = saveFileDialog.FileName;
-
-            var exporter = new DsiExport();
-            exporter.Export(fileName, _codeGraph);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
+        Export.ToDsi(_codeGraph);
     }
 
     private static void RunDsiViewer(string filePath)
@@ -578,7 +553,7 @@ internal class MainViewModel : INotifyPropertyChanged
         var (codeGraph, diagnostics) = await Task.Run(async () => await ImportSolutionAsync(solutionPath));
 
         var failures = diagnostics.FormatFailures();
-        if (string.IsNullOrEmpty(failures) is false)
+        if (!string.IsNullOrEmpty(failures))
         {
             var failureText = Strings.Parser_FailureHeader + failures;
             MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -626,103 +601,23 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadMessage = string.Empty;
         }
     }
-
     private void OnProgress(object? sender, ParserProgressArg e)
     {
         LoadMessage = e.Message;
     }
-
     private void OnExportToPlantUml()
     {
-        if (!HasGraph())
-        {
-            return;
-        }
-
-        try
-        {
-            var codeStructure = _graphViewModel.ExportGraph();
-            var exporter = new PlantUmlExport();
-            var plantUml = exporter.Export(codeStructure);
-
-            Clipboard.SetText(plantUml);
-            MessageBox.Show(Strings.ExportPlantUml_Success, Strings.ExportPlantUml_Title,
-                MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        Export.ToPlantUml(_graphViewModel?.ExportGraph());
     }
 
     private void OnExportToDgml()
     {
-        if (!HasGraph())
-        {
-            return;
-        }
-
-        try
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "DGML files (*.dgml)|*.dgml",
-                Title = "Export to DGML"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            var fileName = saveFileDialog.FileName;
-
-            var codeStructure = _graphViewModel.ExportGraph();
-            var exporter = new DgmlExport();
-            exporter.Export(fileName, codeStructure);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        Export.ToDgml(_graphViewModel?.ExportGraph());
     }
-
 
     private void OnExportToPng(FrameworkElement? canvas)
     {
-        if (canvas is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "PNG files (*.png)|*.png",
-                Title = "Export to DGML"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            ImageWriter.SaveToPng(canvas, saveFileDialog.FileName);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    bool HasGraph()
-    {
-        var graph = _graphViewModel?.ExportGraph();
-        return graph is not null && graph.Nodes.Count != 0;
+        Export.ToPng(canvas);
     }
 
     /// <summary>
@@ -730,36 +625,13 @@ internal class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnExportToSvg()
     {
-        if (!HasGraph())
+        if (_graphViewModel is null)
         {
             return;
         }
 
-        try
-        {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "SVG files (*.svg)|*.svg",
-                Title = "Export to SVG"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            using (var stream = new FileStream(saveFileDialog.FileName, FileMode.Create))
-            {
-                _graphViewModel.SaveToSvg(stream);
-            }
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        Export.ToSvg(_graphViewModel.SaveToSvg);
     }
-
 
     private async void OnLoadProject()
     {
@@ -773,7 +645,6 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             return;
         }
-
 
         try
         {
@@ -907,7 +778,7 @@ internal class MainViewModel : INotifyPropertyChanged
     /// </summary>
     internal bool OnClosing()
     {
-        if (_isSaved is false)
+        if (!_isSaved)
         {
             if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
@@ -944,8 +815,8 @@ internal class MainViewModel : INotifyPropertyChanged
         // The request code element may originate from a graph where the children are not present!
         var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
 
-        CodeElementPartitioner partitioner = new CodeElementPartitioner();
-        var partitions = partitioner.GetPartitions(_codeGraph, originalCodeElement);
+        var partitioner = new CodeElementPartitioner();
+        var partitions = partitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
 
         if (partitions.Count <= 1)
         {

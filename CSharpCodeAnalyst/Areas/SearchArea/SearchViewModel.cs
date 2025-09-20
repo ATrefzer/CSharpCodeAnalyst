@@ -30,7 +30,7 @@ public class SearchViewModel : INotifyPropertyChanged
         {
             Interval = TimeSpan.FromMilliseconds(300) // 300ms debounce
         };
-        _searchTimer.Tick += (s, e) =>
+        _searchTimer.Tick += (_, _) =>
         {
             _searchTimer.Stop();
             ExecuteSearchInternal();
@@ -40,6 +40,12 @@ public class SearchViewModel : INotifyPropertyChanged
         ClearSearchCommand = new DelegateCommand(ClearSearch);
         AddSelectedToGraphCommand = new DelegateCommand<object>(AddSelectedToGraph);
         AddSelectedToGraphCollapsedCommand = new DelegateCommand<object>(AddSelectedToGraphCollapsed);
+        PartitionCommand = new DelegateCommand<SearchItemViewModel>(OnPartition, CanPartition);
+    }
+
+    private bool CanPartition(SearchItemViewModel? vm)
+    {
+        return vm?.CodeElement is { ElementType: CodeElementType.Class };
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -79,8 +85,17 @@ public class SearchViewModel : INotifyPropertyChanged
     public ICommand ClearSearchCommand { get; }
     public ICommand AddSelectedToGraphCommand { get; }
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
+    public ICommand PartitionCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPartition(SearchItemViewModel? vm)
+    {
+        if (vm is not null)
+        {
+            _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
+        }
+    }
 
     public void LoadCodeGraph(CodeGraph codeGraph)
     {

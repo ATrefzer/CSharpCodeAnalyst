@@ -10,7 +10,7 @@ public class PresentationState
 
     public PresentationState(Dictionary<string, bool> defaultState)
     {
-        _defaultState = defaultState?.ToDictionary(p => p.Key, propa => propa.Value) ?? new Dictionary<string, bool>();
+        _defaultState = defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToFlagged = new Dictionary<string, bool>();
     }
@@ -28,13 +28,6 @@ public class PresentationState
     {
         get => _defaultState;
         set => _defaultState = value ?? new Dictionary<string, bool>();
-    }
-
-    [JsonPropertyName("nodeIdToCollapsed")]
-    public Dictionary<string, bool> NodeIdToCollapsed
-    {
-        get => _nodeIdToCollapsed;
-        set => _nodeIdToCollapsed = value ?? new Dictionary<string, bool>();
     }
 
     [JsonPropertyName("nodeIdToFlagged")] public Dictionary<string, bool> NodeIdToFlagged

@@ -19,7 +19,7 @@ internal class Sorter : Comparer<CodeElementLineViewModel>
 
 public class CodeElementLineViewModel(CodeElement e)
 {
-    public BitmapImage? Icon => CodeElementIconMapper.GetIcon(e.ElementType);
+    public BitmapImage Icon => CodeElementIconMapper.GetIcon(e.ElementType);
 
     public CodeElementType ElementType { get; set; } = e.ElementType;
     public string ElementTypeName { get; set; } = e.ElementType.ToString();

@@ -43,7 +43,7 @@ public class RelationshipContextCommand : IRelationshipContextCommand
 
         if (_type != null)
         {
-            if (relationships.All(d => d.Type == _type) is false)
+            if (relationships.Any(d => d.Type != _type))
             {
                 return false;
             }

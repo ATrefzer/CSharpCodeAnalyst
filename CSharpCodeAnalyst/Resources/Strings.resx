@@ -227,8 +227,11 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>File</value>
   </data>
   <data name="Partition" xml:space="preserve">
-    <value>Partition</value>
+    <value>Partition (base exclusive)</value>
   </data>
+  <data name="PartitionWithBase" xml:space="preserve">
+    <value>Partition (base inclusive)</value>
+  </data>  
   <data name="ImportSolution_Label" xml:space="preserve">
     <value>Import Solution</value>
   </data>

@@ -228,9 +228,7 @@ public class RelationshipAnalyzer
         {
             if (attributeData.AttributeClass != null)
             {
-                var location = attributeData.ApplicationSyntaxReference != null
-                    ? attributeData.ApplicationSyntaxReference.GetSyntax().GetSyntaxLocation()
-                    : null;
+                var location = attributeData.ApplicationSyntaxReference?.GetSyntax().GetSyntaxLocation();
 
                 element.Attributes.Add(attributeData.AttributeClass.Name);
                 AddTypeRelationship(element, attributeData.AttributeClass, RelationshipType.UsesAttribute, location);
@@ -277,7 +275,7 @@ public class RelationshipAnalyzer
         }
 
 
-        // If the event has add/remove accessors, analyze them
+        // If the event has "add"/"remove" accessors, analyze them
         if (eventSymbol.AddMethod != null)
         {
             AnalyzeMethodRelationships(solution, eventElement, eventSymbol.AddMethod);
@@ -400,7 +398,7 @@ public class RelationshipAnalyzer
             // If the symbol is from a different compilation than the implementing type we may have to go deeper.
             var typeCompilation = implementingType.FindCompilation();
             var symbolCompilation = symbol.FindCompilation();
-            if (ReferenceEquals(typeCompilation, symbolCompilation) is false)
+            if (!ReferenceEquals(typeCompilation, symbolCompilation))
             {
                 if (symbol.FindCorrespondingSymbol(typeCompilation) is {} mappedSymbol)
                 {
@@ -864,10 +862,7 @@ public class RelationshipAnalyzer
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         // If we don't have the property itself in our map, add a relationship to its containing type
-        if (locations == null)
-        {
-            locations = [];
-        }
+        locations ??= [];
 
         var targetElement = FindCodeElement(targetSymbol);
         if (targetElement != null)

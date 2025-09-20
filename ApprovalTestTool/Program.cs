@@ -43,7 +43,7 @@ internal class TestTool
         EnsureDirectoryExists(gitCloneFolder);
 
         var executablePath = Assembly.GetExecutingAssembly().Location;
-        var executableDirectory = Path.GetDirectoryName(executablePath);
+        var executableDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
         var repoFile = Path.Combine(executableDirectory, "repositories.txt");
 
         if (!File.Exists(repoFile))
@@ -85,10 +85,8 @@ internal class TestTool
         }
         else
         {
-            using (var repo = new Repository(repoPath))
-            {
-                Commands.Fetch(repo, "origin", Array.Empty<string>(), new FetchOptions(), null);
-            }
+            using var repo = new Repository(repoPath);
+            Commands.Fetch(repo, "origin", [], new FetchOptions(), null);
         }
 
         // Checkout the specified commit

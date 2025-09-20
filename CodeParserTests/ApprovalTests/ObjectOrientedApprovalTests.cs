@@ -1,4 +1,5 @@
 using Contracts.Graph;
+// ReSharper disable StringLiteralTypo
 
 namespace CodeParserTests.ApprovalTests;
 

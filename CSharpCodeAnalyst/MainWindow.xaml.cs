@@ -68,7 +68,7 @@ public partial class MainWindow
             return;
         }
 
-        if (treeViewItem.CanShowContextMenuForItem() is false)
+        if (!treeViewItem.CanShowContextMenuForItem())
         {
             e.Handled = true; // Cancel the context menu
         }
@@ -166,7 +166,8 @@ public partial class MainWindow
 
     private void DropdownButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.ContextMenu != null && button.ContextMenu.Items[0] is MenuItem item)
+        if (sender is Button { ContextMenu: not null } button
+            && button.ContextMenu.Items[0] is MenuItem item)
         {
             button.ContextMenu.PlacementTarget = button;
             item.Tag = SearchDataGrid;

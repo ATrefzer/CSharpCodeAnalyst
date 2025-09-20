@@ -8,7 +8,7 @@ namespace CodeParser.Analysis.Shared;
 /// </summary>
 public class Scc<TVertex>
 {
-    public HashSet<TVertex> Vertices = new();
+    public HashSet<TVertex> Vertices = [];
 }
 
 public static class Tarjan
@@ -55,7 +55,7 @@ public static class Tarjan
 
         foreach (var v in graph.GetNeighbors(u))
         {
-            if (idMap.ContainsKey(v) is false)
+            if (!idMap.ContainsKey(v))
             {
                 // Unvisited vertex
                 Dfs(graph, v, idMap, lowMap, stack, inStack, sccs);

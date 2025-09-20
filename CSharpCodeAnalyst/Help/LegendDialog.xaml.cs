@@ -5,7 +5,7 @@ using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Help;
 
-public partial class LegendDialog : Window
+public partial class LegendDialog
 {
 
     public LegendDialog()

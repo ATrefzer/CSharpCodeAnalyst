@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.InfoPanel
     /// <summary>
     /// Interaction logic for InfoPanel.xaml
     /// </summary>
-    public partial class InfoPanel : UserControl
+    public partial class InfoPanel
     {
         public InfoPanel()
         {

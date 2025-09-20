@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Gallery;
 /// <summary>
 ///     Interaction logic for GalleryEditor.xaml
 /// </summary>
-public partial class GalleryEditor : Window
+public partial class GalleryEditor
 {
     public GalleryEditor()
     {

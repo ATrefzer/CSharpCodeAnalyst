@@ -1,7 +1,7 @@
 ﻿namespace CSharpCodeAnalyst.SearchArea;
 
 /// <summary>
-///     Helper to bild (very) simple search expressions with AND/OR/TERM
+///     Helper to build (very) simple search expressions with AND/OR/TERM
 /// </summary>
 internal interface IExpression
 {

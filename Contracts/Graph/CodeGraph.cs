@@ -8,7 +8,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public uint VertexCount
     {
-        get => (uint)Nodes.Count();
+        get => (uint)Nodes.Count;
     }
 
     public IReadOnlyCollection<CodeElement> GetNeighbors(CodeElement vertex)
@@ -48,8 +48,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
     /// </summary>
     public void RemoveCodeElement(string elementId)
     {
-        RemoveCodeElements(new HashSet<string>
-            { elementId });
+        RemoveCodeElements([elementId]);
     }
 
     /// <summary>

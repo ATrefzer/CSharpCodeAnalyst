@@ -4,7 +4,7 @@ using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Filter;
 
-public partial class FilterDialog : Window
+public partial class FilterDialog
 {
     private readonly ProjectExclusionRegExCollection _filter;
 

@@ -37,7 +37,7 @@ public class CodeElementContextCommand : ICodeElementContextCommand
 
     public bool CanHandle(CodeElement element)
     {
-        var canHandle = false;
+        bool canHandle;
         if (_type == null)
         {
             // Handling all elements

@@ -26,7 +26,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return [];
         }
 
-        List<CodeElement> elements = new();
+        List<CodeElement> elements = [];
         foreach (var id in ids)
         {
             if (_codeGraph.Nodes.TryGetValue(id, out var element))
@@ -66,7 +66,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             {
                 // We need a parent
                 var parent = possibleChild.Parent;
-                if (knownIds.Contains(parent.Id) is false)
+                if (!knownIds.Contains(parent.Id))
                 {
                     parents.Add(parent.Id);
                 }
@@ -94,7 +94,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 while (possibleChild.Parent != null && possibleChild.Id != possibleParent.Id)
                 {
                     var parent = possibleChild.Parent;
-                    if (knownIds.Contains(parent.Id) is false)
+                    if (!knownIds.Contains(parent.Id))
                     {
                         parents.Add(parent.Id);
                     }

@@ -33,13 +33,24 @@ public class TreeViewModel : INotifyPropertyChanged
         DeleteFromModelCommand = new DelegateCommand<TreeItemViewModel>(DeleteFromModel);
         AddNodeToGraphCommand = new DelegateCommand<TreeItemViewModel>(AddNodeToGraph);
         PartitionTreeCommand = new DelegateCommand<TreeItemViewModel>(Partition, CanPartition);
+        PartitionWithBaseTreeCommand = new DelegateCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         _filteredTreeItems = [];
         _treeItems = [];
     }
 
+    private void PartitionWithBase(TreeItemViewModel vm)
+    {
+        if (vm.CodeElement is null)
+        {
+            return;
+        }
+
+        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, true));
+    }
+
     private bool CanPartition(TreeItemViewModel? vm)
     {
-        return vm != null && vm.CodeElement is not null && vm.CodeElement.ElementType == CodeElementType.Class;
+        return vm is { CodeElement.ElementType: CodeElementType.Class };
     }
 
     private void Partition(TreeItemViewModel vm)
@@ -49,7 +60,7 @@ public class TreeViewModel : INotifyPropertyChanged
             return;
         }
 
-        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement));
+        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
     }
 
 
@@ -93,12 +104,13 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand AddNodeToGraphCommand { get; private set; }
     public ICommand DeleteFromModelCommand { get; }
     public ICommand PartitionTreeCommand { get; private set; }
+    public ICommand PartitionWithBaseTreeCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void DeleteFromModel(TreeItemViewModel obj)
     {
-        var id = obj?.CodeElement?.Id;
+        var id = obj.CodeElement?.Id;
         if (id is null || _codeGraph is null)
         {
             return;
@@ -198,7 +210,7 @@ public class TreeViewModel : INotifyPropertyChanged
         foreach (var item in items)
         {
             item.IsVisible = true;
-            if (keepHighlighting is false)
+            if (!keepHighlighting)
             {
                 item.IsHighlighted = false;
             }

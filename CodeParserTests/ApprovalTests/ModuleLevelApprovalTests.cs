@@ -78,11 +78,12 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     private CodeElement GetAssembly(CodeElement element)
     {
         var assembly = element;
-        while (assembly.ElementType != CodeElementType.Assembly)
+        while (assembly != null && assembly.ElementType != CodeElementType.Assembly)
         {
             assembly = assembly.Parent;
         }
 
+        Assert.NotNull(assembly);
         return assembly;
     }
 
@@ -99,8 +100,6 @@ public class ModuleLevelApprovalTests : ProjectTestBase
         var actual = crossing
             .Select(r => $"{r.Source} -> {r.Target}")
             .ToHashSet();
-
-        var dmp = DumpRelationships(actual);
 
         var expected = new[]
         {

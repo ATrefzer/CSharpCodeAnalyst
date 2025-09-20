@@ -73,7 +73,7 @@ public class HierarchyAnalyzer
         foreach (var project in solution.Projects)
         {
             // Regular expression patterns.
-            if (_config.IsProjectIncluded(project.Name) is false)
+            if (!_config.IsProjectIncluded(project.Name))
             {
                 continue;
             }
@@ -105,7 +105,7 @@ public class HierarchyAnalyzer
         // Assembly has no source location.
         var assemblySymbol = compilation.Assembly;
         var assemblyElement = GetOrCreateCodeElement(assemblySymbol, CodeElementType.Assembly, null!, null!);
-        _globalStatementsByAssembly[assemblySymbol] = new List<GlobalStatementSyntax>();
+        _globalStatementsByAssembly[assemblySymbol] = [];
 
         foreach (var syntaxTree in compilation.SyntaxTrees)
         {
@@ -289,7 +289,7 @@ public class HierarchyAnalyzer
 
     /// <summary>
     ///     Note: We store the symbol used to build the hierarchy.
-    ///     If used in different a compilation unit the symbol may be another instance..
+    ///     If used in different a compilation unit the symbol may be another instance.
     /// </summary>
     private CodeElement GetOrCreateCodeElement(ISymbol symbol, CodeElementType elementType, CodeElement? parent,
         SourceLocation? location)
@@ -332,7 +332,7 @@ public class HierarchyAnalyzer
         if (symbol is not INamespaceSymbol)
         {
             // Get warning if we have different symbols for the same element.
-            if (_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default) is false)
+            if (!_elementIdToSymbolMap[existingElement.Id].Equals(symbol, SymbolEqualityComparer.Default))
             {
                 // Happens if two projects in the solution have the same name.
                 // You lose one of them.
@@ -370,7 +370,7 @@ public class HierarchyAnalyzer
     {
         foreach (var project in solution.Projects)
         {
-            if (_config.IsProjectIncluded(project.Name) is false)
+            if (!_config.IsProjectIncluded(project.Name))
             {
                 continue;
             }

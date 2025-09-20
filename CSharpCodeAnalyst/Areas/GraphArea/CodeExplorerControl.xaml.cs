@@ -7,7 +7,7 @@ namespace CSharpCodeAnalyst.Areas.GraphArea
     /// <summary>
     ///     Interaction logic for CodeExplorerControl.xaml
     /// </summary>
-    public partial class CodeExplorerControl : UserControl
+    public partial class CodeExplorerControl
     {
         public CodeExplorerControl()
         {

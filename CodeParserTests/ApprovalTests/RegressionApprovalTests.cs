@@ -71,9 +71,6 @@ public class RegressionApprovalTests : ProjectTestBase
         CollectionAssert.AreEquivalent(expected, calls);
     }
 
-
-
-
     private IEnumerable<Relationship> GetVirtualMethodCallsInProject(string projectFilter)
     {
         return Graph.GetAllRelationships()
