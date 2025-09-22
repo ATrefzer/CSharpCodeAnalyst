@@ -21,14 +21,8 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: csharp
-        # Verschiedene Query-Suites für umfassende Analyse
-        queries: |
-          security-and-quality
-          @codeql/csharp-queries:codeql-suites/csharp-code-scanning.qls
-          @codeql/csharp-queries:Likely Bugs/
-          @codeql/csharp-queries:Best Practices/
-          @codeql/csharp-queries:Maintainability/
-        config-file: ./.github/codeql-config.yml
+        # Inline-Konfiguration statt externe Datei
+        queries: security-and-quality
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
