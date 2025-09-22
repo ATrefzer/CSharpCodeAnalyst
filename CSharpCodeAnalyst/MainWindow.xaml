@@ -18,9 +18,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/CycleGroups/TableAreaCycleGroupsDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/EventRegistration/TableAreaEventImbalanceDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/Partitions/TableAreaPartitionsDataTemplate.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/CycleGroups/CycleGroupsDataTemplate.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/EventRegistration/EventImbalancesDataTemplate.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/Partitions/PartitionsDataTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
@@ -87,7 +87,7 @@
                                        LargeImageSource="/Resources/analysis_32.png">
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Label}"
-                                        ImageSource="/Resources/document-xml_32.png"
+                                        ImageSource="/Resources/analysis_32.png"
                                         ToolTip="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Tooltip}"
                                         Command="{Binding FindEventImbalancesCommand}" />
                     </RibbonSplitButton>
