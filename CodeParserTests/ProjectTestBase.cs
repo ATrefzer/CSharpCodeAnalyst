@@ -105,9 +105,9 @@ public abstract class ProjectTestBase
         return element.FullName.StartsWith(projectFilter);
     }
 
-    public CodeGraph GetGraph(string projectName)
+    public CodeGraph GetGraph(string name)
     {
-        var assembly = Graph.Nodes.Values.First(n => n.ElementType == CodeElementType.Assembly && n.Name == projectName);
+        var assembly = Graph.Nodes.Values.First(n => n.ElementType == CodeElementType.Namespace && n.Name == name);
         return Graph.SubGraphOf(assembly);
     }
 

@@ -18,13 +18,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="Areas/TableArea/TableAreaDataTemplates.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/CycleGroups/TableAreaCycleGroupsDataTemplate.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/EventRegistration/TableAreaEventImbalanceDataTemplate.xaml" />
+                <ResourceDictionary Source="/Areas/TableArea/Partitions/TableAreaPartitionsDataTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         </ResourceDictionary>
     </Window.Resources>
-
 
     <Grid>
         <Grid.RowDefinitions>
@@ -78,9 +79,19 @@
                 </RibbonGroup>
 
                 <RibbonGroup Header="Tools" LargeImageSource="/Resources/cycle_32.png">
-                    <RibbonButton Label="{x:Static resources:Strings.Find_Label}"
+                    <RibbonButton Label="{x:Static resources:Strings.Find_Cycles_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
+
+                    <RibbonSplitButton Label="Analysis Addons"
+                                       LargeImageSource="/Resources/analysis_32.png">
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Label}"
+                                        ImageSource="/Resources/document-xml_32.png"
+                                        ToolTip="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Tooltip}"
+                                        Command="{Binding FindEventImbalancesCommand}" />
+                    </RibbonSplitButton>
+
                 </RibbonGroup>
 
 
@@ -409,7 +420,7 @@
                                             Command="{Binding AddSelectedToGraphCollapsedCommand}"
                                             CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                                        <Separator/>
+                                        <Separator />
                                         <MenuItem Header="{x:Static resources:Strings.Partition}"
                                                   Command="{Binding PartitionCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -510,8 +521,7 @@
                 </TabItem>
                 <TabItem Header="{Binding TableViewModel.Title}">
                     <Grid DataContext="{Binding TableViewModel}">
-                        <ContentPresenter Content="{Binding }"
-                                          ContentTemplateSelector="{StaticResource ResultTableTemplateSelector}" />
+                        <ContentPresenter Content="{Binding }" />
                     </Grid>
                 </TabItem>
 

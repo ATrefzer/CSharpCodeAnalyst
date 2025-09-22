@@ -584,9 +584,9 @@ public class RelationshipAnalyzer
         AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Invokes, [location], RelationshipAttribute.None);
     }
 
-    private void AddEventUsageRelationship(CodeElement sourceElement, IEventSymbol eventSymbol, SourceLocation location)
+    private void AddEventUsageRelationship(CodeElement sourceElement, IEventSymbol eventSymbol, SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None)
     {
-        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location], attribute);
     }
 
     private void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
@@ -598,35 +598,41 @@ public class RelationshipAnalyzer
         // Analyze the right side of the assignment (value)
         AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel);
 
+        var isRegistration = assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression);
+        var isUnregistration = assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression);
+
         // Handle event registration and un-registration
-        if (assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression) ||
-            assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression))
+        if (isRegistration || isUnregistration)
         {
             var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
             var rightSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Right).Symbol;
 
             if (leftSymbol is IEventSymbol eventSymbol)
             {
-                AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation());
+                var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
+                AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
 
                 // If the right side is a method, add a Handles relationship
                 if (rightSymbol is IMethodSymbol methodSymbol)
                 {
-                    AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation());
+                    // The handles relationship carries both locations for registering 
+                    // and unregistering the event handler. We have the same with the uses relationship.
+                    // But separately for registering and unregistering.
+                    AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
                 }
             }
         }
     }
 
     private void AddEventHandlerRelationship(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
-        SourceLocation location)
+        SourceLocation location, RelationshipAttribute attribute)
     {
         var handlerElement = FindCodeElement(handlerMethod);
         var eventElement = FindCodeElement(eventSymbol);
 
         if (handlerElement != null && eventElement != null)
         {
-            AddRelationship(handlerElement, RelationshipType.Handles, eventElement, [location], RelationshipAttribute.None);
+            AddRelationship(handlerElement, RelationshipType.Handles, eventElement, [location], attribute);
         }
         //Trace.WriteLine(
         //    $"Unable to add 'Handles' relationship: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");

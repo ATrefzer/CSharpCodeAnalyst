@@ -10,6 +10,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="ExternalApplications\**" />
+      <EmbeddedResource Remove="ExternalApplications\**" />
+      <None Remove="ExternalApplications\**" />
+      <Page Remove="ExternalApplications\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\analysis_32.png" />
       <None Remove="Resources\flag.png" />
     </ItemGroup>
 
@@ -22,6 +30,7 @@
 
 
     <ItemGroup>
+        <Resource Include="Resources\analysis_32.png" />
         <Resource Include="Resources\flag.png" />
         <Resource Include="Resources\guidepost_small.png" />
         <Resource Include="Resources\help_32.png" />
@@ -92,10 +101,6 @@
     <ItemGroup>
         <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
         <ProjectReference Include="..\Contracts\Contracts.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="ExternalApplications\" />
     </ItemGroup>
 
     <ItemGroup>

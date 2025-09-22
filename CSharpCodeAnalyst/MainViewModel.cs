@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
+using CodeParser.Analysis.EventRegistration;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
 using CodeParser.Parser;
@@ -39,6 +40,8 @@ namespace CSharpCodeAnalyst;
 internal class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
+    private const int TableTabIndex = 1;
+
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
@@ -87,6 +90,7 @@ internal class MainViewModel : INotifyPropertyChanged
         GraphClearCommand = new DelegateCommand(OnGraphClear);
         GraphLayoutCommand = new DelegateCommand(OnGraphLayout);
         FindCyclesCommand = new DelegateCommand(OnFindCycles);
+        FindEventImbalancesCommand = new DelegateCommand(OnFindEventImbalances);
         ShowGalleryCommand = new DelegateCommand(OnShowGallery);
         ShowLegendCommand = new DelegateCommand(OnShowLegend);
         OpenFilterDialogCommand = new DelegateCommand(OnOpenFilterDialog);
@@ -99,6 +103,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
         _loadMessage = string.Empty;
     }
+
 
     public InfoPanelViewModel? InfoPanelViewModel
     {
@@ -271,6 +276,8 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public ICommand FindEventImbalancesCommand { get; set; }
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -428,6 +435,33 @@ internal class MainViewModel : INotifyPropertyChanged
         process.StartInfo = startInfo;
         process.Start();
     }
+
+    private void OnFindEventImbalances()
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        var imbalances = EventRegistrationAnalyzer.FindImbalances(_codeGraph);
+
+        if (imbalances.Count == 0)
+        {
+            MessageBox.Show("No event handler registration / un-registration imbalances found");
+            return;
+        }
+
+        HandleShowEventImbalancesRequest(new ShowEventImbalancesRequest(imbalances));
+    }
+
+
+    public void HandleShowEventImbalancesRequest(ShowEventImbalancesRequest request)
+    {
+        var vm = new EventImbalancesViewModel(request.Imbalances);
+        TableViewModel = vm;
+        SelectedRightTabIndex = TableTabIndex;
+    }
+
 
     private async void OnFindCycles()
     {
@@ -803,6 +837,8 @@ internal class MainViewModel : INotifyPropertyChanged
         TableViewModel = new CycleGroupsViewModel(cycleGroups, _messaging);
         SelectedRightTabIndex = 1;
     }
+
+
 
     public void HandleShowPartitionsRequest(ShowPartitionsRequest request)
     {

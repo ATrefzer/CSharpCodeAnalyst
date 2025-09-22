@@ -457,6 +457,42 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cycles.
+        /// </summary>
+        public static string Find_Cycles_Label {
+            get {
+                return ResourceManager.GetString("Find_Cycles_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finds cyclic code structures.
+        /// </summary>
+        public static string Find_Cycles_Tooltip {
+            get {
+                return ResourceManager.GetString("Find_Cycles_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Imbalances.
+        /// </summary>
+        public static string Find_EventRegistration_Imbalances_Label {
+            get {
+                return ResourceManager.GetString("Find_EventRegistration_Imbalances_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finds imbalances between number of event registrations / un-registrations.
+        /// </summary>
+        public static string Find_EventRegistration_Imbalances_Tooltip {
+            get {
+                return ResourceManager.GetString("Find_EventRegistration_Imbalances_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Find.
         /// </summary>
         public static string Find_Label {
