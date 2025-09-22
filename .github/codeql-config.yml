@@ -5,10 +5,8 @@ name: "Code Quality Configuration"
 queries:
   - name: "Security and Quality"
     uses: security-and-quality
-  - name: "Code Quality Queries"  
+  - name: "Code Quality Queries"
     uses: @codeql/csharp-queries
-  - name: "Custom Quality Checks"
-    uses: ./custom-queries/ # Falls Sie eigene Queries haben
 
 # Spezifische Kategorien aktivieren
 query-filters:
