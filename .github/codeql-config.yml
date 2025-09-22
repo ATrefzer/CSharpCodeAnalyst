@@ -1,41 +1,23 @@
-# .github/codeql-config.yml
 name: "Code Quality Configuration"
 
-# Erweiterte Query-Packs für C#
 queries:
-  - name: "Security and Quality"
-    uses: security-and-quality
-  - name: "Code Quality Queries"
-    uses: @codeql/csharp-queries
+  - uses: security-and-quality
+  - uses: @codeql/csharp-queries
 
-# Spezifische Kategorien aktivieren
 query-filters:
   - include:
-      problem.severity: 
+      problem.severity:
         - error
         - warning
         - recommendation
-  - include:
-      tags:
-        - correctness
-        - maintainability 
-        - reliability
-        - performance
-        - readability
 
-# C# spezifische Einstellungen
 paths:
   - "**/*.cs"
+
 paths-ignore:
   - "**/bin/**"
-  - "**/obj/**" 
+  - "**/obj/**"
   - "**/*.Designer.cs"
-  - "**/AssemblyInfo.cs"
-  - "**/Migrations/**"
 
-# Erweiterte Packs für detaillierte Analyse
 packs:
-  # Standard Sicherheits- und Qualitätschecks
   - codeql/csharp-queries
-  # Zusätzliche Qualitätschecks (falls verfügbar)
-  - microsoft/codeql-csharp-queries@~0.0.0
