@@ -1,11 +1,7 @@
-name: "CodeQL Code Review"
+name: "Code Quality Analysis"
 
 on:
-  workflow_dispatch:  # Manuelle Triggerung
-  pull_request:
-    branches: [ "main" ]
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,15 +10,9 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze Code
+    name: Code Quality Analysis
     runs-on: windows-latest
-    timeout-minutes: 360
     
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'csharp' ]
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -30,20 +20,27 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
+        languages: csharp
+        # Verschiedene Query-Suites für umfassende Analyse
+        queries: |
+          security-and-quality
+          @codeql/csharp-queries:codeql-suites/csharp-code-scanning.qls
+          @codeql/csharp-queries:Likely Bugs/
+          @codeql/csharp-queries:Best Practices/
+          @codeql/csharp-queries:Maintainability/
+        config-file: ./.github/codeql-config.yml
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --no-restore
+    - name: Restore and Build
+      run: |
+        dotnet restore
+        dotnet build --no-restore
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:${{matrix.language}}"
+        category: "code-quality-analysis"
