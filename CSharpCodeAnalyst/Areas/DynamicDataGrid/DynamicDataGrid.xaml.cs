@@ -216,6 +216,12 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         /// </summary>
         private DataGridColumn CreateDataGridColumn(IPluginColumnDefinition columnDef)
         {
+            // Wenn es eine expandable Spalte ist, erweitern wir sie um den Toggle-Button
+            if (columnDef.IsExpandable)
+            {
+                return CreateExpandableColumn(columnDef);
+            }
+
             return columnDef.Type switch
             {
                 ColumnType.Text => CreateTextColumn(columnDef),
@@ -225,6 +231,85 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 ColumnType.Custom => CreateCustomColumn(columnDef),
                 _ => CreateTextColumn(columnDef)
             };
+        }
+
+        /// <summary>
+        /// Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
+        /// </summary>
+        private DataGridTemplateColumn CreateExpandableColumn(IPluginColumnDefinition columnDef)
+        {
+            var column = new DataGridTemplateColumn
+            {
+                Header = columnDef.DisplayName,
+                Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
+            };
+
+            var altTemplate = $@"    <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+                              xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
+        <DockPanel LastChildFill=""True"">
+            <ToggleButton DockPanel.Dock=""Left""
+                          Style=""{{StaticResource ExpandCollapseButtonStyle}}""
+                          IsChecked=""{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}""
+                          Margin=""0,0,5,0"" />
+            <TextBlock Text=""{{Binding CodeElementsDescription}}""
+                       VerticalAlignment=""Center"" />
+        </DockPanel>
+    </DataTemplate>";
+            // Template mit DockPanel und ToggleButton erstellen (wie im Original)
+            var xamlTemplate = $@"
+                <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+                              xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
+                    <DockPanel LastChildFill='True'>
+                        <ToggleButton DockPanel.Dock='Left'
+                                      IsChecked='{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}'
+                                      Width='16' Height='16'
+                                      Margin='0,0,5,0'
+                                      Content='▶'
+                                      FontSize='8'
+                                      HorizontalContentAlignment='Center'
+                                      VerticalContentAlignment='Center'>
+                            <ToggleButton.Style>
+                                <Style TargetType='ToggleButton'>
+                                    <Setter Property='Template'>
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType='ToggleButton'>
+                                                <Border Background='{{TemplateBinding Background}}'
+                                                        BorderBrush='Gray'
+                                                        BorderThickness='1'
+                                                        CornerRadius='2'>
+                                                    <ContentPresenter HorizontalAlignment='Center'
+                                                                      VerticalAlignment='Center' />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property='Background' Value='#F0F0F0' />
+                                 
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                        <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
+                            <TextBlock Text='{{Binding {columnDef.PropertyName}}}' FontWeight='Bold' />
+                        </StackPanel>
+                    </DockPanel>
+                </DataTemplate>";
+
+            try
+            {
+                var template = (DataTemplate)System.Windows.Markup.XamlReader.Parse(xamlTemplate);
+                column.CellTemplate = template;
+
+                //var template = (DataTemplate)System.Windows.Markup.XamlReader.Parse(altTemplate);
+                //column.CellTemplate = template;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error creating expandable template: {ex.Message}");
+                // Fallback auf einfache Text-Spalte
+                //return CreateTextColumn(columnDef);
+            }
+
+            return column;
         }
 
         private DataGridTextColumn CreateTextColumn(IPluginColumnDefinition columnDef)

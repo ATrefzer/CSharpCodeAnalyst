@@ -10,4 +10,5 @@ public class PluginColumnDefinition : IPluginColumnDefinition
     public double Width { get; set; } = 0; // 0 = Auto
     public ICommand? ClickCommand { get; set; }
     public object? CommandParameter { get; set; }
+    public bool IsExpandable { get; set; }
 }

@@ -36,4 +36,6 @@ public interface IPluginColumnDefinition
     ///     Parameter für das Command
     /// </summary>
     object? CommandParameter { get; }
+
+    bool IsExpandable { get; set; }
 }
