@@ -113,12 +113,12 @@ public class SamplePersonTableData : ITableData
         };
     }
 
-    public IEnumerable<IPluginColumnDefinition> GetColumns()
+    public IEnumerable<ITableColumnDefinition> GetColumns()
     {
-        return new List<IPluginColumnDefinition>
+        return new List<ITableColumnDefinition>
         {
             // Name-Spalte mit Expand-Button - ERSTE SPALTE MIT EXPAND-FUNKTION
-            new PluginColumnDefinition
+            new TableColumnDefinition
             {
                 PropertyName = "Name",
                 DisplayName = "Name",
@@ -128,7 +128,7 @@ public class SamplePersonTableData : ITableData
             },
 
             // Avatar-Spalte (Bild)
-            new PluginColumnDefinition
+            new TableColumnDefinition
             {
                 DisplayName = "",
                 Type = ColumnType.Image,
@@ -136,7 +136,7 @@ public class SamplePersonTableData : ITableData
             },
 
             // Alter-Spalte (Text)
-            new PluginColumnDefinition
+            new TableColumnDefinition
             {
                 PropertyName = "Age",
                 DisplayName = "Alter",
@@ -145,7 +145,7 @@ public class SamplePersonTableData : ITableData
             },
 
             // Abteilung-Spalte (Text)
-            new PluginColumnDefinition
+            new TableColumnDefinition
             {
                 PropertyName = "Department",
                 DisplayName = "Abteilung",
@@ -154,7 +154,7 @@ public class SamplePersonTableData : ITableData
             },
 
             // Email-Spalte (Link)
-            new PluginColumnDefinition
+            new TableColumnDefinition
             {
                 PropertyName = "Email",
                 DisplayName = "E-Mail",

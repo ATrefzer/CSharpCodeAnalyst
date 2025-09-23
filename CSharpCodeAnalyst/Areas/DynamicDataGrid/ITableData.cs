@@ -8,7 +8,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea;
 /// </summary>
 public interface ITableData
 {
-    IEnumerable<IPluginColumnDefinition> GetColumns();
+    IEnumerable<ITableColumnDefinition> GetColumns();
 
     IEnumerable<object> GetData();
 

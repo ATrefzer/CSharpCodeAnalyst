@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.Areas.TableArea;
 
-public class PluginColumnDefinition : IPluginColumnDefinition
+public class TableColumnDefinition : ITableColumnDefinition
 {
     public string PropertyName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;

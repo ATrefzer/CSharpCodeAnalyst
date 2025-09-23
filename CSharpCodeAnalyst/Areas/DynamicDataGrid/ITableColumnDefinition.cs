@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea;
 /// <summary>
 ///     Definition für eine Spalte
 /// </summary>
-public interface IPluginColumnDefinition
+public interface ITableColumnDefinition
 {
     /// <summary>
     ///     Name der Property im Datenobjekt (für Binding)

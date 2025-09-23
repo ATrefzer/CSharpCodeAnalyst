@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea;
 /// <summary>
 ///     Erweiterte Definition für Custom-Templates
 /// </summary>
-public interface ICustomColumnDefinition : IPluginColumnDefinition
+public interface ICustomColumnDefinition : ITableColumnDefinition
 {
     /// <summary>
     ///     Template für die Zellen-Darstellung
