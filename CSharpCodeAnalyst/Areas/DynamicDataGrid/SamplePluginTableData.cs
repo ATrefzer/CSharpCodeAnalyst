@@ -10,7 +10,12 @@ namespace CSharpCodeAnalyst;
 // 3. ViewModel für Daten
 public class PersonViewModel : INotifyPropertyChanged
 {
-    public bool IsExpanded { get; set; }
+    private bool _isExpanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => SetField(ref _isExpanded, value);
+    }
     public string Name { get; set; }
     public int Age { get; set; }
     public bool IsActive { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -167,6 +168,12 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 if (TableData.GetRowDetailsTemplate() != null)
                 {
                     MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
+
+                    // RowDetailsVisibilityMode auf Collapsed setzen als Standard
+                    MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
+
+                    // Event Handler für LoadingRow hinzufügen um IsExpanded pro Zeile zu verwalten
+                    MainDataGrid.LoadingRow += OnDataGridLoadingRow;
                 }
             }
             catch (Exception ex)
@@ -244,17 +251,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
             };
 
-            var altTemplate = $@"    <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
-                              xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
-        <DockPanel LastChildFill=""True"">
-            <ToggleButton DockPanel.Dock=""Left""
-                          Style=""{{StaticResource ExpandCollapseButtonStyle}}""
-                          IsChecked=""{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}""
-                          Margin=""0,0,5,0"" />
-            <TextBlock Text=""{{Binding CodeElementsDescription}}""
-                       VerticalAlignment=""Center"" />
-        </DockPanel>
-    </DataTemplate>";
+         
             // Template mit DockPanel und ToggleButton erstellen (wie im Original)
             var xamlTemplate = $@"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
@@ -268,25 +265,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                                       FontSize='8'
                                       HorizontalContentAlignment='Center'
                                       VerticalContentAlignment='Center'>
-                            <ToggleButton.Style>
-                                <Style TargetType='ToggleButton'>
-                                    <Setter Property='Template'>
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType='ToggleButton'>
-                                                <Border Background='{{TemplateBinding Background}}'
-                                                        BorderBrush='Gray'
-                                                        BorderThickness='1'
-                                                        CornerRadius='2'>
-                                                    <ContentPresenter HorizontalAlignment='Center'
-                                                                      VerticalAlignment='Center' />
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter Property='Background' Value='#F0F0F0' />
-                                 
-                                </Style>
-                            </ToggleButton.Style>
+                          
                         </ToggleButton>
                         <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
                             <TextBlock Text='{{Binding {columnDef.PropertyName}}}' FontWeight='Bold' />
@@ -435,6 +414,42 @@ namespace CSharpCodeAnalyst.Areas.TableArea
 
             // Fallback auf Text-Spalte
             return CreateTextColumn(columnDef);
+        }
+
+        /// <summary>
+        /// Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
+        /// </summary>
+        private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
+        {
+            if (e.Row.DataContext is INotifyPropertyChanged viewModel)
+            {
+                // Initial die Visibility setzen
+                UpdateRowDetailsVisibility(e.Row);
+
+                // PropertyChanged abonnieren um auf IsExpanded Änderungen zu reagieren
+                viewModel.PropertyChanged += (s, args) =>
+                {
+                    if (args.PropertyName == "IsExpanded")
+                    {
+                        UpdateRowDetailsVisibility(e.Row);
+                    }
+                };
+            }
+        }
+
+        /// <summary>
+        /// Aktualisiert die RowDetails Visibility basierend auf IsExpanded Property
+        /// </summary>
+        private void UpdateRowDetailsVisibility(DataGridRow row)
+        {
+            if (row.DataContext != null)
+            {
+                var isExpandedValue = GetPropertyValue(row.DataContext, "IsExpanded");
+                if (isExpandedValue is bool isExpanded)
+                {
+                    row.DetailsVisibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
         }
 
         /// <summary>
