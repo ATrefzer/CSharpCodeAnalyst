@@ -6,34 +6,29 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 
 namespace CSharpCodeAnalyst.Areas.TableArea
 {
     /// <summary>
-    /// UserControl mit dynamischem DataGrid basierend auf Plugin-Daten
+    ///     UserControl mit dynamischem DataGrid basierend auf Plugin-Daten
     /// </summary>
     public partial class DynamicDataGrid : UserControl
     {
 
         /// <summary>
-        /// TableData Property - enthält sowohl Spaltendefinitionen als auch Daten
+        ///     TableData Property - cont
         /// </summary>
         public static readonly DependencyProperty TableDataProperty =
             DependencyProperty.Register(
                 nameof(TableData),
-                typeof(IPluginTableData),
+                typeof(ITableData),
                 typeof(DynamicDataGrid),
                 new PropertyMetadata(null, OnTableDataChanged));
 
-        public IPluginTableData TableData
-        {
-            get => (IPluginTableData)GetValue(TableDataProperty);
-            set => SetValue(TableDataProperty, value);
-        }
-
         /// <summary>
-        /// Alternativer Ansatz: Separate Properties für Spalten und Daten
+        ///     Alternativer Ansatz: Separate Properties für Spalten und Daten
         /// </summary>
         public static readonly DependencyProperty ColumnDefinitionsProperty =
             DependencyProperty.Register(
@@ -42,18 +37,33 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 typeof(DynamicDataGrid),
                 new PropertyMetadata(null, OnTableStructureChanged));
 
-        public IEnumerable<IPluginColumnDefinition> ColumnDefinitions
-        {
-            get => (IEnumerable<IPluginColumnDefinition>)GetValue(ColumnDefinitionsProperty);
-            set => SetValue(ColumnDefinitionsProperty, value);
-        }
-
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register(
                 nameof(ItemsSource),
                 typeof(IEnumerable),
                 typeof(DynamicDataGrid),
                 new PropertyMetadata(null, OnItemsSourceChanged));
+
+        #region Constructor
+
+        public DynamicDataGrid()
+        {
+            InitializeComponent();
+        }
+
+        #endregion
+
+        public ITableData TableData
+        {
+            get => (ITableData)GetValue(TableDataProperty);
+            set => SetValue(TableDataProperty, value);
+        }
+
+        public IEnumerable<IPluginColumnDefinition> ColumnDefinitions
+        {
+            get => (IEnumerable<IPluginColumnDefinition>)GetValue(ColumnDefinitionsProperty);
+            set => SetValue(ColumnDefinitionsProperty, value);
+        }
 
         public IEnumerable ItemsSource
         {
@@ -62,7 +72,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Hilfsmethode um Property-Werte per Reflection zu extrahieren
+        ///     Hilfsmethode um Property-Werte per Reflection zu extrahieren
         /// </summary>
         private object? GetPropertyValue(object obj, string propertyName)
         {
@@ -78,19 +88,10 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             }
         }
 
-        #region Constructor
-
-        public DynamicDataGrid()
-        {
-            InitializeComponent();
-        }
-
-        #endregion
-
         #region Event Handlers
 
         /// <summary>
-        /// Wird aufgerufen wenn sich die TableData ändert
+        ///     Wird aufgerufen wenn sich die TableData ändert
         /// </summary>
         private static void OnTableDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -101,7 +102,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Wird aufgerufen wenn sich Spalten oder Daten separat ändern
+        ///     Wird aufgerufen wenn sich Spalten oder Daten separat ändern
         /// </summary>
         private static void OnTableStructureChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -124,7 +125,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         #region Private Methods
 
         /// <summary>
-        /// Baut das DataGrid komplett neu auf basierend auf TableData
+        ///     Baut das DataGrid komplett neu auf basierend auf TableData
         /// </summary>
         private void RebuildDataGrid()
         {
@@ -179,13 +180,13 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             catch (Exception ex)
             {
                 // Error Handling - in Production Logger verwenden
-                System.Diagnostics.Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
+                Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
                 ShowEmptyState(true, "Fehler beim Laden der Daten");
             }
         }
 
         /// <summary>
-        /// Alternative Methode für separate Properties
+        ///     Alternative Methode für separate Properties
         /// </summary>
         private void RebuildDataGridFromSeparateProperties()
         {
@@ -210,7 +211,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Aktualisiert nur die Datenquelle
+        ///     Aktualisiert nur die Datenquelle
         /// </summary>
         private void UpdateDataSource()
         {
@@ -219,7 +220,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Erstellt eine DataGrid-Spalte basierend auf der Definition
+        ///     Erstellt eine DataGrid-Spalte basierend auf der Definition
         /// </summary>
         private DataGridColumn CreateDataGridColumn(IPluginColumnDefinition columnDef)
         {
@@ -241,7 +242,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
+        ///     Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
         /// </summary>
         private DataGridTemplateColumn CreateExpandableColumn(IPluginColumnDefinition columnDef)
         {
@@ -251,41 +252,45 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
             };
 
-         
+
             // Template mit DockPanel und ToggleButton erstellen (wie im Original)
             var xamlTemplate = $@"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
                     <DockPanel LastChildFill='True'>
-                        <ToggleButton DockPanel.Dock='Left'
-                                      IsChecked='{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}'
-                                      Width='16' Height='16'
-                                      Margin='0,0,5,0'
-                                      Content='▶'
-                                      FontSize='8'
-                                      HorizontalContentAlignment='Center'
-                                      VerticalContentAlignment='Center'>
-                          
-                        </ToggleButton>
-                        <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
-                            <TextBlock Text='{{Binding {columnDef.PropertyName}}}' FontWeight='Bold' />
-                        </StackPanel>
-                    </DockPanel>
+
+<DockPanel.Resources>
+    <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source=""/Styles/ButtonStyles.xaml"" />
+            <ResourceDictionary Source=""/Styles/DataGridStyles.xaml"" />
+        </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+
+</DockPanel.Resources>
+                      
+      <ToggleButton DockPanel.Dock=""Left""
+                    Style=""{{StaticResource ExpandCollapseButtonStyle}}""
+                    IsChecked=""{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}""
+                    Margin=""0,0,5,0"" />
+
+     <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
+    <TextBlock Text='{{Binding {columnDef.PropertyName}}}' FontWeight='Bold' />
+</StackPanel>
+     
+  </DockPanel>
+
+                 
                 </DataTemplate>";
 
             try
             {
-                var template = (DataTemplate)System.Windows.Markup.XamlReader.Parse(xamlTemplate);
+                var template = (DataTemplate)XamlReader.Parse(xamlTemplate);
                 column.CellTemplate = template;
-
-                //var template = (DataTemplate)System.Windows.Markup.XamlReader.Parse(altTemplate);
-                //column.CellTemplate = template;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error creating expandable template: {ex.Message}");
-                // Fallback auf einfache Text-Spalte
-                //return CreateTextColumn(columnDef);
+                Debug.WriteLine($"Error creating expandable template: {ex.Message}");
             }
 
             return column;
@@ -317,10 +322,10 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             // Button als FrameworkElementFactory erstellen
             var buttonFactory = new FrameworkElementFactory(typeof(Button));
             buttonFactory.SetValue(Button.ContentProperty, new Binding(columnDef.PropertyName));
-            buttonFactory.SetValue(Button.ForegroundProperty, System.Windows.Media.Brushes.Blue);
+            buttonFactory.SetValue(Button.ForegroundProperty, Brushes.Blue);
             buttonFactory.SetValue(Button.CursorProperty, Cursors.Hand);
             buttonFactory.SetValue(Button.BorderThicknessProperty, new Thickness(0));
-            buttonFactory.SetValue(Button.BackgroundProperty, System.Windows.Media.Brushes.Transparent);
+            buttonFactory.SetValue(Button.BackgroundProperty, Brushes.Transparent);
             buttonFactory.SetValue(Button.HorizontalContentAlignmentProperty, HorizontalAlignment.Left);
             buttonFactory.SetValue(Button.PaddingProperty, new Thickness(0));
 
@@ -348,7 +353,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
             textBlockFactory.SetValue(TextBlock.TextProperty, new Binding("Content") { RelativeSource = RelativeSource.TemplatedParent });
             textBlockFactory.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
-            textBlockFactory.SetValue(TextBlock.ForegroundProperty, System.Windows.Media.Brushes.Blue);
+            textBlockFactory.SetValue(TextBlock.ForegroundProperty, Brushes.Blue);
             template.VisualTree = textBlockFactory;
             return template;
         }
@@ -417,7 +422,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
+        ///     Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
         /// </summary>
         private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
         {
@@ -438,7 +443,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Aktualisiert die RowDetails Visibility basierend auf IsExpanded Property
+        ///     Aktualisiert die RowDetails Visibility basierend auf IsExpanded Property
         /// </summary>
         private void UpdateRowDetailsVisibility(DataGridRow row)
         {
@@ -453,7 +458,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         /// <summary>
-        /// Zeigt oder versteckt den Empty State
+        ///     Zeigt oder versteckt den Empty State
         /// </summary>
         private void ShowEmptyState(bool show, string message = "Keine Daten verfügbar")
         {
@@ -463,6 +468,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         }
 
         #endregion
+
     }
 
 }

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Markup;
 using CSharpCodeAnalyst.Areas.TableArea;
 using Prism.Commands;
 
@@ -11,11 +12,13 @@ namespace CSharpCodeAnalyst;
 public class PersonViewModel : INotifyPropertyChanged
 {
     private bool _isExpanded;
+
     public bool IsExpanded
     {
         get => _isExpanded;
         set => SetField(ref _isExpanded, value);
     }
+
     public string Name { get; set; }
     public int Age { get; set; }
     public bool IsActive { get; set; }
@@ -40,11 +43,10 @@ public class PersonViewModel : INotifyPropertyChanged
     }
 }
 
-
 /// <summary>
-/// Konkrete Implementierung für Beispiel-Tabellendaten mit RowDetails
+///     Konkrete Implementierung für Beispiel-Tabellendaten mit RowDetails
 /// </summary>
-public class SamplePersonTableData : IPluginTableData
+public class SamplePersonTableData : ITableData
 {
     private readonly List<PersonViewModel> _persons;
 
@@ -52,152 +54,133 @@ public class SamplePersonTableData : IPluginTableData
     {
         // Beispiel-Daten erstellen
         _persons = new List<PersonViewModel>
+        {
+            new PersonViewModel
             {
-                new PersonViewModel
-                {
-                    Name = "Max Mustermann",
-                    Age = 32,
-                    IsActive = true,
-                    Email = "max.mustermann@example.com",
-                    Department = "IT",
-                    HireDate = new DateTime(2020, 3, 15),
-                    Skills = new List<string> { "C#", "WPF", "SQL Server", "Azure" },
-                    Notes = "Sehr erfahrener Entwickler, Team Lead für Frontend-Projekte."
-                },
-                new PersonViewModel
-                {
-                    Name = "Anna Schmidt",
-                    Age = 28,
-                    IsActive = true,
-                    Email = "anna.schmidt@example.com",
-                    Department = "Marketing",
-                    HireDate = new DateTime(2021, 7, 1),
-                    Skills = new List<string> { "Social Media", "Content Creation", "Analytics", "Adobe Creative Suite" },
-                    Notes = "Kreative Denkerin mit starkem Fokus auf digitales Marketing."
-                },
-                new PersonViewModel
-                {
-                    Name = "Peter Weber",
-                    Age = 45,
-                    IsActive = false,
-                    Email = "peter.weber@example.com",
-                    Department = "Vertrieb",
-                    HireDate = new DateTime(2018, 1, 10),
-                    Skills = new List<string> { "B2B Sales", "Customer Relations", "Negotiation" },
-                    Notes = "Derzeit in Elternzeit, kehrt im nächsten Quartal zurück."
-                },
-                new PersonViewModel
-                {
-                    Name = "Lisa Müller",
-                    Age = 35,
-                    IsActive = true,
-                    Email = "lisa.mueller@example.com",
-                    Department = "HR",
-                    HireDate = new DateTime(2019, 9, 20),
-                    Skills = new List<string> { "Recruiting", "Employee Relations", "Training & Development" },
-                    Notes = "Leitet die HR-Abteilung und ist für alle Personalangelegenheiten zuständig."
-                },
-                new PersonViewModel
-                {
-                    Name = "Tom Johnson",
-                    Age = 29,
-                    IsActive = false,
-                    Email = "tom.johnson@example.com",
-                    Department = "IT",
-                    HireDate = new DateTime(2022, 5, 8),
-                    Skills = new List<string> { "JavaScript", "React", "Node.js", "Docker" },
-                    Notes = "Junior Developer, arbeitet derzeit remote aus dem Homeoffice."
-                }
-            };
+                Name = "Max Mustermann",
+                Age = 32,
+                IsActive = true,
+                Email = "max.mustermann@example.com",
+                Department = "IT",
+                HireDate = new DateTime(2020, 3, 15),
+                Skills = new List<string> { "C#", "WPF", "SQL Server", "Azure" },
+                Notes = "Sehr erfahrener Entwickler, Team Lead für Frontend-Projekte."
+            },
+            new PersonViewModel
+            {
+                Name = "Anna Schmidt",
+                Age = 28,
+                IsActive = true,
+                Email = "anna.schmidt@example.com",
+                Department = "Marketing",
+                HireDate = new DateTime(2021, 7, 1),
+                Skills = new List<string> { "Social Media", "Content Creation", "Analytics", "Adobe Creative Suite" },
+                Notes = "Kreative Denkerin mit starkem Fokus auf digitales Marketing."
+            },
+            new PersonViewModel
+            {
+                Name = "Peter Weber",
+                Age = 45,
+                IsActive = false,
+                Email = "peter.weber@example.com",
+                Department = "Vertrieb",
+                HireDate = new DateTime(2018, 1, 10),
+                Skills = new List<string> { "B2B Sales", "Customer Relations", "Negotiation" },
+                Notes = "Derzeit in Elternzeit, kehrt im nächsten Quartal zurück."
+            },
+            new PersonViewModel
+            {
+                Name = "Lisa Müller",
+                Age = 35,
+                IsActive = true,
+                Email = "lisa.mueller@example.com",
+                Department = "HR",
+                HireDate = new DateTime(2019, 9, 20),
+                Skills = new List<string> { "Recruiting", "Employee Relations", "Training & Development" },
+                Notes = "Leitet die HR-Abteilung und ist für alle Personalangelegenheiten zuständig."
+            },
+            new PersonViewModel
+            {
+                Name = "Tom Johnson",
+                Age = 29,
+                IsActive = false,
+                Email = "tom.johnson@example.com",
+                Department = "IT",
+                HireDate = new DateTime(2022, 5, 8),
+                Skills = new List<string> { "JavaScript", "React", "Node.js", "Docker" },
+                Notes = "Junior Developer, arbeitet derzeit remote aus dem Homeoffice."
+            }
+        };
     }
 
     public IEnumerable<IPluginColumnDefinition> GetColumns()
     {
         return new List<IPluginColumnDefinition>
+        {
+            // Name-Spalte mit Expand-Button - ERSTE SPALTE MIT EXPAND-FUNKTION
+            new PluginColumnDefinition
             {
-                // Name-Spalte mit Expand-Button - ERSTE SPALTE MIT EXPAND-FUNKTION
-                new PluginColumnDefinition
-                {
-                    PropertyName = "Name",
-                    DisplayName = "Name",
-                    Type = ColumnType.Text,
-                    Width = 200,
-                    IsExpandable = true // WICHTIG: Diese Spalte bekommt den Expand-Button
-                },
+                PropertyName = "Name",
+                DisplayName = "Name",
+                Type = ColumnType.Text,
+                Width = 200,
+                IsExpandable = true // WICHTIG: Diese Spalte bekommt den Expand-Button
+            },
 
-                // Avatar-Spalte (Bild)
-                new PluginColumnDefinition
-                {
-                    DisplayName = "",
-                    Type = ColumnType.Image,
-                    Width = 40
-                },
+            // Avatar-Spalte (Bild)
+            new PluginColumnDefinition
+            {
+                DisplayName = "",
+                Type = ColumnType.Image,
+                Width = 40
+            },
 
-                // Alter-Spalte (Text)
-                new PluginColumnDefinition
-                {
-                    PropertyName = "Age",
-                    DisplayName = "Alter",
-                    Type = ColumnType.Text,
-                    Width = 60
-                },
+            // Alter-Spalte (Text)
+            new PluginColumnDefinition
+            {
+                PropertyName = "Age",
+                DisplayName = "Alter",
+                Type = ColumnType.Text,
+                Width = 60
+            },
 
-                // Abteilung-Spalte (Text)
-                new PluginColumnDefinition
-                {
-                    PropertyName = "Department",
-                    DisplayName = "Abteilung",
-                    Type = ColumnType.Text,
-                    Width = 100
-                },
+            // Abteilung-Spalte (Text)
+            new PluginColumnDefinition
+            {
+                PropertyName = "Department",
+                DisplayName = "Abteilung",
+                Type = ColumnType.Text,
+                Width = 100
+            },
 
-                // Email-Spalte (Link)
-                new PluginColumnDefinition
+            // Email-Spalte (Link)
+            new PluginColumnDefinition
+            {
+                PropertyName = "Email",
+                DisplayName = "E-Mail",
+                Type = ColumnType.Link,
+                Width = 220,
+                ClickCommand = new DelegateCommand<string>(email =>
                 {
-                    PropertyName = "Email",
-                    DisplayName = "E-Mail",
-                    Type = ColumnType.Link,
-                    Width = 220,
-                    ClickCommand = new DelegateCommand<string>(email =>
+                    if (!string.IsNullOrEmpty(email))
                     {
-                        if (!string.IsNullOrEmpty(email))
+                        try
                         {
-                            try
+                            Process.Start(new ProcessStartInfo
                             {
-                                Process.Start(new ProcessStartInfo
-                                {
-                                    FileName = $"mailto:{email}",
-                                    UseShellExecute = true
-                                });
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show($"Fehler beim Öffnen des E-Mail-Clients: {ex.Message}",
-                                              "Fehler", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            }
+                                FileName = $"mailto:{email}",
+                                UseShellExecute = true
+                            });
                         }
-                    })
-                },
-
-                // Status-Spalte (Toggle)
-                new PluginColumnDefinition
-                {
-                    PropertyName = "IsActive",
-                    DisplayName = "Aktiv",
-                    Type = ColumnType.Toggle,
-                    Width = 70,
-                    ClickCommand = new DelegateCommand<PersonViewModel>(person =>
-                    {
-                        if (person != null)
+                        catch (Exception ex)
                         {
-                            // Hier könnte Geschäftslogik stehen
-                            var status = person.IsActive ? "aktiviert" : "deaktiviert";
-                            MessageBox.Show($"{person.Name} wurde {status}.",
-                                          "Status geändert", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show($"Fehler beim Öffnen des E-Mail-Clients: {ex.Message}",
+                                "Fehler", MessageBoxButton.OK, MessageBoxImage.Warning);
                         }
-                    })
-                }
-            };
+                    }
+                })
+            }
+        };
     }
 
     public IEnumerable<object> GetData()
@@ -256,18 +239,13 @@ public class SamplePersonTableData : IPluginTableData
 
         try
         {
-            return (DataTemplate)System.Windows.Markup.XamlReader.Parse(xamlTemplate);
+            return (DataTemplate)XamlReader.Parse(xamlTemplate);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Error creating row details template: {ex.Message}");
+            Debug.WriteLine($"Error creating row details template: {ex.Message}");
             return null;
         }
-    }
-
-    public bool HasRowDetails()
-    {
-        return true; // Diese Implementierung hat RowDetails
     }
 
     public string? GetTitle()
@@ -275,8 +253,13 @@ public class SamplePersonTableData : IPluginTableData
         return "Mitarbeiter-Übersicht (mit Details)";
     }
 
+    public bool HasRowDetails()
+    {
+        return true; // Diese Implementierung hat RowDetails
+    }
+
     /// <summary>
-    /// Hilfsmethode um neue Person hinzuzufügen (für Demo)
+    ///     Hilfsmethode um neue Person hinzuzufügen (für Demo)
     /// </summary>
     public void AddPerson(PersonViewModel person)
     {
@@ -284,7 +267,7 @@ public class SamplePersonTableData : IPluginTableData
     }
 
     /// <summary>
-    /// Hilfsmethode um Person zu entfernen (für Demo)
+    ///     Hilfsmethode um Person zu entfernen (für Demo)
     /// </summary>
     public void RemovePerson(PersonViewModel person)
     {
@@ -292,68 +275,10 @@ public class SamplePersonTableData : IPluginTableData
     }
 
     /// <summary>
-    /// Gibt die interne Liste zurück (für erweiterte Operationen)
+    ///     Gibt die interne Liste zurück (für erweiterte Operationen)
     /// </summary>
     public List<PersonViewModel> GetPersons()
     {
         return _persons;
     }
 }
-
-//public class SamplePluginTableData : IPluginTableData
-//{
-//    private readonly List<PersonViewModel> _data;
-
-//    public SamplePluginTableData()
-//    {
-//        _data = new List<PersonViewModel>
-//        {
-//            new PersonViewModel { Name = "John Doe", Age = 30, IsActive = true, Email = "john@example.com" },
-//            new PersonViewModel { Name = "Jane Smith", Age = 25, IsActive = false, Email = "jane@example.com" }
-//        };
-//    }
-
-//    public IEnumerable<IPluginColumnDefinition> GetColumns()
-//    {
-//        return new List<IPluginColumnDefinition>
-//        {
-//            new PluginColumnDefinition
-//            {
-//                PropertyName = "Name",
-//                DisplayName = "Name",
-//                Type = ColumnType.Text,
-//                Width = 150
-//            },
-//            new PluginColumnDefinition
-//            {
-//                PropertyName = "Age",
-//                DisplayName = "Alter",
-//                Type = ColumnType.Text,
-//                Width = 80
-//            },
-//            new PluginColumnDefinition
-//            {
-//                PropertyName = "Email",
-//                DisplayName = "E-Mail",
-//                Type = ColumnType.Link,
-//                Width = 200,
-//                ClickCommand = new DelegateCommand<string>(email =>
-//                {
-//                    // Email-Client öffnen
-//                    Process.Start($"mailto:{email}");
-//                })
-//            },
-//            new PluginColumnDefinition
-//            {
-//                PropertyName = "IsActive",
-//                DisplayName = "Aktiv",
-//                Type = ColumnType.Toggle,
-//                Width = 80
-//            }
-//        };
-//    }
-
-//    public IEnumerable<object> GetData() => _data;
-//    public DataTemplate? GetRowDetailsTemplate() => null;
-//    public string? GetTitle() => "Personen-Liste";
-//}

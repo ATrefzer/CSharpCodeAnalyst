@@ -74,14 +74,14 @@ internal class MainViewModel : INotifyPropertyChanged
     private TreeViewModel? _treeViewModel;
 
     // TODO
-    private IPluginTableData _currentPluginData = new SamplePersonTableData();
+    private ITableData _currentData = new SamplePersonTableData();
 
-    public IPluginTableData CurrentPluginData
+    public ITableData CurrentData
     {
-        get => _currentPluginData;
+        get => _currentData;
         set
         {
-            _currentPluginData = value;
+            _currentData = value;
             OnPropertyChanged();
         }
     }

@@ -529,7 +529,7 @@
 
 
                 <TabItem Header="Dynamic TODO">
-                   <tableArea:DynamicDataGrid TableData="{Binding CurrentPluginData}"/>
+                   <tableArea:DynamicDataGrid TableData="{Binding CurrentData}"/>
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
