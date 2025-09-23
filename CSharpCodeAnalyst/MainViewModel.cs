@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -16,6 +17,7 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Areas.ResultArea;
+using CSharpCodeAnalyst.Areas.TableArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
@@ -36,6 +38,8 @@ using Microsoft.Win32;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst;
+
+
 
 internal class MainViewModel : INotifyPropertyChanged
 {
@@ -68,6 +72,19 @@ internal class MainViewModel : INotifyPropertyChanged
     private int _selectedRightTabIndex;
     private TableViewModel? _tableViewModel;
     private TreeViewModel? _treeViewModel;
+
+    // TODO
+    private IPluginTableData _currentPluginData = new SamplePluginTableData();
+
+    public IPluginTableData CurrentPluginData
+    {
+        get => _currentPluginData;
+        set
+        {
+            _currentPluginData = value;
+            OnPropertyChanged();
+        }
+    }
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
     {
@@ -506,7 +523,7 @@ internal class MainViewModel : INotifyPropertyChanged
         _graphViewModel?.Clear();
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
