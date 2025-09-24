@@ -1,6 +1,5 @@
 ﻿using CodeParser.Analysis.Shared;
 using CodeParser.Parser;
-using CSharpCodeAnalyst.Areas.ResultArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
@@ -64,7 +63,6 @@ public partial class App
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
-        viewModel.TableViewModel = new EmptyTableViewModel();
 
 
         // Setup messaging

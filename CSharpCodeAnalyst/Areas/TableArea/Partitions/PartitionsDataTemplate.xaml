@@ -1,7 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea"
-                    xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources">
+                    xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+                    xmlns:partitions="clr-namespace:CSharpCodeAnalyst.Areas.TableArea.Partitions">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
@@ -10,7 +11,7 @@
 
 
     <!-- Template for collections of PartitionsViewModel -->
-    <DataTemplate DataType="{x:Type resultArea:PartitionsViewModel}">
+    <DataTemplate DataType="{x:Type partitions:PartitionsViewModel}">
         <DataGrid Style="{StaticResource ReadOnlyGrid}"
                   ItemsSource="{Binding Partitions}"
                   AutoGenerateColumns="False">

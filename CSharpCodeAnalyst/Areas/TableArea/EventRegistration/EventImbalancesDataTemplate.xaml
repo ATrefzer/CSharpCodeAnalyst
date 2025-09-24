@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea">
+                    xmlns:eventRegistration="clr-namespace:CSharpCodeAnalyst.Areas.TableArea.EventRegistration">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
@@ -9,7 +9,7 @@
 
 
     <!-- Template for collections of EventImbalancesViewModel -->
-    <DataTemplate DataType="{x:Type resultArea:EventImbalancesViewModel}">
+    <DataTemplate DataType="{x:Type eventRegistration:EventImbalancesViewModel}">
         <DataGrid Style="{StaticResource ReadOnlyGrid}"
                   ItemsSource="{Binding Imbalances}"
                   AutoGenerateColumns="False">

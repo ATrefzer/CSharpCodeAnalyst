@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:resultArea="clr-namespace:CSharpCodeAnalyst.Areas.ResultArea"
-                    xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources">
+                    xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+                    xmlns:cycleGroups="clr-namespace:CSharpCodeAnalyst.Areas.TableArea.CycleGroups">
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
@@ -10,7 +10,7 @@
 
 
     <!-- Template for collections of CycleGroupsViewModel -->
-    <DataTemplate DataType="{x:Type resultArea:CycleGroupsViewModel}">
+    <DataTemplate DataType="{x:Type cycleGroups:CycleGroupsViewModel}">
         <DataGrid Style="{StaticResource ReadOnlyGrid}"
                   ItemsSource="{Binding CycleGroups}"
                   AutoGenerateColumns="False">

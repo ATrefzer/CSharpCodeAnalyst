@@ -18,6 +18,9 @@
         <DataGrid x:Name="MainDataGrid"
                   Style="{StaticResource ReadOnlyGrid}"
                   AutoGenerateColumns="False">
+            
+           
+
             <!-- Columns are added dynamically -->
         </DataGrid>
 

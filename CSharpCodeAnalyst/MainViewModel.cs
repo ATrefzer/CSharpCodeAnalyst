@@ -16,8 +16,9 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Areas.ResultArea;
-using CSharpCodeAnalyst.Areas.TableArea;
+using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+using CSharpCodeAnalyst.Areas.TableArea.EventRegistration;
+using CSharpCodeAnalyst.Areas.TableArea.Partitions;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
@@ -30,6 +31,7 @@ using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.MetricArea;
+using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.SearchArea;
@@ -44,7 +46,6 @@ namespace CSharpCodeAnalyst;
 internal class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
-    private const int TableTabIndex = 1;
 
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
@@ -70,26 +71,55 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
-    private TableViewModel? _tableViewModel;
     private TreeViewModel? _treeViewModel;
 
-    // TODO
-    private ITableData _currentData = new SamplePersonTableData();
+    private Table? _cycles;
+    private Table? _partitions;
+    private Table? _analyzerResult;
 
-    public ITableData CurrentData
+    public Table? AnalyzerResult
     {
-        get => _currentData;
+        get => _analyzerResult;
         set
         {
-            _currentData = value;
+            _analyzerResult = value;
             OnPropertyChanged();
         }
     }
+    
+    public Table? Cycles
+    {
+        get => _cycles;
+        set
+        {
+            _cycles = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    public Table? Partitions
+    {
+        get => _partitions;
+        set
+        {
+            _partitions = value;
+            OnPropertyChanged();
+        }
+    }
+    
+ 
+
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
     {
         // Initialize settings
         _applicationSettings = settings;
+        
+        // Table data
+        _partitions = null;
+        _cycles = null;
+        _analyzerResult = null;
+        
 
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
@@ -134,22 +164,7 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
     public ICommand ShowGalleryCommand { get; }
-
-
-    public TableViewModel? TableViewModel
-    {
-        get => _tableViewModel;
-        set
-        {
-            if (Equals(value, _tableViewModel))
-            {
-                return;
-            }
-
-            _tableViewModel = value;
-            OnPropertyChanged(nameof(TableViewModel));
-        }
-    }
+    
 
     public GraphViewModel? GraphViewModel
     {
@@ -474,9 +489,10 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public void HandleShowEventImbalancesRequest(ShowEventImbalancesRequest request)
     {
+        // TODO
         var vm = new EventImbalancesViewModel(request.Imbalances);
-        TableViewModel = vm;
-        SelectedRightTabIndex = TableTabIndex;
+        AnalyzerResult = vm;
+        SelectedRightTabIndex = 3;
     }
 
 
@@ -549,7 +565,10 @@ internal class MainViewModel : INotifyPropertyChanged
         TreeViewModel?.LoadCodeGraph(_codeGraph);
         SearchViewModel?.LoadCodeGraph(_codeGraph);
         GraphViewModel?.LoadCodeGraph(_codeGraph);
-        TableViewModel?.Clear();
+
+        Cycles = null;
+        Partitions = null;
+        AnalyzerResult = null;
         InfoPanelViewModel?.Clear();
 
         // Default output: summary of graph
@@ -851,7 +870,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var cycleGroups = request.CycleGroups;
 
-        TableViewModel = new CycleGroupsViewModel(cycleGroups, _messaging);
+        Cycles = new CycleGroupsViewModel(cycleGroups, _messaging);
         SelectedRightTabIndex = 1;
     }
 
@@ -880,16 +899,20 @@ internal class MainViewModel : INotifyPropertyChanged
         // Create view model and show summary in table tab.
 
 
-        var partitionsVm = new PartitionsViewModel();
+        
         var number = 1;
+        var pvm = new List<PartitionViewModel>();
         foreach (var partition in partitions)
         {
             var codeElements = partition.Select(id => new CodeElementLineViewModel(_codeGraph.Nodes[id]));
             var vm = new PartitionViewModel($"Partition {number++}", codeElements);
-            partitionsVm.Partitions.Add(vm);
+            pvm.Add(vm);
         }
+        
+        
+        var partitionsVm = new PartitionsViewModel(pvm);
 
-        TableViewModel = partitionsVm;
-        SelectedRightTabIndex = 1;
+        Partitions = partitionsVm;
+        SelectedRightTabIndex = 2;
     }
 }

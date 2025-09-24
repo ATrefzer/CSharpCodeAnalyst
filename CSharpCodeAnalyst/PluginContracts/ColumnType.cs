@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Areas.TableArea
+﻿namespace CSharpCodeAnalyst.PluginContracts
 {
     /// <summary>
     ///     Available column types for the dynamic data grid

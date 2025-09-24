@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using CSharpCodeAnalyst.PluginContracts;
 
 namespace CSharpCodeAnalyst.Areas.TableArea
 {
@@ -15,7 +16,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         public static readonly DependencyProperty TableDataProperty =
             DependencyProperty.Register(
                 nameof(TableData),
-                typeof(ITableData),
+                typeof(Table),
                 typeof(DynamicDataGrid),
                 new PropertyMetadata(null, OnTableDataChanged));
 
@@ -26,9 +27,9 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             InitializeComponent();
         }
 
-        public ITableData TableData
+        public Table TableData
         {
-            get => (ITableData)GetValue(TableDataProperty);
+            get => (Table)GetValue(TableDataProperty);
             set => SetValue(TableDataProperty, value);
         }
 
@@ -61,7 +62,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         {
             try
             {
-                // DataGrid leeren
+                // Clear DataGrid
                 MainDataGrid.Columns.Clear();
                 MainDataGrid.ItemsSource = null;
 
@@ -95,27 +96,26 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 // Empty State verwalten
                 ShowEmptyState(data == null || !data.Any());
 
-                // Row Details Template setzen falls vorhanden
+                // If given, set row details template
                 if (TableData.GetRowDetailsTemplate() != null)
                 {
                     MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
 
                     // RowDetailsVisibilityMode auf Collapsed setzen als Standard
                     MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
-
-                    // Event Handler für LoadingRow hinzufügen um IsExpanded pro Zeile zu verwalten
+                    
+                    // Event Handler to manage IsExpanded per row.
                     MainDataGrid.LoadingRow += OnDataGridLoadingRow;
                 }
             }
             catch (Exception ex)
             {
-                // Error Handling - in Production Logger verwenden
                 Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
                 ShowEmptyState(true, "Fehler beim Laden der Daten");
             }
         }
 
-        private DataGridColumn CreateDataGridColumn(ITableColumnDefinition columnDef)
+        private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)
         {
             // Wenn es eine expandable Spalte ist, erweitern wir sie um den Toggle-Button
             if (columnDef.IsExpandable)
@@ -129,7 +129,6 @@ namespace CSharpCodeAnalyst.Areas.TableArea
                 ColumnType.Link => CreateLinkColumn(columnDef),
                 ColumnType.Image => CreateImageColumn(columnDef),
                 ColumnType.Toggle => CreateToggleColumn(columnDef),
-                ColumnType.Custom => CreateCustomColumn(columnDef),
                 _ => CreateTextColumn(columnDef)
             };
         }
@@ -137,7 +136,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
         /// <summary>
         ///     Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
         /// </summary>
-        private DataGridTemplateColumn CreateExpandableColumn(ITableColumnDefinition columnDef)
+        private DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
         {
             var column = new DataGridTemplateColumn
             {
@@ -186,7 +185,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             return column;
         }
 
-        private DataGridTextColumn CreateTextColumn(ITableColumnDefinition columnDef)
+        private DataGridTextColumn CreateTextColumn(TableColumnDefinition columnDef)
         {
             var column = new DataGridTextColumn
             {
@@ -198,7 +197,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             return column;
         }
 
-        private DataGridTemplateColumn CreateLinkColumn(ITableColumnDefinition columnDef)
+        private DataGridTemplateColumn CreateLinkColumn(TableColumnDefinition columnDef)
         {
             var column = new DataGridTemplateColumn
             {
@@ -248,7 +247,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             return template;
         }
 
-        private DataGridTemplateColumn CreateImageColumn(ITableColumnDefinition columnDef)
+        private DataGridTemplateColumn CreateImageColumn(TableColumnDefinition columnDef)
         {
             var column = new DataGridTemplateColumn
             {
@@ -269,7 +268,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             return column;
         }
 
-        private DataGridTemplateColumn CreateToggleColumn(ITableColumnDefinition columnDef)
+        private DataGridTemplateColumn CreateToggleColumn(TableColumnDefinition columnDef)
         {
             var column = new DataGridTemplateColumn
             {
@@ -294,22 +293,22 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             return column;
         }
 
-        private DataGridColumn CreateCustomColumn(ITableColumnDefinition columnDef)
-        {
-            // Für Custom-Spalten sollte das Plugin ein Template liefern
-            if (columnDef is ICustomColumnDefinition customDef && customDef.CellTemplate != null)
-            {
-                return new DataGridTemplateColumn
-                {
-                    Header = columnDef.DisplayName,
-                    Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width),
-                    CellTemplate = customDef.CellTemplate
-                };
-            }
-
-            // Fallback auf Text-Spalte
-            return CreateTextColumn(columnDef);
-        }
+        // private DataGridColumn CreateCustomColumn(TableColumnDefinition columnDef)
+        // {
+        //     // Für Custom-Spalten sollte das Plugin ein Template liefern
+        //     if (columnDef is CustomColumnDefinition customDef && customDef.CellTemplate != null)
+        //     {
+        //         return new DataGridTemplateColumn
+        //         {
+        //             Header = columnDef.DisplayName,
+        //             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width),
+        //             CellTemplate = customDef.CellTemplate
+        //         };
+        //     }
+        //
+        //     // Fallback auf Text-Spalte
+        //     return CreateTextColumn(columnDef);
+        // }
 
         /// <summary>
         ///     Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
@@ -355,6 +354,11 @@ namespace CSharpCodeAnalyst.Areas.TableArea
             EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             EmptyStateText.Text = message;
             MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+           
         }
     }
 }

@@ -527,9 +527,15 @@
                     </Grid>
                 </TabItem>-->
 
+                <TabItem Header="{x:Static resources:Strings.CycleSummary_TabHeader}">
+                    <tableArea:DynamicDataGrid TableData="{Binding Cycles}"/>
+                </TabItem>
+                <TabItem Header="{x:Static resources:Strings.Tab_Summary_Partitions}">
+                    <tableArea:DynamicDataGrid TableData="{Binding Partitions}"/>
+                </TabItem>
 
                 <TabItem Header="Dynamic TODO">
-                   <tableArea:DynamicDataGrid TableData="{Binding CurrentData}"/>
+                   <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}"/>
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">

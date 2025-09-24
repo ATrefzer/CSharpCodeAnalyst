@@ -4,12 +4,13 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Markup;
 using CSharpCodeAnalyst.Areas.TableArea;
+using CSharpCodeAnalyst.PluginContracts;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst;
 
 // 3. ViewModel für Daten
-public class PersonViewModel : INotifyPropertyChanged
+public class PersonViewModel : TableRow
 {
     private bool _isExpanded;
 
@@ -27,12 +28,7 @@ public class PersonViewModel : INotifyPropertyChanged
     public DateTime HireDate { get; set; }
     public List<string> Skills { get; set; }
     public string Notes { get; set; }
-    public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
@@ -46,7 +42,7 @@ public class PersonViewModel : INotifyPropertyChanged
 /// <summary>
 ///     Konkrete Implementierung für Beispiel-Tabellendaten mit RowDetails
 /// </summary>
-public class SamplePersonTableData : ITableData
+public class SamplePersonTableData : Table
 {
     private readonly List<PersonViewModel> _persons;
 
@@ -113,9 +109,9 @@ public class SamplePersonTableData : ITableData
         };
     }
 
-    public IEnumerable<ITableColumnDefinition> GetColumns()
+    public override IEnumerable<TableColumnDefinition> GetColumns()
     {
-        return new List<ITableColumnDefinition>
+        return new List<TableColumnDefinition>
         {
             // Name-Spalte mit Expand-Button - ERSTE SPALTE MIT EXPAND-FUNKTION
             new TableColumnDefinition
@@ -183,12 +179,12 @@ public class SamplePersonTableData : ITableData
         };
     }
 
-    public IEnumerable<object> GetData()
+    public override IEnumerable<TableRow> GetData()
     {
         return _persons;
     }
 
-    public DataTemplate? GetRowDetailsTemplate()
+    public override DataTemplate? GetRowDetailsTemplate()
     {
         // RowDetails Template als XAML-String erstellen
         var xamlTemplate = @"
@@ -248,10 +244,9 @@ public class SamplePersonTableData : ITableData
         }
     }
 
-    public string? GetTitle()
-    {
-        return "Mitarbeiter-Übersicht (mit Details)";
-    }
+    public string? Title { get; set; } = "Mitarbeiter-Übersicht (mit Details)";
+
+
 
     public bool HasRowDetails()
     {
@@ -281,4 +276,6 @@ public class SamplePersonTableData : ITableData
     {
         return _persons;
     }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

@@ -1,22 +1,20 @@
-﻿using CodeParser.Analysis.Shared;
-using Contracts.Graph;
-using CSharpCodeAnalyst.GraphArea;
-using Prism.Commands;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using CodeParser.Extensions;
-using CSharpCodeAnalyst.Areas.ResultArea;
+using CodeParser.Analysis.Shared;
+using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.CycleArea;
+using CSharpCodeAnalyst.PluginContracts;
+using Prism.Commands;
 
-namespace CSharpCodeAnalyst.CycleArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
-internal class CycleGroupViewModel : INotifyPropertyChanged
+internal class CycleGroupViewModel : TableRow
 {
     private readonly MessageBus _messaging;
     private ObservableCollection<CodeElementLineViewModel> _highLevelElements;
-    private bool _isExpanded;
 
     private void CopyToExplorerGraph(CycleGroupViewModel vm)
     {
@@ -29,7 +27,6 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
     public CycleGroupViewModel(CycleGroup cycleGroup, MessageBus messaging)
     {
         _messaging = messaging;
-        _isExpanded = false;
         CycleGroup = cycleGroup;
 
         CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
@@ -96,24 +93,11 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
     public CycleLevel Level { get; }
 
 
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (value == _isExpanded)
-            {
-                return;
-            }
 
-            _isExpanded = value;
-            OnPropertyChanged();
-        }
-    }
 
     public CycleGroup CycleGroup { get; }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
+
 
     private bool IsType(CodeElementType type)
     {
@@ -126,8 +110,5 @@ internal class CycleGroupViewModel : INotifyPropertyChanged
             CodeElementType.Record;
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+
 }

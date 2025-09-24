@@ -1,32 +1,71 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Markup;
+using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CSharpCodeAnalyst.Areas.ResultArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 
-public class PartitionsViewModel : TableViewModel
+public class PartitionsViewModel : Table
 {
-    private ObservableCollection<PartitionViewModel> _partitions = [];
+    private ObservableCollection<PartitionViewModel> _partitions;
 
-    public PartitionsViewModel()
+    public PartitionsViewModel(List<PartitionViewModel> pvm)
     {
         Title = Strings.Tab_Summary_Partitions;
+        _partitions = new ObservableCollection<PartitionViewModel>(pvm);
     }
 
-    public ObservableCollection<PartitionViewModel> Partitions
+    public override IEnumerable<TableColumnDefinition> GetColumns()
     {
-        get => _partitions;
-        set
+        return new List<TableColumnDefinition>
         {
-            if (Equals(value, _partitions)) return;
-            _partitions = value;
-            OnPropertyChanged();
+            new()
+            {
+                Type = ColumnType.Text,
+                DisplayName = "Partition",
+                PropertyName = "PartitionName",
+                IsExpandable = true
+            },
+        };
+    }
+
+    public override IEnumerable<TableRow> GetData()
+    {
+        return _partitions;
+    }
+
+    public override DataTemplate? GetRowDetailsTemplate()
+    {
+        var xamlTemplate = @"
+                <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+                              xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
+                    <ItemsControl ItemsSource=""{Binding CodeElements}"">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin=""40 0 0 0"">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width=""Auto"" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source=""{Binding Icon}"" Margin=""0 1 5 1"" />
+                                    <TextBlock Grid.Column=""1"" Text=""{Binding FullName}""
+                                               TextWrapping=""Wrap"" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DataTemplate>";
+
+        try
+        {
+            return (DataTemplate)XamlReader.Parse(xamlTemplate);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error creating row details template: {ex.Message}");
+            return null;
         }
     }
-
-    public override void Clear()
-    {
-        Partitions.Clear();
-    }
-
 }

@@ -6,23 +6,22 @@ using System.Windows.Input;
 using CodeParser.Analysis.EventRegistration;
 using Contracts.Graph;
 using CSharpCodeAnalyst.InfoPanel;
+using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.Areas.ResultArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.EventRegistration;
 
-public class EventImbalanceViewModel : INotifyPropertyChanged
+public class EventImbalanceViewModel : TableRow
 {
     private readonly CodeElement _event;
-    private bool _isExpanded;
 
-    public EventImbalanceViewModel(EventRegistrationImbalance analyzer)
+    public EventImbalanceViewModel(EventRegistrationImbalance imbalance)
     {
-        _event = analyzer.Event;
-        Description = analyzer.Handler.FullName;
-        Locations = new ObservableCollection<SourceLocation>(analyzer.Locations);
+        _event = imbalance.Event;
+        Description = imbalance.Handler.FullName;
+        Locations = new ObservableCollection<SourceLocation>(imbalance.Locations);
         OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OnOpenSourceLocation);
-        _isExpanded = false;
     }
 
     public ICommand OpenSourceLocationCommand { get; set; }
@@ -30,20 +29,7 @@ public class EventImbalanceViewModel : INotifyPropertyChanged
     public ObservableCollection<SourceLocation> Locations { get; set; }
 
     public string Description { get; }
-
-    public bool IsExpanded
-    {
-        get => _isExpanded;
-        set
-        {
-            if (value == _isExpanded) return;
-            _isExpanded = value;
-            OnPropertyChanged();
-        }
-    }
-
-
-    public event PropertyChangedEventHandler? PropertyChanged;
+    
 
     private void OnOpenSourceLocation(SourceLocation? location)
     {
@@ -64,10 +50,5 @@ public class EventImbalanceViewModel : INotifyPropertyChanged
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
-    }
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

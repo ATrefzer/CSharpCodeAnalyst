@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using CSharpCodeAnalyst.Areas.TableArea;
 
-namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
+namespace CSharpCodeAnalyst.PluginContracts;
 
 /// <summary>
 ///     Main interface for table data.
@@ -11,12 +11,12 @@ namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 /// </summary>
 public abstract class Table : INotifyPropertyChanged
 {
-    private string? _title;
+    private string _title;
 
     /// <summary>
     ///     Title for the whole data.
     /// </summary>
-    public string? Title
+    public string Title
     {
         get => _title;
         set
@@ -28,7 +28,7 @@ public abstract class Table : INotifyPropertyChanged
 
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    public abstract IEnumerable<ITableColumnDefinition> GetColumns();
+    public abstract IEnumerable<TableColumnDefinition> GetColumns();
 
     public abstract IEnumerable<TableRow> GetData();
 

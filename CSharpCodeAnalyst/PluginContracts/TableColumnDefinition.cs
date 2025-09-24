@@ -1,7 +1,6 @@
 ﻿using System.Windows.Input;
-using CSharpCodeAnalyst.Areas.TableArea;
 
-namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
+namespace CSharpCodeAnalyst.PluginContracts;
 
 public class TableColumnDefinition
 {

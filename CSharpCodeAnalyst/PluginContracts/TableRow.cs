@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
+namespace CSharpCodeAnalyst.PluginContracts;
 
 public abstract class TableRow : INotifyPropertyChanged
 {
@@ -12,7 +12,11 @@ public abstract class TableRow : INotifyPropertyChanged
         get => _isExpanded;
         set
         {
-            if (value == _isExpanded) return;
+            if (value == _isExpanded)
+            {
+                return;
+            }
+
             _isExpanded = value;
             OnPropertyChanged();
         }
