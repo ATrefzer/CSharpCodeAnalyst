@@ -18,18 +18,18 @@
         <DataGrid x:Name="MainDataGrid"
                   Style="{StaticResource ReadOnlyGrid}"
                   AutoGenerateColumns="False">
-            
+
             <DataGrid.Resources>
                 <Style TargetType="DataGridRow">
-                    
+
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                       <!-- Filled dynamically -->
+                                <!-- Filled dynamically -->
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
-                    
+
                     <!-- Does no longer work here. See OnDataGridLoadingRow how it is handled now-->
                     <!-- <Setter Property="DetailsVisibility" Value="Collapsed" /> -->
                     <!-- <Style.Triggers> -->

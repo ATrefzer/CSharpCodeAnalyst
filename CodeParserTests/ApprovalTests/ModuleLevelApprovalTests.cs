@@ -167,5 +167,4 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         CollectionAssert.AreEquivalent(expected, actual);
     }
-
 }

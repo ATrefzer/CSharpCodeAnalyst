@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
-
 
 namespace CSharpCodeAnalyst.TreeArea;
 
@@ -36,31 +36,6 @@ public class TreeViewModel : INotifyPropertyChanged
         PartitionWithBaseTreeCommand = new DelegateCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         _filteredTreeItems = [];
         _treeItems = [];
-    }
-
-    private void PartitionWithBase(TreeItemViewModel vm)
-    {
-        if (vm.CodeElement is null)
-        {
-            return;
-        }
-
-        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, true));
-    }
-
-    private bool CanPartition(TreeItemViewModel? vm)
-    {
-        return vm is { CodeElement.ElementType: CodeElementType.Class };
-    }
-
-    private void Partition(TreeItemViewModel vm)
-    {
-        if (vm.CodeElement is null)
-        {
-            return;
-        }
-
-        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
     }
 
 
@@ -107,6 +82,31 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void PartitionWithBase(TreeItemViewModel vm)
+    {
+        if (vm.CodeElement is null)
+        {
+            return;
+        }
+
+        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, true));
+    }
+
+    private bool CanPartition(TreeItemViewModel? vm)
+    {
+        return vm is { CodeElement.ElementType: CodeElementType.Class };
+    }
+
+    private void Partition(TreeItemViewModel vm)
+    {
+        if (vm.CodeElement is null)
+        {
+            return;
+        }
+
+        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
+    }
 
     private void DeleteFromModel(TreeItemViewModel obj)
     {

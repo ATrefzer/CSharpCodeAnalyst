@@ -16,7 +16,6 @@ public enum RelationshipAttribute : uint
     EventUnregistration = 128
 }
 
-
 public static class RelationshipAttributeExtensions
 {
     private static readonly List<RelationshipAttribute> Flags = Enum.GetValues(typeof(RelationshipAttribute))
@@ -42,5 +41,4 @@ public static class RelationshipAttributeExtensions
 
         return "[" + string.Join(", ", attributes) + "]";
     }
-
 }

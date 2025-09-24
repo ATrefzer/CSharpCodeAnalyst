@@ -15,7 +15,7 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzer.EventRegistration;
+using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 using CSharpCodeAnalyst.Areas.TableArea.Partitions;
 using CSharpCodeAnalyst.Common;
@@ -29,6 +29,7 @@ using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.InfoPanel;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.MetricArea;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Project;
@@ -472,19 +473,8 @@ internal class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var imbalances = EventRegistrationAnalyzer.FindImbalances(_codeGraph);
-
-        if (imbalances.Count == 0)
-        {
-            MessageBox.Show("No event handler registration / un-registration imbalances found");
-            return;
-        }
-        
-        // TODO move to plugin
-        var vm = new EventImbalancesViewModel(imbalances);
-       
-
-        HandleShowPluginResult(new ShowPluginResult(vm));
+        var plugin = new Plugin();
+        plugin.Analyze(_codeGraph, _messaging);
     }
 
 

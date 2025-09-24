@@ -1,15 +1,18 @@
 ﻿using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
-public class EventRegistrationAnalyzer
+/// <summary>
+///     Finds imbalances between event registrations and un-registrations.
+/// </summary>
+internal static class EventRegistrationAnalyzer
 {
-    public static List<EventRegistrationImbalance> FindImbalances(CodeGraph originalGraph)
+    internal static List<Result> FindImbalances(CodeGraph originalGraph)
     {
         var relationships = originalGraph.GetAllRelationships().Where(r => r.Type == RelationshipType.Handles).ToHashSet();
 
         var mismatches = relationships.Where(IsIncomplete);
-        var imbalances = new List<EventRegistrationImbalance>();
+        var imbalances = new List<Result>();
 
         foreach (var mismatch in mismatches)
         {
@@ -17,7 +20,7 @@ public class EventRegistrationAnalyzer
             var handler = originalGraph.Nodes[mismatch.SourceId];
             var target = originalGraph.Nodes[mismatch.TargetId];
             var locations = mismatch.SourceLocations;
-            imbalances.Add(new EventRegistrationImbalance(handler, target, locations));
+            imbalances.Add(new Result(handler, target, locations));
         }
 
         return imbalances;

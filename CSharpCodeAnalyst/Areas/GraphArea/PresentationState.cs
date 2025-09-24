@@ -4,8 +4,8 @@ namespace CSharpCodeAnalyst.GraphArea;
 
 public class PresentationState
 {
+    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _defaultState;
-    private Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _nodeIdToFlagged;
 
     public PresentationState(Dictionary<string, bool> defaultState)

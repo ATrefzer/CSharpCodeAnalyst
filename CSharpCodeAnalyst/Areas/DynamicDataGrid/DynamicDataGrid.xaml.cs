@@ -343,7 +343,7 @@ public partial class DynamicDataGrid : UserControl
         }
 
         row.ContextMenu.Items.Clear();
-        
+
         var commands = TableData?.GetCommands() ?? [];
         if (commands.Count == 0)
         {
@@ -375,7 +375,7 @@ public partial class DynamicDataGrid : UserControl
             }
         }
     }
-    
+
     private void ShowEmptyState(bool show, string message = "No data available")
     {
         EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;

@@ -8,7 +8,7 @@ using Microsoft.Win32;
 namespace CSharpCodeAnalyst.Exports;
 
 /// <summary>
-/// Facade for various export formats.
+///     Facade for various export formats.
 /// </summary>
 public static class Export
 {

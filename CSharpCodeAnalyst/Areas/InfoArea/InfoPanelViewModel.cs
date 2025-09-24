@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 

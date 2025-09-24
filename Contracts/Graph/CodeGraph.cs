@@ -150,7 +150,6 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
 
     public string ToDebug()
     {
-      
         var relationships = GetAllRelationships().Select(d => (Nodes[d.SourceId].FullName, d.Type.ToString(), Nodes[d.TargetId].FullName, d.Attributes.FormatAttributes()));
 
         var elementNames = Nodes.Values.Select(e => $"{e.ElementType}: {e.FullName}");
@@ -158,6 +157,4 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         return string.Join("\n", elementNames.OrderBy(x => x)) + "\n" +
                string.Join("\n", relationshipNames.OrderBy(x => x));
     }
-
-
 }

@@ -1,9 +1,8 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Markup;
 using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
@@ -12,8 +11,8 @@ namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
 internal class CycleGroupsViewModel : Table
 {
-    private readonly MessageBus _messaging;
     private readonly ObservableCollection<TableRow> _cycleGroups;
+    private readonly MessageBus _messaging;
 
     public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
     {
@@ -29,7 +28,7 @@ internal class CycleGroupsViewModel : Table
     {
         return
         [
-            new CommandDefinition()
+            new CommandDefinition
             {
                 Header = Strings.CopyToExplorerGraph_MenuItem,
                 Command = new DelegateCommand<CycleGroupViewModel>(vm =>
@@ -48,20 +47,20 @@ internal class CycleGroupsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "Level",
-                PropertyName = "Level"
+                DisplayName = Strings.Level_Header,
+                PropertyName = nameof(CycleGroupViewModel.Level)
             },
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "ElementCount",
-                PropertyName = "ElementCount"
+                DisplayName = Strings.ElementCount_Header,
+                PropertyName = nameof(CycleGroupViewModel.ElementCount)
             },
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "CodeElementsDescription",
-                PropertyName = "CodeElementsDescription",
+                DisplayName = Strings.CodeElements_Header,
+                PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
                 IsExpandable = true
             }
         };
@@ -93,14 +92,6 @@ internal class CycleGroupsViewModel : Table
                     </ItemsControl>
                 </DataTemplate>";
 
-        try
-        {
-            return (DataTemplate)XamlReader.Parse(xamlTemplate);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error creating row details template: {ex.Message}");
-            return null;
-        }
+        return CreateDataTemplateFromString(xamlTemplate);
     }
 }

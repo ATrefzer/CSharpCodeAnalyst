@@ -54,7 +54,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var parents = new HashSet<string>();
 
         var existing = knownIds.ToArray();
-        for (int i = 0; i < existing.Length; i++)
+        for (var i = 0; i < existing.Length; i++)
         {
             // We hit each pair twice so we walk only one direction here.
             var possibleChild = _codeGraph.Nodes[existing[i]];
@@ -76,7 +76,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             // Step 2 
             // Ensure all gaps are filled
-            for (int j = 0; j < existing.Length; j++)
+            for (var j = 0; j < existing.Length; j++)
             {
                 if (i == j)
                 {

@@ -1,6 +1,7 @@
-﻿using Contracts.Graph;
+﻿using System.Windows.Media.Imaging;
+using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using System.Windows.Media.Imaging;
+using CSharpCodeAnalyst.Messages;
 
 namespace CSharpCodeAnalyst.CycleArea;
 
@@ -19,7 +20,10 @@ internal class Sorter : Comparer<CodeElementLineViewModel>
 
 public class CodeElementLineViewModel(CodeElement e)
 {
-    public BitmapImage Icon => CodeElementIconMapper.GetIcon(e.ElementType);
+    public BitmapImage Icon
+    {
+        get => CodeElementIconMapper.GetIcon(e.ElementType);
+    }
 
     public CodeElementType ElementType { get; set; } = e.ElementType;
     public string ElementTypeName { get; set; } = e.ElementType.ToString();

@@ -1,6 +1,6 @@
 ﻿using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public class ShowPartitionsRequest
 {

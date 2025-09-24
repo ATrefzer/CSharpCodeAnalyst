@@ -1,10 +1,9 @@
 ﻿using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public class AddNodeToGraphRequest
 {
-    public bool AddCollapsed { get; }
 
     public AddNodeToGraphRequest(CodeElement node)
     {
@@ -16,6 +15,8 @@ public class AddNodeToGraphRequest
         AddCollapsed = addCollapsed;
         Nodes = nodes.ToList();
     }
+
+    public bool AddCollapsed { get; }
 
     public IReadOnlyList<CodeElement> Nodes { get; }
 }

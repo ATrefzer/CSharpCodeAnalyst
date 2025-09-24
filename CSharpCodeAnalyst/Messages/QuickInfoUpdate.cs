@@ -1,6 +1,6 @@
 ﻿using CSharpCodeAnalyst.Help;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public class QuickInfoUpdate(List<QuickInfo> quickInfo)
 {

@@ -12,6 +12,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 

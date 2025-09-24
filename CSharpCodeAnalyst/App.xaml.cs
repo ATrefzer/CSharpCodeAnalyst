@@ -6,6 +6,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.InfoPanel;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.SearchArea;
 using CSharpCodeAnalyst.TreeArea;
 using Microsoft.Extensions.Configuration;

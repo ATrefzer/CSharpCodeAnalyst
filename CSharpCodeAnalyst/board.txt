@@ -5,9 +5,6 @@
   Having the symbol key would allow synchronization with a project in the future.
 - Consider adding the access modifieres. We could get rid of all private members.
 
-- Generic table view model / PlugIn architecture
-
-
 UNHANDLED CASES
 ---------------------
 

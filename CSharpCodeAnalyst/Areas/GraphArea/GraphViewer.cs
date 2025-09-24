@@ -9,6 +9,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.GraphArea.Highlighting;
 using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Drawing;
@@ -35,7 +36,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
-    ClickController? _clickController;
+    private ClickController? _clickController;
 
     /// <summary>
     ///     Held to read the help

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Messages;
 
 namespace CSharpCodeAnalyst.TreeArea;
 
@@ -18,8 +19,11 @@ public class TreeItemViewModel : INotifyPropertyChanged
     public string? Type { get; set; }
     public CodeElement? CodeElement { get; set; }
     public ObservableCollection<TreeItemViewModel> Children { get; set; } = [];
-    
-    public BitmapImage? Icon => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+
+    public BitmapImage? Icon
+    {
+        get => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+    }
 
     public bool IsExpanded
     {

@@ -1,16 +1,5 @@
 ﻿namespace CSharpCodeAnalyst.Common;
 
-public interface ISubscriber
-{
-    void Subscribe<TMessage>(Action<TMessage> handler) where TMessage : class;
-    void Unsubscribe<TMessage>(Action<TMessage> handler) where TMessage : class;
-}
-
-public interface IPublisher
-{
-    void Publish<TMessage>(TMessage message) where TMessage : class;
-}
-
 public class MessageBus : ISubscriber, IPublisher
 {
     private readonly object _lock = new();

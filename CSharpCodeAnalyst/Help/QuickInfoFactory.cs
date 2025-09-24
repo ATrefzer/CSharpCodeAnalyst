@@ -100,7 +100,6 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
 
     public static (string sourceRole, string targetRole) GetSemanticRoles(RelationshipType type)
     {
-        
         return type switch
         {
             RelationshipType.Calls => (Strings.Relationship_Caller, Strings.Relationship_Callee),

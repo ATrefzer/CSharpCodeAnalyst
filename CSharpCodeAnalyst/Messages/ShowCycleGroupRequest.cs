@@ -1,6 +1,6 @@
 ﻿using CodeParser.Analysis.Shared;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public class ShowCycleGroupRequest(CycleGroup cycleGroup)
 {

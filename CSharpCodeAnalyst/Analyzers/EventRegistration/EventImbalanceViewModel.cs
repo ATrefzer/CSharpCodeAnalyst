@@ -7,13 +7,13 @@ using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
 public class EventImbalanceViewModel : TableRow
 {
     private readonly CodeElement _event;
 
-    public EventImbalanceViewModel(EventRegistrationImbalance imbalance)
+    internal EventImbalanceViewModel(Result imbalance)
     {
         _event = imbalance.Event;
         Description = imbalance.Handler.FullName;

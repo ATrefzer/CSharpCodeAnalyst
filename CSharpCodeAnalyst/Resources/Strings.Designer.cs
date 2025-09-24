@@ -1088,6 +1088,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event handler (possible errors).
+        /// </summary>
+        public static string Plugin_EventRegistration_Header {
+            get {
+                return ResourceManager.GetString("Plugin_EventRegistration_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Proceed?.
         /// </summary>
         public static string Proceed_Title {

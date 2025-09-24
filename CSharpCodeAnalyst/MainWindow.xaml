@@ -525,14 +525,14 @@
                 </TabItem>-->
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
-                    <tableArea:DynamicDataGrid TableData="{Binding Cycles}"/>
+                    <tableArea:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
                 <TabItem Header="{x:Static resources:Strings.Tab_Partitions}">
-                    <tableArea:DynamicDataGrid TableData="{Binding Partitions}"/>
+                    <tableArea:DynamicDataGrid TableData="{Binding Partitions}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Plugins}">
-                   <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}"/>
+                    <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">

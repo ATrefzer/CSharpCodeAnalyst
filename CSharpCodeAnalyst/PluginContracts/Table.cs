@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using CSharpCodeAnalyst.Areas.TableArea;
-using Prism.Commands;
+using System.Windows.Markup;
 
 namespace CSharpCodeAnalyst.PluginContracts;
 
@@ -14,7 +14,7 @@ namespace CSharpCodeAnalyst.PluginContracts;
 /// </summary>
 public abstract class Table : INotifyPropertyChanged
 {
-    private string _title;
+    private string _title = string.Empty;
 
     /// <summary>
     ///     Title for the whole data.
@@ -48,6 +48,19 @@ public abstract class Table : INotifyPropertyChanged
     public virtual List<CommandDefinition> GetCommands()
     {
         return [];
+    }
+
+    protected DataTemplate? CreateDataTemplateFromString(string xamlTemplate)
+    {
+        try
+        {
+            return (DataTemplate)XamlReader.Parse(xamlTemplate);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error creating row details template: {ex.Message}");
+            return null;
+        }
     }
 }
 

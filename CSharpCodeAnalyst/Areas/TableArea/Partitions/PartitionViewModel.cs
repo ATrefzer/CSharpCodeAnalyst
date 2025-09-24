@@ -1,6 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
@@ -31,10 +29,15 @@ public class PartitionViewModel : TableRow
 
     public ObservableCollection<CodeElementLineViewModel> CodeElements { get; }
 
- 
 
-    public int ElementCount => CodeElements.Count;
 
-    public string Description => string.Format(Strings.Partition_Description, ElementCount);
+    public int ElementCount
+    {
+        get => CodeElements.Count;
+    }
 
+    public string Description
+    {
+        get => string.Format(Strings.Partition_Description, ElementCount);
+    }
 }

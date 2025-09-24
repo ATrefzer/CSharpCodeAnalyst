@@ -1,9 +1,8 @@
 ﻿using CSharpCodeAnalyst.PluginContracts;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public class ShowPluginResult(Table table)
 {
     public Table Table { get; } = table;
-
 }

@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Markup;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 
@@ -9,7 +7,7 @@ namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 
 public class PartitionsViewModel : Table
 {
-    private ObservableCollection<TableRow> _partitions;
+    private readonly ObservableCollection<TableRow> _partitions;
 
     public PartitionsViewModel(List<PartitionViewModel> pvm)
     {
@@ -24,10 +22,10 @@ public class PartitionsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "Partition",
-                PropertyName = "PartitionName",
+                DisplayName = Strings.Partition,
+                PropertyName = nameof(PartitionViewModel.PartitionName),
                 IsExpandable = true
-            },
+            }
         };
     }
 
@@ -58,14 +56,6 @@ public class PartitionsViewModel : Table
                     </ItemsControl>
                 </DataTemplate>";
 
-        try
-        {
-            return (DataTemplate)XamlReader.Parse(xamlTemplate);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error creating row details template: {ex.Message}");
-            return null;
-        }
+        return CreateDataTemplateFromString(xamlTemplate);
     }
 }

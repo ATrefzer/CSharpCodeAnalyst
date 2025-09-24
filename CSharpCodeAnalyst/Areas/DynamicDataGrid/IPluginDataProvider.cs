@@ -1,6 +1,4 @@
-﻿using System.Windows;
-
-namespace CSharpCodeAnalyst.Areas.TableArea;
+﻿namespace CSharpCodeAnalyst.Areas.TableArea;
 
 public interface IPluginDataProvider
 {

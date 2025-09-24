@@ -70,6 +70,4 @@ public class Relationship
         newRelationship.Attributes = Attributes;
         return newRelationship;
     }
-
-
 }

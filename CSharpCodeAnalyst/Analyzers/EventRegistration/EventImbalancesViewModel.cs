@@ -1,23 +1,20 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Windows;
-using System.Windows.Markup;
 using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
-public class EventImbalancesViewModel : Table
+internal class EventImbalancesViewModel : Table
 {
-    private ObservableCollection<TableRow> _imbalances;
+    private readonly ObservableCollection<TableRow> _imbalances;
 
-    public EventImbalancesViewModel(List<EventRegistrationImbalance> imbalances)
+    internal EventImbalancesViewModel(List<Result> imbalances)
     {
-        Title = "Summary - Possible event imbalances";
+        Title = Strings.Tab_Plugins;
         var tmp = imbalances.Select(i => new EventImbalanceViewModel(i));
         _imbalances = new ObservableCollection<TableRow>(tmp);
     }
-
-
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
     {
@@ -26,10 +23,10 @@ public class EventImbalancesViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "Event handler (possible errors)",
-                PropertyName = "Description",
-                IsExpandable = true,
-            },
+                DisplayName = Strings.Plugin_EventRegistration_Header,
+                PropertyName = nameof(EventImbalanceViewModel.Description),
+                IsExpandable = true
+            }
         };
     }
 
@@ -66,14 +63,6 @@ public class EventImbalancesViewModel : Table
                     </ItemsControl>
                 </DataTemplate>";
 
-        try
-        {
-            return (DataTemplate)XamlReader.Parse(xamlTemplate);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Error creating row details template: {ex.Message}");
-            return null;
-        }
+        return CreateDataTemplateFromString(xamlTemplate);
     }
 }

@@ -675,5 +675,8 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="AnalysisPlugins_Label" xml:space="preserve">
    <value>Analysis Plugins</value>
  </data>
+    <data name="Plugin_EventRegistration_Header" xml:space="preserve">
+   <value>Event handler (possible errors)</value>
+ </data>
 
 </root>
