@@ -3,19 +3,21 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Markup;
 using CSharpCodeAnalyst.PluginContracts;
-using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
-public class PartitionsViewModel : Table
+public class EventImbalancesViewModel : Table
 {
-    private ObservableCollection<TableRow> _partitions;
+    private ObservableCollection<TableRow> _imbalances;
 
-    public PartitionsViewModel(List<PartitionViewModel> pvm)
+    public EventImbalancesViewModel(List<EventRegistrationImbalance> imbalances)
     {
-        Title = Strings.Tab_Partitions;
-        _partitions = new ObservableCollection<TableRow>(pvm);
+        Title = "Summary - Possible event imbalances";
+        var tmp = imbalances.Select(i => new EventImbalanceViewModel(i));
+        _imbalances = new ObservableCollection<TableRow>(tmp);
     }
+
+
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
     {
@@ -24,16 +26,16 @@ public class PartitionsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = "Partition",
-                PropertyName = "PartitionName",
-                IsExpandable = true
+                DisplayName = "Event handler (possible errors)",
+                PropertyName = "Description",
+                IsExpandable = true,
             },
         };
     }
 
     public override ObservableCollection<TableRow> GetData()
     {
-        return _partitions;
+        return _imbalances;
     }
 
     public override DataTemplate? GetRowDetailsTemplate()
@@ -41,7 +43,7 @@ public class PartitionsViewModel : Table
         var xamlTemplate = @"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
-                    <ItemsControl ItemsSource=""{Binding CodeElements}"">
+                   <ItemsControl ItemsSource=""{Binding Locations}"">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin=""40 0 0 0"">
@@ -49,9 +51,15 @@ public class PartitionsViewModel : Table
                                         <ColumnDefinition Width=""Auto"" />
                                         <ColumnDefinition />
                                     </Grid.ColumnDefinitions>
-                                    <Image Source=""{Binding Icon}"" Margin=""0 1 5 1"" />
-                                    <TextBlock Grid.Column=""1"" Text=""{Binding FullName}""
-                                               TextWrapping=""Wrap"" />
+                                    <!--<Image Source=""{Binding Icon}"" Margin=""0 1 5 1"" />-->
+                                    <TextBlock Grid.Column=""1"" Text=""{Binding }"" Foreground=""Blue"" TextWrapping=""Wrap"">
+                                        <TextBlock.InputBindings>
+                                            <MouseBinding MouseAction=""LeftClick""
+                                                          Command=""{Binding DataContext.OpenSourceLocationCommand, 
+                              RelativeSource={RelativeSource AncestorType=ItemsControl}}""
+                                                          CommandParameter=""{Binding }"" />
+                                        </TextBlock.InputBindings>
+                                    </TextBlock>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

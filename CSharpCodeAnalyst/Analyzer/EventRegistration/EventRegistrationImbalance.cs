@@ -1,6 +1,6 @@
 ﻿using Contracts.Graph;
 
-namespace CodeParser.Analysis.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 /// <summary>
 ///     Finds imbalances between event registrations and un-registrations.

@@ -3,19 +3,21 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
-using CodeParser.Analysis.EventRegistration;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Areas.ResultArea;
+using CSharpCodeAnalyst.Analyzer.EventRegistration;
+using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+using CSharpCodeAnalyst.Areas.TableArea.Partitions;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.CycleArea;
@@ -28,6 +30,7 @@ using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.MetricArea;
+using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.SearchArea;
@@ -40,14 +43,16 @@ namespace CSharpCodeAnalyst;
 internal class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
-    private const int TableTabIndex = 1;
 
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
     private CodeGraph? _codeGraph;
+
+    private Table? _cycles;
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -61,18 +66,27 @@ internal class MainViewModel : INotifyPropertyChanged
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
+    private Table? _partitions;
     private SearchViewModel? _searchViewModel;
 
 
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
-    private TableViewModel? _tableViewModel;
     private TreeViewModel? _treeViewModel;
+
+
+
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
     {
         // Initialize settings
         _applicationSettings = settings;
+
+        // Table data
+        _partitions = null;
+        _cycles = null;
+        _analyzerResult = null;
+
 
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
@@ -104,6 +118,36 @@ internal class MainViewModel : INotifyPropertyChanged
         _loadMessage = string.Empty;
     }
 
+    public Table? AnalyzerResult
+    {
+        get => _analyzerResult;
+        set
+        {
+            _analyzerResult = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Table? Cycles
+    {
+        get => _cycles;
+        set
+        {
+            _cycles = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Table? Partitions
+    {
+        get => _partitions;
+        set
+        {
+            _partitions = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     public InfoPanelViewModel? InfoPanelViewModel
     {
@@ -112,27 +156,12 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             if (Equals(value, _infoPanelViewModel)) return;
             _infoPanelViewModel = value;
-            OnPropertyChanged(nameof(InfoPanelViewModel));
+            OnPropertyChanged();
         }
     }
 
     public ICommand ShowGalleryCommand { get; }
 
-
-    public TableViewModel? TableViewModel
-    {
-        get => _tableViewModel;
-        set
-        {
-            if (Equals(value, _tableViewModel))
-            {
-                return;
-            }
-
-            _tableViewModel = value;
-            OnPropertyChanged(nameof(TableViewModel));
-        }
-    }
 
     public GraphViewModel? GraphViewModel
     {
@@ -140,7 +169,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _graphViewModel = value;
-            OnPropertyChanged(nameof(GraphViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -155,7 +184,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _isLeftPanelExpanded = value;
-            OnPropertyChanged(nameof(IsLeftPanelExpanded));
+            OnPropertyChanged();
         }
     }
 
@@ -165,7 +194,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _isLoading = value;
-            OnPropertyChanged(nameof(IsLoading));
+            OnPropertyChanged();
         }
     }
 
@@ -175,7 +204,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _loadMessage = value;
-            OnPropertyChanged(nameof(LoadMessage));
+            OnPropertyChanged();
         }
     }
 
@@ -204,7 +233,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _treeViewModel = value;
-            OnPropertyChanged(nameof(TreeViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -214,7 +243,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _searchViewModel = value;
-            OnPropertyChanged(nameof(SearchViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -230,7 +259,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _selectedRightTabIndex = value;
-            OnPropertyChanged(nameof(SelectedRightTabIndex));
+            OnPropertyChanged();
         }
     }
 
@@ -245,7 +274,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _isCanvasHintsVisible = value;
-            OnPropertyChanged(nameof(IsCanvasHintsVisible));
+            OnPropertyChanged();
         }
     }
 
@@ -257,7 +286,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _metrics = value;
-            OnPropertyChanged(nameof(Metrics));
+            OnPropertyChanged();
         }
         get => _metrics;
     }
@@ -272,7 +301,7 @@ internal class MainViewModel : INotifyPropertyChanged
             if (value == _selectedLeftTabIndex) return;
             _selectedLeftTabIndex = value;
             InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
-            OnPropertyChanged(nameof(SelectedLeftTabIndex));
+            OnPropertyChanged();
         }
     }
 
@@ -450,16 +479,19 @@ internal class MainViewModel : INotifyPropertyChanged
             MessageBox.Show("No event handler registration / un-registration imbalances found");
             return;
         }
+        
+        // TODO move to plugin
+        var vm = new EventImbalancesViewModel(imbalances);
+       
 
-        HandleShowEventImbalancesRequest(new ShowEventImbalancesRequest(imbalances));
+        HandleShowPluginResult(new ShowPluginResult(vm));
     }
 
 
-    public void HandleShowEventImbalancesRequest(ShowEventImbalancesRequest request)
+    public void HandleShowPluginResult(ShowPluginResult pluginResult)
     {
-        var vm = new EventImbalancesViewModel(request.Imbalances);
-        TableViewModel = vm;
-        SelectedRightTabIndex = TableTabIndex;
+        AnalyzerResult = pluginResult.Table;
+        SelectedRightTabIndex = 3;
     }
 
 
@@ -506,7 +538,7 @@ internal class MainViewModel : INotifyPropertyChanged
         _graphViewModel?.Clear();
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -532,7 +564,10 @@ internal class MainViewModel : INotifyPropertyChanged
         TreeViewModel?.LoadCodeGraph(_codeGraph);
         SearchViewModel?.LoadCodeGraph(_codeGraph);
         GraphViewModel?.LoadCodeGraph(_codeGraph);
-        TableViewModel?.Clear();
+
+        Cycles = null;
+        Partitions = null;
+        AnalyzerResult = null;
         InfoPanelViewModel?.Clear();
 
         // Default output: summary of graph
@@ -635,10 +670,12 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadMessage = string.Empty;
         }
     }
+
     private void OnProgress(object? sender, ParserProgressArg e)
     {
         LoadMessage = e.Message;
     }
+
     private void OnExportToPlantUml()
     {
         Export.ToPlantUml(_graphViewModel?.ExportGraph());
@@ -834,7 +871,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         var cycleGroups = request.CycleGroups;
 
-        TableViewModel = new CycleGroupsViewModel(cycleGroups, _messaging);
+        Cycles = new CycleGroupsViewModel(cycleGroups, _messaging);
         SelectedRightTabIndex = 1;
     }
 
@@ -863,16 +900,20 @@ internal class MainViewModel : INotifyPropertyChanged
         // Create view model and show summary in table tab.
 
 
-        var partitionsVm = new PartitionsViewModel();
+
         var number = 1;
+        var pvm = new List<PartitionViewModel>();
         foreach (var partition in partitions)
         {
             var codeElements = partition.Select(id => new CodeElementLineViewModel(_codeGraph.Nodes[id]));
             var vm = new PartitionViewModel($"Partition {number++}", codeElements);
-            partitionsVm.Partitions.Add(vm);
+            pvm.Add(vm);
         }
 
-        TableViewModel = partitionsVm;
-        SelectedRightTabIndex = 1;
+
+        var partitionsVm = new PartitionsViewModel(pvm);
+
+        Partitions = partitionsVm;
+        SelectedRightTabIndex = 2;
     }
 }

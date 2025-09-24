@@ -9,6 +9,7 @@
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
+        xmlns:tableArea="clr-namespace:CSharpCodeAnalyst.Areas.TableArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -18,9 +19,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/CycleGroups/CycleGroupsDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/EventRegistration/EventImbalancesDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/Partitions/PartitionsDataTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
@@ -83,7 +81,7 @@
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
 
-                    <RibbonSplitButton Label="Analysis Addons"
+                    <RibbonSplitButton Label="{x:Static resources:Strings.AnalysisPlugins_Label}"
                                        LargeImageSource="/Resources/analysis_32.png">
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Label}"
@@ -519,10 +517,22 @@
                     <TabItem.Header>Code Explorer</TabItem.Header>
                     <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
-                <TabItem Header="{Binding TableViewModel.Title}">
+
+                <!--<TabItem Header="{Binding TableViewModel.Title}">
                     <Grid DataContext="{Binding TableViewModel}">
                         <ContentPresenter Content="{Binding }" />
                     </Grid>
+                </TabItem>-->
+
+                <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
+                    <tableArea:DynamicDataGrid TableData="{Binding Cycles}"/>
+                </TabItem>
+                <TabItem Header="{x:Static resources:Strings.Tab_Partitions}">
+                    <tableArea:DynamicDataGrid TableData="{Binding Partitions}"/>
+                </TabItem>
+
+                <TabItem Header="{x:Static resources:Strings.Tab_Plugins}">
+                   <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}"/>
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">

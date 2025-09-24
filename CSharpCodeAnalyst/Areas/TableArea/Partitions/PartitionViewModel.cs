@@ -2,43 +2,39 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CSharpCodeAnalyst.CycleArea;
+using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Areas.ResultArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 
-public class PartitionViewModel : INotifyPropertyChanged
+public class PartitionViewModel : TableRow
 {
-    private bool _isExpanded;
+    private string _partitionName;
 
     public PartitionViewModel(string partitionName, IEnumerable<CodeElementLineViewModel> codeElements)
     {
         PartitionName = partitionName;
         CodeElements = new ObservableCollection<CodeElementLineViewModel>(codeElements);
-        _isExpanded = false;
+        //Title = partitionName;
     }
 
-    public string PartitionName { get; }
-    public ObservableCollection<CodeElementLineViewModel> CodeElements { get; }
-
-    public bool IsExpanded
+    public string PartitionName
     {
-        get => _isExpanded;
+        get => _partitionName;
         set
         {
-            if (value == _isExpanded) return;
-            _isExpanded = value;
+            if (value == _partitionName) return;
+            _partitionName = value;
             OnPropertyChanged();
         }
     }
+
+    public ObservableCollection<CodeElementLineViewModel> CodeElements { get; }
+
+ 
 
     public int ElementCount => CodeElements.Count;
 
     public string Description => string.Format(Strings.Partition_Description, ElementCount);
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 }
