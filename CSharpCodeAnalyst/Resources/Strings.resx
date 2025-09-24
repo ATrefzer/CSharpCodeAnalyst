@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+    <!-- 
     Microsoft ResX Schema 
     
     Version 2.0
@@ -59,608 +59,621 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="metadata">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" />
-							</xsd:sequence>
-							<xsd:attribute name="name" use="required" type="xsd:string" />
-							<xsd:attribute name="type" type="xsd:string" />
-							<xsd:attribute name="mimetype" type="xsd:string" />
-							<xsd:attribute ref="xml:space" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="assembly">
-						<xsd:complexType>
-							<xsd:attribute name="alias" type="xsd:string" />
-							<xsd:attribute name="name" type="xsd:string" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-							<xsd:attribute ref="xml:space" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>2.0</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<data name="AddParent" xml:space="preserve">
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string"/>
+                            <xsd:attribute name="type" type="xsd:string"/>
+                            <xsd:attribute name="mimetype" type="xsd:string"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string"/>
+                            <xsd:attribute name="name" type="xsd:string"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <data name="AddParent" xml:space="preserve">
     <value>Add Parent</value>
   </data>
-	<data name="AllIncomingRelationships" xml:space="preserve">
+    <data name="AllIncomingRelationships" xml:space="preserve">
     <value>All incoming relationships</value>
   </data>
-	<data name="AllOutgoingRelationships" xml:space="preserve">
+    <data name="AllOutgoingRelationships" xml:space="preserve">
     <value>All outgoing relationships</value>
   </data>
-	<data name="AppTitle" xml:space="preserve">
+    <data name="AppTitle" xml:space="preserve">
     <value>C# Code Analyst</value>
   </data>
-	<data name="Collapse" xml:space="preserve">
+    <data name="Collapse" xml:space="preserve">
     <value>Collapse</value>
   </data>
-	<data name="CompleteRelationships" xml:space="preserve">
+    <data name="CompleteRelationships" xml:space="preserve">
     <value>Complete relationships</value>
   </data>
-	<data name="Delete" xml:space="preserve">
+    <data name="Delete" xml:space="preserve">
     <value>Delete</value>
   </data>
-	<data name="DeleteWithChildren" xml:space="preserve">
+    <data name="DeleteWithChildren" xml:space="preserve">
     <value>Delete with Children</value>
   </data>
-	<data name="Expand" xml:space="preserve">
+    <data name="Expand" xml:space="preserve">
     <value>Expand</value>
   </data>
-	<data name="ExpandEverything" xml:space="preserve">
+    <data name="ExpandEverything" xml:space="preserve">
     <value>Expand everything</value>
   </data>
-	<data name="FindAbstractions" xml:space="preserve">
+    <data name="FindAbstractions" xml:space="preserve">
     <value>Find abstractions</value>
   </data>
-	<data name="FindIncomingCalls" xml:space="preserve">
+    <data name="FindIncomingCalls" xml:space="preserve">
     <value>Find incoming Calls</value>
   </data>
-	<data name="FindInheritanceTree" xml:space="preserve">
+    <data name="FindInheritanceTree" xml:space="preserve">
     <value>Find inheritance tree</value>
   </data>
-	<data name="FindInTree" xml:space="preserve">
+    <data name="FindInTree" xml:space="preserve">
     <value>Find in tree</value>
   </data>
-	<data name="FindOutgoingCalls" xml:space="preserve">
+    <data name="FindOutgoingCalls" xml:space="preserve">
     <value>Find outgoing Calls</value>
   </data>
-	<data name="FindSpecializations" xml:space="preserve">
+    <data name="FindSpecializations" xml:space="preserve">
     <value>Find specializations</value>
   </data>
-	<data name="FollowIncomingCalls" xml:space="preserve">
+    <data name="FollowIncomingCalls" xml:space="preserve">
     <value>Follow incoming Calls (Heuristic)</value>
   </data>
-	<data name="HighlightOutgoingEdges" xml:space="preserve">
+    <data name="HighlightOutgoingEdges" xml:space="preserve">
     <value>Outgoing edges</value>
   </data>
-	<data name="HighlightSelfCircuit" xml:space="preserve">
+    <data name="HighlightSelfCircuit" xml:space="preserve">
     <value>Shortest non self circuit</value>
   </data>
-	<data name="Layout_Label" xml:space="preserve">
+    <data name="Layout_Label" xml:space="preserve">
     <value>Layout</value>
   </data>
-	<data name="SelectedAddParent" xml:space="preserve">
+    <data name="SelectedAddParent" xml:space="preserve">
     <value>Selected: Add Parent</value>
   </data>
-	<data name="SelectedDelete" xml:space="preserve">
+    <data name="SelectedDelete" xml:space="preserve">
     <value>Selected: Delete (with children)</value>
   </data>
-	<data name="SelectedFocus" xml:space="preserve">
+    <data name="SelectedFocus" xml:space="preserve">
     <value>Selected: Focus</value>
   </data>
-	<data name="Layout_Tooltip" xml:space="preserve">
+    <data name="Layout_Tooltip" xml:space="preserve">
     <value>Resets zoom level and fits to screen</value>
   </data>
-	<data name="TooMuchElementsMessage" xml:space="preserve">
+    <data name="TooMuchElementsMessage" xml:space="preserve">
     <value>The graph contains {0} elements. It may take extremely long to render this data. 
 
 Do you want to proceed?
     
 If you abort the graph is maintained but not rendered. Use undo to get to the previous state.</value>
   </data>
-	<data name="TooMuchElementsTitle" xml:space="preserve">
+    <data name="TooMuchElementsTitle" xml:space="preserve">
     <value>Proceed?</value>
   </data>
-	<data name="Exit_Header" xml:space="preserve">
+    <data name="Exit_Header" xml:space="preserve">
     <value>Exit</value>
   </data>
-	<data name="Information_Title" xml:space="preserve">
+    <data name="Information_Title" xml:space="preserve">
     <value>Info</value>
   </data>
-	<data name="Partitions_NoPartitions" xml:space="preserve">
+    <data name="Partitions_NoPartitions" xml:space="preserve">
     <value>No distinct partitions found!</value>
   </data>
-	<data name="Partition_Description" xml:space="preserve">
+    <data name="Partition_Description" xml:space="preserve">
     <value>Contains {0} code elements</value>
   </data>
-	<data name="Home_Header" xml:space="preserve">
+    <data name="Home_Header" xml:space="preserve">
     <value>Home</value>
   </data>
-	<data name="Tab_Summary_Partitions" xml:space="preserve">
-    <value>Summary - Partitions</value>
+    <data name="Tab_Partitions" xml:space="preserve">
+    <value>Partitions</value>
   </data>
-	<data name="Tab_Summary_Cycles" xml:space="preserve">
-    <value>Summary - Cycle Groups</value>
+    <data name="Tab_Cycles" xml:space="preserve">
+    <value>Cycle Groups</value>
   </data>
-	<data name="Tab_Summary" xml:space="preserve">
+    <data name="Tab_Plugins" xml:space="preserve">
+    <value>Plugin</value>
+  </data>
+    <data name="Tab_Summary" xml:space="preserve">
     <value>Summary</value>
   </data>
-	<data name="File_Header" xml:space="preserve">
+    <data name="File_Header" xml:space="preserve">
     <value>File</value>
   </data>
-	<data name="Partition" xml:space="preserve">
+    <data name="Partition" xml:space="preserve">
     <value>Partition (base exclusive)</value>
   </data>
-	<data name="PartitionWithBase" xml:space="preserve">
+    <data name="PartitionWithBase" xml:space="preserve">
     <value>Partition (base inclusive)</value>
   </data>
-	<data name="ImportSolution_Label" xml:space="preserve">
+    <data name="ImportSolution_Label" xml:space="preserve">
     <value>Import Solution</value>
   </data>
-	<data name="ProjectFilter_Label" xml:space="preserve">
+    <data name="ProjectFilter_Label" xml:space="preserve">
     <value>Project filter</value>
   </data>
-	<data name="ProjectFilter_Tooltip" xml:space="preserve">
+    <data name="ProjectFilter_Tooltip" xml:space="preserve">
     <value>Set project exclusion filters via regular expressions</value>
   </data>
-	<data name="LoadProject_Label" xml:space="preserve">
+    <data name="LoadProject_Label" xml:space="preserve">
     <value>Load Project</value>
   </data>
-	<data name="SaveProject_Label" xml:space="preserve">
+    <data name="SaveProject_Label" xml:space="preserve">
     <value>Save Project</value>
   </data>
-	<data name="Tools_Header" xml:space="preserve">
+    <data name="Tools_Header" xml:space="preserve">
     <value>Tools</value>
   </data>
-	<data name="Find_Label" xml:space="preserve">
+    <data name="Find_Label" xml:space="preserve">
     <value>Find</value>
   </data>
-	<data name="CodeExplorer_Header" xml:space="preserve">
+    <data name="CodeExplorer_Header" xml:space="preserve">
     <value>Code Explorer</value>
   </data>
-	<data name="Clear_Label" xml:space="preserve">
+    <data name="Clear_Label" xml:space="preserve">
     <value>Clear</value>
   </data>
-	<data name="Clear_Tooltip" xml:space="preserve">
+    <data name="Clear_Tooltip" xml:space="preserve">
     <value>Clear the content of the graph</value>
   </data>
-	<data name="Undo_Label" xml:space="preserve">
+    <data name="Undo_Label" xml:space="preserve">
     <value>Undo</value>
   </data>
-	<data name="Undo_Tooltip" xml:space="preserve">
+    <data name="Undo_Tooltip" xml:space="preserve">
     <value>Undo the last operation in graph.</value>
   </data>
-	<data name="Gallery_Label" xml:space="preserve">
+    <data name="Gallery_Label" xml:space="preserve">
     <value>Gallery</value>
   </data>
-	<data name="Gallery_Tooltip" xml:space="preserve">
+    <data name="Gallery_Tooltip" xml:space="preserve">
     <value>Show gallery of available graphs.</value>
   </data>
-	<data name="Settings_Header" xml:space="preserve">
+    <data name="Settings_Header" xml:space="preserve">
     <value>Settings</value>
   </data>
-	<data name="Settings_Rendering" xml:space="preserve">
+    <data name="Settings_Rendering" xml:space="preserve">
     <value>Rendering</value>
   </data>
-	<data name="QuickInfo_Label" xml:space="preserve">
+    <data name="QuickInfo_Label" xml:space="preserve">
     <value>Quick Info</value>
   </data>
-	<data name="QuickInfo_Tooltip" xml:space="preserve">
+    <data name="QuickInfo_Tooltip" xml:space="preserve">
     <value>Show or hide the information panel. Only shown in the code graph explorer.</value>
   </data>
-	<data name="FlatGraph_Label" xml:space="preserve">
+    <data name="FlatGraph_Label" xml:space="preserve">
     <value>Flat Graph</value>
   </data>
-	<data name="FlatGraph_Tooltip" xml:space="preserve">
+    <data name="FlatGraph_Tooltip" xml:space="preserve">
     <value>Shows the graph flat or hierarchical</value>
   </data>
-	<data name="Rendering_Label" xml:space="preserve">
+    <data name="Rendering_Label" xml:space="preserve">
     <value>Rendering</value>
   </data>
-	<data name="Highlighting_Label" xml:space="preserve">
+    <data name="Highlighting_Label" xml:space="preserve">
     <value>Highlighting</value>
   </data>
-	<data name="CodeStructure_Header" xml:space="preserve">
+    <data name="CodeStructure_Header" xml:space="preserve">
     <value>Code Structure</value>
   </data>
-	<data name="CollapseTree_Tooltip" xml:space="preserve">
+    <data name="CollapseTree_Tooltip" xml:space="preserve">
     <value>Collapse all</value>
   </data>
-	<data name="ClearSearch_Tooltip" xml:space="preserve">
+    <data name="ClearSearch_Tooltip" xml:space="preserve">
     <value>Clear search</value>
   </data>
-	<data name="AddToGraph_MenuItem" xml:space="preserve">
+    <data name="AddToGraph_MenuItem" xml:space="preserve">
     <value>Add to graph</value>
   </data>
-	<data name="DeleteFromModel_MenuItem" xml:space="preserve">
+    <data name="DeleteFromModel_MenuItem" xml:space="preserve">
     <value>Delete from model</value>
   </data>
-	<data name="CodeExplorer_TabHeader" xml:space="preserve">
+    <data name="CodeExplorer_TabHeader" xml:space="preserve">
     <value>Code Explorer</value>
   </data>
-	<data name="CycleSummary_TabHeader" xml:space="preserve">
+    <data name="CycleSummary_TabHeader" xml:space="preserve">
     <value>Cycle summary</value>
   </data>
-	<data name="Metrics_TabHeader" xml:space="preserve">
+    <data name="Metrics_TabHeader" xml:space="preserve">
     <value>Metrics</value>
   </data>
-	<data name="Level_Header" xml:space="preserve">
+    <data name="Level_Header" xml:space="preserve">
     <value>Level</value>
   </data>
-	<data name="ElementCount_Header" xml:space="preserve">
+    <data name="ElementCount_Header" xml:space="preserve">
     <value>Element Count</value>
   </data>
-	<data name="CodeElements_Header" xml:space="preserve">
+    <data name="CodeElements_Header" xml:space="preserve">
     <value>Code Elements</value>
   </data>
-	<data name="CopyToExplorerGraph_MenuItem" xml:space="preserve">
+    <data name="CopyToExplorerGraph_MenuItem" xml:space="preserve">
     <value>Copy to explorer graph</value>
   </data>
-	<data name="Locations_Label" xml:space="preserve">
+    <data name="Locations_Label" xml:space="preserve">
     <value>Locations</value>
   </data>
-	<data name="Hint_HoldQuickInfo" xml:space="preserve">
+    <data name="Hint_HoldQuickInfo" xml:space="preserve">
     <value>Hold quick help: Ctrl + Click</value>
   </data>
-	<data name="Hint_Panning" xml:space="preserve">
+    <data name="Hint_Panning" xml:space="preserve">
     <value>• Shift + left-click + mouse move: panning</value>
   </data>
-	<data name="Hint_ExpandCollapse" xml:space="preserve">
+    <data name="Hint_ExpandCollapse" xml:space="preserve">
     <value>• Double-click on container: expand / collapse</value>
   </data>
-	<data name="Hint_DetailInfo" xml:space="preserve">
+    <data name="Hint_DetailInfo" xml:space="preserve">
     <value>• Left-click on code element: show detail in Info tab</value>
   </data>
-	<data name="Hint_Select" xml:space="preserve">
+    <data name="Hint_Select" xml:space="preserve">
     <value>• Ctrl + left-click: (multi) select code element</value>
   </data>
-	<data name="Hint_Context" xml:space="preserve">
+    <data name="Hint_Context" xml:space="preserve">
     <value>• Right-click on code element: context-sensitive commands</value>
   </data>
-	<data name="Hint_GlobalContext" xml:space="preserve">
+    <data name="Hint_GlobalContext" xml:space="preserve">
     <value>• Right-click on empty space: global context commands (i.e. selection)</value>
   </data>
-	<data name="CompleteToTypes" xml:space="preserve">
+    <data name="CompleteToTypes" xml:space="preserve">
     <value>Complete to containing types</value>
   </data>
-	<data name="ToggleFlag" xml:space="preserve">
+    <data name="ToggleFlag" xml:space="preserve">
     <value>Toggle Flag</value>
   </data>
-	<data name="ClearAllFlags" xml:space="preserve">
+    <data name="ClearAllFlags" xml:space="preserve">
     <value>Clear All Flags</value>
   </data>
-	<data name="DeleteFromModel_Message" xml:space="preserve">
+    <data name="DeleteFromModel_Message" xml:space="preserve">
     <value>Deleting model elements will clear the code graph. Do you want to proceed?</value>
   </data>
-	<data name="Error_Title" xml:space="preserve">
+    <data name="Error_Title" xml:space="preserve">
     <value>Error</value>
   </data>
-	<data name="InvalidFilter_Message" xml:space="preserve">
+    <data name="InvalidFilter_Message" xml:space="preserve">
     <value>Filters cannot contain semicolons (;).</value>
   </data>
-	<data name="InvalidFilter_Title" xml:space="preserve">
+    <data name="InvalidFilter_Title" xml:space="preserve">
     <value>Invalid filters</value>
   </data>
-	<data name="NothingToUndo_Message" xml:space="preserve">
+    <data name="NothingToUndo_Message" xml:space="preserve">
     <value>Nothing to undo!</value>
   </data>
-	<data name="NothingToUndo_Title" xml:space="preserve">
+    <data name="NothingToUndo_Title" xml:space="preserve">
     <value>Undo</value>
   </data>
-	<data name="OperationFailed_Message" xml:space="preserve">
+    <data name="OperationFailed_Message" xml:space="preserve">
     <value>Operation failed: {0}</value>
   </data>
-	<data name="Proceed_Title" xml:space="preserve">
+    <data name="Proceed_Title" xml:space="preserve">
     <value>Proceed?</value>
   </data>
-	<data name="Save_Message" xml:space="preserve">
+    <data name="Save_Message" xml:space="preserve">
     <value>Do you want to save the project so you don't have to import it again?</value>
   </data>
-	<data name="Save_Title" xml:space="preserve">
+    <data name="Save_Title" xml:space="preserve">
     <value>Save</value>
   </data>
-	<data name="SearchingCycles_Message" xml:space="preserve">
+    <data name="SearchingCycles_Message" xml:space="preserve">
     <value>Searching Cycles ...</value>
   </data>
-	<data name="Legend_Title" xml:space="preserve">
+    <data name="Legend_Title" xml:space="preserve">
     <value>Color Legend</value>
   </data>
-	<data name="Legend_Namespace" xml:space="preserve">
+    <data name="Legend_Namespace" xml:space="preserve">
     <value>Namespace</value>
   </data>
-	<data name="Legend_Class" xml:space="preserve">
+    <data name="Legend_Class" xml:space="preserve">
     <value>Class</value>
   </data>
-	<data name="Legend_Interface" xml:space="preserve">
+    <data name="Legend_Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
-	<data name="Legend_Struct" xml:space="preserve">
+    <data name="Legend_Struct" xml:space="preserve">
     <value>Struct</value>
   </data>
-	<data name="Legend_Enum" xml:space="preserve">
+    <data name="Legend_Enum" xml:space="preserve">
     <value>Enum</value>
   </data>
-	<data name="Legend_Method" xml:space="preserve">
+    <data name="Legend_Method" xml:space="preserve">
     <value>Method</value>
   </data>
-	<data name="Legend_Property" xml:space="preserve">
+    <data name="Legend_Property" xml:space="preserve">
     <value>Property</value>
   </data>
-	<data name="Legend_Field" xml:space="preserve">
+    <data name="Legend_Field" xml:space="preserve">
     <value>Field</value>
   </data>
-	<data name="Legend_Event" xml:space="preserve">
+    <data name="Legend_Event" xml:space="preserve">
     <value>Event</value>
   </data>
-	<data name="Legend_Delegate" xml:space="preserve">
+    <data name="Legend_Delegate" xml:space="preserve">
     <value>Delegate</value>
   </data>
-	<data name="Legend_Record" xml:space="preserve">
+    <data name="Legend_Record" xml:space="preserve">
     <value>Record</value>
   </data>
-	<data name="Legend_Assembly" xml:space="preserve">
+    <data name="Legend_Assembly" xml:space="preserve">
     <value>Assembly</value>
   </data>
-	<data name="Close_Button" xml:space="preserve">
+    <data name="Close_Button" xml:space="preserve">
     <value>Close</value>
   </data>
-	<data name="Help_Header" xml:space="preserve">
+    <data name="Help_Header" xml:space="preserve">
     <value>Help</value>
   </data>
-	<data name="Legend_Label" xml:space="preserve">
+    <data name="Legend_Label" xml:space="preserve">
     <value>Legend</value>
   </data>
-	<data name="Legend_Tooltip" xml:space="preserve">
+    <data name="Legend_Tooltip" xml:space="preserve">
     <value>Show color legend</value>
   </data>
-	<data name="Parser_FailureHeader" xml:space="preserve">
+    <data name="Parser_FailureHeader" xml:space="preserve">
     <value>There are failures when loading the solution. The code graph may not complete:
 
 </value>
   </data>
-	<data name="Flow_Label" xml:space="preserve">
+    <data name="Flow_Label" xml:space="preserve">
     <value>Show Flow</value>
   </data>
-	<data name="Flow_Tooltip" xml:space="preserve">
+    <data name="Flow_Tooltip" xml:space="preserve">
     <value>Shows the information flow instead of dependencies between code elements</value>
   </data>
-	<data name="Relationship_Caller" xml:space="preserve">
+    <data name="Relationship_Caller" xml:space="preserve">
     <value>Caller</value>
   </data>
-	<data name="Relationship_Callee" xml:space="preserve">
+    <data name="Relationship_Callee" xml:space="preserve">
     <value>Callee</value>
   </data>
-	<data name="Relationship_Creator" xml:space="preserve">
+    <data name="Relationship_Creator" xml:space="preserve">
     <value>Creator</value>
   </data>
-	<data name="Relationship_CreatedType" xml:space="preserve">
+    <data name="Relationship_CreatedType" xml:space="preserve">
     <value>Created Type</value>
   </data>
-	<data name="Relationship_Consumer" xml:space="preserve">
+    <data name="Relationship_Consumer" xml:space="preserve">
     <value>Consumer</value>
   </data>
-	<data name="Relationship_UsedElement" xml:space="preserve">
+    <data name="Relationship_UsedElement" xml:space="preserve">
     <value>Used Element</value>
   </data>
-	<data name="Relationship_DerivedClass" xml:space="preserve">
+    <data name="Relationship_DerivedClass" xml:space="preserve">
     <value>Derived Class</value>
   </data>
-	<data name="Relationship_BaseClass" xml:space="preserve">
+    <data name="Relationship_BaseClass" xml:space="preserve">
     <value>Base Class</value>
   </data>
-	<data name="Relationship_Implementation" xml:space="preserve">
+    <data name="Relationship_Implementation" xml:space="preserve">
     <value>Implementation</value>
   </data>
-	<data name="Relationship_Interface" xml:space="preserve">
+    <data name="Relationship_Interface" xml:space="preserve">
     <value>Interface</value>
   </data>
-	<data name="Relationship_OverrideMethod" xml:space="preserve">
+    <data name="Relationship_OverrideMethod" xml:space="preserve">
     <value>Override Method</value>
   </data>
-	<data name="Relationship_BaseMethod" xml:space="preserve">
+    <data name="Relationship_BaseMethod" xml:space="preserve">
     <value>Base Method</value>
   </data>
-	<data name="Relationship_DecoratedElement" xml:space="preserve">
+    <data name="Relationship_DecoratedElement" xml:space="preserve">
     <value>Decorated Element</value>
   </data>
-	<data name="Relationship_Attribute" xml:space="preserve">
+    <data name="Relationship_Attribute" xml:space="preserve">
     <value>Attribute</value>
   </data>
-	<data name="Relationship_EventInvoker" xml:space="preserve">
+    <data name="Relationship_EventInvoker" xml:space="preserve">
     <value>Event Invoker</value>
   </data>
-	<data name="Relationship_Event" xml:space="preserve">
+    <data name="Relationship_Event" xml:space="preserve">
     <value>Event</value>
   </data>
-	<data name="Relationship_EventHandler" xml:space="preserve">
+    <data name="Relationship_EventHandler" xml:space="preserve">
     <value>Event Handler</value>
   </data>
-	<data name="Relationship_EventSource" xml:space="preserve">
+    <data name="Relationship_EventSource" xml:space="preserve">
     <value>Event Source</value>
   </data>
-	<data name="Relationship_Container" xml:space="preserve">
+    <data name="Relationship_Container" xml:space="preserve">
     <value>Container</value>
   </data>
-	<data name="Relationship_ContainedElement" xml:space="preserve">
+    <data name="Relationship_ContainedElement" xml:space="preserve">
     <value>Contained Element</value>
   </data>
-	<data name="Relationship_Source" xml:space="preserve">
+    <data name="Relationship_Source" xml:space="preserve">
     <value>Source</value>
   </data>
-	<data name="Relationship_Target" xml:space="preserve">
+    <data name="Relationship_Target" xml:space="preserve">
     <value>Target</value>
   </data>
-	<data name="Settings_QuickHelpByDefault" xml:space="preserve">
+    <data name="Settings_QuickHelpByDefault" xml:space="preserve">
     <value>Show quick help by default</value>
   </data>
-	<data name="Settings_AddContainingType" xml:space="preserve">
+    <data name="Settings_AddContainingType" xml:space="preserve">
     <value>Automatically add containing type</value>
   </data>
-	<data name="Settings_General" xml:space="preserve">
+    <data name="Settings_General" xml:space="preserve">
     <value>General settings</value>
   </data>
-	<data name="Settings_Settings_AddContainingType_Tooltip" xml:space="preserve">
+    <data name="Settings_Settings_AddContainingType_Tooltip" xml:space="preserve">
     <value>When adding methods or fields to the graph, automatically include their containing class/type</value>
   </data>
-	<data name="Settings_CodeElementWarningLimit" xml:space="preserve">
+    <data name="Settings_CodeElementWarningLimit" xml:space="preserve">
     <value>Code Element Warning Limit:</value>
   </data>
-	<data name="Settings_CodeElementWarningLimit_Tooltip" xml:space="preserve">
+    <data name="Settings_CodeElementWarningLimit_Tooltip" xml:space="preserve">
     <value>Shows warning when graph contains more than this number of elements</value>
   </data>
-	<data name="Settings_ProjectFilters" xml:space="preserve">
+    <data name="Settings_ProjectFilters" xml:space="preserve">
     <value>Project Filters</value>
   </data>
-	<data name="Settings_ProjectFilters_Tooltip" xml:space="preserve">
+    <data name="Settings_ProjectFilters_Tooltip" xml:space="preserve">
     <value>Regular expressions to exclude projects (separated by semicolon)</value>
   </data>
-	<data name="Settings_ProjectFilters_Text" xml:space="preserve">
+    <data name="Settings_ProjectFilters_Text" xml:space="preserve">
     <value>Default Project Exclude Filter:</value>
   </data>
-	<data name="Settings_Performance" xml:space="preserve">
+    <data name="Settings_Performance" xml:space="preserve">
     <value>Performance Settings</value>
   </data>
-	<data name="Settings_MaxDegreeOfParallelism" xml:space="preserve">
+    <data name="Settings_MaxDegreeOfParallelism" xml:space="preserve">
     <value>Max Degree of Parallelism:</value>
   </data>
-	<data name="Settings_MaxDegreeOfParallelism_Tooltip" xml:space="preserve">
+    <data name="Settings_MaxDegreeOfParallelism_Tooltip" xml:space="preserve">
     <value>Maximum number of threads to use during parsing</value>
   </data>
-	<data name="Settings_Hint" xml:space="preserve">
+    <data name="Settings_Hint" xml:space="preserve">
     <value>These settings are applied after a restart of the application.</value>
   </data>
-	<data name="Cancel_Button" xml:space="preserve">
+    <data name="Cancel_Button" xml:space="preserve">
     <value>Cancel</value>
   </data>
-	<data name="Ok_Button" xml:space="preserve">
+    <data name="Ok_Button" xml:space="preserve">
     <value>Ok</value>
   </data>
-	<data name="Default_Button" xml:space="preserve">
+    <data name="Default_Button" xml:space="preserve">
     <value>Default</value>
   </data>
-	<data name="Settings_Save_Qustion" xml:space="preserve">
+    <data name="Settings_Save_Qustion" xml:space="preserve">
     <value>Reset all settings to their default values?</value>
   </data>
-	<data name="Settings_Save_Title" xml:space="preserve">
+    <data name="Settings_Save_Title" xml:space="preserve">
     <value>Reset to Defaults</value>
   </data>
-	<data name="Settings_Save_Error" xml:space="preserve">
+    <data name="Settings_Save_Error" xml:space="preserve">
     <value>Error saving settings:</value>
   </data>
-	<data name="AddSelectedToGraph_Label" xml:space="preserve">
+    <data name="AddSelectedToGraph_Label" xml:space="preserve">
     <value>Add selected to graph</value>
   </data>
-	<data name="AddSelectedToGraphCollapsed_Label" xml:space="preserve">
+    <data name="AddSelectedToGraphCollapsed_Label" xml:space="preserve">
     <value> Add selected to graph (collapsed)</value>
   </data>
-	<data name="Name_Label" xml:space="preserve">
+    <data name="Name_Label" xml:space="preserve">
     <value>Name</value>
   </data>
-	<data name="Type_Label" xml:space="preserve">
+    <data name="Type_Label" xml:space="preserve">
     <value>Type</value>
   </data>
-	<data name="FullPath_Label" xml:space="preserve">
+    <data name="FullPath_Label" xml:space="preserve">
     <value>Full Path</value>
   </data>
-	<data name="SearchPattern_Tooltip" xml:space="preserve">
+    <data name="SearchPattern_Tooltip" xml:space="preserve">
     <value>Use ' ' for AND, '|' for OR condition. If you want to search for type colum use type:xxx</value>
   </data>
-	<data name="InfoPanel_TabHeader" xml:space="preserve">
+    <data name="InfoPanel_TabHeader" xml:space="preserve">
     <value>Info</value>
   </data>
-	<data name="Warning_Title" xml:space="preserve">
+    <data name="Warning_Title" xml:space="preserve">
    <value>Warning</value>
  </data>
-	<data name="GraphRenderingError" xml:space="preserve">
+    <data name="GraphRenderingError" xml:space="preserve">
    <value>Failed rendering graph! Undo your last operation.</value>
  </data>
-	<data name="GraphRenderingWarning" xml:space="preserve">
+    <data name="GraphRenderingWarning" xml:space="preserve">
    <value>Failed rendering graph. Retry without line bundling.</value>
  </data>
-	<data name="ExportDgml_Label" xml:space="preserve">
+    <data name="ExportDgml_Label" xml:space="preserve">
     <value>Export Dgml</value>
   </data>
-	<data name="ExportDgml_Tooltip" xml:space="preserve">
+    <data name="ExportDgml_Tooltip" xml:space="preserve">
     <value>Export canvas (expanded) graph to dgml</value>
   </data>
-	<data name="ExportDsi_Label" xml:space="preserve">
+    <data name="ExportDsi_Label" xml:space="preserve">
     <value>Export Dsi</value>
   </data>
-	<data name="ExportDsi_Tooltip" xml:space="preserve">
+    <data name="ExportDsi_Tooltip" xml:space="preserve">
     <value>Exports the whole project to dsi</value>
   </data>
-	<data name="SavePng_Label" xml:space="preserve">
+    <data name="SavePng_Label" xml:space="preserve">
     <value>Export Png</value>
   </data>
-	<data name="SavePng_Tooltip" xml:space="preserve">
+    <data name="SavePng_Tooltip" xml:space="preserve">
     <value>Exports the current visible canvas to png</value>
   </data>
-	<data name="ExportPlantUml_Tooltip" xml:space="preserve">
+    <data name="ExportPlantUml_Tooltip" xml:space="preserve">
    <value>Export canvas (expanded) graph to PlantUml class diagram syntax and copy to clipboard</value>
  </data>
-	<data name="ExportPlantUml_Label" xml:space="preserve">
+    <data name="ExportPlantUml_Label" xml:space="preserve">
    <value>Export PlantUml class diagram</value>
  </data>
-	<data name="ExportPlantUml_Success" xml:space="preserve">
+    <data name="ExportPlantUml_Success" xml:space="preserve">
    <value>PlantUml class diagram syntax has been copied to clipboard!</value>
  </data>
-	<data name="ExportPlantUml_Title" xml:space="preserve">
+    <data name="ExportPlantUml_Title" xml:space="preserve">
    <value>"Export Successful</value>
  </data>
-	<data name="ExportSvg_Tooltip" xml:space="preserve">
+    <data name="ExportSvg_Tooltip" xml:space="preserve">
    <value>Export canvas (expanded) graph to svg. NOTE: Sub-graphs are not implemented!</value>
  </data>
-	<data name="ExportSvg_Label" xml:space="preserve">
+    <data name="ExportSvg_Label" xml:space="preserve">
    <value>Export Svg</value>
  </data>
- <data name="Find_EventRegistration_Imbalances_Label" xml:space="preserve">
+    <data name="Find_EventRegistration_Imbalances_Label" xml:space="preserve">
    <value>Event Imbalances</value>
  </data>
-	<data name="Find_EventRegistration_Imbalances_Tooltip" xml:space="preserve">
+    <data name="Find_EventRegistration_Imbalances_Tooltip" xml:space="preserve">
    <value>Finds imbalances between number of event registrations / un-registrations</value>
  </data>
-	<data name="Find_Cycles_Label" xml:space="preserve">
+    <data name="Find_Cycles_Label" xml:space="preserve">
  <value>Cycles</value>
  </data>
-	<data name="Find_Cycles_Tooltip" xml:space="preserve">
+    <data name="Find_Cycles_Tooltip" xml:space="preserve">
    <value>Finds cyclic code structures</value>
  </data>
+    
+    <data name="AnalysisPlugins_Label" xml:space="preserve">
+   <value>Analysis Plugins</value>
+ </data>
+ 
 </root>

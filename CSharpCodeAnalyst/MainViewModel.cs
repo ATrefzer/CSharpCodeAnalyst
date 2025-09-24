@@ -41,8 +41,6 @@ using Prism.Commands;
 
 namespace CSharpCodeAnalyst;
 
-
-
 internal class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
@@ -51,8 +49,11 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
     private CodeGraph? _codeGraph;
+
+    private Table? _cycles;
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -66,6 +67,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
+    private Table? _partitions;
     private SearchViewModel? _searchViewModel;
 
 
@@ -73,53 +75,19 @@ internal class MainViewModel : INotifyPropertyChanged
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
 
-    private Table? _cycles;
-    private Table? _partitions;
-    private Table? _analyzerResult;
 
-    public Table? AnalyzerResult
-    {
-        get => _analyzerResult;
-        set
-        {
-            _analyzerResult = value;
-            OnPropertyChanged();
-        }
-    }
-    
-    public Table? Cycles
-    {
-        get => _cycles;
-        set
-        {
-            _cycles = value;
-            OnPropertyChanged();
-        }
-    }
-    
-    public Table? Partitions
-    {
-        get => _partitions;
-        set
-        {
-            _partitions = value;
-            OnPropertyChanged();
-        }
-    }
-    
- 
 
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
     {
         // Initialize settings
         _applicationSettings = settings;
-        
+
         // Table data
         _partitions = null;
         _cycles = null;
         _analyzerResult = null;
-        
+
 
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
@@ -151,6 +119,36 @@ internal class MainViewModel : INotifyPropertyChanged
         _loadMessage = string.Empty;
     }
 
+    public Table? AnalyzerResult
+    {
+        get => _analyzerResult;
+        set
+        {
+            _analyzerResult = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Table? Cycles
+    {
+        get => _cycles;
+        set
+        {
+            _cycles = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Table? Partitions
+    {
+        get => _partitions;
+        set
+        {
+            _partitions = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     public InfoPanelViewModel? InfoPanelViewModel
     {
@@ -159,12 +157,12 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             if (Equals(value, _infoPanelViewModel)) return;
             _infoPanelViewModel = value;
-            OnPropertyChanged(nameof(InfoPanelViewModel));
+            OnPropertyChanged();
         }
     }
 
     public ICommand ShowGalleryCommand { get; }
-    
+
 
     public GraphViewModel? GraphViewModel
     {
@@ -172,7 +170,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _graphViewModel = value;
-            OnPropertyChanged(nameof(GraphViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -187,7 +185,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _isLeftPanelExpanded = value;
-            OnPropertyChanged(nameof(IsLeftPanelExpanded));
+            OnPropertyChanged();
         }
     }
 
@@ -197,7 +195,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _isLoading = value;
-            OnPropertyChanged(nameof(IsLoading));
+            OnPropertyChanged();
         }
     }
 
@@ -207,7 +205,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _loadMessage = value;
-            OnPropertyChanged(nameof(LoadMessage));
+            OnPropertyChanged();
         }
     }
 
@@ -236,7 +234,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _treeViewModel = value;
-            OnPropertyChanged(nameof(TreeViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -246,7 +244,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _searchViewModel = value;
-            OnPropertyChanged(nameof(SearchViewModel));
+            OnPropertyChanged();
         }
     }
 
@@ -262,7 +260,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _selectedRightTabIndex = value;
-            OnPropertyChanged(nameof(SelectedRightTabIndex));
+            OnPropertyChanged();
         }
     }
 
@@ -277,7 +275,7 @@ internal class MainViewModel : INotifyPropertyChanged
             }
 
             _isCanvasHintsVisible = value;
-            OnPropertyChanged(nameof(IsCanvasHintsVisible));
+            OnPropertyChanged();
         }
     }
 
@@ -289,7 +287,7 @@ internal class MainViewModel : INotifyPropertyChanged
         set
         {
             _metrics = value;
-            OnPropertyChanged(nameof(Metrics));
+            OnPropertyChanged();
         }
         get => _metrics;
     }
@@ -304,7 +302,7 @@ internal class MainViewModel : INotifyPropertyChanged
             if (value == _selectedLeftTabIndex) return;
             _selectedLeftTabIndex = value;
             InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
-            OnPropertyChanged(nameof(SelectedLeftTabIndex));
+            OnPropertyChanged();
         }
     }
 
@@ -671,10 +669,12 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadMessage = string.Empty;
         }
     }
+
     private void OnProgress(object? sender, ParserProgressArg e)
     {
         LoadMessage = e.Message;
     }
+
     private void OnExportToPlantUml()
     {
         Export.ToPlantUml(_graphViewModel?.ExportGraph());
@@ -899,7 +899,7 @@ internal class MainViewModel : INotifyPropertyChanged
         // Create view model and show summary in table tab.
 
 
-        
+
         var number = 1;
         var pvm = new List<PartitionViewModel>();
         foreach (var partition in partitions)
@@ -908,8 +908,8 @@ internal class MainViewModel : INotifyPropertyChanged
             var vm = new PartitionViewModel($"Partition {number++}", codeElements);
             pvm.Add(vm);
         }
-        
-        
+
+
         var partitionsVm = new PartitionsViewModel(pvm);
 
         Partitions = partitionsVm;

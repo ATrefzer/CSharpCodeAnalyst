@@ -9,144 +9,144 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using CSharpCodeAnalyst.PluginContracts;
 
-namespace CSharpCodeAnalyst.Areas.TableArea
+namespace CSharpCodeAnalyst.Areas.TableArea;
+
+public partial class DynamicDataGrid : UserControl
 {
-    public partial class DynamicDataGrid : UserControl
+    public static readonly DependencyProperty TableDataProperty =
+        DependencyProperty.Register(
+            nameof(TableData),
+            typeof(Table),
+            typeof(DynamicDataGrid),
+            new PropertyMetadata(null, OnTableDataChanged));
+
+
+
+    public DynamicDataGrid()
     {
-        public static readonly DependencyProperty TableDataProperty =
-            DependencyProperty.Register(
-                nameof(TableData),
-                typeof(Table),
-                typeof(DynamicDataGrid),
-                new PropertyMetadata(null, OnTableDataChanged));
+        InitializeComponent();
+    }
 
+    public Table TableData
+    {
+        get => (Table)GetValue(TableDataProperty);
+        set => SetValue(TableDataProperty, value);
+    }
 
-
-        public DynamicDataGrid()
+    /// <summary>
+    ///     Helper to get property values via reflection
+    /// </summary>
+    private object? GetPropertyValue(object obj, string propertyName)
+    {
+        try
         {
-            InitializeComponent();
+            var type = obj.GetType();
+            var property = type.GetProperty(propertyName);
+            return property?.GetValue(obj);
         }
-
-        public Table TableData
+        catch
         {
-            get => (Table)GetValue(TableDataProperty);
-            set => SetValue(TableDataProperty, value);
+            return null;
         }
+    }
 
-        /// <summary>
-        ///     Helper to get property values via reflection
-        /// </summary>
-        private object? GetPropertyValue(object obj, string propertyName)
+    private static void OnTableDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is DynamicDataGrid control)
         {
-            try
+            control.RebuildDataGrid();
+        }
+    }
+
+    private void RebuildDataGrid()
+    {
+        try
+        {
+            // Clear DataGrid
+            MainDataGrid.Columns.Clear();
+            MainDataGrid.ItemsSource = null;
+
+            if (TableData == null)
             {
-                var type = obj.GetType();
-                var property = type.GetProperty(propertyName);
-                return property?.GetValue(obj);
+                ShowEmptyState(true);
+                return;
             }
-            catch
+
+            // Spalten aufbauen
+            var columns = TableData.GetColumns();
+            if (columns == null || !columns.Any())
             {
-                return null;
+                ShowEmptyState(true);
+                return;
             }
-        }
 
-        private static void OnTableDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            if (d is DynamicDataGrid control)
+            foreach (var columnDef in columns)
             {
-                control.RebuildDataGrid();
-            }
-        }
-
-        private void RebuildDataGrid()
-        {
-            try
-            {
-                // Clear DataGrid
-                MainDataGrid.Columns.Clear();
-                MainDataGrid.ItemsSource = null;
-
-                if (TableData == null)
+                var column = CreateDataGridColumn(columnDef);
+                if (column != null)
                 {
-                    ShowEmptyState(true);
-                    return;
-                }
-
-                // Spalten aufbauen
-                var columns = TableData.GetColumns();
-                if (columns == null || !columns.Any())
-                {
-                    ShowEmptyState(true);
-                    return;
-                }
-
-                foreach (var columnDef in columns)
-                {
-                    var column = CreateDataGridColumn(columnDef);
-                    if (column != null)
-                    {
-                        MainDataGrid.Columns.Add(column);
-                    }
-                }
-
-                // Daten binden
-                var data = TableData.GetData();
-                MainDataGrid.ItemsSource = data;
-
-                // Empty State verwalten
-                ShowEmptyState(data == null || !data.Any());
-
-                // If given, set row details template
-                if (TableData.GetRowDetailsTemplate() != null)
-                {
-                    MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
-
-                    // RowDetailsVisibilityMode auf Collapsed setzen als Standard
-                    MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
-                    
-                    // Event Handler to manage IsExpanded per row.
-                    MainDataGrid.LoadingRow += OnDataGridLoadingRow;
+                    MainDataGrid.Columns.Add(column);
                 }
             }
-            catch (Exception ex)
+
+            // Daten binden
+            var data = TableData.GetData();
+            MainDataGrid.ItemsSource = data;
+
+            // Empty State verwalten
+            ShowEmptyState(data == null || !data.Any());
+
+            // If given, set row details template
+            if (TableData.GetRowDetailsTemplate() != null)
             {
-                Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
-                ShowEmptyState(true, "Fehler beim Laden der Daten");
+                MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
+
+                // RowDetailsVisibilityMode auf Collapsed setzen als Standard
+                MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
+
+                // Event Handler to manage IsExpanded per row.
+                MainDataGrid.LoadingRow += OnDataGridLoadingRow;
             }
         }
-
-        private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)
+        catch (Exception ex)
         {
-            // Wenn es eine expandable Spalte ist, erweitern wir sie um den Toggle-Button
-            if (columnDef.IsExpandable)
-            {
-                return CreateExpandableColumn(columnDef);
-            }
+            Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
+            ShowEmptyState(true, "Fehler beim Laden der Daten");
+        }
+    }
 
-            return columnDef.Type switch
-            {
-                ColumnType.Text => CreateTextColumn(columnDef),
-                ColumnType.Link => CreateLinkColumn(columnDef),
-                ColumnType.Image => CreateImageColumn(columnDef),
-                ColumnType.Toggle => CreateToggleColumn(columnDef),
-                _ => CreateTextColumn(columnDef)
-            };
+    private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)
+    {
+        // Wenn es eine expandable Spalte ist, erweitern wir sie um den Toggle-Button
+        if (columnDef.IsExpandable)
+        {
+            return CreateExpandableColumn(columnDef);
         }
 
-        /// <summary>
-        ///     Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
-        /// </summary>
-        private DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
+        return columnDef.Type switch
         {
-            var column = new DataGridTemplateColumn
-            {
-                Header = columnDef.DisplayName,
-                Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
-            };
+            ColumnType.Text => CreateTextColumn(columnDef),
+            ColumnType.Link => CreateLinkColumn(columnDef),
+            ColumnType.Image => CreateImageColumn(columnDef),
+            ColumnType.Toggle => CreateToggleColumn(columnDef),
+            _ => CreateTextColumn(columnDef)
+        };
+    }
+
+    /// <summary>
+    ///     Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
+    /// </summary>
+    private DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
+    {
+        var column = new DataGridTemplateColumn
+        {
+            Header = columnDef.DisplayName,
+            Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
+        };
 
 
-            // Template mit DockPanel und ToggleButton erstellen (wie im Original)
-            var xamlTemplate = $@"
+        // Template mit DockPanel und ToggleButton erstellen (wie im Original)
+        var xamlTemplate = $@"
 
 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                 xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
@@ -172,193 +172,216 @@ namespace CSharpCodeAnalyst.Areas.TableArea
     </DockPanel>
 </DataTemplate>";
 
-            try
-            {
-                var template = (DataTemplate)XamlReader.Parse(xamlTemplate);
-                column.CellTemplate = template;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error creating expandable template: {ex.Message}");
-            }
-
-            return column;
+        try
+        {
+            var template = (DataTemplate)XamlReader.Parse(xamlTemplate);
+            column.CellTemplate = template;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error creating expandable template: {ex.Message}");
         }
 
-        private DataGridTextColumn CreateTextColumn(TableColumnDefinition columnDef)
-        {
-            var column = new DataGridTextColumn
-            {
-                Header = columnDef.DisplayName,
-                Binding = new Binding(columnDef.PropertyName),
-                Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
-            };
+        return column;
+    }
 
-            return column;
+    private DataGridTextColumn CreateTextColumn(TableColumnDefinition columnDef)
+    {
+        var column = new DataGridTextColumn
+        {
+            Header = columnDef.DisplayName,
+            Binding = new Binding(columnDef.PropertyName),
+            Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
+        };
+
+        return column;
+    }
+
+    private DataGridTemplateColumn CreateLinkColumn(TableColumnDefinition columnDef)
+    {
+        var column = new DataGridTemplateColumn
+        {
+            Header = columnDef.DisplayName,
+            Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
+        };
+
+        // Template programmatisch erstellen - EINFACHER ANSATZ
+        var cellTemplate = new DataTemplate();
+
+        // Button als FrameworkElementFactory erstellen
+        var buttonFactory = new FrameworkElementFactory(typeof(Button));
+        buttonFactory.SetValue(ContentProperty, new Binding(columnDef.PropertyName));
+        buttonFactory.SetValue(ForegroundProperty, Brushes.Blue);
+        buttonFactory.SetValue(CursorProperty, Cursors.Hand);
+        buttonFactory.SetValue(BorderThicknessProperty, new Thickness(0));
+        buttonFactory.SetValue(BackgroundProperty, Brushes.Transparent);
+        buttonFactory.SetValue(HorizontalContentAlignmentProperty, HorizontalAlignment.Left);
+        buttonFactory.SetValue(PaddingProperty, new Thickness(0));
+
+        // Style für Underline setzen
+        var style = new Style(typeof(Button));
+        style.Setters.Add(new Setter(TemplateProperty, CreateLinkButtonTemplate()));
+        buttonFactory.SetValue(StyleProperty, style);
+
+        // Command direkt setzen - das ist der Schlüssel!
+        if (columnDef.ClickCommand != null)
+        {
+            buttonFactory.SetValue(Button.CommandProperty, columnDef.ClickCommand);
+            buttonFactory.SetValue(Button.CommandParameterProperty, new Binding(columnDef.PropertyName));
         }
 
-        private DataGridTemplateColumn CreateLinkColumn(TableColumnDefinition columnDef)
+        cellTemplate.VisualTree = buttonFactory;
+        column.CellTemplate = cellTemplate;
+
+        return column;
+    }
+
+    private ControlTemplate CreateLinkButtonTemplate()
+    {
+        var template = new ControlTemplate(typeof(Button));
+        var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
+        textBlockFactory.SetValue(TextBlock.TextProperty, new Binding("Content") { RelativeSource = RelativeSource.TemplatedParent });
+        textBlockFactory.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
+        textBlockFactory.SetValue(TextBlock.ForegroundProperty, Brushes.Blue);
+        template.VisualTree = textBlockFactory;
+        return template;
+    }
+
+    private DataGridTemplateColumn CreateImageColumn(TableColumnDefinition columnDef)
+    {
+        var column = new DataGridTemplateColumn
         {
-            var column = new DataGridTemplateColumn
-            {
-                Header = columnDef.DisplayName,
-                Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
-            };
+            Header = columnDef.DisplayName,
+            Width = columnDef.Width == 0 ? new DataGridLength(50) : new DataGridLength(columnDef.Width)
+        };
 
-            // Template programmatisch erstellen - EINFACHER ANSATZ
-            var cellTemplate = new DataTemplate();
+        var cellTemplate = new DataTemplate();
+        var factory = new FrameworkElementFactory(typeof(Image));
+        factory.SetValue(Image.SourceProperty, new Binding(columnDef.PropertyName));
+        factory.SetValue(HeightProperty, 24.0);
+        factory.SetValue(WidthProperty, 24.0);
+        factory.SetValue(Image.StretchProperty, Stretch.Uniform);
 
-            // Button als FrameworkElementFactory erstellen
-            var buttonFactory = new FrameworkElementFactory(typeof(Button));
-            buttonFactory.SetValue(Button.ContentProperty, new Binding(columnDef.PropertyName));
-            buttonFactory.SetValue(Button.ForegroundProperty, Brushes.Blue);
-            buttonFactory.SetValue(Button.CursorProperty, Cursors.Hand);
-            buttonFactory.SetValue(Button.BorderThicknessProperty, new Thickness(0));
-            buttonFactory.SetValue(Button.BackgroundProperty, Brushes.Transparent);
-            buttonFactory.SetValue(Button.HorizontalContentAlignmentProperty, HorizontalAlignment.Left);
-            buttonFactory.SetValue(Button.PaddingProperty, new Thickness(0));
+        cellTemplate.VisualTree = factory;
+        column.CellTemplate = cellTemplate;
 
-            // Style für Underline setzen
-            var style = new Style(typeof(Button));
-            style.Setters.Add(new Setter(Button.TemplateProperty, CreateLinkButtonTemplate()));
-            buttonFactory.SetValue(Button.StyleProperty, style);
+        return column;
+    }
 
-            // Command direkt setzen - das ist der Schlüssel!
-            if (columnDef.ClickCommand != null)
-            {
-                buttonFactory.SetValue(Button.CommandProperty, columnDef.ClickCommand);
-                buttonFactory.SetValue(Button.CommandParameterProperty, new Binding(columnDef.PropertyName));
-            }
+    private DataGridTemplateColumn CreateToggleColumn(TableColumnDefinition columnDef)
+    {
+        var column = new DataGridTemplateColumn
+        {
+            Header = columnDef.DisplayName,
+            Width = columnDef.Width == 0 ? new DataGridLength(100) : new DataGridLength(columnDef.Width)
+        };
 
-            cellTemplate.VisualTree = buttonFactory;
-            column.CellTemplate = cellTemplate;
+        var cellTemplate = new DataTemplate();
+        var factory = new FrameworkElementFactory(typeof(ToggleButton));
+        factory.SetBinding(ToggleButton.IsCheckedProperty, new Binding(columnDef.PropertyName));
 
-            return column;
+        // Command direkt setzen - EINFACH UND FUNKTIONIERT
+        if (columnDef.ClickCommand != null)
+        {
+            factory.SetValue(ToggleButton.CommandProperty, columnDef.ClickCommand);
+            factory.SetValue(ToggleButton.CommandParameterProperty, new Binding()); // Ganzes DataContext
         }
 
-        private ControlTemplate CreateLinkButtonTemplate()
+        cellTemplate.VisualTree = factory;
+        column.CellTemplate = cellTemplate;
+
+        return column;
+    }
+
+    // private DataGridColumn CreateCustomColumn(TableColumnDefinition columnDef)
+    // {
+    //     // Für Custom-Spalten sollte das Plugin ein Template liefern
+    //     if (columnDef is CustomColumnDefinition customDef && customDef.CellTemplate != null)
+    //     {
+    //         return new DataGridTemplateColumn
+    //         {
+    //             Header = columnDef.DisplayName,
+    //             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width),
+    //             CellTemplate = customDef.CellTemplate
+    //         };
+    //     }
+    //
+    //     // Fallback auf Text-Spalte
+    //     return CreateTextColumn(columnDef);
+    // }
+
+    /// <summary>
+    ///     Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
+    /// </summary>
+    private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
+    {
+        if (e.Row.DataContext is INotifyPropertyChanged viewModel)
         {
-            var template = new ControlTemplate(typeof(Button));
-            var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
-            textBlockFactory.SetValue(TextBlock.TextProperty, new Binding("Content") { RelativeSource = RelativeSource.TemplatedParent });
-            textBlockFactory.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
-            textBlockFactory.SetValue(TextBlock.ForegroundProperty, Brushes.Blue);
-            template.VisualTree = textBlockFactory;
-            return template;
-        }
+            // Initial die Visibility setzen
+            UpdateRowDetailsVisibility(e.Row);
 
-        private DataGridTemplateColumn CreateImageColumn(TableColumnDefinition columnDef)
-        {
-            var column = new DataGridTemplateColumn
+            // PropertyChanged to react to IsExpanded. It did not work when set in the DataGridRow style.
+            // It was fine when the DataGrid was not dynamically created.
+            viewModel.PropertyChanged += (s, args) =>
             {
-                Header = columnDef.DisplayName,
-                Width = columnDef.Width == 0 ? new DataGridLength(50) : new DataGridLength(columnDef.Width)
-            };
-
-            var cellTemplate = new DataTemplate();
-            var factory = new FrameworkElementFactory(typeof(Image));
-            factory.SetValue(Image.SourceProperty, new Binding(columnDef.PropertyName));
-            factory.SetValue(Image.HeightProperty, 24.0);
-            factory.SetValue(Image.WidthProperty, 24.0);
-            factory.SetValue(Image.StretchProperty, Stretch.Uniform);
-
-            cellTemplate.VisualTree = factory;
-            column.CellTemplate = cellTemplate;
-
-            return column;
-        }
-
-        private DataGridTemplateColumn CreateToggleColumn(TableColumnDefinition columnDef)
-        {
-            var column = new DataGridTemplateColumn
-            {
-                Header = columnDef.DisplayName,
-                Width = columnDef.Width == 0 ? new DataGridLength(100) : new DataGridLength(columnDef.Width)
-            };
-
-            var cellTemplate = new DataTemplate();
-            var factory = new FrameworkElementFactory(typeof(ToggleButton));
-            factory.SetBinding(ToggleButton.IsCheckedProperty, new Binding(columnDef.PropertyName));
-
-            // Command direkt setzen - EINFACH UND FUNKTIONIERT
-            if (columnDef.ClickCommand != null)
-            {
-                factory.SetValue(ToggleButton.CommandProperty, columnDef.ClickCommand);
-                factory.SetValue(ToggleButton.CommandParameterProperty, new Binding()); // Ganzes DataContext
-            }
-
-            cellTemplate.VisualTree = factory;
-            column.CellTemplate = cellTemplate;
-
-            return column;
-        }
-
-        // private DataGridColumn CreateCustomColumn(TableColumnDefinition columnDef)
-        // {
-        //     // Für Custom-Spalten sollte das Plugin ein Template liefern
-        //     if (columnDef is CustomColumnDefinition customDef && customDef.CellTemplate != null)
-        //     {
-        //         return new DataGridTemplateColumn
-        //         {
-        //             Header = columnDef.DisplayName,
-        //             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width),
-        //             CellTemplate = customDef.CellTemplate
-        //         };
-        //     }
-        //
-        //     // Fallback auf Text-Spalte
-        //     return CreateTextColumn(columnDef);
-        // }
-
-        /// <summary>
-        ///     Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
-        /// </summary>
-        private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
-        {
-            if (e.Row.DataContext is INotifyPropertyChanged viewModel)
-            {
-                // Initial die Visibility setzen
-                UpdateRowDetailsVisibility(e.Row);
-
-                // PropertyChanged abonnieren um auf IsExpanded Änderungen zu reagieren
-                viewModel.PropertyChanged += (s, args) =>
+                if (args.PropertyName == "IsExpanded")
                 {
-                    if (args.PropertyName == "IsExpanded")
-                    {
-                        UpdateRowDetailsVisibility(e.Row);
-                    }
-                };
-            }
-        }
-
-        /// <summary>
-        ///     Aktualisiert die RowDetails Visibility basierend auf IsExpanded Property
-        /// </summary>
-        private void UpdateRowDetailsVisibility(DataGridRow row)
-        {
-            if (row.DataContext != null)
-            {
-                var isExpandedValue = GetPropertyValue(row.DataContext, "IsExpanded");
-                if (isExpandedValue is bool isExpanded)
-                {
-                    row.DetailsVisibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
+                    UpdateRowDetailsVisibility(e.Row);
                 }
+            };
+
+
+            e.Row.ContextMenuOpening += RowOnContextMenuOpening;
+        }
+    }
+
+    private void RowOnContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        // Dynamically fill context menu on data grid row.
+        if (sender is not DataGridRow row || row.ContextMenu is null)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        row.ContextMenu.Items.Clear();
+        
+        var commands = TableData?.GetCommands() ?? [];
+        if (commands.Count == 0)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        var dataContext = row.DataContext;
+        foreach (var command in commands)
+        {
+            row.ContextMenu.Items.Add(new MenuItem { Header = command.Header, Command = command.Command, CommandParameter = dataContext });
+        }
+
+        row.ContextMenu.IsOpen = true;
+        e.Handled = true;
+    }
+
+    /// <summary>
+    ///     Updates RowDetails Visibility based on IsExpanded Property (TableRow)
+    /// </summary>
+    private void UpdateRowDetailsVisibility(DataGridRow row)
+    {
+        if (row.DataContext != null)
+        {
+            var isExpandedValue = GetPropertyValue(row.DataContext, "IsExpanded");
+            if (isExpandedValue is bool isExpanded)
+            {
+                row.DetailsVisibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
             }
         }
-
-        /// <summary>
-        ///     Zeigt oder versteckt den Empty State
-        /// </summary>
-        private void ShowEmptyState(bool show, string message = "Keine Daten verfügbar")
-        {
-            EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
-            EmptyStateText.Text = message;
-            MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
-        {
-           
-        }
+    }
+    
+    private void ShowEmptyState(bool show, string message = "No data available")
+    {
+        EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        EmptyStateText.Text = message;
+        MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
     }
 }

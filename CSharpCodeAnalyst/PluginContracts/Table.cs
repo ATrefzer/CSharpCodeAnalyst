@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 using CSharpCodeAnalyst.Areas.TableArea;
+using Prism.Commands;
 
 namespace CSharpCodeAnalyst.PluginContracts;
 
@@ -41,4 +43,15 @@ public abstract class Table : INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+
+    public virtual List<CommandDefinition> GetCommands()
+    {
+        return [];
+    }
+}
+
+public class CommandDefinition
+{
+    public ICommand? Command { get; set; }
+    public string? Header { get; set; }
 }

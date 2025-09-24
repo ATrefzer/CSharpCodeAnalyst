@@ -6,21 +6,42 @@ using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
+using Prism.Commands;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
 internal class CycleGroupsViewModel : Table
 {
+    private readonly MessageBus _messaging;
     private readonly ObservableCollection<CycleGroupViewModel> _cycleGroups;
 
     public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
     {
-        Title = Strings.Tab_Summary_Cycles;
+        _messaging = messaging;
+        Title = Strings.Tab_Cycles;
         var vms = cycleGroups.Select(g => new CycleGroupViewModel(g, messaging));
         var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.ElementCount);
         _cycleGroups = new ObservableCollection<CycleGroupViewModel>(ordered);
     }
 
+
+    public override List<CommandDefinition> GetCommands()
+    {
+        return new List<CommandDefinition>()
+        {
+            new CommandDefinition()
+            {
+                Header = Strings.CopyToExplorerGraph_MenuItem,
+                Command = new DelegateCommand<CycleGroupViewModel>(vm =>
+                {
+                    var graph = vm.CycleGroup.CodeGraph;
+
+                    // Send event to main view model
+                    _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
+                })
+            }
+        };
+    }
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
     {

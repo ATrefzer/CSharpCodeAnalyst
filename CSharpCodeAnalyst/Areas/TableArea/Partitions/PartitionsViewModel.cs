@@ -13,7 +13,7 @@ public class PartitionsViewModel : Table
 
     public PartitionsViewModel(List<PartitionViewModel> pvm)
     {
-        Title = Strings.Tab_Summary_Partitions;
+        Title = Strings.Tab_Partitions;
         _partitions = new ObservableCollection<PartitionViewModel>(pvm);
     }
 

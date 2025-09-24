@@ -84,7 +84,7 @@
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
 
-                    <RibbonSplitButton Label="Analysis Addons"
+                    <RibbonSplitButton Label="{x:Static resources:Strings.AnalysisPlugins_Label}"
                                        LargeImageSource="/Resources/analysis_32.png">
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Label}"
@@ -527,14 +527,14 @@
                     </Grid>
                 </TabItem>-->
 
-                <TabItem Header="{x:Static resources:Strings.CycleSummary_TabHeader}">
+                <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
                     <tableArea:DynamicDataGrid TableData="{Binding Cycles}"/>
                 </TabItem>
-                <TabItem Header="{x:Static resources:Strings.Tab_Summary_Partitions}">
+                <TabItem Header="{x:Static resources:Strings.Tab_Partitions}">
                     <tableArea:DynamicDataGrid TableData="{Binding Partitions}"/>
                 </TabItem>
 
-                <TabItem Header="Dynamic TODO">
+                <TabItem Header="{x:Static resources:Strings.Tab_Plugins}">
                    <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}"/>
                 </TabItem>
 
