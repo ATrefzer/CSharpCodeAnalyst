@@ -1,13 +1,18 @@
 ﻿using System.Windows.Input;
+using CSharpCodeAnalyst.Areas.TableArea;
 
-namespace CSharpCodeAnalyst.Areas.TableArea;
+namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 
-public class TableColumnDefinition : ITableColumnDefinition
+public class TableColumnDefinition
 {
     public string PropertyName { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public ColumnType Type { get; set; } = ColumnType.Text;
-    public double Width { get; set; } = 0; // 0 = Auto
+    
+    /// <summary>
+    /// Width of column (0 = Auto)
+    /// </summary>
+    public double Width { get; set; } = 0;
     public ICommand? ClickCommand { get; set; }
     public object? CommandParameter { get; set; }
     public bool IsExpandable { get; set; }
