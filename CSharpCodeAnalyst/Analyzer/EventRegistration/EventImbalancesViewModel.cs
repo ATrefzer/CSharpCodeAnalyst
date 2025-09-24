@@ -1,11 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
-using CodeParser.Analysis.EventRegistration;
-using CSharpCodeAnalyst.PluginContracts;
 using System.Windows.Markup;
+using CSharpCodeAnalyst.PluginContracts;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 public class EventImbalancesViewModel : Table
 {
@@ -18,7 +17,7 @@ public class EventImbalancesViewModel : Table
         _imbalances = new ObservableCollection<TableRow>(tmp);
     }
 
-    
+
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
     {
@@ -34,7 +33,7 @@ public class EventImbalancesViewModel : Table
         };
     }
 
-    public override IEnumerable<TableRow> GetData()
+    public override ObservableCollection<TableRow> GetData()
     {
         return _imbalances;
     }

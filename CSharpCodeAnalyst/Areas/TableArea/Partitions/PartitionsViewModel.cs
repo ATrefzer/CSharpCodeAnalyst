@@ -9,12 +9,12 @@ namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 
 public class PartitionsViewModel : Table
 {
-    private ObservableCollection<PartitionViewModel> _partitions;
+    private ObservableCollection<TableRow> _partitions;
 
     public PartitionsViewModel(List<PartitionViewModel> pvm)
     {
         Title = Strings.Tab_Partitions;
-        _partitions = new ObservableCollection<PartitionViewModel>(pvm);
+        _partitions = new ObservableCollection<TableRow>(pvm);
     }
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
@@ -31,7 +31,7 @@ public class PartitionsViewModel : Table
         };
     }
 
-    public override IEnumerable<TableRow> GetData()
+    public override ObservableCollection<TableRow> GetData()
     {
         return _partitions;
     }

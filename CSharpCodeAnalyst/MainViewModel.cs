@@ -9,15 +9,14 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
-using CodeParser.Analysis.EventRegistration;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Analyzer.EventRegistration;
 using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
-using CSharpCodeAnalyst.Areas.TableArea.EventRegistration;
 using CSharpCodeAnalyst.Areas.TableArea.Partitions;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -480,16 +479,18 @@ internal class MainViewModel : INotifyPropertyChanged
             MessageBox.Show("No event handler registration / un-registration imbalances found");
             return;
         }
+        
+        // TODO move to plugin
+        var vm = new EventImbalancesViewModel(imbalances);
+       
 
-        HandleShowEventImbalancesRequest(new ShowEventImbalancesRequest(imbalances));
+        HandleShowPluginResult(new ShowPluginResult(vm));
     }
 
 
-    public void HandleShowEventImbalancesRequest(ShowEventImbalancesRequest request)
+    public void HandleShowPluginResult(ShowPluginResult pluginResult)
     {
-        // TODO
-        var vm = new EventImbalancesViewModel(request.Imbalances);
-        AnalyzerResult = vm;
+        AnalyzerResult = pluginResult.Table;
         SelectedRightTabIndex = 3;
     }
 

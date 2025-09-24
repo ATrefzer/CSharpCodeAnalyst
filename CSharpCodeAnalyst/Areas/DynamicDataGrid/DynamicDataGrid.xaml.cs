@@ -27,7 +27,7 @@ public partial class DynamicDataGrid : UserControl
         InitializeComponent();
     }
 
-    public Table TableData
+    public Table? TableData
     {
         get => (Table)GetValue(TableDataProperty);
         set => SetValue(TableDataProperty, value);
@@ -72,9 +72,9 @@ public partial class DynamicDataGrid : UserControl
                 return;
             }
 
-            // Spalten aufbauen
-            var columns = TableData.GetColumns();
-            if (columns == null || !columns.Any())
+            // Create columns
+            var columns = TableData.GetColumns().ToArray();
+            if (!columns.Any())
             {
                 ShowEmptyState(true);
                 return;
@@ -83,17 +83,13 @@ public partial class DynamicDataGrid : UserControl
             foreach (var columnDef in columns)
             {
                 var column = CreateDataGridColumn(columnDef);
-                if (column != null)
-                {
-                    MainDataGrid.Columns.Add(column);
-                }
+                MainDataGrid.Columns.Add(column);
             }
 
-            // Daten binden
+            // Bind data
             var data = TableData.GetData();
             MainDataGrid.ItemsSource = data;
 
-            // Empty State verwalten
             ShowEmptyState(data == null || !data.Any());
 
             // If given, set row details template
@@ -111,15 +107,16 @@ public partial class DynamicDataGrid : UserControl
         catch (Exception ex)
         {
             Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
-            ShowEmptyState(true, "Fehler beim Laden der Daten");
+            ShowEmptyState(true, "Error while loading data");
         }
     }
 
     private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)
     {
-        // Wenn es eine expandable Spalte ist, erweitern wir sie um den Toggle-Button
         if (columnDef.IsExpandable)
         {
+            // Limitation. We only show the text if this is an expandable column.
+            Debug.Assert(columnDef.Type == ColumnType.Text);
             return CreateExpandableColumn(columnDef);
         }
 
@@ -134,7 +131,7 @@ public partial class DynamicDataGrid : UserControl
     }
 
     /// <summary>
-    ///     Erstellt eine expandierbare Spalte mit Toggle-Button (wie im Original)
+    ///     Creates an expandable column.
     /// </summary>
     private DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
     {
@@ -145,7 +142,8 @@ public partial class DynamicDataGrid : UserControl
         };
 
 
-        // Template mit DockPanel und ToggleButton erstellen (wie im Original)
+        // Template with DockPanel and ToggleButton 
+        // An expandable colum can only be text.
         var xamlTemplate = $@"
 
 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
@@ -167,7 +165,7 @@ public partial class DynamicDataGrid : UserControl
                     Margin=""0,0,5,0"" />
 
         <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
-            <TextBlock Text='{{Binding {columnDef.PropertyName}}}' FontWeight='Bold' />
+            <TextBlock Text='{{Binding {columnDef.PropertyName}}}' />
         </StackPanel>
     </DockPanel>
 </DataTemplate>";

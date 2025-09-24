@@ -1,35 +1,19 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.PluginContracts;
-using Prism.Commands;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
 internal class CycleGroupViewModel : TableRow
 {
-    private readonly MessageBus _messaging;
     private ObservableCollection<CodeElementLineViewModel> _highLevelElements;
 
-    private void CopyToExplorerGraph(CycleGroupViewModel vm)
-    {
-        var graph = vm.CycleGroup.CodeGraph;
 
-        // Send event to main view model
-        _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
-    }
-
-    public CycleGroupViewModel(CycleGroup cycleGroup, MessageBus messaging)
+    public CycleGroupViewModel(CycleGroup cycleGroup)
     {
-        _messaging = messaging;
         CycleGroup = cycleGroup;
-
-        CopyToExplorerGraphCommand = new DelegateCommand<CycleGroupViewModel>(CopyToExplorerGraph);
 
 
         var nodes = CycleGroup.CodeGraph.Nodes.Values;
@@ -83,8 +67,6 @@ internal class CycleGroupViewModel : TableRow
         get => _highLevelElements.Count;
     }
 
-    public ICommand CopyToExplorerGraphCommand { get; set; }
-
     public string CodeElementsDescription
     {
         get => $"Involves {CycleGroup.CodeGraph.Nodes.Count} code elements";
@@ -92,12 +74,7 @@ internal class CycleGroupViewModel : TableRow
 
     public CycleLevel Level { get; }
 
-
-
-
     public CycleGroup CycleGroup { get; }
-
-
 
     private bool IsType(CodeElementType type)
     {
@@ -109,6 +86,4 @@ internal class CycleGroupViewModel : TableRow
             CodeElementType.Struct or
             CodeElementType.Record;
     }
-
-
 }

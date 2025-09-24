@@ -1,6 +1,6 @@
 ﻿using Contracts.Graph;
 
-namespace CodeParser.Analysis.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 public class EventRegistrationAnalyzer
 {

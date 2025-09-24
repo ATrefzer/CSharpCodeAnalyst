@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -32,7 +33,7 @@ public abstract class Table : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     public abstract IEnumerable<TableColumnDefinition> GetColumns();
 
-    public abstract IEnumerable<TableRow> GetData();
+    public abstract ObservableCollection<TableRow> GetData();
 
     /// <summary>
     ///     Optional template for Row Details (can be null)

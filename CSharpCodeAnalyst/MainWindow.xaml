@@ -19,9 +19,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/CycleGroups/CycleGroupsDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/EventRegistration/EventImbalancesDataTemplate.xaml" />
-                <ResourceDictionary Source="/Areas/TableArea/Partitions/PartitionsDataTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 

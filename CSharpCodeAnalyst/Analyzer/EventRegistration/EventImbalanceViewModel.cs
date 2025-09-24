@@ -1,16 +1,13 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using CodeParser.Analysis.EventRegistration;
 using Contracts.Graph;
 using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 public class EventImbalanceViewModel : TableRow
 {
@@ -29,7 +26,7 @@ public class EventImbalanceViewModel : TableRow
     public ObservableCollection<SourceLocation> Locations { get; set; }
 
     public string Description { get; }
-    
+
 
     private void OnOpenSourceLocation(SourceLocation? location)
     {
