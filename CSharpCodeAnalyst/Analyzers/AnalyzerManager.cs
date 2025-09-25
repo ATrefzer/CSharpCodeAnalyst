@@ -4,7 +4,7 @@ namespace CSharpCodeAnalyst.Analyzers
 {
     internal class AnalyzerManager : IAnalyzerManager
     {
-        private static IAnalyzerManager _instance = new AnalyzerManager();
+        private static readonly IAnalyzerManager _instance = new AnalyzerManager();
         private Dictionary<string, IAnalyzer> _analyzers = [];
 
         public IAnalyzer GetAnalyzer(string id)
