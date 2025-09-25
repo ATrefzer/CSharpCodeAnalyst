@@ -3,7 +3,7 @@ using System.Windows;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Table;
 
-namespace CSharpCodeAnalyst.Plugins.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 internal class EventImbalancesViewModel : Table
 {
@@ -11,7 +11,7 @@ internal class EventImbalancesViewModel : Table
 
     internal EventImbalancesViewModel(List<Result> imbalances)
     {
-        Title = Strings.Tab_Plugins;
+        Title = Strings.Tab_Analyzer;
         var tmp = imbalances.Select(i => new EventImbalanceViewModel(i));
         _imbalances = new ObservableCollection<TableRow>(tmp);
     }
@@ -23,7 +23,7 @@ internal class EventImbalancesViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = Strings.Plugin_EventRegistration_Header,
+                Header = Strings.Column_EventRegistration_Header,
                 PropertyName = nameof(EventImbalanceViewModel.Description),
                 IsExpandable = true
             }

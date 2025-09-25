@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
 using CodeParser.Parser;
+using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.SearchArea;
@@ -46,13 +47,18 @@ public partial class App
         }
 
         var messaging = new MessageBus();
+
+        var analyzerManager = new AnalyzerManager();
+        analyzerManager.LoadAnalyzers(messaging);
+
+        
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
         var explorationGraphViewer = new GraphViewer(messaging, settings.WarningCodeElementLimit);
 
         mainWindow.SetViewer(explorationGraphViewer);
-        var viewModel = new MainViewModel(messaging, settings);
+        var viewModel = new MainViewModel(messaging, settings, analyzerManager);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging);
         var searchViewModel = new SearchViewModel(messaging);
@@ -69,7 +75,7 @@ public partial class App
         // Find in tree triggered in graph context menu, handled in the main window.
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
 
-        messaging.Subscribe<ShowPluginTabularDataRequest>(viewModel.HandleShowTabularData);
+        messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
 
         // Adding a node triggered in tree view, handled in graph view
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);

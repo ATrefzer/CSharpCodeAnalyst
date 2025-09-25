@@ -1,6 +1,6 @@
 ﻿using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Plugins.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 
 internal class Result

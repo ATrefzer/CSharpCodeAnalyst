@@ -6,7 +6,8 @@ using Contracts.Graph;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using Prism.Commands;
+using CSharpCodeAnalyst.Shared.Services;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.InfoArea;
 
@@ -18,7 +19,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
     public InfoPanelViewModel()
     {
-        OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OpenSourceLocation);
+        OpenSourceLocationCommand = new WpfCommand<SourceLocation>(OpenSourceLocation);
         Hide(true);
     }
 

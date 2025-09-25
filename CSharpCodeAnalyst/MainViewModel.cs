@@ -15,6 +15,7 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;
@@ -31,13 +32,13 @@ using CSharpCodeAnalyst.Gallery;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Plugins.EventRegistration;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messaging;
 using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
-using Prism.Commands;
 
 namespace CSharpCodeAnalyst;
 
@@ -51,6 +52,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
+    private readonly AnalyzerManager _analyzerManager;
     private CodeGraph? _codeGraph;
 
     private Table? _cycles;
@@ -67,7 +69,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
-    private Table? _partitions;
     private SearchViewModel? _searchViewModel;
 
 
@@ -78,13 +79,13 @@ internal class MainViewModel : INotifyPropertyChanged
 
 
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, AnalyzerManager analyzerManager)
     {
         // Initialize settings
         _applicationSettings = settings;
+        _analyzerManager = analyzerManager;
 
         // Table data
-        _partitions = null;
         _cycles = null;
         _analyzerResult = null;
 
@@ -97,27 +98,40 @@ internal class MainViewModel : INotifyPropertyChanged
 
         _messaging = messaging;
         _gallery = new Gallery.Gallery();
-        SearchCommand = new DelegateCommand(Search);
-        LoadSolutionCommand = new DelegateCommand(OnLoadSolution);
-        ImportJdepsCommand = new DelegateCommand(OnImportJdeps);
-        LoadProjectCommand = new DelegateCommand(OnLoadProject);
-        SaveProjectCommand = new DelegateCommand(OnSaveProject);
-        GraphClearCommand = new DelegateCommand(OnGraphClear);
-        GraphLayoutCommand = new DelegateCommand(OnGraphLayout);
-        FindCyclesCommand = new DelegateCommand(OnFindCycles);
-        FindEventImbalancesCommand = new DelegateCommand(OnFindEventImbalances);
-        ShowGalleryCommand = new DelegateCommand(OnShowGallery);
-        ShowLegendCommand = new DelegateCommand(OnShowLegend);
-        OpenFilterDialogCommand = new DelegateCommand(OnOpenFilterDialog);
-        OpenSettingsDialogCommand = new DelegateCommand(OnOpenSettingsDialog);
-        ExportToDgmlCommand = new DelegateCommand(OnExportToDgml);
-        ExportToPlantUmlCommand = new DelegateCommand(OnExportToPlantUml);
-        ExportToSvgCommand = new DelegateCommand(OnExportToSvg);
-        ExportToPngCommand = new DelegateCommand<FrameworkElement>(OnExportToPng);
-        ExportToDsiCommand = new DelegateCommand(OnExportToDsi);
+        SearchCommand = new WpfCommand(Search);
+        LoadSolutionCommand = new WpfCommand(OnLoadSolution);
+        ImportJdepsCommand = new WpfCommand(OnImportJdeps);
+        LoadProjectCommand = new WpfCommand(OnLoadProject);
+        SaveProjectCommand = new WpfCommand(OnSaveProject);
+        GraphClearCommand = new WpfCommand(OnGraphClear);
+        GraphLayoutCommand = new WpfCommand(OnGraphLayout);
+        FindCyclesCommand = new WpfCommand(OnFindCycles);
+        ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
+
+        ShowGalleryCommand = new WpfCommand(OnShowGallery);
+        ShowLegendCommand = new WpfCommand(OnShowLegend);
+        OpenFilterDialogCommand = new WpfCommand(OnOpenFilterDialog);
+        OpenSettingsDialogCommand = new WpfCommand(OnOpenSettingsDialog);
+        ExportToDgmlCommand = new WpfCommand(OnExportToDgml);
+        ExportToPlantUmlCommand = new WpfCommand(OnExportToPlantUml);
+        ExportToSvgCommand = new WpfCommand(OnExportToSvg);
+        ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
+        ExportToDsiCommand = new WpfCommand(OnExportToDsi);
 
         _loadMessage = string.Empty;
     }
+
+    private void OnExecuteAnalyzer(string id)
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        _analyzerManager.GetAnalyzer(id).Analyze(_codeGraph);
+    }
+
+
 
     public Table? AnalyzerResult
     {
@@ -138,17 +152,6 @@ internal class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-
-    public Table? Partitions
-    {
-        get => _partitions;
-        set
-        {
-            _partitions = value;
-            OnPropertyChanged();
-        }
-    }
-
 
     public InfoPanelViewModel? InfoPanelViewModel
     {
@@ -216,16 +219,14 @@ internal class MainViewModel : INotifyPropertyChanged
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
-
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
-
     public ICommand FindCyclesCommand { get; }
     public ICommand ExportToDsiCommand { get; }
-
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
     public ICommand ShowLegendCommand { get; }
+    public ICommand ExecuteAnalyzerCommand { get; set; }
 
 
     public TreeViewModel? TreeViewModel
@@ -292,8 +293,6 @@ internal class MainViewModel : INotifyPropertyChanged
         get => _metrics;
     }
 
-
-
     public int SelectedLeftTabIndex
     {
         get => _selectedLeftTabIndex;
@@ -305,9 +304,6 @@ internal class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-
-    public ICommand FindEventImbalancesCommand { get; set; }
-
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -456,15 +452,15 @@ internal class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var plugin = new Plugin();
-        plugin.Analyze(_codeGraph, _messaging);
+        var analyzer = new Analyzer.EventRegistration.Analyzer(_messaging);
+        analyzer.Analyze(_codeGraph);
     }
 
 
-    public void HandleShowTabularData(ShowPluginTabularDataRequest pluginTabularDataRequest)
+    public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
-        AnalyzerResult = pluginTabularDataRequest.Table;
-        SelectedRightTabIndex = 3;
+        AnalyzerResult = tabularDataRequest.Table;
+        SelectedRightTabIndex = 2;
     }
 
 
@@ -520,7 +516,7 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
     {
-        LoadMessage = "Loading ...";
+        LoadMessage = Strings.Load_Message_Default;
         var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
         parser.Progress.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
@@ -539,7 +535,6 @@ internal class MainViewModel : INotifyPropertyChanged
         GraphViewModel?.LoadCodeGraph(_codeGraph);
 
         Cycles = null;
-        Partitions = null;
         AnalyzerResult = null;
         InfoPanelViewModel?.Clear();
 
@@ -547,8 +542,8 @@ internal class MainViewModel : INotifyPropertyChanged
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
         var outputs = new ObservableCollection<IMetric>();
         outputs.Clear();
-        outputs.Add(new MetricOutput("# Code elements", codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
-        outputs.Add(new MetricOutput("# Relationships", numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
+        outputs.Add(new MetricOutput(Strings.Metric_CodeElements, codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
+        outputs.Add(new MetricOutput(Strings.Metric_Relationships, numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
         Metrics = outputs;
     }
 
@@ -872,8 +867,6 @@ internal class MainViewModel : INotifyPropertyChanged
 
         // Create view model and show summary in table tab.
 
-
-
         var number = 1;
         var pvm = new List<PartitionViewModel>();
         foreach (var partition in partitions)
@@ -883,10 +876,9 @@ internal class MainViewModel : INotifyPropertyChanged
             pvm.Add(vm);
         }
 
-
         var partitionsVm = new PartitionsViewModel(pvm);
-
-        Partitions = partitionsVm;
-        SelectedRightTabIndex = 2;
+        HandleShowTabularData(new ShowTabularDataRequest(partitionsVm));
     }
+
+    public IEnumerable<IAnalyzer> Analyzers => _analyzerManager.All;
 }

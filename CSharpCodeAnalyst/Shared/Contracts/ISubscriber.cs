@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Shared.Messaging;
+﻿namespace CSharpCodeAnalyst.Shared.Contracts;
 
 public interface ISubscriber
 {

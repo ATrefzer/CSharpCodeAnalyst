@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Shared.Messaging;
+﻿using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Common;
 

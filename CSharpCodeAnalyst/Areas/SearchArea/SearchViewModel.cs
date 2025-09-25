@@ -6,7 +6,7 @@ using System.Windows.Threading;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
-using Prism.Commands;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.SearchArea;
 
@@ -37,11 +37,11 @@ public class SearchViewModel : INotifyPropertyChanged
             ExecuteSearchInternal();
         };
 
-        SearchCommand = new DelegateCommand(ExecuteSearch);
-        ClearSearchCommand = new DelegateCommand(ClearSearch);
-        AddSelectedToGraphCommand = new DelegateCommand<object>(AddSelectedToGraph);
-        AddSelectedToGraphCollapsedCommand = new DelegateCommand<object>(AddSelectedToGraphCollapsed);
-        PartitionCommand = new DelegateCommand<SearchItemViewModel>(OnPartition, CanPartition);
+        SearchCommand = new WpfCommand(ExecuteSearch);
+        ClearSearchCommand = new WpfCommand(ClearSearch);
+        AddSelectedToGraphCommand = new WpfCommand<object>(AddSelectedToGraph);
+        AddSelectedToGraphCollapsedCommand = new WpfCommand<object>(AddSelectedToGraphCollapsed);
+        PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems

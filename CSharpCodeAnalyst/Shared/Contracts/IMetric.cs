@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Areas.MetricArea;
+﻿namespace CSharpCodeAnalyst.Shared.Contracts;
 
 public interface IMetric
 {

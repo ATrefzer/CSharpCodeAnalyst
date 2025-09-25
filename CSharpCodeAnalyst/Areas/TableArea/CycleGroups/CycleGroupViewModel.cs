@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Table;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
@@ -68,7 +69,7 @@ internal class CycleGroupViewModel : TableRow
 
     public string CodeElementsDescription
     {
-        get => $"Involves {CycleGroup.CodeGraph.Nodes.Count} code elements";
+        get => string.Format(Strings.Cycle_Groups_CodeElementsDescription, CycleGroup.CodeGraph.Nodes.Count);
     }
 
     public CycleLevel Level { get; }

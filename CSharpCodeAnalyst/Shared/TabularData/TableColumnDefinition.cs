@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Shared.Table;
 public class TableColumnDefinition
 {
     public string PropertyName { get; set; } = string.Empty;
-    public string DisplayName { get; set; } = string.Empty;
+    public string Header { get; set; } = string.Empty;
     public ColumnType Type { get; set; } = ColumnType.Text;
 
     /// <summary>

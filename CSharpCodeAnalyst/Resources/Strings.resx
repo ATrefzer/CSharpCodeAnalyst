@@ -226,8 +226,8 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="Tab_Cycles" xml:space="preserve">
     <value>Cycle Groups</value>
   </data>
-    <data name="Tab_Plugins" xml:space="preserve">
-    <value>Plugin</value>
+    <data name="Tab_Analyzer" xml:space="preserve">
+    <value>Analyzer</value>
   </data>
     <data name="Tab_Summary" xml:space="preserve">
     <value>Summary</value>
@@ -660,10 +660,10 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="ExportSvg_Label" xml:space="preserve">
    <value>Export Svg</value>
  </data>
-    <data name="Find_EventRegistration_Imbalances_Label" xml:space="preserve">
-   <value>Event Imbalances</value>
+    <data name="Analyzer_EventRegistration_Label" xml:space="preserve">
+   <value>Event registrations</value>
  </data>
-    <data name="Find_EventRegistration_Imbalances_Tooltip" xml:space="preserve">
+    <data name="Analyzer_EventRegistration_Tooltip" xml:space="preserve">
    <value>Finds imbalances between number of event registrations / un-registrations</value>
  </data>
     <data name="Find_Cycles_Label" xml:space="preserve">
@@ -672,11 +672,47 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="Find_Cycles_Tooltip" xml:space="preserve">
    <value>Finds cyclic code structures</value>
  </data>
-    <data name="AnalysisPlugins_Label" xml:space="preserve">
-   <value>Analysis Plugins</value>
+    <data name="Analyzers_Label" xml:space="preserve">
+   <value>Analyzers</value>
  </data>
-    <data name="Plugin_EventRegistration_Header" xml:space="preserve">
+    <data name="Column_EventRegistration_Header" xml:space="preserve">
    <value>Event handler (possible errors)</value>
+ </data>
+
+	<data name="Left_To_Right_Label" xml:space="preserve">
+   <value>Left to Right</value>
+ </data>
+    <data name="Bottom_To_Top_Label" xml:space="preserve">
+   <value>Bottom to Top</value>
+ </data>
+    <data name="Hovered_Edge_Label" xml:space="preserve">
+   <value>Hovered edge</value>
+ </data>
+    <data name="Default_Label" xml:space="preserve">
+   <value>Default</value>
+ </data>
+
+	<data name="Cycle_Groups_CodeElementsDescription" xml:space="preserve">
+   <value>Involves {0} code elements</value>
+ </data>
+
+    <data name="Load_Message_Default" xml:space="preserve">
+   <value>Loading ...</value>
+ </data>
+
+	<data name="Metric_CodeElements" xml:space="preserve">
+   <value># Code elements</value>
+ </data>
+    <data name="Metric_Relationships" xml:space="preserve">
+   <value># Relationships</value>
+ </data>
+
+	<data name="DynamicGrid_LoadError" xml:space="preserve">
+   <value>Error while loading data!</value>
+ </data>
+
+	<data name="DynamicGrid_NoData" xml:space="preserve">
+   <value>No data available</value>
  </data>
 
 </root>

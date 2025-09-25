@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Table;
 
 namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
@@ -108,7 +109,7 @@ public partial class DynamicDataGrid : UserControl
         catch (Exception ex)
         {
             Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
-            ShowEmptyState(true, "Error while loading data");
+            ShowEmptyState(true, Strings.DynamicGrid_LoadError);
         }
     }
 
@@ -138,7 +139,7 @@ public partial class DynamicDataGrid : UserControl
     {
         var column = new DataGridTemplateColumn
         {
-            Header = columnDef.DisplayName,
+            Header = columnDef.Header,
             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
         };
 
@@ -188,7 +189,7 @@ public partial class DynamicDataGrid : UserControl
     {
         var column = new DataGridTextColumn
         {
-            Header = columnDef.DisplayName,
+            Header = columnDef.Header,
             Binding = new Binding(columnDef.PropertyName),
             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
         };
@@ -200,7 +201,7 @@ public partial class DynamicDataGrid : UserControl
     {
         var column = new DataGridTemplateColumn
         {
-            Header = columnDef.DisplayName,
+            Header = columnDef.Header,
             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
         };
 
@@ -247,7 +248,7 @@ public partial class DynamicDataGrid : UserControl
     {
         var column = new DataGridTemplateColumn
         {
-            Header = columnDef.DisplayName,
+            Header = columnDef.Header,
             Width = columnDef.Width == 0 ? new DataGridLength(50) : new DataGridLength(columnDef.Width)
         };
 
@@ -268,7 +269,7 @@ public partial class DynamicDataGrid : UserControl
     {
         var column = new DataGridTemplateColumn
         {
-            Header = columnDef.DisplayName,
+            Header = columnDef.Header,
             Width = columnDef.Width == 0 ? new DataGridLength(100) : new DataGridLength(columnDef.Width)
         };
 
@@ -294,7 +295,7 @@ public partial class DynamicDataGrid : UserControl
     ///     - sets DataGridRow.DetailsVisibility based auf IsExpanded
     ///     - Registers handler for context menu opening
     /// </summary>
-    private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
+    private void OnDataGridLoadingRow(object? sender, DataGridRowEventArgs e)
     {
         if (e.Row.DataContext is INotifyPropertyChanged viewModel)
         {
@@ -350,7 +351,7 @@ public partial class DynamicDataGrid : UserControl
     {
         if (row.DataContext != null)
         {
-            var isExpandedValue = GetPropertyValue(row.DataContext, "IsExpanded");
+            var isExpandedValue = GetPropertyValue(row.DataContext, nameof(TableRow.IsExpanded));
             if (isExpandedValue is bool isExpanded)
             {
                 row.DetailsVisibility = isExpanded ? Visibility.Visible : Visibility.Collapsed;
@@ -358,8 +359,12 @@ public partial class DynamicDataGrid : UserControl
         }
     }
 
-    private void ShowEmptyState(bool show, string message = "No data available")
+    private void ShowEmptyState(bool show, string? message = null)
     {
+        if (message == null)
+        {
+            message = Strings.DynamicGrid_NoData;
+        }
         EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         EmptyStateText.Text = message;
         MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;

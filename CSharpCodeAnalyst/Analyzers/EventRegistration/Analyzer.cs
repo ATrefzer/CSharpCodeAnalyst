@@ -1,0 +1,63 @@
+﻿using System.Windows;
+using Contracts.Graph;
+using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messaging;
+
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+
+/// <summary>
+///     Finds imbalances between event registrations and un-registrations.
+/// </summary>
+public class Analyzer : IAnalyzer
+{
+    private readonly IPublisher _messaging;
+
+    public Analyzer(IPublisher messaging)
+    {
+        _messaging = messaging;
+    }
+
+    public void Analyze(CodeGraph graph)
+    {
+        var imbalances = FindImbalances(graph);
+
+        if (imbalances.Count == 0)
+        {
+            MessageBox.Show("No event handler registration / un-registration imbalances found");
+            return;
+        }
+
+        var vm = new EventImbalancesViewModel(imbalances);
+        _messaging.Publish(new ShowTabularDataRequest(vm));
+    }
+
+    public string Name { get; } = Strings.Analyzer_EventRegistration_Label;
+    public string Description { get; set; } = Strings.Analyzer_EventRegistration_Tooltip;
+
+    public string Id { get; } = Guid.NewGuid().ToString();
+
+    private static List<Result> FindImbalances(CodeGraph originalGraph)
+    {
+        var relationships = originalGraph.GetAllRelationships().Where(r => r.Type == RelationshipType.Handles).ToHashSet();
+
+        var mismatches = relationships.Where(IsIncomplete);
+        var imbalances = new List<Result>();
+
+        foreach (var mismatch in mismatches)
+        {
+            // Assume imbalance
+            var handler = originalGraph.Nodes[mismatch.SourceId];
+            var target = originalGraph.Nodes[mismatch.TargetId];
+            var locations = mismatch.SourceLocations;
+            imbalances.Add(new Result(handler, target, locations));
+        }
+
+        return imbalances;
+
+        bool IsIncomplete(Relationship r)
+        {
+            return !(r.HasAttribute(RelationshipAttribute.EventUnregistration) && r.HasAttribute(RelationshipAttribute.EventRegistration));
+        }
+    }
+}

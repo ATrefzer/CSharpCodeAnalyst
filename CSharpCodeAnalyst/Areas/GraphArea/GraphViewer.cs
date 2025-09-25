@@ -10,7 +10,7 @@ using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Messaging;
+using CSharpCodeAnalyst.Shared.Contracts;
 using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Drawing;
 using Node = Microsoft.Msagl.Drawing.Node;

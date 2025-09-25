@@ -2,12 +2,12 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Table;
-using Prism.Commands;
+using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Plugins.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
 
 public class EventImbalanceViewModel : TableRow
 {
@@ -18,7 +18,7 @@ public class EventImbalanceViewModel : TableRow
         _event = imbalance.Event;
         Description = imbalance.Handler.FullName;
         Locations = new ObservableCollection<SourceLocation>(imbalance.Locations);
-        OpenSourceLocationCommand = new DelegateCommand<SourceLocation>(OnOpenSourceLocation);
+        OpenSourceLocationCommand = new WpfCommand<SourceLocation>(OnOpenSourceLocation);
     }
 
     public ICommand OpenSourceLocationCommand { get; set; }

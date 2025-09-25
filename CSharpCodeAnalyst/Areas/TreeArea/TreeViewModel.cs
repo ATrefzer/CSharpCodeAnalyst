@@ -6,7 +6,7 @@ using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using Prism.Commands;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
 
@@ -27,13 +27,13 @@ public class TreeViewModel : INotifyPropertyChanged
         _searchText = string.Empty;
         _matcher = new Matcher();
 
-        SearchCommand = new DelegateCommand(ExecuteSearch);
-        CollapseTreeCommand = new DelegateCommand(CollapseTree);
-        ClearSearchCommand = new DelegateCommand(ClearSearch);
-        DeleteFromModelCommand = new DelegateCommand<TreeItemViewModel>(DeleteFromModel);
-        AddNodeToGraphCommand = new DelegateCommand<TreeItemViewModel>(AddNodeToGraph);
-        PartitionTreeCommand = new DelegateCommand<TreeItemViewModel>(Partition, CanPartition);
-        PartitionWithBaseTreeCommand = new DelegateCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
+        SearchCommand = new WpfCommand(ExecuteSearch);
+        CollapseTreeCommand = new WpfCommand(CollapseTree);
+        ClearSearchCommand = new WpfCommand(ClearSearch);
+        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
+        AddNodeToGraphCommand = new WpfCommand<TreeItemViewModel>(AddNodeToGraph);
+        PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
+        PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         _filteredTreeItems = [];
         _treeItems = [];
     }

@@ -13,8 +13,8 @@ using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Messaging;
-using Prism.Commands;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
@@ -150,7 +150,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         */
 
 
-        UndoCommand = new DelegateCommand(Undo);
+        UndoCommand = new WpfCommand(Undo);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }

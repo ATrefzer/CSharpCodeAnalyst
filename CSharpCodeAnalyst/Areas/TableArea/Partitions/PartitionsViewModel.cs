@@ -22,7 +22,7 @@ public class PartitionsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = Strings.Partition,
+                Header = Strings.Partition,
                 PropertyName = nameof(PartitionViewModel.PartitionName),
                 IsExpandable = true
             }

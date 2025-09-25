@@ -1,4 +1,5 @@
-﻿using Microsoft.Msagl.Drawing;
+﻿using CSharpCodeAnalyst.Resources;
+using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 
@@ -6,7 +7,7 @@ public class LeftToRightRenderOptions : RenderOption
 {
     public LeftToRightRenderOptions()
     {
-        Name = "Left to Right";
+        Name = Strings.Left_To_Right_Label;
     }
 
     public override void Apply(Graph graph)

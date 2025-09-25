@@ -1,4 +1,5 @@
-﻿using Microsoft.Msagl.Drawing;
+﻿using CSharpCodeAnalyst.Resources;
+using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 
@@ -6,7 +7,7 @@ public class DefaultRenderOptions : RenderOption
 {
     public DefaultRenderOptions()
     {
-        Name = "Default";
+        Name = Strings.Default_Label;
     }
 
     public override void Apply(Graph graph)

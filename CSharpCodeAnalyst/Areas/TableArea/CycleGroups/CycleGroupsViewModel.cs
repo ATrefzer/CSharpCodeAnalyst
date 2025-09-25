@@ -5,7 +5,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Table;
-using Prism.Commands;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
@@ -31,7 +31,7 @@ internal class CycleGroupsViewModel : Table
             new CommandDefinition
             {
                 Header = Strings.CopyToExplorerGraph_MenuItem,
-                Command = new DelegateCommand<CycleGroupViewModel>(vm =>
+                Command = new WpfCommand<CycleGroupViewModel>(vm =>
                 {
                     // Send event to main view model
                     _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
@@ -47,19 +47,19 @@ internal class CycleGroupsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = Strings.Level_Header,
+                Header = Strings.Level_Header,
                 PropertyName = nameof(CycleGroupViewModel.Level)
             },
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = Strings.ElementCount_Header,
+                Header = Strings.ElementCount_Header,
                 PropertyName = nameof(CycleGroupViewModel.ElementCount)
             },
             new()
             {
                 Type = ColumnType.Text,
-                DisplayName = Strings.CodeElements_Header,
+                Header = Strings.CodeElements_Header,
                 PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
                 IsExpandable = true
             }

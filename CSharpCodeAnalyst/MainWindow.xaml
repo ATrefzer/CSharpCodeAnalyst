@@ -7,7 +7,6 @@
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
-        xmlns:tableArea="clr-namespace:CSharpCodeAnalyst.Areas.TableArea"
         xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
         xmlns:dynamicDataGrid="clr-namespace:CSharpCodeAnalyst.Areas.DynamicDataGrid"
         xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.Areas.MetricArea"
@@ -82,13 +81,21 @@
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
 
-                    <RibbonSplitButton Label="{x:Static resources:Strings.AnalysisPlugins_Label}"
-                                       LargeImageSource="/Resources/analysis_32.png">
+                    <RibbonSplitButton Label="{x:Static resources:Strings.Analyzers_Label}"
+                                       LargeImageSource="/Resources/analysis_32.png"
+                                       ItemsSource="{Binding Analyzers}">
 
-                        <RibbonMenuItem Header="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Label}"
-                                        ImageSource="/Resources/analysis_32.png"
-                                        ToolTip="{x:Static resources:Strings.Find_EventRegistration_Imbalances_Tooltip}"
-                                        Command="{Binding FindEventImbalancesCommand}" />
+                        <!-- Integrate analyzers -->
+                        <RibbonSplitButton.ItemContainerStyle>
+                            <Style TargetType="RibbonMenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="ToolTip" Value="{Binding Description}" />
+                                <Setter Property="ImageSource" Value="/Resources/analysis_32.png" />
+                                <Setter Property="Command"
+                                        Value="{Binding DataContext.ExecuteAnalyzerCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <Setter Property="CommandParameter" Value="{Binding Id}" />
+                            </Style>
+                        </RibbonSplitButton.ItemContainerStyle>
                     </RibbonSplitButton>
 
                 </RibbonGroup>
@@ -528,11 +535,8 @@
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
                     <dynamicDataGrid:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
-                <TabItem Header="{x:Static resources:Strings.Tab_Partitions}">
-                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding Partitions}" />
-                </TabItem>
 
-                <TabItem Header="{x:Static resources:Strings.Tab_Plugins}">
+                <TabItem Header="{x:Static resources:Strings.Tab_Analyzer}">
                     <dynamicDataGrid:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 

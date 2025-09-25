@@ -5,10 +5,11 @@
   Having the symbol key would allow synchronization with a project in the future.
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Translations
 - Margins for Tables
-- Metrics table based on DynamicDataGrid
-- Complete plugins in static Plugins class
+- Metrics and Analyzer tables are implemented differently but could be unified
+	- Extend Metric grid
+	- XAML code for row details. 
+
 
 
 UNHANDLED CASES
