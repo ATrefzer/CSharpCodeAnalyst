@@ -8,7 +8,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.SearchArea;
+namespace CSharpCodeAnalyst.Areas.SearchArea;
 
 public class SearchViewModel : INotifyPropertyChanged
 {

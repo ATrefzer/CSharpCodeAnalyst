@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.PluginContracts;
+namespace CSharpCodeAnalyst.Shared.Table;
 
 public class TableColumnDefinition
 {

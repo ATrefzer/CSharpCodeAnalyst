@@ -1,14 +1,15 @@
 ﻿using System.IO;
 using System.Windows;
 using CodeParser.Parser;
+using CSharpCodeAnalyst.Areas.GraphArea;
+using CSharpCodeAnalyst.Areas.InfoArea;
+using CSharpCodeAnalyst.Areas.SearchArea;
+using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.GraphArea;
-using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.SearchArea;
-using CSharpCodeAnalyst.TreeArea;
+using CSharpCodeAnalyst.Shared.Messaging;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
@@ -68,7 +69,7 @@ public partial class App
         // Find in tree triggered in graph context menu, handled in the main window.
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
 
-        messaging.Subscribe<ShowPluginResult>(viewModel.HandleShowPluginResult);
+        messaging.Subscribe<ShowPluginTabularDataRequest>(viewModel.HandleShowTabularData);
 
         // Adding a node triggered in tree view, handled in graph view
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);

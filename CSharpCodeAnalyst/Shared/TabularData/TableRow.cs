@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace CSharpCodeAnalyst.PluginContracts;
+namespace CSharpCodeAnalyst.Shared.Table;
 
 public abstract class TableRow : INotifyPropertyChanged
 {

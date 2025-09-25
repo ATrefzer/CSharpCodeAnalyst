@@ -1,3 +1,3 @@
-﻿namespace CSharpCodeAnalyst.MetricArea;
+﻿namespace CSharpCodeAnalyst.Areas.MetricArea;
 
 public class IgnoreColumnAttribute : ColumnAttributeBase;

@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
-using CSharpCodeAnalyst.CycleArea;
-using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Table;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 

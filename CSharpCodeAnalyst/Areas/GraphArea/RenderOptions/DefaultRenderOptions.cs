@@ -1,6 +1,6 @@
 ﻿using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.GraphArea.RenderOptions;
+namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 
 public class DefaultRenderOptions : RenderOption
 {

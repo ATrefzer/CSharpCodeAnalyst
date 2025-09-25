@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Common;
+﻿namespace CSharpCodeAnalyst.Shared.Messaging;
 
 public interface IPublisher
 {

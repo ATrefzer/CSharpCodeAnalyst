@@ -2,10 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 
-namespace CSharpCodeAnalyst.SearchArea;
+namespace CSharpCodeAnalyst.Areas.SearchArea;
 
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public class SearchItemViewModel : INotifyPropertyChanged

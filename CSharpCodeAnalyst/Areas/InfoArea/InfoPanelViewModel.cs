@@ -3,13 +3,12 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.InfoPanel;
+namespace CSharpCodeAnalyst.Areas.InfoArea;
 
 internal class InfoPanelViewModel : INotifyPropertyChanged
 {

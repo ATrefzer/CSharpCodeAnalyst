@@ -8,7 +8,7 @@ using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.TreeArea;
+namespace CSharpCodeAnalyst.Areas.TreeArea;
 
 public class TreeViewModel : INotifyPropertyChanged
 {

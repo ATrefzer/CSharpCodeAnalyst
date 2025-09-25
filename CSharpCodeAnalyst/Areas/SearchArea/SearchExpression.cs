@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.SearchArea;
+﻿namespace CSharpCodeAnalyst.Areas.SearchArea;
 
 /// <summary>
 ///     Helper to build (very) simple search expressions with AND/OR/TERM

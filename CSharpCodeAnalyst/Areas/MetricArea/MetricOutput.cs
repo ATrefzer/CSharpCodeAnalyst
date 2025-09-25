@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.MetricArea;
+﻿namespace CSharpCodeAnalyst.Areas.MetricArea;
 
 internal class MetricOutput(string metric, string value) : IMetric
 {

@@ -1,5 +1,4 @@
 ﻿using System.Windows.Input;
-using CSharpCodeAnalyst.GraphArea;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 

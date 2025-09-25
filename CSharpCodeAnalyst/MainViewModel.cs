@@ -15,27 +15,27 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzers.EventRegistration;
+using CSharpCodeAnalyst.Areas.GraphArea;
+using CSharpCodeAnalyst.Areas.InfoArea;
+using CSharpCodeAnalyst.Areas.MetricArea;
+using CSharpCodeAnalyst.Areas.SearchArea;
 using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 using CSharpCodeAnalyst.Areas.TableArea.Partitions;
+using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.Gallery;
-using CSharpCodeAnalyst.GraphArea;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
-using CSharpCodeAnalyst.InfoPanel;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.MetricArea;
-using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Plugins.EventRegistration;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.SearchArea;
-using CSharpCodeAnalyst.TreeArea;
+using CSharpCodeAnalyst.Shared.Messaging;
+using CSharpCodeAnalyst.Shared.Table;
 using Microsoft.Win32;
 using Prism.Commands;
 
@@ -447,24 +447,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         Export.ToDsi(_codeGraph);
     }
-
-    private static void RunDsiViewer(string filePath)
-    {
-        var executablePath = @"ExternalApplications\\DsmSuite.DsmViewer.View.exe";
-
-        var process = new Process();
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = executablePath,
-            Arguments = filePath,
-            UseShellExecute = false,
-            RedirectStandardOutput = false,
-            CreateNoWindow = true
-        };
-
-        process.StartInfo = startInfo;
-        process.Start();
-    }
+    
 
     private void OnFindEventImbalances()
     {
@@ -478,9 +461,9 @@ internal class MainViewModel : INotifyPropertyChanged
     }
 
 
-    public void HandleShowPluginResult(ShowPluginResult pluginResult)
+    public void HandleShowTabularData(ShowPluginTabularDataRequest pluginTabularDataRequest)
     {
-        AnalyzerResult = pluginResult.Table;
+        AnalyzerResult = pluginTabularDataRequest.Table;
         SelectedRightTabIndex = 3;
     }
 

@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace CSharpCodeAnalyst.PluginContracts;
+namespace CSharpCodeAnalyst.Shared.Table;
 
 /// <summary>
 ///     Main interface for table data.

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 // ReSharper disable IdentifierTypo
 
-namespace CSharpCodeAnalyst.InfoPanel;
+namespace CSharpCodeAnalyst.Areas.InfoArea;
 
 public enum EditorType
 {

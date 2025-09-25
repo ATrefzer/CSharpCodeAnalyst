@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
-using CSharpCodeAnalyst.GraphArea;
+using CSharpCodeAnalyst.Areas.GraphArea;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst.Gallery;

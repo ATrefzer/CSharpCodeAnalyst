@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.MetricArea;
+﻿namespace CSharpCodeAnalyst.Areas.MetricArea;
 
 [AttributeUsage(AttributeTargets.Property)]
 public abstract class ColumnAttributeBase : Attribute

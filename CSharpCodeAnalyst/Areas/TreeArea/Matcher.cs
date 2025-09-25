@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.TreeArea;
+﻿namespace CSharpCodeAnalyst.Areas.TreeArea;
 
 internal class Matcher
 {

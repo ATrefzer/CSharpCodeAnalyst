@@ -2,12 +2,12 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
-using CSharpCodeAnalyst.InfoPanel;
-using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Table;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
+namespace CSharpCodeAnalyst.Plugins.EventRegistration;
 
 public class EventImbalanceViewModel : TableRow
 {

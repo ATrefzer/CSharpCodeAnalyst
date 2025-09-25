@@ -1,8 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
-using CSharpCodeAnalyst.CycleArea;
-using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Shared.Table;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 

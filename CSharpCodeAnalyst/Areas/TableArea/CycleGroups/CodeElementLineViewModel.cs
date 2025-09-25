@@ -1,9 +1,8 @@
 ﻿using System.Windows.Media.Imaging;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 
-namespace CSharpCodeAnalyst.CycleArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
 internal class Sorter : Comparer<CodeElementLineViewModel>
 {

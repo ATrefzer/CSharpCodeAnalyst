@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public class PresentationState
 {

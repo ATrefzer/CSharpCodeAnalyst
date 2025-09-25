@@ -4,12 +4,13 @@
         xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
-        xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
         xmlns:tableArea="clr-namespace:CSharpCodeAnalyst.Areas.TableArea"
+        xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
+        xmlns:dynamicDataGrid="clr-namespace:CSharpCodeAnalyst.Areas.DynamicDataGrid"
+        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.Areas.MetricArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -493,7 +494,7 @@
                     <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
 
                         <!-- Info panel -->
-                        <infoPanel:InfoPanel
+                        <infoArea:InfoPanel
                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                             DataContext="{Binding InfoPanelViewModel}" />
                     </TabItem>
@@ -525,14 +526,14 @@
                 </TabItem>-->
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
-                    <tableArea:DynamicDataGrid TableData="{Binding Cycles}" />
+                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
                 <TabItem Header="{x:Static resources:Strings.Tab_Partitions}">
-                    <tableArea:DynamicDataGrid TableData="{Binding Partitions}" />
+                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding Partitions}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Plugins}">
-                    <tableArea:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
+                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">

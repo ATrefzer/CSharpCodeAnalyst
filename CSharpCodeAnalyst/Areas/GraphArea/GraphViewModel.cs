@@ -7,16 +7,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeParser.Extensions;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Messaging;
 using Prism.Commands;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 internal class GraphViewModel : INotifyPropertyChanged
 {

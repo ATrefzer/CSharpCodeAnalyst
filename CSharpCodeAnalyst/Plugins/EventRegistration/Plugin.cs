@@ -1,9 +1,8 @@
 ﻿using System.Windows;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Shared.Messaging;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
+namespace CSharpCodeAnalyst.Plugins.EventRegistration;
 
 public class Plugin
 {
@@ -18,6 +17,6 @@ public class Plugin
         }
 
         var vm = new EventImbalancesViewModel(imbalances);
-        messaging.Publish(new ShowPluginResult(vm));
+        messaging.Publish(new ShowPluginTabularDataRequest(vm));
     }
 }

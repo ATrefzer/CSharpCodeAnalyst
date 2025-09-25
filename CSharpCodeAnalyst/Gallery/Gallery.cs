@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.GraphArea;
+﻿using CSharpCodeAnalyst.Areas.GraphArea;
 
 namespace CSharpCodeAnalyst.Gallery;
 

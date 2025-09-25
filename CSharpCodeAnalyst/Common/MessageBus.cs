@@ -1,4 +1,6 @@
-﻿namespace CSharpCodeAnalyst.Common;
+﻿using CSharpCodeAnalyst.Shared.Messaging;
+
+namespace CSharpCodeAnalyst.Common;
 
 public class MessageBus : ISubscriber, IPublisher
 {

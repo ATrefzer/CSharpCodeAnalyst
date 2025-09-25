@@ -5,17 +5,17 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.GraphArea.Highlighting;
-using CSharpCodeAnalyst.GraphArea.RenderOptions;
+using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
+using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Messaging;
 using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Drawing;
 using Node = Microsoft.Msagl.Drawing.Node;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 /// <summary>
 ///     Note:

@@ -3,8 +3,8 @@ using System.Windows;
 using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.PluginContracts;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Table;
 using Prism.Commands;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;

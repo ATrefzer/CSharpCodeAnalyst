@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace CSharpCodeAnalyst.MetricArea;
+namespace CSharpCodeAnalyst.Areas.MetricArea;
 
 /// <summary>
 ///     Interaction logic for MetricView.xaml

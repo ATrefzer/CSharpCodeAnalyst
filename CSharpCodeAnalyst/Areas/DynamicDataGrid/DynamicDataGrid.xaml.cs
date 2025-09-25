@@ -7,9 +7,9 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using CSharpCodeAnalyst.PluginContracts;
+using CSharpCodeAnalyst.Shared.Table;
 
-namespace CSharpCodeAnalyst.Areas.TableArea;
+namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 
 public partial class DynamicDataGrid : UserControl
 {
@@ -25,6 +25,7 @@ public partial class DynamicDataGrid : UserControl
     public DynamicDataGrid()
     {
         InitializeComponent();
+        this.ShowEmptyState(true);
     }
 
     public Table? TableData
@@ -90,14 +91,14 @@ public partial class DynamicDataGrid : UserControl
             var data = TableData.GetData();
             MainDataGrid.ItemsSource = data;
 
-            ShowEmptyState(data == null || !data.Any());
+            ShowEmptyState(!data.Any());
 
             // If given, set row details template
             if (TableData.GetRowDetailsTemplate() != null)
             {
                 MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
 
-                // RowDetailsVisibilityMode auf Collapsed setzen als Standard
+                // Default value is collapsed
                 MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
 
                 // Event Handler to manage IsExpanded per row.
@@ -203,10 +204,8 @@ public partial class DynamicDataGrid : UserControl
             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
         };
 
-        // Template programmatisch erstellen - EINFACHER ANSATZ
         var cellTemplate = new DataTemplate();
 
-        // Button als FrameworkElementFactory erstellen
         var buttonFactory = new FrameworkElementFactory(typeof(Button));
         buttonFactory.SetValue(ContentProperty, new Binding(columnDef.PropertyName));
         buttonFactory.SetValue(ForegroundProperty, Brushes.Blue);
@@ -221,7 +220,6 @@ public partial class DynamicDataGrid : UserControl
         style.Setters.Add(new Setter(TemplateProperty, CreateLinkButtonTemplate()));
         buttonFactory.SetValue(StyleProperty, style);
 
-        // Command direkt setzen - das ist der Schlüssel!
         if (columnDef.ClickCommand != null)
         {
             buttonFactory.SetValue(Button.CommandProperty, columnDef.ClickCommand);
@@ -278,11 +276,10 @@ public partial class DynamicDataGrid : UserControl
         var factory = new FrameworkElementFactory(typeof(ToggleButton));
         factory.SetBinding(ToggleButton.IsCheckedProperty, new Binding(columnDef.PropertyName));
 
-        // Command direkt setzen - EINFACH UND FUNKTIONIERT
         if (columnDef.ClickCommand != null)
         {
             factory.SetValue(ToggleButton.CommandProperty, columnDef.ClickCommand);
-            factory.SetValue(ToggleButton.CommandParameterProperty, new Binding()); // Ganzes DataContext
+            factory.SetValue(ToggleButton.CommandParameterProperty, new Binding()); // whole data context
         }
 
         cellTemplate.VisualTree = factory;
@@ -290,39 +287,24 @@ public partial class DynamicDataGrid : UserControl
 
         return column;
     }
-
-    // private DataGridColumn CreateCustomColumn(TableColumnDefinition columnDef)
-    // {
-    //     // Für Custom-Spalten sollte das Plugin ein Template liefern
-    //     if (columnDef is CustomColumnDefinition customDef && customDef.CellTemplate != null)
-    //     {
-    //         return new DataGridTemplateColumn
-    //         {
-    //             Header = columnDef.DisplayName,
-    //             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width),
-    //             CellTemplate = customDef.CellTemplate
-    //         };
-    //     }
-    //
-    //     // Fallback auf Text-Spalte
-    //     return CreateTextColumn(columnDef);
-    // }
+    
 
     /// <summary>
-    ///     Event Handler für LoadingRow - setzt RowDetails Visibility basierend auf IsExpanded
+    ///     Event handler for LoadingRow
+    ///     - sets DataGridRow.DetailsVisibility based auf IsExpanded
+    ///     - Registers handler for context menu opening
     /// </summary>
     private void OnDataGridLoadingRow(object sender, DataGridRowEventArgs e)
     {
         if (e.Row.DataContext is INotifyPropertyChanged viewModel)
         {
-            // Initial die Visibility setzen
             UpdateRowDetailsVisibility(e.Row);
 
             // PropertyChanged to react to IsExpanded. It did not work when set in the DataGridRow style.
             // It was fine when the DataGrid was not dynamically created.
             viewModel.PropertyChanged += (s, args) =>
             {
-                if (args.PropertyName == "IsExpanded")
+                if (args.PropertyName ==  nameof(TableRow.IsExpanded))
                 {
                     UpdateRowDetailsVisibility(e.Row);
                 }
