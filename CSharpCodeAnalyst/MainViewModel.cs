@@ -449,25 +449,11 @@ internal class MainViewModel : INotifyPropertyChanged
         Export.ToDsi(_codeGraph);
     }
 
-
-    private void OnFindEventImbalances()
-    {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
-        var analyzer = new Analyzer(_messaging);
-        analyzer.Analyze(_codeGraph);
-    }
-
-
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
         AnalyzerResult = tabularDataRequest.Table;
         SelectedRightTabIndex = 2;
     }
-
 
     private async void OnFindCycles()
     {
