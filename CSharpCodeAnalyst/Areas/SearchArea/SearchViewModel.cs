@@ -92,7 +92,7 @@ public class SearchViewModel : INotifyPropertyChanged
 
     private void OnPartition(SearchItemViewModel? vm)
     {
-        if (vm is not null)
+        if (vm?.CodeElement != null)
         {
             _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
         }

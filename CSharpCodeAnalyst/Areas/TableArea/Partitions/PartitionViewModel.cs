@@ -11,7 +11,7 @@ public class PartitionViewModel : TableRow
 
     public PartitionViewModel(string partitionName, IEnumerable<CodeElementLineViewModel> codeElements)
     {
-        PartitionName = partitionName;
+        _partitionName = partitionName;
         CodeElements = new ObservableCollection<CodeElementLineViewModel>(codeElements);
         //Title = partitionName;
     }
@@ -28,8 +28,6 @@ public class PartitionViewModel : TableRow
     }
 
     public ObservableCollection<CodeElementLineViewModel> CodeElements { get; }
-
-
 
     public int ElementCount
     {
