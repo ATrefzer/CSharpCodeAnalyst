@@ -7,11 +7,11 @@ namespace CodeParserTests.ApprovalTests;
 public class ModuleLevelApprovalTests : ProjectTestBase
 {
 
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        var g0 = GetGraph("ModuleLevel0");
-        var g1 = GetGraph("ModuleLevel1");
-        var g2 = GetGraph("ModuleLevel2");
+        var g0 = GetAssemblyGraph("ModuleLevel0");
+        var g1 = GetAssemblyGraph("ModuleLevel1");
+        var g2 = GetAssemblyGraph("ModuleLevel2");
 
         return Graph.SubGraphOf(g0.Nodes.Keys.Union(g1.Nodes.Keys).Union(g2.Nodes.Keys).ToHashSet());
     }
@@ -19,7 +19,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph());
+        var classes = GetAllClasses(GetTestAssemblyGraph());
 
         var expected = new[]
         {
@@ -54,7 +54,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void Properties_ShouldBeDetected()
     {
-        var properties = GetAllNodesOfType(GetTestGraph(), CodeElementType.Property);
+        var properties = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Property);
 
         var expectedProperties = new HashSet<string>
         {
@@ -90,7 +90,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void CrossProjectUsages_ShouldBeDetected()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var crossing = graph.GetAllRelationships()
             .Where(r => GetAssembly(graph.Nodes[r.SourceId]).Id != GetAssembly(graph.Nodes[r.TargetId]).Id)
             .Select(CreateResolvedRelationShip)
@@ -124,7 +124,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllPropertyImplementations()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
 
         // Realize an interface
         var actual = GetAllPropertyImplementations(graph);
@@ -140,7 +140,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllEventImplementations()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllEventImplementations(graph);
 
 
@@ -156,7 +156,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllPropertyOverrides()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllPropertyOverrides(graph);
 
         var expected = new HashSet<string>

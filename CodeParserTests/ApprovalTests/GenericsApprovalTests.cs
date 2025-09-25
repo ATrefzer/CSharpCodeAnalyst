@@ -5,15 +5,15 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class GenericsApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.Generics");
+        return GetAssemblyGraph("Core.Generics");
     }
 
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -47,7 +47,7 @@ public class GenericsApprovalTests : ProjectTestBase
     [Test]
     public void GenericConstraints_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph())
+        var classes = GetAllClasses(GetTestAssemblyGraph())
             .Where(c => c.Contains("Constraint") || c.Contains("Comparable"))
             .OrderBy(c => c)
             .ToList();
@@ -63,7 +63,7 @@ public class GenericsApprovalTests : ProjectTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var callRelationships = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls)
+        var callRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls)
             ;
 
         var expected = new[]

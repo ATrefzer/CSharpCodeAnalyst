@@ -32,6 +32,7 @@ public class ResolvedRelationship
     }
 }
 
+
 internal class Init
 {
 
@@ -105,9 +106,10 @@ public abstract class ProjectTestBase
         return element.FullName.StartsWith(projectFilter);
     }
 
-    public CodeGraph GetGraph(string name)
+    public CodeGraph GetAssemblyGraph(string name)
     {
-        var assembly = Graph.Nodes.Values.First(n => n.ElementType == CodeElementType.Namespace && n.Name == name);
+        var assemblies = Graph.Nodes.Values.Where(n => n.ElementType == CodeElementType.Assembly).ToList();
+        var assembly = assemblies.First(n => name == n.Name);
         return Graph.SubGraphOf(assembly);
     }
 

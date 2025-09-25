@@ -7,7 +7,7 @@ public class EventsApprovalTests : ProjectTestBase
 {
     private CodeGraph GetTestGraph()
     {
-        return GetGraph("Core.Events");
+        return GetAssemblyGraph("Core.Events");
     }
 
     [Test]

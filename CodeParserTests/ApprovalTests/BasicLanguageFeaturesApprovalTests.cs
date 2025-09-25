@@ -9,7 +9,7 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
     [Test]
     public void Core_BasicLanguageFeatures_Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -21,16 +21,16 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         CollectionAssert.AreEquivalent(expected, classes);
     }
 
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.BasicLanguageFeatures");
+        return GetAssemblyGraph("Core.BasicLanguageFeatures");
     }
 
 
     [Test]
     public void Core_BasicLanguageFeatures_Structs_ShouldBeDetected()
     {
-        var structs = GetAllStructs(GetTestGraph()).ToList();
+        var structs = GetAllStructs(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -44,7 +44,7 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
     [Test]
     public void Core_BasicLanguageFeatures_Enums_ShouldBeDetected()
     {
-        var enums = GetAllEnums(GetTestGraph()).ToList();
+        var enums = GetAllEnums(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -58,7 +58,7 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
     [Test]
     public void Core_BasicLanguageFeatures_MethodCalls_ShouldBeDetected()
     {
-        var methodCalls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls)
+        var methodCalls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls)
             .Select(r => r.ToString())
             .OrderBy(x => x)
             .ToList();
@@ -82,7 +82,7 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
     [Test]
     public void Core_BasicLanguageFeatures_Properties_ShouldBeDetected()
     {
-        var properties = GetAllProperties(GetTestGraph());
+        var properties = GetAllProperties(GetTestAssemblyGraph());
 
         var expected = new[]
         {

@@ -9,15 +9,15 @@ namespace CodeParserTests.ApprovalTests;
 /// </summary>
 public class OldCSharpLanguageApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Old.CSharpLanguage");
+        return GetAssemblyGraph("Old.CSharpLanguage");
     }
 
     [Test]
     public void FindsAllFunctions()
     {
-        var codeElements = GetTestGraph().Nodes.Values;
+        var codeElements = GetTestAssemblyGraph().Nodes.Values;
 
         var methods = codeElements
             .Where(n => n.ElementType == CodeElementType.Method)
@@ -100,7 +100,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllClasses()
     {
-        var codeElements = GetTestGraph().Nodes.Values;
+        var codeElements = GetTestAssemblyGraph().Nodes.Values;
 
         var actual = codeElements
             .Where(n => n.ElementType == CodeElementType.Class)
@@ -163,7 +163,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllCalls()
     {
-        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
         var expected = new HashSet<string>
         {
@@ -202,7 +202,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllUses()
     {
-        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses);
         var expected = new HashSet<string>
         {
             "Old.CSharpLanguage.CSharpLanguage.MyDelegate -> Old.CSharpLanguage.CSharpLanguage.MyEventArgs",
@@ -242,7 +242,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllMethodImplementations()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllMethodImplementations(graph);
 
         var expected = new HashSet<string>
@@ -266,7 +266,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllMethodOverrides()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllMethodOverrides(graph);
 
         var expected = new HashSet<string>
@@ -291,7 +291,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllEventUsages()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
 
         // Registration and un-registration
         var actual = GetAllEventRegistrations(graph);
@@ -322,7 +322,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllEventInvocation()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllEventInvocations(graph);
 
         var expected = new HashSet<string>
@@ -342,7 +342,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllEventImplementations()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllEventImplementations(graph);
 
 
@@ -360,7 +360,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllEventHandlers()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetRelationshipsOfType(graph, RelationshipType.Handles);
         var expected = new HashSet<string>
         {
@@ -377,7 +377,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllInterfaceImplementations()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllInterfaceImplementations(graph);
 
 
@@ -400,7 +400,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllInheritance()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = GetAllClassInheritance(graph);
 
         var expected = new HashSet<string>
@@ -429,7 +429,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void FindsAllUsingBetweenClasses()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
             .Where(d => d.Type == RelationshipType.Uses)
@@ -452,7 +452,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
     [Test]
     public void Find_Interface_Implementation_In_BaseClass()
     {
-        var graph = GetTestGraph();
+        var graph = GetTestAssemblyGraph();
         // This case is not covered yet
         var iStorage = graph.Nodes.Values.Single(n => n.Name == "IStorage");
         var baseStorage = graph.Nodes.Values.Single(n => n.Name == "BaseStorage");

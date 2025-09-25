@@ -7,9 +7,9 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class CyclesApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.Cycles");
+        return GetAssemblyGraph("Core.Cycles");
     }
 
     // All cycles we expect fo find in the project
@@ -201,7 +201,7 @@ public class CyclesApprovalTests : ProjectTestBase
     [Test]
     public void Cycles_ShouldBeDetected()
     {
-        var groups = CycleFinder.FindCycleGroups(GetTestGraph());
+        var groups = CycleFinder.FindCycleGroups(GetTestAssemblyGraph());
 
         Assert.AreEqual(8, groups.Count);
 

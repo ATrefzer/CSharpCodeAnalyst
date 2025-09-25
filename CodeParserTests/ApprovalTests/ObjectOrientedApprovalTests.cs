@@ -7,15 +7,15 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class ObjectOrientedApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.ObjectOriented");
+        return GetAssemblyGraph("Core.ObjectOriented");
     }
 
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph());
+        var classes = GetAllClasses(GetTestAssemblyGraph());
 
         var expected = new[]
         {
@@ -43,7 +43,7 @@ public class ObjectOrientedApprovalTests : ProjectTestBase
     [Test]
     public void InheritanceRelationships_ShouldBeDetected()
     {
-        var inheritanceRelationships = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Inherits)
+        var inheritanceRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Inherits)
             ;
 
         var expected = new[]
@@ -64,7 +64,7 @@ public class ObjectOrientedApprovalTests : ProjectTestBase
     [Test]
     public void ImplementsRelationships_ShouldBeDetected()
     {
-        var inheritanceRelationships = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Implements);
+        var inheritanceRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Implements);
 
         var expected = new[]
         {

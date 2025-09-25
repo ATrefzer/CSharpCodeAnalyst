@@ -5,15 +5,15 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class NamespacesApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.Namespaces");
+        return GetAssemblyGraph("Core.Namespaces");
     }
 
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -32,7 +32,7 @@ public class NamespacesApprovalTests : ProjectTestBase
     [Test]
     public void Usages_ShouldBeDetected()
     {
-        var crossNamespaceUsages = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
+        var crossNamespaceUsages = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses);
 
 
         var expected = new[]
@@ -48,7 +48,7 @@ public class NamespacesApprovalTests : ProjectTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var methodCalls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var methodCalls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
 
         var expected = new[]

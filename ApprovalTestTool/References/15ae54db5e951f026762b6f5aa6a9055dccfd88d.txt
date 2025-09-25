@@ -244,12 +244,12 @@ CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.OnEvent -(Invokes)-> CSharpLa
 CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Calls)-> CSharpLanguage.CSharpLanguage.Extensions.Slice [IsExtensionMethodCall]
 CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Creates)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent 
 CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Creates)-> CSharpLanguage.CSharpLanguage.TheExtendedType 
-CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 
-CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 [EventRegistration]
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -(Uses)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 [EventRegistration]
 CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Creates)-> CSharpLanguage.CSharpLanguage.CustomException 
-CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 [EventRegistration]
 CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -(Uses)-> CSharpLanguage.CSharpLanguage.MyEventArgs 
-CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 
+CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2 -(Handles)-> CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent.MyEvent2 [EventRegistration]
 CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes._file -(Uses)-> CSharpLanguage.CSharpLanguage.ProjectFile 
 CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -(Creates)-> CSharpLanguage.CSharpLanguage.XmlFile 
 CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -(Uses)-> CSharpLanguage.CSharpLanguage.Project 
@@ -262,8 +262,8 @@ CSharpLanguage.CSharpLanguage.EventInvocation.Raise1 -(Invokes)-> CSharpLanguage
 CSharpLanguage.CSharpLanguage.EventInvocation.Raise2 -(Invokes)-> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent 
 CSharpLanguage.CSharpLanguage.EventInvocation.Raise3 -(Invokes)-> CSharpLanguage.CSharpLanguage.EventInvocation.MyEvent 
 CSharpLanguage.CSharpLanguage.EventSink..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent 
-CSharpLanguage.CSharpLanguage.EventSink..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent 
-CSharpLanguage.CSharpLanguage.EventSink.Handler -(Handles)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent 
+CSharpLanguage.CSharpLanguage.EventSink..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent [EventRegistration]
+CSharpLanguage.CSharpLanguage.EventSink.Handler -(Handles)-> CSharpLanguage.CSharpLanguage.IInterfaceWithEvent.MyEvent [EventRegistration]
 CSharpLanguage.CSharpLanguage.Extensions.Slice -(Calls)-> CSharpLanguage.CSharpLanguage.TheExtendedType.Do [IsInstanceCall]
 CSharpLanguage.CSharpLanguage.Extensions.Slice -(Uses)-> CSharpLanguage.CSharpLanguage.TheExtendedType 
 CSharpLanguage.CSharpLanguage.MissingInterface.BaseStorage.Load -(Implements)-> CSharpLanguage.CSharpLanguage.MissingInterface.IStorage.Load 

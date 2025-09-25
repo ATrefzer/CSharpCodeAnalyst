@@ -5,15 +5,15 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class RegressionApprovalTests : ProjectTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Regression.SpecificBugs");
+        return GetAssemblyGraph("Regression.SpecificBugs");
     }
 
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -28,7 +28,7 @@ public class RegressionApprovalTests : ProjectTestBase
     [Test]
     public void Records_ShouldBeDetected()
     {
-        var records = GetAllNodesOfType(GetTestGraph(), CodeElementType.Record);
+        var records = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Record);
 
         var expected = new[]
         {
@@ -41,7 +41,7 @@ public class RegressionApprovalTests : ProjectTestBase
     [Test]
     public void Structs_ShouldBeDetected()
     {
-        var structs = GetAllNodesOfType(GetTestGraph(), CodeElementType.Struct);
+        var structs = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Struct);
 
         var expected = new[]
         {
@@ -54,7 +54,7 @@ public class RegressionApprovalTests : ProjectTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var calls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
         var dmp = DumpRelationships(calls);
         var expected = new[]

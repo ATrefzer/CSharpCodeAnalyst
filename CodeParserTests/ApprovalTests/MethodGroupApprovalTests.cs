@@ -9,15 +9,15 @@ namespace CodeParserTests.ApprovalTests;
 public class MethodGroupApprovalTests : ProjectTestBase
 {
 
-    private CodeGraph GetTestGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
-        return GetGraph("Core.MethodGroups");
+        return GetAssemblyGraph("Core.MethodGroups");
     }
 
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var actual = GetAllClasses(GetTestGraph());
+        var actual = GetAllClasses(GetTestAssemblyGraph());
 
         var expected = new HashSet<string>
         {
@@ -35,7 +35,7 @@ public class MethodGroupApprovalTests : ProjectTestBase
     [Test]
     public void Methods_ShouldBeDetected()
     {
-        var actual = GetAllNodesOfType(GetTestGraph(), CodeElementType.Method);
+        var actual = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Method);
 
         var expected = new HashSet<string>
         {
@@ -72,7 +72,7 @@ public class MethodGroupApprovalTests : ProjectTestBase
     [Test]
     public void MethodGroupUsages_ShouldBeDetected()
     {
-        var actual = GetAllMethodGroupUsages(GetTestGraph());
+        var actual = GetAllMethodGroupUsages(GetTestAssemblyGraph());
 
         var expected = new HashSet<string>
         {
@@ -95,7 +95,7 @@ public class MethodGroupApprovalTests : ProjectTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var callsRelationships = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var callsRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
         var expected = new HashSet<string>
         {
@@ -120,7 +120,7 @@ public class MethodGroupApprovalTests : ProjectTestBase
     [Test]
     public void EventSubscriptions_ShouldBeDetected()
     {
-        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Handles);
 
         var expected = new HashSet<string>
         {
