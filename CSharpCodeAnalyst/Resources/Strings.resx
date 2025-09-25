@@ -679,7 +679,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
    <value>Event handler (possible errors)</value>
  </data>
 
-	<data name="Left_To_Right_Label" xml:space="preserve">
+    <data name="Left_To_Right_Label" xml:space="preserve">
    <value>Left to Right</value>
  </data>
     <data name="Bottom_To_Top_Label" xml:space="preserve">
@@ -692,7 +692,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
    <value>Default</value>
  </data>
 
-	<data name="Cycle_Groups_CodeElementsDescription" xml:space="preserve">
+    <data name="Cycle_Groups_CodeElementsDescription" xml:space="preserve">
    <value>Involves {0} code elements</value>
  </data>
 
@@ -700,18 +700,18 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
    <value>Loading ...</value>
  </data>
 
-	<data name="Metric_CodeElements" xml:space="preserve">
+    <data name="Metric_CodeElements" xml:space="preserve">
    <value># Code elements</value>
  </data>
     <data name="Metric_Relationships" xml:space="preserve">
    <value># Relationships</value>
  </data>
 
-	<data name="DynamicGrid_LoadError" xml:space="preserve">
+    <data name="DynamicGrid_LoadError" xml:space="preserve">
    <value>Error while loading data!</value>
  </data>
 
-	<data name="DynamicGrid_NoData" xml:space="preserve">
+    <data name="DynamicGrid_NoData" xml:space="preserve">
    <value>No data available</value>
  </data>
 

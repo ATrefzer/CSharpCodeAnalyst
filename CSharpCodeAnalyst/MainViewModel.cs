@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -16,6 +15,7 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;
@@ -45,6 +45,7 @@ namespace CSharpCodeAnalyst;
 internal class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
+    private readonly AnalyzerManager _analyzerManager;
 
     private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
@@ -52,7 +53,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
-    private readonly AnalyzerManager _analyzerManager;
     private CodeGraph? _codeGraph;
 
     private Table? _cycles;
@@ -119,16 +119,6 @@ internal class MainViewModel : INotifyPropertyChanged
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
 
         _loadMessage = string.Empty;
-    }
-
-    private void OnExecuteAnalyzer(string id)
-    {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
-        _analyzerManager.GetAnalyzer(id).Analyze(_codeGraph);
     }
 
 
@@ -305,7 +295,22 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public IEnumerable<IAnalyzer> Analyzers
+    {
+        get => _analyzerManager.All;
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnExecuteAnalyzer(string id)
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        _analyzerManager.GetAnalyzer(id).Analyze(_codeGraph);
+    }
 
     private void OnShowGallery()
     {
@@ -443,7 +448,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         Export.ToDsi(_codeGraph);
     }
-    
+
 
     private void OnFindEventImbalances()
     {
@@ -452,7 +457,7 @@ internal class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var analyzer = new Analyzer.EventRegistration.Analyzer(_messaging);
+        var analyzer = new Analyzer(_messaging);
         analyzer.Analyze(_codeGraph);
     }
 
@@ -879,6 +884,4 @@ internal class MainViewModel : INotifyPropertyChanged
         var partitionsVm = new PartitionsViewModel(pvm);
         HandleShowTabularData(new ShowTabularDataRequest(partitionsVm));
     }
-
-    public IEnumerable<IAnalyzer> Analyzers => _analyzerManager.All;
 }

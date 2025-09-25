@@ -1,9 +1,9 @@
-﻿using CSharpCodeAnalyst.Shared.Contracts;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Areas.MetricArea;
 

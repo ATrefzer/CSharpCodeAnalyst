@@ -51,7 +51,7 @@ public partial class App
         var analyzerManager = new AnalyzerManager();
         analyzerManager.LoadAnalyzers(messaging);
 
-        
+
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 

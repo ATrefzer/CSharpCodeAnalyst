@@ -26,7 +26,7 @@ public partial class DynamicDataGrid : UserControl
     public DynamicDataGrid()
     {
         InitializeComponent();
-        this.ShowEmptyState(true);
+        ShowEmptyState(true);
     }
 
     public Table? TableData
@@ -288,7 +288,7 @@ public partial class DynamicDataGrid : UserControl
 
         return column;
     }
-    
+
 
     /// <summary>
     ///     Event handler for LoadingRow
@@ -305,7 +305,7 @@ public partial class DynamicDataGrid : UserControl
             // It was fine when the DataGrid was not dynamically created.
             viewModel.PropertyChanged += (s, args) =>
             {
-                if (args.PropertyName ==  nameof(TableRow.IsExpanded))
+                if (args.PropertyName == nameof(TableRow.IsExpanded))
                 {
                     UpdateRowDetailsVisibility(e.Row);
                 }
@@ -365,6 +365,7 @@ public partial class DynamicDataGrid : UserControl
         {
             message = Strings.DynamicGrid_NoData;
         }
+
         EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         EmptyStateText.Text = message;
         MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;

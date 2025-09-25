@@ -3,7 +3,7 @@ using System.Windows;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Table;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
 internal class EventImbalancesViewModel : Table
 {

@@ -32,7 +32,6 @@ public class ResolvedRelationship
     }
 }
 
-
 internal class Init
 {
 

@@ -1,24 +1,26 @@
-﻿using CSharpCodeAnalyst.Shared.Contracts;
+﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
+using CSharpCodeAnalyst.Shared.Contracts;
 
-namespace CSharpCodeAnalyst.Analyzers
+namespace CSharpCodeAnalyst.Analyzers;
+
+internal class AnalyzerManager : IAnalyzerManager
 {
-    internal class AnalyzerManager : IAnalyzerManager
+    private readonly Dictionary<string, IAnalyzer> _analyzers = [];
+
+    public IAnalyzer GetAnalyzer(string id)
     {
-        private static readonly IAnalyzerManager _instance = new AnalyzerManager();
-        private Dictionary<string, IAnalyzer> _analyzers = [];
+        return _analyzers[id];
+    }
 
-        public IAnalyzer GetAnalyzer(string id)
-        {
-            return _analyzers[id];
-        }
+    public IEnumerable<IAnalyzer> All
+    {
+        get => _analyzers.Values.ToList();
+    }
 
-        public IEnumerable<IAnalyzer> All => _analyzers.Values.ToList();
-
-        public void LoadAnalyzers(IPublisher messaging)
-        {
-            _analyzers.Clear();
-            var analyzer = new Analyzer.EventRegistration.Analyzer(messaging);
-            _analyzers.Add(analyzer.Id, analyzer);
-        }
+    public void LoadAnalyzers(IPublisher messaging)
+    {
+        _analyzers.Clear();
+        var analyzer = new Analyzer(messaging);
+        _analyzers.Add(analyzer.Id, analyzer);
     }
 }

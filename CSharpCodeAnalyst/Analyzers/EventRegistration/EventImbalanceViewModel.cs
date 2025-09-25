@@ -7,7 +7,7 @@ using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Table;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
 public class EventImbalanceViewModel : TableRow
 {

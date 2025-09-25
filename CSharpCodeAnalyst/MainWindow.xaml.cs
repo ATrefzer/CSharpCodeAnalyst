@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.TreeArea;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 
 namespace CSharpCodeAnalyst;

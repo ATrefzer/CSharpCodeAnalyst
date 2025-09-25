@@ -8,5 +8,5 @@ public enum ColumnType
     Text,
     Link,
     Image,
-    Toggle,
+    Toggle
 }

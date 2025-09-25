@@ -4,7 +4,7 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messaging;
 
-namespace CSharpCodeAnalyst.Analyzer.EventRegistration;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
 /// <summary>
 ///     Finds imbalances between event registrations and un-registrations.

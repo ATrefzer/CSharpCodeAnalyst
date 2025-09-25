@@ -1,85 +1,84 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Wpf
+namespace CSharpCodeAnalyst.Wpf;
+
+public class WpfCommand : ICommand
 {
-    public class WpfCommand : ICommand
+    private readonly Func<bool>? _canExecute;
+    private readonly Action _execute;
+
+    public WpfCommand(Action execute, Func<bool>? canExecute = null)
     {
-        private readonly Func<bool>? _canExecute;
-        private readonly Action _execute;
-
-        public WpfCommand(Action execute, Func<bool>? canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event EventHandler? CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public bool CanExecute(object? parameter)
-        {
-            return _canExecute == null || _canExecute();
-        }
-
-        public void Execute(object? parameter)
-        {
-            _execute();
-        }
-
-        public void RaiseCanExecuteChanged()
-        {
-            CommandManager.InvalidateRequerySuggested();
-        }
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
     }
 
-    public class WpfCommand<T> : ICommand
+    public event EventHandler? CanExecuteChanged
     {
-        private readonly Func<T, bool>? _canExecute;
-        private readonly Action<T> _execute;
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
 
-        public WpfCommand(Action<T> execute, Func<T, bool>? canExecute = null)
+    public bool CanExecute(object? parameter)
+    {
+        return _canExecute == null || _canExecute();
+    }
+
+    public void Execute(object? parameter)
+    {
+        _execute();
+    }
+
+    public void RaiseCanExecuteChanged()
+    {
+        CommandManager.InvalidateRequerySuggested();
+    }
+}
+
+public class WpfCommand<T> : ICommand
+{
+    private readonly Func<T, bool>? _canExecute;
+    private readonly Action<T> _execute;
+
+    public WpfCommand(Action<T> execute, Func<T, bool>? canExecute = null)
+    {
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+        _canExecute = canExecute;
+    }
+
+    public event EventHandler? CanExecuteChanged
+    {
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
+
+    public bool CanExecute(object? parameter)
+    {
+        if (_canExecute == null)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
+            return true;
         }
 
-        public event EventHandler? CanExecuteChanged
+        if (parameter is not T)
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            return false;
         }
 
-        public bool CanExecute(object? parameter)
+        return _canExecute((T)parameter);
+    }
+
+    public void Execute(object? parameter)
+    {
+        if (parameter is not T)
         {
-            if (_canExecute == null)
-            {
-                return true;
-            }
-
-            if (parameter is not T)
-            {
-                return false;
-            }
-
-            return _canExecute((T)parameter);
+            return;
         }
 
-        public void Execute(object? parameter)
-        {
-            if (parameter is not T)
-            {
-                return;
-            }
+        _execute((T)parameter);
+    }
 
-            _execute((T)parameter);
-        }
-
-        public void RaiseCanExecuteChanged()
-        {
-            CommandManager.InvalidateRequerySuggested();
-        }
+    public void RaiseCanExecuteChanged()
+    {
+        CommandManager.InvalidateRequerySuggested();
     }
 }

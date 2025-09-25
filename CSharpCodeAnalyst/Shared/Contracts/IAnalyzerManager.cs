@@ -2,7 +2,7 @@
 
 public interface IAnalyzerManager
 {
-    IAnalyzer GetAnalyzer(string id);
 
     IEnumerable<IAnalyzer> All { get; }
+    IAnalyzer GetAnalyzer(string id);
 }
