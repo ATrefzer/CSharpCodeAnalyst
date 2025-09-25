@@ -5,9 +5,10 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using Prism.Commands;
+using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.SearchArea;
+namespace CSharpCodeAnalyst.Areas.SearchArea;
 
 public class SearchViewModel : INotifyPropertyChanged
 {
@@ -36,16 +37,11 @@ public class SearchViewModel : INotifyPropertyChanged
             ExecuteSearchInternal();
         };
 
-        SearchCommand = new DelegateCommand(ExecuteSearch);
-        ClearSearchCommand = new DelegateCommand(ClearSearch);
-        AddSelectedToGraphCommand = new DelegateCommand<object>(AddSelectedToGraph);
-        AddSelectedToGraphCollapsedCommand = new DelegateCommand<object>(AddSelectedToGraphCollapsed);
-        PartitionCommand = new DelegateCommand<SearchItemViewModel>(OnPartition, CanPartition);
-    }
-
-    private bool CanPartition(SearchItemViewModel? vm)
-    {
-        return vm?.CodeElement is { ElementType: CodeElementType.Class };
+        SearchCommand = new WpfCommand(ExecuteSearch);
+        ClearSearchCommand = new WpfCommand(ClearSearch);
+        AddSelectedToGraphCommand = new WpfCommand<object>(AddSelectedToGraph);
+        AddSelectedToGraphCollapsedCommand = new WpfCommand<object>(AddSelectedToGraphCollapsed);
+        PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -88,6 +84,11 @@ public class SearchViewModel : INotifyPropertyChanged
     public ICommand PartitionCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool CanPartition(SearchItemViewModel? vm)
+    {
+        return vm?.CodeElement is { ElementType: CodeElementType.Class };
+    }
 
     private void OnPartition(SearchItemViewModel? vm)
     {

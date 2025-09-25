@@ -1,18 +1,17 @@
-﻿using CodeParser.Analysis.Shared;
+﻿using System.IO;
+using System.Windows;
 using CodeParser.Parser;
-using CSharpCodeAnalyst.Areas.ResultArea;
+using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.Areas.GraphArea;
+using CSharpCodeAnalyst.Areas.InfoArea;
+using CSharpCodeAnalyst.Areas.SearchArea;
+using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.CycleArea;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.GraphArea;
-using CSharpCodeAnalyst.InfoPanel;
-using CSharpCodeAnalyst.SearchArea;
-using CSharpCodeAnalyst.TreeArea;
+using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Shared.Messaging;
 using Microsoft.Extensions.Configuration;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Windows;
 
 namespace CSharpCodeAnalyst;
 
@@ -48,13 +47,18 @@ public partial class App
         }
 
         var messaging = new MessageBus();
+
+        var analyzerManager = new AnalyzerManager();
+        analyzerManager.LoadAnalyzers(messaging);
+
+        
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
         var explorationGraphViewer = new GraphViewer(messaging, settings.WarningCodeElementLimit);
 
         mainWindow.SetViewer(explorationGraphViewer);
-        var viewModel = new MainViewModel(messaging, settings);
+        var viewModel = new MainViewModel(messaging, settings, analyzerManager);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging);
         var searchViewModel = new SearchViewModel(messaging);
@@ -64,13 +68,14 @@ public partial class App
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
-        viewModel.TableViewModel = new EmptyTableViewModel();
 
 
         // Setup messaging
 
         // Find in tree triggered in graph context menu, handled in the main window.
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
+
+        messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
 
         // Adding a node triggered in tree view, handled in graph view
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
@@ -79,7 +84,7 @@ public partial class App
         messaging.Subscribe<QuickInfoUpdate>(infoPanelViewModel.HandleUpdateQuickInfo);
 
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
-     
+
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
 

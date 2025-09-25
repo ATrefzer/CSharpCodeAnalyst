@@ -1,12 +1,13 @@
 ﻿using CodeParser.Analysis.Cycles;
 using CodeParserTests.Helper;
 using Contracts.Graph;
+
 // ReSharper disable InconsistentNaming
 
 namespace CodeParserTests.UnitTests;
 
 [TestFixture]
-public partial class CycleFinderTests
+public class CycleFinderTests
 {
     [Test]
     public void FindClassCycle()
@@ -329,6 +330,4 @@ public partial class CycleFinderTests
         Assert.AreEqual(2, groups[0].CodeGraph.Nodes.Count);
         Assert.AreEqual(2, groups[1].CodeGraph.Nodes.Count);
     }
-
- 
 }

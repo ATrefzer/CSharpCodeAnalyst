@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Contracts.Graph;
+
 // ReSharper disable NotResolvedInText
 
 namespace CodeParser.Analysis.Shared;

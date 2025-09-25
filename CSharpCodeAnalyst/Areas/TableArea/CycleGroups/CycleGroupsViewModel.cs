@@ -1,36 +1,97 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.CycleArea;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.ResultArea;
+namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
-internal class CycleGroupsViewModel : TableViewModel
+internal class CycleGroupsViewModel : Table
 {
-    private ObservableCollection<CycleGroupViewModel> _cycleGroups = [];
+    private readonly ObservableCollection<TableRow> _cycleGroups;
+    private readonly MessageBus _messaging;
 
     public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
     {
-        Title = Strings.Tab_Summary_Cycles;
-        var vms = cycleGroups.Select(g => new CycleGroupViewModel(g, messaging));
+        _messaging = messaging;
+        Title = Strings.Tab_Cycles;
+        var vms = cycleGroups.Select(g => new CycleGroupViewModel(g));
         var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.ElementCount);
-        CycleGroups = new ObservableCollection<CycleGroupViewModel>(ordered);
+        _cycleGroups = new ObservableCollection<TableRow>(ordered);
     }
 
-    public ObservableCollection<CycleGroupViewModel> CycleGroups
+
+    public override List<CommandDefinition> GetCommands()
     {
-        get => _cycleGroups;
-        set
+        return
+        [
+            new CommandDefinition
+            {
+                Header = Strings.CopyToExplorerGraph_MenuItem,
+                Command = new WpfCommand<CycleGroupViewModel>(vm =>
+                {
+                    // Send event to main view model
+                    _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
+                })
+            }
+        ];
+    }
+
+    public override IEnumerable<TableColumnDefinition> GetColumns()
+    {
+        return new List<TableColumnDefinition>
         {
-            if (Equals(value, _cycleGroups)) return;
-            _cycleGroups = value;
-            OnPropertyChanged();
-        }
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Level_Header,
+                PropertyName = nameof(CycleGroupViewModel.Level)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.ElementCount_Header,
+                PropertyName = nameof(CycleGroupViewModel.ElementCount)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.CodeElements_Header,
+                PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
+                IsExpandable = true
+            }
+        };
     }
 
-    public override void Clear()
+    public override ObservableCollection<TableRow> GetData()
     {
-        CycleGroups.Clear();
+        return _cycleGroups;
+    }
+
+    public override DataTemplate? GetRowDetailsTemplate()
+    {
+        var xamlTemplate = @"
+                <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+                              xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
+                <ItemsControl ItemsSource=""{Binding CodeElements}"">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin=""20 0 0 0"">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width=""Auto"" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source=""{Binding Icon}"" Margin=""0 1 5 1"" />
+                                    <TextBlock Grid.Column=""1"" Text=""{Binding FullName}"" TextWrapping=""Wrap"" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DataTemplate>";
+
+        return CreateDataTemplateFromString(xamlTemplate);
     }
 }

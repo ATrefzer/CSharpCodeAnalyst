@@ -2,7 +2,7 @@
 using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 /// <summary>
 ///     Transformation of a CodGraph to Msagl graph structure.

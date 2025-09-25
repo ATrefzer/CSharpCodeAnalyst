@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using CodeParser.Export;
 using Contracts.Graph;
@@ -8,7 +9,7 @@ using Microsoft.Win32;
 namespace CSharpCodeAnalyst.Exports;
 
 /// <summary>
-/// Facade for various export formats.
+///     Facade for various export formats.
 /// </summary>
 public static class Export
 {
@@ -161,5 +162,23 @@ public static class Export
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
+    }
+
+    private static void RunDsiViewer(string filePath)
+    {
+        var executablePath = @"ExternalApplications\\DsmSuite.DsmViewer.View.exe";
+
+        var process = new Process();
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = executablePath,
+            Arguments = filePath,
+            UseShellExecute = false,
+            RedirectStandardOutput = false,
+            CreateNoWindow = true
+        };
+
+        process.StartInfo = startInfo;
+        process.Start();
     }
 }

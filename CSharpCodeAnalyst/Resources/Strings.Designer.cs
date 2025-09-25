@@ -115,11 +115,47 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event registrations.
+        /// </summary>
+        public static string Analyzer_EventRegistration_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_EventRegistration_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finds imbalances between number of event registrations / un-registrations.
+        /// </summary>
+        public static string Analyzer_EventRegistration_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_EventRegistration_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzers.
+        /// </summary>
+        public static string Analyzers_Label {
+            get {
+                return ResourceManager.GetString("Analyzers_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C# Code Analyst.
         /// </summary>
         public static string AppTitle {
             get {
                 return ResourceManager.GetString("AppTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bottom to Top.
+        /// </summary>
+        public static string Bottom_To_Top_Label {
+            get {
+                return ResourceManager.GetString("Bottom_To_Top_Label", resourceCulture);
             }
         }
         
@@ -232,6 +268,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Event handler (possible errors).
+        /// </summary>
+        public static string Column_EventRegistration_Header {
+            get {
+                return ResourceManager.GetString("Column_EventRegistration_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Complete relationships.
         /// </summary>
         public static string CompleteRelationships {
@@ -259,6 +304,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Involves {0} code elements.
+        /// </summary>
+        public static string Cycle_Groups_CodeElementsDescription {
+            get {
+                return ResourceManager.GetString("Cycle_Groups_CodeElementsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle summary.
         /// </summary>
         public static string CycleSummary_TabHeader {
@@ -273,6 +327,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Default_Button {
             get {
                 return ResourceManager.GetString("Default_Button", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default.
+        /// </summary>
+        public static string Default_Label {
+            get {
+                return ResourceManager.GetString("Default_Label", resourceCulture);
             }
         }
         
@@ -309,6 +372,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string DeleteWithChildren {
             get {
                 return ResourceManager.GetString("DeleteWithChildren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while loading data!.
+        /// </summary>
+        public static string DynamicGrid_LoadError {
+            get {
+                return ResourceManager.GetString("DynamicGrid_LoadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No data available.
+        /// </summary>
+        public static string DynamicGrid_NoData {
+            get {
+                return ResourceManager.GetString("DynamicGrid_NoData", resourceCulture);
             }
         }
         
@@ -453,6 +534,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string File_Header {
             get {
                 return ResourceManager.GetString("File_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycles.
+        /// </summary>
+        public static string Find_Cycles_Label {
+            get {
+                return ResourceManager.GetString("Find_Cycles_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finds cyclic code structures.
+        /// </summary>
+        public static string Find_Cycles_Tooltip {
+            get {
+                return ResourceManager.GetString("Find_Cycles_Tooltip", resourceCulture);
             }
         }
         
@@ -718,6 +817,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hovered edge.
+        /// </summary>
+        public static string Hovered_Edge_Label {
+            get {
+                return ResourceManager.GetString("Hovered_Edge_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Import Solution.
         /// </summary>
         public static string ImportSolution_Label {
@@ -777,6 +885,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Layout_Tooltip {
             get {
                 return ResourceManager.GetString("Layout_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Left to Right.
+        /// </summary>
+        public static string Left_To_Right_Label {
+            get {
+                return ResourceManager.GetString("Left_To_Right_Label", resourceCulture);
             }
         }
         
@@ -925,6 +1042,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading ....
+        /// </summary>
+        public static string Load_Message_Default {
+            get {
+                return ResourceManager.GetString("Load_Message_Default", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Load Project.
         /// </summary>
         public static string LoadProject_Label {
@@ -939,6 +1065,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Locations_Label {
             get {
                 return ResourceManager.GetString("Locations_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # Code elements.
+        /// </summary>
+        public static string Metric_CodeElements {
+            get {
+                return ResourceManager.GetString("Metric_CodeElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # Relationships.
+        /// </summary>
+        public static string Metric_Relationships {
+            get {
+                return ResourceManager.GetString("Metric_Relationships", resourceCulture);
             }
         }
         
@@ -1548,29 +1692,38 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer.
+        /// </summary>
+        public static string Tab_Analyzer {
+            get {
+                return ResourceManager.GetString("Tab_Analyzer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycle Groups.
+        /// </summary>
+        public static string Tab_Cycles {
+            get {
+                return ResourceManager.GetString("Tab_Cycles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partitions.
+        /// </summary>
+        public static string Tab_Partitions {
+            get {
+                return ResourceManager.GetString("Tab_Partitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Summary.
         /// </summary>
         public static string Tab_Summary {
             get {
                 return ResourceManager.GetString("Tab_Summary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Summary - Cycle Groups.
-        /// </summary>
-        public static string Tab_Summary_Cycles {
-            get {
-                return ResourceManager.GetString("Tab_Summary_Cycles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Summary - Partitions.
-        /// </summary>
-        public static string Tab_Summary_Partitions {
-            get {
-                return ResourceManager.GetString("Tab_Summary_Partitions", resourceCulture);
             }
         }
         

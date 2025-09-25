@@ -1,7 +1,7 @@
 ﻿using System.Windows.Media;
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public interface IGlobalContextCommand
 {

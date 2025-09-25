@@ -1,15 +1,6 @@
-﻿namespace CSharpCodeAnalyst.Common;
+﻿using CSharpCodeAnalyst.Shared.Contracts;
 
-public interface ISubscriber
-{
-    void Subscribe<TMessage>(Action<TMessage> handler) where TMessage : class;
-    void Unsubscribe<TMessage>(Action<TMessage> handler) where TMessage : class;
-}
-
-public interface IPublisher
-{
-    void Publish<TMessage>(TMessage message) where TMessage : class;
-}
+namespace CSharpCodeAnalyst.Common;
 
 public class MessageBus : ISubscriber, IPublisher
 {

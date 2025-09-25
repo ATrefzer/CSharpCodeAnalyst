@@ -3,8 +3,14 @@
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
-- Consider adding the access modifieres. We could get rid of all private members.
-- Jump to pages
+- Consider adding the access modifiers. We could get rid of all private members.
+
+- Margins for Tables
+- Metrics and Analyzer tables are implemented differently but could be unified
+	- Extend Metric grid
+	- XAML code for row details. 
+
+
 
 UNHANDLED CASES
 ---------------------

@@ -1,7 +1,7 @@
 using System.Windows.Media.Imaging;
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Messages;
 
 public static class CodeElementIconMapper
 {

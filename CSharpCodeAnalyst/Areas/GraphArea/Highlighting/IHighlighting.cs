@@ -1,7 +1,7 @@
 ﻿using Contracts.Graph;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.GraphArea.Highlighting;
+namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal interface IHighlighting
 {

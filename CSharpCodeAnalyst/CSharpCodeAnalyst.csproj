@@ -10,7 +10,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Resources\flag.png" />
+        <Compile Remove="ExternalApplications\**" />
+        <EmbeddedResource Remove="ExternalApplications\**" />
+        <None Remove="ExternalApplications\**" />
+        <Page Remove="ExternalApplications\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Resources\analysis_32.png" />
+        <None Remove="Resources\flag.png" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,6 +30,7 @@
 
 
     <ItemGroup>
+        <Resource Include="Resources\analysis_32.png" />
         <Resource Include="Resources\flag.png" />
         <Resource Include="Resources\guidepost_small.png" />
         <Resource Include="Resources\help_32.png" />
@@ -80,7 +89,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
-        <PackageReference Include="Prism.Core" Version="8.1.97" />
     </ItemGroup>
 
     <!--<ItemGroup>
@@ -92,10 +100,6 @@
     <ItemGroup>
         <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
         <ProjectReference Include="..\Contracts\Contracts.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="ExternalApplications\" />
     </ItemGroup>
 
     <ItemGroup>

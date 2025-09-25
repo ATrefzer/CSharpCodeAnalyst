@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public class PresentationState
 {
+    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _defaultState;
-    private Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _nodeIdToFlagged;
 
     public PresentationState(Dictionary<string, bool> defaultState)

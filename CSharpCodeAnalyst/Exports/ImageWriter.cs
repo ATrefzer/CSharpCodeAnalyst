@@ -29,6 +29,7 @@ public class ImageWriter
         {
             return;
         }
+
         var bitmap = new RenderTargetBitmap((int)visual.ActualWidth, (int)visual.ActualHeight, 96, 96,
             PixelFormats.Pbgra32); // todo: seems wrong - might produce huge images
         bitmap.Render(visual);

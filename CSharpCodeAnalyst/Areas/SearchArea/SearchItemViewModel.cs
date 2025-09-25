@@ -2,9 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Messages;
 
-namespace CSharpCodeAnalyst.SearchArea;
+namespace CSharpCodeAnalyst.Areas.SearchArea;
 
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public class SearchItemViewModel : INotifyPropertyChanged
@@ -13,8 +13,11 @@ public class SearchItemViewModel : INotifyPropertyChanged
     public string Type { get; set; } = string.Empty;
     public string FullPath { get; set; } = string.Empty;
     public CodeElement? CodeElement { get; set; }
-    
-    public BitmapImage? Icon => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+
+    public BitmapImage? Icon
+    {
+        get => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
-using CSharpCodeAnalyst.GraphArea;
-using Prism.Commands;
+using CSharpCodeAnalyst.Areas.GraphArea;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Gallery;
 
@@ -28,10 +28,10 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
 
         Items = new ObservableCollection<GraphSession>(gallery.Sessions);
 
-        AddItemCommand = new DelegateCommand(AddItem, CanAddItem);
-        RemoveItemCommand = new DelegateCommand<GraphSession>(RemoveItem);
-        PreviewSelectedItemCommand = new DelegateCommand<GraphSession>(SelectItem);
-        LoadSelectedItemCommand = new DelegateCommand(Apply, CanApply);
+        AddItemCommand = new WpfCommand(AddItem, CanAddItem);
+        RemoveItemCommand = new WpfCommand<GraphSession>(RemoveItem);
+        PreviewSelectedItemCommand = new WpfCommand<GraphSession>(SelectItem);
+        LoadSelectedItemCommand = new WpfCommand(Apply, CanApply);
     }
 
     public GraphSession? SelectedItem
@@ -45,10 +45,10 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
     }
 
 
-    public DelegateCommand LoadSelectedItemCommand { get; set; }
+    public WpfCommand LoadSelectedItemCommand { get; set; }
 
     public ObservableCollection<GraphSession> Items { get; }
-    public DelegateCommand AddItemCommand { get; }
+    public WpfCommand AddItemCommand { get; }
     public ICommand RemoveItemCommand { get; }
     public ICommand PreviewSelectedItemCommand { get; }
 

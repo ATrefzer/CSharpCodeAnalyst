@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using Contracts.Graph;
-using CSharpCodeAnalyst.GraphArea.RenderOptions;
+using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 internal interface IGraphViewer
 {

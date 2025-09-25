@@ -1,12 +1,13 @@
-﻿using Microsoft.Msagl.Drawing;
+﻿using CSharpCodeAnalyst.Resources;
+using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.GraphArea.RenderOptions;
+namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 
 internal class BottomToTopRenderOptions : RenderOption
 {
     public BottomToTopRenderOptions()
     {
-        Name = "Bottom to Top";
+        Name = Strings.Bottom_To_Top_Label;
     }
 
     public override void Apply(Graph graph)

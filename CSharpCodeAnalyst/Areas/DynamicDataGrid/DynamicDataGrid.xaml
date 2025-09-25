@@ -1,0 +1,56 @@
+﻿<UserControl x:Class="CSharpCodeAnalyst.Areas.DynamicDataGrid.DynamicDataGrid"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="400">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <DataGrid x:Name="MainDataGrid"
+                  Style="{StaticResource ReadOnlyGrid}"
+                  AutoGenerateColumns="False">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridRow">
+
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <!-- Filled dynamically -->
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+
+                    <!-- Does no longer work here. See OnDataGridLoadingRow how it is handled now-->
+                    <!-- <Setter Property="DetailsVisibility" Value="Collapsed" /> -->
+                    <!-- <Style.Triggers> -->
+                    <!--     <DataTrigger Binding="{Binding IsExpanded}" Value="True"> -->
+                    <!--         <Setter Property="DetailsVisibility" Value="Visible" /> -->
+                    <!--     </DataTrigger> -->
+                    <!-- </Style.Triggers> -->
+                </Style>
+            </DataGrid.Resources>
+
+
+            <!-- Columns are added dynamically -->
+        </DataGrid>
+
+        <!-- Loading/Empty State -->
+        <TextBlock x:Name="EmptyStateText"
+                   Text="No data to display"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="Gray"
+                   FontStyle="Italic"
+                   Visibility="Collapsed" />
+    </Grid>
+</UserControl>

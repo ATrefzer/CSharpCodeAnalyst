@@ -46,7 +46,7 @@ internal class CodeElementPartitioner
         // TODO
         // - Other sub graphs for all base classes
         // - Move all children of base classes into the main sub graph
-        // - Add dependencies from original graph that got lost like assess ob base members.
+        // - Add dependencies from original graph that got lost like access to base members.
 
         // Remove the single parent element to avoid that everything is in one partition
         subGraph.RemoveCodeElement(parentElement.Id);

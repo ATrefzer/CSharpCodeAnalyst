@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public interface IGraphBinding
 {

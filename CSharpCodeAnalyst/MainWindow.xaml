@@ -4,11 +4,12 @@
         xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.MetricArea"
-        xmlns:infoPanel="clr-namespace:CSharpCodeAnalyst.InfoPanel"
         mc:Ignorable="d"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
+        xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
+        xmlns:dynamicDataGrid="clr-namespace:CSharpCodeAnalyst.Areas.DynamicDataGrid"
+        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.Areas.MetricArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -18,13 +19,11 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="Areas/TableArea/TableAreaDataTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         </ResourceDictionary>
     </Window.Resources>
-
 
     <Grid>
         <Grid.RowDefinitions>
@@ -78,9 +77,27 @@
                 </RibbonGroup>
 
                 <RibbonGroup Header="Tools" LargeImageSource="/Resources/cycle_32.png">
-                    <RibbonButton Label="{x:Static resources:Strings.Find_Label}"
+                    <RibbonButton Label="{x:Static resources:Strings.Find_Cycles_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" />
+
+                    <RibbonSplitButton Label="{x:Static resources:Strings.Analyzers_Label}"
+                                       LargeImageSource="/Resources/analysis_32.png"
+                                       ItemsSource="{Binding Analyzers}">
+
+                        <!-- Integrate analyzers -->
+                        <RibbonSplitButton.ItemContainerStyle>
+                            <Style TargetType="RibbonMenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="ToolTip" Value="{Binding Description}" />
+                                <Setter Property="ImageSource" Value="/Resources/analysis_32.png" />
+                                <Setter Property="Command"
+                                        Value="{Binding DataContext.ExecuteAnalyzerCommand, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <Setter Property="CommandParameter" Value="{Binding Id}" />
+                            </Style>
+                        </RibbonSplitButton.ItemContainerStyle>
+                    </RibbonSplitButton>
+
                 </RibbonGroup>
 
 
@@ -409,7 +426,7 @@
                                             Command="{Binding AddSelectedToGraphCollapsedCommand}"
                                             CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
-                                        <Separator/>
+                                        <Separator />
                                         <MenuItem Header="{x:Static resources:Strings.Partition}"
                                                   Command="{Binding PartitionCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
@@ -484,7 +501,7 @@
                     <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
 
                         <!-- Info panel -->
-                        <infoPanel:InfoPanel
+                        <infoArea:InfoPanel
                             VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
                             DataContext="{Binding InfoPanelViewModel}" />
                     </TabItem>
@@ -508,11 +525,19 @@
                     <TabItem.Header>Code Explorer</TabItem.Header>
                     <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
-                <TabItem Header="{Binding TableViewModel.Title}">
+
+                <!--<TabItem Header="{Binding TableViewModel.Title}">
                     <Grid DataContext="{Binding TableViewModel}">
-                        <ContentPresenter Content="{Binding }"
-                                          ContentTemplateSelector="{StaticResource ResultTableTemplateSelector}" />
+                        <ContentPresenter Content="{Binding }" />
                     </Grid>
+                </TabItem>-->
+
+                <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
+                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding Cycles}" />
+                </TabItem>
+
+                <TabItem Header="{x:Static resources:Strings.Tab_Analyzer}">
+                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">

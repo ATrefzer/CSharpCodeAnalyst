@@ -1,6 +1,6 @@
 ﻿using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 /// <summary>
 ///     Minimum state required to restore a graph session.

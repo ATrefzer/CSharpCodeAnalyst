@@ -1,14 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using CSharpCodeAnalyst.Shared.Contracts;
+using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace CSharpCodeAnalyst.MetricArea;
+namespace CSharpCodeAnalyst.Areas.MetricArea;
 
-/// <summary>
-///     Interaction logic for MetricView.xaml
-/// </summary>
 public partial class MetricView
 {
     public static readonly DependencyProperty DataProperty =

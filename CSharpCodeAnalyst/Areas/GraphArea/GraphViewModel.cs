@@ -7,15 +7,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CodeParser.Extensions;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using Prism.Commands;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 internal class GraphViewModel : INotifyPropertyChanged
 {
@@ -149,7 +150,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         */
 
 
-        UndoCommand = new DelegateCommand(Undo);
+        UndoCommand = new WpfCommand(Undo);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }

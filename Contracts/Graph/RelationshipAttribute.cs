@@ -12,8 +12,9 @@ public enum RelationshipAttribute : uint
     IsInstanceCall = 8,
     IsExtensionMethodCall = 16,
     IsMethodGroup = 32,
+    EventRegistration = 64,
+    EventUnregistration = 128
 }
-
 
 public static class RelationshipAttributeExtensions
 {
@@ -40,5 +41,4 @@ public static class RelationshipAttributeExtensions
 
         return "[" + string.Join(", ", attributes) + "]";
     }
-
 }
