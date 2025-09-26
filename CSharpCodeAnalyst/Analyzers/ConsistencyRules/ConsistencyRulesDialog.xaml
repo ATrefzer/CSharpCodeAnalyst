@@ -58,11 +58,20 @@
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="DarkGray">
                 <Run Text="Examples:"/>
                 <LineBreak/>
-                <Run Text="DENY: Business.** !-> Data.**"/>
+                <Run Text="DENY: Business.** -> Data.**"/>
                 <LineBreak/>
-                <Run Text="ALLOW: Controllers.** -> Services.**"/>
+                <Run Text="RESTRICT: Controllers.** -> Services.**"/>
                 <LineBreak/>
-                <Run Text="ISOLATE: Core.** -> Core.**"/>
+                <Run Text="ISOLATE: Core.**"/>
+                <LineBreak/>
+                <LineBreak/>
+                <Run Text="Rule Types:"/>
+                <LineBreak/>
+                <Run Text="• DENY: Forbids dependencies from source to target"/>
+                <LineBreak/>
+                <Run Text="• RESTRICT: Allows only specified dependencies"/>
+                <LineBreak/>
+                <Run Text="• ISOLATE: Completely isolates source from external dependencies"/>
                 <LineBreak/>
                 <LineBreak/>
                 <Run Text="Use * for single level, ** for multi-level matching"/>

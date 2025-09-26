@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using System.Windows;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messaging;
@@ -12,7 +13,7 @@ namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
 public class Analyzer : IAnalyzer
 {
     private readonly IPublisher _messaging;
-    private List<ConsistencyRule> _rules = [];
+    private List<ConsistencyRuleBase> _rules = [];
     private string _rulesText = string.Empty;
 
     public Analyzer(IPublisher messaging)
@@ -43,6 +44,9 @@ public class Analyzer : IAnalyzer
 
 
             // Execute analysis
+            var rulesSummary = GetRulesSummary();
+            MessageBox.Show($"Rules configured successfully!\n\n{rulesSummary}\n\nRules will be saved with the project.\n\nAnalysis implementation will follow in the next step.",
+                "Consistency Rules", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 
@@ -99,48 +103,66 @@ public class Analyzer : IAnalyzer
                // Lines starting with // are comments
 
                // Business layer should not access Data layer directly
-               DENY: Business.** !-> Data.**
+               DENY: Business.** -> Data.**
 
                // Controllers may only access Services
-               ISOLATE: Controllers.** -> Services.**
+               RESTRICT: Controllers.** -> Services.**
 
                // Core components may not depend on UI
-               DENY: Core.** !-> UI.**
+               DENY: Core.** -> UI.**
 
-               // Allow specific exceptions
-               ALLOW: Core.Logging.** -> UI.Controls.MessageBox
+               // Domain should be completely isolated
+               ISOLATE: Domain.**
                """;
     }
 
     private void ParseAndStoreRules(string rulesText)
     {
-        if (string.IsNullOrWhiteSpace(rulesText))
-            return;
+        _rules = RuleParser.ParseRules(rulesText);
+        _rulesText = rulesText;
+    }
 
-        var newRules = new List<ConsistencyRule>();
-        var lines = rulesText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+    private string GetRulesSummary()
+    {
+        if (_rules.Count == 0)
+            return "No rules defined.";
 
-        foreach (var line in lines)
+        var summary = $"Found {_rules.Count} rules:\n\n";
+
+        var denyRules = _rules.OfType<DenyRule>().ToList();
+        var restrictRules = _rules.OfType<RestrictRule>().ToList();
+        var isolateRules = _rules.OfType<IsolateRule>().ToList();
+
+        if (denyRules.Any())
         {
-            var trimmedLine = line.Trim();
-
-            // Skip comments and empty lines
-            if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith("//"))
-                continue;
-
-            var rule = new ConsistencyRule
+            summary += $"DENY rules ({denyRules.Count}):\n";
+            foreach (var rule in denyRules)
             {
-                RuleText = trimmedLine,
-                Description = $"Parsed rule: {trimmedLine}",
-                IsEnabled = true
-            };
-
-            newRules.Add(rule);
+                summary += $"  • {rule.Source} -> {rule.Target}\n";
+            }
+            summary += "\n";
         }
 
-        _rules.Clear();
-        _rules.AddRange(newRules);
-        _rulesText = rulesText;
+        if (restrictRules.Any())
+        {
+            summary += $"RESTRICT rules ({restrictRules.Count}):\n";
+            foreach (var rule in restrictRules)
+            {
+                summary += $"  • {rule.Source} -> {rule.Target}\n";
+            }
+            summary += "\n";
+        }
+
+        if (isolateRules.Any())
+        {
+            summary += $"ISOLATE rules ({isolateRules.Count}):\n";
+            foreach (var rule in isolateRules)
+            {
+                summary += $"  • {rule.Source}\n";
+            }
+        }
+
+        return summary.TrimEnd();
     }
 
     
