@@ -1,21 +1,22 @@
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
-/// Groups multiple RESTRICT rules with the same source pattern
+///     Groups multiple RESTRICT rules with the same source pattern
 /// </summary>
 public class RestrictRuleGroup
 {
-    public string Source { get; set; } = string.Empty;
-    public List<RestrictRule> Rules { get; set; } = [];
-    public HashSet<string> AllowedTargetIds { get; set; } = [];
 
     public RestrictRuleGroup(string source, IEnumerable<RestrictRule> rules)
     {
         Source = source;
         Rules = rules.ToList();
     }
+
+    public string Source { get; set; } = string.Empty;
+    public List<RestrictRule> Rules { get; set; } = [];
+    public HashSet<string> AllowedTargetIds { get; set; } = [];
 
     public List<Relationship> ValidateGroup(
         HashSet<string> sourceIds,

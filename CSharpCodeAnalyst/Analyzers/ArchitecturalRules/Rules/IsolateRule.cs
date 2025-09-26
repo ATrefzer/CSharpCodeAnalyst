@@ -1,15 +1,13 @@
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
-/// Denies dependencies from source to target patterns
-/// Syntax: DENY: Source -> Target
+///     Isolates source pattern from any external dependencies
+///     Syntax: ISOLATE: Source
 /// </summary>
-public class DenyRule : ConsistencyRuleBase
+public class IsolateRule : RuleBase
 {
-    public string Target { get; set; } = string.Empty;
-
     public override List<Relationship> ValidateRule(
         HashSet<string> sourceIds,
         HashSet<string> targetIds,
@@ -19,8 +17,8 @@ public class DenyRule : ConsistencyRuleBase
 
         foreach (var relationship in allRelationships)
         {
-            // DENY violation: source uses target (which is forbidden)
-            if (sourceIds.Contains(relationship.SourceId) && targetIds.Contains(relationship.TargetId))
+            // ISOLATE violation: source uses anything outside of itself
+            if (sourceIds.Contains(relationship.SourceId) && !sourceIds.Contains(relationship.TargetId))
             {
                 violations.Add(relationship);
             }

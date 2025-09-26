@@ -1,22 +1,22 @@
+using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Table;
 using CSharpCodeAnalyst.Wpf;
-using System.Collections.ObjectModel;
-using System.Net.Mime;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public class ConsistencyViolationViewModel : TableRow
+public class RuleViolationViewModel : TableRow
 {
-    private readonly Violation _violation;
     private readonly CodeGraph _codeGraph;
+    private readonly Violation _violation;
 
-    public ConsistencyViolationViewModel(Violation violation, CodeGraph codeGraph)
+    public RuleViolationViewModel(Violation violation, CodeGraph codeGraph)
     {
         ErrorIcon = IconLoader.LoadIcon("Resources/error.png");
         _violation = violation;
@@ -30,7 +30,7 @@ public class ConsistencyViolationViewModel : TableRow
 
         // Detail relationships
         RelationshipDetails = CreateRelationshipDetails();
-        OpenSourceLocationCommand = new WpfCommand<RelationshipDetailViewModel>(OnOpenSourceLocation);
+        OpenSourceLocationCommand = new WpfCommand<RelationshipViewModel>(OnOpenSourceLocation);
     }
 
     public ImageSource? ErrorIcon { get; set; }
@@ -42,7 +42,7 @@ public class ConsistencyViolationViewModel : TableRow
     public int ViolationCount { get; }
 
     // Detail data
-    public ObservableCollection<RelationshipDetailViewModel> RelationshipDetails { get; }
+    public ObservableCollection<RelationshipViewModel> RelationshipDetails { get; }
     public ICommand OpenSourceLocationCommand { get; }
 
     private string GetRuleTypeDisplayName()
@@ -54,16 +54,16 @@ public class ConsistencyViolationViewModel : TableRow
     {
         return _violation.Rule switch
         {
-            Rules.DenyRule denyRule => denyRule.Target,
-            Rules.RestrictRule restrictRule => restrictRule.Target,
-            Rules.IsolateRule => "(isolated)",
+            DenyRule denyRule => denyRule.Target,
+            RestrictRule restrictRule => restrictRule.Target,
+            IsolateRule => "(isolated)",
             _ => ""
         };
     }
 
-    private ObservableCollection<RelationshipDetailViewModel> CreateRelationshipDetails()
+    private ObservableCollection<RelationshipViewModel> CreateRelationshipDetails()
     {
-        var details = new ObservableCollection<RelationshipDetailViewModel>();
+        var details = new ObservableCollection<RelationshipViewModel>();
 
         foreach (var relationship in _violation.ViolatingRelationships)
         {
@@ -72,7 +72,7 @@ public class ConsistencyViolationViewModel : TableRow
 
             if (sourceElement != null && targetElement != null)
             {
-                var detailViewModel = new RelationshipDetailViewModel(relationship, sourceElement, targetElement);
+                var detailViewModel = new RelationshipViewModel(relationship, sourceElement, targetElement);
                 details.Add(detailViewModel);
             }
         }
@@ -80,7 +80,7 @@ public class ConsistencyViolationViewModel : TableRow
         return details;
     }
 
-    private void OnOpenSourceLocation(RelationshipDetailViewModel? detailViewModel)
+    private void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
     {
         if (detailViewModel?.SourceLocation is null)
         {

@@ -15,7 +15,6 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;

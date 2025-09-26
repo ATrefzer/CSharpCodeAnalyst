@@ -10,12 +10,12 @@ public interface IAnalyzer
     void Analyze(CodeGraph graph);
 
     /// <summary>
-    /// Returns persistent data as JSON string, or null if no data to persist
+    ///     Returns persistent data as JSON string, or null if no data to persist
     /// </summary>
     string? GetPersistentData();
 
     /// <summary>
-    /// Sets persistent data from JSON string
+    ///     Sets persistent data from JSON string
     /// </summary>
     void SetPersistentData(string? data);
 }

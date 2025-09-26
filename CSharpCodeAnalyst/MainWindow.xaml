@@ -562,6 +562,6 @@
         <!-- Toast Notification Container -->
         <Canvas x:Name="ToastContainer"
                 Grid.Row="0" Grid.RowSpan="2"
-                IsHitTestVisible="False"/>
+                IsHitTestVisible="False" />
     </Grid>
 </Window>

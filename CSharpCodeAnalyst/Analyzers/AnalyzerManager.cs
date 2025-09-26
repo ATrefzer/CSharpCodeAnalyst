@@ -1,5 +1,4 @@
-﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+﻿using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Analyzers;
@@ -18,18 +17,8 @@ internal class AnalyzerManager : IAnalyzerManager
         get => _analyzers.Values.ToList();
     }
 
-    public void LoadAnalyzers(IPublisher messaging)
-    {
-        _analyzers.Clear();
-        var eventAnalyzer = new EventRegistration.Analyzer(messaging);
-        _analyzers.Add(eventAnalyzer.Id, eventAnalyzer);
-
-        var consistencyAnalyzer = new ConsistencyRules.Analyzer(messaging);
-        _analyzers.Add(consistencyAnalyzer.Id, consistencyAnalyzer);
-    }
-
     /// <summary>
-    /// Collects persistent data from all analyzers
+    ///     Collects persistent data from all analyzers
     /// </summary>
     public Dictionary<string, string> CollectAnalyzerData()
     {
@@ -48,7 +37,7 @@ internal class AnalyzerManager : IAnalyzerManager
     }
 
     /// <summary>
-    /// Restores persistent data to all analyzers
+    ///     Restores persistent data to all analyzers
     /// </summary>
     public void RestoreAnalyzerData(Dictionary<string, string> data)
     {
@@ -59,5 +48,15 @@ internal class AnalyzerManager : IAnalyzerManager
                 analyzer.SetPersistentData(analyzerData);
             }
         }
+    }
+
+    public void LoadAnalyzers(IPublisher messaging)
+    {
+        _analyzers.Clear();
+        IAnalyzer analyzer = new EventRegistration.Analyzer(messaging);
+        _analyzers.Add(analyzer.Id, analyzer);
+
+        analyzer = new Analyzer(messaging);
+        _analyzers.Add(analyzer.Id, analyzer);
     }
 }

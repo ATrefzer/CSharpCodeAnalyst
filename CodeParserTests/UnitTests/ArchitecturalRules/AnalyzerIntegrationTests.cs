@@ -1,20 +1,21 @@
 using CodeParserTests.Helper;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
-namespace CodeParserTests.UnitTests.ConsistencyRules;
+namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
 [TestFixture]
 public class AnalyzerIntegrationTests
 {
-    private TestCodeGraph _codeGraph;
 
     [SetUp]
     public void SetUp()
     {
         _codeGraph = new TestCodeGraph();
     }
+
+    private TestCodeGraph _codeGraph;
 
     private List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
     {
@@ -131,7 +132,7 @@ public class AnalyzerIntegrationTests
         // Check RESTRICT violations (should have 2)
         var restrictViolations = results.Where(v => v.Rule.RuleText.Contains("RESTRICT")).ToList();
         Assert.AreEqual(1, restrictViolations.Count);
-        Assert.AreEqual(2,  restrictViolations[0].ViolatingRelationships.Count);
+        Assert.AreEqual(2, restrictViolations[0].ViolatingRelationships.Count);
 
         // Check ISOLATE violation
         var isolateViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("ISOLATE"));

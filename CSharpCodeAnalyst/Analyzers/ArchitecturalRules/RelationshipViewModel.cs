@@ -5,15 +5,15 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public class RelationshipDetailViewModel
+public class RelationshipViewModel
 {
+    private readonly Relationship _relationship;
     private readonly CodeElement _sourceElement;
     private readonly CodeElement _targetElement;
-    private readonly Relationship _relationship;
 
-    public RelationshipDetailViewModel(Relationship relationship, CodeElement sourceElement, CodeElement targetElement)
+    public RelationshipViewModel(Relationship relationship, CodeElement sourceElement, CodeElement targetElement)
     {
         _relationship = relationship;
         _sourceElement = sourceElement;
@@ -29,7 +29,11 @@ public class RelationshipDetailViewModel
     public string Description { get; }
     public ICommand OpenSourceLocationCommand { get; }
     public SourceLocation? SourceLocation { get; }
-    public bool HasSourceLocation => SourceLocation != null;
+
+    public bool HasSourceLocation
+    {
+        get => SourceLocation != null;
+    }
 
     private SourceLocation? GetBestSourceLocation()
     {

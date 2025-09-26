@@ -1,12 +1,12 @@
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public static class PatternMatcher
 {
     /// <summary>
-    /// Resolves a pattern like "Business.**" to a set of CodeElement IDs
-    /// Pattern format: "Base.Path" or "Base.Path.*" or "Base.Path.**"
+    ///     Resolves a pattern like "Business.**" to a set of CodeElement IDs
+    ///     Pattern format: "Base.Path" or "Base.Path.*" or "Base.Path.**"
     /// </summary>
     public static HashSet<string> ResolvePattern(string pattern, CodeGraph codeGraph)
     {
@@ -70,6 +70,7 @@ public static class PatternMatcher
                 {
                     matchingIds.Add(child.Id);
                 }
+
                 break;
 
             case ExpansionMode.Recursive:
@@ -79,14 +80,15 @@ public static class PatternMatcher
                 {
                     matchingIds.Add(descendant);
                 }
+
                 break;
         }
     }
 
     private enum ExpansionMode
     {
-        Self,           // No wildcard - just the element itself
+        Self, // No wildcard - just the element itself
         DirectChildren, // .* - element + direct children
-        Recursive       // .** - element + all descendants
+        Recursive // .** - element + all descendants
     }
 }

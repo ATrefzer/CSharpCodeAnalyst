@@ -1,20 +1,21 @@
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Violation
 {
-    public ConsistencyRuleBase Rule { get; set; } = null!;
-    public List<Relationship> ViolatingRelationships { get; set; } = [];
-    public string Description { get; set; } = string.Empty;
 
-    public Violation(ConsistencyRuleBase rule, IEnumerable<Relationship> violatingRelationships)
+    public Violation(RuleBase rule, IEnumerable<Relationship> violatingRelationships)
     {
         Rule = rule;
         ViolatingRelationships = violatingRelationships.ToList();
         Description = GenerateDescription();
     }
+
+    public RuleBase Rule { get; set; } = null!;
+    public List<Relationship> ViolatingRelationships { get; set; } = [];
+    public string Description { get; set; } = string.Empty;
 
     private string GenerateDescription()
     {

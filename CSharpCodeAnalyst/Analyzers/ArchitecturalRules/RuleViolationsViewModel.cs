@@ -1,22 +1,20 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Media;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Shared.Table;
-using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public class ConsistencyViolationsViewModel : Table
+public class RuleViolationsViewModel : Table
 {
-  
+
 
     private readonly ObservableCollection<TableRow> _violations;
 
-    public ConsistencyViolationsViewModel(List<Violation> violations, CodeGraph codeGraph)
+    public RuleViolationsViewModel(List<Violation> violations, CodeGraph codeGraph)
     {
-        Title = "Consistency Rule Violations";
-        var violationViewModels = violations.Select(v => new ConsistencyViolationViewModel(v, codeGraph));
+        Title = "Rule violations";
+        var violationViewModels = violations.Select(v => new RuleViolationViewModel(v, codeGraph));
         _violations = new ObservableCollection<TableRow>(violationViewModels);
     }
 
@@ -28,32 +26,32 @@ public class ConsistencyViolationsViewModel : Table
             {
                 Type = ColumnType.Icon,
                 Header = "",
-                PropertyName = nameof(ConsistencyViolationViewModel.ErrorIcon),
+                PropertyName = nameof(RuleViolationViewModel.ErrorIcon)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = "Rule Type",
-                PropertyName = nameof(ConsistencyViolationViewModel.RuleType),
+                PropertyName = nameof(RuleViolationViewModel.RuleType),
                 IsExpandable = true
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = "Source",
-                PropertyName = nameof(ConsistencyViolationViewModel.Source),
+                PropertyName = nameof(RuleViolationViewModel.Source)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = "Target",
-                PropertyName = nameof(ConsistencyViolationViewModel.Target),
+                PropertyName = nameof(RuleViolationViewModel.Target)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = "Violations",
-                PropertyName = nameof(ConsistencyViolationViewModel.ViolationCount),
+                PropertyName = nameof(RuleViolationViewModel.ViolationCount)
             }
         };
     }

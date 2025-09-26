@@ -1,7 +1,7 @@
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
-namespace CodeParserTests.UnitTests.ConsistencyRules;
+namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
 [TestFixture]
 public class RuleParserTests

@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public static class RuleParser
 {
@@ -9,7 +9,7 @@ public static class RuleParser
     private static readonly Regex RestrictRegex = new(@"^\s*RESTRICT\s*:\s*(.+?)\s*->\s*(.+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static readonly Regex IsolateRegex = new(@"^\s*ISOLATE\s*:\s*(.+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    public static ConsistencyRuleBase ParseRule(string ruleText)
+    public static RuleBase ParseRule(string ruleText)
     {
         if (string.IsNullOrWhiteSpace(ruleText))
         {
@@ -62,16 +62,16 @@ public static class RuleParser
                                   "ISOLATE: Source");
     }
 
-    public static List<ConsistencyRuleBase> ParseRules(string rulesText)
+    public static List<RuleBase> ParseRules(string rulesText)
     {
-        var rules = new List<ConsistencyRuleBase>();
+        var rules = new List<RuleBase>();
 
         if (string.IsNullOrWhiteSpace(rulesText))
             return rules;
 
         var lines = rulesText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-        for (int i = 0; i < lines.Length; i++)
+        for (var i = 0; i < lines.Length; i++)
         {
             var line = lines[i].Trim();
 

@@ -1,19 +1,18 @@
 using System.Diagnostics;
-using System.Linq.Expressions;
 using System.Text.Json;
 using System.Windows;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messaging;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {
     private readonly IPublisher _messaging;
-    private List<ConsistencyRuleBase> _rules = [];
+    private List<RuleBase> _rules = [];
     private string _rulesText = string.Empty;
 
     public Analyzer(IPublisher messaging)
@@ -23,7 +22,7 @@ public class Analyzer : IAnalyzer
 
     public void Analyze(CodeGraph graph)
     {
-        var dialog = new ConsistencyRulesDialog();
+        var dialog = new ArchitecturalRulesDialog();
         dialog.Owner = Application.Current.MainWindow;
         dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
@@ -36,7 +35,7 @@ public class Analyzer : IAnalyzer
             {
                 ParseAndStoreRules(dialog.RulesText);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"Error parsing rules: {ex.Message}", Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -48,31 +47,31 @@ public class Analyzer : IAnalyzer
 
             if (violations.Count == 0)
             {
-                MessageBox.Show("No consistency rule violations found!", "Consistency Rules",
+                MessageBox.Show("No rule violations found!", "Architectural rules",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
                 // Show violations in tabular format
-                var violationsViewModel = new ConsistencyViolationsViewModel(violations, graph);
+                var violationsViewModel = new RuleViolationsViewModel(violations, graph);
                 _messaging.Publish(new ShowTabularDataRequest(violationsViewModel));
             }
         }
     }
 
-    public string Name { get; } = "Consistency Rules";
-    public string Description { get; set; } = "Analyzes code consistency based on user-defined rules";
+    public string Name { get; } = "Architectural rules";
+    public string Description { get; set; } = "Validates your architectural constraints based on user-defined rules";
 
-    public string Id { get; } = "ConsistencyRules";
+    public string Id { get; } = "ArchitecturalRules";
 
     public string? GetPersistentData()
     {
         if (string.IsNullOrEmpty(_rulesText))
             return null;
 
-        var persistentData = new ConsistencyRulesPersistentData
+        var persistentData = new PersistenceData
         {
-            RulesText = _rulesText,
+            RulesText = _rulesText
         };
 
         return JsonSerializer.Serialize(persistentData);
@@ -89,7 +88,7 @@ public class Analyzer : IAnalyzer
 
         try
         {
-            var persistentData = JsonSerializer.Deserialize<ConsistencyRulesPersistentData>(data);
+            var persistentData = JsonSerializer.Deserialize<PersistenceData>(data);
             if (persistentData != null)
             {
                 var rulesText = persistentData.RulesText ?? string.Empty;
@@ -109,7 +108,7 @@ public class Analyzer : IAnalyzer
     private string GetSampleRules()
     {
         return """
-               // Sample Consistency Rules
+               // Sample rules
                // Lines starting with // are comments
 
                // Business layer should not access Data layer directly
@@ -153,6 +152,7 @@ public class Analyzer : IAnalyzer
             {
                 summary += $"  • {rule.Source} -> {rule.Target}\n";
             }
+
             summary += "\n";
         }
 
@@ -163,6 +163,7 @@ public class Analyzer : IAnalyzer
             {
                 summary += $"  • {rule.Source} -> {rule.Target}\n";
             }
+
             summary += "\n";
         }
 

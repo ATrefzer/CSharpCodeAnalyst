@@ -1,18 +1,19 @@
 using CodeParserTests.Helper;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-namespace CodeParserTests.UnitTests.ConsistencyRules;
+namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
 [TestFixture]
 public class PatternMatcherTests
 {
-    private TestCodeGraph _codeGraph;
 
     [SetUp]
     public void SetUp()
     {
         _codeGraph = new TestCodeGraph();
     }
+
+    private TestCodeGraph _codeGraph;
 
     [Test]
     public void ResolvePattern_ExactMatch_ShouldReturnElement()

@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace CSharpCodeAnalyst.Wpf
+namespace CSharpCodeAnalyst.Wpf;
+
+internal static class IconLoader
 {
-    internal static class IconLoader
+    private static readonly Dictionary<string, ImageSource?> IconCache = new();
+
+    public static ImageSource? LoadIcon(string iconPath)
     {
-        private static readonly Dictionary<string, ImageSource?> IconCache = new();
-        public static ImageSource? LoadIcon(string iconPath)
+        try
         {
-            try
+            if (IconCache.TryGetValue(iconPath, out var icon))
             {
-                if (IconCache.TryGetValue(iconPath, out var icon))
-                {
-                    return icon;
-                }
-
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri($"pack://application:,,,/{iconPath}");
-                bitmap.DecodePixelWidth = 16;
-                bitmap.DecodePixelHeight = 16;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze();
-
-                IconCache[iconPath] = bitmap;
-                return bitmap;
+                return icon;
             }
-            catch
-            {
-                return null;
-            }
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri($"pack://application:,,,/{iconPath}");
+            bitmap.DecodePixelWidth = 16;
+            bitmap.DecodePixelHeight = 16;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            IconCache[iconPath] = bitmap;
+            return bitmap;
+        }
+        catch
+        {
+            return null;
         }
     }
 }

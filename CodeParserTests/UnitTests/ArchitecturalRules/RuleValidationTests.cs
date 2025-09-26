@@ -1,19 +1,20 @@
 using CodeParserTests.Helper;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
-namespace CodeParserTests.UnitTests.ConsistencyRules;
+namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
 [TestFixture]
 public class RuleValidationTests
 {
-    private TestCodeGraph _codeGraph;
 
     [SetUp]
     public void SetUp()
     {
         _codeGraph = new TestCodeGraph();
     }
+
+    private TestCodeGraph _codeGraph;
 
     [Test]
     public void DenyRule_ValidateRule_ShouldFindViolations()

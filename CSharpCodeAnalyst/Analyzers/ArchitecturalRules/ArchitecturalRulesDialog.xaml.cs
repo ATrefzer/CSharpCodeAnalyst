@@ -4,13 +4,13 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
 
-namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public partial class ConsistencyRulesDialog : Window, INotifyPropertyChanged
+public partial class ArchitecturalRulesDialog : Window, INotifyPropertyChanged
 {
     private string _rulesText = string.Empty;
 
-    public ConsistencyRulesDialog()
+    public ArchitecturalRulesDialog()
     {
         InitializeComponent();
         DataContext = this;
@@ -53,7 +53,7 @@ public partial class ConsistencyRulesDialog : Window, INotifyPropertyChanged
         var openFileDialog = new OpenFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = "Load Consistency Rules"
+            Title = "Load rules"
         };
 
         if (openFileDialog.ShowDialog() == true)
@@ -75,7 +75,7 @@ public partial class ConsistencyRulesDialog : Window, INotifyPropertyChanged
         var saveFileDialog = new SaveFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = "Save Consistency Rules"
+            Title = "Save rules"
         };
 
         if (saveFileDialog.ShowDialog() == true)
