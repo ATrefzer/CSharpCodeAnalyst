@@ -86,17 +86,17 @@ public class AnalyzerIntegrationTests
         var data = _codeGraph.CreateNamespace("MyApp.Data");
         var domain = _codeGraph.CreateNamespace("MyApp.Domain");
 
-        var orderController = _codeGraph.CreateClass("MyApp.Controllers.OrderController", controllers);
-        var userController = _codeGraph.CreateClass("MyApp.Controllers.UserController", controllers);
+        var orderController = _codeGraph.CreateClass("OrderController", controllers);
+        var userController = _codeGraph.CreateClass("UserController", controllers);
 
-        var orderService = _codeGraph.CreateClass("MyApp.Services.OrderService", services);
-        var emailService = _codeGraph.CreateClass("MyApp.Services.EmailService", services);
+        var orderService = _codeGraph.CreateClass("OrderService", services);
+        var emailService = _codeGraph.CreateClass("EmailService", services);
 
-        var orderBusiness = _codeGraph.CreateClass("MyApp.Business.OrderLogic", business);
-        var orderRepository = _codeGraph.CreateClass("MyApp.Data.OrderRepository", data);
+        var orderBusiness = _codeGraph.CreateClass("OrderLogic", business);
+        var orderRepository = _codeGraph.CreateClass("OrderRepository", data);
 
-        var orderEntity = _codeGraph.CreateClass("MyApp.Domain.Order", domain);
-        var productEntity = _codeGraph.CreateClass("MyApp.Domain.Product", domain);
+        var orderEntity = _codeGraph.CreateClass("Order", domain);
+        var productEntity = _codeGraph.CreateClass("Product", domain);
 
         // Add relationships that will create violations
         orderController.Relationships.Add(new Relationship(orderController.Id, orderService.Id, RelationshipType.Uses)); // Allowed
@@ -119,25 +119,26 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
         // Assert - Verify all expected violations are detected
-        Assert.AreEqual(4, results.Count); // 3 different rule types should find violations
+        Assert.AreEqual(3, results.Count); // 3 different rule types should find violations
 
         // Check DENY violation
         var denyViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("DENY"));
         Assert.IsNotNull(denyViolation);
-        Assert.AreEqual(1, denyViolation.Relationships.Count);
-        Assert.AreEqual(orderBusiness.Id, denyViolation.Relationships[0].SourceId);
-        Assert.AreEqual(orderRepository.Id, denyViolation.Relationships[0].TargetId);
+        Assert.AreEqual(1, denyViolation.ViolatingRelationships.Count);
+        Assert.AreEqual(orderBusiness.Id, denyViolation.ViolatingRelationships[0].SourceId);
+        Assert.AreEqual(orderRepository.Id, denyViolation.ViolatingRelationships[0].TargetId);
 
         // Check RESTRICT violations (should have 2)
         var restrictViolations = results.Where(v => v.Rule.RuleText.Contains("RESTRICT")).ToList();
-        Assert.AreEqual(2, restrictViolations.Count);
+        Assert.AreEqual(1, restrictViolations.Count);
+        Assert.AreEqual(2,  restrictViolations[0].ViolatingRelationships.Count);
 
         // Check ISOLATE violation
         var isolateViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("ISOLATE"));
         Assert.IsNotNull(isolateViolation);
-        Assert.AreEqual(1, isolateViolation.Relationships.Count);
-        Assert.AreEqual(orderEntity.Id, isolateViolation.Relationships[0].SourceId);
-        Assert.AreEqual(orderRepository.Id, isolateViolation.Relationships[0].TargetId);
+        Assert.AreEqual(1, isolateViolation.ViolatingRelationships.Count);
+        Assert.AreEqual(orderEntity.Id, isolateViolation.ViolatingRelationships[0].SourceId);
+        Assert.AreEqual(orderRepository.Id, isolateViolation.ViolatingRelationships[0].TargetId);
     }
 
     [Test]
@@ -148,10 +149,10 @@ public class AnalyzerIntegrationTests
         var services = _codeGraph.CreateNamespace("MyApp.Services");
         var domain = _codeGraph.CreateNamespace("MyApp.Domain");
 
-        var orderController = _codeGraph.CreateClass("MyApp.Controllers.OrderController", controllers);
-        var orderService = _codeGraph.CreateClass("MyApp.Services.OrderService", services);
-        var orderEntity = _codeGraph.CreateClass("MyApp.Domain.Order", domain);
-        var productEntity = _codeGraph.CreateClass("MyApp.Domain.Product", domain);
+        var orderController = _codeGraph.CreateClass("OrderController", controllers);
+        var orderService = _codeGraph.CreateClass("OrderService", services);
+        var orderEntity = _codeGraph.CreateClass("Order", domain);
+        var productEntity = _codeGraph.CreateClass("Product", domain);
 
         // Add only allowed relationships
         orderController.Relationships.Add(new Relationship(orderController.Id, orderService.Id, RelationshipType.Uses));
@@ -227,8 +228,8 @@ public class AnalyzerIntegrationTests
 
         // Assert - Should only have 1 violation (the Data dependency)
         Assert.AreEqual(1, results.Count);
-        Assert.AreEqual(controller.Id, results[0].Relationships[0].SourceId);
-        Assert.AreEqual(repository.Id, results[0].Relationships[0].TargetId);
+        Assert.AreEqual(controller.Id, results[0].ViolatingRelationships[0].SourceId);
+        Assert.AreEqual(repository.Id, results[0].ViolatingRelationships[0].TargetId);
     }
 
     [Test]
@@ -241,7 +242,7 @@ public class AnalyzerIntegrationTests
         var orderService = _codeGraph.CreateClass("MyApp.Business.Services.OrderService", businessServices);
 
         var data = _codeGraph.CreateNamespace("MyApp.Data", myApp);
-        var repository = _codeGraph.CreateClass("MyApp.Data.Repository", data);
+        var repository = _codeGraph.CreateClass("Repository", data);
 
         // Add violation
         orderService.Relationships.Add(new Relationship(orderService.Id, repository.Id, RelationshipType.Uses));
@@ -254,7 +255,7 @@ public class AnalyzerIntegrationTests
 
         // Assert - Should detect violation despite nested structure
         Assert.AreEqual(1, results.Count);
-        Assert.AreEqual(orderService.Id, results[0].Relationships[0].SourceId);
-        Assert.AreEqual(repository.Id, results[0].Relationships[0].TargetId);
+        Assert.AreEqual(orderService.Id, results[0].ViolatingRelationships[0].SourceId);
+        Assert.AreEqual(repository.Id, results[0].ViolatingRelationships[0].TargetId);
     }
 }

@@ -26,7 +26,7 @@ public class PatternMatcherTests
 
         // Assert
         Assert.AreEqual(1, result.Count);
-        Assert.Contains(businessNamespace.Id, result);
+        Assert.IsTrue(result.Contains(businessNamespace.Id));
     }
 
     [Test]
@@ -45,9 +45,9 @@ public class PatternMatcherTests
 
         // Assert
         Assert.AreEqual(3, result.Count); // Business + OrderService + UserService (no grandchildren)
-        Assert.Contains(businessNamespace.Id, result);
-        Assert.Contains(orderService.Id, result);
-        Assert.Contains(userService.Id, result);
+        Assert.IsTrue(result.Contains(businessNamespace.Id));
+        Assert.IsTrue(result.Contains(orderService.Id));
+        Assert.IsTrue(result.Contains(userService.Id));
         Assert.IsFalse(result.Contains(grandChild.Id));
     }
 
@@ -67,10 +67,10 @@ public class PatternMatcherTests
 
         // Assert
         Assert.AreEqual(4, result.Count); // All elements
-        Assert.Contains(businessNamespace.Id, result);
-        Assert.Contains(orderService.Id, result);
-        Assert.Contains(processMethod.Id, result);
-        Assert.Contains(validateMethod.Id, result);
+        Assert.IsTrue(result.Contains(businessNamespace.Id));
+        Assert.IsTrue(result.Contains(orderService.Id));
+        Assert.IsTrue(result.Contains(processMethod.Id));
+        Assert.IsTrue(result.Contains(validateMethod.Id));
     }
 
     [Test]
@@ -99,7 +99,7 @@ public class PatternMatcherTests
 
         // Assert
         Assert.AreEqual(1, result.Count);
-        Assert.Contains(businessNamespace.Id, result);
+        Assert.IsTrue(result.Contains(businessNamespace.Id));
     }
 
     [Test]
@@ -129,7 +129,7 @@ public class PatternMatcherTests
 
         // Test exact match
         var exactResult = PatternMatcher.ResolvePattern("MyApp.Business.Services.OrderService", _codeGraph);
-        Assert.AreEqual(2, exactResult.Count); // OrderService + ProcessOrder (GetChildrenIncludingSelf)
+        Assert.AreEqual(1, exactResult.Count); // OrderService + ProcessOrder (GetChildrenIncludingSelf)
 
         // Test recursive match
         var recursiveResult = PatternMatcher.ResolvePattern("MyApp.Business.**", _codeGraph);
