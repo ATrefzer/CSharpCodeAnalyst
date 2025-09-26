@@ -28,8 +28,9 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
 
     public override bool Equals(object? obj)
     {
-        if (obj is CodeElement other)
+        if (obj != null && obj.GetType() == GetType())
         {
+            var other = (CodeElement)obj;
             return Id == other.Id;
         }
 
