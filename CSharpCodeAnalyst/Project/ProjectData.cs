@@ -14,6 +14,11 @@ public class ProjectData
     public Dictionary<string, string> Settings { get; set; } = new();
 
     /// <summary>
+    /// Analyzer persistent data. Key = Analyzer.Id, Value = JSON string from analyzer
+    /// </summary>
+    public Dictionary<string, string> AnalyzerData { get; set; } = new();
+
+    /// <summary>
     ///     Gallery is already serializable.
     /// </summary>
     public Gallery.Gallery Gallery { get; set; } = new();

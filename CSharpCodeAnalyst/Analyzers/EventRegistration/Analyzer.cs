@@ -35,7 +35,18 @@ public class Analyzer : IAnalyzer
     public string Name { get; } = Strings.Analyzer_EventRegistration_Label;
     public string Description { get; set; } = Strings.Analyzer_EventRegistration_Tooltip;
 
-    public string Id { get; } = Guid.NewGuid().ToString();
+    public string Id { get; } = "EventRegistration";
+
+    public string? GetPersistentData()
+    {
+        // EventRegistration analyzer has no persistent data
+        return null;
+    }
+
+    public void SetPersistentData(string? data)
+    {
+        // EventRegistration analyzer has no persistent data
+    }
 
     private static List<Result> FindImbalances(CodeGraph originalGraph)
     {
