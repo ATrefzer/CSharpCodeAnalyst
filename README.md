@@ -89,7 +89,7 @@ In the ribbon, go to Analyzers and there click "Architectural rules". If a proje
 
 
 
-![](../../../Repositories/CSharpCodeAnalyst/Documentation/Images/rule-configuration.png)
+![](Documentation/Images/rule-configuration.png)
 
 There are three rules supported.
 
@@ -128,7 +128,7 @@ MyApp.Business.** → element + all descendants
 
 The result of the analysis is shown in the table output for analyzers.
 
-![](../../../Repositories/CSharpCodeAnalyst/Documentation/Images/rule-result.png)
+![](Documentation/Images/rule-result.png)
 
 
 ## Performance Tips
