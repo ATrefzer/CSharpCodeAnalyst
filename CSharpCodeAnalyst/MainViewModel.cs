@@ -15,7 +15,6 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;
@@ -687,6 +686,10 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadSettings(projectData.Settings);
             LoadCodeGraph(codeGraph);
             _gallery = projectData.GetGallery();
+
+            // Restore analyzer data
+            _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
+
             _isSaved = true;
         }
         catch (Exception ex)
@@ -776,6 +779,9 @@ internal class MainViewModel : INotifyPropertyChanged
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
+
+        // Collect analyzer data
+        projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
 
         // Add other settings here
 

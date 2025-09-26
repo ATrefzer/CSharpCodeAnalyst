@@ -7,6 +7,6 @@ public enum ColumnType
 {
     Text,
     Link,
-    Image,
+    Icon,
     Toggle
 }

@@ -17,11 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Resources\analysis_32.png"/>
-        <None Remove="Resources\flag.png"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -30,7 +25,9 @@
 
 
     <ItemGroup>
+        <Resource Include="Resources\check.png"/>
         <Resource Include="Resources\analysis_32.png"/>
+        <Resource Include="Resources\error.png"/>
         <Resource Include="Resources\flag.png"/>
         <Resource Include="Resources\guidepost_small.png"/>
         <Resource Include="Resources\help_32.png"/>
@@ -85,8 +82,8 @@
 
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.2"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0-rc.1.25451.107" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0-rc.1.25451.107" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0"/>
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122"/>
     </ItemGroup>
