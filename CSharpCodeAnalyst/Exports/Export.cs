@@ -4,6 +4,7 @@ using System.Windows;
 using CodeParser.Export;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.UI;
 using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Exports;
@@ -121,8 +122,7 @@ public static class Export
             var plantUml = exporter.Export(exportGraph);
 
             Clipboard.SetText(plantUml);
-            MessageBox.Show(Strings.ExportPlantUml_Success, Strings.ExportPlantUml_Title,
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            ToastManager.ShowSuccess(Strings.ExportPlantUml_Success, 2500);
         }
         catch (Exception ex)
         {

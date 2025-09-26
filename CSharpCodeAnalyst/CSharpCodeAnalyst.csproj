@@ -17,12 +17,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Resources\analysis_32.png" />
-        <None Remove="Resources\error.png" />
-        <None Remove="Resources\flag.png" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -31,6 +25,7 @@
 
 
     <ItemGroup>
+        <Resource Include="Resources\check.png" />
         <Resource Include="Resources\analysis_32.png" />
         <Resource Include="Resources\error.png" />
         <Resource Include="Resources\flag.png" />
