@@ -53,11 +53,9 @@ public class Analyzer : IAnalyzer
             }
             else
             {
-                var violationsSummary = GetViolationsSummary(violations);
-                MessageBox.Show($"Found {violations.Count} rule violations:\n\n{violationsSummary}",
-                    "Consistency Rules", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                // TODO: Show violations in tabular format
+                // Show violations in tabular format
+                var violationsViewModel = new ConsistencyViolationsViewModel(violations, graph);
+                _messaging.Publish(new ShowTabularDataRequest(violationsViewModel));
             }
         }
     }
@@ -247,18 +245,4 @@ public class Analyzer : IAnalyzer
 
         return violations;
     }
-
-    private string GetViolationsSummary(List<Violation> violations)
-    {
-        var summary = "";
-
-        foreach (var violation in violations)
-        {
-            summary += $"• {violation.Description}\n";
-        }
-
-        return summary.TrimEnd();
-    }
-
-    
 }

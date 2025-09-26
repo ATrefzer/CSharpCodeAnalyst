@@ -126,7 +126,7 @@ public partial class DynamicDataGrid : UserControl
         {
             ColumnType.Text => CreateTextColumn(columnDef),
             ColumnType.Link => CreateLinkColumn(columnDef),
-            ColumnType.Image => CreateImageColumn(columnDef),
+            ColumnType.Icon => CreateIconColumn(columnDef),
             ColumnType.Toggle => CreateToggleColumn(columnDef),
             _ => CreateTextColumn(columnDef)
         };
@@ -244,20 +244,20 @@ public partial class DynamicDataGrid : UserControl
         return template;
     }
 
-    private DataGridTemplateColumn CreateImageColumn(TableColumnDefinition columnDef)
+    private DataGridTemplateColumn CreateIconColumn(TableColumnDefinition columnDef)
     {
         var column = new DataGridTemplateColumn
         {
             Header = columnDef.Header,
-            Width = columnDef.Width == 0 ? new DataGridLength(50) : new DataGridLength(columnDef.Width)
+            Width = columnDef.Width == 0 ? new DataGridLength(20) : new DataGridLength(columnDef.Width)
         };
 
         var cellTemplate = new DataTemplate();
         var factory = new FrameworkElementFactory(typeof(Image));
         factory.SetValue(Image.SourceProperty, new Binding(columnDef.PropertyName));
-        factory.SetValue(HeightProperty, 24.0);
-        factory.SetValue(WidthProperty, 24.0);
-        factory.SetValue(Image.StretchProperty, Stretch.Uniform);
+        factory.SetValue(HeightProperty, 16.0);
+        factory.SetValue(WidthProperty, 16.0);
+        factory.SetValue(Image.StretchProperty, Stretch.None);
 
         cellTemplate.VisualTree = factory;
         column.CellTemplate = cellTemplate;

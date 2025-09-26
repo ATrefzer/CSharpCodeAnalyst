@@ -10,6 +10,9 @@
 	- Extend Metric grid
 	- XAML code for row details. 
 
+- More Source Locations
+- Copy Full Path Clipboard
+- Feedback when copying to clipboard
 
 
 UNHANDLED CASES
