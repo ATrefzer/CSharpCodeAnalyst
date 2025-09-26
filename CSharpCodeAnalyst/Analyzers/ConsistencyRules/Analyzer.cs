@@ -44,9 +44,21 @@ public class Analyzer : IAnalyzer
 
 
             // Execute analysis
-            var rulesSummary = GetRulesSummary();
-            MessageBox.Show($"Rules configured successfully!\n\n{rulesSummary}\n\nRules will be saved with the project.\n\nAnalysis implementation will follow in the next step.",
-                "Consistency Rules", MessageBoxButton.OK, MessageBoxImage.Information);
+            var violations = ExecuteAnalysis(graph);
+
+            if (violations.Count == 0)
+            {
+                MessageBox.Show("No consistency rule violations found!", "Consistency Rules",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                var violationsSummary = GetViolationsSummary(violations);
+                MessageBox.Show($"Found {violations.Count} rule violations:\n\n{violationsSummary}",
+                    "Consistency Rules", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                // TODO: Show violations in tabular format
+            }
         }
     }
 
@@ -103,16 +115,19 @@ public class Analyzer : IAnalyzer
                // Lines starting with // are comments
 
                // Business layer should not access Data layer directly
-               DENY: Business.** -> Data.**
+               DENY: MyApp.Business.** -> MyApp.Data.**
 
                // Controllers may only access Services
-               RESTRICT: Controllers.** -> Services.**
+               RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
 
                // Core components may not depend on UI
-               DENY: Core.** -> UI.**
+               DENY: MyApp.Core.** -> MyApp.UI.**
 
                // Domain should be completely isolated
-               ISOLATE: Domain.**
+               ISOLATE: MyApp.Domain.**
+
+               // Specific class restrictions
+               DENY: MyApp.Models.User -> MyApp.Data.Database
                """;
     }
 
@@ -160,6 +175,86 @@ public class Analyzer : IAnalyzer
             {
                 summary += $"  • {rule.Source}\n";
             }
+        }
+
+        return summary.TrimEnd();
+    }
+
+    private List<Violation> ExecuteAnalysis(CodeGraph graph)
+    {
+        var violations = new List<Violation>();
+
+        if (_rules.Count == 0)
+            return violations;
+
+        var allRelationships = graph.GetAllRelationships().ToList();
+
+        // Group rules by type and source
+        var denyRules = _rules.OfType<DenyRule>().ToList();
+        var isolateRules = _rules.OfType<IsolateRule>().ToList();
+        var restrictRules = _rules.OfType<RestrictRule>().ToList();
+
+        // Process DENY rules (each is independent)
+        foreach (var denyRule in denyRules)
+        {
+            var sourceIds = PatternMatcher.ResolvePattern(denyRule.Source, graph);
+            var targetIds = PatternMatcher.ResolvePattern(denyRule.Target, graph);
+
+            var ruleViolations = denyRule.ValidateRule(sourceIds, targetIds, allRelationships);
+            if (ruleViolations.Count > 0)
+            {
+                violations.Add(new Violation(denyRule, ruleViolations));
+            }
+        }
+
+        // Process ISOLATE rules (each is independent)
+        foreach (var isolateRule in isolateRules)
+        {
+            var sourceIds = PatternMatcher.ResolvePattern(isolateRule.Source, graph);
+            var emptyTargetIds = new HashSet<string>(); // Not used for ISOLATE
+
+            var ruleViolations = isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships);
+            if (ruleViolations.Count > 0)
+            {
+                violations.Add(new Violation(isolateRule, ruleViolations));
+            }
+        }
+
+        // Process RESTRICT rules (group by source)
+        var restrictGroups = restrictRules.GroupBy(r => r.Source).ToList();
+        foreach (var group in restrictGroups)
+        {
+            var restrictGroup = new RestrictRuleGroup(group.Key, group);
+            var sourceIds = PatternMatcher.ResolvePattern(group.Key, graph);
+
+            // Collect all allowed target IDs from all rules in the group
+            var allowedTargetIds = new HashSet<string>();
+            foreach (var restrictRule in group)
+            {
+                var targetIds = PatternMatcher.ResolvePattern(restrictRule.Target, graph);
+                allowedTargetIds.UnionWith(targetIds);
+            }
+
+            restrictGroup.AllowedTargetIds = allowedTargetIds;
+
+            var groupViolations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
+            if (groupViolations.Count > 0)
+            {
+                // Use first rule in group as representative for violation
+                violations.Add(new Violation(group.First(), groupViolations));
+            }
+        }
+
+        return violations;
+    }
+
+    private string GetViolationsSummary(List<Violation> violations)
+    {
+        var summary = "";
+
+        foreach (var violation in violations)
+        {
+            summary += $"• {violation.Description}\n";
         }
 
         return summary.TrimEnd();

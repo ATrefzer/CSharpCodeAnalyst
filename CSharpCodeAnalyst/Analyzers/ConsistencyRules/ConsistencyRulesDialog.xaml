@@ -58,11 +58,11 @@
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="DarkGray">
                 <Run Text="Examples:"/>
                 <LineBreak/>
-                <Run Text="DENY: Business.** -> Data.**"/>
+                <Run Text="DENY: MyApp.Business.** -> MyApp.Data.**"/>
                 <LineBreak/>
-                <Run Text="RESTRICT: Controllers.** -> Services.**"/>
+                <Run Text="RESTRICT: MyApp.Controllers.** -> MyApp.Services.**"/>
                 <LineBreak/>
-                <Run Text="ISOLATE: Core.**"/>
+                <Run Text="ISOLATE: MyApp.Domain.**"/>
                 <LineBreak/>
                 <LineBreak/>
                 <Run Text="Rule Types:"/>
@@ -74,7 +74,14 @@
                 <Run Text="• ISOLATE: Completely isolates source from external dependencies"/>
                 <LineBreak/>
                 <LineBreak/>
-                <Run Text="Use * for single level, ** for multi-level matching"/>
+                <Run Text="Pattern Syntax:"/>
+                <LineBreak/>
+                <Run Text="• MyApp.Business → exact match"/>
+                <LineBreak/>
+                <Run Text="• MyApp.Business.* → element + direct children"/>
+                <LineBreak/>
+                <Run Text="• MyApp.Business.** → element + all descendants"/>
+                <LineBreak/>
                 <LineBreak/>
                 <Run Text="Lines starting with // are comments"/>
             </TextBlock>

@@ -1,3 +1,5 @@
+using Contracts.Graph;
+
 namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
 
 public abstract class ConsistencyRuleBase
@@ -6,4 +8,12 @@ public abstract class ConsistencyRuleBase
     public string Source { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
     public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Validates this rule against the given relationships and returns violating relationships
+    /// </summary>
+    public abstract List<Relationship> ValidateRule(
+        HashSet<string> sourceIds,
+        HashSet<string> targetIds,
+        IEnumerable<Relationship> allRelationships);
 }

@@ -1,3 +1,5 @@
+using Contracts.Graph;
+
 namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
 
 /// <summary>
@@ -6,5 +8,22 @@ namespace CSharpCodeAnalyst.Analyzers.ConsistencyRules.Rules;
 /// </summary>
 public class IsolateRule : ConsistencyRuleBase
 {
-    // No target - source is completely isolated
+    public override List<Relationship> ValidateRule(
+        HashSet<string> sourceIds,
+        HashSet<string> targetIds,
+        IEnumerable<Relationship> allRelationships)
+    {
+        var violations = new List<Relationship>();
+
+        foreach (var relationship in allRelationships)
+        {
+            // ISOLATE violation: source uses anything outside of itself
+            if (sourceIds.Contains(relationship.SourceId) && !sourceIds.Contains(relationship.TargetId))
+            {
+                violations.Add(relationship);
+            }
+        }
+
+        return violations;
+    }
 }
