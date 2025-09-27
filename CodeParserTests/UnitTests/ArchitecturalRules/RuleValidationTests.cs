@@ -122,7 +122,7 @@ public class RuleValidationTests
         var allRelationships = new List<Relationship>();
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            restrictRule.ValidateRule(sourceIds, targetIds, allRelationships));
+            restrictRule.ValidateRule(sourceIds, targetIds, []));
 
         Assert.That(ex.Message, Contains.Substring("RestrictRuleGroup"));
     }

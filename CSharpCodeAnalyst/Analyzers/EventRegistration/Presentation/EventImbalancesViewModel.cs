@@ -3,15 +3,16 @@ using System.Windows;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.TabularData;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
+namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 
-public class PartitionsViewModel : Table
+internal class EventImbalancesViewModel : Table
 {
-    private readonly ObservableCollection<TableRow> _partitions;
+    private readonly ObservableCollection<TableRow> _imbalances;
 
-    public PartitionsViewModel(List<PartitionViewModel> pvm)
+    internal EventImbalancesViewModel(List<Result> imbalances)
     {
-        _partitions = new ObservableCollection<TableRow>(pvm);
+        var tmp = imbalances.Select(i => new EventImbalanceViewModel(i));
+        _imbalances = new ObservableCollection<TableRow>(tmp);
     }
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
@@ -21,8 +22,8 @@ public class PartitionsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Partition,
-                PropertyName = nameof(PartitionViewModel.PartitionName),
+                Header = Strings.Column_EventRegistration_Header,
+                PropertyName = nameof(EventImbalanceViewModel.Description),
                 IsExpandable = true
             }
         };
@@ -30,13 +31,13 @@ public class PartitionsViewModel : Table
 
     public override ObservableCollection<TableRow> GetData()
     {
-        return _partitions;
+        return _imbalances;
     }
 
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Areas/TableArea/Shared/CodeElementLineTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Analyzers/EventRegistration/Presentation/SourceLocationTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }

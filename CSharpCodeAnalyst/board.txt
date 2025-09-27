@@ -8,10 +8,9 @@
 - Margins for Tables
 - Metrics and Analyzer tables are implemented differently but could be unified
 	- Extend Metric grid
-	- XAML code for row details. 
 
-- More Source Locations
-- Copy Full Path Clipboard
+- More Source Locations (copied???)
+- ctor calls are not detected
 
 
 UNHANDLED CASES

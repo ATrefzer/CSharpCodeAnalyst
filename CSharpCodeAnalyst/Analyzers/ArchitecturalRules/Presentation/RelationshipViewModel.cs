@@ -5,7 +5,7 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 
 public class RelationshipViewModel
 {

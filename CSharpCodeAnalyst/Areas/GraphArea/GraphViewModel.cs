@@ -146,9 +146,22 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
             PartitionClass));
         */
+        
+        _viewer.AddContextMenuCommand(new SeparatorCommand());
+        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.CopyToClipboard,
+            OnCopyToClipboard));
 
 
         UndoCommand = new WpfCommand(Undo);
+    }
+
+    private void OnCopyToClipboard(CodeElement element)
+    {
+        var text = element?.FullName;
+        if (text != null)
+        {
+            Clipboard.SetText(text);
+        }
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }

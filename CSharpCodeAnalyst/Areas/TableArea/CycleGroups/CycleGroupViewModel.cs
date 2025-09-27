@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Areas.TableArea.Shared;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.TabularData;
 

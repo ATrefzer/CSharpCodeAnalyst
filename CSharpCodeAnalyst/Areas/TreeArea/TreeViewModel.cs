@@ -34,8 +34,19 @@ public class TreeViewModel : INotifyPropertyChanged
         AddNodeToGraphCommand = new WpfCommand<TreeItemViewModel>(AddNodeToGraph);
         PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
         PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
+        CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
         _filteredTreeItems = [];
         _treeItems = [];
+    }
+
+    private static void OnCopyToClipboard(TreeItemViewModel vm)
+    {
+        var text = vm?.CodeElement?.FullName;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+        Clipboard.SetText(text);
     }
 
 
@@ -80,6 +91,7 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand DeleteFromModelCommand { get; }
     public ICommand PartitionTreeCommand { get; private set; }
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
+    public ICommand CopyToClipboardCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
