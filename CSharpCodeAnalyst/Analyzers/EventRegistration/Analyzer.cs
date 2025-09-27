@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;

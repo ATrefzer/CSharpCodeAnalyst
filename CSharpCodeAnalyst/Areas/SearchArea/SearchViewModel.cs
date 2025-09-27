@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Contracts.Graph;
@@ -42,6 +43,18 @@ public class SearchViewModel : INotifyPropertyChanged
         AddSelectedToGraphCommand = new WpfCommand<object>(AddSelectedToGraph);
         AddSelectedToGraphCollapsedCommand = new WpfCommand<object>(AddSelectedToGraphCollapsed);
         PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
+        CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
+    }
+
+    private static void OnCopyToClipboard(SearchItemViewModel vm)
+    {
+        var text = vm?.CodeElement?.FullName;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+        Clipboard.SetText(text);
+
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -82,6 +95,7 @@ public class SearchViewModel : INotifyPropertyChanged
     public ICommand AddSelectedToGraphCommand { get; }
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
     public ICommand PartitionCommand { get; }
+    public ICommand CopyToClipboardCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -170,10 +170,8 @@ public class RelationshipAnalyzer
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)
     {
-        foreach (var statement in _artifacts!.GlobalStatementsByAssembly)
+        foreach (var (assemblySymbol, globalStatements) in _artifacts!.GlobalStatementsByAssembly)
         {
-            var assemblySymbol = statement.Key;
-            var globalStatements = statement.Value;
             if (globalStatements.Count == 0)
             {
                 continue;
@@ -542,7 +540,7 @@ public class RelationshipAnalyzer
                 {
                     // Traverse up to find the ConditionalAccessExpressionSyntax
                     var currentNode = memberBinding.Parent;
-                    while (currentNode != null && !(currentNode is ConditionalAccessExpressionSyntax))
+                    while (currentNode != null && currentNode is not ConditionalAccessExpressionSyntax)
                     {
                         currentNode = currentNode.Parent;
                     }

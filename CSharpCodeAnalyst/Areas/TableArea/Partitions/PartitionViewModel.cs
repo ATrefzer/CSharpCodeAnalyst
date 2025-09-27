@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+using CSharpCodeAnalyst.Areas.TableArea.Shared;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.TabularData;
 
