@@ -9,7 +9,7 @@ namespace CSharpCodeAnalyst.Exploration;
 /// </summary>
 internal class CodeElementPartitioner
 {
-    public List<HashSet<string>> GetPartitions(CodeGraph codeGraph, CodeElement parentElement, bool includeBaseClasses)
+    public static List<HashSet<string>> GetPartitions(CodeGraph codeGraph, CodeElement parentElement, bool includeBaseClasses)
     {
         var subGraph = CreateSubGraph(codeGraph, parentElement, includeBaseClasses);
         var codeElementIdToPartition = InitializePartitions(subGraph);

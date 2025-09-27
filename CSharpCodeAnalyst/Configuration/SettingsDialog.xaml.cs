@@ -18,7 +18,6 @@ public partial class SettingsDialog
     {
         AutoAddContainingTypeCheckBox.IsChecked = Settings.AutomaticallyAddContainingType;
         WarningLimitTextBox.Text = Settings.WarningCodeElementLimit.ToString();
-        MaxParallelismTextBox.Text = Settings.MaxDegreeOfParallelism.ToString();
         ProjectExcludeFilterTextBox.Text = Settings.DefaultProjectExcludeFilter;
     }
 
@@ -29,11 +28,6 @@ public partial class SettingsDialog
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)
         {
             Settings.WarningCodeElementLimit = warningLimit;
-        }
-
-        if (int.TryParse(MaxParallelismTextBox.Text, out var maxParallelism) && maxParallelism > 0)
-        {
-            Settings.MaxDegreeOfParallelism = maxParallelism;
         }
 
         Settings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text.Trim();
@@ -52,7 +46,6 @@ public partial class SettingsDialog
         {
             WarningCodeElementLimit = original.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = original.DefaultProjectExcludeFilter,
-            MaxDegreeOfParallelism = original.MaxDegreeOfParallelism,
             AutomaticallyAddContainingType = original.AutomaticallyAddContainingType
         };
     }

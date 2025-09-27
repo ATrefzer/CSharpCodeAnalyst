@@ -32,12 +32,9 @@ public class ResolvedRelationship
     }
 }
 
-internal class Init
+internal static class Init
 {
-
     private static CodeGraph? _instance;
-
-    private static object _lock = new();
 
     static Init()
     {
@@ -49,7 +46,7 @@ internal class Init
     {
         if (_instance == null)
         {
-            var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection(), 1));
+            var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection()));
             _instance = await parser.ParseSolution(@"..\..\..\..\TestSuite\TestSuite.sln");
         }
 
@@ -105,7 +102,7 @@ public abstract class ProjectTestBase
         return element.FullName.StartsWith(projectFilter);
     }
 
-    public CodeGraph GetAssemblyGraph(string name)
+    protected CodeGraph GetAssemblyGraph(string name)
     {
         var assemblies = Graph.Nodes.Values.Where(n => n.ElementType == CodeElementType.Assembly).ToList();
         var assembly = assemblies.First(n => name == n.Name);
@@ -123,21 +120,21 @@ public abstract class ProjectTestBase
         return GetElementOfType(graph, CodeElementType.Class);
     }
 
-    public HashSet<string> GetAllNodes(CodeGraph graph)
+    protected HashSet<string> GetAllNodes(CodeGraph graph)
     {
         return graph.Nodes.Values
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    public HashSet<string> GetAllNodesOfType(CodeGraph graph, CodeElementType type)
+    protected HashSet<string> GetAllNodesOfType(CodeGraph graph, CodeElementType type)
     {
         return graph.Nodes.Values.Where(n => n.ElementType == type)
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    protected HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type)
+    private HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type)
     {
         return graph.Nodes.Values
             .Where(n => n.ElementType == type)

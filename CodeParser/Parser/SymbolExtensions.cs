@@ -48,7 +48,7 @@ public static class SymbolExtensions
     ///     Returns a key for the symbol only without the parent chain.
     ///     This key can identify the overrides of a symbol in a class hierarchy
     /// </summary>
-    public static string KeySymbolOnly(this ISymbol symbol)
+    private static string KeySymbolOnly(this ISymbol symbol)
     {
         return GetKeyInternal(symbol);
     }
@@ -171,7 +171,7 @@ public static class SymbolExtensions
         return result;
     }
 
-    public static string GetMetadataName(this ISymbol symbol)
+    private static string GetMetadataName(this ISymbol symbol)
     {
         // Note: ISymbol.MetaDataName is not sufficient. It contains for example just the interface name.
         // Compilation.GetTypeByMetadataName is very picky about the given format.

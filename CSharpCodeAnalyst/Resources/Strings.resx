@@ -567,12 +567,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="Settings_Performance" xml:space="preserve">
     <value>Performance Settings</value>
   </data>
-    <data name="Settings_MaxDegreeOfParallelism" xml:space="preserve">
-    <value>Max Degree of Parallelism:</value>
-  </data>
-    <data name="Settings_MaxDegreeOfParallelism_Tooltip" xml:space="preserve">
-    <value>Maximum number of threads to use during parsing</value>
-  </data>
     <data name="Settings_Hint" xml:space="preserve">
     <value>These settings are applied after a restart of the application.</value>
   </data>
@@ -714,5 +708,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="DynamicGrid_NoData" xml:space="preserve">
    <value>No data available</value>
  </data>
-
+    <data name="Analyzer_Empty_Rule" xml:space="preserve">
+      <value>Rule text cannot be empty</value>
+    </data>
 </root>

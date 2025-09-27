@@ -98,7 +98,7 @@ internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
         return graph.Nodes.TryGetValue(id, out var element) ? element.FullName : id;
     }
 
-    public static (string sourceRole, string targetRole) GetSemanticRoles(RelationshipType type)
+    private static (string sourceRole, string targetRole) GetSemanticRoles(RelationshipType type)
     {
         return type switch
         {

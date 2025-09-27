@@ -40,7 +40,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         set
         {
             _selectedItem = value!;
-            LoadSelectedItemCommand.RaiseCanExecuteChanged();
+            WpfCommand.RaiseCanExecuteChanged();
         }
     }
 
@@ -58,7 +58,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         set
         {
             _newItemName = value;
-            AddItemCommand.RaiseCanExecuteChanged();
+            WpfCommand.RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(NewItemName));
         }
     }

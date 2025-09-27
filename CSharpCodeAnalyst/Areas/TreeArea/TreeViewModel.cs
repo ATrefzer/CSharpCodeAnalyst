@@ -13,7 +13,7 @@ namespace CSharpCodeAnalyst.Areas.TreeArea;
 public class TreeViewModel : INotifyPropertyChanged
 {
     // For faster search
-    private static readonly Dictionary<string, TreeItemViewModel> _codeElementIdToViewModel = new();
+    private static readonly Dictionary<string, TreeItemViewModel> CodeElementIdToViewModel = new();
     private readonly Matcher _matcher;
     private readonly MessageBus _messaging;
     private CodeGraph? _codeGraph;
@@ -149,7 +149,7 @@ public class TreeViewModel : INotifyPropertyChanged
     {
         _codeGraph = codeGraph;
         TreeItems.Clear();
-        _codeElementIdToViewModel.Clear();
+        CodeElementIdToViewModel.Clear();
 
         SearchText = string.Empty;
 
@@ -171,7 +171,7 @@ public class TreeViewModel : INotifyPropertyChanged
             Type = element.ElementType.ToString(),
             CodeElement = element
         };
-        _codeElementIdToViewModel.Add(element.Id, item);
+        CodeElementIdToViewModel.Add(element.Id, item);
 
 
         foreach (var child in element.Children.OrderBy(c => c.Name))
@@ -224,7 +224,7 @@ public class TreeViewModel : INotifyPropertyChanged
         var element = _codeGraph?.Nodes[codeElementId];
         while (element != null)
         {
-            var vm = _codeElementIdToViewModel[element.Id];
+            var vm = CodeElementIdToViewModel[element.Id];
             vm.IsExpanded = true;
             vm.IsVisible = true;
             element = element.Parent;

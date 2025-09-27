@@ -4,7 +4,7 @@ using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Services;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
@@ -28,7 +28,7 @@ public class EventImbalanceViewModel : TableRow
     public string Description { get; }
 
 
-    private void OnOpenSourceLocation(SourceLocation? location)
+    private static void OnOpenSourceLocation(SourceLocation? location)
     {
         if (location is null)
         {

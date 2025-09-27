@@ -44,7 +44,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OpenSourceLocation(SourceLocation? location)
+    private static void OpenSourceLocation(SourceLocation? location)
     {
         if (location is null)
         {

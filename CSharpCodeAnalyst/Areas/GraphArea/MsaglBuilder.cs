@@ -97,7 +97,7 @@ internal class MsaglBuilder
         return visibleGraph;
     }
 
-    private void CollectVisibleNodes(CodeElement root, PresentationState state, CodeGraph visibleGraph)
+    private static void CollectVisibleNodes(CodeElement root, PresentationState state, CodeGraph visibleGraph)
     {
         visibleGraph.IntegrateCodeElementFromOriginal(root);
 
@@ -136,7 +136,7 @@ internal class MsaglBuilder
         }
     }
 
-    private void AddSubgraphToParent(Graph graph, CodeElement visibleNode, Subgraph subGraph,
+    private static void AddSubgraphToParent(Graph graph, CodeElement visibleNode, Subgraph subGraph,
         Dictionary<string, Subgraph> subGraphs)
     {
         if (visibleNode.Parent == null)
@@ -149,7 +149,7 @@ internal class MsaglBuilder
         }
     }
 
-    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
+    private static void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         var newNode = CreateNode(graph, node, presentationState);
         if (node.Parent != null)
@@ -209,7 +209,7 @@ internal class MsaglBuilder
     /// <summary>
     ///     Pre-creates all sub-graphs
     /// </summary>
-    private Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph, PresentationState state)
+    private static Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph, PresentationState state)
     {
         return visibleGraph.Nodes.Values
             .Where(n => visibleGraph.Nodes[n.Id].Children.Any())
@@ -239,7 +239,7 @@ internal class MsaglBuilder
         }
     }
 
-    private string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
+    private static string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
     {
         // Assume the parent is always visible!
         var current = codeGraph.Nodes[id];
@@ -256,7 +256,7 @@ internal class MsaglBuilder
         return current.Id;
     }
 
-    private void CreateEdgeForHierarchicalStructure(Graph graph,
+    private static void CreateEdgeForHierarchicalStructure(Graph graph,
         KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
@@ -322,7 +322,7 @@ internal class MsaglBuilder
         edge.UserData = relationship;
     }
 
-    private bool ShouldReverseInFlowMode(CodeGraph graph, string sourceId, RelationshipType relationshipType)
+    private static bool ShouldReverseInFlowMode(CodeGraph graph, string sourceId, RelationshipType relationshipType)
     {
         if (relationshipType == RelationshipType.Implements)
         {
@@ -338,13 +338,13 @@ internal class MsaglBuilder
     private static string GetLabelText(Relationship relationship)
     {
         // Omit the label text for now. The color makes it clear that it is a call relationship
-        if (relationship.Type == RelationshipType.Calls || relationship.Type == RelationshipType.Invokes)
+        if (relationship.Type is RelationshipType.Calls or RelationshipType.Invokes)
         {
             return string.Empty;
         }
 
         // We can see this by the dotted line
-        if (relationship.Type == RelationshipType.Implements || relationship.Type == RelationshipType.Inherits)
+        if (relationship.Type is RelationshipType.Implements or RelationshipType.Inherits)
         {
             return string.Empty;
         }
@@ -394,7 +394,7 @@ internal class MsaglBuilder
         return ToColor(rgb);
     }
 
-    public static Color ToColor(int colorValue)
+    private static Color ToColor(int colorValue)
     {
         // Extract RGB components
         var r = colorValue >> 16 & 0xFF;

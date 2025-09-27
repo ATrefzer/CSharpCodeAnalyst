@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -13,7 +13,6 @@ public class RuleViolationsViewModel : Table
 
     public RuleViolationsViewModel(List<Violation> violations, CodeGraph codeGraph)
     {
-        Title = "Rule violations";
         var violationViewModels = violations.Select(v => new RuleViolationViewModel(v, codeGraph));
         _violations = new ObservableCollection<TableRow>(violationViewModels);
     }
@@ -63,7 +62,7 @@ public class RuleViolationsViewModel : Table
 
     public override DataTemplate? GetRowDetailsTemplate()
     {
-        var xamlTemplate = @"
+        const string xamlTemplate = @"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
                    <ItemsControl ItemsSource=""{Binding RelationshipDetails}"">

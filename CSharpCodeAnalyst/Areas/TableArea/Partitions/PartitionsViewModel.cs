@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 
@@ -11,7 +11,6 @@ public class PartitionsViewModel : Table
 
     public PartitionsViewModel(List<PartitionViewModel> pvm)
     {
-        Title = Strings.Tab_Partitions;
         _partitions = new ObservableCollection<TableRow>(pvm);
     }
 
@@ -36,7 +35,7 @@ public class PartitionsViewModel : Table
 
     public override DataTemplate? GetRowDetailsTemplate()
     {
-        var xamlTemplate = @"
+        const string xamlTemplate = @"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
                     <ItemsControl ItemsSource=""{Binding CodeElements}"">

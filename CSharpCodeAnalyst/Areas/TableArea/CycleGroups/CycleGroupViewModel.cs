@@ -2,7 +2,7 @@
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 
@@ -76,7 +76,7 @@ internal class CycleGroupViewModel : TableRow
 
     public CycleGroup CycleGroup { get; }
 
-    private bool IsType(CodeElementType type)
+    private static bool IsType(CodeElementType type)
     {
         return type is
             CodeElementType.Class or

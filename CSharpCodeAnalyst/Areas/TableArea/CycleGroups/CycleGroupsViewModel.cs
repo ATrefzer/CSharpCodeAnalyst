@@ -4,7 +4,7 @@ using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
@@ -17,7 +17,6 @@ internal class CycleGroupsViewModel : Table
     public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
     {
         _messaging = messaging;
-        Title = Strings.Tab_Cycles;
         var vms = cycleGroups.Select(g => new CycleGroupViewModel(g));
         var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.ElementCount);
         _cycleGroups = new ObservableCollection<TableRow>(ordered);
@@ -73,7 +72,7 @@ internal class CycleGroupsViewModel : Table
 
     public override DataTemplate? GetRowDetailsTemplate()
     {
-        var xamlTemplate = @"
+        const string xamlTemplate = @"
                 <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
                 <ItemsControl ItemsSource=""{Binding CodeElements}"">

@@ -89,7 +89,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         }
     }
 
-    private void DfsHierarchy(CodeElement element, HashSet<string> visited, Action<CodeElement> handler)
+    private static void DfsHierarchy(CodeElement element, HashSet<string> visited, Action<CodeElement> handler)
     {
         visited.Add(element.Id);
 

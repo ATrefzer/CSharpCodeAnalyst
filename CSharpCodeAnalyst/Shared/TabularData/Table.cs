@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace CSharpCodeAnalyst.Shared.Table;
+namespace CSharpCodeAnalyst.Shared.TabularData;
 
 /// <summary>
 ///     Main interface for table data.
@@ -14,22 +14,6 @@ namespace CSharpCodeAnalyst.Shared.Table;
 /// </summary>
 public abstract class Table : INotifyPropertyChanged
 {
-    private string _title = string.Empty;
-
-    /// <summary>
-    ///     Title for the whole data.
-    /// </summary>
-    public string Title
-    {
-        get => _title;
-        set
-        {
-            _title = value;
-            OnPropertyChanged();
-        }
-    }
-
-
     public event PropertyChangedEventHandler? PropertyChanged;
     public abstract IEnumerable<TableColumnDefinition> GetColumns();
 
@@ -40,7 +24,7 @@ public abstract class Table : INotifyPropertyChanged
     /// </summary>
     public abstract DataTemplate? GetRowDetailsTemplate();
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -50,7 +34,7 @@ public abstract class Table : INotifyPropertyChanged
         return [];
     }
 
-    protected DataTemplate? CreateDataTemplateFromString(string xamlTemplate)
+    protected static DataTemplate? CreateDataTemplateFromString(string xamlTemplate)
     {
         try
         {

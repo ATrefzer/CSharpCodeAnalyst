@@ -2,5 +2,5 @@
 
 public class ParserProgressArg(string message) : EventArgs
 {
-    public string Message { get; set; } = message;
+    public string Message { get; } = message;
 }

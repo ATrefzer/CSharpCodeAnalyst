@@ -34,8 +34,8 @@ using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.Messaging;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
 
@@ -46,7 +46,6 @@ internal class MainViewModel : INotifyPropertyChanged
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
 
-    private readonly int _maxDegreeOfParallelism;
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
@@ -91,7 +90,6 @@ internal class MainViewModel : INotifyPropertyChanged
 
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
-        _maxDegreeOfParallelism = _applicationSettings.MaxDegreeOfParallelism;
 
         _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
 
@@ -369,9 +367,11 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         if (_openedLegendDialog == null)
         {
-            _openedLegendDialog = new LegendDialog();
-            _openedLegendDialog.Owner = Application.Current.MainWindow;
-            _openedLegendDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            _openedLegendDialog = new LegendDialog
+                {
+                    Owner = Application.Current.MainWindow,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
             _openedLegendDialog.Closed += (_, _) => _openedLegendDialog = null;
             _openedLegendDialog.Show();
         }
@@ -385,9 +385,12 @@ internal class MainViewModel : INotifyPropertyChanged
 
     private void OnOpenSettingsDialog()
     {
-        var settingsDialog = new SettingsDialog(_applicationSettings);
-        settingsDialog.Owner = Application.Current.MainWindow;
-        settingsDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        var settingsDialog = new SettingsDialog(_applicationSettings)
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+        
         if (settingsDialog.ShowDialog() == true)
         {
             _applicationSettings = settingsDialog.Settings;
@@ -507,7 +510,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
     {
         LoadMessage = Strings.Load_Message_Default;
-        var parser = new Parser(new ParserConfig(_projectExclusionFilters, _maxDegreeOfParallelism));
+        var parser = new Parser(new ParserConfig(_projectExclusionFilters));
         parser.Progress.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 
@@ -737,7 +740,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private (CodeGraph codeGraph, ProjectData projectData) LoadProject(string fileName)
+    private static (CodeGraph codeGraph, ProjectData projectData) LoadProject(string fileName)
     {
         var json = File.ReadAllText(fileName);
         var options = new JsonSerializerOptions
@@ -854,7 +857,7 @@ internal class MainViewModel : INotifyPropertyChanged
         var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
 
         var partitioner = new CodeElementPartitioner();
-        var partitions = partitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
+        var partitions = CodeElementPartitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
 
         if (partitions.Count <= 1)
         {

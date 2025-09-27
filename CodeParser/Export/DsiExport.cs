@@ -5,13 +5,13 @@ namespace CodeParser.Export;
 
 public class DsiExport
 {
-    public void Export(string fileName, CodeGraph codeGraph)
+    public static void Export(string fileName, CodeGraph codeGraph)
     {
         var dsiXml = Convert(codeGraph);
         File.WriteAllText(fileName, dsiXml);
     }
 
-    public static string Convert(CodeGraph codeGraph)
+    private static string Convert(CodeGraph codeGraph)
     {
         XNamespace ns = "urn:dsi-schema";
 

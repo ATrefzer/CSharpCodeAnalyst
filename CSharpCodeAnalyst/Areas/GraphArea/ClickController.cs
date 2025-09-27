@@ -88,7 +88,7 @@ internal class ClickController
     public event Action<IViewerObject?>? OpenContextMenu;
 
 
-    public void Register(Microsoft.Msagl.WpfGraphControl.GraphViewer msaglViewer)
+    private void Register(Microsoft.Msagl.WpfGraphControl.GraphViewer msaglViewer)
     {
         // Important: The LayoutEditor has to handle the events first
         // and finish all cleanup work.
@@ -98,7 +98,7 @@ internal class ClickController
         msaglViewer.MouseMove += OnViewerMouseMove;
     }
 
-    private void OnViewerMouseMove(object? sender, MsaglMouseEventArgs e)
+    private static void OnViewerMouseMove(object? sender, MsaglMouseEventArgs e)
     {
         // _timer.Stop();
         // _state = States.Init;

@@ -213,7 +213,7 @@ public class CyclesApprovalTests : ProjectTestBase
                 var actualNodes = GetAllNodes(group.CodeGraph);
                 var actualRelationships = GetAllRelationships(group.CodeGraph);
                 var expectedNodes = g.Item1;
-                var expectedRelationships = g.Item2;
+                var expectedRelationships = g.edges;
 
                 return AreEquivalent(expectedNodes, actualNodes) &&
                        AreEquivalent(expectedRelationships, actualRelationships);

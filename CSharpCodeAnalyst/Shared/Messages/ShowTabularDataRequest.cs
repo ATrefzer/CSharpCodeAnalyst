@@ -1,6 +1,8 @@
-﻿namespace CSharpCodeAnalyst.Shared.Messaging;
+﻿using CSharpCodeAnalyst.Shared.TabularData;
 
-public class ShowTabularDataRequest(Table.Table table)
+namespace CSharpCodeAnalyst.Shared.Messages;
+
+public class ShowTabularDataRequest(Table table)
 {
-    public Table.Table Table { get; } = table;
+    public Table Table { get; } = table;
 }

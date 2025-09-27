@@ -109,7 +109,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         if (addCollapsed)
         {
-            foreach (var codeElement in original.Where(c => c.ElementType == CodeElementType.Assembly || c.ElementType == CodeElementType.Namespace))
+            foreach (var codeElement in original.Where(c => c.ElementType is CodeElementType.Assembly or CodeElementType.Namespace))
             {
                 _presentationState.SetCollapsedState(codeElement.Id, true);
             }
@@ -637,7 +637,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         return result;
     }
 
-    private CodeElement? GetCodeElementFromUserData(Node node)
+    private static CodeElement? GetCodeElementFromUserData(Node node)
     {
         return node.UserData as CodeElement;
     }

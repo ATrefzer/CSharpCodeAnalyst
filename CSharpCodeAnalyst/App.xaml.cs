@@ -10,7 +10,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Shared.Messaging;
+using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;

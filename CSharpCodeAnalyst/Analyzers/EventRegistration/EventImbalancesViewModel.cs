@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
@@ -11,7 +11,6 @@ internal class EventImbalancesViewModel : Table
 
     internal EventImbalancesViewModel(List<Result> imbalances)
     {
-        Title = Strings.Tab_Analyzer;
         var tmp = imbalances.Select(i => new EventImbalanceViewModel(i));
         _imbalances = new ObservableCollection<TableRow>(tmp);
     }

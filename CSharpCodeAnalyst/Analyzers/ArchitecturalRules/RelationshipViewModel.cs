@@ -52,7 +52,7 @@ public class RelationshipViewModel
         return null;
     }
 
-    private void OnOpenSourceLocation(SourceLocation? location)
+    private static void OnOpenSourceLocation(SourceLocation? location)
     {
         if (location is null)
         {

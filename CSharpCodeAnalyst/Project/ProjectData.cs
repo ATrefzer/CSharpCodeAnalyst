@@ -66,9 +66,11 @@ public class ProjectData
         // Pass one: Create elements
         foreach (var se in CodeElements)
         {
-            var element = new CodeElement(se.Id, se.ElementType, se.Name, se.FullName, null!);
-            element.SourceLocations = se.SourceLocations;
-            element.Attributes = se.Attributes;
+            var element = new CodeElement(se.Id, se.ElementType, se.Name, se.FullName, null!)
+                {
+                    SourceLocations = se.SourceLocations,
+                    Attributes = se.Attributes
+                };
             codeStructure.Nodes.Add(element.Id, element);
         }
 

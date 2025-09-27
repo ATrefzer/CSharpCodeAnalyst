@@ -4,13 +4,10 @@ public class ParserConfig
 {
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
-    public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, int maxDegreeOfParallelism)
+    public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters)
     {
         _projectExclusionFilters = projectExclusionFilters;
-        MaxDegreeOfParallelism = maxDegreeOfParallelism;
     }
-
-    public int MaxDegreeOfParallelism { get; set; }
 
     public bool IsProjectIncluded(string projectName)
     {

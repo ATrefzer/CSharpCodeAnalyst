@@ -342,7 +342,7 @@ public class DgmlFileBuilder
         }
     }
 
-    internal class Edge
+    private class Edge
     {
         public Edge(string sourceNode, string targetNode, string category, string label)
         {

@@ -5,7 +5,7 @@ using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.Messaging;
+using CSharpCodeAnalyst.Shared.Messages;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -22,12 +22,13 @@ public class Analyzer : IAnalyzer
 
     public void Analyze(CodeGraph graph)
     {
-        var dialog = new ArchitecturalRulesDialog();
-        dialog.Owner = Application.Current.MainWindow;
-        dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-
-        // Load existing rules or provide sample rules
-        dialog.RulesText = string.IsNullOrEmpty(_rulesText) ? GetSampleRules() : _rulesText;
+        var dialog = new ArchitecturalRulesDialog
+        {
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            // Load existing rules or provide sample rules
+            RulesText = string.IsNullOrEmpty(_rulesText) ? GetSampleRules() : _rulesText
+        };
 
         if (dialog.ShowDialog() == true)
         {
@@ -59,10 +60,13 @@ public class Analyzer : IAnalyzer
         }
     }
 
-    public string Name { get; } = "Architectural rules";
+    public string Name { get => "Architectural rules"; }
     public string Description { get; set; } = "Validates your architectural constraints based on user-defined rules";
 
-    public string Id { get; } = "ArchitecturalRules";
+    public string Id
+    {
+        get => "ArchitecturalRules";
+    }
 
     public string? GetPersistentData()
     {
@@ -105,7 +109,7 @@ public class Analyzer : IAnalyzer
         }
     }
 
-    private string GetSampleRules()
+    private static string GetSampleRules()
     {
         return """
                // Sample rules
@@ -132,51 +136,6 @@ public class Analyzer : IAnalyzer
     {
         _rules = RuleParser.ParseRules(rulesText);
         _rulesText = rulesText;
-    }
-
-    private string GetRulesSummary()
-    {
-        if (_rules.Count == 0)
-            return "No rules defined.";
-
-        var summary = $"Found {_rules.Count} rules:\n\n";
-
-        var denyRules = _rules.OfType<DenyRule>().ToList();
-        var restrictRules = _rules.OfType<RestrictRule>().ToList();
-        var isolateRules = _rules.OfType<IsolateRule>().ToList();
-
-        if (denyRules.Any())
-        {
-            summary += $"DENY rules ({denyRules.Count}):\n";
-            foreach (var rule in denyRules)
-            {
-                summary += $"  • {rule.Source} -> {rule.Target}\n";
-            }
-
-            summary += "\n";
-        }
-
-        if (restrictRules.Any())
-        {
-            summary += $"RESTRICT rules ({restrictRules.Count}):\n";
-            foreach (var rule in restrictRules)
-            {
-                summary += $"  • {rule.Source} -> {rule.Target}\n";
-            }
-
-            summary += "\n";
-        }
-
-        if (isolateRules.Any())
-        {
-            summary += $"ISOLATE rules ({isolateRules.Count}):\n";
-            foreach (var rule in isolateRules)
-            {
-                summary += $"  • {rule.Source}\n";
-            }
-        }
-
-        return summary.TrimEnd();
     }
 
     private List<Violation> ExecuteAnalysis(CodeGraph graph)

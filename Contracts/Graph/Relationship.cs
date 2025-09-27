@@ -25,7 +25,7 @@ public class Relationship
     public string TargetId { get; }
     public RelationshipType Type { get; }
 
-    public List<SourceLocation> SourceLocations { get; set; } = [];
+    public List<SourceLocation> SourceLocations { get; init; } = [];
 
     public bool HasAttribute(RelationshipAttribute attribute)
     {

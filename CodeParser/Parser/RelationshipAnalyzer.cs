@@ -51,6 +51,8 @@ public class RelationshipAnalyzer
 
         SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
 
+        return Task.CompletedTask;
+
         void AnalyzeRelationshipsLocal(CodeElement element)
         {
             if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
@@ -65,8 +67,6 @@ public class RelationshipAnalyzer
             var loopValue = Interlocked.Increment(ref _processedCodeElements);
             SendParserPhase2Progress(loopValue, numberOfCodeElements);
         }
-
-        return Task.CompletedTask;
     }
 
     private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
@@ -75,7 +75,7 @@ public class RelationshipAnalyzer
             .Where(type => IsTypeDerivedFrom(type, baseType));
     }
 
-    private bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
+    private static bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
     {
         var currentType = type.BaseType;
         while (currentType != null)
@@ -185,7 +185,7 @@ public class RelationshipAnalyzer
 
             // Create a dummy class for this assembly's global statements
             var dummyClassId = Guid.NewGuid().ToString();
-            var dummyClassName = "GlobalStatements";
+            const string dummyClassName = "GlobalStatements";
             var dummyClassFullName = assemblySymbol.BuildSymbolName() + "." + dummyClassName;
             var dummyClass = new CodeElement(dummyClassId, CodeElementType.Class, dummyClassName, dummyClassFullName,
                 assemblyElement);
@@ -198,7 +198,7 @@ public class RelationshipAnalyzer
 
             // Create a dummy method to contain global statements
             var dummyMethodId = Guid.NewGuid().ToString();
-            var dummyMethodName = "Execute";
+            const string dummyMethodName = "Execute";
             var dummyMethodFullName = $"{dummyClassName}.{dummyMethodName}";
             var dummyMethod = new CodeElement(dummyMethodId, CodeElementType.Method, dummyMethodName,
                 dummyMethodFullName, dummyClass);
@@ -987,7 +987,7 @@ public class RelationshipAnalyzer
             case MemberAccessExpressionSyntax memberAccess:
                 return AnalyzeMemberAccessCallType(memberAccess, method, semanticModel);
 
-            case IdentifierNameSyntax identifier:
+            case IdentifierNameSyntax:
                 // Direct method call - could be this.Method() or static
                 return method.IsStatic ? RelationshipAttribute.IsStaticCall : RelationshipAttribute.None;
 

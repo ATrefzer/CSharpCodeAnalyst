@@ -66,7 +66,7 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
     }
 
 
-    public static List<IViewerEdge> BreadthFirstSearch(IViewerNode start, IViewerNode end,
+    private static List<IViewerEdge> BreadthFirstSearch(IViewerNode start, IViewerNode end,
         Dictionary<string, IViewerNode> idToViewerNode)
     {
         // node id -> edge we came from (contains the source)

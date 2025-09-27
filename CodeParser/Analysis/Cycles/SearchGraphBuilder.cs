@@ -50,7 +50,7 @@ public class SearchGraphBuilder
         return searchNodes[element.Id];
     }
 
-    public static (CodeElement, CodeElement) GetHighestElementsInvolvedInDependency(CodeGraph codeGraph,
+    private static (CodeElement, CodeElement) GetHighestElementsInvolvedInDependency(CodeGraph codeGraph,
         Relationship relationship)
     {
         var source = codeGraph.Nodes[relationship.SourceId];

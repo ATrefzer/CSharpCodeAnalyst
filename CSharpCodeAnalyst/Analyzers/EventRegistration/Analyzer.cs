@@ -2,7 +2,7 @@
 using Contracts.Graph;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.Messaging;
+using CSharpCodeAnalyst.Shared.Messages;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 

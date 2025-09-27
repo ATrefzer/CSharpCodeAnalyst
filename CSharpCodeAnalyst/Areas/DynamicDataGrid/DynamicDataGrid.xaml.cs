@@ -8,7 +8,7 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 
@@ -146,31 +146,33 @@ public partial class DynamicDataGrid : UserControl
 
         // Template with DockPanel and ToggleButton 
         // An expandable colum can only be text.
-        var xamlTemplate = $@"
+        var xamlTemplate = $$"""
 
-<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
-                xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
-    <DockPanel LastChildFill='True'>
-        
-        <DockPanel.Resources>
-            <ResourceDictionary>
-                <ResourceDictionary.MergedDictionaries>
-                    <ResourceDictionary Source=""/Styles/ButtonStyles.xaml"" />
-                    <ResourceDictionary Source=""/Styles/DataGridStyles.xaml"" />
-                </ResourceDictionary.MergedDictionaries>
-            </ResourceDictionary>
-        </DockPanel.Resources>
-                      
-        <ToggleButton DockPanel.Dock=""Left""
-                    Style=""{{StaticResource ExpandCollapseButtonStyle}}""
-                    IsChecked=""{{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}}""
-                    Margin=""0,0,5,0"" />
 
-        <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
-            <TextBlock Text='{{Binding {columnDef.PropertyName}}}' />
-        </StackPanel>
-    </DockPanel>
-</DataTemplate>";
+                             <DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
+                                             xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>
+                                 <DockPanel LastChildFill='True'>
+                                     
+                                     <DockPanel.Resources>
+                                         <ResourceDictionary>
+                                             <ResourceDictionary.MergedDictionaries>
+                                                 <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                                                 <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+                                             </ResourceDictionary.MergedDictionaries>
+                                         </ResourceDictionary>
+                                     </DockPanel.Resources>
+                                                   
+                                     <ToggleButton DockPanel.Dock="Left"
+                                                 Style="{StaticResource ExpandCollapseButtonStyle}"
+                                                 IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 Margin="0,0,5,0" />
+
+                                     <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
+                                         <TextBlock Text='{Binding {{columnDef.PropertyName}}}' />
+                                     </StackPanel>
+                                 </DockPanel>
+                             </DataTemplate>
+                             """;
 
         try
         {
@@ -216,15 +218,15 @@ public partial class DynamicDataGrid : UserControl
         buttonFactory.SetValue(HorizontalContentAlignmentProperty, HorizontalAlignment.Left);
         buttonFactory.SetValue(PaddingProperty, new Thickness(0));
 
-        // Style für Underline setzen
+        // Style for underline
         var style = new Style(typeof(Button));
         style.Setters.Add(new Setter(TemplateProperty, CreateLinkButtonTemplate()));
         buttonFactory.SetValue(StyleProperty, style);
 
         if (columnDef.ClickCommand != null)
         {
-            buttonFactory.SetValue(Button.CommandProperty, columnDef.ClickCommand);
-            buttonFactory.SetValue(Button.CommandParameterProperty, new Binding(columnDef.PropertyName));
+            buttonFactory.SetValue(ButtonBase.CommandProperty, columnDef.ClickCommand);
+            buttonFactory.SetValue(ButtonBase.CommandParameterProperty, new Binding(columnDef.PropertyName));
         }
 
         cellTemplate.VisualTree = buttonFactory;
@@ -279,8 +281,8 @@ public partial class DynamicDataGrid : UserControl
 
         if (columnDef.ClickCommand != null)
         {
-            factory.SetValue(ToggleButton.CommandProperty, columnDef.ClickCommand);
-            factory.SetValue(ToggleButton.CommandParameterProperty, new Binding()); // whole data context
+            factory.SetValue(ButtonBase.CommandProperty, columnDef.ClickCommand);
+            factory.SetValue(ButtonBase.CommandParameterProperty, new Binding()); // whole data context
         }
 
         cellTemplate.VisualTree = factory;

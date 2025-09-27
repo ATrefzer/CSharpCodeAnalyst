@@ -16,7 +16,7 @@ public class PlantUmlExport
     /// <summary>
     ///     Exports the CodeGraph to PlantUML class diagram syntax and returns the result as a string.
     /// </summary>
-    public string ExportClass(CodeGraph graph)
+    private string ExportClass(CodeGraph graph)
     {
         var builder = new StringBuilder();
 
@@ -103,7 +103,7 @@ public class PlantUmlExport
         builder.AppendLine($"{indent}}}");
     }
 
-    private void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
+    private static void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
     {
         var className = SanitizeClassName(node.Name);
         builder.AppendLine($"{indent}class {className} {{");
@@ -197,7 +197,7 @@ public class PlantUmlExport
     /// <summary>
     ///     Returns target ids
     /// </summary>
-    private HashSet<string> CalculateOutgoingTypeDependencies(CodeElement sourceType, List<CodeElement> typeNodes, HashSet<Relationship> allRelationships)
+    private static HashSet<string> CalculateOutgoingTypeDependencies(CodeElement sourceType, List<CodeElement> typeNodes, HashSet<Relationship> allRelationships)
     {
         var dependencies = new HashSet<string>();
         var sourceCluster = sourceType.GetChildrenIncludingSelf();

@@ -29,7 +29,7 @@ public class WpfCommand : ICommand
         _execute();
     }
 
-    public void RaiseCanExecuteChanged()
+    public static void RaiseCanExecuteChanged()
     {
         CommandManager.InvalidateRequerySuggested();
     }

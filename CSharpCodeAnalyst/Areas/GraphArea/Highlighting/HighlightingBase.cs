@@ -5,12 +5,12 @@ namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal abstract class HighlightingBase : IHighlighting
 {
+    private const int HighlightWeight = 3;
+    private const int NormalWeight = 1;
     private readonly Color _grayColor = Color.LightGray;
     private readonly Color _highlightColor = Color.Red;
-    private readonly int _highlightWeight = 3;
 
     private readonly Color _normalColor = Color.Black;
-    private readonly int _normalWeight = 1;
 
     public abstract void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
         IViewerObject? viewerObject, CodeGraph? codeGraph);
@@ -20,7 +20,7 @@ internal abstract class HighlightingBase : IHighlighting
     protected void Highlight(IViewerEdge edge)
     {
         edge.Edge.Attr.Color = _highlightColor;
-        edge.Edge.Attr.LineWidth = _highlightWeight;
+        edge.Edge.Attr.LineWidth = HighlightWeight;
     }
 
     protected void ClearHighlight(IViewerEdge? edge)
@@ -39,7 +39,7 @@ internal abstract class HighlightingBase : IHighlighting
             edge.Edge.Attr.Color = _normalColor;
         }
 
-        edge.Edge.Attr.LineWidth = _normalWeight;
+        edge.Edge.Attr.LineWidth = NormalWeight;
     }
 
     protected void ClearAllEdges(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)

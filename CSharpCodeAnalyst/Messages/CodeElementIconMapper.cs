@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Messages;
 
 public static class CodeElementIconMapper
 {
-    private static readonly Dictionary<CodeElementType, BitmapImage> _iconCache = new();
+    private static readonly Dictionary<CodeElementType, BitmapImage> IconCache = new();
 
     static CodeElementIconMapper()
     {
@@ -14,24 +14,24 @@ public static class CodeElementIconMapper
 
     public static BitmapImage GetIcon(CodeElementType elementType)
     {
-        return _iconCache.TryGetValue(elementType, out var icon) ? icon : _iconCache[CodeElementType.Other];
+        return IconCache.TryGetValue(elementType, out var icon) ? icon : IconCache[CodeElementType.Other];
     }
 
     private static void InitializeIcons()
     {
-        _iconCache[CodeElementType.Assembly] = LoadIcon("Assembly_16.png");
-        _iconCache[CodeElementType.Namespace] = LoadIcon("Namespace_16.png");
-        _iconCache[CodeElementType.Class] = LoadIcon("Class_16.png");
-        _iconCache[CodeElementType.Interface] = LoadIcon("Interface_16.png");
-        _iconCache[CodeElementType.Struct] = LoadIcon("Struct_16.png");
-        _iconCache[CodeElementType.Method] = LoadIcon("Method_16.png");
-        _iconCache[CodeElementType.Property] = LoadIcon("Property_16.png");
-        _iconCache[CodeElementType.Delegate] = LoadIcon("Delegate_16.png");
-        _iconCache[CodeElementType.Event] = LoadIcon("Event_16.png");
-        _iconCache[CodeElementType.Enum] = LoadIcon("Enum_16.png");
-        _iconCache[CodeElementType.Field] = LoadIcon("Field_16.png");
-        _iconCache[CodeElementType.Record] = LoadIcon("Record_16.png");
-        _iconCache[CodeElementType.Other] = LoadIcon("Other_16.png");
+        IconCache[CodeElementType.Assembly] = LoadIcon("Assembly_16.png");
+        IconCache[CodeElementType.Namespace] = LoadIcon("Namespace_16.png");
+        IconCache[CodeElementType.Class] = LoadIcon("Class_16.png");
+        IconCache[CodeElementType.Interface] = LoadIcon("Interface_16.png");
+        IconCache[CodeElementType.Struct] = LoadIcon("Struct_16.png");
+        IconCache[CodeElementType.Method] = LoadIcon("Method_16.png");
+        IconCache[CodeElementType.Property] = LoadIcon("Property_16.png");
+        IconCache[CodeElementType.Delegate] = LoadIcon("Delegate_16.png");
+        IconCache[CodeElementType.Event] = LoadIcon("Event_16.png");
+        IconCache[CodeElementType.Enum] = LoadIcon("Enum_16.png");
+        IconCache[CodeElementType.Field] = LoadIcon("Field_16.png");
+        IconCache[CodeElementType.Record] = LoadIcon("Record_16.png");
+        IconCache[CodeElementType.Other] = LoadIcon("Other_16.png");
     }
 
     private static BitmapImage LoadIcon(string fileName)

@@ -239,10 +239,12 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         processingQueue.Enqueue((method, initialContext), 0); // Start with the initial method, priority 0
 
         var foundRelationships = new HashSet<Relationship>();
-        var foundElements = new HashSet<CodeElement>();
-
-        // For convenience. The element is already in the graph. But this way the result is consistent.
-        foundElements.Add(_codeGraph.Nodes[id]);
+        var foundElements = new HashSet<CodeElement>
+            {
+                // For convenience. The element is already in the graph. But this way the result is consistent.
+                _codeGraph.Nodes[id]
+                
+            };
 
         var processed = new HashSet<string>();
         while (processingQueue.Count > 0)
@@ -435,8 +437,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var element = _codeGraph.Nodes[id];
 
         var relationships = _codeGraph.GetAllRelationships()
-            .Where(d => (d.Type == RelationshipType.Overrides ||
-                         d.Type == RelationshipType.Implements) &&
+            .Where(d => d.Type is RelationshipType.Overrides or RelationshipType.Implements &&
                         d.TargetId == element.Id).ToList();
         var methods = relationships.Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
         return new SearchResult(methods, relationships);
@@ -457,9 +458,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var element = _codeGraph.Nodes[id];
 
         var relationships = element.Relationships
-            .Where(d => (d.Type == RelationshipType.Overrides ||
-                         d.Type == RelationshipType.Inherits ||
-                         d.Type == RelationshipType.Implements) &&
+            .Where(d => d.Type is RelationshipType.Overrides or RelationshipType.Inherits or RelationshipType.Implements &&
                         d.SourceId == element.Id).ToList();
         var methods = relationships.Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
         return new SearchResult(methods, relationships);

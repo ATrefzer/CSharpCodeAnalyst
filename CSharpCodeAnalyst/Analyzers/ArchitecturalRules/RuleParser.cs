@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -13,7 +14,7 @@ public static class RuleParser
     {
         if (string.IsNullOrWhiteSpace(ruleText))
         {
-            throw new ArgumentException("Rule text cannot be empty", nameof(ruleText));
+            throw new ArgumentException(Strings.Analyzer_Empty_Rule, nameof(ruleText));
         }
 
         var trimmedRule = ruleText.Trim();

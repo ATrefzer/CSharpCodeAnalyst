@@ -85,7 +85,7 @@ public class SearchViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool CanPartition(SearchItemViewModel? vm)
+    private static bool CanPartition(SearchItemViewModel? vm)
     {
         return vm?.CodeElement is { ElementType: CodeElementType.Class };
     }

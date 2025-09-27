@@ -18,11 +18,11 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 internal class GraphViewModel : INotifyPropertyChanged
 {
+    private const int UndoStackSize = 10;
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly ApplicationSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
-    private readonly int _undoStackSize = 10;
     private readonly IGraphViewer _viewer;
 
     private HighlightOption _selectedHighlightOption;
@@ -224,7 +224,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
+    private static bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
     {
         return selectedElements.Any();
     }
@@ -391,7 +391,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     private void PushUndo()
     {
-        if (_undoStack.Count >= _undoStackSize)
+        if (_undoStack.Count >= UndoStackSize)
         {
             // Make space
             _undoStack.RemoveLast();
@@ -501,7 +501,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.Layout();
     }
 
-    internal void FindIncomingCalls(CodeElement method)
+    private void FindIncomingCalls(CodeElement method)
     {
         if (!IsCallable(method))
         {
@@ -526,7 +526,7 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
 
-    internal void FollowIncomingCallsRecursive(CodeElement element)
+    private void FollowIncomingCallsRecursive(CodeElement element)
     {
         if (!IsCallable(element))
         {
@@ -538,7 +538,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, result.Relationships);
     }
 
-    internal void FindInheritanceTree(CodeElement? type)
+    private void FindInheritanceTree(CodeElement? type)
     {
         if (type is null)
         {
@@ -550,7 +550,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         AddToGraph(relationships.Elements, relationships.Relationships);
     }
 
-    internal void FindOutgoingCalls(CodeElement? method)
+    private void FindOutgoingCalls(CodeElement? method)
     {
         if (method is null || !IsCallable(method))
         {

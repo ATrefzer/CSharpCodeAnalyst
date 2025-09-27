@@ -154,7 +154,7 @@ public static class Export
             var fileName = saveFileDialog.FileName;
 
             var exporter = new DsiExport();
-            exporter.Export(fileName, codeGraph);
+            DsiExport.Export(fileName, codeGraph);
         }
         catch (Exception ex)
         {

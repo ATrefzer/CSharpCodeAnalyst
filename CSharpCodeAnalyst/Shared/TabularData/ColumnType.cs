@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Shared.Table;
+﻿namespace CSharpCodeAnalyst.Shared.TabularData;
 
 /// <summary>
 ///     Available column types for the dynamic data grid

@@ -15,7 +15,6 @@ internal class TestTool
     ///     3. Run test code: Parse the solution and write the output to a file.
     ///     4. Compare output with reference or copy to reference folder if not exists yet.
     ///     5. Print test result
-    ///     Note: The reference files are not committed, so save space.
     ///     You can always check out an older tag and create the reference files.
     /// </summary>
     private static async Task Main(string[] args)
@@ -126,7 +125,7 @@ internal class TestTool
 
     private static async Task RunTestCode(string slnPath, string outputPath)
     {
-        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection(), 1);
+        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection());
         var parser = new Parser(parserConfig);
         var graph = await parser.ParseSolution(slnPath);
         await File.WriteAllTextAsync(outputPath, graph.ToDebug());

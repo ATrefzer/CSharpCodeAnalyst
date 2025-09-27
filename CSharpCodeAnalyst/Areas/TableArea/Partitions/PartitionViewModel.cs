@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Table;
+using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
 

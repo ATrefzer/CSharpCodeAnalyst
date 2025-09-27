@@ -17,12 +17,12 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
 
     public HashSet<Relationship> Relationships { get; } = [];
 
-    public CodeElementType ElementType { get; set; } = elementType;
+    public CodeElementType ElementType { get; } = elementType;
 
     public string Id { get; } = id;
 
-    public string Name { get; set; } = name;
-    public string FullName { get; set; } = fullName;
+    public string Name { get; } = name;
+    public string FullName { get; } = fullName;
 
     public CodeElement? Parent { get; set; } = parent;
 

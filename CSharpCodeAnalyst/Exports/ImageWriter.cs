@@ -2,14 +2,13 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Exports;
 
 /// <summary>
 ///     This class was taken from https://github.com/microsoft/automatic-graph-layout samples.
 /// </summary>
-public class ImageWriter
+public static class ImageWriter
 {
     public static void SaveToBmp(FrameworkElement visual, string fileName)
     {
@@ -23,7 +22,7 @@ public class ImageWriter
         SaveUsingEncoder(visual, fileName, encoder);
     }
 
-    public static void SaveUsingEncoder(FrameworkElement? visual, string fileName, BitmapEncoder encoder)
+    private static void SaveUsingEncoder(FrameworkElement? visual, string fileName, BitmapEncoder encoder)
     {
         if (visual is null)
         {
@@ -40,17 +39,5 @@ public class ImageWriter
         {
             encoder.Save(stream);
         }
-    }
-
-    private void SaveToPng(Graph graph)
-    {
-        // Needs the Gdi package.
-        //var renderer = new Microsoft.Msagl.GraphViewerGdi.GraphRenderer(graph);
-        //renderer.CalculateLayout();
-        //int width = 50;
-        //Bitmap bitmap = new Bitmap(width, (int)(graph.Height *
-        //                                        (width / graph.Width)), PixelFormat.Format32bppPArgb);
-        //renderer.Render(bitmap);
-        //bitmap.Save("test.png");
     }
 }

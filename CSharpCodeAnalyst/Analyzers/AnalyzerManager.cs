@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Analyzers;
@@ -53,10 +53,10 @@ internal class AnalyzerManager : IAnalyzerManager
     public void LoadAnalyzers(IPublisher messaging)
     {
         _analyzers.Clear();
-        IAnalyzer analyzer = new EventRegistration.Analyzer(messaging);
+        IAnalyzer analyzer = new Analyzer(messaging);
         _analyzers.Add(analyzer.Id, analyzer);
 
-        analyzer = new Analyzer(messaging);
+        analyzer = new ArchitecturalRules.Analyzer(messaging);
         _analyzers.Add(analyzer.Id, analyzer);
     }
 }

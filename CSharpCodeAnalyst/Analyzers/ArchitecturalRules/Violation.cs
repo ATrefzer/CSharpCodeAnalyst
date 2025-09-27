@@ -13,9 +13,9 @@ public class Violation
         Description = GenerateDescription();
     }
 
-    public RuleBase Rule { get; set; } = null!;
-    public List<Relationship> ViolatingRelationships { get; set; } = [];
-    public string Description { get; set; } = string.Empty;
+    public RuleBase Rule { get; set; }
+    public List<Relationship> ViolatingRelationships { get; set; }
+    public string Description { get; set; }
 
     private string GenerateDescription()
     {

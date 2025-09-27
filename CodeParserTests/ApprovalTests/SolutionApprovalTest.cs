@@ -12,7 +12,6 @@ public class SolutionApprovalTests : ProjectTestBase
         var assemblies = Graph.Nodes.Values.Where(n => n.ElementType == CodeElementType.Assembly)
             .Select(a => a.FullName).ToHashSet();
 
-        var dmp = DumpCodeElements(assemblies);
         var expected = new[]
         {
             "Core.BasicLanguageFeatures",

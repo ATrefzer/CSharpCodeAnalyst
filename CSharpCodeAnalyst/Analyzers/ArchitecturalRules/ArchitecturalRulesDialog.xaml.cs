@@ -6,7 +6,7 @@ using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public partial class ArchitecturalRulesDialog : Window, INotifyPropertyChanged
+public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 {
     private string _rulesText = string.Empty;
 
@@ -21,11 +21,10 @@ public partial class ArchitecturalRulesDialog : Window, INotifyPropertyChanged
         get => _rulesText;
         set
         {
-            if (_rulesText != value)
-            {
-                _rulesText = value;
-                OnPropertyChanged();
-            }
+            if (_rulesText == value) { return; }
+
+            _rulesText = value;
+            OnPropertyChanged();
         }
     }
 

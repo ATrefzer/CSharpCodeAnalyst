@@ -229,7 +229,7 @@ public class FileOpener
     }
 
 
-    public static class ComInterop
+    private static class ComInterop
     {
         [DllImport("oleaut32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
         public static extern void GetActiveObject(ref Guid rclsid, IntPtr reserved,

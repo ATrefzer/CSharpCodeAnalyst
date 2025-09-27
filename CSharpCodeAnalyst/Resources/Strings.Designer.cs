@@ -114,6 +114,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rule text cannot be empty.
+        /// </summary>
+        public static string Analyzer_Empty_Rule {
+            get {
+                return ResourceManager.GetString("Analyzer_Empty_Rule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Event registrations.
         /// </summary>
         public static string Analyzer_EventRegistration_Label {
@@ -1579,24 +1588,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_Hint {
             get {
                 return ResourceManager.GetString("Settings_Hint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Max Degree of Parallelism:.
-        /// </summary>
-        public static string Settings_MaxDegreeOfParallelism {
-            get {
-                return ResourceManager.GetString("Settings_MaxDegreeOfParallelism", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of threads to use during parsing.
-        /// </summary>
-        public static string Settings_MaxDegreeOfParallelism_Tooltip {
-            get {
-                return ResourceManager.GetString("Settings_MaxDegreeOfParallelism_Tooltip", resourceCulture);
             }
         }
         

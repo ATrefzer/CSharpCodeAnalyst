@@ -116,13 +116,11 @@ public class RuleValidationTests
     [Test]
     public void RestrictRule_ThrowsException_WhenUsedDirectly()
     {
-        // Arrange
         var restrictRule = new RestrictRule();
         var sourceIds = new HashSet<string>();
         var targetIds = new HashSet<string>();
         var allRelationships = new List<Relationship>();
 
-        // Act & Assert
         var ex = Assert.Throws<InvalidOperationException>(() =>
             restrictRule.ValidateRule(sourceIds, targetIds, allRelationships));
 
