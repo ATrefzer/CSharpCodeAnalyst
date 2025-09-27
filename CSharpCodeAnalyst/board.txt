@@ -5,12 +5,10 @@
   Having the symbol key would allow synchronization with a project in the future.
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Margins for Tables
 - Metrics and Analyzer tables are implemented differently but could be unified
 	- Extend Metric grid
 
-- More Source Locations (copied???)
-- ctor calls are not detected
+- Bug: Copying from Cycles table to graph loses the source code locations in the dependencies.
 
 
 UNHANDLED CASES

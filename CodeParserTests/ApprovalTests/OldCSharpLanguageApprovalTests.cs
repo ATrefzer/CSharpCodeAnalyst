@@ -193,7 +193,9 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave"
+            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            
+            "Old.CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);

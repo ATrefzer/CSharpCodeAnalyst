@@ -84,7 +84,14 @@ public class GenericsApprovalTests : ProjectTestBase
             "Core.Generics.Core.Generics.GenericPair.Swap -> Core.Generics.Core.Generics.GenericPair.First",
             "Core.Generics.Core.Generics.GenericTree.Node..ctor -> Core.Generics.Core.Generics.GenericTree.Node.Value",
             "Core.Generics.Core.Generics.GenericTree.Node.AddChild -> Core.Generics.Core.Generics.GenericTree.Node.Children",
-            "Core.Generics.Core.Generics.GenericTree.SetRoot -> Core.Generics.Core.Generics.GenericTree.Root"
+            "Core.Generics.Core.Generics.GenericTree.SetRoot -> Core.Generics.Core.Generics.GenericTree.Root",
+
+            "Core.Generics.Core.Generics.GenericCreator.CreateContainer -> Core.Generics.Core.Generics.GenericContainer..ctor",
+            "Core.Generics.Core.Generics.GenericCreator.CreatePair -> Core.Generics.Core.Generics.GenericPair..ctor",
+            "Core.Generics.Core.Generics.GenericService.WrapResult -> Core.Generics.Core.Generics.GenericContainer..ctor",
+            "Core.Generics.Core.Generics.GenericTree.Node.AddChild -> Core.Generics.Core.Generics.GenericTree.Node..ctor",
+            "Core.Generics.Core.Generics.GenericTree.SetRoot -> Core.Generics.Core.Generics.GenericTree.Node..ctor",
+            "Core.Generics.Core.Generics.GenericUtilities.MakePair -> Core.Generics.Core.Generics.GenericPair..ctor"
         };
 
         CollectionAssert.AreEquivalent(expected, callRelationships.ToArray());

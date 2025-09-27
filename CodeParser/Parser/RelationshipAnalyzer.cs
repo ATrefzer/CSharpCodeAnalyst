@@ -453,22 +453,7 @@ public class RelationshipAnalyzer
                 case ObjectCreationExpressionSyntax objectCreationSyntax:
 
                     // new SomeClass()
-                    var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
-                    if (typeInfo.Type != null)
-                    {
-                        var location = objectCreationSyntax.GetSyntaxLocation();
-                        AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
-                    }
-
-                    // Analyze constructor arguments for method groups
-                    if (objectCreationSyntax.ArgumentList != null)
-                    {
-                        foreach (var argument in objectCreationSyntax.ArgumentList.Arguments)
-                        {
-                            AnalyzeArgument(sourceElement, argument, semanticModel);
-                        }
-                    }
-
+                    AnalyzeObjectCreation(sourceElement, semanticModel, objectCreationSyntax);
                     break;
 
                 case InvocationExpressionSyntax invocationSyntax:
@@ -496,6 +481,48 @@ public class RelationshipAnalyzer
                 case ArgumentSyntax argumentSyntax:
                     AnalyzeArgument(sourceElement, argumentSyntax, semanticModel);
                     break;
+            }
+        }
+    }
+
+    private void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
+        ObjectCreationExpressionSyntax objectCreationSyntax)
+    {
+        var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
+        if (typeInfo.Type != null)
+        {
+            var location = objectCreationSyntax.GetSyntaxLocation();
+            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
+        }
+
+
+        // Add calls relationship to constructor.
+        // Only if explicitly declared, we don't want a fallback to the containing class.
+        // I add this calls so that I can track method invocations.
+        var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
+        if (symbolInfo.Symbol is IMethodSymbol { IsImplicitlyDeclared: false } constructorSymbol)
+        {
+            var location = objectCreationSyntax.GetSyntaxLocation();
+
+            // Normalize to original definition for generic types
+            var normalizedConstructor = constructorSymbol;
+            if (constructorSymbol.ContainingType.IsGenericType &&
+                !constructorSymbol.ContainingType.IsDefinition)
+            {
+                // With generics Roslyn distinguishes between definition (written code) and usage (how code is used)
+                // These are different symbols.
+                normalizedConstructor = constructorSymbol.OriginalDefinition;
+            }
+
+            AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
+        }
+
+        // Analyze constructor arguments for method groups
+        if (objectCreationSyntax.ArgumentList != null)
+        {
+            foreach (var argument in objectCreationSyntax.ArgumentList.Arguments)
+            {
+                AnalyzeArgument(sourceElement, argument, semanticModel);
             }
         }
     }

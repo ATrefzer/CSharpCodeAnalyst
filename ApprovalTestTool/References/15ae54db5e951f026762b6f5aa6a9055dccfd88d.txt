@@ -283,6 +283,7 @@ CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Calls)-> CSharpLan
 CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Creates)-> CSharpLanguage.CSharpLanguage.Partial.Client 
 CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Creates)-> CSharpLanguage.CSharpLanguage.Partial.PartialClass 
 CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -(Uses)-> CSharpLanguage.CSharpLanguage.Partial.Client 
+CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -(Calls)-> CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor 
 CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -(Creates)-> CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer 
 CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer._owner -(Uses)-> CSharpLanguage.CSharpLanguage.PinSignalView 
 CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor -(Uses)-> CSharpLanguage.CSharpLanguage.PinSignalView 
@@ -357,6 +358,7 @@ ModuleLevel1.ModuleLevel1.Model.ModelA._modelB -(Uses)-> ModuleLevel1.ModuleLeve
 ModuleLevel1.ModuleLevel1.Model.ModelA._modelC -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
 ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize [IsInstanceCall]
 ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelB.Value 
+ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Calls)-> ModuleLevel1.ModuleLevel1.Model.StructA..ctor 
 ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelC 
 ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.ModelD 
 ModuleLevel1.ModuleLevel1.Model.ModelA..ctor -(Creates)-> ModuleLevel1.ModuleLevel1.Model.StructA 
@@ -380,6 +382,7 @@ ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Calls)-> ModuleLevel1.ModuleLevel1.M
 ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB._modelC 
 ModuleLevel1.ModuleLevel1.Model.ModelB.Do -(Uses)-> ModuleLevel2.ModuleLevel2.TheEnum 
 ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelC.RecursiveFuncOnModelC [IsInstanceCall]
+ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Calls)-> ModuleLevel1.ModuleLevel1.Model.StructA..ctor 
 ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Calls)-> ModuleLevel1.ModuleLevel1.Model.StructA.Fill [IsInstanceCall]
 ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Creates)-> ModuleLevel1.ModuleLevel1.Model.StructA 
 ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -(Uses)-> ModuleLevel1.ModuleLevel1.Model.ModelB._structA 
@@ -401,6 +404,7 @@ ModuleLevel1.ModuleLevel1.ServiceBase -(Implements)-> ModuleLevel1.ModuleLevel1.
 ModuleLevel1.ModuleLevel1.ServiceBase.Do -(Implements)-> ModuleLevel1.ModuleLevel1.IServiceC.Do 
 ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty -(Implements)-> ModuleLevel1.ModuleLevel1.IServiceC.IfProperty 
 ModuleLevel1.ModuleLevel1.ServiceC -(Inherits)-> ModuleLevel1.ModuleLevel1.ServiceBase 
+ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA..ctor 
 ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelC [IsInstanceCall]
 ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.Model.ModelA.GetModelD [IsInstanceCall]
 ModuleLevel1.ModuleLevel1.ServiceC.Do -(Calls)-> ModuleLevel1.ModuleLevel1.ServiceC.Execute 

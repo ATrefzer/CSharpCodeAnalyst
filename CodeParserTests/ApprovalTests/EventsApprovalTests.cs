@@ -105,7 +105,17 @@ public class EventsApprovalTests : ProjectTestBase
             "Core.Events.Core.Events.GenericEventArgs..ctor -> Core.Events.Core.Events.GenericEventArgs.Data",
             "Core.Events.Core.Events.NotificationMonitor.HandleError -> Core.Events.Core.Events.ErrorEventArgs.Exception",
             "Core.Events.Core.Events.ProcessedDataEventArgs..ctor -> Core.Events.Core.Events.ProcessedDataEventArgs.OriginalData",
-            "Core.Events.Core.Events.ProcessedDataEventArgs..ctor -> Core.Events.Core.Events.ProcessedDataEventArgs.ProcessedData"
+            "Core.Events.Core.Events.ProcessedDataEventArgs..ctor -> Core.Events.Core.Events.ProcessedDataEventArgs.ProcessedData",
+
+            "Core.Events.Core.Events.DataProcessor.ReceiveData -> Core.Events.Core.Events.ProcessedDataEventArgs..ctor",
+            "Core.Events.Core.Events.EmailNotificationService.SendNotification -> Core.Events.Core.Events.ErrorEventArgs..ctor",
+            "Core.Events.Core.Events.EmailNotificationService.TriggerError -> Core.Events.Core.Events.ErrorEventArgs..ctor",
+            "Core.Events.Core.Events.EventAggregator.HandleMessage -> Core.Events.Core.Events.AggregatedEventArgs..ctor",
+            "Core.Events.Core.Events.EventAggregator.HandleSimple -> Core.Events.Core.Events.AggregatedEventArgs..ctor",
+            "Core.Events.Core.Events.EventPublisher.TriggerCustomEvent -> Core.Events.Core.Events.CustomEventArgs..ctor",
+            "Core.Events.Core.Events.EventPublisher.TriggerDataChanged -> Core.Events.Core.Events.DataChangedEventArgs..ctor",
+            "Core.Events.Core.Events.GenericEventHandler.TriggerEvent -> Core.Events.Core.Events.GenericEventArgs..ctor",
+            "Core.Events.Core.Events.SmsNotificationService.SendNotification -> Core.Events.Core.Events.ErrorEventArgs..ctor"
         };
 
         CollectionAssert.AreEquivalent(expected, callRelationships);

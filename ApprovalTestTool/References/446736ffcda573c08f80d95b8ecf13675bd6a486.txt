@@ -2366,6 +2366,7 @@ Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Calls)
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProvider.UpdateScopeSingleOrNoParent 
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Calls)-> Insight.GitProvider.Insight.GitProvider.GraphNode.CommitHash 
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Calls)-> Insight.GitProvider.Insight.GitProvider.GraphNode.Parents 
+Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Calls)-> Insight.GitProvider.Insight.GitProvider.Scope..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Creates)-> Insight.GitProvider.Insight.GitProvider.Scope 
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Uses)-> Insight.GitProvider.Insight.GitProvider.Differences 
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Uses)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
@@ -2373,6 +2374,7 @@ Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Uses)-
 Insight.GitProvider.Insight.GitProvider.GitProvider.ApplyChangesToScope -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope 
 Insight.GitProvider.Insight.GitProvider.GitProvider.BreakOnHash -(Calls)-> Insight.GitProvider.Insight.GitProvider.GraphNode.CommitHash 
 Insight.GitProvider.Insight.GitProvider.GitProvider.BreakOnHash -(Uses)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
+Insight.GitProvider.Insight.GitProvider.GitProvider.CalculateDiffs -(Calls)-> Insight.GitProvider.Insight.GitProvider.Differences..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProvider.CalculateDiffs -(Creates)-> Insight.GitProvider.Insight.GitProvider.Differences 
 Insight.GitProvider.Insight.GitProvider.GitProvider.CalculateDiffs -(Uses)-> Insight.GitProvider.Insight.GitProvider.Differences 
 Insight.GitProvider.Insight.GitProvider.GitProvider.CreateChangeItem -(Calls)-> Insight.Shared.Insight.Shared.Model.ChangeItem.FromServerPath 
@@ -2474,6 +2476,8 @@ Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetMasterHead -(Calls)->
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetMasterHead -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._gitCli 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetMasterHead -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._projectBase 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetPathToExportedFile -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetHistoryCache 
+Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitCommandLine..ctor 
+Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Calls)-> Insight.GitProvider.Insight.GitProvider.PathMapper..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Creates)-> Insight.GitProvider.Insight.GitProvider.GitCommandLine 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Creates)-> Insight.GitProvider.Insight.GitProvider.PathMapper 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._cachePath 
@@ -2483,6 +2487,7 @@ Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Uses)-> Ins
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._mapper 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._projectBase 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._workItemRegex 
+Insight.GitProvider.Insight.GitProvider.GitProviderBase.ParseLogString -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.ParseLogString -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.ParseLogStringNoGraph [IsInstanceCall]
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.ParseLogString -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.WorkItemRegex 
 Insight.GitProvider.Insight.GitProvider.GitProviderBase.ParseLogString -(Creates)-> Insight.GitProvider.Insight.GitProvider.Parser 
@@ -2531,6 +2536,7 @@ Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.Initialize -(Calls
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.Initialize -(Overrides)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase.Initialize 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.PrepareLogDirectory -(Uses)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase._cachePath 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.ProcessHistoryForFile -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitCommandLine.Log [IsInstanceCall]
+Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.ProcessHistoryForFile -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.ProcessHistoryForFile -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.ParseLogString [IsInstanceCall]
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.ProcessHistoryForFile -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.WorkItemRegex 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.ProcessHistoryForFile -(Creates)-> Insight.GitProvider.Insight.GitProvider.Parser 
@@ -2560,6 +2566,7 @@ Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Ca
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.RebuildHistory 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.SaveRecoveredLogToDisk 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.VerifyNoDuplicateServerPathsInChangeset 
+Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.ParseLogString [IsInstanceCall]
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Creates)-> Insight.GitProvider.Insight.GitProvider.Graph 
 Insight.GitProvider.Insight.GitProvider.GitProviderFileByFile.UpdateHistory -(Creates)-> Insight.GitProvider.Insight.GitProvider.Parser 
@@ -2587,6 +2594,7 @@ Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateCache -(Uses)
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitCommandLine.LogWithoutRenames [IsInstanceCall]
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetAllTrackedFiles 
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase.GetMasterHead 
+Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser..ctor 
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.ParseLogString [IsInstanceCall]
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.Parser.WorkItemRegex 
 Insight.GitProvider.Insight.GitProvider.GitProviderNoRenames.UpdateHistory -(Creates)-> Insight.GitProvider.Insight.GitProvider.Parser 
@@ -2615,6 +2623,7 @@ Insight.GitProvider.Insight.GitProvider.Graph.GetEnumerator -(Calls)-> Insight.G
 Insight.GitProvider.Insight.GitProvider.Graph.GetEnumerator -(Uses)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
 Insight.GitProvider.Insight.GitProvider.Graph.GetNode -(Uses)-> Insight.GitProvider.Insight.GitProvider.Graph._hashToGraphNode 
 Insight.GitProvider.Insight.GitProvider.Graph.GetNode -(Uses)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
+Insight.GitProvider.Insight.GitProvider.Graph.GetOrAddNode -(Calls)-> Insight.GitProvider.Insight.GitProvider.GraphNode..ctor 
 Insight.GitProvider.Insight.GitProvider.Graph.GetOrAddNode -(Creates)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
 Insight.GitProvider.Insight.GitProvider.Graph.GetOrAddNode -(Uses)-> Insight.GitProvider.Insight.GitProvider.Graph._hashToGraphNode 
 Insight.GitProvider.Insight.GitProvider.Graph.GetOrAddNode -(Uses)-> Insight.GitProvider.Insight.GitProvider.GraphNode 
@@ -2709,6 +2718,7 @@ Insight.GitProvider.Insight.GitProvider.Scope..ctor -(Uses)-> Insight.GitProvide
 Insight.GitProvider.Insight.GitProvider.Scope..ctor -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope._serverPathToId 
 Insight.GitProvider.Insight.GitProvider.Scope.Add -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope._idToServerPath 
 Insight.GitProvider.Insight.GitProvider.Scope.Add -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope._serverPathToId 
+Insight.GitProvider.Insight.GitProvider.Scope.Clone -(Calls)-> Insight.GitProvider.Insight.GitProvider.Scope..ctor 
 Insight.GitProvider.Insight.GitProvider.Scope.Clone -(Creates)-> Insight.GitProvider.Insight.GitProvider.Scope 
 Insight.GitProvider.Insight.GitProvider.Scope.Clone -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope 
 Insight.GitProvider.Insight.GitProvider.Scope.Clone -(Uses)-> Insight.GitProvider.Insight.GitProvider.Scope._idToServerPath 
@@ -2812,6 +2822,7 @@ Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Analyzer.Ge
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Analyzer.LoadContributions 
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Analyzer.LoadHistory 
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Analyzer.LoadMetrics 
+Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Builder.KnowledgeBuilder..ctor 
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Strings.LinesOfCode 
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Insight.Insight.Strings.NotAvailable 
 Insight.Insight.Analyzer.AnalyzeKnowledge -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext.AreaSemantic 
@@ -2831,6 +2842,7 @@ Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Analyze
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Analyzer.LoadContributions 
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Analyzer.LoadHistory 
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Analyzer.LoadMetrics 
+Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Builder.KnowledgeBuilder..ctor 
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Strings.LinesOfCode 
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Insight.Insight.Strings.NotAvailable 
 Insight.Insight.Analyzer.AnalyzeKnowledgeLoss -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext.AreaSemantic 
@@ -2953,6 +2965,12 @@ Insight.Insight.Analyzer.UpdateCache -(Uses)-> Insight.Insight.Analyzer._support
 Insight.Insight.Analyzer.UpdateCache -(Uses)-> Insight.Insight.Progress 
 Insight.Insight.Analyzer.Warnings -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage 
 Insight.Insight.App.App_OnExit -(Calls)-> Insight.Insight.Properties.Settings.Default 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Analyzer..ctor 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.BackgroundExecution..ctor 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.MainViewModel..ctor 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.MainWindow..ctor 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.ProgressService..ctor 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Project..ctor 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Project.GetSupportedFileTypesForAnalysis [IsStaticCall]
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Project.Load [IsInstanceCall]
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Properties.Settings.Default 
@@ -2963,6 +2981,7 @@ Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Properties.Settings
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Properties.Settings.MinCouplingForChangeCoupling 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Properties.Settings.MinDegreeForChangeCoupling 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.Properties.Settings.MinLinesOfCodeForHotspot 
+Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Insight.ViewController..ctor 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Shared.Insight.Shared.Thresholds.MaxItemsInChangesetForChangeCoupling 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Shared.Insight.Shared.Thresholds.MaxWorkItemsPerCommitForSummary 
 Insight.Insight.App.App_OnStartup -(Calls)-> Insight.Shared.Insight.Shared.Thresholds.MinCommitsForHotspots 
@@ -3271,6 +3290,7 @@ Insight.Insight.Dialogs.ColorEditorViewModel.UpdateAssignableColors -(Uses)-> In
 Insight.Insight.Dialogs.ColorEditorViewModel.UpdateAssignableColors -(Uses)-> Insight.Insight.Dialogs.ColorEditorViewModel._newCustomColors 
 Insight.Insight.Dialogs.ColorEditorViewModel.VisibleColors -(Calls)-> Insight.Insight.WpfCore.ViewModelBase.OnPropertyChanged 
 Insight.Insight.Dialogs.ColorEditorViewModel.VisibleColors -(Uses)-> Insight.Insight.Dialogs.ColorEditorViewModel._visibleColors 
+Insight.Insight.Dialogs.ColorPaletteExtensions.ForAlias -(Calls)-> Insight.Insight.Dialogs.AliasColorScheme..ctor 
 Insight.Insight.Dialogs.ColorPaletteExtensions.ForAlias -(Creates)-> Insight.Insight.Dialogs.AliasColorScheme 
 Insight.Insight.Dialogs.ColorPaletteExtensions.ForAlias -(Uses)-> Insight.Shared.Insight.Shared.IAliasMapping 
 Insight.Insight.Dialogs.ColorPaletteExtensions.ForAlias -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IColorScheme 
@@ -3394,6 +3414,7 @@ Insight.Insight.MainViewModel..ctor -(Calls)-> Insight.Insight.MainViewModel.Set
 Insight.Insight.MainViewModel..ctor -(Calls)-> Insight.Insight.MainViewModel.SummaryCommand 
 Insight.Insight.MainViewModel..ctor -(Calls)-> Insight.Insight.MainViewModel.ToggleDisplayModeCommand 
 Insight.Insight.MainViewModel..ctor -(Calls)-> Insight.Insight.MainViewModel.UpdateCommand 
+Insight.Insight.MainViewModel..ctor -(Calls)-> Insight.Insight.TabManager..ctor 
 Insight.Insight.MainViewModel..ctor -(Creates)-> Insight.Insight.TabManager 
 Insight.Insight.MainViewModel..ctor -(Uses)-> Insight.Insight.Analyzer 
 Insight.Insight.MainViewModel..ctor -(Uses)-> Insight.Insight.BackgroundExecution 
@@ -3421,11 +3442,13 @@ Insight.Insight.MainViewModel.ConfigureAnalyzer -(Calls)-> Insight.Insight.Proje
 Insight.Insight.MainViewModel.ConfigureAnalyzer -(Calls)-> Insight.Insight.Project.DisplayFilter 
 Insight.Insight.MainViewModel.ConfigureAnalyzer -(Uses)-> Insight.Insight.MainViewModel._analyzer 
 Insight.Insight.MainViewModel.ConfigureAnalyzer -(Uses)-> Insight.Insight.MainViewModel._project 
+Insight.Insight.MainViewModel.CreateAliasMapping -(Calls)-> Insight.Insight.Alias.AliasMapping..ctor 
 Insight.Insight.MainViewModel.CreateAliasMapping -(Calls)-> Insight.Insight.Alias.AliasMapping.Load [IsInstanceCall]
 Insight.Insight.MainViewModel.CreateAliasMapping -(Calls)-> Insight.Insight.MainViewModel.GetAliasMappingPath 
 Insight.Insight.MainViewModel.CreateAliasMapping -(Creates)-> Insight.Insight.Alias.AliasMapping 
 Insight.Insight.MainViewModel.CreateAliasMapping -(Creates)-> Insight.Insight.Alias.NullAliasMapping 
 Insight.Insight.MainViewModel.CreateAliasMapping -(Uses)-> Insight.Shared.Insight.Shared.IAliasMapping 
+Insight.Insight.MainViewModel.CreateColorSchemeManager -(Calls)-> Insight.Insight.ColorSchemeManager..ctor 
 Insight.Insight.MainViewModel.CreateColorSchemeManager -(Calls)-> Insight.Insight.MainViewModel.GetColorFilePath 
 Insight.Insight.MainViewModel.CreateColorSchemeManager -(Creates)-> Insight.Insight.ColorSchemeManager 
 Insight.Insight.MainViewModel.CreateColorSchemeManager -(Uses)-> Insight.Insight.IColorSchemeManager 
@@ -3509,6 +3532,7 @@ Insight.Insight.MainViewModel.LoadDataClick -(Uses)-> Insight.Insight.MainViewMo
 Insight.Insight.MainViewModel.LoadDataClick -(Uses)-> Visualization.Controls.Visualization.Controls.Common.ColorScheme 
 Insight.Insight.MainViewModel.LoadDataClick -(Uses)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData 
 Insight.Insight.MainViewModel.LoadProjectClick -(Calls)-> Insight.Insight.MainViewModel.SetActiveProject 
+Insight.Insight.MainViewModel.LoadProjectClick -(Calls)-> Insight.Insight.Project..ctor 
 Insight.Insight.MainViewModel.LoadProjectClick -(Calls)-> Insight.Insight.Project.Load [IsInstanceCall]
 Insight.Insight.MainViewModel.LoadProjectClick -(Creates)-> Insight.Insight.Project 
 Insight.Insight.MainViewModel.LoadProjectClick -(Uses)-> Insight.Insight.MainViewModel._dialogs 
@@ -3534,6 +3558,7 @@ Insight.Insight.MainViewModel.OnShowWork -(Uses)-> Insight.Insight.MainViewModel
 Insight.Insight.MainViewModel.OnShowWork -(Uses)-> Insight.Insight.MainViewModel._backgroundExecution 
 Insight.Insight.MainViewModel.OnShowWork -(Uses)-> Insight.Insight.MainViewModel._viewController 
 Insight.Insight.MainViewModel.OnShowWork -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData 
+Insight.Insight.MainViewModel.PredictHotspotsClick -(Calls)-> Insight.Analyzers.Insight.Analyzers.HotspotPredictor..ctor 
 Insight.Insight.MainViewModel.PredictHotspotsClick -(Calls)-> Insight.Analyzers.Insight.Analyzers.HotspotPredictor.GetHotspotDelta [IsInstanceCall]
 Insight.Insight.MainViewModel.PredictHotspotsClick -(Calls)-> Insight.Insight.DialogService.GetLoadFile [IsInstanceCall]
 Insight.Insight.MainViewModel.PredictHotspotsClick -(Calls)-> Insight.Insight.Project.Cache 
@@ -3617,9 +3642,11 @@ Insight.Insight.MainViewModel.UpdateClick -(Uses)-> Insight.Insight.MainViewMode
 Insight.Insight.MainViewModel.UpdateClick -(Uses)-> Insight.Insight.MainViewModel._dialogs 
 Insight.Insight.MainViewModel.UpdateClick -(Uses)-> Insight.Insight.MainViewModel._project 
 Insight.Insight.MainViewModel.UpdateClick -(Uses)-> Insight.Insight.MainViewModel._tabManager 
+Insight.Insight.MainViewModel.UpdateDeveloperAliasMappings -(Calls)-> Insight.Insight.Alias.AliasMapping..ctor 
 Insight.Insight.MainViewModel.UpdateDeveloperAliasMappings -(Calls)-> Insight.Insight.Alias.AliasMapping.CreateDefaultAliases [IsInstanceCall]
 Insight.Insight.MainViewModel.UpdateDeveloperAliasMappings -(Calls)-> Insight.Insight.MainViewModel.GetAliasMappingPath 
 Insight.Insight.MainViewModel.UpdateDeveloperAliasMappings -(Creates)-> Insight.Insight.Alias.AliasMapping 
+Insight.Insight.MainViewModel.UpdateDeveloperColorScheme -(Calls)-> Insight.Insight.ColorSchemeManager..ctor 
 Insight.Insight.MainViewModel.UpdateDeveloperColorScheme -(Calls)-> Insight.Insight.MainViewModel.GetColorFilePath 
 Insight.Insight.MainViewModel.UpdateDeveloperColorScheme -(Creates)-> Insight.Insight.ColorSchemeManager 
 Insight.Insight.MainViewModel.UpdateDisplayMode -(Calls)-> Insight.Insight.MainViewModel.SelectedIndex 
@@ -3642,8 +3669,10 @@ Insight.Insight.Progress.Message -(Uses)-> Insight.Insight.Progress._progressVie
 Insight.Insight.ProgressService._mainWindow -(Uses)-> Insight.Insight.MainWindow 
 Insight.Insight.ProgressService..ctor -(Uses)-> Insight.Insight.MainWindow 
 Insight.Insight.ProgressService..ctor -(Uses)-> Insight.Insight.ProgressService._mainWindow 
+Insight.Insight.ProgressService.CreateProgress -(Calls)-> Insight.Insight.Dialogs.ProgressView..ctor 
 Insight.Insight.ProgressService.CreateProgress -(Calls)-> Insight.Insight.Dialogs.ProgressView.CanClose 
 Insight.Insight.ProgressService.CreateProgress -(Calls)-> Insight.Insight.MainWindow.CanClose 
+Insight.Insight.ProgressService.CreateProgress -(Calls)-> Insight.Insight.Progress..ctor 
 Insight.Insight.ProgressService.CreateProgress -(Creates)-> Insight.Insight.Dialogs.ProgressView 
 Insight.Insight.ProgressService.CreateProgress -(Creates)-> Insight.Insight.Progress 
 Insight.Insight.ProgressService.CreateProgress -(Uses)-> Insight.Insight.Progress 
@@ -3964,19 +3993,27 @@ Insight.Insight.TabManager.ShowWarnings -(Uses)-> Insight.Shared.Insight.Shared.
 Insight.Insight.ViewController._mainWindow -(Uses)-> Insight.Insight.MainWindow 
 Insight.Insight.ViewController..ctor -(Uses)-> Insight.Insight.MainWindow 
 Insight.Insight.ViewController..ctor -(Uses)-> Insight.Insight.ViewController._mainWindow 
+Insight.Insight.ViewController.SelectDeveloper -(Calls)-> Insight.Insight.Dialogs.SelectDeveloperView..ctor 
 Insight.Insight.ViewController.SelectDeveloper -(Calls)-> Insight.Insight.Dialogs.SelectDeveloperView.GetSelectedDeveloper [IsInstanceCall]
 Insight.Insight.ViewController.SelectDeveloper -(Creates)-> Insight.Insight.Dialogs.SelectDeveloperView 
+Insight.Insight.ViewController.ShowAbout -(Calls)-> Insight.Insight.AboutView..ctor 
 Insight.Insight.ViewController.ShowAbout -(Creates)-> Insight.Insight.AboutView 
 Insight.Insight.ViewController.ShowAbout -(Uses)-> Insight.Insight.ViewController._mainWindow 
+Insight.Insight.ViewController.ShowColorEditorViewViewer -(Calls)-> Insight.Insight.Dialogs.ColorEditorView..ctor 
+Insight.Insight.ViewController.ShowColorEditorViewViewer -(Calls)-> Insight.Insight.Dialogs.ColorEditorViewModel..ctor 
 Insight.Insight.ViewController.ShowColorEditorViewViewer -(Creates)-> Insight.Insight.Dialogs.ColorEditorView 
 Insight.Insight.ViewController.ShowColorEditorViewViewer -(Creates)-> Insight.Insight.Dialogs.ColorEditorViewModel 
 Insight.Insight.ViewController.ShowColorEditorViewViewer -(Uses)-> Insight.Insight.IColorSchemeManager 
 Insight.Insight.ViewController.ShowColorEditorViewViewer -(Uses)-> Insight.Insight.ViewController._mainWindow 
 Insight.Insight.ViewController.ShowColorEditorViewViewer -(Uses)-> Insight.Shared.Insight.Shared.IAliasMapping 
+Insight.Insight.ViewController.ShowImageViewer -(Calls)-> Insight.Insight.Dialogs.ImageView..ctor 
 Insight.Insight.ViewController.ShowImageViewer -(Calls)-> Insight.Insight.Dialogs.ImageView.SetImage [IsInstanceCall]
 Insight.Insight.ViewController.ShowImageViewer -(Creates)-> Insight.Insight.Dialogs.ImageView 
 Insight.Insight.ViewController.ShowImageViewer -(Uses)-> Insight.Insight.ViewController._mainWindow 
+Insight.Insight.ViewController.ShowNewProject -(Calls)-> Insight.Insight.Dialogs.ProjectView..ctor 
+Insight.Insight.ViewController.ShowNewProject -(Calls)-> Insight.Insight.Dialogs.ProjectViewModel..ctor 
 Insight.Insight.ViewController.ShowNewProject -(Calls)-> Insight.Insight.Dialogs.ProjectViewModel.EnableImmutableProperties 
+Insight.Insight.ViewController.ShowNewProject -(Calls)-> Insight.Insight.Project..ctor 
 Insight.Insight.ViewController.ShowNewProject -(Creates)-> Insight.Insight.Dialogs.ProjectView 
 Insight.Insight.ViewController.ShowNewProject -(Creates)-> Insight.Insight.Dialogs.ProjectViewModel 
 Insight.Insight.ViewController.ShowNewProject -(Creates)-> Insight.Insight.DialogService 
@@ -3984,6 +4021,8 @@ Insight.Insight.ViewController.ShowNewProject -(Creates)-> Insight.Insight.Proje
 Insight.Insight.ViewController.ShowNewProject -(Uses)-> Insight.Insight.Dialogs.ProjectViewModel.Mode 
 Insight.Insight.ViewController.ShowNewProject -(Uses)-> Insight.Insight.Project 
 Insight.Insight.ViewController.ShowNewProject -(Uses)-> Insight.Insight.ViewController._mainWindow 
+Insight.Insight.ViewController.ShowProjectSettings -(Calls)-> Insight.Insight.Dialogs.ProjectView..ctor 
+Insight.Insight.ViewController.ShowProjectSettings -(Calls)-> Insight.Insight.Dialogs.ProjectViewModel..ctor 
 Insight.Insight.ViewController.ShowProjectSettings -(Calls)-> Insight.Insight.Dialogs.ProjectViewModel.Changed 
 Insight.Insight.ViewController.ShowProjectSettings -(Creates)-> Insight.Insight.Dialogs.ProjectView 
 Insight.Insight.ViewController.ShowProjectSettings -(Creates)-> Insight.Insight.Dialogs.ProjectViewModel 
@@ -3991,6 +4030,8 @@ Insight.Insight.ViewController.ShowProjectSettings -(Creates)-> Insight.Insight.
 Insight.Insight.ViewController.ShowProjectSettings -(Uses)-> Insight.Insight.Dialogs.ProjectViewModel.Mode 
 Insight.Insight.ViewController.ShowProjectSettings -(Uses)-> Insight.Insight.Project 
 Insight.Insight.ViewController.ShowProjectSettings -(Uses)-> Insight.Insight.ViewController._mainWindow 
+Insight.Insight.ViewController.ShowTrendViewer -(Calls)-> Insight.Insight.Dialogs.TrendView..ctor 
+Insight.Insight.ViewController.ShowTrendViewer -(Calls)-> Insight.Insight.Dialogs.TrendViewModel..ctor 
 Insight.Insight.ViewController.ShowTrendViewer -(Creates)-> Insight.Insight.Dialogs.TrendView 
 Insight.Insight.ViewController.ShowTrendViewer -(Creates)-> Insight.Insight.Dialogs.TrendViewModel 
 Insight.Insight.ViewController.ShowTrendViewer -(Uses)-> Insight.Insight.ViewController._mainWindow 
@@ -4090,6 +4131,8 @@ Insight.Metrics.Insight.Metrics.MetricProvider.CalculateInvertedSpaceMetric -(Ca
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateInvertedSpaceMetric -(Creates)-> Insight.Metrics.Insight.Metrics.InvertedSpaceMetric 
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateInvertedSpaceMetric -(Implements)-> Insight.Metrics.Insight.Metrics.IMetricProvider.CalculateInvertedSpaceMetric 
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateInvertedSpaceMetric -(Uses)-> Insight.Metrics.Insight.Metrics.InvertedSpace 
+Insight.Metrics.Insight.Metrics.MetricProvider.CalculateLinesOfCode -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric..ctor 
+Insight.Metrics.Insight.Metrics.MetricProvider.CalculateLinesOfCode -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric..ctor 
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateLinesOfCode -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric.CalculateLinesOfCode [IsInstanceCall]
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateLinesOfCode -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric.CalculateLinesOfCode [IsInstanceCall]
 Insight.Metrics.Insight.Metrics.MetricProvider.CalculateLinesOfCode -(Calls)-> Insight.Metrics.Insight.Metrics.MetricProvider.GetPathToCloc 
@@ -4104,6 +4147,7 @@ Insight.Metrics.Insight.Metrics.MetricProvider.GetPathToCloc -(Uses)-> Insight.M
 Insight.Metrics.Insight.Metrics.MetricProvider.GetPathToCloc -(Uses)-> Insight.Metrics.Insight.Metrics.MetricProvider.ClocSubDir 
 Insight.Metrics.Insight.Metrics.MetricProvider.QueryLinesOfCode -(Implements)-> Insight.Metrics.Insight.Metrics.IMetricProvider.QueryLinesOfCode 
 Insight.Metrics.Insight.Metrics.MetricProvider.QueryLinesOfCode -(Uses)-> Insight.Metrics.Insight.Metrics.LinesOfCode 
+Insight.Metrics.Insight.Metrics.MetricProvider.UpdateLinesOfCodeCache -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric..ctor 
 Insight.Metrics.Insight.Metrics.MetricProvider.UpdateLinesOfCodeCache -(Calls)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric.CalculateLinesOfCode [IsInstanceCall]
 Insight.Metrics.Insight.Metrics.MetricProvider.UpdateLinesOfCodeCache -(Calls)-> Insight.Metrics.Insight.Metrics.MetricProvider.GetPathToCloc 
 Insight.Metrics.Insight.Metrics.MetricProvider.UpdateLinesOfCodeCache -(Creates)-> Insight.Metrics.Insight.Metrics.LinesOfCodeMetric 
@@ -4304,6 +4348,7 @@ Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Calls)->
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertRenameToAddIfSourceIsModified 
+Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage..ctor 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Creates)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Uses)-> Insight.Shared.Insight.Shared.Model.KindOfChange 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ApplyIds -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker._changeItems 
@@ -4314,6 +4359,7 @@ Insight.Shared.Insight.Shared.VersionControl.MovementTracker.BeginChangeSet -(Us
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.BeginChangeSet -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker._changeItems 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.BeginChangeSet -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker._cs 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Calls)-> Insight.Shared.Insight.Shared.Model.ChangeSet.Id 
+Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage..ctor 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Creates)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Uses)-> Insight.Shared.Insight.Shared.Model.ChangeItem 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Uses)-> Insight.Shared.Insight.Shared.Model.KindOfChange 
@@ -4321,6 +4367,7 @@ Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToR
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker._cs 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertAddDeleteToRename -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker.Warnings 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd -(Calls)-> Insight.Shared.Insight.Shared.Model.ChangeSet.Id 
+Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd -(Calls)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage..ctor 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd -(Creates)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd -(Uses)-> Insight.Shared.Insight.Shared.Model.KindOfChange 
 Insight.Shared.Insight.Shared.VersionControl.MovementTracker.ConvertMultipleCopiesIntoAdd -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.MovementTracker._changeItems 
@@ -4408,6 +4455,7 @@ Insight.SvnProvider.Insight.SvnProvider.SvnProvider.GetMappingInfo -(Uses)-> Ins
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.GetMappingInfo -(Uses)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider.MappingInfo.RelativeUrlToCheckoutDirectory 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.GetMappingInfo -(Uses)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider.MappingInfo.RelativeUrlToStartDirectory 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.GetPathToExportedFile -(Calls)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider.GetHistoryCache 
+Insight.SvnProvider.Insight.SvnProvider.SvnProvider.Initialize -(Calls)-> Insight.SvnProvider.Insight.SvnProvider.SvnCommandLine..ctor 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.Initialize -(Calls)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider.BaseDirectory 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.Initialize -(Creates)-> Insight.SvnProvider.Insight.SvnProvider.SvnCommandLine 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.Initialize -(Uses)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider._cachePath 
@@ -4479,6 +4527,7 @@ Insight.SvnProvider.Insight.SvnProvider.SvnProvider.UpdateWorkingCopy -(Calls)->
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.UpdateWorkingCopy -(Uses)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider._svnCli 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.VerifyHistoryIsCached -(Uses)-> Insight.SvnProvider.Insight.SvnProvider.SvnProvider._historyFile 
 Insight.SvnProvider.Insight.SvnProvider.SvnProvider.Warnings -(Uses)-> Insight.Shared.Insight.Shared.VersionControl.WarningMessage 
+Tests.Tests.AliasMappingTest.TransformContribution -(Calls)-> Insight.Insight.Analyzer..ctor 
 Tests.Tests.AliasMappingTest.TransformContribution -(Creates)-> Insight.Insight.Analyzer 
 Tests.Tests.AliasMappingTest.TransformContribution -(Creates)-> Insight.Shared.Insight.Shared.Model.Contribution 
 Tests.Tests.AliasMappingTest.TransformContribution -(Uses)-> Insight.Shared.Insight.Shared.Model.Contribution 
@@ -4673,6 +4722,7 @@ Tests.Tests.GitProviderTests.Follow -(Uses)-> Tests.Tests.GitProviderTests.Follo
 Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProvider.Initialize [IsInstanceCall]
 Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProvider.UpdateCache [IsInstanceCall]
 Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProviderBase.QueryChangeSetHistory [IsInstanceCall]
+Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Tests.Tests.Cache..ctor 
 Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Tests.Tests.Cache.ToString [IsInstanceCall]
 Tests.Tests.GitProviderTests.GetCleanHistory -(Calls)-> Tests.Tests.RepoBuilder.GetRepoPath [IsStaticCall]
 Tests.Tests.GitProviderTests.GetCleanHistory -(Creates)-> Insight.GitProvider.Insight.GitProvider.GitProvider 
@@ -4680,6 +4730,7 @@ Tests.Tests.GitProviderTests.GetCleanHistory -(Creates)-> Tests.Tests.Cache
 Tests.Tests.GitProviderTests.GetCleanHistory -(Uses)-> Insight.Shared.Insight.Shared.Model.ChangeSetHistory 
 Tests.Tests.GitProviderTests.GetRawHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProvider.GetRawHistory [IsInstanceCall]
 Tests.Tests.GitProviderTests.GetRawHistory -(Calls)-> Insight.GitProvider.Insight.GitProvider.GitProvider.Initialize [IsInstanceCall]
+Tests.Tests.GitProviderTests.GetRawHistory -(Calls)-> Tests.Tests.Cache..ctor 
 Tests.Tests.GitProviderTests.GetRawHistory -(Calls)-> Tests.Tests.Cache.ToString [IsInstanceCall]
 Tests.Tests.GitProviderTests.GetRawHistory -(Calls)-> Tests.Tests.RepoBuilder.GetRepoPath [IsStaticCall]
 Tests.Tests.GitProviderTests.GetRawHistory -(Creates)-> Insight.GitProvider.Insight.GitProvider.GitProvider 
@@ -4939,9 +4990,11 @@ Tests.Tests.MovementTrackerTests.TrackOperation -(Uses)-> Insight.Shared.Insight
 Tests.Tests.MovementTrackerTests.TrackOperation -(Uses)-> Insight.Shared.Insight.Shared.Model.KindOfChange 
 Tests.Tests.MovementTrackerTests.TrackOperation -(Uses)-> Tests.Tests.MovementTrackerTests._currentChangeSet 
 Tests.Tests.MovementTrackerTests.TrackOperation -(Uses)-> Tests.Tests.MovementTrackerTests._tracker 
+Tests.Tests.ProjectTests.NormalizeFileExtensions -(Calls)-> Insight.Insight.Project..ctor 
 Tests.Tests.ProjectTests.NormalizeFileExtensions -(Calls)-> Insight.Insight.Project.ExtensionsToInclude 
 Tests.Tests.ProjectTests.NormalizeFileExtensions -(Calls)-> Insight.Insight.Project.NormalizeFileExtensions [IsStaticCall]
 Tests.Tests.ProjectTests.NormalizeFileExtensions -(Creates)-> Insight.Insight.Project 
+Tests.Tests.ProjectTests.NormalizeFileExtensions_EmptyOrNull -(Calls)-> Insight.Insight.Project..ctor 
 Tests.Tests.ProjectTests.NormalizeFileExtensions_EmptyOrNull -(Calls)-> Insight.Insight.Project.ExtensionsToInclude 
 Tests.Tests.ProjectTests.NormalizeFileExtensions_EmptyOrNull -(Calls)-> Insight.Insight.Project.NormalizeFileExtensions [IsStaticCall]
 Tests.Tests.ProjectTests.NormalizeFileExtensions_EmptyOrNull -(Creates)-> Insight.Insight.Project 
@@ -4965,6 +5018,7 @@ Tests.Tests.RepoBuilder.GetRepoPath -(Uses)-> Tests.Tests.RepoBuilder.Environmen
 Tests.Tests.RepoBuilder.GetRepoRoot -(Uses)-> Tests.Tests.RepoBuilder.EnvironmentDirectory 
 Tests.Tests.RepoBuilder.GetSignature -(Uses)-> Tests.Tests.RepoBuilder.UserMail 
 Tests.Tests.RepoBuilder.GetSignature -(Uses)-> Tests.Tests.RepoBuilder.UserName 
+Tests.Tests.RepoBuilder.InitNewRepository -(Calls)-> Tests.Tests.RepoBuilder..ctor 
 Tests.Tests.RepoBuilder.InitNewRepository -(Calls)-> Tests.Tests.RepoBuilder.DeleteDirectory [IsStaticCall]
 Tests.Tests.RepoBuilder.InitNewRepository -(Calls)-> Tests.Tests.RepoBuilder.GetRepoRoot [IsStaticCall]
 Tests.Tests.RepoBuilder.InitNewRepository -(Calls)-> Tests.Tests.RepoBuilder.SetupEnvironment [IsStaticCall]
@@ -5049,6 +5103,10 @@ Visualization.Controls.OuelletConvexHull.ConvexHull.GetResultsAsArrayOfPoint -(U
 Visualization.Controls.OuelletConvexHull.ConvexHull.GetResultsAsArrayOfPoint -(Uses)-> Visualization.Controls.OuelletConvexHull.Quadrant.FirstPoint 
 Visualization.Controls.OuelletConvexHull.ConvexHull.GetResultsAsArrayOfPoint -(Uses)-> Visualization.Controls.OuelletConvexHull.Quadrant.HullPoints 
 Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Calls)-> Visualization.Controls.OuelletConvexHull.ConvexHull.IsZeroData 
+Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Calls)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific1..ctor 
+Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Calls)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific2..ctor 
+Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Calls)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific3..ctor 
+Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Calls)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific4..ctor 
 Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Creates)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific1 
 Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Creates)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific2 
 Visualization.Controls.OuelletConvexHull.ConvexHull.Init -(Creates)-> Visualization.Controls.OuelletConvexHull.QuadrantSpecific3 
@@ -5070,6 +5128,7 @@ Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsOneThread -
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsOneThread -(Uses)-> Visualization.Controls.OuelletConvexHull.Quadrant.RootPoint 
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Calls)-> Visualization.Controls.OuelletConvexHull.ConvexHull.AggregateLimits 
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Calls)-> Visualization.Controls.OuelletConvexHull.ConvexHull.FindLimits 
+Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Calls)-> Visualization.Controls.OuelletConvexHull.Limit..ctor 
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Creates)-> Visualization.Controls.OuelletConvexHull.Limit 
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Uses)-> Visualization.Controls.OuelletConvexHull.ConvexHull._limit 
 Visualization.Controls.OuelletConvexHull.ConvexHull.SetQuadrantLimitsUsingAllThreads -(Uses)-> Visualization.Controls.OuelletConvexHull.ConvexHull._listOfPoint 
@@ -5096,6 +5155,7 @@ Visualization.Controls.OuelletConvexHull.Limit..ctor -(Uses)-> Visualization.Con
 Visualization.Controls.OuelletConvexHull.Limit..ctor -(Uses)-> Visualization.Controls.OuelletConvexHull.Limit.Q3Left 
 Visualization.Controls.OuelletConvexHull.Limit..ctor -(Uses)-> Visualization.Controls.OuelletConvexHull.Limit.Q4Bottom 
 Visualization.Controls.OuelletConvexHull.Limit..ctor -(Uses)-> Visualization.Controls.OuelletConvexHull.Limit.Q4Right 
+Visualization.Controls.OuelletConvexHull.Limit.Copy -(Calls)-> Visualization.Controls.OuelletConvexHull.Limit..ctor 
 Visualization.Controls.OuelletConvexHull.Limit.Copy -(Creates)-> Visualization.Controls.OuelletConvexHull.Limit 
 Visualization.Controls.OuelletConvexHull.Limit.Copy -(Uses)-> Visualization.Controls.OuelletConvexHull.Limit 
 Visualization.Controls.OuelletConvexHull.Limit.Copy -(Uses)-> Visualization.Controls.OuelletConvexHull.Limit.Q1Right 
@@ -5298,6 +5358,7 @@ Visualization.Controls.Visualization.Controls.ChordView.CreateItemSource -(Uses)
 Visualization.Controls.Visualization.Controls.ChordView.CreateItemSource -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._labelViewModels 
 Visualization.Controls.Visualization.Controls.ChordView.CreateItemSource -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._mainCircleViewModel 
 Visualization.Controls.Visualization.Controls.ChordView.CreateItemSource -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._vertexViewModels 
+Visualization.Controls.Visualization.Controls.ChordView.CreateLabelViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Label..ctor 
 Visualization.Controls.Visualization.Controls.ChordView.CreateLabelViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Label.MouseEnterCommand 
 Visualization.Controls.Visualization.Controls.ChordView.CreateLabelViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Label.MouseLeaveCommand 
 Visualization.Controls.Visualization.Controls.ChordView.CreateLabelViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.ChordView.ClearSelection 
@@ -5308,6 +5369,7 @@ Visualization.Controls.Visualization.Controls.ChordView.CreateMainCircleViewMode
 Visualization.Controls.Visualization.Controls.ChordView.CreateMainCircleViewModel -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._mainCircleViewModel 
 Visualization.Controls.Visualization.Controls.ChordView.CreateVertexAndLabelViewModels -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._vertexLookup 
 Visualization.Controls.Visualization.Controls.ChordView.CreateVertexAndLabelViewModels -(Uses)-> Visualization.Controls.Visualization.Controls.ChordView._vertexViewModels 
+Visualization.Controls.Visualization.Controls.ChordView.CreateVertexViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Vertex..ctor 
 Visualization.Controls.Visualization.Controls.ChordView.CreateVertexViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Vertex.Angle 
 Visualization.Controls.Visualization.Controls.ChordView.CreateVertexViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Vertex.ClickCommand 
 Visualization.Controls.Visualization.Controls.ChordView.CreateVertexViewModel -(Calls)-> Visualization.Controls.Visualization.Controls.Chord.Vertex.MouseEnterCommand 
@@ -5534,6 +5596,7 @@ Visualization.Controls.Visualization.Controls.CirclePacking.Desmos.SetBounds -(U
 Visualization.Controls.Visualization.Controls.CirclePacking.Desmos.SetBounds -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.Desmos._top 
 Visualization.Controls.Visualization.Controls.CirclePacking.Desmos.Write -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.Desmos.Build 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Add -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Head 
+Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Add -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node..ctor 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Add -(Creates)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Add -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.CircularLayoutInfo 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Add -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node 
@@ -5559,6 +5622,7 @@ Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Head -(Us
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.IndexOf -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.Head 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.IndexOf -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.IndexOf -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node.Next 
+Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.InsertAfter -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node..ctor 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.InsertAfter -(Creates)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.InsertAfter -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.CircularLayoutInfo 
 Visualization.Controls.Visualization.Controls.CirclePacking.FrontChain.InsertAfter -(Uses)-> Visualization.Controls.Visualization.Controls.CirclePacking.Node 
@@ -5580,6 +5644,7 @@ Visualization.Controls.Visualization.Controls.CirclePackingView -(Inherits)-> Vi
 Visualization.Controls.Visualization.Controls.CirclePackingView..ctor -(Calls)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension.Instance 
 Visualization.Controls.Visualization.Controls.CirclePackingView..ctor -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension.ToolCloseRequested [EventRegistration]
 Visualization.Controls.Visualization.Controls.CirclePackingView.ClosePopup -(Overrides)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ClosePopup 
+Visualization.Controls.Visualization.Controls.CirclePackingView.CreateRenderer -(Calls)-> Visualization.Controls.Visualization.Controls.CirclePacking.CirclePackingRenderer..ctor 
 Visualization.Controls.Visualization.Controls.CirclePackingView.CreateRenderer -(Creates)-> Visualization.Controls.Visualization.Controls.CirclePacking.CirclePackingRenderer 
 Visualization.Controls.Visualization.Controls.CirclePackingView.CreateRenderer -(Overrides)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.CreateRenderer 
 Visualization.Controls.Visualization.Controls.CirclePackingView.CreateRenderer -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._brushFactory 
@@ -5691,6 +5756,7 @@ Visualization.Controls.Visualization.Controls.Data.HierarchicalData.AreaMetricSu
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Children -(Implements)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData.Children 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Children -(Uses)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData._children 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Children -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData 
+Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData..ctor 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData.AreaMetric 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData.AreaMetricSum 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Clone 
@@ -5738,6 +5804,7 @@ Visualization.Controls.Visualization.Controls.Data.HierarchicalData.IsLeafNode -
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Layout -(Implements)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData.Layout 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Layout -(Uses)-> Visualization.Controls.Visualization.Controls.Common.LayoutInfo 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.Name -(Implements)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData.Name 
+Visualization.Controls.Visualization.Controls.Data.HierarchicalData.NoData -(Calls)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData..ctor 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.NoData -(Creates)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.NoData -(Uses)-> Visualization.Controls.Visualization.Controls.Data.HierarchicalData 
 Visualization.Controls.Visualization.Controls.Data.HierarchicalData.NormalizedWeightMetric -(Implements)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData.NormalizedWeightMetric 
@@ -5808,6 +5875,7 @@ Visualization.Controls.Visualization.Controls.HierarchicalDataContext..ctor -(Us
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext..ctor -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData 
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext..ctor -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData 
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext.BrushFactory -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IBrushFactory 
+Visualization.Controls.Visualization.Controls.HierarchicalDataContext.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext..ctor 
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext.AreaSemantic 
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext.BrushFactory 
 Visualization.Controls.Visualization.Controls.HierarchicalDataContext.Clone -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataContext.Data 
@@ -5839,6 +5907,7 @@ Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.GetCanvas 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Calls)-> Visualization.Controls.Visualization.Controls.Interfaces.IRenderer.Highlighting 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Calls)-> Visualization.Controls.Visualization.Controls.Interfaces.IRenderer.LoadData [IsInstanceCall]
+Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Calls)-> Visualization.Controls.Visualization.Controls.Tools.Highlighting..ctor 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Creates)-> Visualization.Controls.Visualization.Controls.Tools.Highlighting 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._renderer 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.DoRender -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._toolViewModel 
@@ -5891,6 +5960,7 @@ Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.OnToolHig
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.OnToolHighlightPatternChanged -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._zoomLevel 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.OnToolReset -(Calls)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ZoomLevelChanged 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.OnToolReset -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._originalData 
+Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ShowToolsCommand -(Calls)-> Visualization.Controls.Visualization.Controls.Tools.ToolView..ctor 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ShowToolsCommand -(Creates)-> Visualization.Controls.Visualization.Controls.Tools.ToolView 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ShowToolsCommand -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._toolViewModel 
 Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ShowToolsCommand -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ToolView 
@@ -5968,6 +6038,7 @@ Visualization.Controls.Visualization.Controls.Tools.Highlighting.IsHighlighted -
 Visualization.Controls.Visualization.Controls.Tools.Highlighting.IsHighlighted -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.Highlighting._toolViewModel 
 Visualization.Controls.Visualization.Controls.Tools.IHighlighting.IsHighlighted -(Uses)-> Visualization.Controls.Visualization.Controls.Interfaces.IHierarchicalData 
 Visualization.Controls.Visualization.Controls.Tools.ToolsExtension._instance -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension 
+Visualization.Controls.Visualization.Controls.Tools.ToolsExtension..cctor -(Calls)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension..ctor 
 Visualization.Controls.Visualization.Controls.Tools.ToolsExtension..cctor -(Creates)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension 
 Visualization.Controls.Visualization.Controls.Tools.ToolsExtension..cctor -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension._instance 
 Visualization.Controls.Visualization.Controls.Tools.ToolsExtension.Instance -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension 
@@ -6115,6 +6186,7 @@ Visualization.Controls.Visualization.Controls.TreeMapView -(Inherits)-> Visualiz
 Visualization.Controls.Visualization.Controls.TreeMapView..ctor -(Calls)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension.Instance 
 Visualization.Controls.Visualization.Controls.TreeMapView..ctor -(Uses)-> Visualization.Controls.Visualization.Controls.Tools.ToolsExtension.ToolCloseRequested [EventRegistration]
 Visualization.Controls.Visualization.Controls.TreeMapView.ClosePopup -(Overrides)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.ClosePopup 
+Visualization.Controls.Visualization.Controls.TreeMapView.CreateRenderer -(Calls)-> Visualization.Controls.Visualization.Controls.TreeMap.SquarifiedTreeMapRenderer..ctor 
 Visualization.Controls.Visualization.Controls.TreeMapView.CreateRenderer -(Creates)-> Visualization.Controls.Visualization.Controls.TreeMap.SquarifiedTreeMapRenderer 
 Visualization.Controls.Visualization.Controls.TreeMapView.CreateRenderer -(Overrides)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase.CreateRenderer 
 Visualization.Controls.Visualization.Controls.TreeMapView.CreateRenderer -(Uses)-> Visualization.Controls.Visualization.Controls.HierarchicalDataViewBase._brushFactory 
