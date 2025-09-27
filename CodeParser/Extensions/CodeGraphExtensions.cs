@@ -74,12 +74,14 @@ public static class CodeGraphExtensions
                 {
                     if (clonedCodeStructure.Nodes.ContainsKey(originalRelationship.TargetId))
                     {
-                        clonedElement.Relationships.Add(new Relationship(
+                        var clonedRelationship = new Relationship(
                             clonedElement.Id,
                             originalRelationship.TargetId,
                             originalRelationship.Type,
                             originalRelationship.Attributes
-                        ));
+                        );
+                        clonedRelationship.SourceLocations.AddRange(originalRelationship.SourceLocations);
+                        clonedElement.Relationships.Add(clonedRelationship);
                     }
                 }
             }
