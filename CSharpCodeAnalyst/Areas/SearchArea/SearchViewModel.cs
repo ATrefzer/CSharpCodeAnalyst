@@ -157,38 +157,9 @@ public class SearchViewModel : INotifyPropertyChanged
             return;
         }
 
-        var root = CreateSearchExpression();
-        var filtered = AllItems.Where(item => root.Evaluate(item)).ToList();
+        var root = SearchExpressionFactory.CreateSearchExpression(SearchText);
+        var filtered = AllItems.Where(item => root.Evaluate(item.CodeElement!)).ToList();
         FilteredItems = new ObservableCollection<SearchItemViewModel>(filtered);
-    }
-
-    private IExpression CreateSearchExpression()
-    {
-        // Or binds less.
-        var orTerms = SearchText
-            .ToLowerInvariant()
-            .Split(['|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToList();
-
-        var orExpressions = new List<IExpression>();
-        foreach (var orTerm in orTerms)
-        {
-            var andExpressions = orTerm
-                .Split([' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(IExpression (t) => new Term(t))
-                .ToArray();
-
-            orExpressions.Add(new And(andExpressions));
-        }
-
-
-        if (orExpressions.Count == 1)
-        {
-            return orExpressions[0];
-        }
-
-        var root = new Or(orExpressions.ToArray());
-        return root;
     }
 
     private void ClearSearch()

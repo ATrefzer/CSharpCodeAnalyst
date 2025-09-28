@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+             xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -28,7 +29,14 @@
             <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" Style="{StaticResource HintStyle}" />
         </StackPanel>
         <Border ClipToBounds="True">
-            <DockPanel Name="GraphPanel" Margin="5" />
+            <Grid>
+                <DockPanel Name="GraphPanel" Margin="5" />
+                <!-- Search Control as overlay -->
+                <local:GraphSearchControl x:Name="SearchControl"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Stretch"
+                                          IsHitTestVisible="True" />
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
