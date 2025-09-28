@@ -9,7 +9,7 @@
 	- Extend Metric grid
 
 - Delete via keyboard.
-- Locate in Graph
+- Run from command line
 
 UNHANDLED CASES
 ---------------------

@@ -39,6 +39,8 @@ public class PresentationState
         set => _nodeIdToFlagged = value ?? new Dictionary<string, bool>();
     }
 
+    public Dictionary<string, bool> NodeIdToSearchHighlighted => _nodeIdToSearchHighlighted;
+
     public PresentationState Clone()
     {
         var clone = new PresentationState(_defaultState);

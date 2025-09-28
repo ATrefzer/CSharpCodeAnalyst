@@ -327,9 +327,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     public void SetSearchHighlights(List<string> nodeIds)
     {
         // Clear previous search highlights
-        var previousIds = _presentationState.NodeIdToFlagged.Keys
-            .Where(id => _presentationState.IsSearchHighlighted(id))
-            .ToList();
+        var previousIds = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
 
         _presentationState.ClearAllSearchHighlights();
 
@@ -346,15 +344,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     public void ClearSearchHighlights()
     {
-        var ids = new List<string>();
-        foreach (var nodeId in _clonedCodeGraph.Nodes.Keys)
-        {
-            if (_presentationState.IsSearchHighlighted(nodeId))
-            {
-                ids.Add(nodeId);
-            }
-        }
-
+        var ids = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
         _presentationState.ClearAllSearchHighlights();
         RefreshNodeDecoratorsWithoutLayout(ids);
     }
