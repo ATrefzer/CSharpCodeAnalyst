@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using System.IO;
 using System.Text.Json;
 using System.Windows;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
@@ -13,12 +15,23 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 public class Analyzer : IAnalyzer
 {
     private readonly IPublisher _messaging;
+    private readonly IMessageBox _messageBox;
     private List<RuleBase> _rules = [];
     private string _rulesText = string.Empty;
 
-    public Analyzer(IPublisher messaging)
+    public Analyzer(IPublisher messaging, IMessageBox messageBox)
     {
         _messaging = messaging;
+        _messageBox = messageBox;
+    }
+
+    /// <summary>
+    /// Direct analysis with rules from file (for command-line use)
+    /// </summary>
+    public List<Violation> Analyze(CodeGraph graph, string fileToRules)
+    {
+        ParseAndStoreRules(File.ReadAllText(fileToRules));
+        return ExecuteAnalysis(graph);
     }
 
     public void Analyze(CodeGraph graph)
@@ -39,7 +52,7 @@ public class Analyzer : IAnalyzer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error parsing rules: {ex.Message}", Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                _messageBox.ShowError($"Error parsing rules: {ex.Message}");
                 return;
             }
 
@@ -49,8 +62,7 @@ public class Analyzer : IAnalyzer
 
             if (violations.Count == 0)
             {
-                MessageBox.Show("No rule violations found!", "Architectural rules",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                _messageBox.ShowError("No rule violations found!");
             }
             else
             {

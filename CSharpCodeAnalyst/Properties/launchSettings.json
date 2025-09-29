@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CSharpCodeAnalyst": {
+      "commandName": "Project",
+      "commandLineArgs": "-sln:D:\\Private\\Repos\\CSharpCodeAnalyst\\CSharpCodeAnalyst.sln\r\n-validate\r\n-rules:d:\\rules.txt"
+    }
+  }
+}

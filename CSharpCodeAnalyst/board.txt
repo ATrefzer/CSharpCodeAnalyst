@@ -9,7 +9,12 @@
 	- Extend Metric grid
 
 - Delete via keyboard.
+
+
 - Run from command line
+  -> ViewModel and Commandline output identical? (Number of source locations)
+  -> No Scrollbar in table view!
+  -> Redirect to file is not possible. Why?
 
 UNHANDLED CASES
 ---------------------

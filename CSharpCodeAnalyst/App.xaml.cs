@@ -2,6 +2,7 @@
 using System.Windows;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.SearchArea;
@@ -20,10 +21,26 @@ namespace CSharpCodeAnalyst;
 /// </summary>
 public partial class App
 {
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
+        // Check if command line arguments are provided
+        if (e.Args.Length > 0)
+        {
+            // Run in command-line mode
+            ConsoleHelper.EnsureConsole();
+            var exitCode = await CommandLineProcessor.ProcessCommandLine(e.Args);
+            Environment.Exit(exitCode);
+            return;
+        }
+
+        // Run in UI mode
+        StartUI();
+    }
+
+    private void StartUI()
+    {
         try
         {
             Initializer.InitializeMsBuildLocator();
@@ -46,11 +63,11 @@ public partial class App
             settings = new ApplicationSettings();
         }
 
+        var messageBox = new WindowsMessageBox();
         var messaging = new MessageBus();
 
         var analyzerManager = new AnalyzerManager();
-        analyzerManager.LoadAnalyzers(messaging);
-
+        analyzerManager.LoadAnalyzers(messaging, messageBox);
 
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
@@ -69,28 +86,18 @@ public partial class App
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
 
-
         // Setup messaging
-
-        // Find in tree triggered in graph context menu, handled in the main window.
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
-
         messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
-
-        // Adding a node triggered in tree view, handled in graph view
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
-
-        // Context-sensitive help triggered in the graph, handled in the info panel
         messaging.Subscribe<QuickInfoUpdate>(infoPanelViewModel.HandleUpdateQuickInfo);
-
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
-
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
         messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
-
         messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
 
         mainWindow.DataContext = viewModel;
+        MainWindow = mainWindow;
         mainWindow.Show();
     }
 }
