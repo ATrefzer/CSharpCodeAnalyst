@@ -2,11 +2,11 @@
 using System.Windows;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.SearchArea;
 using CSharpCodeAnalyst.Areas.TreeArea;
+using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
@@ -16,9 +16,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
 
-/// <summary>
-///     Interaction logic for App.xaml
-/// </summary>
 public partial class App
 {
     protected override async void OnStartup(StartupEventArgs e)
@@ -29,7 +26,7 @@ public partial class App
         if (e.Args.Length > 0)
         {
             // Run in command-line mode.
-           // ConsoleHelper.EnsureConsole();
+            // ConsoleHelper.EnsureConsole();
             var exitCode = await CommandLineProcessor.ProcessCommandLine(e.Args);
             Environment.Exit(exitCode);
             return;

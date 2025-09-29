@@ -1,9 +1,11 @@
-﻿namespace CSharpCodeAnalyst.Common;
+﻿using System.Diagnostics;
 
-class ConsoleMessageBox : IMessageBox
+namespace CSharpCodeAnalyst.Common;
+
+internal class ConsoleMessageBox : IMessageBox
 {
     public void ShowError(string message)
     {
-        Console.WriteLine(message);
+        Trace.TraceError(message);
     }
 }

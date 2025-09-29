@@ -38,7 +38,7 @@ public class Parser(ParserConfig config)
 
 
         sw.Stop();
-        Trace.WriteLine("Compiling: " + sw.Elapsed);
+        Trace.TraceInformation("Compiling: " + sw.Elapsed);
         sw = Stopwatch.StartNew();
 
         // First Pass: Build Hierarchy
@@ -46,7 +46,7 @@ public class Parser(ParserConfig config)
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
         sw.Stop();
-        Trace.WriteLine("Finding code elements: " + sw.Elapsed);
+        Trace.TraceInformation("Finding code elements: " + sw.Elapsed);
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
@@ -55,7 +55,7 @@ public class Parser(ParserConfig config)
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
         sw.Stop();
-        Trace.WriteLine("Analyzing relationships: " + sw.Elapsed);
+        Trace.TraceInformation("Analyzing relationships: " + sw.Elapsed);
 
         // Makes the cycle detection easier because I never get to the assembly as shared ancestor
         // for a nested relationships.
