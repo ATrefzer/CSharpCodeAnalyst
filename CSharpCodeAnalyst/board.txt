@@ -10,10 +10,8 @@
 
 - Delete via keyboard.
 
+- Restrict has implicitly allow access to itself
 
-- Run from command line
-  -> ViewModel and Commandline output are not identical (Number of source locations)
-  -> No Scrollbar in table view!
 
 UNHANDLED CASES
 ---------------------

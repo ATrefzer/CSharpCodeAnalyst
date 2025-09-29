@@ -70,10 +70,29 @@ public class RuleViolationViewModel : TableRow
             var sourceElement = _codeGraph.Nodes.GetValueOrDefault(relationship.SourceId);
             var targetElement = _codeGraph.Nodes.GetValueOrDefault(relationship.TargetId);
 
+            // It can have multiple source locations.
             if (sourceElement != null && targetElement != null)
             {
-                var detailViewModel = new RelationshipViewModel(relationship, sourceElement, targetElement);
-                details.Add(detailViewModel);
+                RelationshipViewModel detailViewModel;
+                if (relationship.SourceLocations.Count <= 1)
+                {
+                    var sourceLocation = relationship.SourceLocations.Any()
+                        ? relationship.SourceLocations.Single()
+                        : sourceElement.SourceLocations.FirstOrDefault();
+
+                    detailViewModel = new RelationshipViewModel(sourceElement, targetElement, sourceLocation);
+                    details.Add(detailViewModel);
+                }
+                else
+                {
+                    // Number the locations if there are multiple.
+                    for (var index = 0; index < relationship.SourceLocations.Count; index++)
+                    {
+                        var location = relationship.SourceLocations[index];
+                        detailViewModel = new RelationshipViewModel(sourceElement, targetElement, location, index + 1);
+                        details.Add(detailViewModel);
+                    }
+                }
             }
         }
 

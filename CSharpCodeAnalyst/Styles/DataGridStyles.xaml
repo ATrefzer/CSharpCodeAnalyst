@@ -7,7 +7,11 @@
         <Setter Property="CanUserReorderColumns" Value="False" />
         <Setter Property="IsReadOnly" Value="True" />
         <Setter Property="HeadersVisibility" Value="Column" />
+
+        <!-- Proper scroll behavior when row details get large -->
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+        <Setter Property="VirtualizingPanel.ScrollUnit" Value="Pixel" />
     </Style>
-
-
 </ResourceDictionary>

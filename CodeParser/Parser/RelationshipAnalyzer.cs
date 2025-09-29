@@ -836,6 +836,14 @@ public class RelationshipAnalyzer
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
         var symbol = symbolInfo.Symbol;
 
+        if (identifierSyntax.Parent is MemberAccessExpressionSyntax memberAccess &&
+            memberAccess.Name == identifierSyntax)
+        {
+            // Skip if this identifier is part of a MemberAccessExpression. It will be handled by AnalyzeMemberAccess
+            // Otherwise we get duplicated call relationships for the same line (different columns)
+            return;
+        }
+
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
