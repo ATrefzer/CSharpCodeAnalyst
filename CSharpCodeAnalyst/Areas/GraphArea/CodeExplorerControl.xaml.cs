@@ -2,20 +2,25 @@
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
-/// <summary>
-///     Interaction logic for CodeExplorerControl.xaml
-/// </summary>
 public partial class CodeExplorerControl
 {
+    private GraphSearchViewModel? _searchViewModel;
+
     public CodeExplorerControl()
     {
         InitializeComponent();
     }
 
-    public void SetViewer(IGraphBinding graphViewer
-    )
+    public void SetViewer(IGraphBinding graphViewer)
     {
         graphViewer.Bind(GraphPanel);
+
+        // Initialize search functionality if the viewer implements IGraphViewer
+        if (graphViewer is IGraphViewer viewer)
+        {
+            _searchViewModel = new GraphSearchViewModel(viewer);
+            SearchControl.DataContext = _searchViewModel;
+        }
     }
 
     private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)

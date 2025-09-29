@@ -5,7 +5,7 @@ using CSharpCodeAnalyst.Help;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
-internal interface IGraphViewer
+public interface IGraphViewer
 {
     void ShowFlatGraph(bool value);
     void ShowInformationFlow(bool value);
@@ -62,7 +62,15 @@ internal interface IGraphViewer
 
     void AddContextMenuCommand(IRelationshipContextCommand command);
 
+    // Flags
     bool IsFlagged(string id);
     void ToggleFlag(string id);
     void ClearAllFlags();
+
+    // Search highlights
+    void SetSearchHighlights(List<string> nodeIds);
+    void ClearSearchHighlights();
+
+    // Event for graph changes to notify search UI
+    event Action<CodeGraph>? GraphChanged;
 }

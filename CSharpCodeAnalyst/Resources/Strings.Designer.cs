@@ -222,6 +222,87 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis completed with exit code: {0}.
+        /// </summary>
+        public static string Cmd_AnalysisComplete {
+            get {
+                return ResourceManager.GetString("Cmd_AnalysisComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parser failures:.
+        /// </summary>
+        public static string Cmd_Failures {
+            get {
+                return ResourceManager.GetString("Cmd_Failures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rules file: {0}.
+        /// </summary>
+        public static string Cmd_RulesFile {
+            get {
+                return ResourceManager.GetString("Cmd_RulesFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rules file not found..
+        /// </summary>
+        public static string Cmd_RulesFileNotFound {
+            get {
+                return ResourceManager.GetString("Cmd_RulesFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution file: {0}.
+        /// </summary>
+        public static string Cmd_SolutionFile {
+            get {
+                return ResourceManager.GetString("Cmd_SolutionFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution file not found..
+        /// </summary>
+        public static string Cmd_SolutionFileNotFound {
+            get {
+                return ResourceManager.GetString("Cmd_SolutionFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The command to execute is unknown or the required parameters are missing..
+        /// </summary>
+        public static string Cmd_UnknownCommandLineArgs {
+            get {
+                return ResourceManager.GetString("Cmd_UnknownCommandLineArgs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Verify architectural rules.
+        /// </summary>
+        public static string Cmd_VerifyArchitecturalRules {
+            get {
+                return ResourceManager.GetString("Cmd_VerifyArchitecturalRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parser warnings:.
+        /// </summary>
+        public static string Cmd_Warnings {
+            get {
+                return ResourceManager.GetString("Cmd_Warnings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code Elements.
         /// </summary>
         public static string CodeElements_Header {

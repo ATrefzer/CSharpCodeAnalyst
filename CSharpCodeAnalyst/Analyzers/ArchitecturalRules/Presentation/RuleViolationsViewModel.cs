@@ -67,4 +67,5 @@ public class RuleViolationsViewModel : Table
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }
+
 }

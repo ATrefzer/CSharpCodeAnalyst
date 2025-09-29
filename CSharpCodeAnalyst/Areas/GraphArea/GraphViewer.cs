@@ -116,6 +116,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
 
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public void AddContextMenuCommand(ICodeElementContextCommand command)
@@ -249,6 +250,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         // Nothing collapsed by default
         _presentationState = new PresentationState();
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public void DeleteFromGraph(List<Relationship> relationships)
@@ -311,14 +313,40 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         var currentState = _presentationState.IsFlagged(id);
         var newState = !currentState;
         _presentationState.SetFlaggedState(id, newState);
-        RefreshFlagsWithoutLayout([id], newState);
+        RefreshNodeDecoratorsWithoutLayout([id]);
+
     }
 
     public void ClearAllFlags()
     {
-        var ids = _presentationState.NodeIdToFlagged.Keys.ToList();
+        var affectedIds = _presentationState.NodeIdToFlagged.Keys.ToList();
         _presentationState.ClearAllFlags();
-        RefreshFlagsWithoutLayout(ids, false);
+        RefreshNodeDecoratorsWithoutLayout(affectedIds);
+    }
+
+    public void SetSearchHighlights(List<string> nodeIds)
+    {
+        // Clear previous search highlights
+        var previousIds = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
+
+        _presentationState.ClearAllSearchHighlights();
+
+        // Set new search highlights
+        foreach (var nodeId in nodeIds)
+        {
+            _presentationState.SetSearchHighlightedState(nodeId, true);
+        }
+
+        // Refresh all affected nodes
+        var allAffectedIds = previousIds.Union(nodeIds).ToList();
+        RefreshNodeDecoratorsWithoutLayout(allAffectedIds);
+    }
+
+    public void ClearSearchHighlights()
+    {
+        var ids = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
+        _presentationState.ClearAllSearchHighlights();
+        RefreshNodeDecoratorsWithoutLayout(ids);
     }
 
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
@@ -333,6 +361,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         _presentationState = state;
 
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public void LoadSession(CodeGraph newGraph, PresentationState? presentationState)
@@ -345,9 +374,16 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         _presentationState = presentationState;
         _clonedCodeGraph = newGraph;
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event Action<CodeGraph>? GraphChanged;
+
+    private void OnGraphChanged()
+    {
+        GraphChanged?.Invoke(_clonedCodeGraph);
+    }
 
     private void OnOpenContextMenu(IViewerObject? obj)
     {
@@ -419,22 +455,29 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-    private void RefreshFlagsWithoutLayout(List<string> ids, bool isFlagged)
+    private void RefreshNodeDecoratorsWithoutLayout(List<string> ids)
     {
         foreach (var id in ids)
         {
             var node = _msaglViewer?.Graph.FindNode(id);
             if (node is null)
             {
-                // Unexpected.
-                RefreshGraph();
-                break;
+                // This happens when the highlighting finds matches that are not currently visible.
+                continue;
             }
 
-            if (isFlagged)
+            // Apply correct styling based on current state
+            if (_presentationState.IsFlagged(id))
             {
+                // Flagged takes precedence over search highlight.
+                // We don't want to destroy the flags when updating highlights.
                 node.Attr.Color = Constants.FlagColor;
                 node.Attr.LineWidth = Constants.FlagLineWidth;
+            }
+            else if (_presentationState.IsSearchHighlighted(id))
+            {
+                node.Attr.Color = Constants.SearchHighlightColor;
+                node.Attr.LineWidth = Constants.SearchHighlightLineWidth;
             }
             else
             {

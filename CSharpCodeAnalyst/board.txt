@@ -9,7 +9,11 @@
 	- Extend Metric grid
 
 - Delete via keyboard.
-- Locate in Graph
+
+
+- Run from command line
+  -> ViewModel and Commandline output are not identical (Number of source locations)
+  -> No Scrollbar in table view!
 
 UNHANDLED CASES
 ---------------------

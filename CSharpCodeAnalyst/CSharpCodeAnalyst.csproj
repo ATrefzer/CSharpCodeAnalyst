@@ -10,10 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="ExternalApplications\**"/>
-        <EmbeddedResource Remove="ExternalApplications\**"/>
-        <None Remove="ExternalApplications\**"/>
-        <Page Remove="ExternalApplications\**"/>
+        <Compile Remove="ExternalApplications\**" />
+        <EmbeddedResource Remove="ExternalApplications\**" />
+        <None Remove="ExternalApplications\**" />
+        <Page Remove="ExternalApplications\**" />
+        <None Remove="Resources\search_32.png" />
         <Page Update="Areas\TableArea\Templates\CodeElementLineTemplate.xaml">
           <Generator>MSBuild:Compile</Generator>
           <XamlRuntime>Wpf</XamlRuntime>
@@ -54,6 +55,7 @@
         <Resource Include="Resources\legend_32.png" />
         <Resource Include="Resources\filter_32.png" />
         <Resource Include="Resources\rendering.png" />
+        <Resource Include="Resources\search_32.png" />
         <Resource Include="Resources\slider.png" />
         <Resource Include="Resources\undo_32.png" />
         <Resource Include="Resources\redo_32.png" />

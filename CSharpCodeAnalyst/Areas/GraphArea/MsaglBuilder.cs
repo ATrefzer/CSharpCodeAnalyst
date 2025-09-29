@@ -234,6 +234,11 @@ internal class MsaglBuilder
                 attr.LineWidth = Constants.FlagLineWidth;
                 attr.Color = Constants.FlagColor;
             }
+            else if (state.IsSearchHighlighted(element.Id))
+            {
+                attr.LineWidth = Constants.SearchHighlightLineWidth;
+                attr.Color = Constants.SearchHighlightColor;
+            }
 
             return attr;
         }
@@ -382,6 +387,11 @@ internal class MsaglBuilder
         {
             node.Attr.LineWidth = Constants.FlagLineWidth;
             node.Attr.Color = Constants.FlagColor;
+        }
+        else if (presentationState.IsSearchHighlighted(codeElement.Id))
+        {
+            node.Attr.Color = Constants.SearchHighlightColor;
+            node.Attr.LineWidth = Constants.SearchHighlightLineWidth;
         }
 
         return node;

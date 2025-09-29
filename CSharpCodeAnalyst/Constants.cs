@@ -9,6 +9,8 @@ public class Constants
 
     public static Color FlagColor = Color.Red;
     public const int FlagLineWidth = 3;
+    public static Color SearchHighlightColor = Color.Red;
+    public const int SearchHighlightLineWidth = 2;
     public const double DefaultLineWidth = 1;
     public static Color DefaultLineColor = Color.Black;
 

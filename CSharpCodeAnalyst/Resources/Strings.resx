@@ -714,5 +714,31 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="CopyToClipboard" xml:space="preserve">
       <value>Copy</value>
     </data>
-    
+    <data name="Cmd_UnknownCommandLineArgs" xml:space="preserve">
+      <value>The command to execute is unknown or the required parameters are missing.</value>
+    </data>
+    <data name="Cmd_SolutionFileNotFound" xml:space="preserve">
+      <value>Solution file not found.</value>
+    </data>
+    <data name="Cmd_RulesFileNotFound" xml:space="preserve">
+      <value>Rules file not found.</value>
+    </data>
+    <data name="Cmd_Failures" xml:space="preserve">
+      <value>Parser failures:</value>
+    </data>
+    <data name="Cmd_Warnings" xml:space="preserve">
+      <value>Parser warnings:</value>
+    </data>
+    <data name="Cmd_AnalysisComplete" xml:space="preserve">
+      <value>Analysis completed with exit code: {0}</value>
+    </data>
+    <data name="Cmd_VerifyArchitecturalRules" xml:space="preserve">
+      <value>Verify architectural rules</value>
+    </data>
+    <data name="Cmd_SolutionFile" xml:space="preserve">
+      <value>Solution file: {0}</value>
+    </data>
+    <data name="Cmd_RulesFile" xml:space="preserve">
+      <value>Rules file: {0}</value>
+    </data>
 </root>
