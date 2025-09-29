@@ -131,6 +131,13 @@ The result of the analysis is shown in the table output for analyzers.
 ![](Documentation/Images/rule-result.png)
 
 
+
+### Command-line
+
+To integrate the tool into a build pipeline, you can call it without a user interface. You can find the syntax of the command-line here:
+
+[Command-line arguments](Documentation/command-line-arguments.md)
+
 ## Performance Tips
 
 When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
