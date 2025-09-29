@@ -232,7 +232,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failures.
+        ///   Looks up a localized string similar to Parser failures:.
         /// </summary>
         public static string Cmd_Failures {
             get {
@@ -313,7 +313,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warnings.
+        ///   Looks up a localized string similar to Parser warnings:.
         /// </summary>
         public static string Cmd_Warnings {
             get {

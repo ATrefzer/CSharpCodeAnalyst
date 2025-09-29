@@ -727,10 +727,10 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
       <value>Error: Rules file not found.</value>
     </data>
     <data name="Cmd_Failures" xml:space="preserve">
-      <value>Failures</value>
+      <value>Parser failures:</value>
     </data>
     <data name="Cmd_Warnings" xml:space="preserve">
-      <value>Warnings</value>
+      <value>Parser warnings:</value>
     </data>
     <data name="Cmd_ParserOutput" xml:space="preserve">
       <value>Parser output:</value>

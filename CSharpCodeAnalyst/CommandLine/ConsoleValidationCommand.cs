@@ -44,7 +44,7 @@ namespace CSharpCodeAnalyst.CommandLine
             var graph = await ParseSolution(solutionPath, settings).ConfigureAwait(false);
             var violations = RunAnalysis(rulesFilePath, graph);
 
-            Console.WriteLine(FormatRuleViolations(graph, violations));
+            Console.WriteLine(ViolationsFormatter.Format(graph, violations));
 
             var resultCode = violations.Count == 0 ? 0 : 1;
             Console.WriteLine(Strings.Cmd_AnalysisComplete, resultCode);
@@ -78,19 +78,24 @@ namespace CSharpCodeAnalyst.CommandLine
             var filter = new ProjectExclusionRegExCollection();
             filter.Initialize(settings.DefaultProjectExcludeFilter, ";");
             var parser = new Parser(new ParserConfig(filter));
-
-
             var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(false);
 
-            Console.WriteLine(Strings.Cmd_ParserOutput);
-            Console.WriteLine(Strings.Cmd_Failures);
-            Console.WriteLine(parser.Diagnostics.FormatFailures());
+            var failures = parser.Diagnostics.FormatFailures();
+            if (!string.IsNullOrEmpty(failures))
+            {
+                Console.WriteLine(Strings.Cmd_Failures);
+                Console.WriteLine(failures);
+            }
+
+            var warnings = parser.Diagnostics.FormatWarnings();
+            if (!string.IsNullOrEmpty(warnings))
+            {
+                Console.WriteLine(Strings.Cmd_Warnings);
+                Console.WriteLine(warnings);
+            }
+          
             Console.WriteLine();
-            Console.WriteLine(Strings.Cmd_Warnings);
-            Console.WriteLine(parser.Diagnostics.FormatWarnings());
             return graph;
         }
-
-
     }
 }

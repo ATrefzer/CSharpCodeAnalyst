@@ -28,8 +28,8 @@ public partial class App
         // Check if command line arguments are provided
         if (e.Args.Length > 0)
         {
-            // Run in command-line mode
-            ConsoleHelper.EnsureConsole();
+            // Run in command-line mode.
+           // ConsoleHelper.EnsureConsole();
             var exitCode = await CommandLineProcessor.ProcessCommandLine(e.Args);
             Environment.Exit(exitCode);
             return;

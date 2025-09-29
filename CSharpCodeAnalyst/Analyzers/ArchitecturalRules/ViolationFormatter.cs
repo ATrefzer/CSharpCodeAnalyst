@@ -33,9 +33,12 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules
                             continue;
                         }
                         
-                        sb.AppendLine($"  {sourceElement.FullName} -> {targetElement.FullName}");
-                            // TODO append source locations if any
-                            // Note this is differently from the WPF version
+                        sb.AppendLine($"{sourceElement.FullName} -> {targetElement.FullName}");
+
+                        foreach (var location in relationship.SourceLocations)
+                        {
+                            sb.AppendLine($"  {location.ToString()}");
+                        }
                     }
                 }
             }
@@ -43,5 +46,4 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules
             return sb.ToString();
         }
     }
-
 }

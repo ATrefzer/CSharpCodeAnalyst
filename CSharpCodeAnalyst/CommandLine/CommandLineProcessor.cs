@@ -15,7 +15,7 @@ public class CommandLineProcessor
                                  && arguments.ContainsKey("sln");
 
 
-            if (!validateRules)
+            if (validateRules)
             {
                 string file = arguments["rules"];
                 var sln = arguments["sln"];
@@ -42,18 +42,34 @@ public class CommandLineProcessor
 
         foreach (string arg in args)
         {
-            if (arg.StartsWith("-") && arg.Contains(":"))
+            if (arg.StartsWith("-"))
             {
-                int colonIndex = arg.IndexOf(":", StringComparison.Ordinal);
-                string key = arg.Substring(1, colonIndex - 1); // Remove the "-" prefix
-                string value = arg.Substring(colonIndex + 1);
-                arguments[key] = value;
+                if (arg.Contains(":"))
+                {
+                    int colonIndex = arg.IndexOf(":", StringComparison.Ordinal);
+                    string key = arg.Substring(1, colonIndex - 1); // Remove the "-" prefix
+                    string value = arg.Substring(colonIndex + 1);
+                    arguments[key] = value;
+                }
+                else
+                {
+                    string key = arg.Substring(1); // Remove the "-" prefix
+                    arguments[key] = "true"; // Flag argument
+                }
             }
         }
 
         return arguments;
     }
 
+    /// <summary>
+    /// Note:
+    /// No console attached. No Console.WriteLine will work unless a console is attached.
+    /// But: Redirecting output to a file works.
+    ///
+    /// With console attached, this will print to the console. But in this case the
+    /// redirect does not work.
+    /// </summary>
     private static void ShowUsage()
     {
         var usage = """
