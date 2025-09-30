@@ -20,7 +20,11 @@ public class RegressionApprovalTests : ProjectTestBase
             "Regression.SpecificBugs.Regression.SpecificBugs.Base", "Regression.SpecificBugs.Regression.SpecificBugs.Driver", "Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType",
             "Regression.SpecificBugs.Regression.SpecificBugs.Extensions", "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient",
             "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2",
-            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest"
+            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest",
+
+            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode",
         };
 
         CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
@@ -70,7 +74,9 @@ public class RegressionApprovalTests : ProjectTestBase
             "Regression.SpecificBugs.Regression.SpecificBugs.Extensions.Slice -> Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType.Data",
             "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.OnCreated",
 
-            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty"
+            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty",
+            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource.OriginalElement", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchNode.Name"
         };
         CollectionAssert.AreEquivalent(expected, calls);
     }
