@@ -19,7 +19,8 @@ public class RegressionApprovalTests : ProjectTestBase
         {
             "Regression.SpecificBugs.Regression.SpecificBugs.Base", "Regression.SpecificBugs.Regression.SpecificBugs.Driver", "Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType",
             "Regression.SpecificBugs.Regression.SpecificBugs.Extensions", "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient",
-            "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2"
+            "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2",
+            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest"
         };
 
         CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
@@ -32,7 +33,8 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.RecordA", "Regression.SpecificBugs.Regression.SpecificBugs.RecordB"
+            "Regression.SpecificBugs.Regression.SpecificBugs.RecordA", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.RecordB"
         };
 
         CollectionAssert.AreEquivalent(expected, records);
@@ -66,7 +68,9 @@ public class RegressionApprovalTests : ProjectTestBase
             "Regression.SpecificBugs.Regression.SpecificBugs.Driver..ctor -> Regression.SpecificBugs.Regression.SpecificBugs.Base.Build",
             "Regression.SpecificBugs.Regression.SpecificBugs.StructWithInterface.CompareTo -> Regression.SpecificBugs.Regression.SpecificBugs.StructWithInterface.Value",
             "Regression.SpecificBugs.Regression.SpecificBugs.Extensions.Slice -> Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType.Data",
-            "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.OnCreated"
+            "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.OnCreated",
+
+            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty"
         };
         CollectionAssert.AreEquivalent(expected, calls);
     }
@@ -84,5 +88,105 @@ public class RegressionApprovalTests : ProjectTestBase
             .Where(e => e.ElementType == CodeElementType.Method && e.FullName.Contains(projectName))
             .Where(e => e.FullName.Contains("Extensions"))
             .Select(e => $"{e.FullName.Split('.').Skip(e.FullName.Split('.').Length - 2).First()}.{e.Name}");
+    }
+
+    [Test]
+    public void AssignmentExpressions_ShouldNotCreateDuplicateRelationships()
+    {
+        var graph = GetTestAssemblyGraph();
+
+        // Find our test method
+        var testMethod = graph.Nodes.Values
+            .FirstOrDefault(n => n.Name == "TestMethod" && n.FullName.Contains("AssignmentDuplicateTest"));
+
+        Assert.IsNotNull(testMethod, "TestMethod not found in AssignmentDuplicateTest");
+
+        // Check relationships from TestMethod
+        var relationships = testMethod.Relationships;
+
+        // Count how many times TestProperty is referenced
+        var testPropertyRelationships = relationships
+            .Where(r => r.Type == RelationshipType.Calls)
+            .Where(r =>
+            {
+                var target = graph.Nodes.GetValueOrDefault(r.TargetId);
+                return target?.Name == "TestProperty";
+            })
+            .ToList();
+
+        // Count how many times TestField is referenced
+        var testFieldRelationships = relationships
+            .Where(r => r.Type == RelationshipType.Uses)
+            .Where(r =>
+            {
+                var target = graph.Nodes.GetValueOrDefault(r.TargetId);
+                return target?.Name == "TestField";
+            })
+            .ToList();
+
+        // Check for duplicate SourceLocations in the same relationship
+        foreach (var rel in testPropertyRelationships.Concat(testFieldRelationships))
+        {
+            // Group by line number to check for duplicates in same line
+            var sourceLocationsByLine = rel.SourceLocations.GroupBy(loc => loc.Line);
+
+            foreach (var lineGroup in sourceLocationsByLine)
+            {
+                if (lineGroup.Count() > 1)
+                {
+                    Assert.Fail($"Found {lineGroup.Count()} SourceLocations for line {lineGroup.Key} in relationship to " +
+                               $"{graph.Nodes.GetValueOrDefault(rel.TargetId)?.Name}. " +
+                               $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}");
+                }
+            }
+        }
+
+        // Also check that we have the expected number of relationships
+        Assert.Greater(testPropertyRelationships.Count, 0, "Should have TestProperty relationships");
+        Assert.Greater(testFieldRelationships.Count, 0, "Should have TestField relationships");
+    }
+
+    [Test]
+    public void MemberAccessExpressions_ShouldNotCreateDuplicateRelationships()
+    {
+        var graph = GetTestAssemblyGraph();
+
+        // Find our test method
+        var testMethod = graph.Nodes.Values
+            .FirstOrDefault(n => n.Name == "TestMethod" && n.FullName.Contains("MemberAccessDuplicateTest"));
+
+        Assert.IsNotNull(testMethod, "TestMethod not found in MemberAccessDuplicateTest");
+
+        // Check relationships from TestMethod
+        var relationships = testMethod.Relationships;
+
+        // Find OriginalElement property relationships
+        var originalElementRelationships = relationships
+            .Where(r => r.Type == RelationshipType.Calls)
+            .Where(r =>
+            {
+                var target = graph.Nodes.GetValueOrDefault(r.TargetId);
+                return target?.Name == "OriginalElement";
+            })
+            .ToList();
+
+        Assert.Greater(originalElementRelationships.Count, 0, "Should have OriginalElement relationships");
+
+        // Check for duplicate SourceLocations in the same relationship
+        foreach (var rel in originalElementRelationships)
+        {
+            // Group by line number to check for duplicates in same line
+            var sourceLocationsByLine = rel.SourceLocations.GroupBy(loc => loc.Line);
+
+            foreach (var lineGroup in sourceLocationsByLine)
+            {
+                if (lineGroup.Count() > 1)
+                {
+                    Assert.Fail($"Found {lineGroup.Count()} SourceLocations for line {lineGroup.Key} in relationship to OriginalElement. " +
+                               $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}. " +
+                               $"This indicates the same property access is being processed twice by different analyzers.");
+                }
+            }
+        }
     }
 }
