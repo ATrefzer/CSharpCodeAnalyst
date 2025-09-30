@@ -19,6 +19,12 @@ CSharpCodeAnalyst -validate -sln:d:\Repositories\CSharpCodeAnalyst\CSharpCodeAna
 
 ## Result Code
 
-0 = No violation found
-1 = Violation found
-2 = Validation failed, see log output
+| Code | Description                       |
+| ---- | --------------------------------- |
+| 0    | No violation found                |
+| 1    | Violation found                   |
+| 2    | Validation failed, see log output |
+
+## Rules file syntax
+
+See [README.md](../README.md)
