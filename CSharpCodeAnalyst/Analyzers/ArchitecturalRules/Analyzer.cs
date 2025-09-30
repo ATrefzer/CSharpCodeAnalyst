@@ -199,7 +199,8 @@ public class Analyzer : IAnalyzer
             var sourceIds = PatternMatcher.ResolvePattern(group.Key, graph);
 
             // Collect all allowed target IDs from all rules in the group
-            var allowedTargetIds = new HashSet<string>();
+            // References inside the source pattern are always allowed implicitly(!).
+            var allowedTargetIds = new HashSet<string>(sourceIds);
             foreach (var restrictRule in group)
             {
                 var targetIds = PatternMatcher.ResolvePattern(restrictRule.Target, graph);
