@@ -16,3 +16,9 @@ Validation of a C# solution against a rule file can be done via command line.
 ```
 CSharpCodeAnalyst -validate -sln:d:\Repositories\CSharpCodeAnalyst\CSharpCodeAnalyst.sln -rules:d:\rules.txt -log-console -out:d:\analysis-result.txt
 ```
+
+## Result Code
+
+0 = No violation found
+1 = Violation found
+2 = Validation failed, see log output
