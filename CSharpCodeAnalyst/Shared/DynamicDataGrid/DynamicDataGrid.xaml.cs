@@ -9,9 +9,10 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using CSharpCodeAnalyst.Areas.DynamicDataGrid.Contracts.Attributes;
 using CSharpCodeAnalyst.Areas.MetricArea;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.TabularData;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 

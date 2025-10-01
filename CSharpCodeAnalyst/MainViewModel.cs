@@ -36,8 +36,8 @@ using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
 
@@ -858,7 +858,6 @@ internal class MainViewModel : INotifyPropertyChanged
         // The request code element may originate from a graph where the children are not present!
         var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
 
-        var partitioner = new CodeElementPartitioner();
         var partitions = CodeElementPartitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
 
         if (partitions.Count <= 1)

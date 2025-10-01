@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Shared.TabularData;
+namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 public class TableColumnDefinition
 {

@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Services;
-using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;

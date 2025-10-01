@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.Shared.Contracts;
+﻿using CSharpCodeAnalyst.Areas.DynamicDataGrid.Contracts.Attributes;
+using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Areas.MetricArea;
 

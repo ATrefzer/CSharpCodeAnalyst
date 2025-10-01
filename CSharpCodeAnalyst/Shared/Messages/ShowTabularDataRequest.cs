@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Shared.TabularData;
+﻿using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Shared.Messages;
 
