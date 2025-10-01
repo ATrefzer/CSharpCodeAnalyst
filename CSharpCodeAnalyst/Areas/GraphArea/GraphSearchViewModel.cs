@@ -114,7 +114,6 @@ public class GraphSearchViewModel : INotifyPropertyChanged
         {
             if (root.Evaluate(node))
             {
-                Debug.WriteLine($"Adding {nodes[node.Id]}");
                 matchingNodeIds.Add(node.Id);
             }
         }
