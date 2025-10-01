@@ -3,22 +3,25 @@
 
 - Replace Guid with symbol key. Does it have an impact on memory or performance?
   Having the symbol key would allow synchronization with a project in the future.
+
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Metrics and Analyzer tables are implemented differently but could be unified
-	- Extend Metric grid
+- Metrics and Analyzer tables are implemented differently, but could be unified
+	- Dynamic Grid should accept non-Table view models and check for Attributes.
 
 - Delete via keyboard.
 
-- Restrict has implicitly allow access to itself
+- Verification that code Syntax is handled only in one place. Check that a dependency has multiple source Locations with the same file and line.
 
 
 UNHANDLED CASES
 ---------------------
 
-- Attributes are caught at class or method level. Not for the parameters like [CallerMemberName]
-- Two projects with same name
-- Anonymous methods like PdsOnElementCreated, lambdas
+- Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
+  => Not useful enough to implement.
+- Two projects with the same name
+- Anonymous methods like PdsOnElementCreated, Lambdas. Calls are attributed to the defining method.
+  However, the execution may be elsewhere. I could mark such calls, and while ok for the dependency graph, it is wrong when following call chains.
 
 BUGS
 ---------------------
