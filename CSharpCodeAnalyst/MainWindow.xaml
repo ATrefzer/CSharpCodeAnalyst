@@ -13,7 +13,8 @@
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
-        d:DataContext="{d:DesignInstance analyst:MainViewModel}">
+        d:DataContext="{d:DesignInstance analyst:MainViewModel}"
+        KeyDown="OnKeyDown">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -533,7 +534,7 @@
 
 
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
-            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}">
+            <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}" x:Name="WorkingArea">
                 <TabItem>
                     <TabItem.Header>Code Explorer</TabItem.Header>
                     <graphArea:CodeExplorerControl x:Name="ExplorationControl" />

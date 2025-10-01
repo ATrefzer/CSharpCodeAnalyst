@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
@@ -73,4 +74,5 @@ public interface IGraphViewer
 
     // Event for graph changes to notify search UI
     event Action<CodeGraph>? GraphChanged;
+    bool TryHandleKeyEvent(Key key);
 }

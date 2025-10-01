@@ -637,4 +637,9 @@ internal class GraphViewModel : INotifyPropertyChanged
         var elements = _explorer.GetElements(session.CodeElementIds);
         _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
     }
+
+    public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
+    {
+        return _viewer.TryHandleKeyEvent(keyEventArgs.Key);
+    }
 }

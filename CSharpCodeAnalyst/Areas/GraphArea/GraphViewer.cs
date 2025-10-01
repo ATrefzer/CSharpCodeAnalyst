@@ -382,12 +382,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void TryHandleKeyEvent(object sender, KeyEventArgs e)
+    public bool TryHandleKeyEvent(Key key)
     {
-        var cmd = _globalCommands.FirstOrDefault(c => c.Key == e.Key);
+        var cmd = _globalCommands.FirstOrDefault(c => c.Key == key);
         if (cmd is null)
         {
-            return;
+            return false;
         }
 
         var selectedElements = GetSelectedElementIds()
@@ -395,9 +395,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             .ToList();
         if (cmd.CanHandle(selectedElements))
         {
-            e.Handled = true;
             cmd.Invoke(selectedElements);
+            return true;
+            
         }
+
+        return false;
     }
 
     private void OnGraphChanged()
