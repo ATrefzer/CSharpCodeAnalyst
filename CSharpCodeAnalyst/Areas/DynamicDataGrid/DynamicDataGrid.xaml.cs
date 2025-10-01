@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -7,12 +9,13 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using CSharpCodeAnalyst.Areas.MetricArea;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.TabularData;
 
 namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
 
-public partial class DynamicDataGrid : UserControl
+public partial class DynamicDataGrid
 {
     public static readonly DependencyProperty TableDataProperty =
         DependencyProperty.Register(
@@ -21,12 +24,24 @@ public partial class DynamicDataGrid : UserControl
             typeof(DynamicDataGrid),
             new PropertyMetadata(null, OnTableDataChanged));
 
+    public static readonly DependencyProperty SelfDescribingDataProperty =
+        DependencyProperty.Register(
+            nameof(SelfDescribingData),
+            typeof(IEnumerable),
+            typeof(DynamicDataGrid),
+            new PropertyMetadata(null, OnSelfDescribingDataChanged));
 
 
     public DynamicDataGrid()
     {
         InitializeComponent();
         ShowEmptyState(true);
+    }
+
+    public IEnumerable? SelfDescribingData
+    {
+        get => (IEnumerable)GetValue(SelfDescribingDataProperty);
+        set => SetValue(SelfDescribingDataProperty, value);
     }
 
     public Table? TableData
@@ -56,17 +71,56 @@ public partial class DynamicDataGrid : UserControl
     {
         if (d is DynamicDataGrid control)
         {
-            control.RebuildDataGrid();
+            control.RebuildDataGridFromTable();
         }
     }
 
-    private void RebuildDataGrid()
+    private static void OnSelfDescribingDataChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not DynamicDataGrid control)
+        {
+            return;
+        }
+
+        control.RebuildDataGridFromSelfDescribingData();
+    }
+
+    private void RebuildDataGridFromSelfDescribingData()
     {
         try
         {
-            // Clear DataGrid
-            MainDataGrid.Columns.Clear();
-            MainDataGrid.ItemsSource = null;
+            ClearColumns();
+
+            var items = SelfDescribingData?.OfType<object>().ToArray();
+            if (items is null || items.Length == 0)
+            {
+                ShowEmptyState(true);
+                return;
+            }
+
+            if (!GenerateColumnsFromAttributes(items))
+            {
+                ShowEmptyState(true);
+                return;
+            }
+
+            // Bind data
+            MainDataGrid.ItemsSource = SelfDescribingData;
+
+            ShowEmptyState(!items.Any());
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
+            ShowEmptyState(true, Strings.DynamicGrid_LoadError);
+        }
+    }
+
+    private void RebuildDataGridFromTable()
+    {
+        try
+        {
+            ClearColumns();
 
             if (TableData == null)
             {
@@ -74,18 +128,10 @@ public partial class DynamicDataGrid : UserControl
                 return;
             }
 
-            // Create columns
-            var columns = TableData.GetColumns().ToArray();
-            if (!columns.Any())
+            if (GenerateColumnsFromTable())
             {
                 ShowEmptyState(true);
                 return;
-            }
-
-            foreach (var columnDef in columns)
-            {
-                var column = CreateDataGridColumn(columnDef);
-                MainDataGrid.Columns.Add(column);
             }
 
             // Bind data
@@ -93,23 +139,50 @@ public partial class DynamicDataGrid : UserControl
             MainDataGrid.ItemsSource = data;
 
             ShowEmptyState(!data.Any());
-
-            // If given, set row details template
-            if (TableData.GetRowDetailsTemplate() != null)
-            {
-                MainDataGrid.RowDetailsTemplate = TableData.GetRowDetailsTemplate();
-
-                // Default value is collapsed
-                MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
-
-                // Event Handler to manage IsExpanded per row.
-                MainDataGrid.LoadingRow += OnDataGridLoadingRow;
-            }
+            SetupRowDetailsFromTable();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Error rebuilding DataGrid: {ex.Message}");
             ShowEmptyState(true, Strings.DynamicGrid_LoadError);
+        }
+    }
+
+    private bool GenerateColumnsFromTable()
+    {
+        // Create columns
+        var columns = TableData?.GetColumns().ToArray();
+        if (columns is null || !columns.Any())
+        {
+            ShowEmptyState(true);
+            return true;
+        }
+
+        foreach (var columnDef in columns)
+        {
+            var column = CreateDataGridColumn(columnDef);
+            MainDataGrid.Columns.Add(column);
+        }
+
+        return false;
+    }
+
+    private void ClearColumns()
+    {
+        MainDataGrid.Columns.Clear();
+        MainDataGrid.ItemsSource = null;
+    }
+
+    private void SetupRowDetailsFromTable()
+    {
+        // If given, set row details template
+        var rowDetailsTemplate = TableData?.GetRowDetailsTemplate();
+        if (rowDetailsTemplate != null)
+        {
+            MainDataGrid.RowDetailsTemplate = rowDetailsTemplate;
+
+            // Default value is collapsed
+            MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
         }
     }
 
@@ -291,33 +364,6 @@ public partial class DynamicDataGrid : UserControl
         return column;
     }
 
-
-    /// <summary>
-    ///     Event handler for LoadingRow
-    ///     - sets DataGridRow.DetailsVisibility based auf IsExpanded
-    ///     - Registers handler for context menu opening
-    /// </summary>
-    private void OnDataGridLoadingRow(object? sender, DataGridRowEventArgs e)
-    {
-        if (e.Row.DataContext is INotifyPropertyChanged viewModel)
-        {
-            UpdateRowDetailsVisibility(e.Row);
-
-            // PropertyChanged to react to IsExpanded. It did not work when set in the DataGridRow style.
-            // It was fine when the DataGrid was not dynamically created.
-            viewModel.PropertyChanged += (s, args) =>
-            {
-                if (args.PropertyName == nameof(TableRow.IsExpanded))
-                {
-                    UpdateRowDetailsVisibility(e.Row);
-                }
-            };
-
-
-            e.Row.ContextMenuOpening += RowOnContextMenuOpening;
-        }
-    }
-
     private void RowOnContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
         // Dynamically fill context menu on data grid row.
@@ -329,6 +375,7 @@ public partial class DynamicDataGrid : UserControl
 
         row.ContextMenu.Items.Clear();
 
+        // Only Table may provide commands.
         var commands = TableData?.GetCommands() ?? [];
         if (commands.Count == 0)
         {
@@ -368,8 +415,81 @@ public partial class DynamicDataGrid : UserControl
             message = Strings.DynamicGrid_NoData;
         }
 
+
         EmptyStateText.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
         EmptyStateText.Text = message;
         MainDataGrid.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+
+    private bool GenerateColumnsFromAttributes(object[] items)
+    {
+        var properties = items[0].GetType().GetProperties();
+
+        foreach (var prop in properties)
+        {
+            var ignoreAttr = prop.GetCustomAttribute<IgnoreColumnAttribute>();
+            if (ignoreAttr != null)
+            {
+                continue;
+            }
+
+            var displayAttr = prop.GetCustomAttribute<DisplayColumnAttribute>();
+
+            var column = new DataGridTextColumn
+            {
+                Header = displayAttr?.Header ?? prop.Name,
+
+                // We could use this to format the output
+                //Binding = new Binding(prop.Name)
+                //{
+                //    StringFormat = displayAttr?.Format
+                //},
+
+                Binding = new Binding(prop.Name),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Auto)
+            };
+
+            // Special formatting for certain types
+            if (prop.PropertyType == typeof(DateTime))
+            {
+                column.Binding.StringFormat = "yyyy-MM-dd";
+            }
+            else if (prop.PropertyType == typeof(decimal))
+            {
+                column.Binding.StringFormat = "C2";
+            }
+
+            MainDataGrid.Columns.Add(column);
+        }
+
+        // Column created?
+        return MainDataGrid.Columns.Count > 0;
+    }
+
+    /// <summary>
+    ///     Event handler for LoadingRow
+    ///     - sets DataGridRow.DetailsVisibility based auf IsExpanded
+    ///     - Registers handler for context menu opening
+    /// </summary>
+    private void MainDataGrid_OnLoadingRow(object? sender, DataGridRowEventArgs e)
+    {
+        // Only Table may provide row details.
+        if (e.Row.DataContext is INotifyPropertyChanged viewModel && TableData != null)
+        {
+            UpdateRowDetailsVisibility(e.Row);
+
+            // PropertyChanged to react to IsExpanded. It did not work when set in the DataGridRow style.
+            // It was fine when the DataGrid was not dynamically created.
+            viewModel.PropertyChanged += (_, args) =>
+            {
+                if (args.PropertyName == nameof(TableRow.IsExpanded))
+                {
+                    UpdateRowDetailsVisibility(e.Row);
+                }
+            };
+        }
+
+        e.Row.ContextMenuOpening += RowOnContextMenuOpening;
     }
 }

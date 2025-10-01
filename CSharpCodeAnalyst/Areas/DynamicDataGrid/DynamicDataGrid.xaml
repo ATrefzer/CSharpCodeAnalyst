@@ -16,7 +16,7 @@
 
     <Grid>
         <DataGrid x:Name="MainDataGrid"
-                  Style="{StaticResource ReadOnlyGrid}"
+                  Style="{StaticResource ReadOnlyGrid}" LoadingRow="MainDataGrid_OnLoadingRow"
                   AutoGenerateColumns="False">
 
             <DataGrid.Resources>
@@ -51,6 +51,6 @@
                    VerticalAlignment="Center"
                    Foreground="Gray"
                    FontStyle="Italic"
-                   Visibility="Collapsed" />
+                   Visibility="Visible" />
     </Grid>
 </UserControl>

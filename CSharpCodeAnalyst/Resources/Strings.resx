@@ -604,7 +604,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Full Path</value>
   </data>
     <data name="SearchPattern_Tooltip" xml:space="preserve">
-    <value>Use ' ' for AND, '|' for OR condition. If you want to search for type colum use type:xxx</value>
+    <value>Use space for AND, '|' for OR condition. If you want to search for specific code elements use type:xxx</value>
   </data>
     <data name="InfoPanel_TabHeader" xml:space="preserve">
     <value>Info</value>

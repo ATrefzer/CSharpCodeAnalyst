@@ -555,7 +555,7 @@
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
-                    <metricArea:MetricView Data="{Binding Metrics}" />
+                    <dynamicDataGrid:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
                 </TabItem>
             </TabControl>
 
