@@ -13,8 +13,8 @@ public interface IGraphViewer
     void DeleteFromGraph(HashSet<string> idsToRemove);
     void DeleteFromGraph(List<Relationship> relationships);
 
-    void AddContextMenuCommand(ICodeElementContextCommand command);
-    void AddGlobalContextMenuCommand(IGlobalContextCommand command);
+    void AddCommand(ICodeElementContextCommand command);
+    void AddGlobalCommand(IGlobalCommand command);
 
     /// <summary>
     ///     Clear the internal code graph. The graph is empty after this.
@@ -60,7 +60,7 @@ public interface IGraphViewer
     /// </summary>
     void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
 
-    void AddContextMenuCommand(IRelationshipContextCommand command);
+    void AddCommand(IRelationshipContextCommand command);
 
     // Flags
     bool IsFlagged(string id);
