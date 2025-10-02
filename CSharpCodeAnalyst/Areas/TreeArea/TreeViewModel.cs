@@ -167,11 +167,35 @@ public class TreeViewModel : INotifyPropertyChanged
 
         var rootNodes = codeGraph.Nodes.Values
             .Where(n => n.Parent == null)
-            .OrderBy(n => n.Name);
+            .ToList();
 
-        foreach (var rootNode in rootNodes)
+        // Separate internal and external root nodes
+        var internalRoots = rootNodes.Where(n => !n.IsExternal).OrderBy(n => n.Name);
+        var externalRoots = rootNodes.Where(n => n.IsExternal).OrderBy(n => n.Name);
+
+        // Add internal roots directly
+        foreach (var rootNode in internalRoots)
         {
             TreeItems.Add(CreateTreeViewItem(rootNode));
+        }
+
+        // If there are external elements, add them under an "External" virtual root
+        if (externalRoots.Any())
+        {
+            var externalRootItem = new TreeItemViewModel
+            {
+                Name = "External",
+                Type = "Virtual Root",
+                CodeElement = null, // Virtual node - no actual CodeElement
+                IsExpanded = false
+            };
+
+            foreach (var externalRoot in externalRoots)
+            {
+                externalRootItem.Children.Add(CreateTreeViewItem(externalRoot));
+            }
+
+            TreeItems.Add(externalRootItem);
         }
     }
 

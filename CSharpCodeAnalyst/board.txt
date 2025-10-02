@@ -6,7 +6,7 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Verification that code Syntax is handled only in one place. Check that a dependency has multiple source Locations with the same file and line.
+- Search should filter external code.
 
 
 UNHANDLED CASES
@@ -21,6 +21,15 @@ UNHANDLED CASES
 BUGS
 ---------------------
 
+- Anonymous class is shown as external code.
+
+public class ApplicationSettings
+{
+    public void Save(string appSettingsPath)
+    {
+        var root = new { ApplicationSettings = this };
+    }
+}
 
 MISSING TEST CASES
 ---------------------

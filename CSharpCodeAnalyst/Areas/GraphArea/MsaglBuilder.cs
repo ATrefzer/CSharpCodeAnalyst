@@ -399,7 +399,13 @@ internal class MsaglBuilder
 
     private static Color GetColor(CodeElement codeElement)
     {
-        // Commonly used schema by IDE's
+        // External code elements are always gray, regardless of type
+        if (codeElement.IsExternal)
+        {
+            return ToColor(0x808080); // Gray
+        }
+
+        // Commonly used schema by IDE's for internal elements
         var rgb = ColorDefinitions.GetRbgOf(codeElement.ElementType);
         return ToColor(rgb);
     }

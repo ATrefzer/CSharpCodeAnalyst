@@ -5,13 +5,23 @@ namespace CodeParser.Analysis.Cycles;
 
 public static class SearchGraphBuilder
 {
-    public static SearchGraph BuildSearchGraph(CodeGraph codeGraph)
+    /// <summary>
+    /// Builds a search graph from the code graph for cycle detection.
+    /// By default, external elements are excluded from cycle analysis.
+    /// </summary>
+    public static SearchGraph BuildSearchGraph(CodeGraph codeGraph, bool includeExternal = false)
     {
         var searchNodes = new Dictionary<string, SearchNode>();
 
-        // First pass: Copy all code elements over to the search graph,
+        // First pass: Copy relevant code elements over to the search graph
+        // External elements are excluded by default as they cannot participate in internal cycles
         foreach (var element in codeGraph.Nodes.Values)
         {
+            if (!includeExternal && element.IsExternal)
+            {
+                continue; // Skip external elements
+            }
+
             var searchNode = new SearchNode(element.Id, element);
             searchNodes[element.Id] = searchNode;
         }
@@ -23,6 +33,17 @@ public static class SearchGraphBuilder
 
         foreach (var dependency in allDependencies)
         {
+            if (includeExternal is false)
+            {
+                var sourceCodeElement = codeGraph.Nodes[dependency.SourceId];
+                var targetCodeElement = codeGraph.Nodes[dependency.TargetId];
+                if (sourceCodeElement.IsExternal || targetCodeElement.IsExternal)
+                {
+                    // Skip dependencies involving external elements
+                    continue; 
+                }
+            }
+
             var (source, target) = GetHighestElementsInvolvedInDependency(codeGraph, dependency);
             if (source.Id == target.Id && !IsMethod(codeGraph, source.Id))
             {

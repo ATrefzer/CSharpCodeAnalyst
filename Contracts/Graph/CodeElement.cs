@@ -2,7 +2,7 @@
 
 namespace Contracts.Graph;
 
-[DebuggerDisplay("{ElementType}: {Name} ")]
+[DebuggerDisplay("{ElementType}: {Name} {(IsExternal ? \"(External)\" : \"\")}")]
 public class CodeElement(string id, CodeElementType elementType, string name, string fullName, CodeElement? parent)
 {
     public List<SourceLocation> SourceLocations { get; set; } = [];
@@ -25,6 +25,13 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public string FullName { get; } = fullName;
 
     public CodeElement? Parent { get; set; } = parent;
+
+    /// <summary>
+    /// Indicates whether this code element is defined outside the solution.
+    /// External elements are from framework types, NuGet packages, or other referenced assemblies.
+    /// External elements are treated as leaf nodes - their internal dependencies are not analyzed.
+    /// </summary>
+    public bool IsExternal { get; set; } = false;
 
     public override bool Equals(object? obj)
     {
@@ -80,7 +87,10 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public CodeElement CloneSimple()
     {
         var element = new CodeElement(Id, ElementType, Name,
-            FullName, null);
+            FullName, null)
+            {
+                IsExternal = IsExternal
+            };
 
         element.SourceLocations.AddRange(SourceLocations);
         return element;
