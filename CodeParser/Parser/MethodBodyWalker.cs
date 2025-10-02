@@ -51,7 +51,11 @@ namespace CodeParser.Parser
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
             _analyzer.AnalyzeMemberAccess(_sourceElement, node, _semanticModel);
-            base.VisitMemberAccessExpression(node);
+
+            // Explicitly visit only the Expression (left side: obj in obj.Property)
+            // The Name (right side: Property) is already handled by AnalyzeMemberAccess
+            // This gives clear ownership: MemberAccess owns the .Name, walker handles .Expression independently
+            Visit(node.Expression);
         }
 
         public override void VisitArgument(ArgumentSyntax node)

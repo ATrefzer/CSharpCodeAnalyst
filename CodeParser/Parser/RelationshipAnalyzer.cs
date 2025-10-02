@@ -782,19 +782,19 @@ public class RelationshipAnalyzer
         }
     }
 
+    /// <summary>
+    /// Analyzes standalone identifier references (fields, properties, etc.).
+    /// Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
+    /// MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
+    /// </summary>
     internal void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
         var symbol = symbolInfo.Symbol;
 
-        if (identifierSyntax.Parent is MemberAccessExpressionSyntax memberAccess &&
-            memberAccess.Name == identifierSyntax)
-        {
-            // Skip if this identifier is part of a MemberAccessExpression. It will be handled by AnalyzeMemberAccess
-            // Otherwise we get duplicated call relationships for the same line (different columns)
-            return;
-        }
+        // No guard needed - the walker ensures we only visit standalone identifiers
+        // MemberAccess expressions handle their own identifiers explicitly
 
         if (symbol is IPropertySymbol propertySymbol)
         {
@@ -808,12 +808,15 @@ public class RelationshipAnalyzer
         }
     }
 
+    /// <summary>
+    /// Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
+    /// Ownership: Handles the member being accessed (the .Name part on the right side).
+    /// The Expression (left side) is handled by the walker, which will visit it independently.
+    /// </summary>
     internal void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
     {
-        // TODO Get information about the called type.
-        // var typeInfo = semanticModel.GetTypeInfo(memberAccessSyntax.Expression);
-
+        // Analyze the member being accessed (the right side of the dot)
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
         var symbol = symbolInfo.Symbol;
 
@@ -833,11 +836,8 @@ public class RelationshipAnalyzer
             AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
         }
 
-        // Recursively analyze the expression in case of nested property access
-        if (memberAccessSyntax.Expression is MemberAccessExpressionSyntax nestedMemberAccess)
-        {
-            AnalyzeMemberAccess(sourceElement, nestedMemberAccess, semanticModel);
-        }
+        // Note: We don't recursively handle the Expression here.
+        // The walker's Visit(node.Expression) call handles nested member access automatically.
     }
 
     /// <summary>
