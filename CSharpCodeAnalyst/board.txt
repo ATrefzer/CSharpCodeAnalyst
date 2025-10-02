@@ -21,7 +21,16 @@ UNHANDLED CASES
 BUGS
 ---------------------
 
-- Anonymous class is shown as external code.
+- Get rid of local methods or lambdas.
+- What was the reason for the normalized ctor?
+- How can I disable external parsing. Old tests should working after removing external code.
+
+- Add Fallback to parent no longer valid? Now we add external code element?
+    => Only enums or other cases
+    => Clarify: Primary constructor
+    => What else?
+
+- Anonymous class is shown as external code. Only named types!
 
 public class ApplicationSettings
 {

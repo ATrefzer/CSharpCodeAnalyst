@@ -15,16 +15,11 @@ public class RelationshipAnalyzer
     private readonly Progress _progress;
     private Artifacts? _artifacts;
     private CodeGraph? _codeGraph;
+
+    private readonly ExternalCodeElementCache _externalCodeElementCache = new();
     private long _lastProgress;
 
     private int _processedCodeElements;
-
-    /// <summary>
-    /// Cache for external code elements created on-demand.
-    /// Key: symbol key from ISymbol.Key()
-    /// Value: CodeElement representing the external type/member
-    /// </summary>
-    private readonly Dictionary<string, CodeElement> _externalElementCache = new();
 
     /// <summary>
     ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
@@ -83,37 +78,15 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Adds all external elements that were created during parallel processing to the code graph.
-    /// This must be called after parallel processing completes to avoid collection modification issues.
+    ///     Adds all external elements that were created during parallel processing to the code graph.
+    ///     This must be called after parallel processing completes to avoid collection modification issues.
     /// </summary>
     private void AddExternalElementsToGraph()
     {
-        foreach (var externalElement in _externalElementCache.Values)
+        foreach (var externalElement in _externalCodeElementCache.GetCodeElements())
         {
             _codeGraph!.Nodes[externalElement.Id] = externalElement;
         }
-    }
-
-    private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
-    {
-        return _artifacts!.AllNamedTypesInSolution
-            .Where(type => IsTypeDerivedFrom(type, baseType));
-    }
-
-    private static bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
-    {
-        var currentType = type.BaseType;
-        while (currentType != null)
-        {
-            if (currentType.Key() == baseType.Key())
-            {
-                return true;
-            }
-
-            currentType = currentType.BaseType;
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -777,8 +750,8 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Adds a relationship to a named type (class, interface, struct, etc.).
-    /// Handles both internal and external types, and resolves generic type definitions.
+    ///     Adds a relationship to a named type (class, interface, struct, etc.).
+    ///     Handles both internal and external types, and resolves generic type definitions.
     /// </summary>
     private void AddNamedTypeRelationship(CodeElement sourceElement, INamedTypeSymbol namedTypeSymbol,
         RelationshipType relationshipType,
@@ -804,9 +777,9 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Analyzes standalone identifier references (fields, properties, etc.).
-    /// Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
-    /// MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
+    ///     Analyzes standalone identifier references (fields, properties, etc.).
+    ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
+    ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
     /// </summary>
     internal void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
@@ -830,9 +803,9 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
-    /// Ownership: Handles the member being accessed (the .Name part on the right side).
-    /// The Expression (left side) is handled by the walker, which will visit it independently.
+    ///     Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
+    ///     Ownership: Handles the member being accessed (the .Name part on the right side).
+    ///     The Expression (left side) is handled by the walker, which will visit it independently.
     /// </summary>
     internal void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
@@ -871,25 +844,22 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
-    ///
-    /// Current behavior: For external symbols, creates relationships to the CONTAINING TYPE only.
-    /// Example: myList.Add(5) -> relationship to List&lt;T&gt; (not to List&lt;T&gt;.Add)
-    ///
-    /// TO CHANGE TO METHOD-LEVEL EXTERNAL RELATIONSHIPS:
-    /// Change line marked with "FALLBACK BEHAVIOR" below from:
-    ///   GetOrCreateCodeElement(targetSymbol.ContainingType)
-    /// To:
-    ///   GetOrCreateCodeElement(targetSymbol)
-    ///
-    /// This will create external method/property/field elements instead of just type-level relationships.
+    ///     Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
+    ///     Current behavior: For external symbols, creates relationships to the CONTAINING TYPE only.
+    ///     Example: myList.Add(5) -> relationship to List&lt;T&gt; (not to List&lt;T&gt;.Add)
+    ///     TO CHANGE TO METHOD-LEVEL EXTERNAL RELATIONSHIPS:
+    ///     Change line marked with "FALLBACK BEHAVIOR" below from:
+    ///     GetOrCreateCodeElement(targetSymbol.ContainingType)
+    ///     To:
+    ///     GetOrCreateCodeElement(targetSymbol)
+    ///     This will create external method/property/field elements instead of just type-level relationships.
     /// </summary>
     private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         locations ??= [];
 
-        // First try to find the symbol itself (could be internal or we'll create external)
+        // First try to find the symbol itself (could be internal, or we'll create external)
         var targetElement = FindCodeElement(targetSymbol);
         if (targetElement != null)
         {
@@ -902,7 +872,12 @@ public class RelationshipAnalyzer
         var containingTypeElement = FindCodeElement(targetSymbol.ContainingType);
         if (containingTypeElement != null)
         {
+            // TODO atr Remove debug code
+            if (containingTypeElement.ElementType == CodeElementType.Class) Debugger.Break();
+            Trace.WriteLine($"Fallback to containing type: {sourceElement.ElementType} -> {containingTypeElement.ElementType}");
+
             // Containing type found internally, use it
+            // For example the Enum when an enum value is referenced.
             AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
             return;
         }
@@ -929,11 +904,11 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Gets an existing code element (internal or external) or creates a new external element on-demand.
-    /// External elements are created with full hierarchy (Method -> Class -> Namespace -> Assembly).
-    /// For generic types, always uses the original definition (List&lt;T&gt; not List&lt;int&gt;).
-    /// During parallel processing, external elements are cached but not added to the graph.
-    /// Call AddExternalElementsToGraph() after parallel processing to add them to the graph.
+    ///     Gets an existing code element (internal or external) or creates a new external element on-demand.
+    ///     External elements are created with full hierarchy (Method -> Class -> Namespace -> Assembly).
+    ///     For generic types, always uses the original definition (List&lt;T&gt; not List&lt;int&gt;).
+    ///     During parallel processing, external elements are cached but not added to the graph.
+    ///     Call AddExternalElementsToGraph() after parallel processing to add them to the graph.
     /// </summary>
     private CodeElement GetOrCreateCodeElement(ISymbol symbol)
     {
@@ -948,35 +923,14 @@ public class RelationshipAnalyzer
             return internalElement;
         }
 
-        // Check if we've already created an external element for this symbol
-        if (_externalElementCache.TryGetValue(symbolKey, out var cachedExternal))
-        {
-            return cachedExternal;
-        }
-
-        // Create a new external element with hierarchy
-        var externalElement = CreateExternalCodeElementWithHierarchy(symbolToUse);
-
-        lock (_lock)
-        {
-            // Double-check after acquiring lock (another thread may have created it)
-            if (_externalElementCache.TryGetValue(symbolKey, out var doubleCheckExternal))
-            {
-                return doubleCheckExternal;
-            }
-
-            // Add to cache only - will be added to graph after parallel processing completes
-            _externalElementCache[symbolKey] = externalElement;
-        }
-
-        return externalElement;
+        return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbolToUse, symbolKey);
     }
 
     /// <summary>
-    /// Gets the original definition for a symbol if it's part of a constructed generic type.
-    /// Examples:
-    /// - List&lt;int&gt;.Add -> List&lt;T&gt;.Add
-    /// - Dictionary&lt;string, int&gt; -> Dictionary&lt;TKey, TValue&gt;
+    ///     Gets the original definition for a symbol if it's part of a constructed generic type.
+    ///     Examples:
+    ///     - List&lt;int&gt;.Add -> List&lt;T&gt;.Add
+    ///     - Dictionary&lt;string, int&gt; -> Dictionary&lt;TKey, TValue&gt;
     /// </summary>
     private static ISymbol GetOriginalDefinition(ISymbol symbol)
     {
@@ -996,104 +950,6 @@ public class RelationshipAnalyzer
         };
     }
 
-    /// <summary>
-    /// Creates an external code element with full parent hierarchy up to the assembly.
-    /// Hierarchy: Method -> Class -> Namespace -> Assembly (all marked as external)
-    /// Reuses cached parent elements to avoid duplicates.
-    /// </summary>
-    private CodeElement CreateExternalCodeElementWithHierarchy(ISymbol symbol)
-    {
-        // Build the hierarchy from top to bottom (Assembly -> Namespace -> Type -> Member)
-        // Start by ensuring all parents exist
-        CodeElement? parent = null;
-
-        // Create assembly element
-        if (symbol.ContainingAssembly != null)
-        {
-            parent = GetOrCreateExternalParent(symbol.ContainingAssembly);
-        }
-
-        // Create namespace chain
-        if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
-        {
-            parent = GetOrCreateExternalParent(symbol.ContainingNamespace, parent);
-        }
-
-        // Create containing type (if this symbol is a member)
-        if (symbol.ContainingType != null)
-        {
-            parent = GetOrCreateExternalParent(symbol.ContainingType, parent);
-        }
-
-        // Finally, create the element itself
-        return CreateExternalCodeElement(symbol, parent);
-    }
-
-    /// <summary>
-    /// Gets or creates a parent element (assembly, namespace, or type) for external symbols.
-    /// Checks the cache first to reuse existing parents.
-    /// </summary>
-    private CodeElement GetOrCreateExternalParent(ISymbol parentSymbol, CodeElement? grandparent = null)
-    {
-        var symbolKey = parentSymbol.Key();
-
-        // Check if we've already created this parent
-        if (_externalElementCache.TryGetValue(symbolKey, out var existing))
-        {
-            return existing;
-        }
-
-        // Create new parent element
-        var parent = CreateExternalCodeElement(parentSymbol, grandparent);
-        _externalElementCache[symbolKey] = parent;
-
-        return parent;
-    }
-
-    /// <summary>
-    /// Creates a single external code element for a symbol with the specified parent.
-    /// Does not build the parent hierarchy - use CreateExternalCodeElementWithHierarchy for that.
-    /// </summary>
-    private CodeElement CreateExternalCodeElement(ISymbol symbol, CodeElement? parent)
-    {
-        var id = Guid.NewGuid().ToString();
-        var name = symbol.Name;
-        var fullName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
-        var elementType = DetermineCodeElementType(symbol);
-
-        var element = new CodeElement(id, elementType, name, fullName, parent)
-        {
-            IsExternal = true,
-        };
-
-        // Add child relationship to parent
-        parent?.Children.Add(element);
-
-        return element;
-    }
-
-    /// <summary>
-    /// Determines the CodeElementType for a symbol.
-    /// </summary>
-    private static CodeElementType DetermineCodeElementType(ISymbol symbol)
-    {
-        return symbol switch
-        {
-            IAssemblySymbol => CodeElementType.Assembly,
-            INamespaceSymbol => CodeElementType.Namespace,
-            INamedTypeSymbol { TypeKind: TypeKind.Class, IsRecord: true } => CodeElementType.Record,
-            INamedTypeSymbol { TypeKind: TypeKind.Class } => CodeElementType.Class,
-            INamedTypeSymbol { TypeKind: TypeKind.Interface } => CodeElementType.Interface,
-            INamedTypeSymbol { TypeKind: TypeKind.Struct } => CodeElementType.Struct,
-            INamedTypeSymbol { TypeKind: TypeKind.Enum } => CodeElementType.Enum,
-            INamedTypeSymbol { TypeKind: TypeKind.Delegate } => CodeElementType.Delegate,
-            IMethodSymbol => CodeElementType.Method,
-            IPropertySymbol => CodeElementType.Property,
-            IFieldSymbol => CodeElementType.Field,
-            IEventSymbol => CodeElementType.Event,
-            _ => CodeElementType.Other
-        };
-    }
 
     /// <summary>
     ///     Properties became quite complex.
