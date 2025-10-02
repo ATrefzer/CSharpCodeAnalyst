@@ -2,9 +2,9 @@
 using System.Windows;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
-using CSharpCodeAnalyst.Areas.SearchArea;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Common;
@@ -33,10 +33,10 @@ public partial class App
         }
 
         // Run in UI mode
-        StartUI();
+        StartUi();
     }
 
-    private void StartUI()
+    private void StartUi()
     {
         try
         {

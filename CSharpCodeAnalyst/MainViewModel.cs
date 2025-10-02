@@ -15,14 +15,13 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
+using CSharpCodeAnalyst.Areas.CycleGroupsArea;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;
-using CSharpCodeAnalyst.Areas.SearchArea;
-using CSharpCodeAnalyst.Areas.TableArea;
-using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
-using CSharpCodeAnalyst.Areas.TableArea.Partitions;
-using CSharpCodeAnalyst.Areas.TableArea.Shared;
+using CSharpCodeAnalyst.Areas.PartitionsArea;
+using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -194,7 +193,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public string LoadMessage
     {
         get => _loadMessage;
-        set
+        private set
         {
             _loadMessage = value;
             OnPropertyChanged();
@@ -337,6 +336,8 @@ internal class MainViewModel : INotifyPropertyChanged
             // Restore original state if previews were shown
             _graphViewModel.LoadSession(backup, false);
         }
+
+        return;
 
         void RemoveSession(GraphSession session)
         {
@@ -649,7 +650,7 @@ internal class MainViewModel : INotifyPropertyChanged
         Export.ToDgml(_graphViewModel?.ExportGraph());
     }
 
-    private void OnExportToPng(FrameworkElement? canvas)
+    private static void OnExportToPng(FrameworkElement? canvas)
     {
         Export.ToPng(canvas);
     }

@@ -99,7 +99,7 @@ public class RuleViolationViewModel : TableRow
         return details;
     }
 
-    private void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
+    private static void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
     {
         if (detailViewModel?.SourceLocation is null)
         {

@@ -9,12 +9,11 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using CSharpCodeAnalyst.Areas.DynamicDataGrid.Contracts.Attributes;
-using CSharpCodeAnalyst.Areas.MetricArea;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.Attributes;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Areas.DynamicDataGrid;
+namespace CSharpCodeAnalyst.Shared.DynamicDataGrid;
 
 public partial class DynamicDataGrid
 {
@@ -54,7 +53,7 @@ public partial class DynamicDataGrid
     /// <summary>
     ///     Helper to get property values via reflection
     /// </summary>
-    private object? GetPropertyValue(object obj, string propertyName)
+    private static object? GetPropertyValue(object obj, string propertyName)
     {
         try
         {
@@ -209,7 +208,7 @@ public partial class DynamicDataGrid
     /// <summary>
     ///     Creates an expandable column.
     /// </summary>
-    private DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
+    private static DataGridTemplateColumn CreateExpandableColumn(TableColumnDefinition columnDef)
     {
         var column = new DataGridTemplateColumn
         {
@@ -261,7 +260,7 @@ public partial class DynamicDataGrid
         return column;
     }
 
-    private DataGridTextColumn CreateTextColumn(TableColumnDefinition columnDef)
+    private static DataGridTextColumn CreateTextColumn(TableColumnDefinition columnDef)
     {
         var column = new DataGridTextColumn
         {
@@ -309,7 +308,7 @@ public partial class DynamicDataGrid
         return column;
     }
 
-    private ControlTemplate CreateLinkButtonTemplate()
+    private static ControlTemplate CreateLinkButtonTemplate()
     {
         var template = new ControlTemplate(typeof(Button));
         var textBlockFactory = new FrameworkElementFactory(typeof(TextBlock));
@@ -320,7 +319,7 @@ public partial class DynamicDataGrid
         return template;
     }
 
-    private DataGridTemplateColumn CreateIconColumn(TableColumnDefinition columnDef)
+    private static DataGridTemplateColumn CreateIconColumn(TableColumnDefinition columnDef)
     {
         var column = new DataGridTemplateColumn
         {
@@ -341,7 +340,7 @@ public partial class DynamicDataGrid
         return column;
     }
 
-    private DataGridTemplateColumn CreateToggleColumn(TableColumnDefinition columnDef)
+    private static DataGridTemplateColumn CreateToggleColumn(TableColumnDefinition columnDef)
     {
         var column = new DataGridTemplateColumn
         {

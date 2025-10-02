@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+﻿namespace CSharpCodeAnalyst.Areas.CycleGroupsArea;
 
 public enum CycleLevel
 {

@@ -1,3 +1,3 @@
-﻿namespace CSharpCodeAnalyst.Areas.DynamicDataGrid.Contracts.Attributes;
+﻿namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.Attributes;
 
 public class DisplayColumnAttribute : ColumnAttributeBase;

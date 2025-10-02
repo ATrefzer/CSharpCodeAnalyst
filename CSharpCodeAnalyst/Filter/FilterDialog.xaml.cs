@@ -18,7 +18,7 @@ public partial class FilterDialog
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
         var expressions = FiltersTextBox.Text
-            .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+            .Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries)
             .Select(f => f.Trim())
             .Where(f => !string.IsNullOrWhiteSpace(f))
             .ToList();

@@ -74,7 +74,7 @@ public class Analyzer : IAnalyzer
     }
 
     public string Name { get => "Architectural rules"; }
-    public string Description { get; set; } = "Validates your architectural constraints based on user-defined rules";
+    public string Description { get; } = "Validates your architectural constraints based on user-defined rules";
 
     public string Id
     {

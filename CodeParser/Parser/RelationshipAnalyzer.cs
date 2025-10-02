@@ -1034,7 +1034,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
+    private static RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
         IMethodSymbol method, SemanticModel semanticModel)
     {
         switch (memberAccess.Expression)

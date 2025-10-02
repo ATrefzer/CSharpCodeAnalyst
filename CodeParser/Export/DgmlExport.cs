@@ -10,7 +10,7 @@ public class DgmlExport
     ///     Note that the "Contains" relationship is treated as hierarchy information
     ///     to build sub-graphs in the output file.
     /// </summary>
-    public void Export(string fileName, CodeGraph graph)
+    public static void Export(string fileName, CodeGraph graph)
     {
         var builder = new DgmlFileBuilder();
 

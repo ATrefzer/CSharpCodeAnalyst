@@ -24,7 +24,7 @@ public class AnalysisTests
         Assert.True(scc.CodeGraph.Nodes.ContainsKey("C"));
     }
 
-    private CodeGraph CreateTestCodeStructure()
+    private static CodeGraph CreateTestCodeStructure()
     {
         var codeStructure = new CodeGraph();
 

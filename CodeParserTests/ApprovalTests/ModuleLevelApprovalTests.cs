@@ -75,7 +75,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
         CollectionAssert.AreEquivalent(expectedProperties, properties);
     }
 
-    private CodeElement GetAssembly(CodeElement element)
+    private static CodeElement GetAssembly(CodeElement element)
     {
         var assembly = element;
         while (assembly != null && assembly.ElementType != CodeElementType.Assembly)

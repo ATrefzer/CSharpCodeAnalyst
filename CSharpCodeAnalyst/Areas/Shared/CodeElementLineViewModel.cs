@@ -2,7 +2,7 @@
 using Contracts.Graph;
 using CSharpCodeAnalyst.Messages;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.Shared;
+namespace CSharpCodeAnalyst.Areas.Shared;
 
 internal class Sorter : Comparer<CodeElementLineViewModel>
 {

@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.Common;
 
-class WindowsMessageBox : IMessageBox
+internal class WindowsMessageBox : IMessageBox
 {
     public void ShowError(string message)
     {

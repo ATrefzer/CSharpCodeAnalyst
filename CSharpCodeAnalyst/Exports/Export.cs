@@ -100,7 +100,7 @@ public static class Export
 
 
             var exporter = new DgmlExport();
-            exporter.Export(fileName, exportGraph);
+            DgmlExport.Export(fileName, exportGraph);
         }
         catch (Exception ex)
         {

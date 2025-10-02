@@ -190,7 +190,7 @@ public class CyclesApprovalTests : ProjectTestBase
         )
     ];
 
-    private bool AreEquivalent(string[] expected, HashSet<string> actual)
+    private static bool AreEquivalent(string[] expected, HashSet<string> actual)
     {
         var areEquivalent = expected.Length == actual.Count &&
                             !expected.Except(actual).Any() &&

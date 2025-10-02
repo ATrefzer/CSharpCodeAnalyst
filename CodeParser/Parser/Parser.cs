@@ -17,7 +17,7 @@ public class Parser(ParserConfig config)
 {
 
     private readonly ParserDiagnostics _diagnostics = new();
-    public Progress Progress { get; set; } = new();
+    public Progress Progress { get; } = new();
 
     public IParserDiagnostics Diagnostics
     {

@@ -37,7 +37,7 @@ internal class MsaglBuilder
         return CreateHierarchicalGraph(codeGraph, presentationState, showInformationFlow);
     }
 
-    private Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow)
+    private static Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
@@ -84,7 +84,7 @@ internal class MsaglBuilder
         return graph;
     }
 
-    private CodeGraph GetVisibleGraph(CodeGraph codeGraph, PresentationState state)
+    private static CodeGraph GetVisibleGraph(CodeGraph codeGraph, PresentationState state)
     {
         var visibleGraph = new CodeGraph();
         var roots = codeGraph.Nodes.Values.Where(n => n.Parent is null);
@@ -114,7 +114,7 @@ internal class MsaglBuilder
     }
 
 
-    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
+    private static void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
         Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         // Add nodes and sub graphs. Each node that has children becomes a subgraph.
@@ -167,7 +167,7 @@ internal class MsaglBuilder
         }
     }
 
-    private Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph codeGraph,
+    private static Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph codeGraph,
         CodeGraph visibleGraph, bool showInformationFlow)
     {
         var allRelationships = codeGraph.GetAllRelationships();

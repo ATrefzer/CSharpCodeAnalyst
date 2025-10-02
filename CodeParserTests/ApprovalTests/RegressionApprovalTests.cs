@@ -24,7 +24,7 @@ public class RegressionApprovalTests : ProjectTestBase
 
             "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest", 
             "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource", 
-            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode",
+            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode"
         };
 
         CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());

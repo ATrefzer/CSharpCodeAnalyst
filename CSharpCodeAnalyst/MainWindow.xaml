@@ -8,8 +8,7 @@
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
         xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
-        xmlns:dynamicDataGrid="clr-namespace:CSharpCodeAnalyst.Areas.DynamicDataGrid"
-        xmlns:metricArea="clr-namespace:CSharpCodeAnalyst.Areas.MetricArea"
+        xmlns:dynamicDataGrid1="clr-namespace:CSharpCodeAnalyst.Shared.DynamicDataGrid"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -547,15 +546,15 @@
                 </TabItem>-->
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
-                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding Cycles}" />
+                    <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Analyzer}">
-                    <dynamicDataGrid:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
+                    <dynamicDataGrid1:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
-                    <dynamicDataGrid:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
+                    <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
                 </TabItem>
             </TabControl>
 

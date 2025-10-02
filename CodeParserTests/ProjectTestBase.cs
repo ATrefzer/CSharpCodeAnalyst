@@ -120,21 +120,21 @@ public abstract class ProjectTestBase
         return GetElementOfType(graph, CodeElementType.Class);
     }
 
-    protected HashSet<string> GetAllNodes(CodeGraph graph)
+    protected static HashSet<string> GetAllNodes(CodeGraph graph)
     {
         return graph.Nodes.Values
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    protected HashSet<string> GetAllNodesOfType(CodeGraph graph, CodeElementType type)
+    protected static HashSet<string> GetAllNodesOfType(CodeGraph graph, CodeElementType type)
     {
         return graph.Nodes.Values.Where(n => n.ElementType == type)
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    private HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type)
+    private static HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type)
     {
         return graph.Nodes.Values
             .Where(n => n.ElementType == type)

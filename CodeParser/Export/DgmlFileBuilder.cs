@@ -323,11 +323,11 @@ public class DgmlFileBuilder
             get => !string.IsNullOrEmpty(Tooltip);
         }
 
-        public string Id { get; set; } = id;
+        public string Id { get; } = id;
 
-        public string Name { get; set; } = name;
+        public string Name { get; } = name;
 
-        public string Tooltip { get; set; } = "";
+        public string Tooltip { get; private set; } = "";
 
         public Node WithCategory(string category)
         {
@@ -361,7 +361,7 @@ public class DgmlFileBuilder
         }
 
         public string Category { get; }
-        public string Label { get; set; }
+        public string Label { get; }
         public string Source { get; }
         public string Target { get; }
     }
@@ -370,9 +370,9 @@ public class DgmlFileBuilder
 public class Group(string id, string label, string category)
 {
     public List<string> ChildGroupIds { get; } = [];
-    public string Id { get; set; } = id;
-    public string Label { get; set; } = label;
-    public string Category { get; set; } = category;
+    public string Id { get; } = id;
+    public string Label { get; } = label;
+    public string Category { get; } = category;
     public List<string> NodeIds { get; } = [];
 
     public bool HasCategory

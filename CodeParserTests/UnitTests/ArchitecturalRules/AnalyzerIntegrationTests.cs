@@ -17,7 +17,7 @@ public class AnalyzerIntegrationTests
 
     private TestCodeGraph _codeGraph;
 
-    private List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
+    private static List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
     {
         var rules = RuleParser.ParseRules(rulesText);
         var violations = new List<Violation>();

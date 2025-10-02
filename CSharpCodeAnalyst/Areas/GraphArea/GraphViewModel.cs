@@ -155,7 +155,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         UndoCommand = new WpfCommand(Undo);
     }
 
-    private void OnCopyToClipboard(CodeElement element)
+    private static void OnCopyToClipboard(CodeElement element)
     {
         var text = element?.FullName;
         if (text != null)
