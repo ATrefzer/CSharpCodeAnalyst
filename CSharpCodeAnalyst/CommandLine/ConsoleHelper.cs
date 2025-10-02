@@ -4,7 +4,7 @@ namespace CSharpCodeAnalyst.CommandLine;
 
 public static class ConsoleHelper
 {
-    private const int ATTACH_PARENT_PROCESS = -1;
+    private const int AttachParentProcess = -1;
 
     [DllImport("kernel32.dll")]
     private static extern bool AttachConsole(int dwProcessId);
@@ -15,7 +15,7 @@ public static class ConsoleHelper
     public static void EnsureConsole()
     {
         // Try to attach to an existing console
-        if (!AttachConsole(ATTACH_PARENT_PROCESS))
+        if (!AttachConsole(AttachParentProcess))
         {
             // Only allocate a new console if attaching fails
             AllocConsole();

@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CodeParser.Export;
 
-public class DgmlExport
+public static class DgmlExport
 {
     /// <summary>
     ///     Exports the given nodes and edges to a dgml file.

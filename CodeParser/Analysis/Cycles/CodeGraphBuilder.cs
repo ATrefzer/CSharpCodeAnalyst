@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
 
-public class CodeGraphBuilder
+public static class CodeGraphBuilder
 {
     /// <summary>
     ///     The search graph is a subset of the original graph that contains only

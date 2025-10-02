@@ -3,7 +3,7 @@ using Microsoft.Build.Locator;
 
 namespace CodeParser.Parser;
 
-public class Initializer
+public static class Initializer
 {
     public static void InitializeMsBuildLocator()
     {

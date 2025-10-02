@@ -14,8 +14,8 @@ public class RestrictRuleGroup
         Rules = rules.ToList();
     }
 
-    private string Source { get; } = string.Empty;
-    private List<RestrictRule> Rules { get; } = [];
+    private string Source { get; }
+    private List<RestrictRule> Rules { get; }
     public HashSet<string> AllowedTargetIds { get; set; } = [];
 
     public List<Relationship> ValidateGroup(

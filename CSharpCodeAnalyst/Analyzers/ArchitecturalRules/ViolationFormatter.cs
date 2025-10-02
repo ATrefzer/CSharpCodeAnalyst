@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
-public class ViolationsFormatter
+public static class ViolationsFormatter
 {
     public static string Format(CodeGraph graph, List<Violation> violations)
     {

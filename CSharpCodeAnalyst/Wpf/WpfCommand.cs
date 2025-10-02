@@ -59,22 +59,22 @@ public class WpfCommand<T> : ICommand
             return true;
         }
 
-        if (parameter is not T)
+        if (parameter is not T parameterOfT)
         {
             return false;
         }
 
-        return _canExecute((T)parameter);
+        return _canExecute(parameterOfT);
     }
 
     public void Execute(object? parameter)
     {
-        if (parameter is not T)
+        if (parameter is not T parameterOfT)
         {
             return;
         }
 
-        _execute((T)parameter);
+        _execute(parameterOfT);
     }
 
     public void RaiseCanExecuteChanged()

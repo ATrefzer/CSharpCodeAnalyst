@@ -119,7 +119,6 @@ public class RuleValidationTests
         var restrictRule = new RestrictRule();
         var sourceIds = new HashSet<string>();
         var targetIds = new HashSet<string>();
-        var allRelationships = new List<Relationship>();
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
             restrictRule.ValidateRule(sourceIds, targetIds, []));
@@ -141,8 +140,8 @@ public class RuleValidationTests
         controller.Relationships.Add(new Relationship(controller.Id, dataClass.Id, RelationshipType.Uses));
 
         var restrictRule = new RestrictRule { Source = "Controllers.**", Target = "Services.**" };
-        var restrictGroup = new RestrictRuleGroup("Controllers.**", new[] { restrictRule });
-        restrictGroup.AllowedTargetIds = new HashSet<string> { service.Id }; // Only service allowed
+        var restrictGroup = new RestrictRuleGroup("Controllers.**", [restrictRule]);
+        restrictGroup.AllowedTargetIds = [service.Id]; // Only service allowed
 
         var sourceIds = new HashSet<string> { controller.Id };
         var allRelationships = _codeGraph.GetAllRelationships();
@@ -167,8 +166,8 @@ public class RuleValidationTests
         controller.Relationships.Add(new Relationship(controller.Id, service.Id, RelationshipType.Uses));
 
         var restrictRule = new RestrictRule { Source = "Controllers.**", Target = "Services.**" };
-        var restrictGroup = new RestrictRuleGroup("Controllers.**", new[] { restrictRule });
-        restrictGroup.AllowedTargetIds = new HashSet<string> { service.Id };
+        var restrictGroup = new RestrictRuleGroup("Controllers.**", [restrictRule]);
+        restrictGroup.AllowedTargetIds = [service.Id];
 
         var sourceIds = new HashSet<string> { controller.Id };
         var allRelationships = _codeGraph.GetAllRelationships();

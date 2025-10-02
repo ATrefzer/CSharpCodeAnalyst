@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CodeParser.Export;
 
-public class DsiExport
+public static class DsiExport
 {
     public static void Export(string fileName, CodeGraph codeGraph)
     {

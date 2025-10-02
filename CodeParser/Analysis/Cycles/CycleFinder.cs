@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CodeParser.Analysis.Cycles;
 
-public class CycleFinder
+public static class CycleFinder
 {
     public static List<CycleGroup> FindCycleGroups(CodeGraph originalGraph)
     {

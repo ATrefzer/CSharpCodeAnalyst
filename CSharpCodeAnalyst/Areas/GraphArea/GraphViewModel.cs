@@ -40,19 +40,19 @@ internal class GraphViewModel : INotifyPropertyChanged
         _settings = settings;
 
         // Initialize RenderOptions
-        RenderOptions = new ObservableCollection<RenderOption>
-        {
+        RenderOptions =
+        [
             new DefaultRenderOptions(),
             new LeftToRightRenderOptions(),
             new BottomToTopRenderOptions()
-        };
+        ];
 
-        HighlightOptions = new ObservableCollection<HighlightOption>
-        {
+        HighlightOptions =
+        [
             HighlightOption.Default,
-            new(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
-            new(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
-        };
+            new HighlightOption(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
+            new HighlightOption (HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
+        ];
 
         // Set defaults
         _selectedRenderOption = RenderOptions[0];
