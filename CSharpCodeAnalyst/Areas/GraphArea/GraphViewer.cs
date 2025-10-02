@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
@@ -380,8 +379,6 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     public event Action<CodeGraph>? GraphChanged;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
     public bool TryHandleKeyEvent(Key key)
     {
         var cmd = _globalCommands.FirstOrDefault(c => c.Key == key);
@@ -397,11 +394,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         {
             cmd.Invoke(selectedElements);
             return true;
-            
         }
 
         return false;
     }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnGraphChanged()
     {
@@ -480,12 +478,15 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     private void RefreshNodeDecoratorsWithoutLayout(List<string> ids)
     {
+        if (_msaglViewer is null || _msaglViewer.Graph is null)
+        {
+            return;
+        }
+
         foreach (var id in ids)
         {
-            var node = _msaglViewer?.Graph.FindNode(id);
-            if (node is null)
+            if (!TryGetNodeOrSubGraphToRefresh(id, out var node))
             {
-                // This happens when the highlighting finds matches that are not currently visible.
                 continue;
             }
 
@@ -494,7 +495,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             {
                 // Flagged takes precedence over search highlight.
                 // We don't want to destroy the flags when updating highlights.
-                node.Attr.Color = Constants.FlagColor;
+                node!.Attr.Color = Constants.FlagColor;
                 node.Attr.LineWidth = Constants.FlagLineWidth;
             }
             else if (_presentationState.IsSearchHighlighted(id))
@@ -508,6 +509,25 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                 node.Attr.LineWidth = Constants.DefaultLineWidth;
             }
         }
+    }
+
+    private bool TryGetNodeOrSubGraphToRefresh(string id, out Node? node)
+    {
+        node = _msaglViewer!.Graph.FindNode(id);
+        if (node is not null)
+        {
+            return true;
+        }
+
+        // If the id is rendered as a subgraph. Both derive from Node.
+        if (_msaglViewer.Graph.SubgraphMap.TryGetValue(id, out var subGraph))
+        {
+            node = subGraph;
+            return true;
+        }
+
+        // This happens when the highlighting finds matches that are not currently visible.
+        return false;
     }
 
     private bool IsBoundToPanel()
