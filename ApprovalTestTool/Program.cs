@@ -9,11 +9,16 @@ internal static class TestTool
 {
     /// <summary>
     ///     Automatic approval tool
+    ///
+    ///     Prerequisites:
+    ///     Manually copy the latest known reference digest from ApprovalTestTool/References
+    ///     to the reference folder if you want to use them.
+    /// 
     ///     For each line in the repositories.txt
     ///     1. Clone or pull the repository
     ///     2. Checkout the specified commit
-    ///     3. Run test code: Parse the solution and write the output to a file.
-    ///     4. Compare output with reference or copy to reference folder if not exists yet.
+    ///     3. Run test code: Parse the solution and write the output (digest) to a file.
+    ///     4. Compare output (digest) with reference or copy it to reference folder if missing.
     ///     5. Print test result
     ///     You can always check out an older tag and create the reference files.
     /// </summary>
@@ -71,6 +76,8 @@ internal static class TestTool
         }
     }
 
+
+
     private static async Task ProcessRepository(string repoUrl, string slnRelativePath, string commitHash,
         string gitCloneFolder, string referenceFolder)
     {
@@ -104,21 +111,31 @@ internal static class TestTool
         // Generate paths
         var slnPath = Path.Combine(repoPath, slnRelativePath);
         var outputFileName = $"{commitHash}.txt";
+        var digestFileName = $"{commitHash}_digest.txt";
         var outputPath = Path.Combine(gitCloneFolder, outputFileName);
+        var outputDigestPath = Path.Combine(gitCloneFolder, digestFileName);
 
         // Run test code (placeholder)
         await RunTestCode(slnPath, outputPath);
 
-        // Compare output with reference or copy to reference folder
-        var referencePath = Path.Combine(referenceFolder, outputFileName);
-        if (File.Exists(referencePath))
+        // Generate digest
+        // So we generate the full output and a digest file to store in GIT.
+        var text = await File.ReadAllTextAsync(outputPath);
+        var digest = Hash.ComputeHash(text);
+        await File.WriteAllTextAsync(outputDigestPath, digest);
+
+        // Compare digest output with reference or copy missing files to reference folder
+        var referenceDigestPath = Path.Combine(referenceFolder, digestFileName);
+        var referenceOutputPath = Path.Combine(referenceFolder, outputFileName);
+        if (File.Exists(referenceDigestPath))
         {
-            var areEqual = CompareFiles(outputPath, referencePath);
+            var areEqual = CompareFiles(outputDigestPath, referenceDigestPath);
             PrintColoredTestResult(repoName, commitHash, areEqual);
         }
         else
         {
-            File.Copy(outputPath, referencePath);
+            File.Copy(outputDigestPath, referenceDigestPath, true);
+            File.Copy(outputPath, referenceOutputPath, true);
             Console.WriteLine($"No reference file for {repoName} at {commitHash}. Created new reference file.");
         }
     }
