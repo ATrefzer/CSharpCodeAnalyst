@@ -7,14 +7,13 @@ public class PresentationState
     private readonly Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _defaultState;
     private Dictionary<string, bool> _nodeIdToFlagged;
-    private Dictionary<string, bool> _nodeIdToSearchHighlighted;
 
     public PresentationState(Dictionary<string, bool> defaultState)
     {
         _defaultState = defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToFlagged = new Dictionary<string, bool>();
-        _nodeIdToSearchHighlighted = new Dictionary<string, bool>();
+        NodeIdToSearchHighlighted = new Dictionary<string, bool>();
     }
 
     public PresentationState()
@@ -23,7 +22,7 @@ public class PresentationState
         _defaultState = new Dictionary<string, bool>();
         _nodeIdToCollapsed = new Dictionary<string, bool>();
         _nodeIdToFlagged = new Dictionary<string, bool>();
-        _nodeIdToSearchHighlighted = new Dictionary<string, bool>();
+        NodeIdToSearchHighlighted = new Dictionary<string, bool>();
     }
 
     // Public properties for JSON serialization
@@ -39,7 +38,7 @@ public class PresentationState
         set => _nodeIdToFlagged = value ?? new Dictionary<string, bool>();
     }
 
-    public Dictionary<string, bool> NodeIdToSearchHighlighted => _nodeIdToSearchHighlighted;
+    public Dictionary<string, bool> NodeIdToSearchHighlighted { get; }
 
     public PresentationState Clone()
     {
@@ -54,7 +53,7 @@ public class PresentationState
             clone.SetFlaggedState(pair.Key, pair.Value);
         }
 
-        foreach (var pair in _nodeIdToSearchHighlighted)
+        foreach (var pair in NodeIdToSearchHighlighted)
         {
             clone.SetSearchHighlightedState(pair.Key, pair.Value);
         }
@@ -92,18 +91,18 @@ public class PresentationState
 
     public bool IsSearchHighlighted(string id)
     {
-        _nodeIdToSearchHighlighted.TryGetValue(id, out var isSearchHighlighted);
+        NodeIdToSearchHighlighted.TryGetValue(id, out var isSearchHighlighted);
         return isSearchHighlighted;
     }
 
     public void SetSearchHighlightedState(string id, bool isSearchHighlighted)
     {
-        _nodeIdToSearchHighlighted[id] = isSearchHighlighted;
+        NodeIdToSearchHighlighted[id] = isSearchHighlighted;
     }
 
     public void ClearAllSearchHighlights()
     {
-        _nodeIdToSearchHighlighted.Clear();
+        NodeIdToSearchHighlighted.Clear();
     }
 
     internal void RemoveStates(HashSet<string> ids)
@@ -112,7 +111,7 @@ public class PresentationState
         {
             _nodeIdToCollapsed.Remove(id);
             _nodeIdToFlagged.Remove(id);
-            _nodeIdToSearchHighlighted.Remove(id);
+            NodeIdToSearchHighlighted.Remove(id);
             _defaultState.Remove(id);
         }
     }

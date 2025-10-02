@@ -50,9 +50,9 @@ public class TreeViewModel : INotifyPropertyChanged
     }
 
 
-    public ICommand CollapseTreeCommand { get; set; }
+    public ICommand CollapseTreeCommand { get; }
 
-    public ICommand ClearSearchCommand { get; set; }
+    public ICommand ClearSearchCommand { get; }
 
 
     public ObservableCollection<TreeItemViewModel> TreeItems
@@ -105,7 +105,7 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, true));
     }
 
-    private bool CanPartition(TreeItemViewModel? vm)
+    private static bool CanPartition(TreeItemViewModel? vm)
     {
         return vm is { CodeElement.ElementType: CodeElementType.Class };
     }
@@ -217,7 +217,7 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
-    private void ResetVisibility(IEnumerable<TreeItemViewModel> items, bool keepHighlighting)
+    private static void ResetVisibility(IEnumerable<TreeItemViewModel> items, bool keepHighlighting)
     {
         foreach (var item in items)
         {
@@ -243,7 +243,7 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
-    private void CollapseTree(IEnumerable<TreeItemViewModel> items)
+    private static void CollapseTree(IEnumerable<TreeItemViewModel> items)
     {
         foreach (var item in items)
         {

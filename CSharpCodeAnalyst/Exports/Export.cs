@@ -99,8 +99,7 @@ public static class Export
             var fileName = saveFileDialog.FileName;
 
 
-            var exporter = new DgmlExport();
-            exporter.Export(fileName, exportGraph);
+            DgmlExport.Export(fileName, exportGraph);
         }
         catch (Exception ex)
         {
@@ -153,7 +152,6 @@ public static class Export
 
             var fileName = saveFileDialog.FileName;
 
-            var exporter = new DsiExport();
             DsiExport.Export(fileName, codeGraph);
         }
         catch (Exception ex)

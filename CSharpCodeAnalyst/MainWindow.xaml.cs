@@ -184,4 +184,18 @@ public partial class MainWindow
     {
         ExplorationControl.SetViewer(explorationGraphViewer);
     }
+
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (WorkingArea.SelectedIndex == 0)
+        {
+            // Code explorer
+            var mainVm = ExplorationControl.DataContext as MainViewModel;
+            var graphVm = mainVm?.GraphViewModel;
+            if (graphVm != null && graphVm.TryHandleKeyDown(e))
+            {
+                e.Handled = true;
+            }
+        }
+    }
 }

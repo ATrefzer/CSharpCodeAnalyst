@@ -1,11 +1,11 @@
 ﻿using System.Collections.ObjectModel;
 using CodeParser.Analysis.Shared;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Areas.TableArea.Shared;
+using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.TabularData;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+namespace CSharpCodeAnalyst.Areas.CycleGroupsArea;
 
 internal class CycleGroupViewModel : TableRow
 {

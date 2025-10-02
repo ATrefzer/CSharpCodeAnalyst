@@ -4,10 +4,10 @@ using CodeParser.Analysis.Shared;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.TabularData;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
+namespace CSharpCodeAnalyst.Areas.CycleGroupsArea;
 
 internal class CycleGroupsViewModel : Table
 {
@@ -73,7 +73,7 @@ internal class CycleGroupsViewModel : Table
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Areas/TableArea/Shared/CodeElementLineTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Areas/Shared/CodeElementLineTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }

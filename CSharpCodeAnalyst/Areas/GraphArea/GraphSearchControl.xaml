@@ -81,7 +81,7 @@
                          BorderThickness="1"
                          BorderBrush="LightGray"
                          VerticalAlignment="Center"
-                         ToolTip="Search in graph nodes. Use | for OR, space for AND, type: for type filter" />
+                         ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
 
                 <Button x:Name="ClearButton"
                         Grid.Column="1"

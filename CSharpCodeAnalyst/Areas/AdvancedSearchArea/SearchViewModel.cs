@@ -9,7 +9,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.SearchArea;
+namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 
 public class SearchViewModel : INotifyPropertyChanged
 {

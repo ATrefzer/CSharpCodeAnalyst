@@ -6,11 +6,6 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Metrics and Analyzer tables are implemented differently, but could be unified
-	- Dynamic Grid should accept non-Table view models and check for Attributes.
-
-- Delete via keyboard.
-
 - Verification that code Syntax is handled only in one place. Check that a dependency has multiple source Locations with the same file and line.
 
 

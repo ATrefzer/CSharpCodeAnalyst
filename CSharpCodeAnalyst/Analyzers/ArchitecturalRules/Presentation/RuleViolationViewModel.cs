@@ -5,8 +5,8 @@ using System.Windows.Media;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Services;
-using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
@@ -99,7 +99,7 @@ public class RuleViolationViewModel : TableRow
         return details;
     }
 
-    private void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
+    private static void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
     {
         if (detailViewModel?.SourceLocation is null)
         {

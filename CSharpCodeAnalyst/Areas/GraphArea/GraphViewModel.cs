@@ -40,74 +40,74 @@ internal class GraphViewModel : INotifyPropertyChanged
         _settings = settings;
 
         // Initialize RenderOptions
-        RenderOptions = new ObservableCollection<RenderOption>
-        {
+        RenderOptions =
+        [
             new DefaultRenderOptions(),
             new LeftToRightRenderOptions(),
             new BottomToTopRenderOptions()
-        };
+        ];
 
-        HighlightOptions = new ObservableCollection<HighlightOption>
-        {
+        HighlightOptions =
+        [
             HighlightOption.Default,
-            new(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
-            new(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
-        };
+            new HighlightOption(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
+            new HighlightOption (HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
+        ];
 
         // Set defaults
         _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
 
         // Edge commands
-        _viewer.AddContextMenuCommand(new RelationshipContextCommand(Strings.Delete, DeleteEdges));
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.Delete, DeleteEdges));
 
         // Global commands
-        _viewer.AddGlobalContextMenuCommand(
-            new GlobalContextCommand(Strings.CompleteRelationships, CompleteRelationships));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.CompleteToTypes, CompleteToTypes));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedFocus, FocusOnSelectedElements,
+        _viewer.AddGlobalCommand(
+            new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, FocusOnSelectedElements,
             CanHandleIfSelectedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedDelete,
-            DeleteSelectedWithChildren, CanHandleIfSelectedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.SelectedAddParent, AddParents,
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedDelete,
+            DeleteSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents,
             CanHandleIfSelectedElements));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.ClearAllFlags, ClearAllFlags));
-        _viewer.AddGlobalContextMenuCommand(new GlobalContextCommand(Strings.ExpandEverything, ExpandEverything));
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
 
 
         // Static commands
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
         {
             IsDoubleClickable = true,
             IsVisible = false
         });
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
         {
             IsDoubleClickable = true,
             IsVisible = false
         });
 
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: IconLoader.LoadIcon("Resources/flag.png")));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
-        _viewer.AddContextMenuCommand(new SeparatorCommand());
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: IconLoader.LoadIcon("Resources/flag.png")));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
+        _viewer.AddCommand(new SeparatorCommand());
 
 
         // Methods and properties
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
                 FindOutgoingCalls));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
                 FindIncomingCalls));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
                 FollowIncomingCallsRecursive));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions));
         }
 
@@ -115,28 +115,28 @@ internal class GraphViewModel : INotifyPropertyChanged
         elementTypes = [CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
                 FindInheritanceTree));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations));
-            _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions));
         }
 
         // Events
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
             FindSpecializations));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
             FindAbstractions));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
             FollowIncomingCallsRecursive));
 
 
         // Everyone gets the in/out relationships
-        _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
+        _viewer.AddCommand(new SeparatorCommand());
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships));
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships));
 
         /*
@@ -147,15 +147,15 @@ internal class GraphViewModel : INotifyPropertyChanged
             PartitionClass));
         */
         
-        _viewer.AddContextMenuCommand(new SeparatorCommand());
-        _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.CopyToClipboard,
+        _viewer.AddCommand(new SeparatorCommand());
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyToClipboard,
             OnCopyToClipboard));
 
 
         UndoCommand = new WpfCommand(Undo);
     }
 
-    private void OnCopyToClipboard(CodeElement element)
+    private static void OnCopyToClipboard(CodeElement element)
     {
         var text = element?.FullName;
         if (text != null)
@@ -636,5 +636,10 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var elements = _explorer.GetElements(session.CodeElementIds);
         _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
+    }
+
+    public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
+    {
+        return _viewer.TryHandleKeyEvent(keyEventArgs.Key);
     }
 }

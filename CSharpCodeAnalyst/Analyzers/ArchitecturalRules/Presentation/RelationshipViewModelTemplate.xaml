@@ -2,10 +2,11 @@
               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-              xmlns:architecturalRules="clr-namespace:CSharpCodeAnalyst.Analyzers.ArchitecturalRules"
               xmlns:presentation="clr-namespace:CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation"
               mc:Ignorable="d">
-    <ItemsControl ItemsSource="{Binding RelationshipDetails}">
+    <ItemsControl 
+        d:DataContext="{d:DesignInstance presentation:RuleViolationViewModel }"
+        ItemsSource="{Binding RelationshipDetails}">
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <Grid Margin="40 0 0 0" d:DataContext="{d:DesignInstance presentation:RelationshipViewModel }">

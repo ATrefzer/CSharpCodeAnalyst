@@ -69,7 +69,7 @@ public class PlantUmlExport
     }
 
     // Recursive writer for assemblies and namespaces
-    private void WriteContainerRecursive(StringBuilder builder, CodeElement containerNode, string indent)
+    private static void WriteContainerRecursive(StringBuilder builder, CodeElement containerNode, string indent)
     {
         var containerName = SanitizeClassName(containerNode.Name);
 
@@ -135,7 +135,7 @@ public class PlantUmlExport
     ///     While inheritance and implements are defined between types the dependencies are
     ///     calculated. <see cref="CalculateOutgoingTypeDependencies" />
     /// </summary>
-    private void WriteClassDiagramRelationships(StringBuilder builder, CodeGraph graph)
+    private static void WriteClassDiagramRelationships(StringBuilder builder, CodeGraph graph)
     {
         var processedRelationships = new HashSet<string>();
         var typeNodes = graph.Nodes.Values.Where(n => IsClassDiagramType(n.ElementType)).ToList();

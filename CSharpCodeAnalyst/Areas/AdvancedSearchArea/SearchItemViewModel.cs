@@ -4,7 +4,7 @@ using System.Windows.Media.Imaging;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Messages;
 
-namespace CSharpCodeAnalyst.Areas.SearchArea;
+namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public class SearchItemViewModel : INotifyPropertyChanged

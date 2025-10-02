@@ -24,7 +24,7 @@ public class RegressionApprovalTests : ProjectTestBase
 
             "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest", 
             "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource", 
-            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode",
+            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode"
         };
 
         CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
@@ -62,7 +62,6 @@ public class RegressionApprovalTests : ProjectTestBase
     {
         var calls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
-        var dmp = DumpRelationships(calls);
         var expected = new[]
         {
             "Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave -> Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave",

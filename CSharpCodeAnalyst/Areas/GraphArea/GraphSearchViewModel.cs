@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Threading;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Areas.SearchArea;
 using CSharpCodeAnalyst.Common;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
@@ -78,7 +77,7 @@ public class GraphSearchViewModel : INotifyPropertyChanged
         UpdateGraph(newGraph);
     }
 
-    public void UpdateGraph(CodeGraph graph)
+    private void UpdateGraph(CodeGraph graph)
     {
         // Re-execute search with new graph if we have search text
         if (!string.IsNullOrWhiteSpace(_searchText))
@@ -114,7 +113,6 @@ public class GraphSearchViewModel : INotifyPropertyChanged
         {
             if (root.Evaluate(node))
             {
-                Debug.WriteLine($"Adding {nodes[node.Id]}");
                 matchingNodeIds.Add(node.Id);
             }
         }

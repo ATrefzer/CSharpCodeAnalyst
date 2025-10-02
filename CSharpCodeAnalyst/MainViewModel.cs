@@ -15,14 +15,13 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
+using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
+using CSharpCodeAnalyst.Areas.CycleGroupsArea;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.InfoArea;
 using CSharpCodeAnalyst.Areas.MetricArea;
-using CSharpCodeAnalyst.Areas.SearchArea;
-using CSharpCodeAnalyst.Areas.TableArea;
-using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
-using CSharpCodeAnalyst.Areas.TableArea.Partitions;
-using CSharpCodeAnalyst.Areas.TableArea.Shared;
+using CSharpCodeAnalyst.Areas.PartitionsArea;
+using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -36,8 +35,8 @@ using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Project;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.TabularData;
 using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
 
@@ -194,7 +193,7 @@ internal class MainViewModel : INotifyPropertyChanged
     public string LoadMessage
     {
         get => _loadMessage;
-        set
+        private set
         {
             _loadMessage = value;
             OnPropertyChanged();
@@ -337,6 +336,8 @@ internal class MainViewModel : INotifyPropertyChanged
             // Restore original state if previews were shown
             _graphViewModel.LoadSession(backup, false);
         }
+
+        return;
 
         void RemoveSession(GraphSession session)
         {
@@ -649,7 +650,7 @@ internal class MainViewModel : INotifyPropertyChanged
         Export.ToDgml(_graphViewModel?.ExportGraph());
     }
 
-    private void OnExportToPng(FrameworkElement? canvas)
+    private static void OnExportToPng(FrameworkElement? canvas)
     {
         Export.ToPng(canvas);
     }
@@ -858,7 +859,6 @@ internal class MainViewModel : INotifyPropertyChanged
         // The request code element may originate from a graph where the children are not present!
         var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
 
-        var partitioner = new CodeElementPartitioner();
         var partitions = CodeElementPartitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
 
         if (partitions.Count <= 1)

@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Areas.MetricArea;
+﻿namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
 public abstract class ColumnAttributeBase : Attribute

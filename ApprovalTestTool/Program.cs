@@ -5,7 +5,7 @@ using LibGit2Sharp;
 
 namespace ApprovalTestTool;
 
-internal class TestTool
+internal static class TestTool
 {
     /// <summary>
     ///     Automatic approval tool
@@ -166,18 +166,20 @@ internal class TestTool
 
     private static void EnsureDirectoryExists(string path)
     {
-        if (!Directory.Exists(path))
+        if (Directory.Exists(path))
         {
-            try
-            {
-                Directory.CreateDirectory(path);
-                Console.WriteLine($"Created directory: {path}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating directory {path}: {ex.Message}");
-                Environment.Exit(1);
-            }
+            return;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(path);
+            Console.WriteLine($"Created directory: {path}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating directory {path}: {ex.Message}");
+            Environment.Exit(1);
         }
     }
 }

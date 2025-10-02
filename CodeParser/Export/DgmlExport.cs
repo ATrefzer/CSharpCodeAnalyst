@@ -3,14 +3,14 @@ using Contracts.Graph;
 
 namespace CodeParser.Export;
 
-public class DgmlExport
+public static class DgmlExport
 {
     /// <summary>
     ///     Exports the given nodes and edges to a dgml file.
     ///     Note that the "Contains" relationship is treated as hierarchy information
     ///     to build sub-graphs in the output file.
     /// </summary>
-    public void Export(string fileName, CodeGraph graph)
+    public static void Export(string fileName, CodeGraph graph)
     {
         var builder = new DgmlFileBuilder();
 

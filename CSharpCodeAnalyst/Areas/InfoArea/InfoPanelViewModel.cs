@@ -29,7 +29,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
     public List<QuickInfo> QuickInfo
     {
         get => _quickInfo;
-        set
+        private set
         {
             if (Equals(value, _quickInfo))
             {

@@ -1,10 +1,9 @@
 using System.Collections.ObjectModel;
-using CSharpCodeAnalyst.Areas.TableArea.CycleGroups;
-using CSharpCodeAnalyst.Areas.TableArea.Shared;
+using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.TabularData;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Areas.TableArea.Partitions;
+namespace CSharpCodeAnalyst.Areas.PartitionsArea;
 
 public class PartitionViewModel : TableRow
 {

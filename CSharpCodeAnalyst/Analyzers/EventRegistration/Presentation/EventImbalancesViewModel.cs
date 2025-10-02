@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.TabularData;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 

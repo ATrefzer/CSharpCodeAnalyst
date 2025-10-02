@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CSharpCodeAnalyst.Areas.DynamicDataGrid.DynamicDataGrid"
+﻿<UserControl x:Class="CSharpCodeAnalyst.Shared.DynamicDataGrid.DynamicDataGrid"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,7 +16,7 @@
 
     <Grid>
         <DataGrid x:Name="MainDataGrid"
-                  Style="{StaticResource ReadOnlyGrid}"
+                  Style="{StaticResource ReadOnlyGrid}" LoadingRow="MainDataGrid_OnLoadingRow"
                   AutoGenerateColumns="False">
 
             <DataGrid.Resources>
@@ -51,6 +51,6 @@
                    VerticalAlignment="Center"
                    Foreground="Gray"
                    FontStyle="Italic"
-                   Visibility="Collapsed" />
+                   Visibility="Visible" />
     </Grid>
 </UserControl>

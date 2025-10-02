@@ -4,6 +4,8 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
@@ -28,7 +30,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 {
     private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
-    private readonly List<IGlobalContextCommand> _globalCommands = [];
+    private readonly List<IGlobalCommand> _globalCommands = [];
     private readonly int _maxElementWarningLimit;
     private readonly MsaglBuilder _msaglBuilder;
     private readonly List<ICodeElementContextCommand> _nodeCommands = [];
@@ -119,17 +121,17 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         OnGraphChanged();
     }
 
-    public void AddContextMenuCommand(ICodeElementContextCommand command)
+    public void AddCommand(ICodeElementContextCommand command)
     {
         _nodeCommands.Add(command);
     }
 
-    public void AddContextMenuCommand(IRelationshipContextCommand command)
+    public void AddCommand(IRelationshipContextCommand command)
     {
         _edgeCommands.Add(command);
     }
 
-    public void AddGlobalContextMenuCommand(IGlobalContextCommand command)
+    public void AddGlobalCommand(IGlobalCommand command)
     {
         _globalCommands.Add(command);
     }
@@ -314,7 +316,6 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         var newState = !currentState;
         _presentationState.SetFlaggedState(id, newState);
         RefreshNodeDecoratorsWithoutLayout([id]);
-
     }
 
     public void ClearAllFlags()
@@ -377,8 +378,30 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         OnGraphChanged();
     }
 
-    public event PropertyChangedEventHandler? PropertyChanged;
     public event Action<CodeGraph>? GraphChanged;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public bool TryHandleKeyEvent(Key key)
+    {
+        var cmd = _globalCommands.FirstOrDefault(c => c.Key == key);
+        if (cmd is null)
+        {
+            return false;
+        }
+
+        var selectedElements = GetSelectedElementIds()
+            .Select(id => _clonedCodeGraph.Nodes[id])
+            .ToList();
+        if (cmd.CanHandle(selectedElements))
+        {
+            cmd.Invoke(selectedElements);
+            return true;
+            
+        }
+
+        return false;
+    }
 
     private void OnGraphChanged()
     {
