@@ -63,5 +63,11 @@ namespace CodeParser.Parser
             _analyzer.AnalyzeArgument(_sourceElement, node, _semanticModel);
             base.VisitArgument(node);
         }
+
+        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
+            base.VisitLocalDeclarationStatement(node);
+        }
     }
 }

@@ -61,11 +61,14 @@ public class Parser(ParserConfig config)
         // for a nested relationships.
         InsertGlobalNamespaceIfUsed(codeGraph);
 
-        // Debug.Assert(_codeGraph.Nodes.Values.All(c => IsDistinct(c.SourceLocations)));
+#if DEBUG
+        CodeGraphPlausibilityChecks.PlausibilityChecks(codeGraph);
+#endif
         // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
 
         return codeGraph;
     }
+
 
     private void Workspace_WorkspaceFailed(object? sender, WorkspaceDiagnosticEventArgs e)
     {

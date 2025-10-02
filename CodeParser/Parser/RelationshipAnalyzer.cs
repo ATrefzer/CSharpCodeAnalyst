@@ -1078,4 +1078,16 @@ public class RelationshipAnalyzer
             }
         }
     }
+
+    internal void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
+        SemanticModel semanticModel)
+    {
+        // Get the type of the local variable declaration
+        var typeInfo = semanticModel.GetTypeInfo(localDeclaration.Declaration.Type);
+        if (typeInfo.Type != null)
+        {
+            var location = localDeclaration.Declaration.Type.GetSyntaxLocation();
+            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+        }
+    }
 }
