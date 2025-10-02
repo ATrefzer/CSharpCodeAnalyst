@@ -446,46 +446,12 @@ public class RelationshipAnalyzer
     /// </summary>
     private void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel)
     {
-        foreach (var descendantNode in node.DescendantNodesAndSelf())
-        {
-            switch (descendantNode)
-            {
-                case ObjectCreationExpressionSyntax objectCreationSyntax:
-
-                    // new SomeClass()
-                    AnalyzeObjectCreation(sourceElement, semanticModel, objectCreationSyntax);
-                    break;
-
-                case InvocationExpressionSyntax invocationSyntax:
-
-                    // Method()
-                    AnalyzeInvocation(sourceElement, invocationSyntax, semanticModel);
-                    break;
-
-                case AssignmentExpressionSyntax assignmentExpression:
-                    // Property and field assignments, event registration
-                    AnalyzeAssignment(sourceElement, assignmentExpression, semanticModel);
-                    break;
-
-                case IdentifierNameSyntax identifierSyntax:
-                    // Property or field access
-                    AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
-                    break;
-
-                case MemberAccessExpressionSyntax memberAccessSyntax:
-
-                    // obj.Property or obj.Field access
-                    AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
-                    break;
-
-                case ArgumentSyntax argumentSyntax:
-                    AnalyzeArgument(sourceElement, argumentSyntax, semanticModel);
-                    break;
-            }
-        }
+        var walker = new MethodBodyWalker(this, sourceElement, semanticModel);
+        walker.Visit(node);
     }
 
-    private void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
+
+    internal void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
         ObjectCreationExpressionSyntax objectCreationSyntax)
     {
         var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
@@ -517,17 +483,10 @@ public class RelationshipAnalyzer
             AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
         }
 
-        // Analyze constructor arguments for method groups
-        if (objectCreationSyntax.ArgumentList != null)
-        {
-            foreach (var argument in objectCreationSyntax.ArgumentList.Arguments)
-            {
-                AnalyzeArgument(sourceElement, argument, semanticModel);
-            }
-        }
+        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
     }
 
-    private void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
+    internal void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
         SemanticModel semanticModel)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
@@ -585,14 +544,7 @@ public class RelationshipAnalyzer
             }
         }
 
-        // Analyze method call arguments for method groups
-        if (invocationSyntax.ArgumentList != null)
-        {
-            foreach (var argument in invocationSyntax.ArgumentList.Arguments)
-            {
-                AnalyzeArgument(sourceElement, argument, semanticModel);
-            }
-        }
+        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
 
         // Handle direct event invocations (if any)
         var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
@@ -614,7 +566,7 @@ public class RelationshipAnalyzer
         AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location], attribute);
     }
 
-    private void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+    internal void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel)
     {
         // Analyze the left side of the assignment (target)
@@ -830,7 +782,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
+    internal void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
@@ -856,7 +808,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
+    internal void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
     {
         // TODO Get information about the called type.
@@ -1082,7 +1034,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
+    internal void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
     {
         var expression = argumentSyntax.Expression;
 
