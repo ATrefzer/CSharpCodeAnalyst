@@ -6,7 +6,7 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Verification that code Syntax is handled only in one place. Check that a dependency has multiple source Locations with the same file and line.
+- Search should filter external code.
 
 
 UNHANDLED CASES
@@ -21,6 +21,43 @@ UNHANDLED CASES
 BUGS
 ---------------------
 
+- Get rid of local methods or lambdas.
+- What was the reason for the normalized ctor?
+- How can I disable external parsing. Old tests should working after removing external code.
+
+- Add Fallback to parent no longer valid? Now we add external code element?
+    => Only enums or other cases
+    => Clarify: Primary constructor
+    => What else?
+
+- Anonymous class is shown as external code. Only named types!
+
+public class ApplicationSettings
+{
+    public void Save(string appSettingsPath)
+    {
+        var root = new { ApplicationSettings = this };
+    }
+}
+
+ctor not detected
+ internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
+
+// Missing 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+
 
 MISSING TEST CASES
 ---------------------
+
+
+CLARIFY
+---------------------
+
+GetOrTryCreateExternalCodeElement vs direct call on external symbol cache: _externalCodeElementCache.GetOrCreateExternalCodeElement
+Why exist both variations.
+
+
+NormalizeToOriginalDefinition. When or where is this necessary?

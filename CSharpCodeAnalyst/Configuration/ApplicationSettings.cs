@@ -9,6 +9,8 @@ public class ApplicationSettings
     public string DefaultProjectExcludeFilter { get; set; } = string.Empty;
     public bool AutomaticallyAddContainingType { get; set; } = true;
 
+    public bool IncludeExternalCode { get; set; } = false;
+
     public void Save(string appSettingsPath)
     {
         var root = new { ApplicationSettings = this };

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeParser.Parser;
 
@@ -178,6 +179,10 @@ public static class SymbolExtensions
         return symbol.ToDisplayString(MetadataNameFormat);
     }
 
+    public static bool IsFromSource(this ISymbol symbol)
+    {
+        return symbol.Locations.Any(loc => loc.IsInSource);
+    }
 
     /// <summary>
     ///     Finds the corresponding symbol in the target compilation.
@@ -235,5 +240,57 @@ public static class SymbolExtensions
 
             symbol = symbol.ContainingSymbol ?? throw new Exception("No compilation");
         }
+    }
+
+
+    /// <summary>
+    ///     Returns true if the ctor is explicit and has a body. False if  implicit or primary ctor.
+    /// </summary>
+    public static bool IsExplicitConstructor(this IMethodSymbol ctor)
+    {
+        if (ctor.MethodKind != MethodKind.Constructor)
+        {
+            return false;
+        }
+
+        // Implicit parameterless ctor
+        if (ctor.IsImplicitlyDeclared)
+        {
+            return false;
+        }
+
+        // Normal ctor → ConstructorDeclarationSyntax.
+        // Primary ctor → TypeDeclarationSyntax (class, record, struct).
+        var isPrimary = ctor.DeclaringSyntaxReferences
+            .Any(r => r.GetSyntax() is TypeDeclarationSyntax);
+
+        return !isPrimary;
+    }
+
+    /// <summary>
+    ///     TODO only for constructors in object creation syntax? Useful for other scenarios?
+    ///     A type for example does not check is ContainingType. Can we just always try OriginalDefinition if not found?
+    ///     Gets the original definition for a symbol if it's part of a constructed generic type.
+    /// 
+    ///     Problem:
+    ///     Constructors are never generic. So IsGeneric is never true. But phase 1 in our parser did not collect
+    ///     constructed types.
+    /// 
+    ///     Examples:
+    ///     - List&lt;int&gt;.Add -> List&lt;T&gt;.Add
+    ///     - Dictionary&lt;string, int&gt; -> Dictionary&lt;TKey, TValue&gt;
+    /// </summary>
+    public static ISymbol NormalizeToOriginalDefinition(this ISymbol symbol)
+    {
+        // TODO In which cases do we need this method and when causes it harm?
+        return symbol switch
+        {
+            IMethodSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } method => method.OriginalDefinition,
+            IPropertySymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } property => property.OriginalDefinition,
+            IFieldSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } field => field.OriginalDefinition,
+            IEventSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } @event => @event.OriginalDefinition,
+            INamedTypeSymbol { IsGenericType: true, IsDefinition: false } type => type.OriginalDefinition,
+            _ => symbol
+        };
     }
 }

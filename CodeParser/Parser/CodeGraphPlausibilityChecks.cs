@@ -7,6 +7,23 @@ internal static class CodeGraphPlausibilityChecks
 {
     public static void PlausibilityChecks(CodeGraph codeGraph)
     {
+        MultipleSourceLocationsInSameLineAreUnlikely(codeGraph);
+        RelationshipsHaveNoDeadEnds(codeGraph);
+    }
+
+    private static void RelationshipsHaveNoDeadEnds(CodeGraph codeGraph)
+    {
+        var deadEnds = codeGraph.GetAllRelationships().Where(r => !codeGraph.Nodes.ContainsKey(r.SourceId) ||
+                                                                  !codeGraph.Nodes.ContainsKey(r.TargetId));
+
+        if (deadEnds.Any())
+        {
+            Trace.WriteLine("Found relationships with dead ends.");
+        }
+    }
+
+    private static void MultipleSourceLocationsInSameLineAreUnlikely(CodeGraph codeGraph)
+    {
         var codeGraphNodes = codeGraph.Nodes.Values;
 
         foreach (var node in codeGraphNodes)

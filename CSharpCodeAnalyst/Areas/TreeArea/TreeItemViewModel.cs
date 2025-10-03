@@ -21,7 +21,15 @@ public class TreeItemViewModel : INotifyPropertyChanged
 
     public BitmapImage? Icon
     {
-        get => CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+        get
+        {
+            // Virtual root node for "External" uses namespace icon
+            if (CodeElement == null && Type == "Virtual Root")
+            {
+                return CodeElementIconMapper.GetIcon(CodeElementType.Namespace);
+            }
+            return CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
+        }
     }
 
     public bool IsExpanded

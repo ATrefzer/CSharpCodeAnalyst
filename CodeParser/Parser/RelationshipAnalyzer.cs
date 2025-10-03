@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CodeParser.Parser.Config;
 using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,8 +14,11 @@ public class RelationshipAnalyzer
 {
     private readonly object _lock = new();
     private readonly Progress _progress;
+    private readonly ParserConfig _config;
     private Artifacts? _artifacts;
     private CodeGraph? _codeGraph;
+
+    private readonly ExternalCodeElementCache _externalCodeElementCache = new();
     private long _lastProgress;
 
     private int _processedCodeElements;
@@ -22,9 +26,10 @@ public class RelationshipAnalyzer
     /// <summary>
     ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
     /// </summary>
-    public RelationshipAnalyzer(Progress progress)
+    public RelationshipAnalyzer(Progress progress, ParserConfig config)
     {
         _progress = progress;
+        _config = config;
     }
 
     /// <summary>
@@ -44,7 +49,13 @@ public class RelationshipAnalyzer
         var numberOfCodeElements = _codeGraph.Nodes.Count;
         _processedCodeElements = 0;
 
-        Parallel.ForEach(_codeGraph.Nodes.Values, AnalyzeRelationshipsLocal);
+        // Take a snapshot of internal elements to avoid collection modification during parallel iteration
+        var internalElements = _codeGraph.Nodes.Values.ToList();
+
+        Parallel.ForEach(internalElements, AnalyzeRelationshipsLocal);
+
+        // After parallel processing, add all external elements to the graph
+        AddExternalElementsToGraph();
 
         // Analyze global statements for each assembly
         AnalyzeGlobalStatementsForAssembly(solution);
@@ -69,26 +80,20 @@ public class RelationshipAnalyzer
         }
     }
 
-    private IEnumerable<INamedTypeSymbol> FindTypesDerivedFrom(INamedTypeSymbol baseType)
+    /// <summary>
+    ///     Adds all external elements that were created during parallel processing to the code graph.
+    ///     This must be called after parallel processing completes to avoid collection modification issues.
+    /// </summary>
+    private void AddExternalElementsToGraph()
     {
-        return _artifacts!.AllNamedTypesInSolution
-            .Where(type => IsTypeDerivedFrom(type, baseType));
-    }
-
-    private static bool IsTypeDerivedFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
-    {
-        var currentType = type.BaseType;
-        while (currentType != null)
+        if (!_config.IncludeExternals)
         {
-            if (currentType.Key() == baseType.Key())
-            {
-                return true;
-            }
-
-            currentType = currentType.BaseType;
+            return;
         }
-
-        return false;
+        foreach (var externalElement in _externalCodeElementCache.GetCodeElements())
+        {
+            _codeGraph!.Nodes[externalElement.Id] = externalElement;
+        }
     }
 
     /// <summary>
@@ -101,7 +106,11 @@ public class RelationshipAnalyzer
 
         var numberOfCodeElements = _codeGraph.Nodes.Count;
         var loop = 0;
-        foreach (var element in _codeGraph.Nodes.Values)
+
+        // Take a snapshot to avoid collection modification during iteration
+        var internalElements = _codeGraph.Nodes.Values.ToList();
+
+        foreach (var element in internalElements)
         {
             loop++;
 
@@ -114,6 +123,9 @@ public class RelationshipAnalyzer
             AnalyzeRelationships(solution, element, symbol);
             SendParserPhase2Progress(loop, numberOfCodeElements);
         }
+
+        // Add external elements to the graph
+        AddExternalElementsToGraph();
 
         // Analyze global statements for each assembly
         AnalyzeGlobalStatementsForAssembly(solution);
@@ -375,9 +387,6 @@ public class RelationshipAnalyzer
                     AddRelationship(implementingElement, RelationshipType.Implements, element, locations, RelationshipAttribute.None);
                 }
             }
-            // That's ok, even interfaces are tested here
-            //Trace.WriteLine(
-            //    $"Implementing method {symbol.ContainingType?.Name}.{symbol.Name} not found for {implementingType.Name}");    
         }
     }
 
@@ -461,30 +470,25 @@ public class RelationshipAnalyzer
             AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
         }
 
-
-        // Add calls relationship to constructor.
-        // Only if explicitly declared, we don't want a fallback to the containing class.
-        // I add this calls so that I can track method invocations.
+        // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
+        // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
+        // Adding this relationship allows following method invocations later.
         var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
-        if (symbolInfo.Symbol is IMethodSymbol { IsImplicitlyDeclared: false } constructorSymbol)
+        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
         {
-            var location = objectCreationSyntax.GetSyntaxLocation();
-
-            // Normalize to original definition for generic types
-            var normalizedConstructor = constructorSymbol;
-            if (constructorSymbol.ContainingType.IsGenericType &&
-                !constructorSymbol.ContainingType.IsDefinition)
+            // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
+            // So IsGeneric is never true.
+            var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
+            if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
             {
-                // With generics Roslyn distinguishes between definition (written code) and usage (how code is used)
-                // These are different symbols.
-                normalizedConstructor = constructorSymbol.OriginalDefinition;
+                var location = objectCreationSyntax.GetSyntaxLocation();
+                AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
             }
-
-            AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
         }
 
         // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
     }
+    
 
     internal void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
         SemanticModel semanticModel)
@@ -604,8 +608,8 @@ public class RelationshipAnalyzer
     private void AddEventHandlerRelationship(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
         SourceLocation location, RelationshipAttribute attribute)
     {
-        var handlerElement = FindCodeElement(handlerMethod);
-        var eventElement = FindCodeElement(eventSymbol);
+        var handlerElement = FindInternalCodeElement(handlerMethod);
+        var eventElement = FindInternalCodeElement(eventSymbol);
 
         if (handlerElement != null && eventElement != null)
         {
@@ -641,7 +645,7 @@ public class RelationshipAnalyzer
             methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
         }
 
-        if (methodSymbol.IsGenericMethod && FindCodeElement(methodSymbol) is null)
+        if (methodSymbol.IsGenericMethod && FindInternalCodeElement(methodSymbol) is null)
         {
             methodSymbol = methodSymbol.OriginalDefinition;
         }
@@ -739,42 +743,55 @@ public class RelationshipAnalyzer
                 var newRelationship = new Relationship(source.Id, target.Id, type);
                 newRelationship.SourceLocations.AddRange(sourceLocations);
                 newRelationship.Attributes = attributes;
+                
+                DebugRelationship(source, target, type);
                 source.Relationships.Add(newRelationship);
             }
         }
     }
 
+    private void DebugRelationship(CodeElement source, CodeElement target, RelationshipType type)
+    {
+        // if (source.Name == "Run" && target.Name == "IServiceC") Debugger.Break();
+    }
+
+    /// <summary>
+    ///     Adds a relationship to a named type (class, interface, struct, etc.).
+    ///     Handles both internal and external types, and resolves generic type definitions.
+    /// </summary>
     private void AddNamedTypeRelationship(CodeElement sourceElement, INamedTypeSymbol namedTypeSymbol,
         RelationshipType relationshipType,
         SourceLocation? location)
     {
-        var targetElement = FindCodeElement(namedTypeSymbol);
+        var targetElement = FindInternalCodeElement(namedTypeSymbol);
         if (targetElement != null)
         {
             // The type is internal (part of our codebase)
             AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
+            return;
         }
-        else
+        
+        // Note the constructed type is not in our CodeElement map!
+        // It is not found in phase1 the way we parse it but the original definition is.
+        // For constructed generic types (List<int>), use the original definition (List<T>)
+        var normalizedSymbol = namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsDefinition
+            ? namedTypeSymbol.OriginalDefinition
+            : namedTypeSymbol;
+        
+        targetElement = FindInternalCodeElement(normalizedSymbol);
+        if (targetElement == null && _config.IncludeExternals)
         {
-            // The type is external or a constructed generic type
-            // Note the constructed type is not in our CodeElement map!
-            // It is not found in phase1 the way we parse it but the original definition is.
-            var originalDefinition = namedTypeSymbol.OriginalDefinition;
-            var originalSymbolKey = originalDefinition.Key();
-
-            if (_artifacts!.SymbolKeyToElementMap.TryGetValue(originalSymbolKey, out var originalTargetElement))
-            {
-                // We found the original definition, add relationship to it
-                AddRelationship(sourceElement, relationshipType, originalTargetElement,
-                    location != null ? [location] : [], RelationshipAttribute.None);
-            }
-            // The type is truly external, you might want to log this or handle it differently
-            // AddExternalRelationship(sourceElement, namedTypeSymbol, relationshipType, location);
+            targetElement = TryGetOrCreateExternalCodeElement(normalizedSymbol);
+        }
+        
+        if (targetElement is not null)
+        {
+            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None); 
         }
 
+        // For generic types, add "Uses" relationships to type arguments
         if (namedTypeSymbol.IsGenericType)
         {
-            // Add "Uses" relationships to type arguments
             foreach (var typeArg in namedTypeSymbol.TypeArguments)
             {
                 AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
@@ -782,10 +799,22 @@ public class RelationshipAnalyzer
         }
     }
 
+    private CodeElement? TryGetOrCreateExternalCodeElement(INamedTypeSymbol symbol)
+    {
+        // Just because we did not find the symbol does not mean it is external for sure. There
+        // is are lot of unnamed things around.
+        if (symbol.IsFromSource())
+        {
+            return null;
+        }
+        
+        return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
+    }
+
     /// <summary>
-    /// Analyzes standalone identifier references (fields, properties, etc.).
-    /// Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
-    /// MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
+    ///     Analyzes standalone identifier references (fields, properties, etc.).
+    ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
+    ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
     /// </summary>
     internal void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel)
@@ -809,9 +838,9 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
-    /// Ownership: Handles the member being accessed (the .Name part on the right side).
-    /// The Expression (left side) is handled by the walker, which will visit it independently.
+    ///     Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
+    ///     Ownership: Handles the member being accessed (the .Name part on the right side).
+    ///     The Expression (left side) is handled by the walker, which will visit it independently.
     /// </summary>
     internal void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel)
@@ -849,37 +878,96 @@ public class RelationshipAnalyzer
         AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Calls, locations, attributes);
     }
 
+    /// <summary>
+    ///     Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
+    ///     Current behavior: For external symbols, creates relationships to the CONTAINING TYPE only.
+    ///     Example: myList.Add(5) -> relationship to List&lt;T&gt; (not to List&lt;T&gt;.Add)
+    ///     TO CHANGE TO METHOD-LEVEL EXTERNAL RELATIONSHIPS:
+    ///     Change line marked with "FALLBACK BEHAVIOR" below from:
+    ///     GetOrCreateCodeElement(targetSymbol.ContainingType)
+    ///     To:
+    ///     GetOrCreateCodeElement(targetSymbol)
+    ///     This will create external method/property/field elements instead of just type-level relationships.
+    /// </summary>
     private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
-        // If we don't have the property itself in our map, add a relationship to its containing type
         locations ??= [];
+        
+        // TODO Wann und wo wird die original definition jetzt benötigt?
 
-        var targetElement = FindCodeElement(targetSymbol);
+        // First try to find the symbol itself (could be internal, or we'll create external)
+        var targetElement = FindInternalCodeElement(targetSymbol);
         if (targetElement != null)
         {
+            // Found internally
             AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
             return;
         }
 
-        var containingTypeElement = FindCodeElement(targetSymbol.ContainingType);
+        // Not found internally - try containing type
+        var containingTypeElement = FindInternalCodeElement(targetSymbol.ContainingType);
         if (containingTypeElement != null)
         {
+            // Containing type found internally, use it
+            // Examples: containing type may be
+            // - Enum when an enum value is referenced.
+            // - Class or Record when a primary constructor initialized property is accessed (member access)
             AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
+            return;
+        }
+
+        // Both symbol and containing type are external
+        if (_config.IncludeExternals && targetSymbol.ContainingType != null)
+        {
+            // FALLBACK BEHAVIOR: Currently creates relationship to containing type only
+            // Change this line to GetOrCreateCodeElement(targetSymbol) for method-level external relationships
+            // I also map all relationships to "Uses". If you want method level consider also that you find Enum values etc.
+            var symbol = targetSymbol.ContainingType;
+            var externalElement = TryGetOrCreateExternalCodeElement(symbol);
+            if (externalElement is not null)
+            {
+                AddRelationship(sourceElement, RelationshipType.Uses, externalElement, locations, attributes);
+            }
         }
     }
 
-    private CodeElement? FindCodeElement(ISymbol? symbol)
+    /// <summary>
+    /// The caller has to take care that the symbol is normalized to original definition if necessary
+    /// </summary>
+    private CodeElement? FindInternalCodeElement(ISymbol? symbol)
     {
         if (symbol is null)
         {
             return null;
         }
-
+        
+        // If not called here I muss 3 calls why?
         _artifacts!.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
     }
 
+    /// <summary>
+    ///     Gets an existing code element (internal or external) or creates a new external element on-demand.
+    ///     During parallel processing, external elements are cached but not added to the graph.
+    ///     Call AddExternalElementsToGraph() after parallel processing to add them to the graph.
+    /// </summary>
+    private CodeElement? GetOrTryCreateExternalCodeElement(ISymbol symbol)
+    {
+        var internalCodeElement = FindInternalCodeElement(symbol);
+        if (internalCodeElement != null)
+        {
+            return internalCodeElement;
+        }
+
+        if (_config.IncludeExternals)
+        {
+            return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
+        }
+
+        return null;
+    }
+    
     /// <summary>
     ///     Properties became quite complex.
     ///     We treat the property like a method and do not distinguish between getter and setter.

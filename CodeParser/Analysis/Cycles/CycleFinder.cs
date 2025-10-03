@@ -5,11 +5,16 @@ namespace CodeParser.Analysis.Cycles;
 
 public static class CycleFinder
 {
-    public static List<CycleGroup> FindCycleGroups(CodeGraph originalGraph)
+    /// <summary>
+    /// Finds cycle groups in the code graph.
+    /// </summary>
+    /// <param name="originalGraph">The code graph to analyze</param>
+    /// <param name="includeExternal">Whether to include external elements in cycle detection (default: false)</param>
+    public static List<CycleGroup> FindCycleGroups(CodeGraph originalGraph, bool includeExternal = false)
     {
         var groups = new List<CycleGroup>();
 
-        var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
+        var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph, includeExternal);
         var sccs = Tarjan.FindStronglyConnectedComponents(searchGraph);
 
         foreach (var scc in sccs)

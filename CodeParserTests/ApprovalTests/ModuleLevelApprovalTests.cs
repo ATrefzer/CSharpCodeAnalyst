@@ -115,7 +115,10 @@ public class ModuleLevelApprovalTests : ProjectTestBase
             "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.ModuleLevel2.TheEnum",
             "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.ModuleLevel2.TheEnum",
             "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
-            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1"
+            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1",
+            
+            // LocalDeclarationSyntax
+            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.IServiceC"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);

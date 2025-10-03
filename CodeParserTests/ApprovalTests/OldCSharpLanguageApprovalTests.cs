@@ -194,7 +194,7 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2.AddToSlave -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            
+
             "Old.CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor"
         };
 
@@ -235,7 +235,15 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1 -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1",
             "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater2 -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1"
+            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver._adpater1",
+
+
+            "Old.CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.CSharpLanguage.ClassOfferingAnEvent",
+            "Old.CSharpLanguage.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.CSharpLanguage.TheExtendedType",
+            "Old.CSharpLanguage.CSharpLanguage.CreatorOfGenericTypes.Create -> Old.CSharpLanguage.CSharpLanguage.XmlFile",
+            "Old.CSharpLanguage.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.CSharpLanguage.MoreGenerics.Foo",
+            "Old.CSharpLanguage.CSharpLanguage.Partial.Client.CreateInstance -> Old.CSharpLanguage.CSharpLanguage.Partial.PartialClass",
+            "Old.CSharpLanguage.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);

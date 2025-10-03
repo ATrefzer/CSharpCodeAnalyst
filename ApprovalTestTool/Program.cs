@@ -9,7 +9,7 @@ internal static class TestTool
 {
     /// <summary>
     ///     Automatic approval tool
-    ///
+    /// 
     ///     Prerequisites:
     ///     Manually copy the latest known reference digest from ApprovalTestTool/References
     ///     to the reference folder if you want to use them.
@@ -76,12 +76,10 @@ internal static class TestTool
         }
     }
 
-
-
     private static async Task ProcessRepository(string repoUrl, string slnRelativePath, string commitHash,
         string gitCloneFolder, string referenceFolder)
     {
-        var repoName = Path.GetFileNameWithoutExtension(repoUrl);
+        var repoName = Path.GetFileName(repoUrl).Replace(".git", "");
         var repoPath = Path.Combine(gitCloneFolder, repoName);
 
         // Clone or pull the repository
@@ -112,37 +110,44 @@ internal static class TestTool
         var slnPath = Path.Combine(repoPath, slnRelativePath);
         var outputFileName = $"{commitHash}.txt";
         var digestFileName = $"{commitHash}_digest.txt";
-        var outputPath = Path.Combine(gitCloneFolder, outputFileName);
+        var dumpPath = Path.Combine(gitCloneFolder, outputFileName);
         var outputDigestPath = Path.Combine(gitCloneFolder, digestFileName);
 
         // Run test code (placeholder)
-        await RunTestCode(slnPath, outputPath);
+        await RunTestCode(slnPath, dumpPath);
 
         // Generate digest
         // So we generate the full output and a digest file to store in GIT.
-        var text = await File.ReadAllTextAsync(outputPath);
+        var text = await File.ReadAllTextAsync(dumpPath);
         var digest = Hash.ComputeHash(text);
         await File.WriteAllTextAsync(outputDigestPath, digest);
 
         // Compare digest output with reference or copy missing files to reference folder
         var referenceDigestPath = Path.Combine(referenceFolder, digestFileName);
-        var referenceOutputPath = Path.Combine(referenceFolder, outputFileName);
+        var referenceDumpPath = Path.Combine(referenceFolder, outputFileName);
         if (File.Exists(referenceDigestPath))
         {
             var areEqual = CompareFiles(outputDigestPath, referenceDigestPath);
             PrintColoredTestResult(repoName, commitHash, areEqual);
+
+            if (!areEqual && File.Exists(dumpPath) && File.Exists(referenceDumpPath))
+            {
+                // Digests differ and both full dumps exist
+                Comparer.CreateDiffFile(referenceDumpPath, dumpPath);
+            }
         }
-        else
+
+        if (!File.Exists(referenceDigestPath))
         {
             File.Copy(outputDigestPath, referenceDigestPath, true);
-            File.Copy(outputPath, referenceOutputPath, true);
-            Console.WriteLine($"No reference file for {repoName} at {commitHash}. Created new reference file.");
+            File.Copy(dumpPath, referenceDumpPath, true);
+            Console.WriteLine($"No reference files for {repoName} at {commitHash}. Created new reference files.");
         }
     }
 
     private static async Task RunTestCode(string slnPath, string outputPath)
     {
-        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection());
+        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection(), false);
         var parser = new Parser(parserConfig);
         var graph = await parser.ParseSolution(slnPath);
         await File.WriteAllTextAsync(outputPath, graph.ToDebug());
