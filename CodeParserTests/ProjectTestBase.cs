@@ -46,7 +46,7 @@ internal static class Init
     {
         if (_instance == null)
         {
-            var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection()));
+            var parser = new Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
             _instance = await parser.ParseSolution(@"..\..\..\..\TestSuite\TestSuite.sln");
         }
 

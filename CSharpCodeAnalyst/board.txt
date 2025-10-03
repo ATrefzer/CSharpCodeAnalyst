@@ -40,5 +40,24 @@ public class ApplicationSettings
     }
 }
 
+ctor not detected
+ internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
+
+// Missing 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+
+
 MISSING TEST CASES
 ---------------------
+
+
+CLARIFY
+---------------------
+
+GetOrTryCreateExternalCodeElement vs direct call on external symbol cache: _externalCodeElementCache.GetOrCreateExternalCodeElement
+Why exist both variations.
+
+
+NormalizeToOriginalDefinition. When or where is this necessary?

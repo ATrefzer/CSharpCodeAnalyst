@@ -26,8 +26,16 @@ internal class ExternalCodeElementCache
         }
     }
 
-    public CodeElement GetOrCreateExternalCodeElement(ISymbol symbolToUse, string symbolKey)
+    /// <summary>
+    ///   External elements are created with full hierarchy (Method -> Class -> Namespace -> Assembly).
+    ///   For generic types, always uses the original definition (List&lt;T&gt; not List&lt;int&gt;).
+    /// </summary>
+ 
+    public CodeElement GetOrCreateExternalCodeElement(ISymbol symbol)
     {
+        var symbolToUse = symbol;
+        var symbolKey = symbolToUse.Key();
+        
         lock (_lock)
         {
             // Check if we've already created an external element for this symbol

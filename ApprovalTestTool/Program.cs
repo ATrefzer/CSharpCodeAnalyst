@@ -142,7 +142,7 @@ internal static class TestTool
 
     private static async Task RunTestCode(string slnPath, string outputPath)
     {
-        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection());
+        var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection(), false);
         var parser = new Parser(parserConfig);
         var graph = await parser.ParseSolution(slnPath);
         await File.WriteAllTextAsync(outputPath, graph.ToDebug());

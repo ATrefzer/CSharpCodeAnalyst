@@ -13,12 +13,17 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
 
-                <TextBlock Margin="10 0 0 15" FontWeight="Bold" Text="{x:Static resources:Strings.Settings_Hint}" />
+                <TextBlock Margin="10 0 0 15" FontWeight="Bold" Foreground="Red" Text="{x:Static resources:Strings.Settings_Hint}" />
 
                 <GroupBox Header="{x:Static resources:Strings.Settings_General}" Margin="5,0,0,0">
                     <StackPanel Margin="10">
                         <CheckBox x:Name="AutoAddContainingTypeCheckBox"
                                   Content="{x:Static resources:Strings.Settings_AddContainingType}"
+                                  Margin="0,5"
+                                  ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
+                        
+                        <CheckBox x:Name="IncludeExternalCodeCheckBox"
+                                  Content="{x:Static resources:Strings.Settings_IncludeExternalCode}"
                                   Margin="0,5"
                                   ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
                     </StackPanel>

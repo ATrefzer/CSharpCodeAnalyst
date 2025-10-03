@@ -51,7 +51,7 @@ public class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         // We don't need to iterate over the projects
-        var phase2 = new RelationshipAnalyzer(Progress);
+        var phase2 = new RelationshipAnalyzer(Progress, config);
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
         sw.Stop();
@@ -64,7 +64,7 @@ public class Parser(ParserConfig config)
 #if DEBUG
         CodeGraphPlausibilityChecks.PlausibilityChecks(codeGraph);
 #endif
-        // await File.WriteAllTextAsync("d:\\debug.txt", _codeGraph.ToDebug());
+        //await File.WriteAllTextAsync("d:\\debug0.txt", codeGraph.ToDebug());
 
         return codeGraph;
     }

@@ -513,7 +513,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
     {
         LoadMessage = Strings.Load_Message_Default;
-        var parser = new Parser(new ParserConfig(_projectExclusionFilters));
+        var parser = new Parser(new ParserConfig(_projectExclusionFilters, _applicationSettings.IncludeExternalCode));
         parser.Progress.ParserProgress += OnProgress;
         var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
 
@@ -741,6 +741,8 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
         }
+        
+        // IncludeExternals is not a configurable setting. It is global for the application.
     }
 
     private static (CodeGraph codeGraph, ProjectData projectData) LoadProject(string fileName)

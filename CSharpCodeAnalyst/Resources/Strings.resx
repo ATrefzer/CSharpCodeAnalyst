@@ -741,4 +741,11 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="Cmd_RulesFile" xml:space="preserve">
       <value>Rules file: {0}</value>
     </data>
+    <data name="Settings_IncludeExternalCode" xml:space="preserve">
+      <value>Include external code</value>
+    </data>
+    <data name="Settings_IncludeExternalCode_Tooltip" xml:space="preserve">
+      <value>Include external code when parsing the solution.</value>
+    </data>
+    
 </root>

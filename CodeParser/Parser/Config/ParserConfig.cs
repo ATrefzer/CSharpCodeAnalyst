@@ -3,10 +3,14 @@
 public class ParserConfig
 {
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    public bool IncludeExternals { get; }
 
-    public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters)
+    public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals)
     {
         _projectExclusionFilters = projectExclusionFilters;
+        
+        IncludeExternals = includeExternals;
+        IncludeExternals = true;
     }
 
     public bool IsProjectIncluded(string projectName)
