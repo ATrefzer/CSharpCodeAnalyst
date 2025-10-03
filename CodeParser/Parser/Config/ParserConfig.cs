@@ -8,9 +8,7 @@ public class ParserConfig
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals)
     {
         _projectExclusionFilters = projectExclusionFilters;
-        
         IncludeExternals = includeExternals;
-        IncludeExternals = true;
     }
 
     public bool IsProjectIncluded(string projectName)
