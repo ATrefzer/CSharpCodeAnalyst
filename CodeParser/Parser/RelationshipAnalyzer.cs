@@ -173,7 +173,7 @@ public class RelationshipAnalyzer
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            AnalyzeFieldRelationships(element, fieldSymbol);
+            AnalyzeFieldRelationships(solution, element, fieldSymbol);
         }
 
         // For all type of symbols check if decorated with an attribute.
@@ -441,13 +441,32 @@ public class RelationshipAnalyzer
         AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Overrides, locations, RelationshipAttribute.None);
     }
 
-    private void AnalyzeFieldRelationships(CodeElement fieldElement, IFieldSymbol fieldSymbol)
+    private void AnalyzeFieldRelationships(Solution solution, CodeElement fieldElement, IFieldSymbol fieldSymbol)
     {
         // Get field declaration location
         var fieldLocations = fieldSymbol.GetSymbolLocations();
         var fieldLocation = fieldLocations.FirstOrDefault();
 
         AddTypeRelationship(fieldElement, fieldSymbol.Type, RelationshipType.Uses, fieldLocation);
+        
+     
+        // Analyze field initializer
+        foreach (var syntaxReference in fieldSymbol.DeclaringSyntaxReferences)
+        {
+            var syntax = syntaxReference.GetSyntax();
+        
+            // VariableDeclaratorSyntax for fields
+            if (syntax is VariableDeclaratorSyntax { Initializer: not null } variableDeclarator)
+            {
+                var document = solution.GetDocument(syntax.SyntaxTree);
+                var semanticModel = document?.GetSemanticModelAsync().Result;
+                if (semanticModel != null)
+                {
+                   AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer.Value, semanticModel);
+                }
+            }}
+            
+        
     }
 
     /// <summary>

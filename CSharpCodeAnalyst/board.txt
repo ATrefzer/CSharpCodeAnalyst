@@ -40,8 +40,16 @@ public class ApplicationSettings
     }
 }
 
-ctor not detected
- internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
+-----------------------------------------------------------------------
+ctor not detected when called in field initializers
+internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
+ 
+ Problem: The field creates now the class.
+ CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver._adpater1 -(Creates)-> CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1 
+ 
+ constructor call is still missing?
+ 
+ 
 
 // Missing 
 CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
