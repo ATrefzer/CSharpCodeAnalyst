@@ -1,5 +1,5 @@
-﻿https://github.com/ATrefzer/Insight.git,Insight.sln,446736ffcda573c08f80d95b8ecf13675bd6a486
-https://github.com/ATrefzer/CSharpCodeAnalyst.git,SampleProject/SampleProject.sln,15ae54db5e951f026762b6f5aa6a9055dccfd88d
+﻿https://github.com/ATrefzer/CSharpCodeAnalyst.git,SampleProject/SampleProject.sln,15ae54db5e951f026762b6f5aa6a9055dccfd88d
+https://github.com/ATrefzer/Insight.git,Insight.sln,446736ffcda573c08f80d95b8ecf13675bd6a486
 https://github.com/RalfKoban/MiKo-Analyzers.git,MiKo.Analyzer.sln,4b5b3dc0925f40c6c8384ce37ac388d000bb37cb
 https://github.com/jasontaylordev/CleanArchitecture.git,CleanArchitecture.sln,b46a41b20059316e897b9a77aa277be7d42cb974
 https://github.com/memstechtips/Winhance.git,Winhance.sln,27e569c04d9e31574d0485b4511c0f9ce8c1f51a

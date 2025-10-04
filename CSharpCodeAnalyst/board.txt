@@ -14,39 +14,23 @@ UNHANDLED CASES
 
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.
-- Two projects with the same name
-- Anonymous methods like PdsOnElementCreated, Lambdas. Calls are attributed to the defining method.
-  However, the execution may be elsewhere. I could mark such calls, and while ok for the dependency graph, it is wrong when following call chains.
+  
+- Two projects with the same name (discard one, breaks the symbol key mechanics)
 
-BUGS
+BUGS 
 ---------------------
 
-- Get rid of local methods or lambdas.
-- What was the reason for the normalized ctor?
-- How can I disable external parsing. Old tests should working after removing external code.
+- Key down gets lost. Not even called on the MainWindow!?
 
-- Add Fallback to parent no longer valid? Now we add external code element?
-    => Only enums or other cases
-    => Clarify: Primary constructor
-    => What else?
-
-- Anonymous class is shown as external code. Only named types!
-
-public class ApplicationSettings
-{
-    public void Save(string appSettingsPath)
-    {
-        var root = new { ApplicationSettings = this };
-    }
-}
-
-ctor not detected
- internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
-
-// Missing 
-CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
-CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
-CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+- Anonymous methods like PdsOnElementCreated, Lambdas. Calls are attributed to the defining method.
+  However, the execution may be elsewhere. I could mark such calls, and while ok for the dependency graph, it is wrong when following call chains.
+  Solution: Switch to uses but do not add Calls Relationships inside. Maybe we can store this state in MethodBodyWalker
+  The method that contains the lambda does not necessarily call it. This would require deeper analysis.
+ 
+- Missing Access to record fields 
+  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
+  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
 
 
 MISSING TEST CASES
@@ -56,8 +40,4 @@ MISSING TEST CASES
 CLARIFY
 ---------------------
 
-GetOrTryCreateExternalCodeElement vs direct call on external symbol cache: _externalCodeElementCache.GetOrCreateExternalCodeElement
-Why exist both variations.
-
-
-NormalizeToOriginalDefinition. When or where is this necessary?
+- What was the reason for the normalized ctor?
