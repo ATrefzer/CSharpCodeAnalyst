@@ -14,8 +14,8 @@ namespace CodeParser.Parser;
 internal class LambdaBodyWalker : CSharpSyntaxWalker
 {
     private readonly ISyntaxNodeHandler _analyzer;
-    private readonly CodeElement _sourceElement;
     private readonly SemanticModel _semanticModel;
+    private readonly CodeElement _sourceElement;
 
     public LambdaBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel)
     {
@@ -24,16 +24,17 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
         _semanticModel = semanticModel;
     }
 
-    // Track local variable declarations - the method needs to know these types
     public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
+        // Track local variable declarations - the method needs to know these types
         _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
         base.VisitLocalDeclarationStatement(node);
     }
 
-    // Track object creation - the method needs to know these types
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
+        // Track object creation - the method needs to know these types
+
         // Use "Uses" relationship instead of "Creates" for lambdas
         var typeInfo = _semanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
@@ -41,12 +42,14 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
             var location = node.GetSyntaxLocation();
             _analyzer.AddTypeRelationshipPublic(_sourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
+
         base.VisitImplicitObjectCreationExpression(node);
     }
 
-    // Track object creation - the method needs to know these types
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
+        // Track object creation - the method needs to know these types
+
         // Use "Uses" relationship instead of "Creates" for lambdas
         var typeInfo = _semanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
@@ -54,36 +57,37 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
             var location = node.GetSyntaxLocation();
             _analyzer.AddTypeRelationshipPublic(_sourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
+
         base.VisitObjectCreationExpression(node);
     }
 
-    // Do NOT track invocations - we don't know when the lambda executes
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
+        // Do NOT track invocations - we don't know when the lambda executes
         // Skip - don't call base to avoid descending into arguments
     }
 
-    // Do NOT track assignments (property/field access, event registration)
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
+        // Do NOT track assignments (property/field access, event registration)
         // Skip - don't call base
     }
 
-    // Do NOT track identifier references
     public override void VisitIdentifierName(IdentifierNameSyntax node)
     {
+        // Do NOT track identifier references
         // Skip - don't call base
     }
 
-    // Do NOT track member access
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
+        // Do NOT track member access
         // Skip - don't call base
     }
 
-    // Prevent nested lambdas from being analyzed
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
+        // Prevent nested lambdas from being analyzed
         // Skip nested lambda
     }
 
