@@ -12,12 +12,12 @@ namespace CodeParser.Parser
     /// </summary>
     internal class MethodBodyWalker : CSharpSyntaxWalker
     {
-        private readonly RelationshipAnalyzer _analyzer;
+        private readonly ISyntaxNodeHandler _analyzer;
         private readonly CodeElement _sourceElement;
         private readonly SemanticModel _semanticModel;
         private readonly bool _isFieldInitializer;
 
-        public MethodBodyWalker(RelationshipAnalyzer analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
+        public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
         {
             _analyzer = analyzer;
             _sourceElement = sourceElement;
@@ -79,6 +79,43 @@ namespace CodeParser.Parser
         {
             _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
             base.VisitObjectCreationExpression(node);
+        }
+
+        /// <summary>
+        /// Lambda expressions: Track type relationships but not method calls.
+        /// x => x.Method()
+        /// </summary>
+        public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+        {
+            // Use a specialized walker that only tracks types, not method calls
+            var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+            lambdaWalker.Visit(node.Body);
+        }
+
+        /// <summary>
+        /// Lambda expressions: Track type relationships but not method calls.
+        /// (x, y) => x.Method()
+        /// </summary>
+        public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+        {
+            // Use a specialized walker that only tracks types, not method calls
+            var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+            lambdaWalker.Visit(node.Body);
+        }
+
+        /// <summary>
+        /// Anonymous methods: Track type relationships but not method calls.
+        /// delegate { Method(); }
+        /// </summary>
+        public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+        {
+            // Use a specialized walker that only tracks types, not method calls
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+            if (node.Block != null)
+            {
+                var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+                lambdaWalker.Visit(node.Block);
+            }
         }
     }
 }
