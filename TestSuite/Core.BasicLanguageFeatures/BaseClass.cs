@@ -20,4 +20,13 @@ public class BaseClass
     {
         Console.WriteLine("Base method");
     }
+
+    public void HasLocalFunction()
+    {
+        void LocalFunction()
+        {
+            var obj = new CreatableClass();
+        }
+        LocalFunction();
+    }
 }

@@ -16,7 +16,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls",
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers"
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -52,7 +53,11 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass"
+            // Field initializer
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
+
+            // Local function
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass"
         };
 
         CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
