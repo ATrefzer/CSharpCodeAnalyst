@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace CSharpCodeAnalyst.Common;
 
-namespace CSharpCodeAnalyst.Common;
-
-internal class SearchExpressionFactory
+internal static class SearchExpressionFactory
 {
     public static IExpression CreateSearchExpression(string searchText)
     {
@@ -35,5 +29,4 @@ internal class SearchExpressionFactory
         var root = new Term.Or(orExpressions.ToArray());
         return root;
     }
-
 }

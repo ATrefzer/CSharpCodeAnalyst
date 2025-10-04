@@ -998,13 +998,25 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     {
         locations ??= [];
 
-        // First try to find the symbol itself (could be internal, or we'll create external)
+        // Try to find the symbol as-is first (covers any edge cases with generics)
         var targetElement = FindInternalCodeElement(targetSymbol);
         if (targetElement != null)
         {
-            // Found internally
             AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
             return;
+        }
+
+
+        // If not found, and it's a constructed type/member, normalize and try again
+        var normalizedSymbol = targetSymbol.NormalizeToOriginalDefinition();
+        if (!SymbolEqualityComparer.Default.Equals(normalizedSymbol, targetSymbol))
+        {
+            targetElement = FindInternalCodeElement(normalizedSymbol);
+            if (targetElement != null)
+            {
+                AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
+                return;
+            }
         }
 
         // Not found internally - try containing type
@@ -1019,17 +1031,46 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             return;
         }
 
-        // Both symbol and containing type are external
+        // External handling...
         if (_config.IncludeExternals && targetSymbol.ContainingType != null)
         {
-            // FALLBACK BEHAVIOR: Currently creates relationship to containing type only
-            // Change this line to GetOrCreateCodeElement(targetSymbol) for method-level external relationships
-            // I also map all relationships to "Uses". If you want method level consider also that you find Enum values etc.
-            var symbol = targetSymbol.ContainingType;
-            var externalElement = TryGetOrCreateExternalCodeElement(symbol);
+            var externalElement = TryGetOrCreateExternalCodeElement(targetSymbol.ContainingType);
             if (externalElement is not null)
             {
                 AddRelationship(sourceElement, RelationshipType.Uses, externalElement, locations, attributes);
+            }
+        }
+
+
+        // External handling
+        if (_config.IncludeExternals)
+        {
+            // FALLBACK BEHAVIOR: Currently creates relationship to types only.
+            // I also map all relationships to "Uses". If you want method level consider also that you find Enum values etc.
+
+            INamedTypeSymbol? externalType = null;
+
+            // If target is already a type use it.
+            if (targetSymbol is INamedTypeSymbol namedType)
+            {
+                externalType = namedType;
+            }
+            // Otherwise use ContainingType (for Methods, Properties, Fields, etc.)
+            else if (targetSymbol.ContainingType != null)
+            {
+                externalType = targetSymbol.ContainingType;
+            }
+
+            if (externalType != null)
+            {
+                // Normalize to OriginalDefinition (z.B. List<int> → List<T>)
+                externalType = (INamedTypeSymbol)externalType.NormalizeToOriginalDefinition();
+
+                var externalElement = TryGetOrCreateExternalCodeElement(externalType);
+                if (externalElement is not null)
+                {
+                    AddRelationship(sourceElement, RelationshipType.Uses, externalElement, locations, attributes);
+                }
             }
         }
     }

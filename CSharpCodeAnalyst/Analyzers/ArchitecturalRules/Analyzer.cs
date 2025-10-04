@@ -6,7 +6,6 @@ using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 

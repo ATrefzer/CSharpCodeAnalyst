@@ -63,8 +63,7 @@ public class GenericsApprovalTests : ProjectTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var callRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls)
-            ;
+        var callRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
         var expected = new[]
         {
@@ -92,7 +91,7 @@ public class GenericsApprovalTests : ProjectTestBase
             "Core.Generics.Core.Generics.GenericTree.SetRoot -> Core.Generics.Core.Generics.GenericTree.Node..ctor",
             "Core.Generics.Core.Generics.GenericUtilities.MakePair -> Core.Generics.Core.Generics.GenericPair..ctor",
 
-
+            "Core.Generics.Core.Generics.GenericService.ProcessWithValidator -> Core.Generics.Core.Generics.IValidator.IsValid"
             // No longer supported because it is inside a lambda!
             // "Core.Generics.Core.Generics.GenericSorter.Sort -> Core.Generics.Core.Generics.IComparable.CompareTo",
         };

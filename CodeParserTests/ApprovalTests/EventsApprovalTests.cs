@@ -115,7 +115,11 @@ public class EventsApprovalTests : ProjectTestBase
             "Core.Events.Core.Events.EventPublisher.TriggerCustomEvent -> Core.Events.Core.Events.CustomEventArgs..ctor",
             "Core.Events.Core.Events.EventPublisher.TriggerDataChanged -> Core.Events.Core.Events.DataChangedEventArgs..ctor",
             "Core.Events.Core.Events.GenericEventHandler.TriggerEvent -> Core.Events.Core.Events.GenericEventArgs..ctor",
-            "Core.Events.Core.Events.SmsNotificationService.SendNotification -> Core.Events.Core.Events.ErrorEventArgs..ctor"
+            "Core.Events.Core.Events.SmsNotificationService.SendNotification -> Core.Events.Core.Events.ErrorEventArgs..ctor",
+
+
+            "Core.Events.Core.Events.EventSubscriber.HandleDataChanged -> Core.Events.Core.Events.DataChangedEventArgs.NewValue",
+            "Core.Events.Core.Events.EventSubscriber.HandleDataChanged -> Core.Events.Core.Events.DataChangedEventArgs.OldValue"
         };
 
         CollectionAssert.AreEquivalent(expected, callRelationships);

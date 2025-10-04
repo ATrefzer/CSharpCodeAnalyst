@@ -17,7 +17,7 @@ internal class Term : IExpression
         Type,
         Name,
         External,
-        Internal,
+        Internal
     }
     private readonly SearchLocation _searchLocation;
 
@@ -43,7 +43,7 @@ internal class Term : IExpression
             _searchLocation = SearchLocation.External;
         }
 
-        _searchLocation = SearchLocation.Type;
+        _searchLocation = SearchLocation.Name;
         _searchTerm = searchTerm;
     }
 

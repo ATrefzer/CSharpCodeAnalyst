@@ -31,7 +31,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     /// External elements are from framework types, NuGet packages, or other referenced assemblies.
     /// External elements are treated as leaf nodes - their internal dependencies are not analyzed.
     /// </summary>
-    public bool IsExternal { get; set; } = false;
+    public bool IsExternal { get; init; }
 
     public override bool Equals(object? obj)
     {

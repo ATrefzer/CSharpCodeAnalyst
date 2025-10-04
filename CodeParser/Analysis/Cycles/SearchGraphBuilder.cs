@@ -33,7 +33,7 @@ public static class SearchGraphBuilder
 
         foreach (var dependency in allDependencies)
         {
-            if (includeExternal is false)
+            if (!includeExternal)
             {
                 var sourceCodeElement = codeGraph.Nodes[dependency.SourceId];
                 var targetCodeElement = codeGraph.Nodes[dependency.TargetId];

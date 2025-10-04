@@ -490,12 +490,17 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                 continue;
             }
 
+            if (node is null)
+            {
+                continue;
+            }
+
             // Apply correct styling based on current state
             if (_presentationState.IsFlagged(id))
             {
                 // Flagged takes precedence over search highlight.
                 // We don't want to destroy the flags when updating highlights.
-                node!.Attr.Color = Constants.FlagColor;
+                node.Attr.Color = Constants.FlagColor;
                 node.Attr.LineWidth = Constants.FlagLineWidth;
             }
             else if (_presentationState.IsSearchHighlighted(id))

@@ -6,8 +6,6 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Search should filter external code.
-
 - Trim image and save to clipboard with notification
 
 
@@ -23,11 +21,6 @@ BUGS
 ---------------------
 
 - Key down gets lost. Not even called on the MainWindow!?
-
-- Missing Access to record fields 
-  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
-  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
-  CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
 
 
 MISSING TEST CASES

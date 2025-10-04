@@ -49,7 +49,7 @@ public partial class SettingsDialog
             WarningCodeElementLimit = original.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = original.DefaultProjectExcludeFilter,
             AutomaticallyAddContainingType = original.AutomaticallyAddContainingType,
-            IncludeExternalCode = original.IncludeExternalCode,
+            IncludeExternalCode = original.IncludeExternalCode
         };
     }
 

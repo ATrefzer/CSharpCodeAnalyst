@@ -268,11 +268,9 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    ///     TODO only for constructors in object creation syntax? Useful for other scenarios?
-    ///     A type for example does not check is ContainingType. Can we just always try OriginalDefinition if not found?
-    ///     Gets the original definition for a symbol if it's part of a constructed generic type.
+    ///     Returns the original definition of a symbol. 
     /// 
-    ///     Problem:
+    ///     Note:
     ///     Constructors are never generic. So IsGeneric is never true. But phase 1 in our parser did not collect
     ///     constructed types.
     /// 
@@ -282,14 +280,20 @@ public static class SymbolExtensions
     /// </summary>
     public static ISymbol NormalizeToOriginalDefinition(this ISymbol symbol)
     {
-        // TODO In which cases do we need this method and when causes it harm?
         return symbol switch
         {
+            // Generic method (independent of container)
+            IMethodSymbol { IsGenericMethod: true, IsDefinition: false } method => method.OriginalDefinition,
+
+            // Member in generic container
             IMethodSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } method => method.OriginalDefinition,
             IPropertySymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } property => property.OriginalDefinition,
             IFieldSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } field => field.OriginalDefinition,
             IEventSymbol { ContainingType: { IsGenericType: true, IsDefinition: false } } @event => @event.OriginalDefinition,
+
+            // Generic type
             INamedTypeSymbol { IsGenericType: true, IsDefinition: false } type => type.OriginalDefinition,
+
             _ => symbol
         };
     }

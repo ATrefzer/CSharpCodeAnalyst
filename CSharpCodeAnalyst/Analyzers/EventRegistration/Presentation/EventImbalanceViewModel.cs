@@ -11,11 +11,8 @@ namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 
 public class EventImbalanceViewModel : TableRow
 {
-    private readonly CodeElement _event;
-
     internal EventImbalanceViewModel(Result imbalance)
     {
-        _event = imbalance.Event;
         Description = imbalance.Handler.FullName;
         Locations = new ObservableCollection<SourceLocation>(imbalance.Locations);
         OpenSourceLocationCommand = new WpfCommand<SourceLocation>(OnOpenSourceLocation);
