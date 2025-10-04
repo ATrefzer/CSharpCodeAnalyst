@@ -4,7 +4,7 @@ public static class Comparer
 {
     public static void CreateDiffFile(string referenceFile, string newFile)
     {
-        var diffFile = Path.ChangeExtension(referenceFile, null) + "_diff.txt";
+        var diffFile = Path.ChangeExtension(newFile, null) + "_diff.txt";
 
         using var reader1 = new StreamReader(referenceFile);
         using var reader2 = new StreamReader(newFile);
