@@ -12,7 +12,14 @@ internal interface IExpression
 
 internal class Term : IExpression
 {
-    private readonly bool _searchForType;
+    private enum SearchLocation
+    {
+        Type,
+        Name,
+        External,
+        Internal,
+    }
+    private readonly SearchLocation _searchLocation;
 
     private readonly string _searchTerm;
     private readonly CodeElementType _type = CodeElementType.Other;
@@ -24,21 +31,31 @@ internal class Term : IExpression
             searchTerm = searchTerm.Substring("type:".Length);
             if (TryGetCodeElementTypeFromName(searchTerm, out _type))
             {
-                _searchForType = true;
+                _searchLocation = SearchLocation.Type;
             }
         }
+        else if (searchTerm is "internal" or "intern")
+        {
+            _searchLocation = SearchLocation.Internal;
+        }
+        else if (searchTerm is "external" or "extern")
+        {
+            _searchLocation = SearchLocation.External;
+        }
 
+        _searchLocation = SearchLocation.Type;
         _searchTerm = searchTerm;
     }
 
     public bool Evaluate(CodeElement item)
     {
-        if (_searchForType)
+        return _searchLocation switch
         {
-            return item.ElementType == _type;
-        }
-
-        return item.FullName.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase);
+            SearchLocation.Type => item.ElementType == _type,
+            SearchLocation.Internal => !item.IsExternal,
+            SearchLocation.External => item.IsExternal,
+            _ => item.FullName.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase)
+        };
     }
 
     private static bool TryGetCodeElementTypeFromName(string typeName, out CodeElementType type)

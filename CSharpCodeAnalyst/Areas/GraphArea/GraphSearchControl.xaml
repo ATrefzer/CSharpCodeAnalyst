@@ -37,11 +37,6 @@
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="LightGray" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -76,11 +71,12 @@
                 <TextBox x:Name="SearchTextBox"
                          Grid.Column="0"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Height="22"
                          FontSize="12"
-                         Padding="5"
                          BorderThickness="1"
                          BorderBrush="LightGray"
                          VerticalAlignment="Center"
+                         Background="LightYellow"
                          ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
 
                 <Button x:Name="ClearButton"

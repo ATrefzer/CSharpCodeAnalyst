@@ -604,10 +604,16 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Full Path</value>
   </data>
     <data name="SearchPattern_Tooltip" xml:space="preserve">
-    <value>Use space for AND, '|' for OR condition. If you want to search for specific code elements use type:xxx</value>
+    <value>Logical operations: space = AND, '|' = OR
+Search for type = type:xxx
+Search for internal code elements = intern      
+Search for external code elements = extern</value>
   </data>
     <data name="InfoPanel_TabHeader" xml:space="preserve">
     <value>Info</value>
+  </data>
+    <data name="TreeSearch_Tooltip" xml:space="preserve">
+    <value>Search in code element name. ENTER to start search.</value>
   </data>
     <data name="Warning_Title" xml:space="preserve">
    <value>Warning</value>

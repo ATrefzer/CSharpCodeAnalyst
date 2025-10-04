@@ -313,6 +313,8 @@
                                     <Image Source="Resources/clear_32.png" />
                                 </Button>
                                 <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
+                                         FontSize="12"
+                                         ToolTip="{x:Static resources:Strings.TreeSearch_Tooltip}"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
                                     <TextBox.InputBindings>
                                         <!-- Send to main view model to show a progress -->

@@ -1592,7 +1592,10 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use space for AND, &apos;|&apos; for OR condition. If you want to search for specific code elements use type:xxx.
+        ///   Looks up a localized string similar to Logical operations: space = AND, &apos;|&apos; = OR
+        ///Search for type = type:xxx
+        ///Search for internal code elements = intern      
+        ///Search for external code elements = extern.
         /// </summary>
         public static string SearchPattern_Tooltip {
             get {
@@ -1862,6 +1865,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string TooMuchElementsTitle {
             get {
                 return ResourceManager.GetString("TooMuchElementsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search in code element name. ENTER to start search..
+        /// </summary>
+        public static string TreeSearch_Tooltip {
+            get {
+                return ResourceManager.GetString("TreeSearch_Tooltip", resourceCulture);
             }
         }
         
