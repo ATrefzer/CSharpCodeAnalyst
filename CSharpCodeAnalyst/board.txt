@@ -8,6 +8,8 @@
 
 - Search should filter external code.
 
+- Trim image and save to clipboard with notification
+
 
 UNHANDLED CASES
 ---------------------
@@ -22,11 +24,6 @@ BUGS
 
 - Key down gets lost. Not even called on the MainWindow!?
 
-- Anonymous methods like PdsOnElementCreated, Lambdas. Calls are attributed to the defining method.
-  However, the execution may be elsewhere. I could mark such calls, and while ok for the dependency graph, it is wrong when following call chains.
-  Solution: Switch to uses but do not add Calls Relationships inside. Maybe we can store this state in MethodBodyWalker
-  The method that contains the lambda does not necessarily call it. This would require deeper analysis.
- 
 - Missing Access to record fields 
   CodeParser.CodeParser.Analysis.Cycles.CycleFinder.FindCycleGroups -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 
   CodeParser.CodeParser.Analysis.Cycles.CycleFinder.RemoveOrphanedDependencies -(Uses)-> CodeParser.CodeParser.Analysis.Shared.Scc.Vertices 

@@ -37,3 +37,13 @@ new Class();
 But both expressions derive from BaseObjectCreationExpressionSyntax
 
 They are different cases in the MethodBodyWalker, but I can handle them in the equally.
+
+
+
+## Lambdas
+
+Lambdas inside a method are treated special. The method gets a "uses" relationship to all types in the lambda.
+
+However method call are not considered. This is because I know that the method depends on these but when the lambda is actually called is unknown.
+
+That would mean to analyze the code flow.
