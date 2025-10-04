@@ -15,7 +15,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         {
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls",
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass"
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -39,6 +40,22 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         };
 
         CollectionAssert.AreEquivalent(expected, structs.OrderBy(x => x).ToArray());
+    }
+
+    [Test]
+    public void Core_BasicLanguageFeatures_Creates_ShouldBeDetected()
+    {
+        var methodCalls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Creates)
+            .Select(r => r.ToString())
+            .OrderBy(x => x)
+            .ToList();
+
+        var expected = new[]
+        {
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass"
+        };
+
+        CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
     }
 
     [Test]

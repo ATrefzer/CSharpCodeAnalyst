@@ -61,6 +61,11 @@ internal static class TestTool
 
         foreach (var line in File.ReadLines(repoFile))
         {
+            if (line.Trim().StartsWith("//"))
+            {
+                continue;
+            }
+            
             var parts = line.Split(',');
             if (parts.Length != 3)
             {

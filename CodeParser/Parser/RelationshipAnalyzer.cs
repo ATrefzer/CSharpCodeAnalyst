@@ -12,13 +12,13 @@ namespace CodeParser.Parser;
 /// </summary>
 public class RelationshipAnalyzer
 {
-    private readonly object _lock = new();
-    private readonly Progress _progress;
     private readonly ParserConfig _config;
-    private Artifacts? _artifacts;
-    private CodeGraph? _codeGraph;
 
     private readonly ExternalCodeElementCache _externalCodeElementCache = new();
+    private readonly object _lock = new();
+    private readonly Progress _progress;
+    private Artifacts? _artifacts;
+    private CodeGraph? _codeGraph;
     private long _lastProgress;
 
     private int _processedCodeElements;
@@ -90,6 +90,7 @@ public class RelationshipAnalyzer
         {
             return;
         }
+
         foreach (var externalElement in _externalCodeElementCache.GetCodeElements())
         {
             _codeGraph!.Nodes[externalElement.Id] = externalElement;
@@ -448,13 +449,13 @@ public class RelationshipAnalyzer
         var fieldLocation = fieldLocations.FirstOrDefault();
 
         AddTypeRelationship(fieldElement, fieldSymbol.Type, RelationshipType.Uses, fieldLocation);
-        
-     
+
+
         // Analyze field initializer
         foreach (var syntaxReference in fieldSymbol.DeclaringSyntaxReferences)
         {
             var syntax = syntaxReference.GetSyntax();
-        
+
             // VariableDeclaratorSyntax for fields
             if (syntax is VariableDeclaratorSyntax { Initializer: not null } variableDeclarator)
             {
@@ -462,52 +463,21 @@ public class RelationshipAnalyzer
                 var semanticModel = document?.GetSemanticModelAsync().Result;
                 if (semanticModel != null)
                 {
-                   AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer.Value, semanticModel);
+                    AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer.Value, semanticModel, true);
                 }
-            }}
-            
-        
+            }
+        }
     }
 
     /// <summary>
-    ///     For method and property bodies.
+    ///     For method and property bodies and field initializers.
     /// </summary>
-    private void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel)
+    private void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel, bool isFieldInitializer = false)
     {
-        var walker = new MethodBodyWalker(this, sourceElement, semanticModel);
+        var walker = new MethodBodyWalker(this, sourceElement, semanticModel, isFieldInitializer);
         walker.Visit(node);
     }
 
-
-    internal void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
-        ObjectCreationExpressionSyntax objectCreationSyntax)
-    {
-        var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
-        if (typeInfo.Type != null)
-        {
-            var location = objectCreationSyntax.GetSyntaxLocation();
-            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
-        }
-
-        // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
-        // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
-        // Adding this relationship allows following method invocations later.
-        var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
-        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
-        {
-            // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
-            // So IsGeneric is never true.
-            var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
-            if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
-            {
-                var location = objectCreationSyntax.GetSyntaxLocation();
-                AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
-            }
-        }
-
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
-    }
-    
 
     internal void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
         SemanticModel semanticModel)
@@ -616,7 +586,7 @@ public class RelationshipAnalyzer
                 if (rightSymbol is IMethodSymbol methodSymbol)
                 {
                     // The handles relationship carries both locations for registering 
-                    // and unregistering the event handler. We have the same with the uses relationship.
+                    // and unregistering the event handler. We have the same with the "uses" relationship.
                     // But separately for registering and unregistering.
                     AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
                 }
@@ -762,7 +732,7 @@ public class RelationshipAnalyzer
                 var newRelationship = new Relationship(source.Id, target.Id, type);
                 newRelationship.SourceLocations.AddRange(sourceLocations);
                 newRelationship.Attributes = attributes;
-                
+
                 DebugRelationship(source, target, type);
                 source.Relationships.Add(newRelationship);
             }
@@ -789,23 +759,23 @@ public class RelationshipAnalyzer
             AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
             return;
         }
-        
+
         // Note the constructed type is not in our CodeElement map!
         // It is not found in phase1 the way we parse it but the original definition is.
         // For constructed generic types (List<int>), use the original definition (List<T>)
-        var normalizedSymbol = namedTypeSymbol.IsGenericType && !namedTypeSymbol.IsDefinition
+        var normalizedSymbol = namedTypeSymbol is { IsGenericType: true, IsDefinition: false }
             ? namedTypeSymbol.OriginalDefinition
             : namedTypeSymbol;
-        
+
         targetElement = FindInternalCodeElement(normalizedSymbol);
         if (targetElement == null && _config.IncludeExternals)
         {
             targetElement = TryGetOrCreateExternalCodeElement(normalizedSymbol);
         }
-        
+
         if (targetElement is not null)
         {
-            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None); 
+            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
         }
 
         // For generic types, add "Uses" relationships to type arguments
@@ -826,7 +796,7 @@ public class RelationshipAnalyzer
         {
             return null;
         }
-        
+
         return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
     }
 
@@ -912,8 +882,6 @@ public class RelationshipAnalyzer
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         locations ??= [];
-        
-        // TODO Wann und wo wird die original definition jetzt benötigt?
 
         // First try to find the symbol itself (could be internal, or we'll create external)
         var targetElement = FindInternalCodeElement(targetSymbol);
@@ -952,7 +920,7 @@ public class RelationshipAnalyzer
     }
 
     /// <summary>
-    /// The caller has to take care that the symbol is normalized to original definition if necessary
+    ///     The caller has to take care that the symbol is normalized to original definition if necessary
     /// </summary>
     private CodeElement? FindInternalCodeElement(ISymbol? symbol)
     {
@@ -960,33 +928,13 @@ public class RelationshipAnalyzer
         {
             return null;
         }
-        
+
         // If not called here I muss 3 calls why?
         _artifacts!.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
     }
 
-    /// <summary>
-    ///     Gets an existing code element (internal or external) or creates a new external element on-demand.
-    ///     During parallel processing, external elements are cached but not added to the graph.
-    ///     Call AddExternalElementsToGraph() after parallel processing to add them to the graph.
-    /// </summary>
-    private CodeElement? GetOrTryCreateExternalCodeElement(ISymbol symbol)
-    {
-        var internalCodeElement = FindInternalCodeElement(symbol);
-        if (internalCodeElement != null)
-        {
-            return internalCodeElement;
-        }
 
-        if (_config.IncludeExternals)
-        {
-            return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
-        }
-
-        return null;
-    }
-    
     /// <summary>
     ///     Properties became quite complex.
     ///     We treat the property like a method and do not distinguish between getter and setter.
@@ -1077,7 +1025,7 @@ public class RelationshipAnalyzer
         switch (invocation.Expression)
         {
             case MemberAccessExpressionSyntax memberAccess:
-                return AnalyzeMemberAccessCallType(memberAccess, method, semanticModel);
+                return AnalyzeMemberAccessCallType(memberAccess, semanticModel);
 
             case IdentifierNameSyntax:
                 // Direct method call - could be this.Method() or static
@@ -1093,8 +1041,7 @@ public class RelationshipAnalyzer
         }
     }
 
-    private static RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess,
-        IMethodSymbol method, SemanticModel semanticModel)
+    private static RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
     {
         switch (memberAccess.Expression)
         {
@@ -1196,5 +1143,65 @@ public class RelationshipAnalyzer
             var location = localDeclaration.Declaration.Type.GetSyntaxLocation();
             AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
+    }
+
+    /// <summary>
+    ///     new() is ImplicitObjectCreationExpressionSyntax.
+    ///     new Class() is ObjectCreationExpressionSyntax
+    ///     They are different cases in the MethodBodyWalker,
+    ///     but both expressions derive from BaseObjectCreationExpressionSyntax
+    ///
+    ///     If the object is created as part of a field initialization additional steps are necessary
+    ///     - Source for the creates relationship is the containing class and not to the field.
+    ///     - Constructor calls relationship is omitted.
+    ///     - Field gets an uses relationship to the created type (may not be the same as the field type)
+    /// </summary>
+    internal void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
+        BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer)
+    {
+        var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
+        if (typeInfo.Type != null)
+        {
+            var location = objectCreationSyntax.GetSyntaxLocation();
+        
+            if (isFieldInitializer)
+            {
+                // Field "uses" the created class
+                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+            
+                // Containing class "creates" the object
+                if (sourceElement.Parent != null)
+                {
+                    AddTypeRelationship(sourceElement.Parent, typeInfo.Type, RelationshipType.Creates, location);
+                }
+            }
+            else
+            {
+                // Method "creates" the object
+                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
+            }
+        }
+
+        // When handling field initializers don't add calls relationship to ctor. 
+        if (!isFieldInitializer)
+        {
+            // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
+            // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
+            // Adding this relationship allows following method invocations later.
+            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+            {
+                // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
+                // So IsGeneric is never true, yet we need the original definition.
+                var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
+                if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+                {
+                    var location = objectCreationSyntax.GetSyntaxLocation();
+                    AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
+                }
+            }
+        }
+
+        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
     }
 }

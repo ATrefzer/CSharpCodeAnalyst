@@ -15,18 +15,14 @@ namespace CodeParser.Parser
         private readonly RelationshipAnalyzer _analyzer;
         private readonly CodeElement _sourceElement;
         private readonly SemanticModel _semanticModel;
+        private readonly bool _isFieldInitializer;
 
-        public MethodBodyWalker(RelationshipAnalyzer analyzer, CodeElement sourceElement, SemanticModel semanticModel)
+        public MethodBodyWalker(RelationshipAnalyzer analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
         {
             _analyzer = analyzer;
             _sourceElement = sourceElement;
             _semanticModel = semanticModel;
-        }
-
-        public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-        {
-            _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node);
-            base.VisitObjectCreationExpression(node);
+            _isFieldInitializer = isFieldInitializer;
         }
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
@@ -68,6 +64,21 @@ namespace CodeParser.Parser
         {
             _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
             base.VisitLocalDeclarationStatement(node);
+        }
+        
+        /// <summary>
+        /// new() is ImplicitObjectCreationExpressionSyntax. So ObjectCreationExpressionSyntax does not detect it.
+        /// </summary>
+        public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
+        {
+            _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
+            base.VisitImplicitObjectCreationExpression(node);
+        }
+        
+        public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
+        {
+            _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
+            base.VisitObjectCreationExpression(node);
         }
     }
 }
