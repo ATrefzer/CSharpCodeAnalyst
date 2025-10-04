@@ -154,11 +154,11 @@ jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 
 Please take note of the following issues:
 
+- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. C# has a constantly growing language syntax.
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
-- Source locations are not extracted for all dependencies, only the ones that are easy to extract.
-- External code is ignored.
-- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. For any known unsupported syntax, refer to [Uncovered C# Syntax](Documentation/uncovered-csharp-syntax.md) 
-- Currently, method calls in lambdas are attributed to the function that creates the lambda and not to the function that invokes the lambda.
+- Source locations are not extracted for all dependencies; only those that are easily extractable are included.
+- You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
+- Only types used in a lambda expression are extracted. Method calls inside lambdas are not covered. I know that the method that creates the lambda "uses" the found types. But I cannot track where the lambda is actually called. I think that is a good compromise.
 
 ## Thank you
 

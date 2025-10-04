@@ -69,7 +69,6 @@ public class GenericsApprovalTests : ProjectTestBase
         var expected = new[]
         {
             "Core.Generics.Core.Generics.GenericManager.ProcessAll -> Core.Generics.Core.Generics.IProcessor.Process",
-            "Core.Generics.Core.Generics.GenericSorter.Sort -> Core.Generics.Core.Generics.IComparable.CompareTo",
             "Core.Generics.Core.Generics.EntityManager.AddEntity -> Core.Generics.Core.Generics.BaseEntity.Id",
             "Core.Generics.Core.Generics.EntityManager.SaveAll -> Core.Generics.Core.Generics.BaseEntity.Save",
             "Core.Generics.Core.Generics.GenericConverter.ConvertMany -> Core.Generics.Core.Generics.GenericConverter.Convert",
@@ -91,7 +90,11 @@ public class GenericsApprovalTests : ProjectTestBase
             "Core.Generics.Core.Generics.GenericService.WrapResult -> Core.Generics.Core.Generics.GenericContainer..ctor",
             "Core.Generics.Core.Generics.GenericTree.Node.AddChild -> Core.Generics.Core.Generics.GenericTree.Node..ctor",
             "Core.Generics.Core.Generics.GenericTree.SetRoot -> Core.Generics.Core.Generics.GenericTree.Node..ctor",
-            "Core.Generics.Core.Generics.GenericUtilities.MakePair -> Core.Generics.Core.Generics.GenericPair..ctor"
+            "Core.Generics.Core.Generics.GenericUtilities.MakePair -> Core.Generics.Core.Generics.GenericPair..ctor",
+
+
+            // No longer supported because it is inside a lambda!
+            // "Core.Generics.Core.Generics.GenericSorter.Sort -> Core.Generics.Core.Generics.IComparable.CompareTo",
         };
 
         CollectionAssert.AreEquivalent(expected, callRelationships.ToArray());

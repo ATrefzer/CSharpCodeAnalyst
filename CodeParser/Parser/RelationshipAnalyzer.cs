@@ -10,7 +10,7 @@ namespace CodeParser.Parser;
 /// <summary>
 ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
 /// </summary>
-public class RelationshipAnalyzer
+public class RelationshipAnalyzer : ISyntaxNodeHandler
 {
     private readonly ParserConfig _config;
 
@@ -30,6 +30,284 @@ public class RelationshipAnalyzer
     {
         _progress = progress;
         _config = config;
+    }
+
+
+    public void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
+        SemanticModel semanticModel)
+    {
+        var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
+        {
+            // Skip local functions - they should not be part of the dependency graph
+            if (calledMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                return;
+            }
+
+            var location = invocationSyntax.GetSyntaxLocation();
+
+            var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
+            AddCallsRelationship(sourceElement, calledMethod, location, attributes);
+
+
+            // Handle generic method invocations
+            if (calledMethod.IsGenericMethod)
+            {
+                foreach (var typeArg in calledMethod.TypeArguments)
+                {
+                    AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
+                }
+            }
+
+            // Check if this is an event invocation using Invoke method
+            if (calledMethod.Name == "Invoke")
+            {
+                IEventSymbol? eventSymbol = null;
+
+                if (invocationSyntax.Expression is MemberAccessExpressionSyntax memberAccess)
+                {
+                    eventSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IEventSymbol;
+                }
+                else if (invocationSyntax.Expression is MemberBindingExpressionSyntax memberBinding)
+                {
+                    // Traverse up to find the ConditionalAccessExpressionSyntax
+                    var currentNode = memberBinding.Parent;
+                    while (currentNode != null && currentNode is not ConditionalAccessExpressionSyntax)
+                    {
+                        currentNode = currentNode.Parent;
+                    }
+
+                    if (currentNode is ConditionalAccessExpressionSyntax conditionalAccess)
+                    {
+                        eventSymbol = semanticModel.GetSymbolInfo(conditionalAccess.Expression).Symbol as IEventSymbol;
+                    }
+                }
+
+                if (eventSymbol != null)
+                {
+                    AddEventInvocationRelationship(sourceElement, eventSymbol, location);
+                }
+            }
+        }
+
+        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
+
+        // Handle direct event invocations (if any)
+        var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
+        //if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol symbol })
+        if (invokedSymbol is IEventSymbol symbol)
+        {
+            AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
+        }
+    }
+
+    public void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+        SemanticModel semanticModel)
+    {
+        // Analyze the left side of the assignment (target)
+        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Left, semanticModel);
+
+        // Analyze the right side of the assignment (value)
+        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel);
+
+        var isRegistration = assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression);
+        var isUnregistration = assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression);
+
+        // Handle event registration and un-registration
+        if (isRegistration || isUnregistration)
+        {
+            var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
+            var rightSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Right).Symbol;
+
+            if (leftSymbol is IEventSymbol eventSymbol)
+            {
+                var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
+                AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
+
+                // If the right side is a method, add a Handles relationship
+                if (rightSymbol is IMethodSymbol methodSymbol)
+                {
+                    // The handles relationship carries both locations for registering 
+                    // and unregistering the event handler. We have the same with the "uses" relationship.
+                    // But separately for registering and unregistering.
+                    AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
+    /// </summary>
+    public void AddTypeRelationshipPublic(CodeElement sourceElement, ITypeSymbol typeSymbol,
+        RelationshipType relationshipType,
+        SourceLocation? location = null)
+    {
+        AddTypeRelationship(sourceElement, typeSymbol, relationshipType, location);
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeIdentifier" />
+    /// </summary>
+    public void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
+        SemanticModel semanticModel)
+    {
+        var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
+        var symbol = symbolInfo.Symbol;
+
+        // No guard needed - the walker ensures we only visit standalone identifiers
+        // MemberAccess expressions handle their own identifiers explicitly
+
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IFieldSymbol fieldSymbol)
+        {
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeMemberAccess" />
+    /// </summary>
+    public void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
+        SemanticModel semanticModel)
+    {
+        // Analyze the member being accessed (the right side of the dot)
+        var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
+        var symbol = symbolInfo.Symbol;
+
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            var location = memberAccessSyntax.GetSyntaxLocation();
+            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IFieldSymbol fieldSymbol)
+        {
+            var location = memberAccessSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IEventSymbol eventSymbol)
+        {
+            // This handles cases where the event is accessed but not necessarily invoked
+            AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
+        }
+
+        // Note: We don't recursively handle the Expression here.
+        // The walker's Visit(node.Expression) call handles nested member access automatically.
+    }
+
+    public void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
+    {
+        var expression = argumentSyntax.Expression;
+
+        // Handle method groups passed as arguments
+        if (expression is IdentifierNameSyntax identifierSyntax)
+        {
+            // Foo(MethodGroup)
+            var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                // Skip local functions - they should not be part of the dependency graph
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
+                {
+                    return;
+                }
+
+                // This is a method group reference
+                var location = identifierSyntax.GetSyntaxLocation();
+
+                //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
+                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            }
+        }
+        else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
+        {
+            // obj.MethodGroup
+            var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
+            {
+                // Skip local functions - they should not be part of the dependency graph
+                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
+                {
+                    return;
+                }
+
+                // This is a method group reference like obj.Method
+                var location = memberAccessSyntax.GetSyntaxLocation();
+
+                // AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
+                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            }
+        }
+    }
+
+    public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
+        SemanticModel semanticModel)
+    {
+        // Get the type of the local variable declaration
+        var typeInfo = semanticModel.GetTypeInfo(localDeclaration.Declaration.Type);
+        if (typeInfo.Type != null)
+        {
+            var location = localDeclaration.Declaration.Type.GetSyntaxLocation();
+            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+        }
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeObjectCreation" />
+    /// </summary>
+    public void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
+        BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer)
+    {
+        var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
+        if (typeInfo.Type != null)
+        {
+            var location = objectCreationSyntax.GetSyntaxLocation();
+
+            if (isFieldInitializer)
+            {
+                // Field "uses" the created class
+                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+
+                // Containing class "creates" the object
+                if (sourceElement.Parent != null)
+                {
+                    AddTypeRelationship(sourceElement.Parent, typeInfo.Type, RelationshipType.Creates, location);
+                }
+            }
+            else
+            {
+                // Method "creates" the object
+                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
+            }
+        }
+
+        // When handling field initializers don't add calls relationship to ctor. 
+        if (!isFieldInitializer)
+        {
+            // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
+            // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
+            // Adding this relationship allows following method invocations later.
+            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
+            if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+            {
+                // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
+                // So IsGeneric is never true, yet we need the original definition.
+                var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
+                if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+                {
+                    var location = objectCreationSyntax.GetSyntaxLocation();
+                    AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
+                }
+            }
+        }
+
+        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
     }
 
     /// <summary>
@@ -472,83 +750,13 @@ public class RelationshipAnalyzer
     /// <summary>
     ///     For method and property bodies and field initializers.
     /// </summary>
-    private void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel, bool isFieldInitializer = false)
+    public void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel, bool isFieldInitializer = false)
     {
         var walker = new MethodBodyWalker(this, sourceElement, semanticModel, isFieldInitializer);
         walker.Visit(node);
     }
 
-
-    internal void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
-        SemanticModel semanticModel)
-    {
-        var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
-        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
-        {
-            // Skip local functions - they should not be part of the dependency graph
-            if (calledMethod.MethodKind == MethodKind.LocalFunction)
-            {
-                return;
-            }
-
-            var location = invocationSyntax.GetSyntaxLocation();
-
-            var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
-            AddCallsRelationship(sourceElement, calledMethod, location, attributes);
-
-
-            // Handle generic method invocations
-            if (calledMethod.IsGenericMethod)
-            {
-                foreach (var typeArg in calledMethod.TypeArguments)
-                {
-                    AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
-                }
-            }
-
-            // Check if this is an event invocation using Invoke method
-            if (calledMethod.Name == "Invoke")
-            {
-                IEventSymbol? eventSymbol = null;
-
-                if (invocationSyntax.Expression is MemberAccessExpressionSyntax memberAccess)
-                {
-                    eventSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression).Symbol as IEventSymbol;
-                }
-                else if (invocationSyntax.Expression is MemberBindingExpressionSyntax memberBinding)
-                {
-                    // Traverse up to find the ConditionalAccessExpressionSyntax
-                    var currentNode = memberBinding.Parent;
-                    while (currentNode != null && currentNode is not ConditionalAccessExpressionSyntax)
-                    {
-                        currentNode = currentNode.Parent;
-                    }
-
-                    if (currentNode is ConditionalAccessExpressionSyntax conditionalAccess)
-                    {
-                        eventSymbol = semanticModel.GetSymbolInfo(conditionalAccess.Expression).Symbol as IEventSymbol;
-                    }
-                }
-
-                if (eventSymbol != null)
-                {
-                    AddEventInvocationRelationship(sourceElement, eventSymbol, location);
-                }
-            }
-        }
-
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
-
-        // Handle direct event invocations (if any)
-        var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
-        //if (invokedSymbol is IMethodSymbol { AssociatedSymbol: IEventSymbol symbol })
-        if (invokedSymbol is IEventSymbol symbol)
-        {
-            AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
-        }
-    }
-
-    private void AddEventInvocationRelationship(CodeElement sourceElement, IEventSymbol eventSymbol,
+    public void AddEventInvocationRelationship(CodeElement sourceElement, IEventSymbol eventSymbol,
         SourceLocation location)
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Invokes, [location], RelationshipAttribute.None);
@@ -557,41 +765,6 @@ public class RelationshipAnalyzer
     private void AddEventUsageRelationship(CodeElement sourceElement, IEventSymbol eventSymbol, SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None)
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, eventSymbol, RelationshipType.Uses, [location], attribute);
-    }
-
-    internal void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
-        SemanticModel semanticModel)
-    {
-        // Analyze the left side of the assignment (target)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Left, semanticModel);
-
-        // Analyze the right side of the assignment (value)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel);
-
-        var isRegistration = assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression);
-        var isUnregistration = assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression);
-
-        // Handle event registration and un-registration
-        if (isRegistration || isUnregistration)
-        {
-            var leftSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Left).Symbol;
-            var rightSymbol = semanticModel.GetSymbolInfo(assignmentExpression.Right).Symbol;
-
-            if (leftSymbol is IEventSymbol eventSymbol)
-            {
-                var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
-                AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
-
-                // If the right side is a method, add a Handles relationship
-                if (rightSymbol is IMethodSymbol methodSymbol)
-                {
-                    // The handles relationship carries both locations for registering 
-                    // and unregistering the event handler. We have the same with the "uses" relationship.
-                    // But separately for registering and unregistering.
-                    AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
-                }
-            }
-        }
     }
 
     private void AddEventHandlerRelationship(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
@@ -798,64 +971,6 @@ public class RelationshipAnalyzer
         }
 
         return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
-    }
-
-    /// <summary>
-    ///     Analyzes standalone identifier references (fields, properties, etc.).
-    ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
-    ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
-    /// </summary>
-    internal void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
-        SemanticModel semanticModel)
-    {
-        var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
-        var symbol = symbolInfo.Symbol;
-
-        // No guard needed - the walker ensures we only visit standalone identifiers
-        // MemberAccess expressions handle their own identifiers explicitly
-
-        if (symbol is IPropertySymbol propertySymbol)
-        {
-            var location = identifierSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IFieldSymbol fieldSymbol)
-        {
-            var location = identifierSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-    }
-
-    /// <summary>
-    ///     Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
-    ///     Ownership: Handles the member being accessed (the .Name part on the right side).
-    ///     The Expression (left side) is handled by the walker, which will visit it independently.
-    /// </summary>
-    internal void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
-        SemanticModel semanticModel)
-    {
-        // Analyze the member being accessed (the right side of the dot)
-        var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-        var symbol = symbolInfo.Symbol;
-
-        if (symbol is IPropertySymbol propertySymbol)
-        {
-            var location = memberAccessSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IFieldSymbol fieldSymbol)
-        {
-            var location = memberAccessSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IEventSymbol eventSymbol)
-        {
-            // This handles cases where the event is accessed but not necessarily invoked
-            AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
-        }
-
-        // Note: We don't recursively handle the Expression here.
-        // The walker's Visit(node.Expression) call handles nested member access automatically.
     }
 
     /// <summary>
@@ -1086,122 +1201,5 @@ public class RelationshipAnalyzer
                 // Complex expression - default to instance call
                 return RelationshipAttribute.IsInstanceCall;
         }
-    }
-
-    internal void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
-    {
-        var expression = argumentSyntax.Expression;
-
-        // Handle method groups passed as arguments
-        if (expression is IdentifierNameSyntax identifierSyntax)
-        {
-            // Foo(MethodGroup)
-            var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference
-                var location = identifierSyntax.GetSyntaxLocation();
-
-                //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
-        else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
-        {
-            // obj.MethodGroup
-            var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference like obj.Method
-                var location = memberAccessSyntax.GetSyntaxLocation();
-
-                // AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
-    }
-
-    internal void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
-        SemanticModel semanticModel)
-    {
-        // Get the type of the local variable declaration
-        var typeInfo = semanticModel.GetTypeInfo(localDeclaration.Declaration.Type);
-        if (typeInfo.Type != null)
-        {
-            var location = localDeclaration.Declaration.Type.GetSyntaxLocation();
-            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
-        }
-    }
-
-    /// <summary>
-    ///     new() is ImplicitObjectCreationExpressionSyntax.
-    ///     new Class() is ObjectCreationExpressionSyntax
-    ///     They are different cases in the MethodBodyWalker,
-    ///     but both expressions derive from BaseObjectCreationExpressionSyntax
-    ///
-    ///     If the object is created as part of a field initialization additional steps are necessary
-    ///     - Source for the creates relationship is the containing class and not to the field.
-    ///     - Constructor calls relationship is omitted.
-    ///     - Field gets an uses relationship to the created type (may not be the same as the field type)
-    /// </summary>
-    internal void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
-        BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer)
-    {
-        var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
-        if (typeInfo.Type != null)
-        {
-            var location = objectCreationSyntax.GetSyntaxLocation();
-        
-            if (isFieldInitializer)
-            {
-                // Field "uses" the created class
-                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
-            
-                // Containing class "creates" the object
-                if (sourceElement.Parent != null)
-                {
-                    AddTypeRelationship(sourceElement.Parent, typeInfo.Type, RelationshipType.Creates, location);
-                }
-            }
-            else
-            {
-                // Method "creates" the object
-                AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
-            }
-        }
-
-        // When handling field initializers don't add calls relationship to ctor. 
-        if (!isFieldInitializer)
-        {
-            // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
-            // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
-            // Adding this relationship allows following method invocations later.
-            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
-            {
-                // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
-                // So IsGeneric is never true, yet we need the original definition.
-                var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
-                if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
-                {
-                    var location = objectCreationSyntax.GetSyntaxLocation();
-                    AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
-                }
-            }
-        }
-
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
     }
 }

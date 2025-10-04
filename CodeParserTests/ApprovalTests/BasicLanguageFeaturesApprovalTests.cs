@@ -17,7 +17,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass",
             "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass"
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Lambdas"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -61,6 +62,30 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         };
 
         CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
+    }
+
+    [Test]
+    public void Core_BasicLanguageFeatures_Uses_ShouldBeDetected()
+    {
+        var uses = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses)
+            .Select(r => r.ToString())
+            .OrderBy(x => x)
+            .ToArray();
+
+        var expected = new[]
+        {
+            // Creation inside lambda
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
+
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.InitializeData -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls._privateField",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls._privateField",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.ProtectedField",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers._baseClass -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass"
+        };
+
+        CollectionAssert.AreEquivalent(expected, uses);
     }
 
     [Test]
