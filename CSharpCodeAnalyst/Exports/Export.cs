@@ -166,7 +166,7 @@ public static class Export
     {
         var executablePath = @"ExternalApplications\\DsmSuite.DsmViewer.View.exe";
 
-        var process = new Process();
+        using var process = new Process();
         var startInfo = new ProcessStartInfo
         {
             FileName = executablePath,

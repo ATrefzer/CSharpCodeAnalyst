@@ -32,10 +32,9 @@ public class Parser(ParserConfig config)
 
         Progress.SendProgress("Compiling ...");
 
-        var workspace = MSBuildWorkspace.Create();
+        using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
         var solution = await workspace.OpenSolutionAsync(solutionPath);
-
 
         sw.Stop();
         Trace.TraceInformation("Compiling: " + sw.Elapsed);

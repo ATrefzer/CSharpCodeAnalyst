@@ -86,16 +86,14 @@ public class FileOpener
                 break;
         }
 
-        var process = new Process
+        using var process = new Process();
+        process.StartInfo = new ProcessStartInfo
         {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = _editorPath,
-                Arguments = args,
-                UseShellExecute = false,
-                RedirectStandardOutput = false,
-                CreateNoWindow = true
-            }
+            FileName = _editorPath,
+            Arguments = args,
+            UseShellExecute = false,
+            RedirectStandardOutput = false,
+            CreateNoWindow = true
         };
         process.Start();
     }
