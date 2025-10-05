@@ -1,6 +1,7 @@
 <UserControl x:Class="CSharpCodeAnalyst.Shared.UI.ToastNotification"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              x:Name="RootToast">
 
     <Border Background="#4CAF50"
@@ -25,7 +26,7 @@
                    VerticalAlignment="Center" />
 
             <TextBlock x:Name="MessageText"
-                       Text="Operation completed successfully!"
+                       Text="{x:Static resources:Strings.Message_OperationCompleted_Successful}"
                        Foreground="White"
                        FontWeight="Medium"
                        VerticalAlignment="Center" />

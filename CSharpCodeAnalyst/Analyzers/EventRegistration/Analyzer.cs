@@ -1,9 +1,10 @@
-﻿using System.Windows;
-using Contracts.Graph;
+﻿using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.UI;
+using System.Windows;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
@@ -25,7 +26,7 @@ public class Analyzer : IAnalyzer
 
         if (imbalances.Count == 0)
         {
-            MessageBox.Show("No event handler registration / un-registration imbalances found");
+            ToastManager.ShowSuccess("No event handler registration / un-registration imbalances found");
             return;
         }
 

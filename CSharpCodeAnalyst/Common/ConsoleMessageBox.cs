@@ -8,4 +8,9 @@ internal class ConsoleMessageBox : IMessageBox
     {
         Trace.TraceError(message);
     }
+
+    public void ShowSuccess(string message)
+    {
+        Trace.TraceInformation(message);
+    }
 }

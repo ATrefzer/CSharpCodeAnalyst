@@ -45,6 +45,26 @@ public static class Export
         }
         catch (Exception ex)
         {
+            Trace.TraceError(ex.ToString());
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    public static void ToClipboard(FrameworkElement? canvas)
+    {
+        if (canvas is null)
+        {
+            return;
+        }
+
+        try
+        {
+            ImageWriter.CopyToClipboard(canvas);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError(ex.ToString());
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -74,6 +94,7 @@ public static class Export
         }
         catch (Exception ex)
         {
+            Trace.TraceError(ex.ToString());
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -103,6 +124,7 @@ public static class Export
         }
         catch (Exception ex)
         {
+            Trace.TraceError(ex.ToString());
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -125,6 +147,7 @@ public static class Export
         }
         catch (Exception ex)
         {
+            Trace.TraceError(ex.ToString());
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
@@ -156,6 +179,7 @@ public static class Export
         }
         catch (Exception ex)
         {
+            Trace.TraceError(ex.ToString());
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);

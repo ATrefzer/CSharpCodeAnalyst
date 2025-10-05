@@ -128,11 +128,7 @@
                                         ImageSource="/Resources/document-xml_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDgml_Tooltip}"
                                         Command="{Binding ExportToDgmlCommand}" />
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlantUml_Label}"
-                                        ImageSource="/Resources/document-xml_32.png"
-                                        ToolTip="{x:Static resources:Strings.ExportPlantUml_Tooltip}"
-                                        Command="{Binding ExportToPlantUmlCommand}" />
-
+                      
                         <RibbonMenuItem Header="{x:Static resources:Strings.SavePng_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.SavePng_Tooltip}"
@@ -148,6 +144,20 @@
                                         ImageSource="/Resources/svg-file_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportSvg_Tooltip}"
                                         Command="{Binding ExportToSvgCommand}" />
+
+                        <RibbonSeparator/>
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlantUml_Label}"
+                                        ImageSource="/Resources/document-xml_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportPlantUml_Tooltip}"
+                                        Command="{Binding ExportToPlantUmlCommand}" />
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Copy_Clipboard_Label}"
+                                        ImageSource="/Resources/png-file_32.png"
+                                        ToolTip="{x:Static resources:Strings.Copy_Clipboard_Tooltip}"
+                                        Command="{Binding CopyToClipboardCommand}"
+                                        CommandParameter="{Binding ElementName=ExplorationControl}"/>
+
 
                     </RibbonSplitButton>
 

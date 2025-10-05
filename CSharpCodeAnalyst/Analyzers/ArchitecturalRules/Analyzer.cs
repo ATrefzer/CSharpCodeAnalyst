@@ -61,7 +61,7 @@ public class Analyzer : IAnalyzer
 
             if (violations.Count == 0)
             {
-                _messageBox.ShowError("No rule violations found!");
+                _messageBox.ShowSuccess("No rule violations found!");
             }
             else
             {

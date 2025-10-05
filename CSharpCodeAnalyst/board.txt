@@ -6,7 +6,7 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Trim image and save to clipboard with notification
+- Copy to clipboard contains the magnifier glass!
 
 
 UNHANDLED CASES

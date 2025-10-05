@@ -115,8 +115,14 @@ internal class MainViewModel : INotifyPropertyChanged
         ExportToSvgCommand = new WpfCommand(OnExportToSvg);
         ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
+        CopyToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
 
         _loadMessage = string.Empty;
+    }
+
+    private void OnCopyCanvasToClipboard(FrameworkElement canvas)
+    {
+        Export.ToClipboard(canvas);
     }
 
 
@@ -297,6 +303,8 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         get => _analyzerManager.All;
     }
+
+    public ICommand CopyToClipboardCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
