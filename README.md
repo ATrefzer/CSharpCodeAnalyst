@@ -138,13 +138,29 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 [Command-line arguments](Documentation/command-line-arguments.md)
 
+## Generate UML class diagrams
+
+When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even if they are collapsed and are not visible at this time.
+
+Select "Copy to PlantUml class diagram" from the Export menu.
+
+![](Documentation/Images/export-uml-class-diagram.png)
+
+
+
+The PlantUml syntax is copied to the clipboard. You can use any online online editor to render it.
+
+
+
+![](Documentation/Images/example-uml.png)
+
 ## Performance Tips
 
 When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
 
 ## Other languages
 
-The tool is written for  C#, but you can also import jdeps output for basic visualization.
+The tool is written for  C#, but you can also import jdeps output for basic visualization of Java code.
 
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
