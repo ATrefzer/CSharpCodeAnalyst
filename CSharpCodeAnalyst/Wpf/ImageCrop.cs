@@ -6,7 +6,8 @@ namespace CSharpCodeAnalyst.Wpf;
 public static class ImageCrop
 {
     /// <summary>
-    ///     Cuts white edges from the image
+    ///     Cuts white edges from the image.
+    ///     All three pixels values larger the threshold is considered white.
     /// </summary>
     public static BitmapSource CropWhiteSpace(BitmapSource source, byte threshold = 250)
     {
@@ -18,6 +19,9 @@ public static class ImageCrop
         }
     }
 
+    /// <summary>
+    /// Every alpha value smaller than alphaThreshold is considered transparent. 
+    /// </summary>
     public static BitmapSource CropTransparency(BitmapSource source, byte alphaThreshold = 10)
     {
         return CropInternal(source, IsCropPixel);
