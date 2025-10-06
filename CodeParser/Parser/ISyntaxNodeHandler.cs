@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CodeParser.Parser;
 
 /// <summary>
-/// Methods the syntax walkers call to report findings.
+///     Methods the syntax walkers call to report findings.
 /// </summary>
 public interface ISyntaxNodeHandler
 {
@@ -41,7 +41,7 @@ public interface ISyntaxNodeHandler
     ///     new Class() is ObjectCreationExpressionSyntax
     ///     They are different cases in the MethodBodyWalker,
     ///     but both expressions derive from BaseObjectCreationExpressionSyntax
-    ///
+    /// 
     ///     If the object is created as part of a field initialization additional steps are necessary
     ///     - Source for the creates relationship is the containing class and not to the field.
     ///     - Constructor calls relationship is omitted.
@@ -51,7 +51,7 @@ public interface ISyntaxNodeHandler
         BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer);
 
     /// <summary>
-    /// Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
+    ///     Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
     /// </summary>
     void AddTypeRelationshipPublic(CodeElement sourceElement, ITypeSymbol typeSymbol,
         RelationshipType relationshipType,

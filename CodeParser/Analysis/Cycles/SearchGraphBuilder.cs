@@ -6,8 +6,8 @@ namespace CodeParser.Analysis.Cycles;
 public static class SearchGraphBuilder
 {
     /// <summary>
-    /// Builds a search graph from the code graph for cycle detection.
-    /// By default, external elements are excluded from cycle analysis.
+    ///     Builds a search graph from the code graph for cycle detection.
+    ///     By default, external elements are excluded from cycle analysis.
     /// </summary>
     public static SearchGraph BuildSearchGraph(CodeGraph codeGraph, bool includeExternal = false)
     {
@@ -40,7 +40,7 @@ public static class SearchGraphBuilder
                 if (sourceCodeElement.IsExternal || targetCodeElement.IsExternal)
                 {
                     // Skip dependencies involving external elements
-                    continue; 
+                    continue;
                 }
             }
 

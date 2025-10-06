@@ -11,10 +11,10 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />
-                    </Grid.ColumnDefinitions>                                  
-                    <TextBlock Grid.Column="1" 
-                               Text="{Binding}" 
-                               Foreground="Blue" 
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding}"
+                               Foreground="Blue"
                                TextWrapping="Wrap"
                                Cursor="Hand"
                                TextDecorations="Underline">

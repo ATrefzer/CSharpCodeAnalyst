@@ -4,7 +4,7 @@
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
               xmlns:presentation="clr-namespace:CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation"
               mc:Ignorable="d">
-    <ItemsControl 
+    <ItemsControl
         d:DataContext="{d:DesignInstance presentation:RuleViolationViewModel }"
         ItemsSource="{Binding RelationshipDetails}">
         <ItemsControl.ItemTemplate>

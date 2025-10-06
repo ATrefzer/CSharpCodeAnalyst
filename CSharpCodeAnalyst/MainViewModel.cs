@@ -61,6 +61,8 @@ internal class MainViewModel : INotifyPropertyChanged
     private InfoPanelViewModel? _infoPanelViewModel;
 
     private bool _isCanvasHintsVisible = true;
+
+    private bool _isGraphSearchPanelVisible = true;
     private bool _isLeftPanelExpanded = true;
     private bool _isLoading;
     private bool _isSaved = true;
@@ -74,6 +76,7 @@ internal class MainViewModel : INotifyPropertyChanged
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
+
 
 
 
@@ -118,11 +121,6 @@ internal class MainViewModel : INotifyPropertyChanged
         CopyToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
 
         _loadMessage = string.Empty;
-    }
-
-    private void OnCopyCanvasToClipboard(FrameworkElement canvas)
-    {
-        Export.ToClipboard(canvas);
     }
 
 
@@ -306,7 +304,33 @@ internal class MainViewModel : INotifyPropertyChanged
 
     public ICommand CopyToClipboardCommand { get; set; }
 
+    public bool IsGraphSearchPanelVisible
+    {
+        get => _isGraphSearchPanelVisible;
+        set
+        {
+            if (value == _isGraphSearchPanelVisible) return;
+            _isGraphSearchPanelVisible = value;
+            OnPropertyChanged();
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnCopyCanvasToClipboard(FrameworkElement canvas)
+    {
+        try
+        {
+            // Get rid of the magnifier icon
+            IsGraphSearchPanelVisible = false;
+            Export.ToClipboard(canvas);
+        }
+        finally
+        {
+            IsGraphSearchPanelVisible = true;
+        }
+    }
+
 
     private void OnExecuteAnalyzer(string id)
     {
@@ -379,10 +403,10 @@ internal class MainViewModel : INotifyPropertyChanged
         if (_openedLegendDialog == null)
         {
             _openedLegendDialog = new LegendDialog
-                {
-                    Owner = Application.Current.MainWindow,
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner
-                };
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
             _openedLegendDialog.Closed += (_, _) => _openedLegendDialog = null;
             _openedLegendDialog.Show();
         }
@@ -397,11 +421,11 @@ internal class MainViewModel : INotifyPropertyChanged
     private void OnOpenSettingsDialog()
     {
         var settingsDialog = new SettingsDialog(_applicationSettings)
-            {
-                Owner = Application.Current.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-        
+        {
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+
         if (settingsDialog.ShowDialog() == true)
         {
             _applicationSettings = settingsDialog.Settings;
@@ -658,9 +682,18 @@ internal class MainViewModel : INotifyPropertyChanged
         Export.ToDgml(_graphViewModel?.ExportGraph());
     }
 
-    private static void OnExportToPng(FrameworkElement? canvas)
+    private void OnExportToPng(FrameworkElement? canvas)
     {
-        Export.ToPng(canvas);
+        try
+        {
+            // Get rid of the magnifier icon
+            IsGraphSearchPanelVisible = false;
+            Export.ToPng(canvas);
+        }
+        finally
+        {
+            IsGraphSearchPanelVisible = true;
+        }
     }
 
     /// <summary>
@@ -749,7 +782,7 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
         }
-        
+
         // IncludeExternals is not a configurable setting. It is global for the application.
     }
 

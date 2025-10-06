@@ -5,7 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
+             xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
              mc:Ignorable="d"
+             x:Name="CodeExplorationControl"
+             d:DataContext="{d:DesignInstance analyst:MainViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -31,11 +34,12 @@
         </StackPanel>
         <Border ClipToBounds="True">
             <Grid>
-                <DockPanel Name="GraphPanel" Margin="5" />
+                <DockPanel x:Name="GraphPanel" Margin="5" />
                 <!-- Search Control as overlay -->
                 <local:GraphSearchControl x:Name="SearchControl"
                                           HorizontalAlignment="Stretch"
                                           VerticalAlignment="Stretch"
+                                          Visibility="{Binding DataContext.IsGraphSearchPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
                                           IsHitTestVisible="True" />
             </Grid>
         </Border>

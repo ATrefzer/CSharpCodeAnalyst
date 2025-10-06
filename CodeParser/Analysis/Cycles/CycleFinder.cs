@@ -6,7 +6,7 @@ namespace CodeParser.Analysis.Cycles;
 public static class CycleFinder
 {
     /// <summary>
-    /// Finds cycle groups in the code graph.
+    ///     Finds cycle groups in the code graph.
     /// </summary>
     public static List<CycleGroup> FindCycleGroups(CodeGraph originalGraph, bool includeExternal = false)
     {

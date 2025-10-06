@@ -4,7 +4,6 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
-using System.Windows;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 

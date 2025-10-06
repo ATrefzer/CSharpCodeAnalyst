@@ -13,8 +13,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {
-    private readonly IPublisher _messaging;
     private readonly IMessageBox _messageBox;
+    private readonly IPublisher _messaging;
     private List<RuleBase> _rules = [];
     private string _rulesText = string.Empty;
 
@@ -22,15 +22,6 @@ public class Analyzer : IAnalyzer
     {
         _messaging = messaging;
         _messageBox = messageBox;
-    }
-
-    /// <summary>
-    /// Direct analysis with rules from file (for command-line use)
-    /// </summary>
-    public List<Violation> Analyze(CodeGraph graph, string fileToRules)
-    {
-        ParseAndStoreRules(File.ReadAllText(fileToRules));
-        return ExecuteAnalysis(graph);
     }
 
     public void Analyze(CodeGraph graph)
@@ -72,7 +63,11 @@ public class Analyzer : IAnalyzer
         }
     }
 
-    public string Name { get => "Architectural rules"; }
+    public string Name
+    {
+        get => "Architectural rules";
+    }
+
     public string Description { get; } = "Validates your architectural constraints based on user-defined rules";
 
     public string Id
@@ -119,6 +114,15 @@ public class Analyzer : IAnalyzer
             _rulesText = string.Empty;
             _rules.Clear();
         }
+    }
+
+    /// <summary>
+    ///     Direct analysis with rules from file (for command-line use)
+    /// </summary>
+    public List<Violation> Analyze(CodeGraph graph, string fileToRules)
+    {
+        ParseAndStoreRules(File.ReadAllText(fileToRules));
+        return ExecuteAnalysis(graph);
     }
 
     private static string GetSampleRules()

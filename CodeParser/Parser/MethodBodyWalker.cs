@@ -12,9 +12,9 @@ namespace CodeParser.Parser;
 internal class MethodBodyWalker : CSharpSyntaxWalker
 {
     private readonly ISyntaxNodeHandler _analyzer;
-    private readonly CodeElement _sourceElement;
-    private readonly SemanticModel _semanticModel;
     private readonly bool _isFieldInitializer;
+    private readonly SemanticModel _semanticModel;
+    private readonly CodeElement _sourceElement;
 
     public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
     {
@@ -64,16 +64,16 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
         _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
         base.VisitLocalDeclarationStatement(node);
     }
-        
+
     /// <summary>
-    /// new() is ImplicitObjectCreationExpressionSyntax. So ObjectCreationExpressionSyntax does not detect it.
+    ///     new() is ImplicitObjectCreationExpressionSyntax. So ObjectCreationExpressionSyntax does not detect it.
     /// </summary>
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
         _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
         base.VisitImplicitObjectCreationExpression(node);
     }
-        
+
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
         _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
@@ -81,8 +81,8 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Lambda expressions: Track type relationships but not method calls.
-    /// x => x.Method()
+    ///     Lambda expressions: Track type relationships but not method calls.
+    ///     x => x.Method()
     /// </summary>
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
@@ -92,8 +92,8 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Lambda expressions: Track type relationships but not method calls.
-    /// (x, y) => x.Method()
+    ///     Lambda expressions: Track type relationships but not method calls.
+    ///     (x, y) => x.Method()
     /// </summary>
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
@@ -103,8 +103,8 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// Anonymous methods: Track type relationships but not method calls.
-    /// delegate { Method(); }
+    ///     Anonymous methods: Track type relationships but not method calls.
+    ///     delegate { Method(); }
     /// </summary>
     public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
     {

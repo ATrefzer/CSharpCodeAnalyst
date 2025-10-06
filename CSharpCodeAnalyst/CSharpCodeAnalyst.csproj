@@ -10,33 +10,33 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="ExternalApplications\**" />
-        <EmbeddedResource Remove="ExternalApplications\**" />
-        <None Remove="ExternalApplications\**" />
-        <Page Remove="ExternalApplications\**" />
-        <None Remove="Resources\search_32.png" />
+        <Compile Remove="ExternalApplications\**"/>
+        <EmbeddedResource Remove="ExternalApplications\**"/>
+        <None Remove="ExternalApplications\**"/>
+        <Page Remove="ExternalApplications\**"/>
+        <None Remove="Resources\search_32.png"/>
         <Page Update="Areas\TableArea\Templates\CodeElementLineTemplate.xaml">
-          <Generator>MSBuild:Compile</Generator>
-          <XamlRuntime>Wpf</XamlRuntime>
-          <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
         </Page>
         <Page Update="Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
-          <Generator>MSBuild:Compile</Generator>
-          <XamlRuntime>Wpf</XamlRuntime>
-          <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
         </Page>
         <Page Update="Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
-          <Generator>MSBuild:Compile</Generator>
-          <XamlRuntime>Wpf</XamlRuntime>
-          <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
         </Page>
         <Page Update="Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
-          <Generator>MSBuild:Compile</Generator>
-          <XamlRuntime>Wpf</XamlRuntime>
-          <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
         </Page>
         <Page Update="Areas\Shared\CodeElementLineTemplate.xaml">
-          <Generator>MSBuild:Compile</Generator>
+            <Generator>MSBuild:Compile</Generator>
         </Page>
     </ItemGroup>
 
@@ -44,73 +44,73 @@
         <Content Include="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-        <Content Include="lamp.ico" />
+        <Content Include="lamp.ico"/>
     </ItemGroup>
 
 
     <ItemGroup>
-        <Resource Include="Resources\check.png" />
-        <Resource Include="Resources\analysis_32.png" />
-        <Resource Include="Resources\error.png" />
-        <Resource Include="Resources\flag.png" />
-        <Resource Include="Resources\guidepost_small.png" />
-        <Resource Include="Resources\help_32.png" />
-        <Resource Include="Resources\legend_32.png" />
-        <Resource Include="Resources\filter_32.png" />
-        <Resource Include="Resources\rendering.png" />
-        <Resource Include="Resources\search_32.png" />
-        <Resource Include="Resources\slider.png" />
-        <Resource Include="Resources\undo_32.png" />
-        <Resource Include="Resources\redo_32.png" />
-        <Resource Include="Resources\clear_32.png" />
-        <Resource Include="Resources\Collapse_16.png" />
-        <Resource Include="Resources\complexity_32.png" />
-        <Resource Include="Resources\cycle_32.png" />
-        <Resource Include="Resources\document-xml.png" />
-        <Resource Include="Resources\document_graph_32.png" />
-        <Resource Include="Resources\document-xml_32.png" />
-        <Resource Include="Resources\four-arrows.png" />
-        <Resource Include="Resources\four-arrows_32.png" />
-        <Resource Include="Resources\gear_32.png" />
-        <Resource Include="Resources\import_solution.png" />
-        <Resource Include="Resources\info_large.png" />
-        <Resource Include="Resources\lamp.png" />
-        <Resource Include="Resources\left-right.png" />
-        <Resource Include="Resources\left-right_small.png" />
-        <Resource Include="Resources\load_project.png" />
-        <Resource Include="Resources\png-file_32.png" />
-        <Resource Include="Resources\question.png" />
-        <Resource Include="Resources\question_small.png" />
-        <Resource Include="Resources\save_project.png" />
-        <Resource Include="Resources\spreadsheet_32.png" />
-        <Resource Include="Resources\svg-file_32.png" />
-        <Resource Include="Resources\switch.png" />
-        <Resource Include="Resources\trash-can.png" />
-        <Resource Include="Resources\trash-can_32.png" />
-        <Resource Include="Resources\workflow.png" />
-        <Resource Include="Resources\cycle.png" />
-        <Resource Include="Resources\unstructured-data_32.png" />
-        <Resource Include="Resources\Assembly_16.png" />
-        <Resource Include="Resources\Namespace_16.png" />
-        <Resource Include="Resources\Class_16.png" />
-        <Resource Include="Resources\Interface_16.png" />
-        <Resource Include="Resources\Struct_16.png" />
-        <Resource Include="Resources\Method_16.png" />
-        <Resource Include="Resources\Property_16.png" />
-        <Resource Include="Resources\Delegate_16.png" />
-        <Resource Include="Resources\Event_16.png" />
-        <Resource Include="Resources\Enum_16.png" />
-        <Resource Include="Resources\Field_16.png" />
-        <Resource Include="Resources\Record_16.png" />
-        <Resource Include="Resources\Other_16.png" />
+        <Resource Include="Resources\check.png"/>
+        <Resource Include="Resources\analysis_32.png"/>
+        <Resource Include="Resources\error.png"/>
+        <Resource Include="Resources\flag.png"/>
+        <Resource Include="Resources\guidepost_small.png"/>
+        <Resource Include="Resources\help_32.png"/>
+        <Resource Include="Resources\legend_32.png"/>
+        <Resource Include="Resources\filter_32.png"/>
+        <Resource Include="Resources\rendering.png"/>
+        <Resource Include="Resources\search_32.png"/>
+        <Resource Include="Resources\slider.png"/>
+        <Resource Include="Resources\undo_32.png"/>
+        <Resource Include="Resources\redo_32.png"/>
+        <Resource Include="Resources\clear_32.png"/>
+        <Resource Include="Resources\Collapse_16.png"/>
+        <Resource Include="Resources\complexity_32.png"/>
+        <Resource Include="Resources\cycle_32.png"/>
+        <Resource Include="Resources\document-xml.png"/>
+        <Resource Include="Resources\document_graph_32.png"/>
+        <Resource Include="Resources\document-xml_32.png"/>
+        <Resource Include="Resources\four-arrows.png"/>
+        <Resource Include="Resources\four-arrows_32.png"/>
+        <Resource Include="Resources\gear_32.png"/>
+        <Resource Include="Resources\import_solution.png"/>
+        <Resource Include="Resources\info_large.png"/>
+        <Resource Include="Resources\lamp.png"/>
+        <Resource Include="Resources\left-right.png"/>
+        <Resource Include="Resources\left-right_small.png"/>
+        <Resource Include="Resources\load_project.png"/>
+        <Resource Include="Resources\png-file_32.png"/>
+        <Resource Include="Resources\question.png"/>
+        <Resource Include="Resources\question_small.png"/>
+        <Resource Include="Resources\save_project.png"/>
+        <Resource Include="Resources\spreadsheet_32.png"/>
+        <Resource Include="Resources\svg-file_32.png"/>
+        <Resource Include="Resources\switch.png"/>
+        <Resource Include="Resources\trash-can.png"/>
+        <Resource Include="Resources\trash-can_32.png"/>
+        <Resource Include="Resources\workflow.png"/>
+        <Resource Include="Resources\cycle.png"/>
+        <Resource Include="Resources\unstructured-data_32.png"/>
+        <Resource Include="Resources\Assembly_16.png"/>
+        <Resource Include="Resources\Namespace_16.png"/>
+        <Resource Include="Resources\Class_16.png"/>
+        <Resource Include="Resources\Interface_16.png"/>
+        <Resource Include="Resources\Struct_16.png"/>
+        <Resource Include="Resources\Method_16.png"/>
+        <Resource Include="Resources\Property_16.png"/>
+        <Resource Include="Resources\Delegate_16.png"/>
+        <Resource Include="Resources\Event_16.png"/>
+        <Resource Include="Resources\Enum_16.png"/>
+        <Resource Include="Resources\Field_16.png"/>
+        <Resource Include="Resources\Record_16.png"/>
+        <Resource Include="Resources\Other_16.png"/>
     </ItemGroup>
 
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0-rc.1.25451.107" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0-rc.1.25451.107" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0-rc.1.25451.107"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0-rc.1.25451.107"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0"/>
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122"/>
     </ItemGroup>
 
     <!--<ItemGroup>
@@ -120,8 +120,8 @@
     </ItemGroup>-->
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
-        <ProjectReference Include="..\Contracts\Contracts.csproj" />
+        <ProjectReference Include="..\CodeParser\CodeParser.csproj"/>
+        <ProjectReference Include="..\Contracts\Contracts.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -152,6 +152,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Areas\TableArea\" />
+        <Folder Include="Areas\TableArea\"/>
     </ItemGroup>
 </Project>

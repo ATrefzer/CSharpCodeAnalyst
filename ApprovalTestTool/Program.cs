@@ -65,7 +65,7 @@ internal static class TestTool
             {
                 continue;
             }
-            
+
             var parts = line.Split(',');
             if (parts.Length != 3)
             {

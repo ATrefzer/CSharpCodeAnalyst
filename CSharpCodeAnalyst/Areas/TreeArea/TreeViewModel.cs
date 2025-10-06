@@ -39,16 +39,6 @@ public class TreeViewModel : INotifyPropertyChanged
         _treeItems = [];
     }
 
-    private static void OnCopyToClipboard(TreeItemViewModel vm)
-    {
-        var text = vm?.CodeElement?.FullName;
-        if (string.IsNullOrEmpty(text))
-        {
-            return;
-        }
-        Clipboard.SetText(text);
-    }
-
 
     public ICommand CollapseTreeCommand { get; }
 
@@ -94,6 +84,17 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand CopyToClipboardCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private static void OnCopyToClipboard(TreeItemViewModel vm)
+    {
+        var text = vm?.CodeElement?.FullName;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        Clipboard.SetText(text);
+    }
 
     private void PartitionWithBase(TreeItemViewModel vm)
     {

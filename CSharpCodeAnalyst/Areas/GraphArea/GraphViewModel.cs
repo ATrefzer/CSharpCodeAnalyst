@@ -47,11 +47,14 @@ internal class GraphViewModel : INotifyPropertyChanged
             new BottomToTopRenderOptions()
         ];
 
+
+
+
         HighlightOptions =
         [
             HighlightOption.Default,
             new HighlightOption(HighlightMode.OutgoingEdgesChildrenAndSelf, Strings.HighlightOutgoingEdges),
-            new HighlightOption (HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
+            new HighlightOption(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
         ];
 
         // Set defaults
@@ -146,22 +149,13 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
             PartitionClass));
         */
-        
+
         _viewer.AddCommand(new SeparatorCommand());
         _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyToClipboard,
             OnCopyToClipboard));
 
 
         UndoCommand = new WpfCommand(Undo);
-    }
-
-    private static void OnCopyToClipboard(CodeElement element)
-    {
-        var text = element?.FullName;
-        if (text != null)
-        {
-            Clipboard.SetText(text);
-        }
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -182,6 +176,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             }
         }
     }
+
 
 
     public bool ShowFlatGraph
@@ -236,6 +231,15 @@ internal class GraphViewModel : INotifyPropertyChanged
     public ICommand UndoCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private static void OnCopyToClipboard(CodeElement element)
+    {
+        var text = element?.FullName;
+        if (text != null)
+        {
+            Clipboard.SetText(text);
+        }
+    }
 
     private static bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
     {

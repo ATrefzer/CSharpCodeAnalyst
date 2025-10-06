@@ -240,11 +240,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>
-            {
-                // For convenience. The element is already in the graph. But this way the result is consistent.
-                _codeGraph.Nodes[id]
-                
-            };
+        {
+            // For convenience. The element is already in the graph. But this way the result is consistent.
+            _codeGraph.Nodes[id]
+        };
 
         var processed = new HashSet<string>();
         while (processingQueue.Count > 0)

@@ -16,7 +16,7 @@ public static class ViolationsFormatter
         else
         {
             sb.AppendLine("Violations");
-                
+
 
             foreach (var violation in violations)
             {
@@ -26,13 +26,13 @@ public static class ViolationsFormatter
                 {
                     var sourceElement = graph.Nodes.GetValueOrDefault(relationship.SourceId);
                     var targetElement = graph.Nodes.GetValueOrDefault(relationship.TargetId);
-                        
+
                     if (sourceElement == null || targetElement == null)
                     {
                         sb.AppendLine("(!) Invalid relationship with missing elements.");
                         continue;
                     }
-                        
+
                     sb.AppendLine($"{sourceElement.FullName} -> {targetElement.FullName}");
 
                     foreach (var location in relationship.SourceLocations)

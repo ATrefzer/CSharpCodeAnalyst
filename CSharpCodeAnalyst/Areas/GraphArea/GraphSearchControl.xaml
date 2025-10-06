@@ -89,7 +89,7 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Click="ClearButton_Click"
-                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}" >
+                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}">
                     <Image Source="/Resources/clear_32.png" />
                 </Button>
             </Grid>

@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Exports;
 
@@ -30,7 +31,12 @@ public static class ImageWriter
         }
 
         var bitmap = CreateBitmap(visual);
-        var frame = BitmapFrame.Create(bitmap);
+
+        // Crop transparent space
+        var croppedBitmap = ImageCrop.CropTransparency(bitmap);
+        croppedBitmap.Freeze();
+
+        var frame = BitmapFrame.Create(croppedBitmap);
         encoder.Frames.Add(frame);
 
         using (var stream = File.Create(fileName))
@@ -39,14 +45,14 @@ public static class ImageWriter
         }
     }
 
-    private static BitmapSource CreateBitmap(FrameworkElement visual)
+    private static BitmapSource? CreateBitmap(FrameworkElement? visual)
     {
         if (visual is null)
         {
             return null;
         }
 
-        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels(visual);
+        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels96Dpi(visual);
 
         var bitmap = new RenderTargetBitmap(
             pixelWidth,
@@ -59,22 +65,12 @@ public static class ImageWriter
         return bitmap;
     }
 
-    /// <summary>
-    ///     DIP (Device Independent Pixel) = length unit (like cm or inches)
-    ///     DPI (Dots Per Inch) = resolution (pixels per inch = resolution of your monitor)
-    ///     96 DPI monitor (100% scaling):
-    ///     -> 800 DIPs = 800 physical pixels
-    ///     144 DPI monitor(150% scaling):
-    ///     -> 800 DIPs = 1200 physical pixels
-    ///     192 DPI monitor(200% scaling):
-    ///     -> 800 DIPs = 1600 physical pixels
-    /// </summary>
-    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixels(FrameworkElement visual)
+    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixelsScreenDpi(FrameworkElement visual)
     {
         // Get the DPI of the visual's presentation source. 96 is WPFs baseline
         var source = PresentationSource.FromVisual(visual);
-        double dpiX = 96.0;
-        double dpiY = 96.0;
+        var dpiX = 96.0;
+        var dpiY = 96.0;
 
         if (source != null)
         {
@@ -87,14 +83,22 @@ public static class ImageWriter
         // Actual width returns DIP (device independent pixels) based on 96 DPI
         var scaleX = dpiX / 96.0;
         var scaleY = dpiY / 96.0;
-        int pixelWidth = (int)Math.Ceiling(visual.ActualWidth * scaleX);
-        int pixelHeight = (int)Math.Ceiling(visual.ActualHeight * scaleY);
+        var pixelWidth = (int)Math.Ceiling(visual.ActualWidth * scaleX);
+        var pixelHeight = (int)Math.Ceiling(visual.ActualHeight * scaleY);
         return (dpiX, dpiY, pixelWidth, pixelHeight);
+    }
+
+    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixels96Dpi(FrameworkElement visual)
+    {
+        // WPF internally uses 96 DPI
+        var pixelWidth = (int)Math.Ceiling(visual.ActualWidth);
+        var pixelHeight = (int)Math.Ceiling(visual.ActualHeight);
+        return (96.0, 96.0, pixelWidth, pixelHeight);
     }
 
     private static RenderTargetBitmap CreateBitmapWithBackground(FrameworkElement visual, Brush background)
     {
-        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels(visual);
+        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels96Dpi(visual);
 
         var bitmap = new RenderTargetBitmap(
             pixelWidth,
@@ -107,10 +111,14 @@ public static class ImageWriter
         using (var context = drawingVisual.RenderOpen())
         {
             // Pixel zurück in DIPs umrechnen für die Rect
-            double scaleX = dpiX / 96.0;
-            double scaleY = dpiY / 96.0;
-            double rectWidth = pixelWidth / scaleX;
-            double rectHeight = pixelHeight / scaleY;
+            // double scaleX = dpiX / 96.0;
+            // double scaleY = dpiY / 96.0;
+            // double rectWidth = pixelWidth / scaleX;
+            // double rectHeight = pixelHeight / scaleY;
+            // Avoid black line at the bottom due to rounding errors.
+
+            var rectWidth = visual.ActualWidth + 2;
+            var rectHeight = visual.ActualHeight + 2;
 
             context.DrawRectangle(
                 background,
@@ -127,6 +135,9 @@ public static class ImageWriter
         bitmap.Render(drawingVisual);
         return bitmap;
     }
+
+
+
     public static void CopyToClipboard(FrameworkElement visual)
     {
         if (visual is null)
@@ -134,7 +145,7 @@ public static class ImageWriter
             return;
         }
 
-        // Drawn in black in Paint
+        // Transparent background is drawn in black in Paint, Paint .NET, DrawIo
         //var transparentBitmap = CreateBitmap(visual);
         //transparentBitmap.Freeze();
         //Clipboard.SetData(DataFormats.Bitmap, transparentBitmap);
@@ -142,106 +153,8 @@ public static class ImageWriter
 
         // Bitmap with white background. Otherwise, its drawn black in Paint
         var whiteBitmap = CreateBitmapWithBackground(visual, Brushes.White);
-        var croppedBitmap = CropWhitespace(whiteBitmap, threshold: 250);
+        var croppedBitmap = ImageCrop.CropWhiteSpace(whiteBitmap);
         croppedBitmap.Freeze();
         Clipboard.SetData(DataFormats.Bitmap, croppedBitmap);
-    }
-
-    /// <summary>
-    /// Cuts white edges from the image
-    /// </summary>
-    public static BitmapSource CropWhitespace(BitmapSource source, byte threshold = 250)
-    {
-        // Read pixel data
-        int width = source.PixelWidth;
-        int height = source.PixelHeight;
-        int stride = width * 4; // 4 bytes per pixel (BGRA)
-        byte[] pixels = new byte[height * stride];
-
-        source.CopyPixels(pixels, stride, 0);
-
-        // Scan all four edges
-        int top = FindTop(pixels, width, height, threshold);
-        int bottom = FindBottom(pixels, width, height, threshold);
-        int left = FindLeft(pixels, width, height, threshold);
-        int right = FindRight(pixels, width, height, threshold);
-
-        // If everything is white
-        if (top > bottom || left > right)
-        {
-            return source;
-        }
-
-        // Bitmap with new dimensions
-        int newWidth = right - left + 1;
-        int newHeight = bottom - top + 1;
-
-        var cropped = new CroppedBitmap(source, new Int32Rect(left, top, newWidth, newHeight));
-
-        return cropped;
-    }
-
-    private static bool IsWhitePixel(byte[] pixels, int index, byte threshold)
-    {
-        // BGRA format: index+0=Blue, index+1=Green, index+2=Red, index+3=Alpha
-        return pixels[index] >= threshold &&     // B
-               pixels[index + 1] >= threshold && // G
-               pixels[index + 2] >= threshold;   // R
-    }
-
-    private static int FindTop(byte[] pixels, int width, int height, byte threshold)
-    {
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                int index = (y * width + x) * 4;
-                if (!IsWhitePixel(pixels, index, threshold))
-                    return y;
-            }
-        }
-        return height;
-    }
-
-    private static int FindBottom(byte[] pixels, int width, int height, byte threshold)
-    {
-        for (int y = height - 1; y >= 0; y--)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                int index = (y * width + x) * 4;
-                if (!IsWhitePixel(pixels, index, threshold))
-                    return y;
-            }
-        }
-        return -1;
-    }
-
-    private static int FindLeft(byte[] pixels, int width, int height, byte threshold)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int index = (y * width + x) * 4;
-                if (!IsWhitePixel(pixels, index, threshold))
-                    return x;
-            }
-        }
-        return width;
-    }
-
-    private static int FindRight(byte[] pixels, int width, int height, byte threshold)
-    {
-        for (int x = width - 1; x >= 0; x--)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int index = (y * width + x) * 4;
-                if (!IsWhitePixel(pixels, index, threshold))
-                    return x;
-            }
-        }
-        return -1;
     }
 }

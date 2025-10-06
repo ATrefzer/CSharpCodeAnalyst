@@ -38,7 +38,7 @@ internal static class CodeGraphPlausibilityChecks
                 }
             }
 
-            
+
             foreach (var relationship in node.Relationships)
             {
                 hash.Clear();

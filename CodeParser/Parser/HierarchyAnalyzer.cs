@@ -168,11 +168,11 @@ public class HierarchyAnalyzer
                 elementType = CodeElementType.Method;
                 break;
             case ConstructorDeclarationSyntax:
-                
+
                 // Does not include primary constructors.
                 // Normal constructor: symbol.DeclaringSyntaxReferences → ConstructorDeclarationSyntax.
                 // Primary constructor: symbol.DeclaringSyntaxReferences → TypeDeclarationSyntax (z. B. ClassDeclarationSyntax), with ParameterList.
-                
+
                 symbol = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
                 elementType = CodeElementType.Method; // or you could create a separate Constructor type
                 break;

@@ -17,7 +17,7 @@ public static class CommandLineProcessor
             var arguments = ParseArguments(args);
 
             SetupOutput(arguments);
-          
+
             var cmd = new ConsoleValidationCommand(arguments);
             if (cmd.CanExecute())
             {

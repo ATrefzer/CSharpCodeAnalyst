@@ -12,13 +12,6 @@ internal interface IExpression
 
 internal class Term : IExpression
 {
-    private enum SearchLocation
-    {
-        Type,
-        Name,
-        External,
-        Internal
-    }
     private readonly SearchLocation _searchLocation;
 
     private readonly string _searchTerm;
@@ -76,6 +69,14 @@ internal class Term : IExpression
 
         type = CodeElementType.Other;
         return false;
+    }
+
+    private enum SearchLocation
+    {
+        Type,
+        Name,
+        External,
+        Internal
     }
 
     internal class And : IExpression

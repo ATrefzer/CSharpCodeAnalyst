@@ -67,10 +67,10 @@ public class ProjectData
         foreach (var se in CodeElements)
         {
             var element = new CodeElement(se.Id, se.ElementType, se.Name, se.FullName, null!)
-                {
-                    SourceLocations = se.SourceLocations,
-                    Attributes = se.Attributes
-                };
+            {
+                SourceLocations = se.SourceLocations,
+                Attributes = se.Attributes
+            };
             codeStructure.Nodes.Add(element.Id, element);
         }
 

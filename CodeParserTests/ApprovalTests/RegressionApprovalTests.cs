@@ -22,8 +22,8 @@ public class RegressionApprovalTests : ProjectTestBase
             "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2",
             "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest",
 
-            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest", 
-            "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest",
+            "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource",
             "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode"
         };
 
@@ -37,7 +37,7 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.RecordA", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.RecordA",
             "Regression.SpecificBugs.Regression.SpecificBugs.RecordB"
         };
 
@@ -74,7 +74,7 @@ public class RegressionApprovalTests : ProjectTestBase
             "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.OnCreated",
 
             "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty",
-            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource.OriginalElement", 
+            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource.OriginalElement",
             "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchNode.Name"
         };
         CollectionAssert.AreEquivalent(expected, calls);
@@ -140,8 +140,8 @@ public class RegressionApprovalTests : ProjectTestBase
                 if (lineGroup.Count() > 1)
                 {
                     Assert.Fail($"Found {lineGroup.Count()} SourceLocations for line {lineGroup.Key} in relationship to " +
-                               $"{graph.Nodes.GetValueOrDefault(rel.TargetId)?.Name}. " +
-                               $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}");
+                                $"{graph.Nodes.GetValueOrDefault(rel.TargetId)?.Name}. " +
+                                $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}");
                 }
             }
         }
@@ -188,8 +188,8 @@ public class RegressionApprovalTests : ProjectTestBase
                 if (lineGroup.Count() > 1)
                 {
                     Assert.Fail($"Found {lineGroup.Count()} SourceLocations for line {lineGroup.Key} in relationship to OriginalElement. " +
-                               $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}. " +
-                               $"This indicates the same property access is being processed twice by different analyzers.");
+                                $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}. " +
+                                $"This indicates the same property access is being processed twice by different analyzers.");
                 }
             }
         }

@@ -6,7 +6,7 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-- Copy to clipboard contains the magnifier glass!
+
 
 
 UNHANDLED CASES
@@ -30,4 +30,4 @@ MISSING TEST CASES
 CLARIFY
 ---------------------
 
-- What was the reason for the normalized ctor?
+- Export to png or clipboard with high DPI

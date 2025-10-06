@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows.Threading;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
@@ -8,11 +7,14 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public class GraphSearchViewModel : INotifyPropertyChanged
 {
-    private readonly DispatcherTimer _searchTimer;
     private readonly IGraphViewer _graphViewer;
-    
-    private string _searchText;
+    private readonly DispatcherTimer _searchTimer;
+
+
+
     private bool _isSearchVisible;
+
+    private string _searchText;
 
     public GraphSearchViewModel(IGraphViewer graphViewer)
     {
@@ -34,6 +36,8 @@ public class GraphSearchViewModel : INotifyPropertyChanged
             ExecuteSearchInternal();
         };
     }
+
+
 
     public string SearchText
     {

@@ -268,7 +268,7 @@ public static class SymbolExtensions
     }
 
     /// <summary>
-    ///     Returns the original definition of a symbol. 
+    ///     Returns the original definition of a symbol.
     /// 
     ///     Note:
     ///     Constructors are never generic. So IsGeneric is never true. But phase 1 in our parser did not collect

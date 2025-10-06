@@ -28,6 +28,7 @@ public class TreeItemViewModel : INotifyPropertyChanged
             {
                 return CodeElementIconMapper.GetIcon(CodeElementType.Namespace);
             }
+
             return CodeElement != null ? CodeElementIconMapper.GetIcon(CodeElement.ElementType) : null;
         }
     }

@@ -46,17 +46,6 @@ public class SearchViewModel : INotifyPropertyChanged
         CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
     }
 
-    private static void OnCopyToClipboard(SearchItemViewModel vm)
-    {
-        var text = vm?.CodeElement?.FullName;
-        if (string.IsNullOrEmpty(text))
-        {
-            return;
-        }
-        Clipboard.SetText(text);
-
-    }
-
     public ObservableCollection<SearchItemViewModel> AllItems
     {
         get => _allItems;
@@ -98,6 +87,17 @@ public class SearchViewModel : INotifyPropertyChanged
     public ICommand CopyToClipboardCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private static void OnCopyToClipboard(SearchItemViewModel vm)
+    {
+        var text = vm?.CodeElement?.FullName;
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        Clipboard.SetText(text);
+    }
 
     private static bool CanPartition(SearchItemViewModel? vm)
     {
