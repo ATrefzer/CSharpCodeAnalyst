@@ -39,48 +39,48 @@ public static class ImageWriter
         var frame = BitmapFrame.Create(croppedBitmap);
         encoder.Frames.Add(frame);
 
-        using (var stream = File.Create(fileName))
-        {
-            encoder.Save(stream);
-        }
+        using var stream = File.Create(fileName);
+        encoder.Save(stream);
     }
 
-    private static BitmapSource? CreateBitmap(FrameworkElement? visual)
+    /// <summary>
+    /// Note: The dpi in the bitmap is just metadata.
+    /// We could let WPF render the visual to a 10000x10000 pixel bitmap to get a very high resolution.
+    /// </summary>
+    private static BitmapSource CreateBitmap(FrameworkElement visual)
     {
-        if (visual is null)
-        {
-            return null;
-        }
-
-        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels96Dpi(visual);
+        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixelDimension(visual);
 
         var bitmap = new RenderTargetBitmap(
-            pixelWidth,
-            pixelHeight,
-            dpiX,
-            dpiY,
+            // Physical pixels
+            pixelWidth, pixelHeight,
+            // Metadata
+            dpiX, dpiY,
             PixelFormats.Pbgra32);
 
         bitmap.Render(visual);
         return bitmap;
     }
 
-    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixelsScreenDpi(FrameworkElement visual)
+    /// <summary>
+    ///     Returns physical pixels the visual occupies on the screen.
+    ///     Keep physical pixels and DPI metadata in sync to get the least problems.
+    ///     visual.ActualWidth returns DIP (device independent pixels) based on 96 DPI
+    /// </summary>
+    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixelDimension(FrameworkElement visual)
     {
-        // Get the DPI of the visual's presentation source. 96 is WPFs baseline
+        // Get the DPI of the visual's presentation source. WPF renders to this resolution. WPF baseline is 96 DPI.
         var source = PresentationSource.FromVisual(visual);
         var dpiX = 96.0;
         var dpiY = 96.0;
 
-        if (source != null)
+        if (source?.CompositionTarget != null)
         {
             // Scaling factors: 150% = 1.5 = 144 pixes/inch
             dpiX = 96.0 * source.CompositionTarget.TransformToDevice.M11;
             dpiY = 96.0 * source.CompositionTarget.TransformToDevice.M22;
         }
 
-        // Calculate actual pixel dimensions based on DPI
-        // Actual width returns DIP (device independent pixels) based on 96 DPI
         var scaleX = dpiX / 96.0;
         var scaleY = dpiY / 96.0;
         var pixelWidth = (int)Math.Ceiling(visual.ActualWidth * scaleX);
@@ -88,17 +88,9 @@ public static class ImageWriter
         return (dpiX, dpiY, pixelWidth, pixelHeight);
     }
 
-    private static (double dpiX, double dpiY, int pixelWidth, int pixelHeight) CalculatePixels96Dpi(FrameworkElement visual)
-    {
-        // WPF internally uses 96 DPI
-        var pixelWidth = (int)Math.Ceiling(visual.ActualWidth);
-        var pixelHeight = (int)Math.Ceiling(visual.ActualHeight);
-        return (96.0, 96.0, pixelWidth, pixelHeight);
-    }
-
     private static RenderTargetBitmap CreateBitmapWithBackground(FrameworkElement visual, Brush background)
     {
-        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixels96Dpi(visual);
+        var (dpiX, dpiY, pixelWidth, pixelHeight) = CalculatePixelDimension(visual);
 
         var bitmap = new RenderTargetBitmap(
             pixelWidth,
@@ -110,21 +102,19 @@ public static class ImageWriter
         var drawingVisual = new DrawingVisual();
         using (var context = drawingVisual.RenderOpen())
         {
-            // Pixel zurück in DIPs umrechnen für die Rect
-            // double scaleX = dpiX / 96.0;
-            // double scaleY = dpiY / 96.0;
-            // double rectWidth = pixelWidth / scaleX;
-            // double rectHeight = pixelHeight / scaleY;
-            // Avoid black line at the bottom due to rounding errors.
+            // Convert physical pixels back to DIP
+            var scaleX = dpiX / 96.0;
+            var scaleY = dpiY / 96.0;
+            var rectWidth = pixelWidth / scaleX;
+            var rectHeight = pixelHeight / scaleY;
 
-            var rectWidth = visual.ActualWidth + 2;
-            var rectHeight = visual.ActualHeight + 2;
-
+            // Draw white rectangle
             context.DrawRectangle(
                 background,
                 null,
                 new Rect(0, 0, rectWidth, rectHeight));
 
+            // Draw visual over it
             var visualBrush = new VisualBrush(visual);
             context.DrawRectangle(
                 visualBrush,
@@ -136,21 +126,13 @@ public static class ImageWriter
         return bitmap;
     }
 
-
-
-    public static void CopyToClipboard(FrameworkElement visual)
+    public static void CopyToClipboard(FrameworkElement? visual)
     {
         if (visual is null)
         {
             return;
         }
-
-        // Transparent background is drawn in black in Paint, Paint .NET, DrawIo
-        //var transparentBitmap = CreateBitmap(visual);
-        //transparentBitmap.Freeze();
-        //Clipboard.SetData(DataFormats.Bitmap, transparentBitmap);
-        //dataObject.SetData(DataFormats.Bitmap, transparentBitmap);
-
+        
         // Bitmap with white background. Otherwise, its drawn black in Paint
         var whiteBitmap = CreateBitmapWithBackground(visual, Brushes.White);
         var croppedBitmap = ImageCrop.CropWhiteSpace(whiteBitmap);
