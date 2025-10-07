@@ -1619,14 +1619,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 
-        ///Logical operations: space = AND, &apos;|&apos; = OR
+        ///   Looks up a localized string similar to Logical operations: space = AND, &apos;|&apos; = OR
         ///Search for type = type:xxx
         ///Search for internal code elements = source:intern      
         ///Search for external code elements = source:extern
-        ///Search with resharper style = Use at least one uppercase character in a search term.
-        ///
-        ///.
+        ///Search with resharper style = Use at least one uppercase character in a search term..
         /// </summary>
         public static string SearchPattern_Tooltip {
             get {
