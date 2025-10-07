@@ -604,10 +604,14 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Full Path</value>
   </data>
     <data name="SearchPattern_Tooltip" xml:space="preserve">
-    <value>Logical operations: space = AND, '|' = OR
+    <value>
+Logical operations: space = AND, '|' = OR
 Search for type = type:xxx
-Search for internal code elements = intern      
-Search for external code elements = extern</value>
+Search for internal code elements = source:intern      
+Search for external code elements = source:extern
+Search with resharper style = Use at least one uppercase character in a search term.
+
+</value>
   </data>
     <data name="InfoPanel_TabHeader" xml:space="preserve">
     <value>Info</value>

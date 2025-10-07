@@ -6,7 +6,6 @@ internal static class SearchExpressionFactory
     {
         // Or binds less.
         var orTerms = searchText
-            .ToLowerInvariant()
             .Split(['|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 

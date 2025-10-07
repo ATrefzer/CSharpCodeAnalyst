@@ -1,4 +1,5 @@
-﻿using Contracts.Graph;
+﻿using System.Text.RegularExpressions;
+using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Common;
 
@@ -12,41 +13,58 @@ internal interface IExpression
 
 internal class Term : IExpression
 {
-    private readonly SearchLocation _searchLocation;
+    private readonly SearchModel _searchModel;
 
     private readonly string _searchTerm;
     private readonly CodeElementType _type = CodeElementType.Other;
+    
+    private readonly Regex _regex;
 
     public Term(string searchTerm)
     {
-        if (searchTerm.StartsWith("type:"))
+        var lowerSearchTerm = searchTerm.ToLowerInvariant();
+        if (lowerSearchTerm.StartsWith("type:"))
         {
-            searchTerm = searchTerm.Substring("type:".Length);
-            if (TryGetCodeElementTypeFromName(searchTerm, out _type))
+            // If type is not known fallback to CodeElementType.Other
+            lowerSearchTerm = lowerSearchTerm.Substring("type:".Length);
+            if (TryGetCodeElementTypeFromName(lowerSearchTerm, out _type))
             {
-                _searchLocation = SearchLocation.Type;
+                _searchModel = SearchModel.Type;
             }
         }
-        else if (searchTerm is "internal" or "intern")
+        else if (lowerSearchTerm is "source:intern")
         {
-            _searchLocation = SearchLocation.Internal;
+            _searchModel = SearchModel.InternalCode;
         }
-        else if (searchTerm is "external" or "extern")
+        else if (lowerSearchTerm is "source:extern")
         {
-            _searchLocation = SearchLocation.External;
+            _searchModel = SearchModel.ExternalCode;
         }
-
-        _searchLocation = SearchLocation.Name;
-        _searchTerm = searchTerm;
+        else
+        {
+            var (isPascalCase, regex) = PascalCaseSearch.CreateSearchRegex(searchTerm);
+            if (isPascalCase && regex != null)
+            {
+                _searchModel = SearchModel.FullNameResharperStyle;
+                _regex = regex; 
+            }
+            else
+            {
+                // All lower case, default mode
+                _searchModel = SearchModel.FullNameSimple;
+                _searchTerm = lowerSearchTerm;        
+            }
+        }
     }
 
     public bool Evaluate(CodeElement item)
     {
-        return _searchLocation switch
+        return _searchModel switch
         {
-            SearchLocation.Type => item.ElementType == _type,
-            SearchLocation.Internal => !item.IsExternal,
-            SearchLocation.External => item.IsExternal,
+            SearchModel.Type => item.ElementType == _type,
+            SearchModel.InternalCode => !item.IsExternal,
+            SearchModel.ExternalCode => item.IsExternal,
+            SearchModel.FullNameResharperStyle => _regex.IsMatch(item.FullName),
             _ => item.FullName.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase)
         };
     }
@@ -71,12 +89,17 @@ internal class Term : IExpression
         return false;
     }
 
-    private enum SearchLocation
+    private enum SearchModel
     {
+        // Search for types.
         Type,
-        Name,
-        External,
-        Internal
+        
+        // Search in FullName
+        FullNameSimple,
+        
+        FullNameResharperStyle,
+        ExternalCode,
+        InternalCode,
     }
 
     internal class And : IExpression
