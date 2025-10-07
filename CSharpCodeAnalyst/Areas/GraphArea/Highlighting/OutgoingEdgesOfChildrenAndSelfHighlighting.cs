@@ -5,22 +5,18 @@ namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
 {
-    public override void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
-    {
-        ClearAllEdges(graphViewer);
-    }
-
-    public override void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
+    public override void Highlight(IGraphViewerHighlighting graphViewer,
         IViewerObject? viewerObject, CodeGraph? codeGraph)
     {
-        if (graphViewer is null || codeGraph is null)
+        var msagl = graphViewer.GetMsaglGraphViewer();
+        if (codeGraph is null || msagl is null)
         {
             return;
         }
 
         if (viewerObject is not IViewerNode node)
         {
-            ClearAllEdges(graphViewer);
+            graphViewer.ClearAllEdgeHighlighting();
             return;
         }
 
@@ -28,17 +24,17 @@ internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
         var vertex = codeGraph.Nodes[id];
         var ids = vertex.GetChildrenIncludingSelf();
 
-        var edges = graphViewer.Entities.OfType<IViewerEdge>();
+        var edges = msagl.Entities.OfType<IViewerEdge>();
         foreach (var edge in edges)
         {
             var sourceId = edge.Edge.Source;
             if (ids.Contains(sourceId))
             {
-                Highlight(edge);
+                graphViewer.HighlightEdge(edge);
             }
             else
             {
-                ClearHighlight(edge);
+                graphViewer.ClearEdgeHighlighting(edge);
             }
         }
     }

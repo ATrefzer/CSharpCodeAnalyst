@@ -22,6 +22,8 @@ BUGS
 
 - Key down gets lost. Not even called on the MainWindow!?
 
+- MSAGL with external source has non assemblies on top level
+
 
 MISSING TEST CASES
 ---------------------

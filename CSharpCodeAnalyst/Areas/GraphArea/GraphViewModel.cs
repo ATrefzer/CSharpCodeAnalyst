@@ -16,6 +16,9 @@ using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
+/// <summary>
+/// Defines and handles the context menu commands for the graph viewer.
+/// </summary>
 internal class GraphViewModel : INotifyPropertyChanged
 {
     private const int UndoStackSize = 10;
@@ -60,9 +63,13 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Set defaults
         _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
+        
+        var flag = IconLoader.LoadIcon("Resources/flag.png");
 
         // Edge commands
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
         _viewer.AddCommand(new RelationshipContextCommand(Strings.Delete, DeleteEdges));
+
 
         // Global commands
         _viewer.AddGlobalCommand(
@@ -90,7 +97,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             IsVisible = false
         });
 
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleFlag, icon: IconLoader.LoadIcon("Resources/flag.png")));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
@@ -156,6 +163,21 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
         UndoCommand = new WpfCommand(Undo);
+    }
+    
+    private void ToggleNodeFlag(CodeElement codeElement)
+    {
+        _viewer.ToggleFlag(codeElement.Id);
+    }
+
+    private void ToggleEdgeFlag(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        if (relationships.Count == 0)
+        {
+            return;
+        }
+        
+        _viewer.ToggleFlag(sourceId, targetId, relationships);
     }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
@@ -277,7 +299,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(newGraph, presentationState);
     }
 
-    private void DeleteEdges(List<Relationship> relationships)
+    private void DeleteEdges(string sourceId, string targetId, List<Relationship> relationships)
     {
         PushUndo();
         _viewer.DeleteFromGraph(relationships);
@@ -353,11 +375,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         var ids = codeElements.Select(c => c.Id).ToList();
         var result = _explorer.FindParents(ids);
         AddToGraph(result.Elements, []);
-    }
-
-    private void ToggleFlag(CodeElement codeElement)
-    {
-        _viewer.ToggleFlag(codeElement.Id);
     }
 
     private void ClearAllFlags(List<CodeElement> selectedElements)

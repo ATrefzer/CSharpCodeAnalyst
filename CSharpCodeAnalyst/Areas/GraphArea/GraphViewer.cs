@@ -25,13 +25,11 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 ///     in the parser. In this case the relationship holds all source references.
 ///     If ever the MSAGL is replaced this is the adapter to re-write.
 /// </summary>
-public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
+public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, IGraphViewerHighlighting
 {
-    private readonly Stopwatch _clickStopwatch = Stopwatch.StartNew();
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalCommand> _globalCommands = [];
     private readonly int _maxElementWarningLimit;
-    private readonly MsaglBuilder _msaglBuilder;
     private readonly List<ICodeElementContextCommand> _nodeCommands = [];
     private readonly IPublisher _publisher;
 
@@ -61,7 +59,6 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
     public GraphViewer(IPublisher publisher, int settings)
     {
         _publisher = publisher;
-        _msaglBuilder = new MsaglBuilder();
         SetHighlightMode(HighlightMode.EdgeHovered);
         _maxElementWarningLimit = settings;
     }
@@ -165,7 +162,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
     public void SetHighlightMode(HighlightMode valueMode)
     {
-        _activeHighlighting.Clear(_msaglViewer);
+        ClearAllEdgeHighlighting();
+
         switch (valueMode)
         {
             case HighlightMode.EdgeHovered:
@@ -314,14 +312,26 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         var currentState = _presentationState.IsFlagged(id);
         var newState = !currentState;
         _presentationState.SetFlaggedState(id, newState);
-        RefreshNodeDecoratorsWithoutLayout([id]);
+        RefreshNodeDecorationWithoutLayout([id]);
+    }
+
+    public void ToggleFlag(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        var key = (sourceId, targetId);
+        var currentState = _presentationState.IsFlagged(key);
+        var newState = !currentState;
+        _presentationState.SetFlaggedState(key, newState);
+        RefreshEdgeDecorationWithoutLayout([key]);
     }
 
     public void ClearAllFlags()
     {
         var affectedIds = _presentationState.NodeIdToFlagged.Keys.ToList();
         _presentationState.ClearAllFlags();
-        RefreshNodeDecoratorsWithoutLayout(affectedIds);
+        RefreshNodeDecorationWithoutLayout(affectedIds);
+        
+        // After the highlighting is removed the state appears.
+        ClearAllEdgeHighlighting();
     }
 
     public void SetSearchHighlights(List<string> nodeIds)
@@ -339,14 +349,14 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         // Refresh all affected nodes
         var allAffectedIds = previousIds.Union(nodeIds).ToList();
-        RefreshNodeDecoratorsWithoutLayout(allAffectedIds);
+        RefreshNodeDecorationWithoutLayout(allAffectedIds);
     }
 
     public void ClearSearchHighlights()
     {
         var ids = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
         _presentationState.ClearAllSearchHighlights();
-        RefreshNodeDecoratorsWithoutLayout(ids);
+        RefreshNodeDecorationWithoutLayout(ids);
     }
 
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
@@ -398,6 +408,57 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
 
         return false;
     }
+    
+    public Microsoft.Msagl.WpfGraphControl.GraphViewer? GetMsaglGraphViewer()
+    {
+        return _msaglViewer;
+    }
+
+    public void ClearAllEdgeHighlighting()
+    {
+        if (_msaglViewer is null)
+        {
+            return;
+        }
+        var edges = _msaglViewer.Entities.OfType<IViewerEdge>();
+        foreach (var edge in edges)
+        {
+            ClearEdgeHighlighting(edge);
+        }
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="IGraphViewerHighlighting.ClearAllEdgeHighlighting" />
+    /// </summary>
+    public void ClearEdgeHighlighting(IViewerEdge? edge)
+    {
+        if (edge is null)
+        {
+            return;
+        }
+
+        edge.Edge.Attr.Color = Constants.DefaultLineColor;
+        edge.Edge.Attr.LineWidth = Constants.DefaultLineWidth;
+
+        if (edge.Edge.UserData is Relationship { Type: RelationshipType.Containment })
+        {
+            edge.Edge.Attr.Color = Constants.GrayColor;
+        }
+
+        // Clearing highlighting recovers the flagged state.
+        if (_presentationState.IsFlagged((edge.Edge.Source, edge.Edge.Target)))
+        {
+            edge.Edge.Attr.LineWidth = Constants.FlagLineWidth;
+            edge.Edge.Attr.Color = Constants.FlagColor;
+        }
+    }
+
+    public void HighlightEdge(IViewerEdge edge)
+    {
+        edge.Edge.Attr.Color = Constants.MouseHighlightColor;
+        edge.Edge.Attr.LineWidth = Constants.MouseHighlightLineWidth;
+        _msaglViewer?.Invalidate(edge);
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -424,9 +485,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         {
             // Click on specific edge
             var edge = viewerEdge.Edge;
+            var sourceId = edge.Source;
+            var targetid = edge.Target;
             var contextMenu = new ContextMenu();
             var relationships = GetRelationshipsFromUserData(edge);
-            AddContextMenuEntries(relationships, contextMenu);
+            AddContextMenuEntries(sourceId, targetid, relationships, contextMenu);
             if (contextMenu.Items.Count > 0)
             {
                 contextMenu.IsOpen = true;
@@ -476,9 +539,28 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         }
     }
 
-    private void RefreshNodeDecoratorsWithoutLayout(List<string> ids)
+    /// <summary>
+    ///     Assumption. In the hierarchical view there is only one edge connecting two nodes. Real edges are bundled together.
+    /// </summary>
+    private void RefreshEdgeDecorationWithoutLayout(List<(string sourceId, string targetId)> relationships)
     {
-        if (_msaglViewer is null || _msaglViewer.Graph is null)
+        if (_msaglViewer?.Graph is null)
+        {
+            return;
+        }
+
+        //var edges = _msaglViewer.Graph.Edges.Where(e => relationships.Contains((e.Source, e.Target)));
+        var edges = _msaglViewer.Entities.OfType<IViewerEdge>().Where(e => relationships.Contains((e.Edge.Source, e.Edge.Target)));
+       
+        foreach (var edge in edges)
+        {
+            ClearEdgeHighlighting(edge);
+        }
+    }
+
+    private void RefreshNodeDecorationWithoutLayout(List<string> ids)
+    {
+        if (_msaglViewer?.Graph is null)
         {
             return;
         }
@@ -524,7 +606,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             return true;
         }
 
-        // If the id is rendered as a subgraph. Both derive from Node.
+        // If the id is rendered as a expanded subgraph. Both derive from Node.
         if (_msaglViewer.Graph.SubgraphMap.TryGetValue(id, out var subGraph))
         {
             node = subGraph;
@@ -606,8 +688,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         {
             if (_msaglViewer != null)
             {
-                var graph = _msaglBuilder.CreateGraph(_clonedCodeGraph, _presentationState,
-                    _showFlatGraph, _flow);
+                MsaglBuilderBase builder = _showFlatGraph ? new MsaglFlatBuilder() : new MsaglHierarchicalBuilder();
+                var graph = builder.CreateGraph(_clonedCodeGraph, _presentationState, _flow);
 
                 if (askUserToShowLargeGraphs)
                 {
@@ -662,7 +744,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
             UpdateQuickInfoPanel(e.NewObject);
         }
 
-        _activeHighlighting.Highlight(_msaglViewer, e.NewObject, _clonedCodeGraph);
+        ClearAllEdgeHighlighting();
+        _activeHighlighting.Highlight(this, e.NewObject, _clonedCodeGraph);
     }
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -681,7 +764,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
         _publisher.Publish(new QuickInfoUpdate(quickInfo));
     }
 
-    private void AddContextMenuEntries(List<Relationship> relationships, ContextMenu contextMenu)
+    private void AddContextMenuEntries(string sourceId, string targetId, List<Relationship> relationships, ContextMenu contextMenu)
     {
         if (relationships.Count == 0)
         {
@@ -706,7 +789,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged
                     menuItem.Icon = iconImage;
                 }
 
-                menuItem.Click += (_, _) => cmd.Invoke(relationships);
+                menuItem.Click += (_, _) => cmd.Invoke(sourceId, targetId, relationships);
                 contextMenu.Items.Add(menuItem);
             }
         }

@@ -9,5 +9,5 @@ public interface IRelationshipContextCommand
     ImageSource? Icon { get; }
 
     bool CanHandle(List<Relationship> relationships);
-    void Invoke(List<Relationship> relationships);
+    void Invoke(string sourceId, string targetId, List<Relationship> relationships);
 }

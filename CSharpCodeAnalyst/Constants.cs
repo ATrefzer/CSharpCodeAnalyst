@@ -15,4 +15,9 @@ public class Constants
     public static Color DefaultLineColor = Color.Black;
 
     public static int DoubleClickMilliseconds = 350;
+    
+    
+    public  const int MouseHighlightLineWidth = 3;
+    public static readonly Color GrayColor = Color.LightGray;
+    public static readonly Color MouseHighlightColor = Color.Red;
 }

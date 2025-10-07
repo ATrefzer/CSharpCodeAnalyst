@@ -9,33 +9,34 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
     private Graph? _lastGraph;
 
 
-    public override void Clear(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer)
+    private void Clear(IGraphViewerHighlighting graphViewer)
     {
-        ClearAllEdges(graphViewer);
+        graphViewer.ClearAllEdgeHighlighting();
         _idToViewerNode.Clear();
         _lastGraph = null;
     }
 
 
-    public override void Highlight(Microsoft.Msagl.WpfGraphControl.GraphViewer? graphViewer,
+    public override void Highlight(IGraphViewerHighlighting graphViewer,
         IViewerObject? viewerObject, CodeGraph? codeGraph)
     {
-        if (graphViewer is null || codeGraph is null)
+        if (codeGraph is null)
         {
             return;
         }
 
         if (viewerObject is not IViewerNode selectedNode)
         {
-            ClearAllEdges(graphViewer);
+            Clear(graphViewer);
             return;
         }
 
-        if (!ReferenceEquals(_lastGraph, graphViewer.Graph))
+        var msagl = graphViewer.GetMsaglGraphViewer();
+        if (!ReferenceEquals(_lastGraph, msagl.Graph))
         {
             // Optimize same search on same graph
-            _idToViewerNode = graphViewer.Entities.OfType<IViewerNode>().ToDictionary(n => n.Node.Id, n => n);
-            _lastGraph = graphViewer.Graph;
+            _idToViewerNode = msagl.Entities.OfType<IViewerNode>().ToDictionary(n => n.Node.Id, n => n);
+            _lastGraph = msagl.Graph;
         }
 
         var shortestPath = new List<IViewerEdge>();
@@ -58,10 +59,10 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
             }
         }
 
-        ClearAllEdges(graphViewer);
+        graphViewer.ClearAllEdgeHighlighting();
         foreach (var edge in shortestPath)
         {
-            Highlight(edge);
+            graphViewer.HighlightEdge(edge);
         }
     }
 
