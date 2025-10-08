@@ -620,8 +620,10 @@ internal class MainViewModel : INotifyPropertyChanged
         var failures = diagnostics.FormatFailures();
         if (!string.IsNullOrEmpty(failures))
         {
-            var failureText = Strings.Parser_FailureHeader + failures;
-            MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            
+            //var failureText = Strings.Parser_FailureHeader + failures;
+            //MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
+            ErrorWarningDialog.Show(diagnostics.Failures, diagnostics.Warnings);
         }
 
         return codeGraph;

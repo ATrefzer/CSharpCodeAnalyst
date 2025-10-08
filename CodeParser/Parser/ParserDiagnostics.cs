@@ -9,15 +9,20 @@ internal class ParserDiagnostics : IParserDiagnostics
 
     public string FormatFailures()
     {
-        var failures = Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message);
-        return string.Join(Environment.NewLine, failures);
+        return string.Join(Environment.NewLine, Failures);
     }
 
     public string FormatWarnings()
     {
-        var failures = Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Warning).Select(d => d.Message);
-        return string.Join(Environment.NewLine, failures);
+        return string.Join(Environment.NewLine, Failures);
     }
+
+    public List<string> Failures
+    {
+        get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message).ToList();
+    }
+
+    public List<string> Warnings {  get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Warning).Select(d => d.Message).ToList();}
 
     public void Add(WorkspaceDiagnostic diagnostic)
     {
