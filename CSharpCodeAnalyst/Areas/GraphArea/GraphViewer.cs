@@ -37,6 +37,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     private ClickController? _clickController;
 
+    private GraphHideFilter _hideFilter = new();
+
     /// <summary>
     ///     Held to read the help
     /// </summary>
@@ -147,6 +149,17 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     {
         _renderOption = renderOption;
         RefreshGraph();
+    }
+
+    public void SetHideFilter(GraphHideFilter filter)
+    {
+        _hideFilter = filter;
+        RefreshGraph();
+    }
+
+    public GraphHideFilter GetHideFilter()
+    {
+        return _hideFilter;
     }
 
     public void SaveToSvg(FileStream stream)
@@ -689,7 +702,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             if (_msaglViewer != null)
             {
                 MsaglBuilderBase builder = _showFlatGraph ? new MsaglFlatBuilder() : new MsaglHierarchicalBuilder();
-                var graph = builder.CreateGraph(_clonedCodeGraph, _presentationState, _flow);
+                var graph = builder.CreateGraph(_clonedCodeGraph, _presentationState, _flow, _hideFilter);
 
                 if (askUserToShowLargeGraphs)
                 {

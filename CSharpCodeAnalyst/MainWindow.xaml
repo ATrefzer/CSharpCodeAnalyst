@@ -111,6 +111,14 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
+                    <RibbonButton Label="Hide"
+                                  LargeImageSource="/Resources/filter_32.png"
+                                  Command="{Binding GraphViewModel.OpenGraphHideDialogCommand}">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Hide code elements and relationships from the graph" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
                     <RibbonButton Label="{x:Static resources:Strings.Layout_Label}"
                                   LargeImageSource="/Resources/four-arrows_32.png"
                                   Command="{Binding GraphLayoutCommand}">

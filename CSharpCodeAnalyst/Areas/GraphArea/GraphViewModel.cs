@@ -163,6 +163,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
 
         UndoCommand = new WpfCommand(Undo);
+        OpenGraphHideDialogCommand = new WpfCommand(OpenGraphHideDialog);
     }
     
     private void ToggleNodeFlag(CodeElement codeElement)
@@ -251,6 +252,8 @@ internal class GraphViewModel : INotifyPropertyChanged
     }
 
     public ICommand UndoCommand { get; }
+
+    public ICommand OpenGraphHideDialogCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -662,5 +665,22 @@ internal class GraphViewModel : INotifyPropertyChanged
     public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
     {
         return _viewer.TryHandleKeyEvent(keyEventArgs.Key);
+    }
+
+    private void OpenGraphHideDialog()
+    {
+        var currentFilter = _viewer.GetHideFilter();
+        var viewModel = new GraphHideDialogViewModel(currentFilter);
+        var dialog = new GraphHideDialog(viewModel)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        var result = dialog.ShowDialog();
+        if (result == true)
+        {
+            // Apply the filter from the dialog
+            _viewer.SetHideFilter(viewModel.Filter);
+        }
     }
 }

@@ -79,4 +79,6 @@ public interface IGraphViewer
     event Action<CodeGraph>? GraphChanged;
     bool TryHandleKeyEvent(Key key);
 
+    void SetHideFilter(GraphHideFilter hideFilter);
+    GraphHideFilter GetHideFilter();
 }

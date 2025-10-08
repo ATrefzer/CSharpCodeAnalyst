@@ -24,7 +24,7 @@ internal abstract class MsaglBuilderBase
     };
 
     public abstract Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
-        bool showInformationFlow);
+        bool showInformationFlow, GraphHideFilter hideFilter);
 
     protected static NodeAttr CreateNodeAttr(CodeElement element, PresentationState presentationState)
     {

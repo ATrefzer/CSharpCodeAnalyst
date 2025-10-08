@@ -6,21 +6,24 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 internal class MsaglFlatBuilder : MsaglBuilderBase
 {
     public override Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
-        bool showInformationFlow)
+        bool showInformationFlow, GraphHideFilter hideFilter)
     {
-        return CreateFlatGraph(codeGraph, presentationState, showInformationFlow);
+        return CreateFlatGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
-    
-    private static Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow)
+
+    private static Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
         var graph = new Graph("graph");
 
-        // Add nodes
+        // Add nodes (excluding hidden ones)
         foreach (var codeElement in codeGraph.Nodes.Values)
         {
-            CreateNode(graph, codeElement, presentationState);
+            if (!hideFilter.ShouldHideElement(codeElement))
+            {
+                CreateNode(graph, codeElement, presentationState);
+            }
         }
 
         // Add edges and hierarchy
@@ -31,14 +34,33 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
 
         void AddRelationshipsFunc(CodeElement element)
         {
+            // Skip relationships from/to hidden elements
+            if (hideFilter.ShouldHideElement(element))
+            {
+                return;
+            }
+
             foreach (var relationship in element.Relationships)
             {
+                // Skip hidden relationships
+                if (hideFilter.ShouldHideRelationship(relationship))
+                {
+                    continue;
+                }
+
+                // Skip if target is hidden
+                var targetElement = codeGraph.Nodes[relationship.TargetId];
+                if (hideFilter.ShouldHideElement(targetElement))
+                {
+                    continue;
+                }
+
                 var sourceId = relationship.SourceId;
                 var reverse = showInformationFlow && ShouldReverseInFlowMode(codeGraph, sourceId, relationship.Type);
                 CreateEdgeForFlatStructure(graph, relationship, reverse, presentationState);
             }
 
-            if (element.Parent != null)
+            if (element.Parent != null && !hideFilter.ShouldHideElement(element.Parent))
             {
                 CreateContainmentEdge(graph,
                     new Relationship(element.Parent.Id, element.Id, RelationshipType.Containment));

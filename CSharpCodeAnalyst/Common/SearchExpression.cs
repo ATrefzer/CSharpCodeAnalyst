@@ -18,7 +18,7 @@ internal class Term : IExpression
     private readonly string _searchTerm;
     private readonly CodeElementType _type = CodeElementType.Other;
     
-    private readonly Regex _regex;
+    private readonly Regex? _regex;
 
     public Term(string searchTerm)
     {
