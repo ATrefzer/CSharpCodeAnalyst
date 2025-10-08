@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using CodeParser.Extensions;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;

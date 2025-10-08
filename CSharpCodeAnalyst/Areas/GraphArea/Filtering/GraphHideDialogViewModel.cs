@@ -6,7 +6,7 @@ using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
 public class GraphHideDialogViewModel : INotifyPropertyChanged
 {

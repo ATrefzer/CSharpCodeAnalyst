@@ -1,8 +1,8 @@
 using System.Windows;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
-public partial class GraphHideDialog : Window
+public partial class GraphHideDialog
 {
     public GraphHideDialog(GraphHideDialogViewModel viewModel)
     {

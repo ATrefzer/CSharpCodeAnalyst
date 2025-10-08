@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;

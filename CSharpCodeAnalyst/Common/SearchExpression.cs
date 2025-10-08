@@ -15,7 +15,7 @@ internal class Term : IExpression
 {
     private readonly SearchModel _searchModel;
 
-    private readonly string _searchTerm;
+    private readonly string _searchTerm = string.Empty;
     private readonly CodeElementType _type = CodeElementType.Other;
     
     private readonly Regex? _regex;
@@ -64,7 +64,7 @@ internal class Term : IExpression
             SearchModel.Type => item.ElementType == _type,
             SearchModel.InternalCode => !item.IsExternal,
             SearchModel.ExternalCode => item.IsExternal,
-            SearchModel.FullNameResharperStyle => _regex.IsMatch(item.FullName),
+            SearchModel.FullNameResharperStyle => _regex!.IsMatch(item.FullName),
             _ => item.FullName.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase)
         };
     }

@@ -1,5 +1,6 @@
 ﻿using Contracts.Colors;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;

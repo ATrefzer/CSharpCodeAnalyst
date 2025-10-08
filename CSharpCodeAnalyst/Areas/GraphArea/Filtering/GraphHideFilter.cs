@@ -1,6 +1,6 @@
 using Contracts.Graph;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
 /// <summary>
 /// Represents which CodeElement types and Relationship types should be hidden from the graph view.

@@ -32,9 +32,9 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
         }
 
         var msagl = graphViewer.GetMsaglGraphViewer();
-        if (!ReferenceEquals(_lastGraph, msagl.Graph))
+        if (msagl != null && !ReferenceEquals(_lastGraph, msagl.Graph))
         {
-            // Optimize same search on same graph
+            // Optimize same search on same graph. Did it really take that long?
             _idToViewerNode = msagl.Entities.OfType<IViewerNode>().ToDictionary(n => n.Node.Id, n => n);
             _lastGraph = msagl.Graph;
         }
@@ -104,7 +104,6 @@ internal class HighlightShortestNonSelfCircuit : HighlightingBase
         string endNodeId)
     {
         // Add immediately so we can use it later for self edges.
-        var edge = whereICameFrom[endNodeId];
         var path = new List<IViewerEdge>
             { whereICameFrom[endNodeId] };
 
