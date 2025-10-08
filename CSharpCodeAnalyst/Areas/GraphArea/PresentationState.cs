@@ -6,22 +6,26 @@ public class PresentationState
 {
     private readonly Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _defaultState;
+    private Dictionary<(string, string), bool> _edgeToFlagged;
+
     private Dictionary<string, bool> _nodeIdToFlagged;
 
     public PresentationState(Dictionary<string, bool> defaultState)
     {
         _defaultState = defaultState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
-        _nodeIdToFlagged = new Dictionary<string, bool>();
-        NodeIdToSearchHighlighted = new Dictionary<string, bool>();
+        _nodeIdToFlagged = [];
+        _edgeToFlagged = [];
+        NodeIdToSearchHighlighted = [];
     }
 
     public PresentationState()
     {
         // Nothing is collapsed
         _defaultState = new Dictionary<string, bool>();
-        _nodeIdToCollapsed = new Dictionary<string, bool>();
-        _nodeIdToFlagged = new Dictionary<string, bool>();
+        _nodeIdToCollapsed = [];
+        _nodeIdToFlagged = [];
+        _edgeToFlagged = [];
         NodeIdToSearchHighlighted = new Dictionary<string, bool>();
     }
 
@@ -29,13 +33,19 @@ public class PresentationState
     [JsonPropertyName("defaultState")] public Dictionary<string, bool> DefaultState
     {
         get => _defaultState;
-        set => _defaultState = value ?? new Dictionary<string, bool>();
+        set => _defaultState = value ?? [];
     }
 
     [JsonPropertyName("nodeIdToFlagged")] public Dictionary<string, bool> NodeIdToFlagged
     {
         get => _nodeIdToFlagged;
-        set => _nodeIdToFlagged = value ?? new Dictionary<string, bool>();
+        set => _nodeIdToFlagged = value ?? [];
+    }
+
+    [JsonPropertyName("edgeToFlagged")] public Dictionary<(string, string), bool> EdgeToFlagged
+    {
+        get => _edgeToFlagged;
+        set => _edgeToFlagged = value ?? [];
     }
 
     public Dictionary<string, bool> NodeIdToSearchHighlighted { get; }
@@ -53,6 +63,11 @@ public class PresentationState
             clone.SetFlaggedState(pair.Key, pair.Value);
         }
 
+        foreach (var pair in _edgeToFlagged)
+        {
+            clone.SetFlaggedState(pair.Key, pair.Value);
+        }
+
         foreach (var pair in NodeIdToSearchHighlighted)
         {
             clone.SetSearchHighlightedState(pair.Key, pair.Value);
@@ -60,6 +75,7 @@ public class PresentationState
 
         return clone;
     }
+
 
 
     public bool IsCollapsed(string id)
@@ -79,6 +95,17 @@ public class PresentationState
         return isFlagged;
     }
 
+    public bool IsFlagged((string, string) edge)
+    {
+        _edgeToFlagged.TryGetValue(edge, out var isFlagged);
+        return isFlagged;
+    }
+
+    public void SetFlaggedState((string, string) edge, bool value)
+    {
+        _edgeToFlagged[edge] = value;
+    }
+
     public void SetFlaggedState(string id, bool isFlagged)
     {
         _nodeIdToFlagged[id] = isFlagged;
@@ -87,6 +114,7 @@ public class PresentationState
     public void ClearAllFlags()
     {
         _nodeIdToFlagged.Clear();
+        _edgeToFlagged.Clear();
     }
 
     public bool IsSearchHighlighted(string id)

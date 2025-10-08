@@ -30,8 +30,14 @@ internal class ExternalCodeElementCache
     ///     External elements are created with full hierarchy (Method -> Class -> Namespace -> Assembly).
     ///     For generic types, always uses the original definition (List&lt;T&gt; not List&lt;int&gt;).
     /// </summary>
-    public CodeElement GetOrCreateExternalCodeElement(ISymbol symbol)
+    public CodeElement? TryGetOrCreateExternalCodeElement(ISymbol symbol)
     {
+        var elementType = DetermineCodeElementType(symbol);
+        if (!IsSupportedExternalElementType(elementType))
+        {
+            return null;
+        }
+
         var symbolToUse = symbol;
         var symbolKey = symbolToUse.Key();
 
@@ -44,13 +50,14 @@ internal class ExternalCodeElementCache
             }
 
             // Create a new external element with hierarchy
-            var externalElement = CreateExternalCodeElementWithHierarchy(symbolToUse);
-
-
-            // Add to cache only - will be added to graph after parallel processing completes
-            _externalElementCache[symbolKey] = externalElement;
-            return externalElement;
+            return TryCreateExternalCodeElementWithHierarchy(symbolToUse);
         }
+    }
+
+    private bool IsSupportedExternalElementType(CodeElementType elementType)
+    {
+        // Get rid of everything I don't know
+        return elementType is not CodeElementType.Other;
     }
 
     /// <summary>
@@ -58,54 +65,45 @@ internal class ExternalCodeElementCache
     ///     Hierarchy: Method -> Class -> Namespace -> Assembly (all marked as external)
     ///     Reuses cached parent elements to avoid duplicates.
     /// </summary>
-    private CodeElement CreateExternalCodeElementWithHierarchy(ISymbol symbol)
+    private CodeElement? TryCreateExternalCodeElementWithHierarchy(ISymbol symbol)
     {
-        // Build the hierarchy from top to bottom (Assembly -> Namespace -> Type -> Member)
-        // Start by ensuring all parents exist
+        // Skip module
+        var symbolChain = symbol.GetSymbolChain();
+
+        if (symbolChain.Any(s => !IsSupportedExternalElementType(DetermineCodeElementType(s))))
+        {
+            // Avoid any unexpected output. Rather lose some information.
+            return null;
+        }
+
+        // Build from top (assembly) to bottom (symbol)
+        symbolChain.Reverse();
         CodeElement? parent = null;
-
-        // Create assembly element
-        if (symbol.ContainingAssembly != null)
+        CodeElement? lastElement = null;
+        foreach (var sym in symbolChain)
         {
-            parent = GetOrCreateExternalParent(symbol.ContainingAssembly);
+            if (sym is INamespaceSymbol { IsGlobalNamespace: true })
+            {
+                // Skip the global namespace. It is added after everything is parsed if necessary.
+                continue;
+            }
+            
+            var symbolKey = sym.Key();
+
+            if (!_externalElementCache.TryGetValue(symbolKey, out lastElement))
+            {
+                lastElement = CreateExternalCodeElement(sym, parent);
+                _externalElementCache[symbolKey] = lastElement;
+            }
+
+            // New parent for the next iteration
+            parent = lastElement;
         }
 
-        // Create namespace chain
-        if (symbol.ContainingNamespace != null && !symbol.ContainingNamespace.IsGlobalNamespace)
-        {
-            parent = GetOrCreateExternalParent(symbol.ContainingNamespace, parent);
-        }
-
-        // Create containing type (if this symbol is a member)
-        if (symbol.ContainingType != null)
-        {
-            parent = GetOrCreateExternalParent(symbol.ContainingType, parent);
-        }
-
-        // Finally, create the element itself
-        return CreateExternalCodeElement(symbol, parent);
+        return lastElement;
     }
 
-    /// <summary>
-    ///     Gets or creates a parent element (assembly, namespace, or type) for external symbols.
-    ///     Checks the cache first to reuse existing parents.
-    /// </summary>
-    private CodeElement GetOrCreateExternalParent(ISymbol parentSymbol, CodeElement? grandparent = null)
-    {
-        var symbolKey = parentSymbol.Key();
 
-        // Check if we've already created this parent
-        if (_externalElementCache.TryGetValue(symbolKey, out var existing))
-        {
-            return existing;
-        }
-
-        // Create new parent element
-        var parent = CreateExternalCodeElement(parentSymbol, grandparent);
-        _externalElementCache[symbolKey] = parent;
-
-        return parent;
-    }
 
     /// <summary>
     ///     Creates a single external code element for a symbol with the specified parent.
@@ -115,9 +113,9 @@ internal class ExternalCodeElementCache
     {
         var id = Guid.NewGuid().ToString();
         var name = symbol.Name;
-        var fullName = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
-        var elementType = DetermineCodeElementType(symbol);
+        var fullName = symbol.BuildSymbolName(); // .ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
+        var elementType = DetermineCodeElementType(symbol);
         var element = new CodeElement(id, elementType, name, fullName, parent)
         {
             IsExternal = true

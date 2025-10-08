@@ -66,6 +66,9 @@ public interface IGraphViewer
     // Flags
     bool IsFlagged(string id);
     void ToggleFlag(string id);
+    
+    void ToggleFlag(string sourceId, string targetId, List<Relationship> relationships);
+    
     void ClearAllFlags();
 
     // Search highlights
@@ -75,4 +78,5 @@ public interface IGraphViewer
     // Event for graph changes to notify search UI
     event Action<CodeGraph>? GraphChanged;
     bool TryHandleKeyEvent(Key key);
+
 }

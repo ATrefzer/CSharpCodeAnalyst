@@ -5,11 +5,11 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public class RelationshipContextCommand : IRelationshipContextCommand
 {
-    private readonly Action<List<Relationship>> _action;
+    private readonly Action<string, string, List<Relationship>> _action;
     private readonly Func<List<Relationship>, bool>? _canExecute;
     private readonly RelationshipType? _type;
 
-    public RelationshipContextCommand(string label, RelationshipType type, Action<List<Relationship>> action, ImageSource? icon = null)
+    public RelationshipContextCommand(string label, RelationshipType type, Action<string, string, List<Relationship>> action, ImageSource? icon = null)
     {
         _type = type;
         _action = action;
@@ -20,7 +20,7 @@ public class RelationshipContextCommand : IRelationshipContextCommand
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
-    public RelationshipContextCommand(string label, Action<List<Relationship>> action,
+    public RelationshipContextCommand(string label, Action<string, string, List<Relationship>> action,
         Func<List<Relationship>, bool>? canExecute = null, ImageSource? icon = null)
     {
         _type = null;
@@ -60,8 +60,8 @@ public class RelationshipContextCommand : IRelationshipContextCommand
     }
 
 
-    public void Invoke(List<Relationship> relationships)
+    public void Invoke(string sourceId, string targetId, List<Relationship> relationships)
     {
-        _action.Invoke(relationships);
+        _action.Invoke(sourceId, targetId, relationships);
     }
 }
