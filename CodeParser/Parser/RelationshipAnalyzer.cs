@@ -970,7 +970,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             return null;
         }
 
-        return _externalCodeElementCache.GetOrCreateExternalCodeElement(symbol);
+        return _externalCodeElementCache.TryGetOrCreateExternalCodeElement(symbol);
     }
 
     /// <summary>
@@ -986,6 +986,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
     ///     Current behavior: For external symbols, creates relationships to the CONTAINING TYPE only.
     ///     Example: myList.Add(5) -> relationship to List&lt;T&gt; (not to List&lt;T&gt;.Add)
+    /// 
     ///     TO CHANGE TO METHOD-LEVEL EXTERNAL RELATIONSHIPS:
     ///     Change line marked with "FALLBACK BEHAVIOR" below from:
     ///     GetOrCreateCodeElement(targetSymbol.ContainingType)
@@ -1030,18 +1031,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
             return;
         }
-
-        // External handling...
-        if (_config.IncludeExternals && targetSymbol.ContainingType != null)
-        {
-            var externalElement = TryGetOrCreateExternalCodeElement(targetSymbol.ContainingType);
-            if (externalElement is not null)
-            {
-                AddRelationship(sourceElement, RelationshipType.Uses, externalElement, locations, attributes);
-            }
-        }
-
-
+        
         // External handling
         if (_config.IncludeExternals)
         {

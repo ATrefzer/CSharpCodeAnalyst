@@ -23,6 +23,11 @@ BUGS
 - Key down gets lost. Not even called on the MainWindow!?
 
 - MSAGL with external source has non assemblies on top level
+- IViewerNode in msagl not recognized, WPF Graph Control missing
+
+- Cant read messages after parsing
+
+- Filtering in Graph
 
 
 MISSING TEST CASES

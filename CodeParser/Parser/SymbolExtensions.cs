@@ -23,7 +23,7 @@ public static class SymbolExtensions
 
     public static string BuildSymbolName(this ISymbol symbol)
     {
-        var parts = GetParentChain(symbol);
+        var parts = GetSymbolChain(symbol);
         parts.Reverse();
         var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.Name));
         return fullName;
@@ -40,7 +40,7 @@ public static class SymbolExtensions
     {
         // A generic method may be in a generic type. So we have to consider the generic part of the parent, too
 
-        var parts = GetParentChain(symbol);
+        var parts = GetSymbolChain(symbol);
         return string.Join(".", parts.Select(GetKeyInternal));
     }
 
@@ -62,7 +62,7 @@ public static class SymbolExtensions
     ///     0 = symbol itself
     ///     n = assembly
     /// </summary>
-    private static List<ISymbol> GetParentChain(this ISymbol symbol)
+    public static List<ISymbol> GetSymbolChain(this ISymbol symbol)
     {
         var parts = new List<ISymbol>();
 
