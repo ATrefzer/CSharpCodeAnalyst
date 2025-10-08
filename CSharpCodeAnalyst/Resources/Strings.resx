@@ -787,4 +787,10 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Default" xml:space="preserve">
 		<value>Default</value>
 	</data>
+  <data name="Refactor" xml:space="preserve">
+		<value>Refactor</value>
+	</data>
+  <data name="Refactor_CreateCodeElement" xml:space="preserve">
+		<value>Create code element</value>
+	</data>
 </root>

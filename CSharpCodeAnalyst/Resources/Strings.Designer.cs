@@ -1422,6 +1422,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Refactor.
+        /// </summary>
+        public static string Refactor {
+            get {
+                return ResourceManager.GetString("Refactor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create code element.
+        /// </summary>
+        public static string Refactor_CreateCodeElement {
+            get {
+                return ResourceManager.GetString("Refactor_CreateCodeElement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute.
         /// </summary>
         public static string Relationship_Attribute {

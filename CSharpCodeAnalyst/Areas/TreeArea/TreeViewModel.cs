@@ -3,8 +3,10 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Wpf;
 
@@ -30,13 +32,25 @@ public class TreeViewModel : INotifyPropertyChanged
         SearchCommand = new WpfCommand(ExecuteSearch);
         CollapseTreeCommand = new WpfCommand(CollapseTree);
         ClearSearchCommand = new WpfCommand(ClearSearch);
-        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
         AddNodeToGraphCommand = new WpfCommand<TreeItemViewModel>(AddNodeToGraph);
         PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
         PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
+      
+        // Refactoring
+        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
+        CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(CreateCodeElement, CanCreateCodeElement);
+
+
         _filteredTreeItems = [];
         _treeItems = [];
+    }
+
+    private bool CanCreateCodeElement(TreeItemViewModel? tvm)
+    {
+        // null tvm means root level (empty space in tree) - this is allowed
+        // Otherwise check if the CodeElement can have children
+        return VirtualRefactoringService.CanCreateCodeElement(tvm?.CodeElement);
     }
 
 
@@ -82,6 +96,7 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand PartitionTreeCommand { get; private set; }
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
     public ICommand CopyToClipboardCommand { get; private set; }
+    public ICommand CreateCodeElementCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -155,6 +170,58 @@ public class TreeViewModel : INotifyPropertyChanged
         {
             // Forward to GraphViewModel. see MainViewModel.
             _messaging.Publish(new AddNodeToGraphRequest(item.CodeElement));
+        }
+    }
+
+    /// <summary>
+    /// Creates a code element at the root level (e.g., Assembly).
+    /// Public method to be called from UI when right-clicking empty space.
+    /// </summary>
+    public void CreateCodeElementAtRoot()
+    {
+        CreateCodeElement(null);
+    }
+
+    private void CreateCodeElement(TreeItemViewModel? item)
+    {
+        if (_codeGraph == null)
+        {
+            return;
+        }
+
+        var refactoringService = new VirtualRefactoringService(_codeGraph);
+        var parent = item?.CodeElement; // null means root level
+        if (!VirtualRefactoringService.CanCreateCodeElement(parent))
+        {
+            return;
+        }
+
+        var viewModel = new CreateCodeElementDialogViewModel(refactoringService, parent);
+        var dialog = new CreateCodeElementDialog(viewModel)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        var result = dialog.ShowDialog();
+        if (result == true && dialog.CreatedElement != null)
+        {
+            // Refresh the tree to show the new element
+            var newTreeItem = CreateTreeViewItem(dialog.CreatedElement);
+
+            if (parent == null)
+            {
+                // Add to root
+                TreeItems.Add(newTreeItem);
+            }
+            else
+            {
+                // Find the parent in the tree and add as child
+                if (CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
+                {
+                    parentViewModel.Children.Add(newTreeItem);
+                    parentViewModel.IsExpanded = true; // Expand to show the new item
+                }
+            }
         }
     }
 

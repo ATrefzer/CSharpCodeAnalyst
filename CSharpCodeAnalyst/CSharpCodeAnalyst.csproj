@@ -148,6 +148,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Areas\GraphArea\Refactoring\" />
         <Folder Include="Areas\TableArea\" />
     </ItemGroup>
 </Project>

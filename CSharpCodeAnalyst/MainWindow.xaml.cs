@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst;
@@ -66,16 +67,68 @@ public partial class MainWindow
 
     private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
-        if ((e.OriginalSource as FrameworkElement)?.DataContext is not TreeItemViewModel treeViewItem)
+        var treeView = sender as TreeView;
+        if (treeView == null)
         {
-            e.Handled = true; // Cancel the context menu
             return;
         }
 
-        if (!treeViewItem.CanShowContextMenuForItem())
+        if (CodeTree.Items.Count == 0)
+        {
+            // Don't show context menu if tree is empty
+            e.Handled = true;
+            return;
+        }
+
+        // Check if we clicked on a TreeViewItem or empty space
+        if ((e.OriginalSource as FrameworkElement)?.DataContext is not TreeItemViewModel treeViewModel)
+        {
+            // Clicked on empty space - show root-level context menu
+            ShowRootContextMenu(treeView, e);
+            e.Handled = true;
+            return;
+        }
+
+        // Clicked on an item - use the normal context menu
+        if (!treeViewModel.CanShowContextMenuForItem())
         {
             e.Handled = true; // Cancel the context menu
         }
+    }
+
+    private void ShowRootContextMenu(TreeView treeView, ContextMenuEventArgs e)
+    {
+        // Get the TreeViewModel from DataContext
+        if (treeView.DataContext is not TreeViewModel treeViewModel)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        // Yes, we can create an own context menu on the fly
+        var emptyContextMenu = new ContextMenu();
+        var refactoringMenu = new MenuItem
+        {
+            Header = Strings.Refactor
+        };
+
+        var createMenuItem = new MenuItem
+        {
+            Header = Strings.Refactor_CreateCodeElement,
+        };
+
+        // Command binding has issues with null parameters
+        createMenuItem.Click += (s, args) =>
+        {
+            treeViewModel.CreateCodeElementAtRoot();
+        };
+
+        emptyContextMenu.Items.Add(refactoringMenu);
+        refactoringMenu.Items.Add(createMenuItem);
+
+        // Position and show the context menu
+        emptyContextMenu.PlacementTarget = treeView;
+        emptyContextMenu.IsOpen = true;
     }
 
     private void LeftExpander_Collapsed(object sender, RoutedEventArgs e)
