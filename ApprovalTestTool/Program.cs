@@ -129,7 +129,7 @@ internal static class TestTool
 
         // Compare digest output with reference or copy missing files to reference folder
         var referenceDigestPath = Path.Combine(referenceFolder, digestFileName);
-        var referenceDumpPath = Path.Combine(referenceFolder, outputFileName);
+        var referenceDumpPath = Path.Join(referenceFolder, outputFileName);
         if (File.Exists(referenceDigestPath))
         {
             var areEqual = CompareFiles(outputDigestPath, referenceDigestPath);
