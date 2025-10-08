@@ -11,6 +11,8 @@ public class ApplicationSettings
 
     public bool IncludeExternalCode { get; set; } = false;
 
+    public bool WarnIfFiltersActive { get; set; } = true;
+
     public void Save(string appSettingsPath)
     {
         var root = new { ApplicationSettings = this };

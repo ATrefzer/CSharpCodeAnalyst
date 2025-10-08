@@ -111,11 +111,11 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="Hide"
+                    <RibbonButton Label="{x:Static resources:Strings.HideFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
                                   Command="{Binding GraphViewModel.OpenGraphHideDialogCommand}">
                         <RibbonButton.ToolTip>
-                            <ToolTip Content="Hide code elements and relationships from the graph" />
+                            <ToolTip Content="{x:Static resources:Strings.HideFilter_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 

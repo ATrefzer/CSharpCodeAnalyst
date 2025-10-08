@@ -540,8 +540,6 @@ internal class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-
-
     private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
     {
         LoadMessage = Strings.Load_Message_Default;

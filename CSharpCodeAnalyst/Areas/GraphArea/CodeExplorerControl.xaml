@@ -21,7 +21,7 @@
     </UserControl.Resources>
     <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
         <StackPanel
-            IsHitTestVisible="false"
+            IsHitTestVisible="false" Panel.ZIndex="100"
             Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
             HorizontalAlignment="Center" VerticalAlignment="Center">
 

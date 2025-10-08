@@ -5,6 +5,8 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 /// <summary>
 ///     Transformation of a CodGraph to Msagl graph structure.
+///     Don't confuse the presentation state (expanded / collapsed) with the hide filter.
+///     The hide filter removes code elements and relationship types completely from the graph.
 /// </summary>
 internal class MsaglHierarchicalBuilder : MsaglBuilderBase
 {

@@ -12,6 +12,7 @@ using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
@@ -643,6 +644,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         }
 
         _viewer.LoadSession(graph, presentationState);
+        WarnIfFiltersActive();
     }
 
 
@@ -660,6 +662,21 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         var elements = _explorer.GetElements(session.CodeElementIds);
         _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
+
+        WarnIfFiltersActive();
+    }
+
+    private void WarnIfFiltersActive()
+    {
+        if (_settings.WarnIfFiltersActive)
+        {
+            var hideFilter = _viewer.GetHideFilter();
+            if (hideFilter.IsActive())
+            {
+                // var hiddenCount = hideFilter.HiddenElementTypes.Count + hideFilter.HiddenRelationshipTypes.Count;
+                ToastManager.ShowWarning(Strings.Message_FiltersAreActive, 4000);
+            }
+        }
     }
 
     public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)

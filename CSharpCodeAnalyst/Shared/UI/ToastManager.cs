@@ -5,6 +5,12 @@ using System.Windows.Threading;
 
 namespace CSharpCodeAnalyst.Shared.UI;
 
+public enum ToastType
+{
+    Success,
+    Warning
+}
+
 public static class ToastManager
 {
     private static Panel? _toastContainer;
@@ -16,15 +22,20 @@ public static class ToastManager
 
     public static void ShowSuccess(string message, int durationMs = 2000)
     {
-        ShowToast(message, durationMs);
+        ShowToast(message, durationMs, ToastType.Success);
     }
 
     public static void ShowInfo(string message, int durationMs = 2000)
     {
-        ShowToast(message, durationMs);
+        ShowToast(message, durationMs, ToastType.Success);
     }
 
-    private static void ShowToast(string message, int durationMs)
+    public static void ShowWarning(string message, int durationMs = 3000)
+    {
+        ShowToast(message, durationMs, ToastType.Warning);
+    }
+
+    private static void ShowToast(string message, int durationMs, ToastType type = ToastType.Success)
     {
         if (_toastContainer == null)
         {
@@ -45,7 +56,7 @@ public static class ToastManager
         _toastContainer.Children.Add(toast);
 
         // Show the toast
-        toast.Show(message, durationMs);
+        toast.Show(message, durationMs, type);
 
         // Remove from container after animation completes
         var removeTimer = new DispatcherTimer();

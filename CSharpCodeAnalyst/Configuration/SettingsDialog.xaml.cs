@@ -20,12 +20,14 @@ public partial class SettingsDialog
         WarningLimitTextBox.Text = Settings.WarningCodeElementLimit.ToString();
         ProjectExcludeFilterTextBox.Text = Settings.DefaultProjectExcludeFilter;
         IncludeExternalCodeCheckBox.IsChecked = Settings.IncludeExternalCode;
+        WarnIfFiltersActiveCheckBox.IsChecked = Settings.WarnIfFiltersActive;
     }
 
     private void SaveSettingsFromUi()
     {
         Settings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
         Settings.IncludeExternalCode = IncludeExternalCodeCheckBox.IsChecked ?? true;
+        Settings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
 
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)
         {
@@ -49,7 +51,8 @@ public partial class SettingsDialog
             WarningCodeElementLimit = original.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = original.DefaultProjectExcludeFilter,
             AutomaticallyAddContainingType = original.AutomaticallyAddContainingType,
-            IncludeExternalCode = original.IncludeExternalCode
+            IncludeExternalCode = original.IncludeExternalCode,
+            WarnIfFiltersActive = original.WarnIfFiltersActive
         };
     }
 

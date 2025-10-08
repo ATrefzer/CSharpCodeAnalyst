@@ -84,7 +84,8 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
 
     public void Clear()
     {
-        _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
+        QuickInfo = QuickInfoFactory.DefaultInfo;
+        OnPropertyChanged(nameof(QuickInfo));
     }
 
     /// <summary>

@@ -26,7 +26,12 @@
                         <CheckBox x:Name="IncludeExternalCodeCheckBox"
                                   Content="{x:Static resources:Strings.Settings_IncludeExternalCode}"
                                   Margin="0,5"
-                                  ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
+                                  ToolTip="{x:Static resources:Strings.Settings_IncludeExternalCode_Tooltip}" />
+
+                        <CheckBox x:Name="WarnIfFiltersActiveCheckBox"
+                                  Content="{x:Static resources:Strings.Settings_WarnIfFiltersActive}"
+                                  Margin="0,5"
+                                  ToolTip="{x:Static resources:Strings.Settings_WarnIfFiltersActive_Tooltip}" />
                     </StackPanel>
                 </GroupBox>
 
@@ -60,11 +65,11 @@
         </ScrollViewer>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="{x:Static resources:Strings.Default_Button}" Width="75" Click="DefaultsButton_Click"
+            <Button Content="{x:Static resources:Strings.Default}" Width="75" Click="DefaultsButton_Click"
                     Margin="0,0,10,0" />
-            <Button Content="{x:Static resources:Strings.Ok_Button}" Width="75" Click="OkButton_Click"
+            <Button Content="{x:Static resources:Strings.Ok}" Width="75" Click="OkButton_Click"
                     Margin="0,0,10,0" IsDefault="True" />
-            <Button Content="{x:Static resources:Strings.Cancel_Button}" Width="75" Click="CancelButton_Click"
+            <Button Content="{x:Static resources:Strings.Cancel}" Width="75" Click="CancelButton_Click"
                     IsCancel="True" />
         </StackPanel>
     </Grid>

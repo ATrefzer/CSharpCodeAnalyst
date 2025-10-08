@@ -4,7 +4,8 @@
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              x:Name="RootToast">
 
-    <Border Background="#4CAF50"
+    <Border x:Name="ToastBorder"
+            Background="#4CAF50"
             CornerRadius="5"
             Padding="15,10"
             BorderBrush="#45a049"
