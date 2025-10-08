@@ -445,7 +445,7 @@ internal class MainViewModel : INotifyPropertyChanged
     {
         try
         {
-            var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+            var appSettingsPath = Path.Join(Directory.GetCurrentDirectory(), "appsettings.json");
             _applicationSettings.Save(appSettingsPath);
         }
         catch (Exception ex)

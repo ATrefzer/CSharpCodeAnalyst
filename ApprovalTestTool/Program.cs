@@ -48,7 +48,7 @@ internal static class TestTool
 
         var executablePath = Assembly.GetExecutingAssembly().Location;
         var executableDirectory = Path.GetDirectoryName(executablePath) ?? string.Empty;
-        var repoFile = Path.Combine(executableDirectory, "repositories.txt");
+        var repoFile = Path.Join(executableDirectory, "repositories.txt");
 
         if (!File.Exists(repoFile))
         {
@@ -85,7 +85,7 @@ internal static class TestTool
         string gitCloneFolder, string referenceFolder)
     {
         var repoName = Path.GetFileName(repoUrl).Replace(".git", "");
-        var repoPath = Path.Combine(gitCloneFolder, repoName);
+        var repoPath = Path.Join(gitCloneFolder, repoName);
 
         // Clone or pull the repository
         if (!Directory.Exists(repoPath))
@@ -112,11 +112,11 @@ internal static class TestTool
         }
 
         // Generate paths
-        var slnPath = Path.Combine(repoPath, slnRelativePath);
+        var slnPath = Path.Join(repoPath, slnRelativePath);
         var outputFileName = $"{commitHash}.txt";
         var digestFileName = $"{commitHash}_digest.txt";
-        var dumpPath = Path.Combine(gitCloneFolder, outputFileName);
-        var outputDigestPath = Path.Combine(gitCloneFolder, digestFileName);
+        var dumpPath = Path.Join(gitCloneFolder, outputFileName);
+        var outputDigestPath = Path.Join(gitCloneFolder, digestFileName);
 
         // Run test code (placeholder)
         await RunTestCode(slnPath, dumpPath);
@@ -128,8 +128,8 @@ internal static class TestTool
         await File.WriteAllTextAsync(outputDigestPath, digest);
 
         // Compare digest output with reference or copy missing files to reference folder
-        var referenceDigestPath = Path.Combine(referenceFolder, digestFileName);
-        var referenceDumpPath = Path.Combine(referenceFolder, outputFileName);
+        var referenceDigestPath = Path.Join(referenceFolder, digestFileName);
+        var referenceDumpPath = Path.Join(referenceFolder, outputFileName);
         if (File.Exists(referenceDigestPath))
         {
             var areEqual = CompareFiles(outputDigestPath, referenceDigestPath);
