@@ -29,16 +29,16 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore
-
+  
       - name: Build
         run: dotnet build --no-restore -c Release -p:Version=$env:BUILD_VERSION -p:FileVersion=$env:BUILD_VERSION -p:AssemblyVersion=$env:BUILD_VERSION -p:PackageVersion=$env:BUILD_VERSION
-        
+  
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
-
+  
       - name: Publish
-        run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj  --no-build -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
-
+        run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en -p:Version=$env:BUILD_VERSION -p:FileVersion=$env:BUILD_VERSION -p:AssemblyVersion=$env:BUILD_VERSION -p:PackageVersion=$env:BUILD_VERSION
+        
       - name: Zip Release
         run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
 
