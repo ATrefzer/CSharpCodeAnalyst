@@ -31,11 +31,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore -c Release `
-         -p:Version=$BUILD_VERSION `
-         -p:FileVersion=$BUILD_VERSION `
-         -p:AssemblyVersion=$BUILD_VERSION `
-         -p:PackageVersion=$BUILD_VERSION
+        run: dotnet build --no-restore -c Release -p:Version=$BUILD_VERSION -p:FileVersion=$BUILD_VERSION -p:AssemblyVersion=$BUILD_VERSION -p:PackageVersion=$BUILD_VERSION
         
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
