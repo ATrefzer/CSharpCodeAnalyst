@@ -32,7 +32,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Publish
         run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
