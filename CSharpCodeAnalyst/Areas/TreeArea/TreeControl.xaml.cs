@@ -2,19 +2,20 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
 
 public partial class TreeControl : UserControl
 {
     private readonly Dictionary<string, TreeViewItem> _codeElementIdToTreeViewItem = new();
+
     public TreeControl()
     {
         InitializeComponent();
     }
-    
+
     /// <summary>
     ///     Whenever a TreeViewItem is loaded into the visual tree we capture it in the Load event
     /// </summary>
@@ -28,7 +29,7 @@ public partial class TreeControl : UserControl
         // Causes TreeViewItem_Loaded
         treeViewModel.ExpandParents(request.Id);
 
-        // Use Dispatcher to ensure UI is updated before bringing item into view
+        // Use Dispatcher to ensure UI is updated before bringing item into view. _codeElementIdToTreeViewItem may be empty here.
         Dispatcher.InvokeAsync(() =>
         {
             if (_codeElementIdToTreeViewItem.TryGetValue(request.Id, out var tvi))
@@ -38,30 +39,38 @@ public partial class TreeControl : UserControl
             }
         }, DispatcherPriority.Render);
     }
-    
+
     private void TreeViewItem_Loaded(object sender, RoutedEventArgs e)
     {
         // Called then the tree view item is loaded into the visual tree.
         if (sender is TreeViewItem { DataContext: TreeItemViewModel { CodeElement: not null } viewModel } treeViewItem)
         {
+            // Note: External code has no code element.
+            treeViewItem.Tag = viewModel.CodeElement.Id;
             _codeElementIdToTreeViewItem[viewModel.CodeElement.Id] = treeViewItem;
         }
+
+        //Debug.WriteLine($"TreeViewItem_Loaded: Number of elements: {_codeElementIdToTreeViewItem.Count.ToString()}");
     }
 
     private void TreeViewItem_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (sender is TreeViewItem { DataContext: TreeItemViewModel { CodeElement: not null } viewModel })
+        // When unloaded we get a disconnected TreeViewItem without data context. So I use the tag to store the id.
+        if (sender is not TreeViewItem treeViewItem)
         {
-            _codeElementIdToTreeViewItem.Remove(viewModel.CodeElement.Id);
+            return;
         }
-        else
+
+        var id = treeViewItem.Tag as string;
+        if (!string.IsNullOrEmpty(id))
         {
-            // We get a disconnected item if a new project is loaded.
-            _codeElementIdToTreeViewItem.Clear();
+            _codeElementIdToTreeViewItem.Remove(id);
         }
+
+        //Debug.WriteLine($"TreeViewItem_Unloaded: Number of elements: {_codeElementIdToTreeViewItem.Count.ToString()}");
     }
-    
-        private void TreeViewItem_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+
+    private void TreeViewItem_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (sender is not TreeViewItem treeViewItem)
         {
@@ -122,7 +131,7 @@ public partial class TreeControl : UserControl
 
         var createMenuItem = new MenuItem
         {
-            Header = Strings.Refactor_CreateCodeElement,
+            Header = Strings.Refactor_CreateCodeElement
         };
 
         // Command binding has issues with null parameters

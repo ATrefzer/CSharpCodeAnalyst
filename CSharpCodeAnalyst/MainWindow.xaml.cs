@@ -5,9 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst;
@@ -82,7 +80,7 @@ public partial class MainWindow
             SplitterColumn.Width = new GridLength(newWidth);
         }
     }
-    
+
     public void HandleLocateInTreeRequest(LocateInTreeRequest request)
     {
         CodeStructureTab.SelectedIndex = 0;

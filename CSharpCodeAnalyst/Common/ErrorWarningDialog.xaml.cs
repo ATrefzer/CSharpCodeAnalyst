@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 
 namespace CSharpCodeAnalyst.Common;
 
@@ -37,7 +36,7 @@ public partial class ErrorWarningDialog : Window
         DialogResult = true;
         Close();
     }
-    
+
     public static void Show(List<string>? errors, List<string>? warnings, Window? owner = null)
     {
         if (errors == null)
@@ -61,7 +60,7 @@ public partial class ErrorWarningDialog : Window
         {
             dialog.Owner = owner;
         }
-        
+
         dialog.ShowDialog();
     }
 }

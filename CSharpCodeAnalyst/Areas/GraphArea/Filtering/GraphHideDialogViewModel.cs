@@ -3,18 +3,16 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
 public class GraphHideDialogViewModel : INotifyPropertyChanged
 {
-    private readonly GraphHideFilter _filter;
 
     public GraphHideDialogViewModel(GraphHideFilter currentFilter)
     {
-        _filter = currentFilter.Clone();
+        Filter = currentFilter.Clone();
 
         // Build element type checkboxes dynamically
         ElementTypeOptions = new ObservableCollection<CheckableItem<CodeElementType>>(
@@ -23,7 +21,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
                 .Select(type => new CheckableItem<CodeElementType>(
                     type,
                     FormatCodeElementType(type),
-                    _filter.HiddenElementTypes.Contains(type)
+                    Filter.HiddenElementTypes.Contains(type)
                 ))
         );
 
@@ -34,7 +32,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
                 .Select(type => new CheckableItem<RelationshipType>(
                     type,
                     FormatRelationshipType(type),
-                    _filter.HiddenRelationshipTypes.Contains(type)
+                    Filter.HiddenRelationshipTypes.Contains(type)
                 ))
         );
 
@@ -48,23 +46,23 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
     public ICommand ApplyCommand { get; }
     public ICommand ResetCommand { get; }
 
-    public GraphHideFilter Filter => _filter;
+    public GraphHideFilter Filter { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Apply()
     {
         // Update filter based on checkbox selections
-        _filter.HiddenElementTypes.Clear();
+        Filter.HiddenElementTypes.Clear();
         foreach (var item in ElementTypeOptions.Where(i => i.IsChecked))
         {
-            _filter.HiddenElementTypes.Add(item.Value);
+            Filter.HiddenElementTypes.Add(item.Value);
         }
 
-        _filter.HiddenRelationshipTypes.Clear();
+        Filter.HiddenRelationshipTypes.Clear();
         foreach (var item in RelationshipTypeOptions.Where(i => i.IsChecked))
         {
-            _filter.HiddenRelationshipTypes.Add(item.Value);
+            Filter.HiddenRelationshipTypes.Add(item.Value);
         }
     }
 
@@ -81,7 +79,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
             item.IsChecked = false;
         }
 
-        _filter.Clear();
+        Filter.Clear();
     }
 
     private static string FormatCodeElementType(CodeElementType type)
@@ -101,7 +99,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
 }
 
 /// <summary>
-/// Helper class for checkbox binding in the UI.
+///     Helper class for checkbox binding in the UI.
 /// </summary>
 public class CheckableItem<T> : INotifyPropertyChanged where T : struct, Enum
 {

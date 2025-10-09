@@ -36,6 +36,7 @@ public static class PascalCaseSearch
                 {
                     segments.Add(currentSegment);
                 }
+
                 currentSegment = c.ToString();
             }
             else

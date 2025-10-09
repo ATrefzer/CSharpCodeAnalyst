@@ -5,6 +5,6 @@ namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal interface IHighlighting
 {
-   void Highlight(IGraphViewerHighlighting graphViewer, IViewerObject? viewerObject,
+    void Highlight(IGraphViewerHighlighting graphViewer, IViewerObject? viewerObject,
         CodeGraph? codeGraph);
 }

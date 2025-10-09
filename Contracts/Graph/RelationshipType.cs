@@ -25,7 +25,7 @@ public enum RelationshipType
     // Relationship type for event handler registration
     // This is not a code dependency. It is actually the other direction.
     Handles,
-    
+
     // Value for artificial edges that bundle several edges from the code base.
-    Bundled,
+    Bundled
 }

@@ -7,7 +7,12 @@
 - Consider adding the access modifiers. We could get rid of all private members.
 
 
-- Virtual Refactorings: Service shall determine valid code elements for create context menu
+- external code can delete virtual node?
+- Find in tree is maybe broken!
+- Move Delete to refactorings
+    - tree, entfernen
+    - search, müsste schon gehen
+    - graph, delete all Ids.
 - Virtual Refactorings: Select Move Target
 - Virtual Refactorings: Move Code Element (including all children)
 

@@ -187,7 +187,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
                 Attr = CreateNodeAttr(n, state)
             });
     }
-    
+
     private static string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
     {
         // Assume the parent is always visible!
@@ -214,8 +214,10 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
             {
                 return true;
             }
+
             current = current.Parent;
         }
+
         return false;
     }
 
@@ -257,11 +259,11 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
 
             edge.UserData = relationships;
             edge.LabelText = relationships.Count.ToString();
-            
+
             edge.Attr = CreateEdgeAttr(sourceId, targetId, RelationshipType.Bundled, state);
         }
     }
-    
+
     private static bool IsMethod(CodeGraph codeGraph, string id)
     {
         return codeGraph.Nodes[id].ElementType == CodeElementType.Method;

@@ -22,7 +22,10 @@ internal class ParserDiagnostics : IParserDiagnostics
         get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message).ToList();
     }
 
-    public List<string> Warnings {  get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Warning).Select(d => d.Message).ToList();}
+    public List<string> Warnings
+    {
+        get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Warning).Select(d => d.Message).ToList();
+    }
 
     public void Add(WorkspaceDiagnostic diagnostic)
     {

@@ -19,7 +19,7 @@ using CSharpCodeAnalyst.Wpf;
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 /// <summary>
-/// Defines and handles the context menu commands for the graph viewer.
+///     Defines and handles the context menu commands for the graph viewer.
 /// </summary>
 internal class GraphViewModel : INotifyPropertyChanged
 {
@@ -65,7 +65,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         // Set defaults
         _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
-        
+
         var flag = IconLoader.LoadIcon("Resources/flag.png");
 
         // Edge commands
@@ -167,21 +167,6 @@ internal class GraphViewModel : INotifyPropertyChanged
         UndoCommand = new WpfCommand(Undo);
         OpenGraphHideDialogCommand = new WpfCommand(OpenGraphHideDialog);
     }
-    
-    private void ToggleNodeFlag(CodeElement codeElement)
-    {
-        _viewer.ToggleFlag(codeElement.Id);
-    }
-
-    private void ToggleEdgeFlag(string sourceId, string targetId, List<Relationship> relationships)
-    {
-        if (relationships.Count == 0)
-        {
-            return;
-        }
-        
-        _viewer.ToggleFlag(sourceId, targetId, relationships);
-    }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
@@ -258,6 +243,21 @@ internal class GraphViewModel : INotifyPropertyChanged
     public ICommand OpenGraphHideDialogCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void ToggleNodeFlag(CodeElement codeElement)
+    {
+        _viewer.ToggleFlag(codeElement.Id);
+    }
+
+    private void ToggleEdgeFlag(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        if (relationships.Count == 0)
+        {
+            return;
+        }
+
+        _viewer.ToggleFlag(sourceId, targetId, relationships);
+    }
 
     private static void OnCopyToClipboard(CodeElement element)
     {
@@ -699,6 +699,26 @@ internal class GraphViewModel : INotifyPropertyChanged
         {
             // Apply the filter from the dialog
             _viewer.SetHideFilter(viewModel.Filter);
+        }
+    }
+
+    public void HandleCodeGraphRefactored(CodeGraphRefactored message)
+    {
+        if (message is CodeElementsDeleted deleted)
+        {
+            // Any leftovers in the canvas get cleaned up.
+            var session = _viewer.GetSession();
+            var graph = _viewer.GetGraph();
+            
+            // Include only relationships to code elements in the subgraph
+            var newGraph = graph.Clone();
+            newGraph.RemoveCodeElements(deleted.DeletedIds);
+            
+            // Cleanup unused states
+            var presentationState = session.PresentationState.Clone();
+            presentationState.RemoveStates(deleted.DeletedIds);
+
+            _viewer.LoadSession(newGraph, presentationState);
         }
     }
 }

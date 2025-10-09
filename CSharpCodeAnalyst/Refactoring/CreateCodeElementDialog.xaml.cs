@@ -1,5 +1,4 @@
 using System.Windows;
-using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Refactoring;
 
@@ -21,13 +20,9 @@ public partial class CreateCodeElementDialog : Window
 
     public CreateCodeElementDialogViewModel ViewModel { get; }
 
-    public CodeElement? CreatedElement { get; private set; }
-
     private void CreateButton_Click(object sender, RoutedEventArgs e)
     {
-        CreatedElement = ViewModel.CreateElement();
-
-        if (CreatedElement == null)
+        if (!ViewModel.IsValid())
         {
             MessageBox.Show("Please enter a valid element name.", "Invalid Name",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -40,7 +35,6 @@ public partial class CreateCodeElementDialog : Window
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
-        CreatedElement = null;
         DialogResult = false;
         Close();
     }

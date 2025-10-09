@@ -16,6 +16,10 @@ public class TreeItemViewModel : INotifyPropertyChanged
 
     public string? Name { get; set; }
     public string? Type { get; set; }
+    
+    /// <summary>
+    /// Virtual nodes like external code have no code element assigned.
+    /// </summary>
     public CodeElement? CodeElement { get; set; }
     public ObservableCollection<TreeItemViewModel> Children { get; set; } = [];
 

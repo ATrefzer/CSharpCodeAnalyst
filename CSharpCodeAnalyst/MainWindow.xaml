@@ -310,7 +310,7 @@
 
                     <!-- Tree View Tab -->
                     <TabItem Header="Tree View">
-                        <treeArea:TreeControl  x:Name="TreeControl" DataContext="{Binding TreeViewModel}"/>
+                        <treeArea:TreeControl x:Name="TreeControl" DataContext="{Binding TreeViewModel}" />
                     </TabItem>
 
                     <!-- Search Tab -->

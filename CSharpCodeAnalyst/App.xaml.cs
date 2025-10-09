@@ -11,6 +11,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Extensions.Configuration;
 
@@ -71,10 +72,13 @@ public partial class App
 
         var explorationGraphViewer = new GraphViewer(messaging, settings.WarningCodeElementLimit);
 
+        var refactoringInteraction = new RefactoringInteraction();
+        var refactoringService = new RefactoringService(refactoringInteraction);
+
         mainWindow.SetViewer(explorationGraphViewer);
         var viewModel = new MainViewModel(messaging, settings, analyzerManager);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
-        var treeViewModel = new TreeViewModel(messaging);
+        var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new SearchViewModel(messaging);
         var infoPanelViewModel = new InfoPanelViewModel();
 
@@ -87,11 +91,15 @@ public partial class App
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
         messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
-        messaging.Subscribe<QuickInfoUpdate>(infoPanelViewModel.HandleUpdateQuickInfo);
+        messaging.Subscribe<QuickInfoUpdateRequest>(infoPanelViewModel.HandleUpdateQuickInfo);
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
-        messaging.Subscribe<DeleteFromModelRequest>(viewModel.HandleDeleteFromModel);
+  
         messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
+
+        // Refactorings are forwarded to all other view models
+        messaging.Subscribe<CodeGraphRefactored>(viewModel.HandleCodeGraphRefactored);
+        
 
         mainWindow.DataContext = viewModel;
         MainWindow = mainWindow;

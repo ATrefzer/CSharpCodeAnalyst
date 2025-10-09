@@ -6,25 +6,24 @@ using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Refactoring;
 
-public class CreateCodeElementDialogViewModel : INotifyPropertyChanged
+public sealed class CreateCodeElementDialogViewModel : INotifyPropertyChanged
 {
+    private readonly ICodeElementNaming _naming;
     private readonly CodeElement? _parent;
-    private readonly VirtualRefactoringService _refactoringService;
     private string _elementName;
     private CodeElementType _selectedElementType;
 
-    public CreateCodeElementDialogViewModel(VirtualRefactoringService refactoringService, CodeElement? parent)
+    public CreateCodeElementDialogViewModel(CodeElement? parent, List<CodeElementType> validTypes, ICodeElementNaming naming)
     {
-        _refactoringService = refactoringService;
         _parent = parent;
+        _naming = naming;
 
         // Get valid element types for this context
-        var validTypes = refactoringService.GetValidChildTypes(parent);
         ValidElementTypes = new ObservableCollection<CodeElementType>(validTypes);
 
         Debug.Assert(ValidElementTypes.Any());
         _selectedElementType = ValidElementTypes.First();
-        _elementName = refactoringService.GetDefaultName(_selectedElementType, parent);
+        _elementName = _naming.GetDefaultName(_selectedElementType);
     }
 
     public ObservableCollection<CodeElementType> ValidElementTypes { get; }
@@ -40,7 +39,7 @@ public class CreateCodeElementDialogViewModel : INotifyPropertyChanged
                 OnPropertyChanged();
 
                 // Update default name when type changes
-                ElementName = _refactoringService.GetDefaultName(value, _parent);
+                ElementName = _naming.GetDefaultName(_selectedElementType);
             }
         }
     }
@@ -73,18 +72,23 @@ public class CreateCodeElementDialogViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public CodeElement? CreateElement()
+    public CodeElementSpecs? GetCodeElementSpecs()
     {
         if (string.IsNullOrWhiteSpace(ElementName))
         {
             return null;
         }
 
-        return _refactoringService.CreateVirtualElement(SelectedElementType, ElementName.Trim(), _parent);
+        return new CodeElementSpecs(SelectedElementType, ElementName);
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public bool IsValid()
+    {
+        return _naming.IsValid(SelectedElementType, ElementName);
     }
 }

@@ -13,12 +13,12 @@ internal interface IExpression
 
 internal class Term : IExpression
 {
+
+    private readonly Regex? _regex;
     private readonly SearchModel _searchModel;
 
     private readonly string _searchTerm = string.Empty;
     private readonly CodeElementType _type = CodeElementType.Other;
-    
-    private readonly Regex? _regex;
 
     public Term(string searchTerm)
     {
@@ -46,13 +46,13 @@ internal class Term : IExpression
             if (isPascalCase && regex != null)
             {
                 _searchModel = SearchModel.FullNameResharperStyle;
-                _regex = regex; 
+                _regex = regex;
             }
             else
             {
                 // All lower case, default mode
                 _searchModel = SearchModel.FullNameSimple;
-                _searchTerm = lowerSearchTerm;        
+                _searchTerm = lowerSearchTerm;
             }
         }
     }
@@ -93,13 +93,13 @@ internal class Term : IExpression
     {
         // Search for types.
         Type,
-        
+
         // Search in FullName
         FullNameSimple,
-        
+
         FullNameResharperStyle,
         ExternalCode,
-        InternalCode,
+        InternalCode
     }
 
     internal class And : IExpression

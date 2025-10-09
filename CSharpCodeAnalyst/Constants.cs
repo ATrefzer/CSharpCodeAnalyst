@@ -10,14 +10,14 @@ public class Constants
     public const int SearchHighlightLineWidth = 2;
     public const double DefaultLineWidth = 1;
 
+
+    public const int MouseHighlightLineWidth = 3;
+
     public static Color FlagColor = Color.Red;
     public static Color SearchHighlightColor = Color.Red;
     public static Color DefaultLineColor = Color.Black;
 
     public static int DoubleClickMilliseconds = 350;
-    
-    
-    public  const int MouseHighlightLineWidth = 3;
     public static readonly Color GrayColor = Color.LightGray;
     public static readonly Color MouseHighlightColor = Color.Red;
 }
