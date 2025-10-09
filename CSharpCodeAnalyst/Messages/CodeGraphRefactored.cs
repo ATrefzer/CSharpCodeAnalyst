@@ -3,37 +3,25 @@
 namespace CSharpCodeAnalyst.Messages;
 
 /// <summary>
-///     Base class for all refactoring related notications.
+///     Base class for all refactoring related notifications.
 /// </summary>
-public abstract class CodeGraphRefactored
+public abstract class CodeGraphRefactored(CodeGraph codeGraph)
 {
-    protected CodeGraphRefactored(CodeGraph codeGraph)
-    {
-        Graph = codeGraph;
-    }
 
-    public CodeGraph Graph { get; set; }
+    public CodeGraph Graph { get; set; } = codeGraph;
 }
 
-internal class CodeElementCreated : CodeGraphRefactored
+internal class CodeElementCreated(CodeGraph codeGraph, CodeElement newElement) : CodeGraphRefactored(codeGraph)
 {
-    public CodeElementCreated(CodeGraph codeGraph, CodeElement newElement) : base(codeGraph)
-    {
-        NewElement = newElement;
-    }
 
-    public CodeElement NewElement { get; set; }
+    public CodeElement NewElement { get; set; } = newElement;
 }
 
-internal class CodeElementsDeleted : CodeGraphRefactored
+internal class CodeElementsDeleted(CodeGraph codeGraph, CodeElement deletedElement, HashSet<string> deletedIds) : CodeGraphRefactored(codeGraph)
 {
 
-    public CodeElementsDeleted(CodeGraph codeGraph, CodeElement deletedElement, HashSet<string> deletedIds) : base(codeGraph)
-    {
-        DeletedElement = deletedElement;
-        DeletedIds = deletedIds;
-    }
+    public CodeElement 
+        DeletedElement { get; } = deletedElement;
 
-    public CodeElement DeletedElement { get; }
-    public HashSet<string> DeletedIds { get; }
+    public HashSet<string> DeletedIds { get; } = deletedIds;
 }

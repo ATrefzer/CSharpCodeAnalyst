@@ -710,7 +710,6 @@ internal class GraphViewModel : INotifyPropertyChanged
             var session = _viewer.GetSession();
             var graph = _viewer.GetGraph();
             
-            // Include only relationships to code elements in the subgraph
             var newGraph = graph.Clone();
             newGraph.RemoveCodeElements(deleted.DeletedIds);
             
