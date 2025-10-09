@@ -17,14 +17,14 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.Base", "Regression.SpecificBugs.Regression.SpecificBugs.Driver", "Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType",
-            "Regression.SpecificBugs.Regression.SpecificBugs.Extensions", "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient",
-            "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2",
-            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Base", "Regression.SpecificBugs.global.Regression.SpecificBugs.Driver", "Regression.SpecificBugs.global.Regression.SpecificBugs.ExtendedType",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Extensions", "Regression.SpecificBugs.global.Regression.SpecificBugs.PartialClient",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.ViewModelAdapter1", "Regression.SpecificBugs.global.Regression.SpecificBugs.ViewModelAdapter2",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicateTest",
 
-            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest",
-            "Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource",
-            "Regression.SpecificBugs.Regression.SpecificBugs.SearchNode"
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicateTest",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.SearchGraphSource",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.SearchNode"
         };
 
         CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
@@ -37,8 +37,8 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.RecordA",
-            "Regression.SpecificBugs.Regression.SpecificBugs.RecordB"
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordA",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordB"
         };
 
         CollectionAssert.AreEquivalent(expected, records);
@@ -51,7 +51,7 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.StructWithInterface"
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.StructWithInterface"
         };
 
         CollectionAssert.AreEquivalent(expected, structs);
@@ -64,18 +64,18 @@ public class RegressionApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave -> Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave",
-            "Regression.SpecificBugs.Regression.SpecificBugs.Base.Build -> Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave",
-            "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter1.AddToSlave -> Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave",
-            "Regression.SpecificBugs.Regression.SpecificBugs.ViewModelAdapter2.AddToSlave -> Regression.SpecificBugs.Regression.SpecificBugs.Base.AddToSlave",
-            "Regression.SpecificBugs.Regression.SpecificBugs.Driver..ctor -> Regression.SpecificBugs.Regression.SpecificBugs.Base.Build",
-            "Regression.SpecificBugs.Regression.SpecificBugs.StructWithInterface.CompareTo -> Regression.SpecificBugs.Regression.SpecificBugs.StructWithInterface.Value",
-            "Regression.SpecificBugs.Regression.SpecificBugs.Extensions.Slice -> Regression.SpecificBugs.Regression.SpecificBugs.ExtendedType.Data",
-            "Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.Regression.SpecificBugs.PartialClient.OnCreated",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Base.AddToSlave -> Regression.SpecificBugs.global.Regression.SpecificBugs.Base.AddToSlave",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Base.Build -> Regression.SpecificBugs.global.Regression.SpecificBugs.Base.AddToSlave",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.ViewModelAdapter1.AddToSlave -> Regression.SpecificBugs.global.Regression.SpecificBugs.Base.AddToSlave",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.ViewModelAdapter2.AddToSlave -> Regression.SpecificBugs.global.Regression.SpecificBugs.Base.AddToSlave",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Driver..ctor -> Regression.SpecificBugs.global.Regression.SpecificBugs.Base.Build",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.StructWithInterface.CompareTo -> Regression.SpecificBugs.global.Regression.SpecificBugs.StructWithInterface.Value",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.Extensions.Slice -> Regression.SpecificBugs.global.Regression.SpecificBugs.ExtendedType.Data",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.PartialClient.CreateInstance -> Regression.SpecificBugs.global.Regression.SpecificBugs.PartialClient.OnCreated",
 
-            "Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty",
-            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchGraphSource.OriginalElement",
-            "Regression.SpecificBugs.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.Regression.SpecificBugs.SearchNode.Name"
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicateTest.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicateTest.TestProperty",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.SearchGraphSource.OriginalElement",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicateTest.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.SearchNode.Name"
         };
         CollectionAssert.AreEquivalent(expected, calls);
     }

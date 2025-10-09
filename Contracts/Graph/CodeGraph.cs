@@ -62,7 +62,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
             Nodes.Remove(elementId);
         }
 
-        DfsHierarchy(CleanupFunc);
+        ForEachNode(CleanupFunc);
         return;
 
         void CleanupFunc(CodeElement element)
@@ -76,32 +76,13 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
             element.Relationships.RemoveWhere(d => elementIds.Contains(d.SourceId) || elementIds.Contains(d.TargetId));
         }
     }
-
-    public void DfsHierarchy(Action<CodeElement> handler)
+    
+    public void ForEachNode(Action<CodeElement> handler)
     {
-        HashSet<string> visited = [];
         foreach (var element in Nodes.Values)
         {
-            if (!visited.Contains(element.Id))
-            {
-                DfsHierarchy(element, visited, handler);
-            }
+            handler(element);
         }
-    }
-
-    private static void DfsHierarchy(CodeElement element, HashSet<string> visited, Action<CodeElement> handler)
-    {
-        visited.Add(element.Id);
-
-        foreach (var child in element.Children)
-        {
-            if (!visited.Contains(child.Id))
-            {
-                DfsHierarchy(child, visited, handler);
-            }
-        }
-
-        handler(element);
     }
 
     public CodeElement IntegrateCodeElementFromOriginal(CodeElement originalElement)

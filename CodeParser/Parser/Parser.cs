@@ -82,7 +82,7 @@ public class Parser(ParserConfig config)
     private static void InsertGlobalNamespaceIfUsed(CodeGraph codeGraph)
     {
         const string global = "global";
-        var assemblies = codeGraph.Nodes.Values.Where(n => n.Parent is null).ToList();
+        var assemblies = codeGraph.GetRoots();
         Debug.Assert(assemblies.All(a => a.ElementType == CodeElementType.Assembly));
         var isGlobalNsUsed = assemblies.Any(a => a.Children.Any(c => c.ElementType != CodeElementType.Namespace));
 
@@ -91,7 +91,7 @@ public class Parser(ParserConfig config)
         {
             foreach (var assembly in assemblies)
             {
-                var children = assembly.Children.ToList();
+                var childrenCopy = assembly.Children.ToList();
 
                 var id = Guid.NewGuid().ToString();
                 var fullName = assembly.FullName + "." + global;
@@ -101,7 +101,7 @@ public class Parser(ParserConfig config)
                 assembly.Children.Add(globalNs);
 
                 // Move elements
-                foreach (var child in children)
+                foreach (var child in childrenCopy)
                 {
                     child.MoveTo(globalNs);
                 }

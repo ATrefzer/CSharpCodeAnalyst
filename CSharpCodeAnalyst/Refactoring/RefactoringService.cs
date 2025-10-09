@@ -11,6 +11,7 @@ namespace CSharpCodeAnalyst.Refactoring;
 public class RefactoringService
 {
     private readonly RefactoringInteraction _refactoringInteraction;
+    private CodeElement? _target;
 
 
     public RefactoringService(RefactoringInteraction refactoringInteraction)
@@ -85,7 +86,7 @@ public class RefactoringService
         };
     }
 
-    public CodeElement? CreateVirtualElement(CodeGraph? codeGraph, CodeElement? parent)
+    public CodeElement? CreateCodeElement(CodeGraph? codeGraph, CodeElement? parent)
     {
         if (codeGraph is null)
         {
@@ -159,7 +160,50 @@ public class RefactoringService
         {
             return [];
         }
-            
+
         return codeGraph.DeleteCodeElementAndAllChildren(id);
+    }
+
+    public bool CanMoveCodeElement(CodeElement? source)
+    {
+        if (source is null || _target is null)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
+    public bool CanSetMovementTarget(CodeElement? tvmCodeElement)
+    {
+        return true;
+    }
+
+    public bool SetMovementTarget(CodeElement? target)
+    {
+        if (!CanSetMovementTarget(target))
+        {
+            return false;
+        }
+
+        _target = target;
+        return true;
+    }
+
+
+    public bool MoveCodeElement(CodeElement? source)
+    {
+        if (!CanMoveCodeElement(source))
+        {
+            return false;
+        }
+
+        source!.MoveTo(_target!);
+        return true;
+    }
+
+    public CodeElement? GetMovementTarget()
+    {
+        return _target;
     }
 }

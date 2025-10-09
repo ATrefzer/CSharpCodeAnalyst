@@ -8,7 +8,11 @@
 
 
 - Virtual Refactorings: Select Move Target
+    => Rules
 - Virtual Refactorings: Move Code Element (including all children)
+    => Rules
+- Virtual Refactorings: Deal with graph
+- Virtual Refactorings: TreeView Update may be slow
 
 
 UNHANDLED CASES

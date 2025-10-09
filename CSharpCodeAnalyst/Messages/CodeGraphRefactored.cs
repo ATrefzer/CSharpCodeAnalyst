@@ -20,8 +20,15 @@ internal class CodeElementCreated(CodeGraph codeGraph, CodeElement newElement) :
 internal class CodeElementsDeleted(CodeGraph codeGraph, CodeElement deletedElement, HashSet<string> deletedIds) : CodeGraphRefactored(codeGraph)
 {
 
-    public CodeElement 
+    public CodeElement
         DeletedElement { get; } = deletedElement;
 
     public HashSet<string> DeletedIds { get; } = deletedIds;
+}
+
+internal class CodeElementsMoved(CodeGraph codeGraph, string sourceId, string oldParentId, string newParentId) : CodeGraphRefactored(codeGraph)
+{
+    public string SourceId { get; } = sourceId;
+    public string OldParentId { get; } = oldParentId;
+    public string NewParentId { get; } = newParentId;
 }

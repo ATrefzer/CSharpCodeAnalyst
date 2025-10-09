@@ -13,12 +13,12 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Lambdas"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -37,8 +37,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Point",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Rectangle"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Point",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Rectangle"
         };
 
         CollectionAssert.AreEquivalent(expected, structs.OrderBy(x => x).ToArray());
@@ -55,10 +55,10 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         var expected = new[]
         {
             // Field initializer
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
 
             // Local function
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass"
         };
 
         CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
@@ -75,14 +75,14 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
         var expected = new[]
         {
             // Creation inside lambda
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
 
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.CreatableClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.InitializeData -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls._privateField",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls._privateField",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.ProtectedField",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers._baseClass -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.InitializeData -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls._privateField",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls._privateField",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.ProtectedField",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClass -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass"
         };
 
         CollectionAssert.AreEquivalent(expected, uses);
@@ -95,8 +95,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Color",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.Priority"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Color",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Priority"
         };
 
         CollectionAssert.AreEquivalent(expected, enums);
@@ -112,14 +112,14 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls..ctor -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.InitializeData",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls..ctor -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.SetProperty",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.SetProperty -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.CalculateLength",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.ProcessData",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass.GetMessage -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.GetMessage",
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BaseClass.BaseMethod"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls..ctor -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.InitializeData",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls..ctor -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.SetProperty",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.SetProperty -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.CalculateLength",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.ProcessData",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.GetMessage -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.GetMessage",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.BaseMethod"
         };
 
         CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
@@ -133,7 +133,7 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.Core.BasicLanguageFeatures.BasicCalls.PublicProperty"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty"
         };
 
         CollectionAssert.AreEquivalent(expected, properties.ToArray());

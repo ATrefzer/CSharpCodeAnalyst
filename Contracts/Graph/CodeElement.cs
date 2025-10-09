@@ -22,7 +22,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public string Id { get; } = id;
 
     public string Name { get; } = name;
-    public string FullName { get; } = fullName;
+    public string FullName { get; private set; } = fullName;
 
     public CodeElement? Parent { get; set; } = parent;
 
@@ -157,5 +157,8 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         // Set new parent
         Parent = newParent;
         newParent.Children.Add(this);
+        
+        // Update full name 
+        Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
     }
 }

@@ -677,7 +677,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
 
         var inheritsAndImplements = new HashSet<Relationship>();
-        _codeGraph.DfsHierarchy(Collect);
+        _codeGraph.ForEachNode(Collect);
         return inheritsAndImplements;
 
         void Collect(CodeElement c)

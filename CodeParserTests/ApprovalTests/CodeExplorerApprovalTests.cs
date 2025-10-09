@@ -23,14 +23,14 @@ public class CodeExplorerApprovalTests : ProjectTestBase
 
         var expectedRelationships = new List<string>
         {
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Overrides)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
-            /* ----- */"Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            /* ----- */"Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */ /* ----- */
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build"
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
@@ -39,10 +39,10 @@ public class CodeExplorerApprovalTests : ProjectTestBase
 
         var expectedElements = new List<string>
         {
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor"
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor"
         };
         CollectionAssert.AreEquivalent(expectedElements, actualElements);
     }
@@ -63,10 +63,10 @@ public class CodeExplorerApprovalTests : ProjectTestBase
             $"{Graph.Nodes[d.SourceId].FullName} -({d.Type})-> {Graph.Nodes[d.TargetId].FullName}");
         var expectedRelationships = new List<string>
         {
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build"
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Overrides)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build"
         };
         CollectionAssert.AreEquivalent(expectedRelationships, actualRelationships);
 
@@ -75,10 +75,10 @@ public class CodeExplorerApprovalTests : ProjectTestBase
 
         var expectedElements = new List<string>
         {
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
-            "Old.CSharpLanguage.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor"
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter1.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Base.Build",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.Driver..ctor"
         };
         CollectionAssert.AreEquivalent(expectedElements, actualElements);
     }

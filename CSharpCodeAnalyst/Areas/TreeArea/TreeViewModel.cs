@@ -7,6 +7,7 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Wpf;
+using Microsoft.Build.Tasks;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
 
@@ -41,11 +42,45 @@ public class TreeViewModel : INotifyPropertyChanged
         DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
         CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(CreateCodeElement, CanCreateCodeElement);
 
+        SetMovementTargetCommand = new WpfCommand<TreeItemViewModel>(SetMovementTarget, CanSetMovementTarget);
+        MoveCommand = new WpfCommand<TreeItemViewModel>(OnMove, CanMove);
 
-        _filteredTreeItems = [];
         _treeItems = [];
     }
 
+    private bool CanMove(TreeItemViewModel tvm)
+    {
+        return _refactoringService.CanMoveCodeElement(tvm?.CodeElement);
+    }
+
+    private void OnMove(TreeItemViewModel? tvm)
+    {
+        if (!_refactoringService.MoveCodeElement(tvm?.CodeElement))
+        {
+            return;
+        }
+
+        var newParent = _refactoringService.GetMovementTarget();
+        var source = tvm.CodeElement;
+        var oldParent = tvm.CodeElement.Parent;
+
+        if (newParent == null || source == null || oldParent == null)
+        {
+            return;
+        }
+        
+        _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_codeGraph!, source.Id, oldParent.Id, newParent.Id));
+    }
+
+    private bool CanSetMovementTarget(TreeItemViewModel tvm)
+    {
+        return _refactoringService.CanSetMovementTarget(tvm?.CodeElement);
+    }
+
+    private void SetMovementTarget(TreeItemViewModel tvm)
+    {
+        _refactoringService.SetMovementTarget(tvm?.CodeElement);
+    }
 
     public ICommand CollapseTreeCommand { get; }
 
@@ -61,18 +96,7 @@ public class TreeViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(TreeItems));
         }
     }
-
-    public ObservableCollection<TreeItemViewModel> FilteredTreeItems
-    {
-        get => _filteredTreeItems;
-        set
-        {
-            _filteredTreeItems = value;
-            OnPropertyChanged(nameof(FilteredTreeItems));
-        }
-    }
-
-
+    
     public string SearchText
     {
         get => _searchText;
@@ -90,6 +114,9 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
     public ICommand CopyToClipboardCommand { get; private set; }
     public ICommand CreateCodeElementCommand { get; private set; }
+    
+    public ICommand SetMovementTargetCommand { get; private set; }
+    public ICommand MoveCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -170,77 +197,90 @@ public class TreeViewModel : INotifyPropertyChanged
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
+        // Note: Graph is actually the same
+        
         // Tree updates are slow, so do the update manually.
         if (message is CodeElementCreated created)
         {
-            // Refresh the tree to show the new element
-            var newElement = created.NewElement;
-            var newTreeItem = CreateTreeViewItem(newElement);
-            var parent = newElement.Parent;
-
-            if (parent == null)
-            {
-                // Add to root
-                TreeItems.Add(newTreeItem);
-            }
-            else
-            {
-                // Find the parent in the tree and add as child
-                if (CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
-                {
-                    parentViewModel.Children.Add(newTreeItem);
-                    parentViewModel.IsExpanded = true; // Expand to show the new item
-                }
-            }
+            RefactoringAddCodeElement(created);
         }
         else if (message is CodeElementsDeleted deleted)
         {
-            // Refresh the tree to show the new element
             var deletedElement = deleted.DeletedElement;
             var parent = deletedElement.Parent;
+            RefactoringRemoveCodeElement(deletedElement.Id, parent?.Id, deleted.DeletedIds);
+        }
+        else if (message is CodeElementsMoved moved)
+        {
+            LoadCodeGraph(moved.Graph);
+            _messaging.Publish(new LocateInTreeRequest(moved.NewParentId));
+        }
+    }
 
-            // Delete from tree.
-            if (!CodeElementIdToViewModel.TryGetValue(deletedElement.Id, out var deletedViewModel))
-            {
-                // Code element not found
-                return;
-            }
+    private void RefactoringRemoveCodeElement(string deletedElementId, string? parentId, HashSet<string> deletedIds)
+    {
+        // Refresh the tree to show the new element
+      
 
-            if (parent != null && CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
-            {
-                var item = parentViewModel.Children.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElement.Id);
-                if (item != null)
-                {
-                    parentViewModel.Children.Remove(item);
-                }
-            }
-            else
-            {
-                // Delete root element
-                var item = TreeItems.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElement.Id);
-                if (item != null)
-                {
-                    TreeItems.Remove(item);
-                }
-            }
+        // Delete from tree.
+        if (!CodeElementIdToViewModel.TryGetValue(deletedElementId, out var deletedViewModel))
+        {
+            // Code element not found
+            return;
+        }
 
-            // Cleanup search index
-            foreach (var id in deleted.DeletedIds)
+        if (parentId != null && CodeElementIdToViewModel.TryGetValue(parentId, out var parentViewModel))
+        {
+            var item = parentViewModel.Children.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElementId);
+            if (item != null)
             {
-                CodeElementIdToViewModel.Remove(id);
+                parentViewModel.Children.Remove(item);
             }
+        }
+        else
+        {
+            // Delete root element
+            var item = TreeItems.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElementId);
+            if (item != null)
+            {
+                TreeItems.Remove(item);
+            }
+        }
 
-            // if (parent is not null)
-            // {
-            //     _messaging.Publish(new LocateInTreeRequest(parent.Id));
-            // }
+        // Cleanup search index
+        foreach (var id in deletedIds)
+        {
+            CodeElementIdToViewModel.Remove(id);
+        }
+    }
+
+    private void RefactoringAddCodeElement(CodeElementCreated created)
+    {
+        // Refresh the tree to show the new element
+        var newElement = created.NewElement;
+        var newTreeItem = CreateTreeViewItem(newElement);
+        var parent = newElement.Parent;
+
+        if (parent == null)
+        {
+            // Add to root
+            TreeItems.Add(newTreeItem);
+        }
+        else
+        {
+            // Find the parent in the tree and add as child
+            if (CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
+            {
+                parentViewModel.Children.Add(newTreeItem);
+                parentViewModel.IsExpanded = true; // Expand to show the new item
+            }
         }
     }
 
     private void CreateCodeElement(TreeItemViewModel? item)
     {
         var parent = item?.CodeElement; // null means root level
-        var newElement = _refactoringService.CreateVirtualElement(_codeGraph, parent);
+        var newElement = _refactoringService.CreateCodeElement(_codeGraph, parent);
         if (newElement is null)
         {
             return;
@@ -249,14 +289,14 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_codeGraph!, newElement));
     }
 
-    private void DeleteFromModel(TreeItemViewModel ti)
+    private void DeleteFromModel(TreeItemViewModel tvi)
     {
         if (_codeGraph is null)
         {
             return;
         }
 
-        var codeElement = ti.CodeElement;
+        var codeElement = tvi.CodeElement;
         var id = codeElement?.Id;
         if (id is null)
         {
@@ -266,7 +306,7 @@ public class TreeViewModel : INotifyPropertyChanged
         var deletedIds = _refactoringService.DeleteCodeElementAndAllChildren(_codeGraph, id);
         if (deletedIds.Any())
         {
-            _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_codeGraph, codeElement, deletedIds));
+            _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_codeGraph, codeElement!, deletedIds));
         }
     }
 

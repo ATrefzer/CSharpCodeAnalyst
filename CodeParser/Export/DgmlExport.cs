@@ -36,7 +36,7 @@ public static class DgmlExport
 
         // Regular relationships
         var normal = new List<Relationship>();
-        graph.DfsHierarchy(e => normal.AddRange(e.Relationships));
+        graph.ForEachNode(e => normal.AddRange(e.Relationships));
         foreach (var edge in normal)
         {
             // Omit the calls label for better readability.

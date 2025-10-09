@@ -28,7 +28,7 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
         }
 
         // Add edges and hierarchy
-        codeGraph.DfsHierarchy(AddRelationshipsFunc);
+        codeGraph.ForEachNode(AddRelationshipsFunc);
 
         return graph;
 
