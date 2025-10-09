@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
@@ -36,7 +35,7 @@ public class TreeViewModel : INotifyPropertyChanged
         PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
         PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
-      
+
         // Refactoring
         DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
         CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(CreateCodeElement, CanCreateCodeElement);
@@ -44,13 +43,6 @@ public class TreeViewModel : INotifyPropertyChanged
 
         _filteredTreeItems = [];
         _treeItems = [];
-    }
-
-    private bool CanCreateCodeElement(TreeItemViewModel? tvm)
-    {
-        // null tvm means root level (empty space in tree) - this is allowed
-        // Otherwise check if the CodeElement can have children
-        return VirtualRefactoringService.CanCreateCodeElement(tvm?.CodeElement);
     }
 
 
@@ -99,6 +91,13 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand CreateCodeElementCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool CanCreateCodeElement(TreeItemViewModel? tvm)
+    {
+        // null tvm means root level (empty space in tree) - this is allowed
+        // Otherwise check if the CodeElement can have children
+        return VirtualRefactoringService.CanCreateCodeElement(tvm?.CodeElement);
+    }
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)
     {
@@ -174,8 +173,8 @@ public class TreeViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Creates a code element at the root level (e.g., Assembly).
-    /// Public method to be called from UI when right-clicking empty space.
+    ///     Creates a code element at the root level (e.g., Assembly).
+    ///     Public method to be called from UI when right-clicking empty space.
     /// </summary>
     public void CreateCodeElementAtRoot()
     {
@@ -239,7 +238,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
         // Separate internal and external root nodes
         var internalRoots = rootNodes.Where(n => !n.IsExternal).OrderBy(n => n.Name);
-        var externalRoots = rootNodes.Where(n => n.IsExternal).OrderBy(n => n.Name);
+        var externalRoots = rootNodes.Where(n => n.IsExternal).OrderBy(n => n.Name).ToList();
 
         // Add internal roots directly
         foreach (var rootNode in internalRoots)
@@ -286,7 +285,7 @@ public class TreeViewModel : INotifyPropertyChanged
         return item;
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
