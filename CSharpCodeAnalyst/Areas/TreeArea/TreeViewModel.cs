@@ -5,7 +5,7 @@ using System.Windows.Input;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
@@ -16,25 +16,32 @@ public class TreeViewModel : INotifyPropertyChanged
     private static readonly Dictionary<string, TreeItemViewModel> CodeElementIdToViewModel = new();
     private readonly Matcher _matcher;
     private readonly MessageBus _messaging;
+    private readonly RefactoringService _refactoringService;
     private CodeGraph? _codeGraph;
     private ObservableCollection<TreeItemViewModel> _filteredTreeItems;
     private string _searchText;
     private ObservableCollection<TreeItemViewModel> _treeItems;
 
-    public TreeViewModel(MessageBus messaging)
+    public TreeViewModel(MessageBus messaging, RefactoringService refactoringService)
     {
         _messaging = messaging;
+        _refactoringService = refactoringService;
         _searchText = string.Empty;
         _matcher = new Matcher();
 
         SearchCommand = new WpfCommand(ExecuteSearch);
         CollapseTreeCommand = new WpfCommand(CollapseTree);
         ClearSearchCommand = new WpfCommand(ClearSearch);
-        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
         AddNodeToGraphCommand = new WpfCommand<TreeItemViewModel>(AddNodeToGraph);
         PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
         PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
+
+        // Refactoring
+        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
+        CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(CreateCodeElement, CanCreateCodeElement);
+
+
         _filteredTreeItems = [];
         _treeItems = [];
     }
@@ -82,8 +89,16 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand PartitionTreeCommand { get; private set; }
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
     public ICommand CopyToClipboardCommand { get; private set; }
+    public ICommand CreateCodeElementCommand { get; private set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool CanCreateCodeElement(TreeItemViewModel? tvm)
+    {
+        // null tvm means root level (empty space in tree) - this is allowed
+        // Otherwise check if the CodeElement can have children
+        return RefactoringService.CanCreateCodeElement(tvm?.CodeElement);
+    }
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)
     {
@@ -121,22 +136,7 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
     }
 
-    private void DeleteFromModel(TreeItemViewModel obj)
-    {
-        var id = obj.CodeElement?.Id;
-        if (id is null || _codeGraph is null)
-        {
-            return;
-        }
 
-        if (MessageBox.Show(Strings.DeleteFromModel_Message,
-                Strings.Proceed_Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK)
-        {
-            return;
-        }
-
-        _messaging.Publish(new DeleteFromModelRequest(id));
-    }
 
     private void ClearSearch()
     {
@@ -158,6 +158,119 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    ///     Creates a code element at the root level (e.g., Assembly).
+    ///     Public method to be called from UI when right-clicking empty space.
+    /// </summary>
+    public void CreateCodeElementAtRoot()
+    {
+        CreateCodeElement(null);
+    }
+
+
+    public void HandleCodeGraphRefactored(CodeGraphRefactored message)
+    {
+        // Tree updates are slow, so do the update manually.
+        if (message is CodeElementCreated created)
+        {
+            // Refresh the tree to show the new element
+            var newElement = created.NewElement;
+            var newTreeItem = CreateTreeViewItem(newElement);
+            var parent = newElement.Parent;
+
+            if (parent == null)
+            {
+                // Add to root
+                TreeItems.Add(newTreeItem);
+            }
+            else
+            {
+                // Find the parent in the tree and add as child
+                if (CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
+                {
+                    parentViewModel.Children.Add(newTreeItem);
+                    parentViewModel.IsExpanded = true; // Expand to show the new item
+                }
+            }
+        }
+        else if (message is CodeElementsDeleted deleted)
+        {
+            // Refresh the tree to show the new element
+            var deletedElement = deleted.DeletedElement;
+            var parent = deletedElement.Parent;
+
+            // Delete from tree.
+            if (!CodeElementIdToViewModel.TryGetValue(deletedElement.Id, out var deletedViewModel))
+            {
+                // Code element not found
+                return;
+            }
+
+            if (parent != null && CodeElementIdToViewModel.TryGetValue(parent.Id, out var parentViewModel))
+            {
+                var item = parentViewModel.Children.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElement.Id);
+                if (item != null)
+                {
+                    parentViewModel.Children.Remove(item);
+                }
+            }
+            else
+            {
+                // Delete root element
+                var item = TreeItems.FirstOrDefault(x => x.CodeElement is not null && x.CodeElement.Id == deletedElement.Id);
+                if (item != null)
+                {
+                    TreeItems.Remove(item);
+                }
+            }
+
+            // Cleanup search index
+            foreach (var id in deleted.DeletedIds)
+            {
+                CodeElementIdToViewModel.Remove(id);
+            }
+
+            // if (parent is not null)
+            // {
+            //     _messaging.Publish(new LocateInTreeRequest(parent.Id));
+            // }
+        }
+    }
+
+    private void CreateCodeElement(TreeItemViewModel? item)
+    {
+        var parent = item?.CodeElement; // null means root level
+        var newElement = _refactoringService.CreateVirtualElement(_codeGraph, parent);
+        if (newElement is null)
+        {
+            return;
+        }
+
+        _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_codeGraph!, newElement));
+    }
+
+    private void DeleteFromModel(TreeItemViewModel ti)
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        var codeElement = ti.CodeElement;
+        var id = codeElement?.Id;
+        if (id is null)
+        {
+            return;
+        }
+
+        var deletedIds = _refactoringService.DeleteCodeElementAndAllChildren(_codeGraph, id);
+        if (deletedIds.Any())
+        {
+            _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_codeGraph, codeElement, deletedIds));
+        }
+    }
+
+
     public void LoadCodeGraph(CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
@@ -172,7 +285,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
         // Separate internal and external root nodes
         var internalRoots = rootNodes.Where(n => !n.IsExternal).OrderBy(n => n.Name);
-        var externalRoots = rootNodes.Where(n => n.IsExternal).OrderBy(n => n.Name);
+        var externalRoots = rootNodes.Where(n => n.IsExternal).OrderBy(n => n.Name).ToList();
 
         // Add internal roots directly
         foreach (var rootNode in internalRoots)
@@ -219,7 +332,7 @@ public class TreeViewModel : INotifyPropertyChanged
         return item;
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

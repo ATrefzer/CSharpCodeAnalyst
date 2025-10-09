@@ -65,7 +65,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
         }
     }
 
-    public void HandleUpdateQuickInfo(QuickInfoUpdate quickInfoUpdate)
+    public void HandleUpdateQuickInfo(QuickInfoUpdateRequest quickInfoUpdateRequest)
     {
         // May come from any view
         if (_hide)
@@ -74,7 +74,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
             return;
         }
 
-        QuickInfo = quickInfoUpdate.QuickInfo;
+        QuickInfo = quickInfoUpdateRequest.QuickInfo;
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

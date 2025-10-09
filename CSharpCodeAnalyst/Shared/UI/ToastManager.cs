@@ -22,12 +22,12 @@ public static class ToastManager
 
     public static void ShowSuccess(string message, int durationMs = 2000)
     {
-        ShowToast(message, durationMs, ToastType.Success);
+        ShowToast(message, durationMs);
     }
 
     public static void ShowInfo(string message, int durationMs = 2000)
     {
-        ShowToast(message, durationMs, ToastType.Success);
+        ShowToast(message, durationMs);
     }
 
     public static void ShowWarning(string message, int durationMs = 3000)

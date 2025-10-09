@@ -111,6 +111,13 @@ public class SearchViewModel : INotifyPropertyChanged
             _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
         }
     }
+    
+    public void HandleCodeGraphRefactored(CodeGraphRefactored message)
+    {
+        // This operation is not that expensive
+        LoadCodeGraph(message.Graph);
+    }
+    
 
     public void LoadCodeGraph(CodeGraph codeGraph)
     {

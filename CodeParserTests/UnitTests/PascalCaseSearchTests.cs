@@ -24,9 +24,4 @@ public class PascalCaseSearchTests
 
         Assert.AreEqual(isMatch, regex.IsMatch(searchInput));
     }
-    
-    
-    
-    
-    
 }

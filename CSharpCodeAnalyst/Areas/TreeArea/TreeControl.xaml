@@ -1,0 +1,123 @@
+﻿<UserControl x:Class="CSharpCodeAnalyst.Areas.TreeArea.TreeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.TreeArea"
+             xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+             d:DataContext="{d:DesignInstance local:TreeViewModel}"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch">
+            <Button Command="{Binding CollapseTreeCommand}"
+                    ToolTip="{x:Static resources:Strings.CollapseTree_Tooltip}"
+                    DockPanel.Dock="Right"
+                    Width="22" Height="22">
+                <Image Source="/Resources/Collapse_16.png" />
+            </Button>
+
+            <!-- middle element has margin -->
+            <Button Command="{Binding ClearSearchCommand}"
+                    ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                    DockPanel.Dock="Right"
+                    Width="22" Height="22" Margin="2 0 2 0">
+                <Image Source="/Resources/clear_32.png" />
+            </Button>
+            <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
+                     FontSize="12"
+                     ToolTip="{x:Static resources:Strings.TreeSearch_Tooltip}"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter"
+                                Command="{Binding SearchCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+
+        </DockPanel>
+        <TreeView Grid.Row="1"
+                  x:Name="CodeTree"
+                  ContextMenuOpening="TreeView_ContextMenuOpening"
+                  ItemsSource="{Binding TreeItems}"
+                  Margin="5">
+
+            <TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{x:Static resources:Strings.AddToGraph_MenuItem}"
+                              Command="{Binding AddNodeToGraphCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
+
+                    <Separator />
+                    <MenuItem Header="{x:Static resources:Strings.Partition}"
+                              Command="{Binding PartitionTreeCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
+                    <Separator />
+                    <MenuItem Header="{x:Static resources:Strings.Refactor}">
+                        <MenuItem Header="{x:Static resources:Strings.Refactor_CreateCodeElement}"
+                                  Command="{Binding CreateCodeElementCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
+                                  Command="{Binding DeleteFromModelCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
+                    </MenuItem>
+
+                    <Separator />
+                    <MenuItem Header="{x:Static resources:Strings.CopyToClipboard}"
+                              Command="{Binding CopyToClipboardCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
+                    <!--<MenuItem Header="{x:Static resources:Strings.PartitionWithBase}"
+                                                  Command="{Binding PartitionWithBaseTreeCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />-->
+                </ContextMenu>
+            </TreeView.ContextMenu>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,5,0" />
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <EventSetter Event="MouseRightButtonDown"
+                                 Handler="TreeViewItem_MouseRightButtonDown" />
+
+                    <!-- If this slows down the tree loading remove it,
+                                        remove also the context menu item "Find in tree" -->
+                    <EventSetter Event="Loaded" Handler="TreeViewItem_Loaded" />
+                    <EventSetter Event="Unloaded" Handler="TreeViewItem_Unloaded" />
+
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Visibility"
+                            Value="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                            <Setter Property="Background" Value="LightYellow" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </Grid>
+</UserControl>

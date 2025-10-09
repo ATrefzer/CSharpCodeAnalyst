@@ -67,9 +67,9 @@ public interface IGraphViewer
     // Flags
     bool IsFlagged(string id);
     void ToggleFlag(string id);
-    
+
     void ToggleFlag(string sourceId, string targetId, List<Relationship> relationships);
-    
+
     void ClearAllFlags();
 
     // Search highlights

@@ -69,16 +69,15 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
         }
     }
 
-    static void CreateContainmentEdge(Graph graph, Relationship relationship)
+    private static void CreateContainmentEdge(Graph graph, Relationship relationship)
     {
         var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
         edge.LabelText = "";
-        
+
         edge.Attr.Color = Color.LightGray;
         edge.UserData = relationship;
-        
     }
-    
+
     private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship, bool reverseEdge, PresentationState state)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.

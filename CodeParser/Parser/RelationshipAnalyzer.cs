@@ -1031,7 +1031,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
             return;
         }
-        
+
         // External handling
         if (_config.IncludeExternals)
         {

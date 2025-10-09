@@ -44,8 +44,8 @@ public static class ImageWriter
     }
 
     /// <summary>
-    /// Note: The dpi in the bitmap is just metadata.
-    /// We could let WPF render the visual to a 10000x10000 pixel bitmap to get a very high resolution.
+    ///     Note: The dpi in the bitmap is just metadata.
+    ///     We could let WPF render the visual to a 10000x10000 pixel bitmap to get a very high resolution.
     /// </summary>
     private static BitmapSource CreateBitmap(FrameworkElement visual)
     {
@@ -132,7 +132,7 @@ public static class ImageWriter
         {
             return;
         }
-        
+
         // Bitmap with white background. Otherwise, its drawn black in Paint
         var whiteBitmap = CreateBitmapWithBackground(visual, Brushes.White);
         var croppedBitmap = ImageCrop.CropWhiteSpace(whiteBitmap);

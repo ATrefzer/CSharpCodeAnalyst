@@ -117,15 +117,16 @@ public static class CodeGraphExtensions
         return SubGraphOf(graph, includedElements);
     }
 
-    public static void RemoveCodeElementAndAllChildren(this CodeGraph graph, string codeElementIds)
+    public static HashSet<string> DeleteCodeElementAndAllChildren(this CodeGraph graph, string codeElementIds)
     {
         var element = graph.TryGetCodeElement(codeElementIds);
         if (element is null)
         {
-            return;
+            return [];
         }
 
         var elementIdsToRemove = element.GetChildrenIncludingSelf().ToHashSet();
         graph.RemoveCodeElements(elementIdsToRemove);
+        return elementIdsToRemove;
     }
 }

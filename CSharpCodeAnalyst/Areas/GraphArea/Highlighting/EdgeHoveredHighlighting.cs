@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal class EdgeHoveredHighlighting : HighlightingBase
 {
-   
+
     public override void Highlight(IGraphViewerHighlighting graphViewer,
         IViewerObject? viewerObject, CodeGraph? codeGraph)
     {
@@ -13,7 +13,7 @@ internal class EdgeHoveredHighlighting : HighlightingBase
         {
             return;
         }
-        
+
         graphViewer.ClearAllEdgeHighlighting();
         if (viewerObject is not IViewerEdge newEdge)
         {

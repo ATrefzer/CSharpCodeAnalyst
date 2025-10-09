@@ -3,24 +3,15 @@ using Contracts.Graph;
 namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
 /// <summary>
-/// Represents which CodeElement types and Relationship types should be hidden from the graph view.
+///     Represents which CodeElement types and Relationship types should be hidden from the graph view.
 /// </summary>
 public class GraphHideFilter
 {
-    /// <summary>
-    /// CodeElement types that should be hidden from the graph.
-    /// </summary>
-    public HashSet<CodeElementType> HiddenElementTypes { get; set; } = [];
 
     /// <summary>
-    /// Relationship types that should be hidden from the graph.
-    /// </summary>
-    public HashSet<RelationshipType> HiddenRelationshipTypes { get; set; } = [];
-
-    /// <summary>
-    /// Defines which CodeElement types can be hidden by the user.
-    /// Structural types (Assembly, Namespace, Class, etc.) are excluded because hiding them
-    /// would hide their entire subtrees.
+    ///     Defines which CodeElement types can be hidden by the user.
+    ///     Structural types (Assembly, Namespace, Class, etc.) are excluded because hiding them
+    ///     would hide their entire subtrees.
     /// </summary>
     public static readonly HashSet<CodeElementType> HideableElementTypes =
     [
@@ -33,8 +24,8 @@ public class GraphHideFilter
     ];
 
     /// <summary>
-    /// Defines which Relationship types can be hidden by the user.
-    /// Containment is excluded as it's fundamental to the graph structure.
+    ///     Defines which Relationship types can be hidden by the user.
+    ///     Containment is excluded as it's fundamental to the graph structure.
     /// </summary>
     public static readonly HashSet<RelationshipType> HideableRelationshipTypes =
     [
@@ -50,7 +41,17 @@ public class GraphHideFilter
     ];
 
     /// <summary>
-    /// Determines if a code element should be hidden based on the filter.
+    ///     CodeElement types that should be hidden from the graph.
+    /// </summary>
+    public HashSet<CodeElementType> HiddenElementTypes { get; set; } = [];
+
+    /// <summary>
+    ///     Relationship types that should be hidden from the graph.
+    /// </summary>
+    public HashSet<RelationshipType> HiddenRelationshipTypes { get; set; } = [];
+
+    /// <summary>
+    ///     Determines if a code element should be hidden based on the filter.
     /// </summary>
     public bool ShouldHideElement(CodeElement element)
     {
@@ -58,7 +59,7 @@ public class GraphHideFilter
     }
 
     /// <summary>
-    /// Determines if a relationship should be hidden based on the filter.
+    ///     Determines if a relationship should be hidden based on the filter.
     /// </summary>
     public bool ShouldHideRelationship(Relationship relationship)
     {
@@ -66,7 +67,7 @@ public class GraphHideFilter
     }
 
     /// <summary>
-    /// Checks if any filters are active.
+    ///     Checks if any filters are active.
     /// </summary>
     public bool IsActive()
     {
@@ -74,7 +75,7 @@ public class GraphHideFilter
     }
 
     /// <summary>
-    /// Clears all filters.
+    ///     Clears all filters.
     /// </summary>
     public void Clear()
     {
@@ -83,7 +84,7 @@ public class GraphHideFilter
     }
 
     /// <summary>
-    /// Creates a copy of this filter.
+    ///     Creates a copy of this filter.
     /// </summary>
     public GraphHideFilter Clone()
     {

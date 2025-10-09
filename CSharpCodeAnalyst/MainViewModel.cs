@@ -564,6 +564,11 @@ internal class MainViewModel : INotifyPropertyChanged
         AnalyzerResult = null;
         InfoPanelViewModel?.Clear();
 
+        UpdateMetrics(codeGraph);
+    }
+
+    private void UpdateMetrics(CodeGraph codeGraph)
+    {
         // Default output: summary of graph
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
         var outputs = new ObservableCollection<IMetric>();
@@ -618,7 +623,6 @@ internal class MainViewModel : INotifyPropertyChanged
         var failures = diagnostics.FormatFailures();
         if (!string.IsNullOrEmpty(failures))
         {
-            
             //var failureText = Strings.Parser_FailureHeader + failures;
             //MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
             ErrorWarningDialog.Show(diagnostics.Failures, diagnostics.Warnings);
@@ -843,20 +847,7 @@ internal class MainViewModel : INotifyPropertyChanged
         File.WriteAllText(saveFileDialog.FileName, json);
         _isSaved = true;
     }
-
-
-
-    public void HandleDeleteFromModel(DeleteFromModelRequest request)
-    {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
-        _codeGraph.RemoveCodeElementAndAllChildren(request.Id);
-        LoadCodeGraph(_codeGraph);
-        _isSaved = false;
-    }
+    
 
     /// <summary>
     ///     return true if you allow to close
@@ -923,5 +914,23 @@ internal class MainViewModel : INotifyPropertyChanged
 
         var partitionsVm = new PartitionsViewModel(pvm);
         HandleShowTabularData(new ShowTabularDataRequest(partitionsVm));
+    }
+
+    public void HandleCodeGraphRefactored(CodeGraphRefactored message)
+    {
+        _searchViewModel?.HandleCodeGraphRefactored(message);
+        _graphViewModel?.HandleCodeGraphRefactored(message);
+        _treeViewModel?.HandleCodeGraphRefactored(message);
+        
+        // Brute force
+        // LoadCodeGraph(_codeGraph);
+        
+        // Maybe not valid anymore
+        Cycles = null;
+        AnalyzerResult = null;
+        InfoPanelViewModel?.Clear();
+
+        UpdateMetrics(message.Graph);
+        _isSaved = false;
     }
 }

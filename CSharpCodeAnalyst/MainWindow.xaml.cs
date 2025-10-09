@@ -5,7 +5,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
@@ -13,9 +12,6 @@ namespace CSharpCodeAnalyst;
 
 public partial class MainWindow
 {
-    private readonly Dictionary<string, TreeViewItem> _codeElementIdToTreeViewItem = new();
-
-
     public MainWindow()
     {
         InitializeComponent();
@@ -52,32 +48,6 @@ public partial class MainWindow
         Close();
     }
 
-    private void TreeViewItem_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is not TreeViewItem treeViewItem)
-        {
-            return;
-        }
-
-        treeViewItem.Focus();
-        treeViewItem.IsSelected = true;
-        e.Handled = true;
-    }
-
-    private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
-    {
-        if ((e.OriginalSource as FrameworkElement)?.DataContext is not TreeItemViewModel treeViewItem)
-        {
-            e.Handled = true; // Cancel the context menu
-            return;
-        }
-
-        if (!treeViewItem.CanShowContextMenuForItem())
-        {
-            e.Handled = true; // Cancel the context menu
-        }
-    }
-
     private void LeftExpander_Collapsed(object sender, RoutedEventArgs e)
     {
         // When collapsed, set to auto but ensure it gets fixed when expanded again
@@ -111,53 +81,10 @@ public partial class MainWindow
         }
     }
 
-    private void TreeViewItem_Loaded(object sender, RoutedEventArgs e)
-    {
-        // Called then the tree view item is loaded into the visual tree.
-        if (sender is TreeViewItem { DataContext: TreeItemViewModel { CodeElement: not null } viewModel } treeViewItem)
-        {
-            _codeElementIdToTreeViewItem[viewModel.CodeElement.Id] = treeViewItem;
-        }
-    }
-
-    private void TreeViewItem_Unloaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is TreeViewItem { DataContext: TreeItemViewModel { CodeElement: not null } viewModel })
-        {
-            _codeElementIdToTreeViewItem.Remove(viewModel.CodeElement.Id);
-        }
-        else
-        {
-            // We get a disconnected item if a new project is loaded.
-            _codeElementIdToTreeViewItem.Clear();
-        }
-    }
-
-    /// <summary>
-    ///     Whenever a TreeViewItem is loaded into the visual tree we capture it in the Load event
-    /// </summary>
     public void HandleLocateInTreeRequest(LocateInTreeRequest request)
     {
-        var treeViewModel = CodeTree.DataContext as TreeViewModel;
-        if (treeViewModel == null)
-        {
-            return;
-        }
-
         CodeStructureTab.SelectedIndex = 0;
-
-        // Causes TreeViewItem_Loaded
-        treeViewModel.ExpandParents(request.Id);
-
-        // Use Dispatcher to ensure UI is updated before bringing item into view
-        Dispatcher.InvokeAsync(() =>
-        {
-            if (_codeElementIdToTreeViewItem.TryGetValue(request.Id, out var tvi))
-            {
-                tvi.BringIntoView();
-                tvi.Focus();
-            }
-        }, DispatcherPriority.Render);
+        TreeControl.HandleLocateInTreeRequest(request);
     }
 
     private void RootWindow_Closing(object sender, CancelEventArgs e)

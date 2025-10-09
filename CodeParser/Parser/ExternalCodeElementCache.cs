@@ -87,7 +87,7 @@ internal class ExternalCodeElementCache
                 // Skip the global namespace. It is added after everything is parsed if necessary.
                 continue;
             }
-            
+
             var symbolKey = sym.Key();
 
             if (!_externalElementCache.TryGetValue(symbolKey, out lastElement))

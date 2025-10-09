@@ -20,7 +20,7 @@ public static class ImageCrop
     }
 
     /// <summary>
-    /// Every alpha value smaller than alphaThreshold is considered transparent. 
+    ///     Every alpha value smaller than alphaThreshold is considered transparent.
     /// </summary>
     public static BitmapSource CropTransparency(BitmapSource source, byte alphaThreshold = 10)
     {

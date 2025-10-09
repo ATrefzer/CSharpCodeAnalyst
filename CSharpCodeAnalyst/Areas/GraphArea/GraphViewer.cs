@@ -38,8 +38,6 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     private ClickController? _clickController;
 
-    private GraphHideFilter _hideFilter = new();
-
     /// <summary>
     ///     Held to read the help
     /// </summary>
@@ -48,6 +46,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     private CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
     private bool _flow;
+
+    private GraphHideFilter _hideFilter = new();
     private Microsoft.Msagl.WpfGraphControl.GraphViewer? _msaglViewer;
     private PresentationState _presentationState = new();
     private RenderOption _renderOption = new DefaultRenderOptions();
@@ -198,7 +198,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     public void SetQuickInfoFactory(IQuickInfoFactory factory)
     {
         _factory = factory;
-        _publisher.Publish(new QuickInfoUpdate(QuickInfoFactory.DefaultInfo));
+        _publisher.Publish(new QuickInfoUpdateRequest(QuickInfoFactory.DefaultInfo));
     }
 
 
@@ -343,7 +343,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         var affectedIds = _presentationState.NodeIdToFlagged.Keys.ToList();
         _presentationState.ClearAllFlags();
         RefreshNodeDecorationWithoutLayout(affectedIds);
-        
+
         // After the highlighting is removed the state appears.
         ClearAllEdgeHighlighting();
     }
@@ -422,7 +422,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
         return false;
     }
-    
+
     public Microsoft.Msagl.WpfGraphControl.GraphViewer? GetMsaglGraphViewer()
     {
         return _msaglViewer;
@@ -434,6 +434,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         {
             return;
         }
+
         var edges = _msaglViewer.Entities.OfType<IViewerEdge>();
         foreach (var edge in edges)
         {
@@ -565,7 +566,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
         //var edges = _msaglViewer.Graph.Edges.Where(e => relationships.Contains((e.Source, e.Target)));
         var edges = _msaglViewer.Entities.OfType<IViewerEdge>().Where(e => relationships.Contains((e.Edge.Source, e.Edge.Target)));
-       
+
         foreach (var edge in edges)
         {
             ClearEdgeHighlighting(edge);
@@ -775,7 +776,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             quickInfo = _factory.CrateQuickInfo(obj);
         }
 
-        _publisher.Publish(new QuickInfoUpdate(quickInfo));
+        _publisher.Publish(new QuickInfoUpdateRequest(quickInfo));
     }
 
     private void AddContextMenuEntries(string sourceId, string targetId, List<Relationship> relationships, ContextMenu contextMenu)
