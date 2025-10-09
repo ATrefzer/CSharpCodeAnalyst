@@ -7,12 +7,6 @@
 - Consider adding the access modifiers. We could get rid of all private members.
 
 
-- external code can delete virtual node?
-- Find in tree is maybe broken!
-- Move Delete to refactorings
-    - tree, entfernen
-    - search, müsste schon gehen
-    - graph, delete all Ids.
 - Virtual Refactorings: Select Move Target
 - Virtual Refactorings: Move Code Element (including all children)
 
@@ -29,10 +23,6 @@ BUGS
 ---------------------
 
 - Key down gets lost. Not even called on the MainWindow!?
-
-- Cant read messages after parsing
-
-- Filtering in Graph
 
 
 MISSING TEST CASES
