@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET
+name: .NET Build and Release (Latest)
 
 on:
   # Commenting out automatic triggers
@@ -12,43 +9,60 @@ on:
 
   # Manually trigger release
   workflow_dispatch:
-  
 
 permissions:
-  contents: write    
+  contents: write
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-    - name: Publish
-      run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
-    
-    - name: Zip Release
-      run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-       tag_name: v0.${{ github.run_number }}
-       name: v0.${{ github.run_number }}
-       draft: false
-       prerelease: false
-       files: |
-         latest-release.zip
-      env:
-       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Publish
+        run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
+
+      - name: Zip Release
+        run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
+
+      # Delete existing "latest"-Release & Tag
+      - name: Delete existing "latest" release if present
+        run: |
+          gh release delete latest -y || echo "No existing release"
+          git tag -d latest || echo "No local tag"
+          git push origin :refs/tags/latest || echo "No remote tag"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Create or update Release with fix tag "latest"
+      - name: Create or Update Latest Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: "v0.${{ github.run_number }} (Latest)"
+          body: |
+            Automated build **v0.${{ github.run_number }}**
+            - Build number: ${{ github.run_number }}
+            - Commit: ${{ github.sha }}
+            - Triggered by: ${{ github.actor }}
+          draft: false
+          prerelease: false
+          files: |
+            latest-release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
