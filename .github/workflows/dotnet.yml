@@ -37,7 +37,7 @@ jobs:
         run: dotnet test --no-build --configuration Release --verbosity normal
 
       - name: Publish
-        run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
+        run: dotnet publish .\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj  --no-build -c Release -r win-x64 -o publish --self-contained false -p:PublishSingleFile=false -p:SatelliteResourceLanguages=en
 
       - name: Zip Release
         run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
