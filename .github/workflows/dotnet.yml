@@ -16,6 +16,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      BUILD_VERSION: 0.1.${{ github.run_number }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +31,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --no-restore -c Release -p:Version=$BUILD_VERSION -p:FileVersion=$BUILD_VERSION -p:AssemblyVersion=$BUILD_VERSION
 
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
@@ -56,7 +58,7 @@ jobs:
           tag_name: latest
           name: "v0.${{ github.run_number }} (Latest)"
           body: |
-            Automated build **v0.${{ github.run_number }}**
+            Automated build **v$BUILD_VERSION**
             - Build number: ${{ github.run_number }}
             - Commit: ${{ github.sha }}
             - Triggered by: ${{ github.actor }}
