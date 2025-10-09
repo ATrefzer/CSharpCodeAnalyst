@@ -31,7 +31,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore -c Release -p:Version=$BUILD_VERSION -p:FileVersion=$BUILD_VERSION -p:AssemblyVersion=$BUILD_VERSION -p:PackageVersion=$BUILD_VERSION
+        run: dotnet build --no-restore -c Release -p:Version=$env:BUILD_VERSION -p:FileVersion=$env:BUILD_VERSION -p:AssemblyVersion=$env:BUILD_VERSION -p:PackageVersion=$env:BUILD_VERSION
         
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
@@ -56,9 +56,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest
-          name: "v0.${{ github.run_number }} (Latest)"
+          name: "v${{ env.BUILD_VERSION }} (Latest)"
           body: |
-            Automated build **v$BUILD_VERSION**
+            Automated build **v${{ env.BUILD_VERSION }}**
             - Build number: ${{ github.run_number }}
             - Commit: ${{ github.sha }}
             - Triggered by: ${{ github.actor }}
