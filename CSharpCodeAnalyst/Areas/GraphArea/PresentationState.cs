@@ -5,7 +5,6 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 public class PresentationState
 {
     private Dictionary<string, bool> _nodeIdToCollapsed;
-    private Dictionary<string, bool> _defaultState;
 
     /// <summary>
     /// Not persisted, tuples are not supported by System.Text.Json
@@ -14,10 +13,9 @@ public class PresentationState
 
     private Dictionary<string, bool> _nodeIdToFlagged;
 
-    public PresentationState(Dictionary<string, bool> defaultState)
+    public PresentationState(Dictionary<string, bool> initialState)
     {
-        _defaultState = defaultState.ToDictionary(p => p.Key, p => p.Value);
-        _nodeIdToCollapsed = _defaultState.ToDictionary(p => p.Key, p => p.Value);
+        _nodeIdToCollapsed = initialState.ToDictionary(p => p.Key, p => p.Value);
         _nodeIdToFlagged = [];
         _edgeToFlagged = [];
         NodeIdToSearchHighlighted = [];
@@ -26,18 +24,10 @@ public class PresentationState
     public PresentationState()
     {
         // Nothing is collapsed
-        _defaultState = new Dictionary<string, bool>();
         _nodeIdToCollapsed = [];
         _nodeIdToFlagged = [];
         _edgeToFlagged = [];
         NodeIdToSearchHighlighted = new Dictionary<string, bool>();
-    }
-
-    // Public properties for JSON serialization
-    [JsonPropertyName("defaultState")] public Dictionary<string, bool> DefaultState
-    {
-        get => _defaultState;
-        set => _defaultState = value ?? [];
     }
 
     [JsonPropertyName("nodeIdToFlagged")] public Dictionary<string, bool> NodeIdToFlagged
@@ -58,7 +48,7 @@ public class PresentationState
 
     public PresentationState Clone()
     {
-        var clone = new PresentationState(_defaultState);
+        var clone = new PresentationState();
         foreach (var pair in _nodeIdToCollapsed)
         {
             clone.SetCollapsedState(pair.Key, pair.Value);
@@ -145,7 +135,6 @@ public class PresentationState
             _nodeIdToCollapsed.Remove(id);
             _nodeIdToFlagged.Remove(id);
             NodeIdToSearchHighlighted.Remove(id);
-            _defaultState.Remove(id);
         }
     }
 }
