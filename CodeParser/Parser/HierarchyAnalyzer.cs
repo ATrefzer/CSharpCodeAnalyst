@@ -375,6 +375,10 @@ public class HierarchyAnalyzer
     {
         foreach (var project in solution.Projects)
         {
+            if (IsUnrecognizedProject(project.FilePath))
+            {
+                continue;
+            }
             if (!_config.IsProjectIncluded(project.Name))
             {
                 continue;
@@ -388,5 +392,24 @@ public class HierarchyAnalyzer
                 }
             }
         }
+    }
+
+    private bool IsUnrecognizedProject(string? projectFilePath)
+    {
+        var unrecognized = new List<string>()
+        {
+            ".vbproj",
+            ".fsproj",
+            ".vcxproj",
+            ".proj"
+        };
+
+        var ext = Path.GetExtension(projectFilePath);
+        if (ext == null)
+        {
+            return false;
+        }
+
+        return unrecognized.Contains(ext);
     }
 }

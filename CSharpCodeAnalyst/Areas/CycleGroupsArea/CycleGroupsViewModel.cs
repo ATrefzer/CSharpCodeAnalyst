@@ -47,7 +47,8 @@ internal class CycleGroupsViewModel : Table
             {
                 Type = ColumnType.Text,
                 Header = Strings.Level_Header,
-                PropertyName = nameof(CycleGroupViewModel.Level)
+                PropertyName = nameof(CycleGroupViewModel.Level),
+                IsExpandable = true
             },
             new()
             {
@@ -60,7 +61,6 @@ internal class CycleGroupsViewModel : Table
                 Type = ColumnType.Text,
                 Header = Strings.CodeElements_Header,
                 PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
-                IsExpandable = true
             }
         };
     }
