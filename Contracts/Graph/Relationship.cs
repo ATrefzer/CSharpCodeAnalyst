@@ -6,14 +6,7 @@ namespace Contracts.Graph;
 [DebuggerDisplay("{Type}")]
 public class Relationship
 {
-    [JsonConstructor]
-    private Relationship()
-    {
-        SourceId = string.Empty;
-        TargetId = string.Empty;
-        Type = RelationshipType.Uses;
-    }
-
+   
     public Relationship(string sourceId, string targetId, RelationshipType type)
     {
         SourceId = sourceId;
@@ -29,10 +22,20 @@ public class Relationship
         Attributes = attributes;
     }
 
+    [JsonConstructor]
+    public Relationship(string sourceId, string targetId, RelationshipType type, RelationshipAttribute attributes, List<SourceLocation> sourceLocations)
+    {
+        SourceId = sourceId;
+        TargetId = targetId;
+        Type = type;
+        Attributes = attributes;
+        SourceLocations = sourceLocations;
+    }
+
     public RelationshipAttribute Attributes { get; set; } = RelationshipAttribute.None;
-    public string SourceId { get; private set; }
-    public string TargetId { get; private set; }
-    public RelationshipType Type { get; private set; }
+    public string SourceId { get; }
+    public string TargetId { get; }
+    public RelationshipType Type { get; }
 
     public List<SourceLocation> SourceLocations { get; set; } = [];
 
