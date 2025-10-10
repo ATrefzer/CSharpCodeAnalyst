@@ -8,66 +8,56 @@ namespace CSharpCodeAnalyst.Common;
 /// </summary>
 internal interface IExpression
 {
-    bool Evaluate(CodeElement item);
+    bool Evaluate(CodeElement? item);
 }
 
-internal class Term : IExpression
+internal abstract class Term : IExpression
 {
+    protected readonly Regex? Regex;
+    protected readonly SearchType SearchMode;
+    protected readonly string SearchTerm = string.Empty;
+    protected readonly CodeElementType Type = CodeElementType.Other;
 
-    private readonly Regex? _regex;
-    private readonly SearchModel _searchModel;
-
-    private readonly string _searchTerm = string.Empty;
-    private readonly CodeElementType _type = CodeElementType.Other;
-
-    public Term(string searchTerm)
+    protected Term(string searchTerm)
     {
         var lowerSearchTerm = searchTerm.ToLowerInvariant();
         if (lowerSearchTerm.StartsWith("type:"))
         {
             // If type is not known fallback to CodeElementType.Other
             lowerSearchTerm = lowerSearchTerm.Substring("type:".Length);
-            if (TryGetCodeElementTypeFromName(lowerSearchTerm, out _type))
+            if (TryGetCodeElementTypeFromName(lowerSearchTerm, out Type))
             {
-                _searchModel = SearchModel.Type;
+                SearchMode = SearchType.Type;
             }
         }
         else if (lowerSearchTerm is "source:intern")
         {
-            _searchModel = SearchModel.InternalCode;
+            SearchMode = SearchType.InternalCode;
         }
         else if (lowerSearchTerm is "source:extern")
         {
-            _searchModel = SearchModel.ExternalCode;
+            SearchMode = SearchType.ExternalCode;
         }
         else
         {
             var (isPascalCase, regex) = PascalCaseSearch.CreateSearchRegex(searchTerm);
             if (isPascalCase && regex != null)
             {
-                _searchModel = SearchModel.FullNameResharperStyle;
-                _regex = regex;
+                SearchMode = SearchType.FullNameResharperStyle;
+                Regex = regex;
             }
             else
             {
                 // All lower case, default mode
-                _searchModel = SearchModel.FullNameSimple;
-                _searchTerm = lowerSearchTerm;
+                SearchMode = SearchType.FullNameSimple;
+                SearchTerm = lowerSearchTerm;
             }
         }
     }
 
-    public bool Evaluate(CodeElement item)
-    {
-        return _searchModel switch
-        {
-            SearchModel.Type => item.ElementType == _type,
-            SearchModel.InternalCode => !item.IsExternal,
-            SearchModel.ExternalCode => item.IsExternal,
-            SearchModel.FullNameResharperStyle => _regex!.IsMatch(item.FullName),
-            _ => item.FullName.Contains(_searchTerm, StringComparison.InvariantCultureIgnoreCase)
-        };
-    }
+    public abstract bool Evaluate(CodeElement item);
+
+
 
     private static bool TryGetCodeElementTypeFromName(string typeName, out CodeElementType type)
     {
@@ -89,7 +79,7 @@ internal class Term : IExpression
         return false;
     }
 
-    private enum SearchModel
+    internal enum SearchType
     {
         // Search for types.
         Type,
@@ -111,7 +101,7 @@ internal class Term : IExpression
             _conditions = conditions;
         }
 
-        public bool Evaluate(CodeElement item)
+        public bool Evaluate(CodeElement? item)
         {
             return _conditions.All(c => c.Evaluate(item));
         }
@@ -126,9 +116,49 @@ internal class Term : IExpression
             _conditions = conditions;
         }
 
-        public bool Evaluate(CodeElement item)
+        public bool Evaluate(CodeElement? item)
         {
             return _conditions.Any(c => c.Evaluate(item));
         }
+    }
+}
+
+internal class FullNameSearch(string searchTerm) : Term(searchTerm)
+{
+    public override bool Evaluate(CodeElement? item)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+
+        return SearchMode switch
+        {
+            SearchType.Type => item.ElementType == Type,
+            SearchType.InternalCode => !item.IsExternal,
+            SearchType.ExternalCode => item.IsExternal,
+            SearchType.FullNameResharperStyle => Regex!.IsMatch(item.FullName),
+            _ => item.FullName.Contains(SearchTerm, StringComparison.InvariantCultureIgnoreCase)
+        };
+    }
+}
+
+internal class NameSearch(string searchTerm) : Term(searchTerm)
+{
+    public override bool Evaluate(CodeElement? item)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+
+        return SearchMode switch
+        {
+            SearchType.Type => item.ElementType == Type,
+            SearchType.InternalCode => !item.IsExternal,
+            SearchType.ExternalCode => item.IsExternal,
+            SearchType.FullNameResharperStyle => Regex!.IsMatch(item.Name),
+            _ => item.Name.Contains(SearchTerm, StringComparison.InvariantCultureIgnoreCase)
+        };
     }
 }

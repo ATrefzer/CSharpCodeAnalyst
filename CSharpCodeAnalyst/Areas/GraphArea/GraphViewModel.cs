@@ -704,20 +704,48 @@ internal class GraphViewModel : INotifyPropertyChanged
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
+        // No  undo because the old model does not exist any more.
+
+        var session = _viewer.GetSession();
+        var canvasGraph = _viewer.GetGraph();
+
         if (message is CodeElementsDeleted deleted)
         {
             // Any leftovers in the canvas get cleaned up.
-            var session = _viewer.GetSession();
-            var graph = _viewer.GetGraph();
-            
-            var newGraph = graph.Clone();
+
+            var newGraph = canvasGraph.Clone();
             newGraph.RemoveCodeElements(deleted.DeletedIds);
-            
+
             // Cleanup unused states
             var presentationState = session.PresentationState.Clone();
             presentationState.RemoveStates(deleted.DeletedIds);
 
             _viewer.LoadSession(newGraph, presentationState);
+        }
+        else if (message is CodeElementsMoved moved)
+        {
+            // Add the same node ids with the same relationships. This fixes parent/child hierarchy.
+            // We may have moved more nodes than in the graph. Or the graph is not affected at all by this movement.
+            
+            var relationships = canvasGraph.GetAllRelationships().ToList();
+            var ids = canvasGraph.Nodes.Values.Select(n => n.Id).ToHashSet();
+            
+            // Is the canvas graph affected at all?
+            var originalGraph = moved.Graph;
+            var movedIds = originalGraph.Nodes[moved.SourceId].GetChildrenIncludingSelf().ToHashSet();
+            if (!movedIds.Intersect(ids).Any())
+            {
+                return;
+            }
+            
+            // I don't know where the element was moved to. I add its parent.
+            // Since I cant move an assembly parent is never null    
+            ids.Add(moved.NewParentId);    
+           
+            // I use the old presentation state. Except the new parent node I should not see any different nodes.
+            // However, the parent / child relationships have changed.
+            var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();
+            _viewer.LoadSession(nodes, relationships, session.PresentationState);
         }
     }
 }

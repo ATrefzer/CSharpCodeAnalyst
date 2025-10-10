@@ -7,7 +7,6 @@ using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Wpf;
-using Microsoft.Build.Tasks;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
 
@@ -15,11 +14,9 @@ public class TreeViewModel : INotifyPropertyChanged
 {
     // For faster search
     private static readonly Dictionary<string, TreeItemViewModel> CodeElementIdToViewModel = new();
-    private readonly Matcher _matcher;
     private readonly MessageBus _messaging;
     private readonly RefactoringService _refactoringService;
     private CodeGraph? _codeGraph;
-    private ObservableCollection<TreeItemViewModel> _filteredTreeItems;
     private string _searchText;
     private ObservableCollection<TreeItemViewModel> _treeItems;
 
@@ -28,7 +25,6 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging = messaging;
         _refactoringService = refactoringService;
         _searchText = string.Empty;
-        _matcher = new Matcher();
 
         SearchCommand = new WpfCommand(ExecuteSearch);
         CollapseTreeCommand = new WpfCommand(CollapseTree);
@@ -39,21 +35,21 @@ public class TreeViewModel : INotifyPropertyChanged
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
 
         // Refactoring
-        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(DeleteFromModel);
-        CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(CreateCodeElement, CanCreateCodeElement);
+        DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(RefactoringDeleteCodeElement);
+        CreateCodeElementCommand = new WpfCommand<TreeItemViewModel>(RefactoringCreateCodeElement, RefactoringCanCreateCodeElement);
 
-        SetMovementTargetCommand = new WpfCommand<TreeItemViewModel>(SetMovementTarget, CanSetMovementTarget);
-        MoveCommand = new WpfCommand<TreeItemViewModel>(OnMove, CanMove);
+        SetMovementTargetCommand = new WpfCommand<TreeItemViewModel>(RefactoringSetMovementTarget, RefactoringCanSetMovementTarget);
+        MoveCommand = new WpfCommand<TreeItemViewModel>(RefactoringMoveCodeElement, RefactoringCanMoveCodeElement);
 
         _treeItems = [];
     }
 
-    private bool CanMove(TreeItemViewModel tvm)
+    private bool RefactoringCanMoveCodeElement(TreeItemViewModel tvm)
     {
         return _refactoringService.CanMoveCodeElement(tvm?.CodeElement);
     }
 
-    private void OnMove(TreeItemViewModel? tvm)
+    private void RefactoringMoveCodeElement(TreeItemViewModel? tvm)
     {
         if (!_refactoringService.MoveCodeElement(tvm?.CodeElement))
         {
@@ -72,12 +68,12 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_codeGraph!, source.Id, oldParent.Id, newParent.Id));
     }
 
-    private bool CanSetMovementTarget(TreeItemViewModel tvm)
+    private bool RefactoringCanSetMovementTarget(TreeItemViewModel tvm)
     {
         return _refactoringService.CanSetMovementTarget(tvm?.CodeElement);
     }
 
-    private void SetMovementTarget(TreeItemViewModel tvm)
+    private void RefactoringSetMovementTarget(TreeItemViewModel tvm)
     {
         _refactoringService.SetMovementTarget(tvm?.CodeElement);
     }
@@ -120,7 +116,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool CanCreateCodeElement(TreeItemViewModel? tvm)
+    private bool RefactoringCanCreateCodeElement(TreeItemViewModel? tvm)
     {
         // null tvm means root level (empty space in tree) - this is allowed
         // Otherwise check if the CodeElement can have children
@@ -164,7 +160,6 @@ public class TreeViewModel : INotifyPropertyChanged
     }
 
 
-
     private void ClearSearch()
     {
         SearchText = string.Empty;
@@ -189,9 +184,9 @@ public class TreeViewModel : INotifyPropertyChanged
     ///     Creates a code element at the root level (e.g., Assembly).
     ///     Public method to be called from UI when right-clicking empty space.
     /// </summary>
-    public void CreateCodeElementAtRoot()
+    public void RefactoringCreateCodeElementAtRoot()
     {
-        CreateCodeElement(null);
+        RefactoringCreateCodeElement(null);
     }
 
 
@@ -202,28 +197,28 @@ public class TreeViewModel : INotifyPropertyChanged
         // Tree updates are slow, so do the update manually.
         if (message is CodeElementCreated created)
         {
-            RefactoringAddCodeElement(created);
+            RefactoringCodeElementAdded(created);
         }
         else if (message is CodeElementsDeleted deleted)
         {
             var deletedElement = deleted.DeletedElement;
             var parent = deletedElement.Parent;
-            RefactoringRemoveCodeElement(deletedElement.Id, parent?.Id, deleted.DeletedIds);
+            RefactoringCodeElementDeleted(deletedElement.Id, parent?.Id, deleted.DeletedIds);
         }
         else if (message is CodeElementsMoved moved)
         {
+            // This may be slow but easy.
             LoadCodeGraph(moved.Graph);
             _messaging.Publish(new LocateInTreeRequest(moved.NewParentId));
         }
     }
 
-    private void RefactoringRemoveCodeElement(string deletedElementId, string? parentId, HashSet<string> deletedIds)
+    private void RefactoringCodeElementDeleted(string deletedElementId, string? parentId, HashSet<string> deletedIds)
     {
         // Refresh the tree to show the new element
       
-
         // Delete from tree.
-        if (!CodeElementIdToViewModel.TryGetValue(deletedElementId, out var deletedViewModel))
+        if (!CodeElementIdToViewModel.TryGetValue(deletedElementId, out _))
         {
             // Code element not found
             return;
@@ -254,9 +249,9 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
-    private void RefactoringAddCodeElement(CodeElementCreated created)
+    private void RefactoringCodeElementAdded(CodeElementCreated created)
     {
-        // Refresh the tree to show the new element
+        // Update the tree to show the new element
         var newElement = created.NewElement;
         var newTreeItem = CreateTreeViewItem(newElement);
         var parent = newElement.Parent;
@@ -277,7 +272,7 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
-    private void CreateCodeElement(TreeItemViewModel? item)
+    private void RefactoringCreateCodeElement(TreeItemViewModel? item)
     {
         var parent = item?.CodeElement; // null means root level
         var newElement = _refactoringService.CreateCodeElement(_codeGraph, parent);
@@ -289,7 +284,7 @@ public class TreeViewModel : INotifyPropertyChanged
         _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_codeGraph!, newElement));
     }
 
-    private void DeleteFromModel(TreeItemViewModel tvi)
+    private void RefactoringDeleteCodeElement(TreeItemViewModel tvi)
     {
         if (_codeGraph is null)
         {
@@ -380,7 +375,6 @@ public class TreeViewModel : INotifyPropertyChanged
 
     public void ExecuteSearch()
     {
-        _matcher.LoadMatchExpression(SearchText);
         if (string.IsNullOrWhiteSpace(SearchText))
         {
             ResetVisibility(TreeItems, false);
@@ -391,7 +385,8 @@ public class TreeViewModel : INotifyPropertyChanged
         }
         else
         {
-            SearchAndExpandNodes(TreeItems);
+            var expr = SearchExpressionFactory.CreateSearchExpression(SearchText, SearchExpressionFactory.TextSearchField.Name);
+            SearchAndExpandNodes(TreeItems, expr);
         }
     }
 
@@ -430,13 +425,13 @@ public class TreeViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool SearchAndExpandNodes(IEnumerable<TreeItemViewModel> items)
+    private bool SearchAndExpandNodes(IEnumerable<TreeItemViewModel> items, IExpression expr)
     {
         var anyMatch = false;
         foreach (var item in items)
         {
-            var matchesSearch = _matcher.IsMatch(item);
-            var childrenMatch = SearchAndExpandNodes(item.Children);
+            var matchesSearch = expr.Evaluate(item.CodeElement);
+            var childrenMatch = SearchAndExpandNodes(item.Children, expr);
 
             item.IsVisible = matchesSearch || childrenMatch;
             item.IsHighlighted = matchesSearch;
