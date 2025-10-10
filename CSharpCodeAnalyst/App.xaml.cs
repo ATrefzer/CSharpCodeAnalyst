@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -35,10 +36,30 @@ public partial class App
 
         // Run in UI mode
         StartUi();
+
+        if (e.Args.Length == 1)
+        {
+            // Allow loading a project file (json) via command line for faster debugging
+            var dc = MainWindow?.DataContext as MainViewModel;
+            if (dc != null)
+            {
+                dc.OnLo;
+            }
+        }
+        
     }
 
     private void StartUi()
     {
+        // const int delayMs = 200;
+        // ToolTipService.InitialShowDelayProperty.OverrideMetadata(
+        //     typeof(DependencyObject),
+        //     new FrameworkPropertyMetadata(delayMs));
+        // ToolTipService.BetweenShowDelayProperty.OverrideMetadata(
+        //     typeof(DependencyObject),
+        //     new FrameworkPropertyMetadata(delayMs));
+        
+        
         try
         {
             Initializer.InitializeMsBuildLocator();

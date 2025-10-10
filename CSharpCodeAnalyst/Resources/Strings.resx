@@ -806,4 +806,22 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Refactor_CreateCodeElement" xml:space="preserve">
 		<value>Create code element</value>
 	</data>
+    <data name="ArchitectureRules_Info" xml:space="preserve">
+		<value>Three rules are supported:
+
+DENY: Forbids dependencies from source to target
+RESTRICT: Allows only specified dependencies
+ISOLATE: Completely isolates the source from external dependencies
+
+Patterns:
+MyApp.Business → exact match
+MyApp.Business.* → element + direct children
+MyApp.Business.** → element + all descendants
+
+Examples:
+DENY: MyApp.Business.** -> MyApp.Data.**
+RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+ISOLATE: MyApp.Domain.**</value>
+	</data>
+    
 </root>

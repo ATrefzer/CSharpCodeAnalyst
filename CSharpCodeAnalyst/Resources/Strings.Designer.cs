@@ -169,6 +169,29 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Three rules are supported:
+        ///
+        ///DENY: Forbids dependencies from source to target
+        ///RESTRICT: Allows only specified dependencies
+        ///ISOLATE: Completely isolates the source from external dependencies
+        ///
+        ///Patterns:
+        ///MyApp.Business → exact match
+        ///MyApp.Business.* → element + direct children
+        ///MyApp.Business.** → element + all descendants
+        ///
+        ///Examples:
+        ///DENY: MyApp.Business.** -&gt; MyApp.Data.**
+        ///RESTRICT: MyApp.Controllers.** -&gt; MyApp.Services.**
+        ///ISOLATE: MyApp.Domain.**.
+        /// </summary>
+        public static string ArchitectureRules_Info {
+            get {
+                return ResourceManager.GetString("ArchitectureRules_Info", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bottom to Top.
         /// </summary>
         public static string Bottom_To_Top_Label {

@@ -725,13 +725,18 @@ internal class MainViewModel : INotifyPropertyChanged
         {
             return;
         }
+        
+        await OnLoadProjectFile(openFileDialog.FileName);
+    }
 
+    private async Task OnLoadProjectFile(string fileName)
+    {
         try
         {
             LoadMessage = "Loading ...";
             IsLoading = true;
 
-            var fileName = openFileDialog.FileName;
+           
             var (codeGraph, projectData) = await Task.Run(() => LoadProject(fileName));
 
             LoadSettings(projectData.Settings);

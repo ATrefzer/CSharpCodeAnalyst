@@ -14,6 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+                <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
@@ -39,15 +40,20 @@
                     Width="22" Height="22" Margin="2 0 2 0">
                 <Image Source="/Resources/clear_32.png" />
             </Button>
-            <TextBox DockPanel.Dock="Left" Height="22" Background="LightYellow"
-                     FontSize="12"
-                     ToolTip="{x:Static resources:Strings.TreeSearch_Tooltip}"
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
-                <TextBox.InputBindings>
-                    <KeyBinding Key="Enter"
-                                Command="{Binding SearchCommand}" />
-                </TextBox.InputBindings>
-            </TextBox>
+
+            <Grid DockPanel.Dock="Left" HorizontalAlignment="Stretch">
+                <TextBox Height="22" Background="LightYellow" HorizontalAlignment="Stretch"
+                         FontSize="12"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="0">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter"
+                                    Command="{Binding SearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+
+                <Image Style="{StaticResource InfoStyle}"
+                       ToolTip="{x:Static resources:Strings.TreeSearch_Tooltip}" />
+            </Grid>
 
         </DockPanel>
         <TreeView Grid.Row="1"
@@ -76,8 +82,8 @@
                         <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
                                   Command="{Binding DeleteFromModelCommand}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                        
-                        
+
+
                         <MenuItem Header="Set as movement parent"
                                   Command="{Binding SetMovementTargetCommand}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

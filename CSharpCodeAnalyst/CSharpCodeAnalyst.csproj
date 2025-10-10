@@ -33,6 +33,11 @@
         <Page Update="Areas\Shared\CodeElementLineTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
+        <Page Update="Styles\ImageStyles.xaml">
+          <Generator>MSBuild:Compile</Generator>
+          <XamlRuntime>Wpf</XamlRuntime>
+          <SubType>Designer</SubType>
+        </Page>
     </ItemGroup>
 
     <ItemGroup>
@@ -99,6 +104,8 @@
         <Resource Include="Resources\Field_16.png"/>
         <Resource Include="Resources\Record_16.png"/>
         <Resource Include="Resources\Other_16.png"/>
+        <None Remove="Resources\bue-info_16.png" />
+        <Resource Include="Resources\blue-info_16.png" />
     </ItemGroup>
 
 
