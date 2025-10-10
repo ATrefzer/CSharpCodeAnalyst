@@ -17,13 +17,13 @@ public class NamespacesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.Namespaces.Core.Namespaces.Level1.Level1Class",
-            "Core.Namespaces.Core.Namespaces.Level1.AnotherLevel1Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Processor",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.DeepestClass",
-            "Core.Namespaces.Core.Namespaces.RootClass"
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level1Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.AnotherLevel1Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Processor",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.DeepestClass",
+            "Core.Namespaces.global.Core.Namespaces.RootClass"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -37,20 +37,20 @@ public class NamespacesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.Namespaces.Core.Namespaces.Level1.Level1Class._level2 -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level1Class.DoSomething -> Core.Namespaces.Core.Namespaces.Level1.Level1Class._level2",
-            "Core.Namespaces.Core.Namespaces.Level1.Level1Class.CreateLevel2 -> Core.Namespaces.Core.Namespaces.Level1.Level1Class._level2",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level1Class._level2 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.DoSomething -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class._level2",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.CreateLevel2 -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class._level2",
 
 
             // Local declarations
-            "Core.Namespaces.Core.Namespaces.Level1.AnotherLevel1Class.WorkWithRoot -> Core.Namespaces.Core.Namespaces.RootClass",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class.ProcessData -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Processor.ProcessWithLevel1 -> Core.Namespaces.Core.Namespaces.Level1.Level1Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.DeepestClass.ReachToTop -> Core.Namespaces.Core.Namespaces.Level1.Level1Class",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation -> Core.Namespaces.Core.Namespaces.RootClass",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel1 -> Core.Namespaces.Core.Namespaces.Level1.Level1Class",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel2 -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class"
+            "Core.Namespaces.global.Core.Namespaces.Level1.AnotherLevel1Class.WorkWithRoot -> Core.Namespaces.global.Core.Namespaces.RootClass",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class.ProcessData -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Processor.ProcessWithLevel1 -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.DeepestClass.ReachToTop -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation -> Core.Namespaces.global.Core.Namespaces.RootClass",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel1 -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel2 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class"
         };
 
         CollectionAssert.AreEquivalent(expected, crossNamespaceUsages);
@@ -64,15 +64,15 @@ public class NamespacesApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.Namespaces.Core.Namespaces.Level1.Level1Class.DoSomething -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class.ProcessData",
-            "Core.Namespaces.Core.Namespaces.Level1.AnotherLevel1Class.WorkWithRoot -> Core.Namespaces.Core.Namespaces.RootClass.UseLevel1",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class.ProcessData -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Processor.ProcessWithLevel1 -> Core.Namespaces.Core.Namespaces.Level1.Level1Class.DoSomething",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation -> Core.Namespaces.Core.Namespaces.RootClass.UseLevel1",
-            "Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.DeepestClass.ReachToTop -> Core.Namespaces.Core.Namespaces.Level1.Level1Class.DoSomething",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel1 -> Core.Namespaces.Core.Namespaces.Level1.Level1Class.DoSomething",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel2 -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level2Class.ProcessData",
-            "Core.Namespaces.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation"
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.DoSomething -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class.ProcessData",
+            "Core.Namespaces.global.Core.Namespaces.Level1.AnotherLevel1Class.WorkWithRoot -> Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel1",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class.ProcessData -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Processor.ProcessWithLevel1 -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.DoSomething",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation -> Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel1",
+            "Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.DeepestClass.ReachToTop -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.DoSomething",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel1 -> Core.Namespaces.global.Core.Namespaces.Level1.Level1Class.DoSomething",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel2 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level2Class.ProcessData",
+            "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation"
         };
 
         CollectionAssert.AreEquivalent(expected, methodCalls);

@@ -23,29 +23,33 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation",
-            "ModuleLevel0.ModuleLevel0.Ns1.ClassL",
-            "ModuleLevel0.ModuleLevel0.Ns1.ClassL.InnerClassL",
-            "ModuleLevel0.ModuleLevel0.Ns1.Ns2.ClassY",
-            "ModuleLevel1.ModuleLevel1.FactoryC",
-            "ModuleLevel1.ModuleLevel1.Model.ModelA",
-            "ModuleLevel1.ModuleLevel1.Model.ModelB",
-            "ModuleLevel1.ModuleLevel1.Model.ModelC",
-            "ModuleLevel1.ModuleLevel1.Model.ModelD",
-            "ModuleLevel0.ModuleLevel0.Bootstrapper",
-            "ModuleLevel1.ModuleLevel1.Command",
-            "ModuleLevel1.ModuleLevel1.ServiceA",
-            "ModuleLevel1.ModuleLevel1.ServiceBase",
-            "ModuleLevel1.ModuleLevel1.ServiceC",
-            "ModuleLevel2.ClassInGlobalNs",
-            "ModuleLevel2.Insight.Analyzers",
-            "ModuleLevel2.Insight.Dialogs.TrendViewModel",
-            "ModuleLevel2.ModuleLevel2.Constants",
-            "ModuleLevel2.ModuleLevel2.DerivedFromGenericSystemClass",
-            "ModuleLevel2.ModuleLevel2.N1.ClassInNs1",
-            "ModuleLevel2.ModuleLevel2.N1.N2.N3.ClassInNs2",
-            "ModuleLevel2.ModuleLevel2.SelfReferencingClass",
-            "ModuleLevel2.ModuleLevel2.Utility"
+            "ModuleLevel0.global.ModuleLevel0.Ns1.ClassL",
+            "ModuleLevel0.global.ModuleLevel0.Ns1.ClassL.InnerClassL",
+            "ModuleLevel0.global.ModuleLevel0.Ns1.Ns2.ClassY",
+            "ModuleLevel1.global.ModuleLevel1.FactoryC",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelA",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelB",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelC",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelD",
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper",
+
+            "ModuleLevel1.global.ModuleLevel1.Command",
+            "ModuleLevel1.global.ModuleLevel1.ServiceA",
+            "ModuleLevel1.global.ModuleLevel1.ServiceBase",
+            "ModuleLevel1.global.ModuleLevel1.ServiceC",
+
+            "ModuleLevel2.global.ModuleLevel2.Constants",
+            "ModuleLevel2.global.ModuleLevel2.DerivedFromGenericSystemClass",
+            "ModuleLevel2.global.ModuleLevel2.N1.ClassInNs1",
+            "ModuleLevel2.global.ModuleLevel2.N1.N2.N3.ClassInNs2",
+            "ModuleLevel2.global.ModuleLevel2.SelfReferencingClass",
+            "ModuleLevel2.global.ModuleLevel2.Utility",
+
+            "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation",
+            "ModuleLevel2.global.ClassInGlobalNs",
+            "ModuleLevel2.global.Insight.Analyzers",
+            "ModuleLevel2.global.Insight.Dialogs.TrendViewModel",
+            
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -58,17 +62,17 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         var expectedProperties = new HashSet<string>
         {
-            "ModuleLevel1.ModuleLevel1.IServiceC.IfProperty",
-            "ModuleLevel1.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
-            "ModuleLevel1.ModuleLevel1.Model.ModelB.Value",
-            "ModuleLevel1.ModuleLevel1.Model.ModelC.IntPropertyOfModelC",
-            "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant",
-            "ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty",
-            "ModuleLevel1.ModuleLevel1.ServiceC.IfProperty",
-            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Commit",
-            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.CommitHash",
-            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Parents",
-            "ModuleLevel2.ModuleLevel2.SelfReferencingClass.Children"
+            "ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelB.Value",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelC.IntPropertyOfModelC",
+            "ModuleLevel1.global.ModuleLevel1.Model.StructA.DependencyToConstant",
+            "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty",
+            "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty",
+            "ModuleLevel2.global.ModuleLevel2.SelfReferencingClass.Commit",
+            "ModuleLevel2.global.ModuleLevel2.SelfReferencingClass.CommitHash",
+            "ModuleLevel2.global.ModuleLevel2.SelfReferencingClass.Parents",
+            "ModuleLevel2.global.ModuleLevel2.SelfReferencingClass.Children"
         };
 
 
@@ -103,22 +107,22 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.FactoryC",
-            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.FactoryC.Create",
-            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.IServiceC.Do",
-            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
-            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation",
-            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent",
-            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.Method",
-            "ModuleLevel1.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel2.ModuleLevel2.TheEnum",
-            "ModuleLevel1.ModuleLevel1.Model.ModelB.Do -> ModuleLevel2.ModuleLevel2.TheEnum",
-            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.ModuleLevel2.TheEnum",
-            "ModuleLevel1.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.ModuleLevel2.TheEnum",
-            "ModuleLevel1.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.ModuleLevel2.Constants.Constant1",
-            "ModuleLevel1.ModuleLevel1.ServiceC.Do -> ModuleLevel2.ModuleLevel2.Utility.UtilityMethod1",
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.global.ModuleLevel1.FactoryC",
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.global.ModuleLevel1.FactoryC.Create",
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.global.ModuleLevel1.IServiceC.Do",
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel2.global.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation -> ModuleLevel2.global.ModuleLevel0.InterfaceInDifferentCompilation",
+            "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.global.ModuleLevel0.InterfaceInDifferentCompilation.AEvent",
+            "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation.Method -> ModuleLevel2.global.ModuleLevel0.InterfaceInDifferentCompilation.Method",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelB.Initialize -> ModuleLevel2.global.ModuleLevel2.TheEnum",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelB.Do -> ModuleLevel2.global.ModuleLevel2.TheEnum",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.global.ModuleLevel2.TheEnum",
+            "ModuleLevel1.global.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.global.ModuleLevel2.TheEnum",
+            "ModuleLevel1.global.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.global.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel1.global.ModuleLevel1.ServiceC.Do -> ModuleLevel2.global.ModuleLevel2.Utility.UtilityMethod1",
 
             // LocalDeclarationSyntax
-            "ModuleLevel0.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.ModuleLevel1.IServiceC"
+            "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.global.ModuleLevel1.IServiceC"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -133,7 +137,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
         var actual = GetAllPropertyImplementations(graph);
         var expected = new HashSet<string>
         {
-            "ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty -> ModuleLevel1.ModuleLevel1.IServiceC.IfProperty"
+            "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty -> ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty"
         };
 
 
@@ -149,7 +153,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "ModuleLevel0.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.ModuleLevel0.InterfaceInDifferentCompilation.AEvent"
+            "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation.AEvent -> ModuleLevel2.global.ModuleLevel0.InterfaceInDifferentCompilation.AEvent"
         };
 
 
@@ -164,7 +168,7 @@ public class ModuleLevelApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "ModuleLevel1.ModuleLevel1.ServiceC.IfProperty -> ModuleLevel1.ModuleLevel1.ServiceBase.IfProperty"
+            "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty -> ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty"
         };
 
 

@@ -14,6 +14,7 @@ public class ParserConfig
 
     public bool IsProjectIncluded(string projectName)
     {
+
         return _projectExclusionFilters.IsProjectIncluded(projectName);
     }
 }

@@ -17,175 +17,175 @@ public class CyclesApprovalTests : ProjectTestBase
     [
         (
             [
-                "Core.Cycles.Cycles.OuterClass.MiddleClass",
-                "Core.Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass.x",
-                "Core.Cycles.Cycles.OuterClass.DirectChildClass",
-                "Core.Cycles.Cycles.OuterClass.DirectChildClass.x",
-                "Core.Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass"
+                "Core.Cycles.global.Cycles.OuterClass.MiddleClass",
+                "Core.Cycles.global.Cycles.OuterClass.MiddleClass.NestedInnerClass.x",
+                "Core.Cycles.global.Cycles.OuterClass.DirectChildClass",
+                "Core.Cycles.global.Cycles.OuterClass.DirectChildClass.x",
+                "Core.Cycles.global.Cycles.OuterClass.MiddleClass.NestedInnerClass"
             ],
             [
-                "Core.Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass.x -> Core.Cycles.Cycles.OuterClass.DirectChildClass",
-                "Core.Cycles.Cycles.OuterClass.DirectChildClass.x -> Core.Cycles.Cycles.OuterClass.MiddleClass.NestedInnerClass"
+                "Core.Cycles.global.Cycles.OuterClass.MiddleClass.NestedInnerClass.x -> Core.Cycles.global.Cycles.OuterClass.DirectChildClass",
+                "Core.Cycles.global.Cycles.OuterClass.DirectChildClass.x -> Core.Cycles.global.Cycles.OuterClass.MiddleClass.NestedInnerClass"
             ]
         ),
 
 
         (
             [
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class2",
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class2._field1",
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class1",
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class1._field1"
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class2",
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class2._field1",
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class1",
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class1._field1"
             ],
             [
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class2._field1 -> Core.Cycles.Cycles.ClassLevel_Fields.Class1",
-                "Core.Cycles.Cycles.ClassLevel_Fields.Class1._field1 -> Core.Cycles.Cycles.ClassLevel_Fields.Class2"
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class2._field1 -> Core.Cycles.global.Cycles.ClassLevel_Fields.Class1",
+                "Core.Cycles.global.Cycles.ClassLevel_Fields.Class1._field1 -> Core.Cycles.global.Cycles.ClassLevel_Fields.Class2"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.ClassB",
-                "Core.Cycles.Core.Cycles.ClassB.UseA",
-                "Core.Cycles.Core.Cycles.ClassA.MethodA",
-                "Core.Cycles.Core.Cycles.ClassB._fieldA",
-                "Core.Cycles.Core.Cycles.ClassA",
-                "Core.Cycles.Core.Cycles.ClassA.UseB",
-                "Core.Cycles.Core.Cycles.ClassB.DoSomething",
-                "Core.Cycles.Core.Cycles.ClassA._fieldB"
+                "Core.Cycles.global.Core.Cycles.ClassB",
+                "Core.Cycles.global.Core.Cycles.ClassB.UseA",
+                "Core.Cycles.global.Core.Cycles.ClassA.MethodA",
+                "Core.Cycles.global.Core.Cycles.ClassB._fieldA",
+                "Core.Cycles.global.Core.Cycles.ClassA",
+                "Core.Cycles.global.Core.Cycles.ClassA.UseB",
+                "Core.Cycles.global.Core.Cycles.ClassB.DoSomething",
+                "Core.Cycles.global.Core.Cycles.ClassA._fieldB"
             ],
             [
-                "Core.Cycles.Core.Cycles.ClassB.UseA -> Core.Cycles.Core.Cycles.ClassA.MethodA",
-                "Core.Cycles.Core.Cycles.ClassB._fieldA -> Core.Cycles.Core.Cycles.ClassA",
-                "Core.Cycles.Core.Cycles.ClassA.UseB -> Core.Cycles.Core.Cycles.ClassB.DoSomething",
-                "Core.Cycles.Core.Cycles.ClassA._fieldB -> Core.Cycles.Core.Cycles.ClassB"
+                "Core.Cycles.global.Core.Cycles.ClassB.UseA -> Core.Cycles.global.Core.Cycles.ClassA.MethodA",
+                "Core.Cycles.global.Core.Cycles.ClassB._fieldA -> Core.Cycles.global.Core.Cycles.ClassA",
+                "Core.Cycles.global.Core.Cycles.ClassA.UseB -> Core.Cycles.global.Core.Cycles.ClassB.DoSomething",
+                "Core.Cycles.global.Core.Cycles.ClassA._fieldB -> Core.Cycles.global.Core.Cycles.ClassB"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.NodeZ",
-                "Core.Cycles.Core.Cycles.NodeZ.ProcessZ",
-                "Core.Cycles.Core.Cycles.NodeX.ProcessX",
-                "Core.Cycles.Core.Cycles.NodeZ._nodeX",
-                "Core.Cycles.Core.Cycles.NodeX",
-                "Core.Cycles.Core.Cycles.NodeY",
-                "Core.Cycles.Core.Cycles.NodeY.ProcessY",
-                "Core.Cycles.Core.Cycles.NodeY._nodeZ",
-                "Core.Cycles.Core.Cycles.NodeX._nodeY"
+                "Core.Cycles.global.Core.Cycles.NodeZ",
+                "Core.Cycles.global.Core.Cycles.NodeZ.ProcessZ",
+                "Core.Cycles.global.Core.Cycles.NodeX.ProcessX",
+                "Core.Cycles.global.Core.Cycles.NodeZ._nodeX",
+                "Core.Cycles.global.Core.Cycles.NodeX",
+                "Core.Cycles.global.Core.Cycles.NodeY",
+                "Core.Cycles.global.Core.Cycles.NodeY.ProcessY",
+                "Core.Cycles.global.Core.Cycles.NodeY._nodeZ",
+                "Core.Cycles.global.Core.Cycles.NodeX._nodeY"
             ],
             [
-                "Core.Cycles.Core.Cycles.NodeZ.ProcessZ -> Core.Cycles.Core.Cycles.NodeX.ProcessX",
-                "Core.Cycles.Core.Cycles.NodeX.ProcessX -> Core.Cycles.Core.Cycles.NodeY.ProcessY",
-                "Core.Cycles.Core.Cycles.NodeZ._nodeX -> Core.Cycles.Core.Cycles.NodeX",
-                "Core.Cycles.Core.Cycles.NodeY.ProcessY -> Core.Cycles.Core.Cycles.NodeZ.ProcessZ",
-                "Core.Cycles.Core.Cycles.NodeY._nodeZ -> Core.Cycles.Core.Cycles.NodeZ",
-                "Core.Cycles.Core.Cycles.NodeX._nodeY -> Core.Cycles.Core.Cycles.NodeY"
+                "Core.Cycles.global.Core.Cycles.NodeZ.ProcessZ -> Core.Cycles.global.Core.Cycles.NodeX.ProcessX",
+                "Core.Cycles.global.Core.Cycles.NodeX.ProcessX -> Core.Cycles.global.Core.Cycles.NodeY.ProcessY",
+                "Core.Cycles.global.Core.Cycles.NodeZ._nodeX -> Core.Cycles.global.Core.Cycles.NodeX",
+                "Core.Cycles.global.Core.Cycles.NodeY.ProcessY -> Core.Cycles.global.Core.Cycles.NodeZ.ProcessZ",
+                "Core.Cycles.global.Core.Cycles.NodeY._nodeZ -> Core.Cycles.global.Core.Cycles.NodeZ",
+                "Core.Cycles.global.Core.Cycles.NodeX._nodeY -> Core.Cycles.global.Core.Cycles.NodeY"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.ComplexC",
-                "Core.Cycles.Core.Cycles.ComplexC.UseA",
-                "Core.Cycles.Core.Cycles.ComplexA.UseB1",
-                "Core.Cycles.Core.Cycles.ComplexC._fieldA",
-                "Core.Cycles.Core.Cycles.ComplexA",
-                "Core.Cycles.Core.Cycles.ComplexB",
-                "Core.Cycles.Core.Cycles.ComplexB.UseA",
-                "Core.Cycles.Core.Cycles.ComplexA.UseC",
-                "Core.Cycles.Core.Cycles.ComplexB._fieldA",
-                "Core.Cycles.Core.Cycles.ComplexB.UseC",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldB1",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldB2",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldC",
-                "Core.Cycles.Core.Cycles.ComplexA.UseB2",
-                "Core.Cycles.Core.Cycles.ComplexB._fieldC",
-                "Core.Cycles.Core.Cycles.ComplexB.MethodB",
-                "Core.Cycles.Core.Cycles.ComplexC.MethodC"
+                "Core.Cycles.global.Core.Cycles.ComplexC",
+                "Core.Cycles.global.Core.Cycles.ComplexC.UseA",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseB1",
+                "Core.Cycles.global.Core.Cycles.ComplexC._fieldA",
+                "Core.Cycles.global.Core.Cycles.ComplexA",
+                "Core.Cycles.global.Core.Cycles.ComplexB",
+                "Core.Cycles.global.Core.Cycles.ComplexB.UseA",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseC",
+                "Core.Cycles.global.Core.Cycles.ComplexB._fieldA",
+                "Core.Cycles.global.Core.Cycles.ComplexB.UseC",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldB1",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldB2",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldC",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseB2",
+                "Core.Cycles.global.Core.Cycles.ComplexB._fieldC",
+                "Core.Cycles.global.Core.Cycles.ComplexB.MethodB",
+                "Core.Cycles.global.Core.Cycles.ComplexC.MethodC"
             ],
             [
-                "Core.Cycles.Core.Cycles.ComplexC.UseA -> Core.Cycles.Core.Cycles.ComplexA.UseB1",
-                "Core.Cycles.Core.Cycles.ComplexA.UseB1 -> Core.Cycles.Core.Cycles.ComplexB.MethodB",
-                "Core.Cycles.Core.Cycles.ComplexC._fieldA -> Core.Cycles.Core.Cycles.ComplexA",
-                "Core.Cycles.Core.Cycles.ComplexB.UseA -> Core.Cycles.Core.Cycles.ComplexA.UseC",
-                "Core.Cycles.Core.Cycles.ComplexA.UseC -> Core.Cycles.Core.Cycles.ComplexC.MethodC",
-                "Core.Cycles.Core.Cycles.ComplexB._fieldA -> Core.Cycles.Core.Cycles.ComplexA",
-                "Core.Cycles.Core.Cycles.ComplexB.UseC -> Core.Cycles.Core.Cycles.ComplexC.MethodC",
-                "Core.Cycles.Core.Cycles.ComplexB._fieldC -> Core.Cycles.Core.Cycles.ComplexC",
-                "Core.Cycles.Core.Cycles.ComplexA.UseB2 -> Core.Cycles.Core.Cycles.ComplexB.MethodB",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldB2 -> Core.Cycles.Core.Cycles.ComplexB",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldB1 -> Core.Cycles.Core.Cycles.ComplexB",
-                "Core.Cycles.Core.Cycles.ComplexA._fieldC -> Core.Cycles.Core.Cycles.ComplexC"
+                "Core.Cycles.global.Core.Cycles.ComplexC.UseA -> Core.Cycles.global.Core.Cycles.ComplexA.UseB1",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseB1 -> Core.Cycles.global.Core.Cycles.ComplexB.MethodB",
+                "Core.Cycles.global.Core.Cycles.ComplexC._fieldA -> Core.Cycles.global.Core.Cycles.ComplexA",
+                "Core.Cycles.global.Core.Cycles.ComplexB.UseA -> Core.Cycles.global.Core.Cycles.ComplexA.UseC",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseC -> Core.Cycles.global.Core.Cycles.ComplexC.MethodC",
+                "Core.Cycles.global.Core.Cycles.ComplexB._fieldA -> Core.Cycles.global.Core.Cycles.ComplexA",
+                "Core.Cycles.global.Core.Cycles.ComplexB.UseC -> Core.Cycles.global.Core.Cycles.ComplexC.MethodC",
+                "Core.Cycles.global.Core.Cycles.ComplexB._fieldC -> Core.Cycles.global.Core.Cycles.ComplexC",
+                "Core.Cycles.global.Core.Cycles.ComplexA.UseB2 -> Core.Cycles.global.Core.Cycles.ComplexB.MethodB",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldB2 -> Core.Cycles.global.Core.Cycles.ComplexB",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldB1 -> Core.Cycles.global.Core.Cycles.ComplexB",
+                "Core.Cycles.global.Core.Cycles.ComplexA._fieldC -> Core.Cycles.global.Core.Cycles.ComplexC"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.PropertyCycleB",
-                "Core.Cycles.Core.Cycles.PropertyCycleB.ProcessB",
-                "Core.Cycles.Core.Cycles.PropertyCycleA.ProcessA",
-                "Core.Cycles.Core.Cycles.PropertyCycleB.RelatedA",
-                "Core.Cycles.Core.Cycles.PropertyCycleA",
-                "Core.Cycles.Core.Cycles.PropertyCycleA.RelatedB"
+                "Core.Cycles.global.Core.Cycles.PropertyCycleB",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleB.ProcessB",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleA.ProcessA",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleB.RelatedA",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleA",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleA.RelatedB"
             ],
             [
-                "Core.Cycles.Core.Cycles.PropertyCycleB.ProcessB -> Core.Cycles.Core.Cycles.PropertyCycleA.ProcessA",
-                "Core.Cycles.Core.Cycles.PropertyCycleA.ProcessA -> Core.Cycles.Core.Cycles.PropertyCycleB.ProcessB",
-                "Core.Cycles.Core.Cycles.PropertyCycleB.RelatedA -> Core.Cycles.Core.Cycles.PropertyCycleA",
-                "Core.Cycles.Core.Cycles.PropertyCycleA.RelatedB -> Core.Cycles.Core.Cycles.PropertyCycleB"
+                "Core.Cycles.global.Core.Cycles.PropertyCycleB.ProcessB -> Core.Cycles.global.Core.Cycles.PropertyCycleA.ProcessA",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleA.ProcessA -> Core.Cycles.global.Core.Cycles.PropertyCycleB.ProcessB",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleB.RelatedA -> Core.Cycles.global.Core.Cycles.PropertyCycleA",
+                "Core.Cycles.global.Core.Cycles.PropertyCycleA.RelatedB -> Core.Cycles.global.Core.Cycles.PropertyCycleB"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.OuterClassB",
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB",
-                "Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.UseB",
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.RelatedA",
-                "Core.Cycles.Core.Cycles.OuterClassA.DirectChildA",
-                "Core.Cycles.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB",
-                "Core.Cycles.Core.Cycles.OuterClassB.DirectChildB.RelatedA",
-                "Core.Cycles.Core.Cycles.OuterClassA",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.UseDirectB",
-                "Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.RelatedB",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.RelatedDirectB",
-                "Core.Cycles.Core.Cycles.OuterClassB.DirectChildB",
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB",
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB"
+                "Core.Cycles.global.Core.Cycles.OuterClassB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.UseB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.RelatedA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB.RelatedA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.UseDirectB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.RelatedB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.RelatedDirectB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB"
             ],
             [
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB -> Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.UseB",
-                "Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.UseB -> Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB",
-                "Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.RelatedA -> Core.Cycles.Core.Cycles.OuterClassA.DirectChildA",
-                "Core.Cycles.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB -> Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.UseB",
-                "Core.Cycles.Core.Cycles.OuterClassB.DirectChildB.RelatedA -> Core.Cycles.Core.Cycles.OuterClassA.DirectChildA",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.UseDirectB -> Core.Cycles.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB",
-                "Core.Cycles.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.RelatedDirectB -> Core.Cycles.Core.Cycles.OuterClassB.DirectChildB",
-                "Core.Cycles.Core.Cycles.OuterClassA.DirectChildA.RelatedB -> Core.Cycles.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB"
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB -> Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.UseB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.UseB -> Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.ProcessB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB.RelatedA -> Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB -> Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.UseB",
+                "Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB.RelatedA -> Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.UseDirectB -> Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB.ProcessDirectB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.MiddleClassA.NestedInnerA.RelatedDirectB -> Core.Cycles.global.Core.Cycles.OuterClassB.DirectChildB",
+                "Core.Cycles.global.Core.Cycles.OuterClassA.DirectChildA.RelatedB -> Core.Cycles.global.Core.Cycles.OuterClassB.MiddleClassB.NestedInnerB"
             ]
         ),
 
         (
             [
-                "Core.Cycles.Core.Cycles.Level1B",
-                "Core.Cycles.Core.Cycles.Level1B.Level2B.UseBackReference",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference",
-                "Core.Cycles.Core.Cycles.Level1B.Level2B.BackReference",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A",
-                "Core.Cycles.Core.Cycles.Level1A",
-                "Core.Cycles.Core.Cycles.Level1B.Level2B.ProcessLevel2B",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A.CrossReference",
-                "Core.Cycles.Core.Cycles.Level1B.Level2B",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A"
+                "Core.Cycles.global.Core.Cycles.Level1B",
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B.UseBackReference",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference",
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B.BackReference",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A",
+                "Core.Cycles.global.Core.Cycles.Level1A",
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B.ProcessLevel2B",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A.CrossReference",
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A"
             ],
             [
-                "Core.Cycles.Core.Cycles.Level1B.Level2B.UseBackReference -> Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference -> Core.Cycles.Core.Cycles.Level1B.Level2B.ProcessLevel2B",
-                "Core.Cycles.Core.Cycles.Level1B.Level2B.BackReference -> Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A",
-                "Core.Cycles.Core.Cycles.Level1A.Level2A.Level3A.CrossReference -> Core.Cycles.Core.Cycles.Level1B.Level2B"
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B.UseBackReference -> Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A.UseCrossReference -> Core.Cycles.global.Core.Cycles.Level1B.Level2B.ProcessLevel2B",
+                "Core.Cycles.global.Core.Cycles.Level1B.Level2B.BackReference -> Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A",
+                "Core.Cycles.global.Core.Cycles.Level1A.Level2A.Level3A.CrossReference -> Core.Cycles.global.Core.Cycles.Level1B.Level2B"
             ]
         )
     ];

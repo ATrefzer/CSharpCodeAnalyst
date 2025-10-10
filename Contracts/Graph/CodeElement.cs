@@ -22,7 +22,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public string Id { get; } = id;
 
     public string Name { get; } = name;
-    public string FullName { get; } = fullName;
+    public string FullName { get; private set; } = fullName;
 
     public CodeElement? Parent { get; set; } = parent;
 
@@ -49,17 +49,28 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         return Id.GetHashCode();
     }
 
-    public string GetFullPath()
+    public string GetFullPath(bool omitGlobalNamespace = false)
     {
         var names = new List<string> { Name };
         var current = Parent;
         while (current != null)
         {
-            names.Insert(0, current.Name);
+            if (!omitGlobalNamespace || !IsGlobalNamespace(current))
+            {
+                names.Insert(0, current.Name);
+            }
+
             current = current.Parent;
         }
 
         return string.Join(".", names);
+
+        bool IsGlobalNamespace(CodeElement codeElement)
+        {
+            return codeElement.Parent?.ElementType == CodeElementType.Assembly 
+                   && codeElement.ElementType == CodeElementType.Namespace 
+                   && codeElement.Name == "global";
+        }
     }
 
     /// <summary>
@@ -157,5 +168,8 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         // Set new parent
         Parent = newParent;
         newParent.Children.Add(this);
+        
+        // Update full name 
+        Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
     }
 }

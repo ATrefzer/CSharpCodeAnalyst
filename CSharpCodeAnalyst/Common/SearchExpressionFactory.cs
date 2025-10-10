@@ -2,7 +2,17 @@
 
 internal static class SearchExpressionFactory
 {
-    public static IExpression CreateSearchExpression(string searchText)
+    private static Term CreateTerm(string search, TextSearchField searchField)
+    {
+        if (searchField == TextSearchField.FullName)
+        {
+            return new FullNameSearch(search);
+        }
+
+        return new NameSearch(search);
+    }
+
+    public static IExpression CreateSearchExpression(string searchText, TextSearchField searchField = TextSearchField.FullName)
     {
         // Or binds less.
         var orTerms = searchText
@@ -14,7 +24,7 @@ internal static class SearchExpressionFactory
         {
             var andExpressions = orTerm
                 .Split([' '], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(IExpression (t) => new Term(t))
+                .Select(IExpression (t) => CreateTerm(t, searchField))
                 .ToArray();
 
             orExpressions.Add(new Term.And(andExpressions));
@@ -27,5 +37,11 @@ internal static class SearchExpressionFactory
 
         var root = new Term.Or(orExpressions.ToArray());
         return root;
+    }
+
+    internal enum TextSearchField
+    {
+        FullName,
+        Name
     }
 }

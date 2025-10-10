@@ -6,9 +6,7 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
-
-- Virtual Refactorings: Select Move Target
-- Virtual Refactorings: Move Code Element (including all children)
+- Virtual Refactorings: TreeView Update may be slow
 
 
 UNHANDLED CASES

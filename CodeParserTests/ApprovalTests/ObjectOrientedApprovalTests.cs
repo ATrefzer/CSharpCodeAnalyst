@@ -19,22 +19,22 @@ public class ObjectOrientedApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.ObjectOriented.Core.ObjectOriented.AbstractShape",
-            "Core.ObjectOriented.Core.ObjectOriented.Rectangle",
-            "Core.ObjectOriented.Core.ObjectOriented.Circle",
-            "Core.ObjectOriented.Core.ObjectOriented.ColoredRectangle",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape",
-            "Core.ObjectOriented.Core.ObjectOriented.ShapeManager",
-            "Core.ObjectOriented.Core.ObjectOriented.Animal",
-            "Core.ObjectOriented.Core.ObjectOriented.Dog",
-            "Core.ObjectOriented.Core.ObjectOriented.AnimalShelter",
-            "Core.ObjectOriented.Core.ObjectOriented.Bird",
-            "Core.ObjectOriented.Core.ObjectOriented.Car",
-            "Core.ObjectOriented.Core.ObjectOriented.Cat",
-            "Core.ObjectOriented.Core.ObjectOriented.Motorcycle",
-            "Core.ObjectOriented.Core.ObjectOriented.Vehicle"
+            "Core.ObjectOriented.global.Core.ObjectOriented.AbstractShape",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Rectangle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Circle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.ColoredRectangle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape",
+            "Core.ObjectOriented.global.Core.ObjectOriented.ShapeManager",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Animal",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Dog",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AnimalShelter",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Bird",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Car",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Cat",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Motorcycle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Vehicle"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -48,14 +48,14 @@ public class ObjectOrientedApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.ObjectOriented.Core.ObjectOriented.Rectangle -> Core.ObjectOriented.Core.ObjectOriented.AbstractShape",
-            "Core.ObjectOriented.Core.ObjectOriented.Circle -> Core.ObjectOriented.Core.ObjectOriented.AbstractShape",
-            "Core.ObjectOriented.Core.ObjectOriented.ColoredRectangle -> Core.ObjectOriented.Core.ObjectOriented.Rectangle",
-            "Core.ObjectOriented.Core.ObjectOriented.Dog -> Core.ObjectOriented.Core.ObjectOriented.Animal",
-            "Core.ObjectOriented.Core.ObjectOriented.Cat -> Core.ObjectOriented.Core.ObjectOriented.Animal",
-            "Core.ObjectOriented.Core.ObjectOriented.Bird -> Core.ObjectOriented.Core.ObjectOriented.Animal",
-            "Core.ObjectOriented.Core.ObjectOriented.Car -> Core.ObjectOriented.Core.ObjectOriented.Vehicle",
-            "Core.ObjectOriented.Core.ObjectOriented.Motorcycle -> Core.ObjectOriented.Core.ObjectOriented.Vehicle"
+            "Core.ObjectOriented.global.Core.ObjectOriented.Rectangle -> Core.ObjectOriented.global.Core.ObjectOriented.AbstractShape",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Circle -> Core.ObjectOriented.global.Core.ObjectOriented.AbstractShape",
+            "Core.ObjectOriented.global.Core.ObjectOriented.ColoredRectangle -> Core.ObjectOriented.global.Core.ObjectOriented.Rectangle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Dog -> Core.ObjectOriented.global.Core.ObjectOriented.Animal",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Cat -> Core.ObjectOriented.global.Core.ObjectOriented.Animal",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Bird -> Core.ObjectOriented.global.Core.ObjectOriented.Animal",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Car -> Core.ObjectOriented.global.Core.ObjectOriented.Vehicle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Motorcycle -> Core.ObjectOriented.global.Core.ObjectOriented.Vehicle"
         };
 
         CollectionAssert.AreEquivalent(expected, inheritanceRelationships.ToArray());
@@ -68,27 +68,27 @@ public class ObjectOrientedApprovalTests : ProjectTestBase
 
         var expected = new[]
         {
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.Core.ObjectOriented.IDrawable",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.Core.ObjectOriented.IResizable",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.Core.ObjectOriented.IColorable",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.Color -> Core.ObjectOriented.Core.ObjectOriented.IColorable.Color",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.Draw -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Draw",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.Move -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Move",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.Resize -> Core.ObjectOriented.Core.ObjectOriented.IResizable.Resize",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.GetPerimeter -> Core.ObjectOriented.Core.ObjectOriented.IResizable.GetPerimeter",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicRectangle.ChangeColor -> Core.ObjectOriented.Core.ObjectOriented.IColorable.ChangeColor",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle -> Core.ObjectOriented.Core.ObjectOriented.IDrawable",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle -> Core.ObjectOriented.Core.ObjectOriented.IColorable",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle.Color -> Core.ObjectOriented.Core.ObjectOriented.IColorable.Color",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle.Draw -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Draw",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle.Move -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Move",
-            "Core.ObjectOriented.Core.ObjectOriented.GraphicCircle.ChangeColor -> Core.ObjectOriented.Core.ObjectOriented.IColorable.ChangeColor",
-            "Core.ObjectOriented.Core.ObjectOriented.IAdvancedDrawable -> Core.ObjectOriented.Core.ObjectOriented.IDrawable",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape -> Core.ObjectOriented.Core.ObjectOriented.IAdvancedDrawable",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape.IsVisible -> Core.ObjectOriented.Core.ObjectOriented.IAdvancedDrawable.IsVisible",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape.Draw -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Draw",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape.Move -> Core.ObjectOriented.Core.ObjectOriented.IDrawable.Move",
-            "Core.ObjectOriented.Core.ObjectOriented.AdvancedShape.DrawWithEffect -> Core.ObjectOriented.Core.ObjectOriented.IAdvancedDrawable.DrawWithEffect"
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.global.Core.ObjectOriented.IResizable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.Color -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable.Color",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.Draw -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Draw",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.Move -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Move",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.Resize -> Core.ObjectOriented.global.Core.ObjectOriented.IResizable.Resize",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.GetPerimeter -> Core.ObjectOriented.global.Core.ObjectOriented.IResizable.GetPerimeter",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicRectangle.ChangeColor -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable.ChangeColor",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle.Color -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable.Color",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle.Draw -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Draw",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle.Move -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Move",
+            "Core.ObjectOriented.global.Core.ObjectOriented.GraphicCircle.ChangeColor -> Core.ObjectOriented.global.Core.ObjectOriented.IColorable.ChangeColor",
+            "Core.ObjectOriented.global.Core.ObjectOriented.IAdvancedDrawable -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape -> Core.ObjectOriented.global.Core.ObjectOriented.IAdvancedDrawable",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape.IsVisible -> Core.ObjectOriented.global.Core.ObjectOriented.IAdvancedDrawable.IsVisible",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape.Draw -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Draw",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape.Move -> Core.ObjectOriented.global.Core.ObjectOriented.IDrawable.Move",
+            "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape.DrawWithEffect -> Core.ObjectOriented.global.Core.ObjectOriented.IAdvancedDrawable.DrawWithEffect"
         };
 
         CollectionAssert.AreEquivalent(expected, inheritanceRelationships.ToArray());

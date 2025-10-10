@@ -76,11 +76,20 @@
                         <MenuItem Header="{x:Static resources:Strings.DeleteFromModel_MenuItem}"
                                   Command="{Binding DeleteFromModelCommand}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        
+                        
+                        <MenuItem Header="Set as movement parent"
+                                  Command="{Binding SetMovementTargetCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="Move"
+                                  Command="{Binding MoveCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
 
                     </MenuItem>
 
                     <Separator />
-                    <MenuItem Header="{x:Static resources:Strings.CopyToClipboard}"
+                    <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
                               Command="{Binding CopyToClipboardCommand}"
                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 

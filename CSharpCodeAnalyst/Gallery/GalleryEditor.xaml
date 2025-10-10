@@ -5,9 +5,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:gallery="clr-namespace:CSharpCodeAnalyst.Gallery"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance gallery:GalleryEditorViewModel}"
-        Title="Catalog Editor" Height="450" Width="400">
+        Title="{x:Static resources:Strings.Gallery_Label}" Height="450" Width="400">
 
     <Window.Resources>
         <Style x:Key="DeleteButtonStyle" TargetType="Button">

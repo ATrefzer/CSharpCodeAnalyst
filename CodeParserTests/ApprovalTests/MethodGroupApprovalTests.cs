@@ -21,12 +21,12 @@ public class MethodGroupApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands",
-            "Core.MethodGroups.Core.MethodGroups.OtherClass",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups",
-            "Core.MethodGroups.Core.MethodGroups.EventProvider",
-            "Core.MethodGroups.Core.MethodGroups.EventConsumer",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups"
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands",
+            "Core.MethodGroups.global.Core.MethodGroups.OtherClass",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups",
+            "Core.MethodGroups.global.Core.MethodGroups.EventProvider",
+            "Core.MethodGroups.global.Core.MethodGroups.EventConsumer",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -39,31 +39,31 @@ public class MethodGroupApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands..ctor",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.HandleString",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.ValidateNumber",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.StaticHandler",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.ExecuteAction",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.ExecutePredicate",
-            "Core.MethodGroups.Core.MethodGroups.OtherClass.InstanceMethod",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.SetupEventHandlers",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.TestEventInvocation",
-            "Core.MethodGroups.Core.MethodGroups.EventConsumer..ctor",
-            "Core.MethodGroups.Core.MethodGroups.EventConsumer.HandleMessage",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.HandleStringEvent",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.StaticStringHandler",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidateEven",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidatePositive",
-            "Core.MethodGroups.Core.MethodGroups.EventProvider.TriggerEvent",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.DoubleNumber",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsEven",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsPositive",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsValidString",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.LogString",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestDelegateAssignments",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TransformString"
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands..ctor",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.HandleString",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ValidateNumber",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.StaticHandler",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ExecuteAction",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ExecutePredicate",
+            "Core.MethodGroups.global.Core.MethodGroups.OtherClass.InstanceMethod",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.SetupEventHandlers",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.TestEventInvocation",
+            "Core.MethodGroups.global.Core.MethodGroups.EventConsumer..ctor",
+            "Core.MethodGroups.global.Core.MethodGroups.EventConsumer.HandleMessage",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.HandleStringEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.StaticStringHandler",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidateEven",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidatePositive",
+            "Core.MethodGroups.global.Core.MethodGroups.EventProvider.TriggerEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.DoubleNumber",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsEven",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsPositive",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsValidString",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.LogString",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestDelegateAssignments",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TransformString"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -76,15 +76,15 @@ public class MethodGroupApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.DelegateCommands.HandleString",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.DelegateCommands.ValidateNumber",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.DelegateCommands.StaticHandler",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.OtherClass.InstanceMethod",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsEven",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TransformString",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsValidString",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.DoubleNumber",
-            "Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.Core.MethodGroups.LinqMethodGroups.IsPositive"
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.HandleString",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ValidateNumber",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.StaticHandler",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.OtherClass.InstanceMethod",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsEven",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TransformString",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsValidString",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.DoubleNumber",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsPositive"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -99,8 +99,8 @@ public class MethodGroupApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.DelegateCommands.ExecuteAction",
-            "Core.MethodGroups.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.Core.MethodGroups.DelegateCommands.ExecutePredicate"
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ExecuteAction",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ExecutePredicate"
         };
 
         CollectionAssert.AreEquivalent(expected, callsRelationships);
@@ -124,11 +124,11 @@ public class MethodGroupApprovalTests : ProjectTestBase
 
         var expected = new HashSet<string>
         {
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.HandleStringEvent -> Core.MethodGroups.Core.MethodGroups.EventMethodGroups.StringEvent",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.StaticStringHandler -> Core.MethodGroups.Core.MethodGroups.EventMethodGroups.StringEvent",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidatePositive -> Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidationEvent",
-            "Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidateEven -> Core.MethodGroups.Core.MethodGroups.EventMethodGroups.ValidationEvent",
-            "Core.MethodGroups.Core.MethodGroups.EventConsumer.HandleMessage -> Core.MethodGroups.Core.MethodGroups.IEventProvider.MessageReceived"
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.HandleStringEvent -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.StringEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.StaticStringHandler -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.StringEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidatePositive -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidationEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidateEven -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidationEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventConsumer.HandleMessage -> Core.MethodGroups.global.Core.MethodGroups.IEventProvider.MessageReceived"
         };
 
         // Note: Event handlers use existing += syntax which already works

@@ -137,7 +137,7 @@ public partial class TreeControl : UserControl
         // Command binding has issues with null parameters
         createMenuItem.Click += (s, args) =>
         {
-            treeViewModel.CreateCodeElementAtRoot();
+            treeViewModel.RefactoringCreateCodeElementAtRoot();
         };
 
         emptyContextMenu.Items.Add(refactoringMenu);
