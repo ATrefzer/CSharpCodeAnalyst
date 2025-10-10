@@ -722,8 +722,8 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Analyzer_Empty_Rule" xml:space="preserve">
 		<value>Rule text cannot be empty</value>
 	</data>
-    <data name="CopyToClipboard" xml:space="preserve">
-		<value>Copy</value>
+    <data name="CopyFullQualifiedNameToClipboard" xml:space="preserve">
+		<value>Copy full qualified name</value>
 	</data>
     <data name="Cmd_UnknownCommandLineArgs" xml:space="preserve">
 		<value>The command to execute is unknown or the required parameters are missing.</value>

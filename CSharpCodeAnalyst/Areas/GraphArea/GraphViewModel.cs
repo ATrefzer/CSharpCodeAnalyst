@@ -160,7 +160,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         */
 
         _viewer.AddCommand(new SeparatorCommand());
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyToClipboard,
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
             OnCopyToClipboard));
 
 
