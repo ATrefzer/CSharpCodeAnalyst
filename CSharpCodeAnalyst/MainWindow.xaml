@@ -144,15 +144,15 @@
                                         Command="{Binding ExportToPngCommand}"
                                         CommandParameter="{Binding ElementName=ExplorationControl}" />
 
-                        <!--<RibbonMenuItem Header="{x:Static resources:Strings.ExportDsi_Label}"
-                                        ImageSource="/Resources/spreadsheet_32.png"
-                                        ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
-                                        Command="{Binding ExportToDsiCommand}"/>-->
-
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportSvg_Label}"
                                         ImageSource="/Resources/svg-file_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportSvg_Tooltip}"
                                         Command="{Binding ExportToSvgCommand}" />
+
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportDsi_Label}"
+                                        ImageSource="/Resources/spreadsheet_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
+                                        Command="{Binding ExportToDsiCommand}"/>
 
                         <RibbonSeparator />
 
