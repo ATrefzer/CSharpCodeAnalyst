@@ -4,8 +4,12 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 public class PresentationState
 {
-    private readonly Dictionary<string, bool> _nodeIdToCollapsed;
+    private Dictionary<string, bool> _nodeIdToCollapsed;
     private Dictionary<string, bool> _defaultState;
+
+    /// <summary>
+    /// Not persisted, tuples are not supported by System.Text.Json
+    /// </summary>
     private Dictionary<(string, string), bool> _edgeToFlagged;
 
     private Dictionary<string, bool> _nodeIdToFlagged;
@@ -42,10 +46,12 @@ public class PresentationState
         set => _nodeIdToFlagged = value ?? [];
     }
 
-    [JsonPropertyName("edgeToFlagged")] public Dictionary<(string, string), bool> EdgeToFlagged
+
+    [JsonPropertyName("nodeIdToCollapsed")]
+    public Dictionary<string, bool> NodeIdToCollapsed
     {
-        get => _edgeToFlagged;
-        set => _edgeToFlagged = value ?? [];
+        get => _nodeIdToCollapsed;
+        set => _nodeIdToCollapsed = value ?? [];
     }
 
     public Dictionary<string, bool> NodeIdToSearchHighlighted { get; }
@@ -75,7 +81,6 @@ public class PresentationState
 
         return clone;
     }
-
 
 
     public bool IsCollapsed(string id)
