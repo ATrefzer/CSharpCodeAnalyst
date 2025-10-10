@@ -726,10 +726,10 @@ internal class MainViewModel : INotifyPropertyChanged
             return;
         }
         
-        await OnLoadProjectFile(openFileDialog.FileName);
+        await LoadProjectFileAsync(openFileDialog.FileName);
     }
 
-    private async Task OnLoadProjectFile(string fileName)
+    public async Task LoadProjectFileAsync(string fileName)
     {
         try
         {

@@ -84,8 +84,7 @@ public partial class TreeControl : UserControl
 
     private void TreeView_ContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
-        var treeView = sender as TreeView;
-        if (treeView == null)
+        if (sender is not TreeView treeView)
         {
             return;
         }
@@ -110,6 +109,15 @@ public partial class TreeControl : UserControl
         if (!treeViewModel.CanShowContextMenuForItem())
         {
             e.Handled = true; // Cancel the context menu
+        }
+        
+        // Update the refactoring movement parent
+        if (treeView.DataContext is TreeViewModel tvm)
+        {
+            var parent = tvm.GetRefactoringNewMoveParent();
+            MenuRefactoringMove.Header = string.IsNullOrEmpty(parent) ? 
+                Strings.Refactor_MoveCodeElement : 
+                string.Format(Strings.Refactor_MoveCodeElementTo, parent);
         }
     }
 

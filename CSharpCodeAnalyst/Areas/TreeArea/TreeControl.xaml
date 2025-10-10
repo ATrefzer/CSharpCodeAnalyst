@@ -84,10 +84,11 @@
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 
 
-                        <MenuItem Header="Set as movement parent"
+                        <MenuItem Header="{x:Static resources:Strings.Refactoring_SetAsMovementParent}"
                                   Command="{Binding SetMovementTargetCommand}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                        <MenuItem Header="Move"
+                        <MenuItem Header="{x:Static resources:Strings.Refactor_MoveCodeElement}"
+                                  x:Name="MenuRefactoringMove"
                                   Command="{Binding MoveCommand}"
                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
 

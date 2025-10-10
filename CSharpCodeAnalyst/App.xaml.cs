@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -25,7 +24,7 @@ public partial class App
         base.OnStartup(e);
 
         // Check if command line arguments are provided
-        if (e.Args.Length > 0)
+        if (e.Args.Length > 1)
         {
             // Run in command-line mode.
             // ConsoleHelper.EnsureConsole();
@@ -36,17 +35,29 @@ public partial class App
 
         // Run in UI mode
         StartUi();
+        
+        // Faster debugging
+        await LoadProjectFileFromCommandLineAsync(e);
+        
+    }
 
-        if (e.Args.Length == 1)
+    private async Task LoadProjectFileFromCommandLineAsync(StartupEventArgs e)
+    {
+        const string prefix = "-load:";
+        if (e.Args.Length == 1 && e.Args[0].StartsWith(prefix))
         {
-            // Allow loading a project file (json) via command line for faster debugging
-            var dc = MainWindow?.DataContext as MainViewModel;
-            if (dc != null)
+            var file = e.Args[0][prefix.Length..];
+            if (!File.Exists(file))
             {
-                dc.OnLo;
+                return;
+            }
+            
+            // Allow loading a project file (json) via command line for faster debugging
+            if (MainWindow?.DataContext is MainViewModel dc)
+            {
+                await dc.LoadProjectFileAsync(file);
             }
         }
-        
     }
 
     private void StartUi()

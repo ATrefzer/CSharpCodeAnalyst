@@ -45,7 +45,8 @@ public class RefactoringService
                 CodeElementType.Struct,
                 CodeElementType.Enum,
                 CodeElementType.Record,
-                CodeElementType.Delegate
+                CodeElementType.Delegate,
+                CodeElementType.Namespace
             ],
 
             CodeElementType.Class =>
@@ -148,6 +149,11 @@ public class RefactoringService
         }
 
         if (source.ElementType is CodeElementType.Assembly)
+        {
+            return false;
+        }
+
+        if (_target.Id == source.Id)
         {
             return false;
         }

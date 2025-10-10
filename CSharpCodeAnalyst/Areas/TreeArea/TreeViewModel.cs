@@ -447,4 +447,10 @@ public class TreeViewModel : INotifyPropertyChanged
 
         return anyMatch;
     }
+
+    public string? GetRefactoringNewMoveParent()
+    {
+        var target = _refactoringService.GetMovementTarget();
+        return target?.Name != null ? target.Name : string.Empty;
+    }
 }

@@ -806,6 +806,16 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Refactor_CreateCodeElement" xml:space="preserve">
 		<value>Create code element</value>
 	</data>
+    <data name="Refactor_MoveCodeElementTo" xml:space="preserve">
+		<value>Move to '{0}'</value>
+	</data>
+    <data name="Refactor_MoveCodeElement" xml:space="preserve">
+		<value>Move</value>
+	</data>
+    <data name="Refactoring_SetAsMovementParent" xml:space="preserve">
+		<value>Set as movement parent</value>
+	</data>
+    
     <data name="ArchitectureRules_Info" xml:space="preserve">
 		<value>Three rules are supported:
 
