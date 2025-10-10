@@ -1,10 +1,19 @@
 ﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace Contracts.Graph;
 
 [DebuggerDisplay("{Type}")]
 public class Relationship
 {
+    [JsonConstructor]
+    private Relationship()
+    {
+        SourceId = string.Empty;
+        TargetId = string.Empty;
+        Type = RelationshipType.Uses;
+    }
+
     public Relationship(string sourceId, string targetId, RelationshipType type)
     {
         SourceId = sourceId;
@@ -21,11 +30,11 @@ public class Relationship
     }
 
     public RelationshipAttribute Attributes { get; set; } = RelationshipAttribute.None;
-    public string SourceId { get; }
-    public string TargetId { get; }
-    public RelationshipType Type { get; }
+    public string SourceId { get; private set; }
+    public string TargetId { get; private set; }
+    public RelationshipType Type { get; private set; }
 
-    public List<SourceLocation> SourceLocations { get; init; } = [];
+    public List<SourceLocation> SourceLocations { get; set; } = [];
 
     public bool HasAttribute(RelationshipAttribute attribute)
     {
