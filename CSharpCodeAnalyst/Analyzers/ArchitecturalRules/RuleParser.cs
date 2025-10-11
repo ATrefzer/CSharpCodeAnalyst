@@ -6,9 +6,22 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public static class RuleParser
 {
-    private static readonly Regex DenyRegex = new(@"^\s*DENY\s*:\s*(.+?)\s*->\s*(.+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex RestrictRegex = new(@"^\s*RESTRICT\s*:\s*(.+?)\s*->\s*(.+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex IsolateRegex = new(@"^\s*ISOLATE\s*:\s*(.+?)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    // Allowed character for identifiers. Add - to end.
+    private const string AllowedNameChars = @"[a-zA-Z0-9_-]+";
+
+    private static readonly string QualifiedName = $@"{AllowedNameChars}(?:\.{AllowedNameChars})*(?:\.\*{{1,2}})?";
+
+    private static readonly Regex DenyRegex = new(
+        $@"^\s*DENY\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex RestrictRegex = new(
+        $@"^\s*RESTRICT\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex IsolateRegex = new(
+        $@"^\s*ISOLATE\s*:\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static RuleBase ParseRule(string ruleText)
     {

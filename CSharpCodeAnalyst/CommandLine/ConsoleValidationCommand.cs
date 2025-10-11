@@ -79,7 +79,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
     private static List<Violation> RunAnalysis(string rulesFilePath, CodeGraph graph)
     {
         var messaging = new MessageBus();
-        var messageBox = new ConsoleMessageBox();
+        var messageBox = new ConsoleUserNotification();
         var analyzer = new Analyzer(messaging, messageBox);
 
         var violations = analyzer.Analyze(graph, rulesFilePath);

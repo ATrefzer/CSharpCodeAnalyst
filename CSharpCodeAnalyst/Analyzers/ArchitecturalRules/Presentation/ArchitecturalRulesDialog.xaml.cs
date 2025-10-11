@@ -28,6 +28,11 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Callback invoked when the Validate button is clicked
+    /// </summary>
+    public Action<string>? OnValidateRequested { get; set; }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -35,15 +40,14 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private void OkButton_Click(object sender, RoutedEventArgs e)
+    private void ValidateButton_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = true;
-        Close();
+        // Invoke the validation callback without closing the dialog
+        OnValidateRequested?.Invoke(RulesText);
     }
 
-    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = false;
         Close();
     }
 

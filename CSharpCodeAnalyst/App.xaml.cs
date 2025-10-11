@@ -93,7 +93,7 @@ public partial class App
             settings = new ApplicationSettings();
         }
 
-        var messageBox = new WindowsMessageBox();
+        var messageBox = new WindowsUserNotification();
         var messaging = new MessageBus();
 
         var analyzerManager = new AnalyzerManager();

@@ -833,5 +833,9 @@ DENY: MyApp.Business.** -> MyApp.Data.**
 RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
 ISOLATE: MyApp.Domain.**</value>
 	</data>
-    
+
+
+  <data name="Info" xml:space="preserve">
+		<value>Info</value>
+	</data>  
 </root>

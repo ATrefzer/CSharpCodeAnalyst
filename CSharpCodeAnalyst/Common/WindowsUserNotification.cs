@@ -4,7 +4,7 @@ using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst.Common;
 
-internal class WindowsMessageBox : IMessageBox
+internal class WindowsUserNotification : IUserNotification
 {
     public void ShowError(string message)
     {
@@ -14,5 +14,17 @@ internal class WindowsMessageBox : IMessageBox
     public void ShowSuccess(string message)
     {
         ToastManager.ShowSuccess(message, 2500);
+    }
+
+    public void ShowInfo(string message)
+    {
+        MessageBox.Show(message, Strings.Info,
+            MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    public void ShowWarning(string message)
+    {
+        MessageBox.Show(message, Strings.Warning_Title,
+            MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

@@ -13,54 +13,95 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {
-    private readonly IMessageBox _messageBox;
+    private readonly IUserNotification _userNotification;
     private readonly IPublisher _messaging;
     private List<RuleBase> _rules = [];
     private string _rulesText = string.Empty;
+    private ArchitecturalRulesDialog? _openDialog;
+    private CodeGraph? _currentGraph;
 
-    public Analyzer(IPublisher messaging, IMessageBox messageBox)
+    public Analyzer(IPublisher messaging, IUserNotification userNotification)
     {
         _messaging = messaging;
-        _messageBox = messageBox;
+        _userNotification = userNotification;
+
+        // Subscribe to application exit event to close dialog
+        if (Application.Current != null)
+        {
+            Application.Current.Exit += OnApplicationExit;
+        }
     }
 
     public void Analyze(CodeGraph graph)
     {
-        var dialog = new ArchitecturalRulesDialog
+        // If dialog is already open, just bring it to front
+        if (_openDialog != null)
         {
+            _openDialog.Activate();
+            return;
+        }
+
+        _currentGraph = graph;
+
+        _openDialog = new ArchitecturalRulesDialog
+        {
+            // If we omit the owner, the dialog may appear behind the main window
+            // However, it would be automatically closed when the main window closes.
             Owner = Application.Current.MainWindow,
+
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             // Load existing rules or provide sample rules
             RulesText = string.IsNullOrEmpty(_rulesText) ? GetSampleRules() : _rulesText
         };
 
-        if (dialog.ShowDialog() == true)
+        // Set up validation callback
+        _openDialog.OnValidateRequested = OnValidateRules;
+
+        // Handle dialog closing
+        _openDialog.Closed += (sender, args) =>
         {
-            try
-            {
-                ParseAndStoreRules(dialog.RulesText);
-            }
-            catch (Exception ex)
-            {
-                _messageBox.ShowError($"Error parsing rules: {ex.Message}");
-                return;
-            }
+            _openDialog = null;
+            _currentGraph = null;
+        };
 
+        _openDialog.Show();
+    }
 
-            // Execute analysis
-            var violations = ExecuteAnalysis(graph);
-
-            if (violations.Count == 0)
-            {
-                _messageBox.ShowSuccess("No rule violations found!");
-            }
-            else
-            {
-                // Show violations in tabular format
-                var violationsViewModel = new RuleViolationsViewModel(violations, graph);
-                _messaging.Publish(new ShowTabularDataRequest(violationsViewModel));
-            }
+    private void OnValidateRules(string rulesText)
+    {
+        if (_currentGraph == null)
+        {
+            return;
         }
+
+        try
+        {
+            ParseAndStoreRules(rulesText);
+        }
+        catch (Exception ex)
+        {
+            _userNotification.ShowError($"Error parsing rules: {ex.Message}");
+            return;
+        }
+
+        // Execute analysis
+        var violations = ExecuteAnalysis(_currentGraph);
+
+        if (violations.Count == 0)
+        {
+            _userNotification.ShowSuccess("No rule violations found!");
+        }
+        else
+        {
+            // Show violations in tabular format
+            var violationsViewModel = new RuleViolationsViewModel(violations, _currentGraph);
+            _messaging.Publish(new ShowTabularDataRequest(violationsViewModel));
+        }
+    }
+
+    private void OnApplicationExit(object sender, ExitEventArgs e)
+    {
+        _openDialog?.Close();
     }
 
     public string Name

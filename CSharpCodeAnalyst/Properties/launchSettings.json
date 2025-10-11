@@ -1,7 +1,8 @@
 {
   "profiles": {
     "CSharpCodeAnalyst": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-load:D:\\Private\\Repos\\CSharpCodeAnalyst\\dependencies.json"
     }
   }
 }

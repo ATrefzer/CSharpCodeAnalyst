@@ -71,18 +71,14 @@
 
 
         <!-- Buttons -->
-     
-            
-         
-            
             <StackPanel  Grid.Row="2"  Orientation="Horizontal"
                          HorizontalAlignment="Right">
-            <Button x:Name="OkButton" Content="OK" Width="75" Height="25"
+            <Button x:Name="ValidateButton" Content="Validate" Width="75" Height="25"
                     Margin="0,0,10,0" IsDefault="True"
-                    Click="OkButton_Click" />
-            <Button x:Name="CancelButton" Content="Cancel" Width="75" Height="25"
+                    Click="ValidateButton_Click" />
+            <Button x:Name="CloseButton" Content="Close" Width="75" Height="25"
                     IsCancel="True"
-                    Click="CancelButton_Click" />
+                    Click="CloseButton_Click" />
         </StackPanel>
         
     </Grid>

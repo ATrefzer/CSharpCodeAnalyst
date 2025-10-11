@@ -51,13 +51,13 @@ internal class AnalyzerManager : IAnalyzerManager
         }
     }
 
-    public void LoadAnalyzers(IPublisher messaging, IMessageBox messageBox)
+    public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification)
     {
         _analyzers.Clear();
         IAnalyzer analyzer = new Analyzer(messaging);
         _analyzers.Add(analyzer.Id, analyzer);
 
-        analyzer = new ArchitecturalRules.Analyzer(messaging, messageBox);
+        analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
         _analyzers.Add(analyzer.Id, analyzer);
     }
 }
