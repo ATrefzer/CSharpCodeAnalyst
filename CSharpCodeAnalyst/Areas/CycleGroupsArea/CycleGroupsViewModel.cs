@@ -18,7 +18,7 @@ internal class CycleGroupsViewModel : Table
     {
         _messaging = messaging;
         var vms = cycleGroups.Select(g => new CycleGroupViewModel(g));
-        var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.ElementCount);
+        var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.HighLevelElementCount);
         _cycleGroups = new ObservableCollection<TableRow>(ordered);
     }
 
@@ -54,13 +54,15 @@ internal class CycleGroupsViewModel : Table
             {
                 Type = ColumnType.Text,
                 Header = Strings.ElementCount_Header,
-                PropertyName = nameof(CycleGroupViewModel.ElementCount)
+                PropertyName = nameof(CycleGroupViewModel.HighLevelElementCount),
+                
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = Strings.CodeElements_Header,
                 PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
+                SortMemberName = nameof(CycleGroupViewModel.InvolvedCodeElementsCount)
             }
         };
     }

@@ -269,6 +269,11 @@ public partial class DynamicDataGrid
             Width = columnDef.Width == 0 ? DataGridLength.Auto : new DataGridLength(columnDef.Width)
         };
 
+        if (columnDef.SortMemberName != null)
+        {
+            column.SortMemberPath = columnDef.SortMemberName;
+        }
+
         return column;
     }
 
@@ -492,4 +497,5 @@ public partial class DynamicDataGrid
 
         e.Row.ContextMenuOpening += RowOnContextMenuOpening;
     }
+    
 }

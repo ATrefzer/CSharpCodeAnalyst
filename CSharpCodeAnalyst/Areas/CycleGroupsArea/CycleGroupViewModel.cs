@@ -63,14 +63,19 @@ internal class CycleGroupViewModel : TableRow
         }
     }
 
-    public int ElementCount
+    public int HighLevelElementCount
     {
         get => _highLevelElements.Count;
     }
 
+    public int InvolvedCodeElementsCount
+    {
+        get => CycleGroup.CodeGraph.Nodes.Count;
+    }
+
     public string CodeElementsDescription
     {
-        get => string.Format(Strings.Cycle_Groups_CodeElementsDescription, CycleGroup.CodeGraph.Nodes.Count);
+        get => string.Format(Strings.Cycle_Groups_CodeElementsDescription, InvolvedCodeElementsCount);
     }
 
     public CycleLevel Level { get; }

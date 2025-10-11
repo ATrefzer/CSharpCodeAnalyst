@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System.Collections;
+using System.Windows.Input;
 
 namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
@@ -16,4 +17,7 @@ public class TableColumnDefinition
     public ICommand? ClickCommand { get; set; }
     public object? CommandParameter { get; set; }
     public bool IsExpandable { get; set; }
+
+    public string? SortMemberName { get; set; } = null;
 }
+
