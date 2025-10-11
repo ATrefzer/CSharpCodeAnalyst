@@ -83,14 +83,16 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 ## Simulated refactoring
 
-The refactoring simulation feature is basic but useful. The process of identifying a large cyclic cluster, making code changes, and then re-importing the solution to find that the cycle remains unresolved is tedious. Therefore, in the tree view, you have a **Refactoring** context menu item that allows you to do simple refactoring on the graph without touching the source code.
+The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.
+
+To streamline this, the tree view includes a Refactoring context menu. It enables basic refactoring directly on the graph, bypassing the need to edit the source code.
 
 You can explore scenarios such as:
 
-- What happens if a code element is removed?
-- What happens if a class is moved to another namespace?
+- What happens if you remove a code element?
+- What happens if you move a class to another namespace?
 
-After your modifications, you can rerun the cycle search.
+After your modifications, you can rerun the cycle search to observe the impact.
 
 Keep in mind that this is a very basic feature, and you cannot undo modifications to the code graph. So, it's better to save your work before you start.
 
