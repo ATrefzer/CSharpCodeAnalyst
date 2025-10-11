@@ -18,6 +18,14 @@
 
 - Delete everything without arrows
 
+- Strings, i.e. Gallery should be in resources.
+
+- Property has not much contrast to method
+
+- Namespace icon differs from others
+
+- Jump to Code from context menu?
+
 
 
 UNHANDLED CASES
@@ -27,6 +35,9 @@ UNHANDLED CASES
   => Not useful enough to implement.
   
 - Two projects with the same name (discard one, breaks the symbol key mechanics)
+
+- Properties may show a cycle because get and set are combined into one property element.
+  This may lead to a false positive cycle but is as intended.
 
 BUGS 
 ---------------------
