@@ -106,6 +106,14 @@
         <Resource Include="Resources\Other_16.png"/>
         <None Remove="Resources\bue-info_16.png" />
         <Resource Include="Resources\blue-info_16.png" />
+        <None Remove="Resources\focus_32.png" />
+        <Resource Include="Resources\focus_32.png" />
+        <None Remove="Resources\puzzle.png" />
+        <Resource Include="Resources\puzzle.png" />
+        <None Remove="Resources\synchronize_32.png" />
+        <Resource Include="Resources\synchronize_32.png" />
+        <None Remove="Resources\flag-empty_32.png" />
+        <Resource Include="Resources\flag-empty_32.png" />
     </ItemGroup>
 
 

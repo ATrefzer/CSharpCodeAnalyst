@@ -11,13 +11,23 @@
              d:DataContext="{d:DesignInstance analyst:MainViewModel}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
-        <Style TargetType="TextBlock" x:Key="HintStyle">
-            <Setter Property="FontSize" Value="22" />
-            <Setter Property="Margin" Value="8" />
-            <Setter Property="TextWrapping" Value="Wrap" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+                <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+            <Style TargetType="TextBlock" x:Key="HintStyle">
+                <Setter Property="FontSize" Value="22" />
+                <Setter Property="Margin" Value="8" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+        </ResourceDictionary>
+
+
     </UserControl.Resources>
     <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
         <StackPanel
@@ -34,13 +44,57 @@
         </StackPanel>
         <Border ClipToBounds="True">
             <Grid>
-                <DockPanel x:Name="GraphPanel" Margin="5" />
-                <!-- Search Control as overlay -->
+                <!-- Top margin to get below the overlay buttons -->
+                <DockPanel x:Name="GraphPanel" Margin="20" />
+
+                <!-- Search Control and tool buttons as overlay -->
+                <!-- The tool buttons replace the global context menu -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0 0 40 0" DataContext="{Binding GraphViewModel}">
+
+                    <Button Command="{Binding CompleteToContainingTypesCommand}"
+                            ToolTip="{x:Static resources:Strings.CompleteToTypes}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/puzzle.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding CompleteRelationshipsCommand}"
+                            ToolTip="{x:Static resources:Strings.CompleteRelationships}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/synchronize_32.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding ClearAllFlagsCommand}"
+                            ToolTip="{x:Static resources:Strings.ClearAllFlags}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/flag-empty_32.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding FocusOnSelectedCommand}"
+                            ToolTip="{x:Static resources:Strings.SelectedFocus}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/focus_32.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding ExpandEverythingCommand}"
+                            ToolTip="{x:Static resources:Strings.ExpandEverything}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/four-arrows_32.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding RemoveSelectedCommand}"
+                            ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/trash-can_32.png" Width="24" Height="24" />
+                    </Button>
+
+                </StackPanel>
                 <local:GraphSearchControl x:Name="SearchControl"
-                                          HorizontalAlignment="Stretch"
-                                          VerticalAlignment="Stretch"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Top"
                                           Visibility="{Binding DataContext.IsGraphSearchPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
                                           IsHitTestVisible="True" />
+
             </Grid>
         </Border>
     </Grid>

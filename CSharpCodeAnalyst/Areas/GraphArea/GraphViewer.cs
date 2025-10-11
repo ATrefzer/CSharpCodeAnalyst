@@ -205,7 +205,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     public void ShowGlobalContextMenu()
     {
         // Click on free space
-        if (_msaglViewer?.ObjectUnderMouseCursor != null ||
+        if (!_globalCommands.Any() || _msaglViewer?.ObjectUnderMouseCursor != null ||
             !_clonedCodeGraph.Nodes.Any())
         {
             return;
@@ -655,7 +655,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         }
     }
 
-    private HashSet<string> GetSelectedElementIds()
+    public HashSet<string> GetSelectedElementIds()
     {
         if (_msaglViewer is null)
         {

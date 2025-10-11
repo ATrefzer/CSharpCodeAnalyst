@@ -73,20 +73,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddCommand(new RelationshipContextCommand(Strings.RemoveWithoutChildren, RemoveEdges));
 
 
-        // Global commands
-        _viewer.AddGlobalCommand(
-            new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, FocusOnSelectedElements,
-            CanHandleIfSelectedElements));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren,
-            DeleteSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents,
-            CanHandleIfSelectedElements));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
-
-
         // Static commands
         _viewer.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
         {
@@ -166,7 +152,36 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         UndoCommand = new WpfCommand(Undo);
         OpenGraphHideDialogCommand = new WpfCommand(OpenGraphHideDialog);
+
+        // Toolbar
+        CompleteToContainingTypesCommand = new WpfCommand(OnCompleteToContainingTypes);
+        CompleteRelationshipsCommand = new WpfCommand(OnCompleteRelationships);
+        ClearAllFlagsCommand = new WpfCommand(OnClearAllFlags);
+        FocusOnSelectedCommand = new WpfCommand(OnFocusOnSelected);
+        ExpandEverythingCommand = new WpfCommand(OnExpandEverything);
+        RemoveSelectedCommand = new WpfCommand(OnRemoveSelectedWithChildren);
+        
+        // Global commands, moved to toolbar
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, Focus, CanHandleIfSelectedElements));
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
+        //_viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
+        
+        
+        // Not in toolbar yet. Did someone use it?
+        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents, CanHandleIfSelectedElements));
+
     }
+
+    public ICommand CompleteToContainingTypesCommand { get; set; }
+    public ICommand CompleteRelationshipsCommand { get; set; }
+    public ICommand UndoCommand { get; }
+    public ICommand OpenGraphHideDialogCommand { get; }
+    public ICommand ClearAllFlagsCommand { get; }
+    public ICommand FocusOnSelectedCommand { get; }
+    public ICommand ExpandEverythingCommand { get; }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
@@ -238,11 +253,93 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
     }
 
-    public ICommand UndoCommand { get; }
+    public ICommand RemoveSelectedCommand { get; }
 
-    public ICommand OpenGraphHideDialogCommand { get; }
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnExpandEverything()
+    {
+        PushUndo();
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        // Create a new presentation state with no collapsed nodes
+        var newPresentationState = new PresentationState();
+
+        // Copy the flagged states but not the collapsed states
+        foreach (var nodeId in graph.Nodes.Keys)
+        {
+            if (session.PresentationState.IsFlagged(nodeId))
+            {
+                newPresentationState.SetFlaggedState(nodeId, true);
+            }
+        }
+
+        _viewer.LoadSession(graph, newPresentationState);
+    }
+
+    private void OnFocusOnSelected()
+    {
+        var selectedElementIds = _viewer.GetSelectedElementIds();
+        if (!selectedElementIds.Any())
+        {
+            return;
+        }
+
+        // We want to include all children of the collapsed code elements
+        // and keep also the presentation state. Just less information
+
+        PushUndo();
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+
+        var idsToKeep = new HashSet<string>();
+
+        // All children of the current graph.
+        foreach (var elementId in selectedElementIds)
+        {
+            var children = graph.Nodes[elementId].GetChildrenIncludingSelf();
+            idsToKeep.UnionWith(children);
+        }
+
+        // Include only relationships to code elements in the subgraph
+        var newGraph = graph.Clone(d => idsToKeep.Contains(d.TargetId), idsToKeep);
+
+        // Cleanup unused states
+        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+
+        var presentationState = session.PresentationState.Clone();
+        presentationState.RemoveStates(idsToRemove);
+
+        _viewer.LoadSession(newGraph, presentationState);
+    }
+
+    private void OnClearAllFlags()
+    {
+        _viewer.ClearAllFlags();
+    }
+
+    private void OnCompleteRelationships()
+    {
+        // Not interested in the selected elements!
+        var viewerGraph = _viewer.GetGraph();
+        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var relationships = _explorer.FindAllRelationships(ids);
+
+        AddToGraph([], relationships);
+    }
+
+    private void OnCompleteToContainingTypes()
+    {
+        var viewerGraph = _viewer.GetGraph();
+        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var result = _explorer.CompleteToContainingTypes(ids);
+        AddToGraph(result.Elements, []);
+    }
 
     private void ToggleNodeFlag(CodeElement codeElement)
     {
@@ -273,76 +370,46 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         return selectedElements.Any();
     }
 
-    private void FocusOnSelectedElements(List<CodeElement> selectedElements)
-    {
-        // We want to include all children of the collapsed code elements
-        // and keep also the presentation state. Just less information
-
-        PushUndo();
-
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
-
-        var idsToKeep = new HashSet<string>();
-
-        // All children of the current graph.
-        foreach (var element in selectedElements)
-        {
-            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
-            idsToKeep.UnionWith(children);
-        }
-
-        // Include only relationships to code elements in the subgraph
-        var newGraph = graph.Clone(d => idsToKeep.Contains(d.TargetId), idsToKeep);
-
-        // Cleanup unused states
-        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
-
-        var presentationState = session.PresentationState.Clone();
-        presentationState.RemoveStates(idsToRemove);
-
-        _viewer.LoadSession(newGraph, presentationState);
-    }
-
     private void RemoveEdges(string sourceId, string targetId, List<Relationship> relationships)
     {
         PushUndo();
         _viewer.RemoveFromGraph(relationships);
     }
 
-    private void DeleteSelectedWithChildren(List<CodeElement> selectedElements)
+    private void OnRemoveSelectedWithChildren()
     {
+        var selectedElementIds = _viewer.GetSelectedElementIds();
+        if (!selectedElementIds.Any())
+        {
+            return;
+        }
+        
         PushUndo();
+        
 
         var graph = _viewer.GetGraph();
         var idsToRemove = new HashSet<string>();
 
         // Include children      
-        foreach (var element in selectedElements)
+        foreach (var elementId in selectedElementIds)
         {
-            var children = graph.Nodes[element.Id].GetChildrenIncludingSelf();
+            var children = graph.Nodes[elementId].GetChildrenIncludingSelf();
             idsToRemove.UnionWith(children);
         }
 
         _viewer.RemoveFromGraph(idsToRemove);
     }
 
-    private void CompleteToTypes(List<CodeElement> obj)
+    private void CompleteToTypes(List<CodeElement> _)
     {
-        var viewerGraph = _viewer.GetGraph();
-        var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var result = _explorer.CompleteToContainingTypes(ids);
-        AddToGraph(result.Elements, []);
+        // Context menu
+        OnCompleteToContainingTypes();
     }
 
     private void CompleteRelationships(List<CodeElement> _)
     {
-        // Not interested in the selected elements!
-        var viewerGraph = _viewer.GetGraph();
-        var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var relationships = _explorer.FindAllRelationships(ids);
-
-        AddToGraph([], relationships);
+        // Context menu
+        OnCompleteRelationships();
     }
 
     private bool CanCollapse(CodeElement codeElement)
@@ -380,33 +447,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var ids = codeElements.Select(c => c.Id).ToList();
         var result = _explorer.FindParents(ids);
         AddToGraph(result.Elements, []);
-    }
-
-    private void ClearAllFlags(List<CodeElement> selectedElements)
-    {
-        _viewer.ClearAllFlags();
-    }
-
-    private void ExpandEverything(List<CodeElement> selectedElements)
-    {
-        PushUndo();
-
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
-
-        // Create a new presentation state with no collapsed nodes
-        var newPresentationState = new PresentationState();
-
-        // Copy the flagged states but not the collapsed states
-        foreach (var nodeId in graph.Nodes.Keys)
-        {
-            if (session.PresentationState.IsFlagged(nodeId))
-            {
-                newPresentationState.SetFlaggedState(nodeId, true);
-            }
-        }
-
-        _viewer.LoadSession(graph, newPresentationState);
     }
 
     private void FindInTreeRequest(CodeElement codeElement)
@@ -726,10 +766,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         {
             // Add the same node ids with the same relationships. This fixes parent/child hierarchy.
             // We may have moved more nodes than in the graph. Or the graph is not affected at all by this movement.
-            
+
             var relationships = canvasGraph.GetAllRelationships().ToList();
             var ids = canvasGraph.Nodes.Values.Select(n => n.Id).ToHashSet();
-            
+
             // Is the canvas graph affected at all?
             var originalGraph = moved.Graph;
             var movedIds = originalGraph.Nodes[moved.SourceId].GetChildrenIncludingSelf().ToHashSet();
@@ -737,11 +777,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             {
                 return;
             }
-            
+
             // I don't know where the element was moved to. I add its parent.
             // Since I cant move an assembly parent is never null    
-            ids.Add(moved.NewParentId);    
-           
+            ids.Add(moved.NewParentId);
+
             // I use the old presentation state. Except the new parent node I should not see any different nodes.
             // However, the parent / child relationships have changed.
             var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();

@@ -82,4 +82,5 @@ public interface IGraphViewer
 
     void SetHideFilter(GraphHideFilter hideFilter);
     GraphHideFilter GetHideFilter();
+    HashSet<string> GetSelectedElementIds();
 }

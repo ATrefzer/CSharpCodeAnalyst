@@ -16,7 +16,7 @@ public class Analyzer : IAnalyzer
     private readonly IUserNotification _userNotification;
     private readonly IPublisher _messaging;
     private List<RuleBase> _rules = [];
-    private string _rulesText = string.Empty;
+    private string _rulesText;
     private ArchitecturalRulesDialog? _openDialog;
     private CodeGraph? _currentGraph;
     private bool _isDirty = false;
@@ -31,6 +31,8 @@ public class Analyzer : IAnalyzer
         {
             Application.Current.Exit += OnApplicationExit;
         }
+
+        _rulesText = GetSampleRules();
     }
 
     public void Analyze(CodeGraph graph)

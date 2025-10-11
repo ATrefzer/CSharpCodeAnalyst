@@ -12,6 +12,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -29,24 +30,7 @@
                 </Setter>
             </Style>
 
-            <Style TargetType="Button" x:Key="ToggleButtonStyle">
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Padding" Value="5" />
-                <Setter Property="Cursor" Value="Hand" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
+      
 
         </ResourceDictionary>
     </UserControl.Resources>
@@ -58,7 +42,6 @@
                 Click="ToggleButton_Click"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
-                Margin="5"
                 ToolTip="Toggle Search">
             <Image Source="/Resources/search_32.png" Width="24" Height="24" />
         </Button>

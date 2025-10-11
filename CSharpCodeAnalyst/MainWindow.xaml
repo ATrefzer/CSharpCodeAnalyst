@@ -14,6 +14,7 @@
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
+        MinWidth="720" MinHeight="400"
         d:DataContext="{d:DesignInstance analyst:MainViewModel}"
         KeyDown="OnKeyDown">
     <Window.Resources>
@@ -341,12 +342,6 @@
                     <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
 
-                <!--<TabItem Header="{Binding TableViewModel.Title}">
-                    <Grid DataContext="{Binding TableViewModel}">
-                        <ContentPresenter Content="{Binding }" />
-                    </Grid>
-                </TabItem>-->
-
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">
                     <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
@@ -359,8 +354,6 @@
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
                 </TabItem>
             </TabControl>
-
-
         </Grid>
 
 
