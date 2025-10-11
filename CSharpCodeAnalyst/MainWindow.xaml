@@ -501,10 +501,5 @@
                 <ProgressBar IsIndeterminate="True" Width="200" Height="20" />
             </StackPanel>
         </Grid>
-
-        <!-- Toast Notification Container -->
-        <Canvas x:Name="ToastContainer"
-                Grid.Row="0" Grid.RowSpan="2"
-                IsHitTestVisible="False" />
     </Grid>
 </Window>

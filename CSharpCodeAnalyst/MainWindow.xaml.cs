@@ -23,9 +23,6 @@ public partial class MainWindow
     {
         // Set a fixed width for the left column on first load to prevent jumping
         EnsureLeftColumnWidth();
-
-        // Initialize Toast Manager with our canvas
-        ToastManager.Initialize(ToastContainer);
     }
 
     private void EnsureLeftColumnWidth()

@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace CSharpCodeAnalyst.Shared.UI;
 
@@ -13,12 +11,10 @@ public enum ToastType
 
 public static class ToastManager
 {
-    private static Panel? _toastContainer;
-
-    public static void Initialize(Panel container)
-    {
-        _toastContainer = container;
-    }
+    private static readonly List<ToastNotification> _activeToasts = new();
+    private static readonly double ToastSpacing = 10; // Spacing between stacked toasts
+    private static readonly double RightMargin = 20;
+    private static readonly double TopMargin = 100;
 
     public static void ShowSuccess(string message, int durationMs = 2000)
     {
@@ -37,35 +33,66 @@ public static class ToastManager
 
     private static void ShowToast(string message, int durationMs, ToastType type = ToastType.Success)
     {
-        if (_toastContainer == null)
+        Application.Current?.Dispatcher.Invoke(() =>
         {
-            // Fallback to MessageBox if not initialized
-            MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
+            var toast = new ToastNotification();
+
+            // Calculate position relative to screen (top-right corner)
+            var workingArea = SystemParameters.WorkArea;
+
+            // Position at top-right of screen
+            // We'll adjust after the window loads, and we know its actual size
+            toast.Loaded += (s, e) =>
+            {
+                PositionToast(toast, workingArea);
+            };
+
+            // Track active toasts
+            _activeToasts.Add(toast);
+
+            // Remove from tracking when closed
+            toast.Closed += (s, e) =>
+            {
+                _activeToasts.Remove(toast);
+                RepositionToasts(workingArea);
+            };
+
+            // Show the toast
+            toast.ShowToast(message, durationMs, type);
+        });
+    }
+
+    private static void PositionToast(ToastNotification toast, Rect workingArea)
+    {
+        // Calculate vertical offset based on number of existing toasts
+        double topOffset = TopMargin;
+
+        int index = _activeToasts.IndexOf(toast);
+        for (int i = 0; i < index; i++)
+        {
+            if (_activeToasts[i].IsLoaded)
+            {
+                topOffset += _activeToasts[i].ActualHeight + ToastSpacing;
+            }
         }
 
-        Debug.WriteLine($"Creating toast, container has {_toastContainer.Children.Count} children");
+        // Position at top-right corner
+        toast.Left = workingArea.Right - toast.ActualWidth - RightMargin;
+        toast.Top = workingArea.Top + topOffset;
+    }
 
-        var toast = new ToastNotification();
+    private static void RepositionToasts(Rect workingArea)
+    {
+        // Reposition all active toasts to fill gaps
+        double topOffset = TopMargin;
 
-        //Canvas.SetLeft(toast, 100);
-        Canvas.SetRight(toast, 20);
-        Canvas.SetTop(toast, 100);
-        Panel.SetZIndex(toast, 1000);
-
-        _toastContainer.Children.Add(toast);
-
-        // Show the toast
-        toast.Show(message, durationMs, type);
-
-        // Remove from container after animation completes
-        var removeTimer = new DispatcherTimer();
-        removeTimer.Interval = TimeSpan.FromMilliseconds(durationMs + 500);
-        removeTimer.Tick += (s, e) =>
+        foreach (var toast in _activeToasts)
         {
-            removeTimer.Stop();
-            _toastContainer.Children.Remove(toast);
-        };
-        removeTimer.Start();
+            if (toast.IsLoaded)
+            {
+                toast.Top = workingArea.Top + topOffset;
+                topOffset += toast.ActualHeight + ToastSpacing;
+            }
+        }
     }
 }
