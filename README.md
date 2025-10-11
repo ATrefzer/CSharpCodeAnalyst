@@ -81,6 +81,27 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 **In general, it's a good guideline to keep your software system free of cycles at the namespace level.**
 
+## Simulated refactoring
+
+The refactoring simulation feature is basic but useful. The process of identifying a large cyclic cluster, making code changes, and then re-importing the solution to find that the cycle remains unresolved is tedious. Therefore, in the tree view, you have a **Refactoring** context menu item that allows you to do simple refactoring on the graph without touching the source code.
+
+You can explore scenarios such as:
+
+- What happens if a code element is removed?
+- What happens if a class is moved to another namespace?
+
+After your modifications, you can rerun the cycle search.
+
+Keep in mind that this is a very basic feature, and you cannot undo modifications to the code graph. So, it's better to save your work before you start.
+
+![](Documentation/Images/refactoring.png)
+
+Context Menu Options:
+
+- **Create code element** – Adds a new element to the model.
+- **Delete from model** – Removes the selected element from the model.
+- **Set as movement parent** – Sets the current element as the parent for subsequent move operations.
+- **Move** – Once a movement parent is set, this option moves the selected element and all its children to the chosen parent.
 
 ## Validate your architectural rules
 
