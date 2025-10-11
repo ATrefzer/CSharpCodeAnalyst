@@ -84,7 +84,7 @@
 
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <TextBlock Text="Single-click to preview, double-click to load"
+            <TextBlock Text="{x:Static resources:Strings.Gallery_Hint}"
                        VerticalAlignment="Center"
                        Margin="0,0,10,0"
                        FontStyle="Italic"

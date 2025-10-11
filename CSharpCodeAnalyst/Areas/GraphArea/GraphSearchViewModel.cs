@@ -5,7 +5,7 @@ using CSharpCodeAnalyst.Common;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
-public class GraphSearchViewModel : INotifyPropertyChanged
+public sealed class GraphSearchViewModel : INotifyPropertyChanged
 {
     private readonly IGraphViewer _graphViewer;
     private readonly DispatcherTimer _searchTimer;
@@ -124,7 +124,7 @@ public class GraphSearchViewModel : INotifyPropertyChanged
         _graphViewer.SetSearchHighlights(matchingNodeIds);
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

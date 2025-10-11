@@ -7,7 +7,7 @@ using CSharpCodeAnalyst.Messages;
 namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
-public class SearchItemViewModel : INotifyPropertyChanged
+public sealed class SearchItemViewModel : INotifyPropertyChanged
 {
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
@@ -21,7 +21,7 @@ public class SearchItemViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

@@ -6,7 +6,7 @@ using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Gallery;
 
-public class GalleryEditorViewModel : INotifyPropertyChanged
+public sealed class GalleryEditorViewModel : INotifyPropertyChanged
 {
     private readonly Func<string, GraphSession> _addAction;
     private readonly Action<GraphSession> _loadAction;
@@ -101,7 +101,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
         _previewAction(item);
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

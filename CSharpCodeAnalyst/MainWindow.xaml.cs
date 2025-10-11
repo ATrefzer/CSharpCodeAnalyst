@@ -92,18 +92,6 @@ public partial class MainWindow
         }
     }
 
-    private void DropdownButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { ContextMenu: not null } button
-            && button.ContextMenu.Items[0] is MenuItem item)
-        {
-            button.ContextMenu.PlacementTarget = button;
-            item.Tag = SearchDataGrid;
-            button.ContextMenu.Placement = PlacementMode.Bottom;
-            button.ContextMenu.IsOpen = true;
-        }
-    }
-
     public void SetViewer(GraphViewer explorationGraphViewer)
     {
         ExplorationControl.SetViewer(explorationGraphViewer);

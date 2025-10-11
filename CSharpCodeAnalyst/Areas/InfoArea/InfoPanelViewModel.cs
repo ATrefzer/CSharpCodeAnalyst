@@ -11,7 +11,7 @@ using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.InfoArea;
 
-internal class InfoPanelViewModel : INotifyPropertyChanged
+internal sealed class InfoPanelViewModel : INotifyPropertyChanged
 {
     private bool _hide;
 
@@ -77,7 +77,7 @@ internal class InfoPanelViewModel : INotifyPropertyChanged
         QuickInfo = quickInfoUpdateRequest.QuickInfo;
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

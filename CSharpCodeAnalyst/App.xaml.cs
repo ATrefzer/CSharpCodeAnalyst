@@ -111,7 +111,7 @@ public partial class App
         var viewModel = new MainViewModel(messaging, settings, analyzerManager);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
-        var searchViewModel = new SearchViewModel(messaging);
+        var searchViewModel = new AdvancedSearchViewModel(messaging);
         var infoPanelViewModel = new InfoPanelViewModel();
 
         viewModel.InfoPanelViewModel = infoPanelViewModel;

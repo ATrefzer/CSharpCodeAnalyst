@@ -11,7 +11,7 @@ using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 
-public class SearchViewModel : INotifyPropertyChanged
+public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 {
     private readonly MessageBus _messaging;
     private readonly DispatcherTimer _searchTimer;
@@ -20,7 +20,7 @@ public class SearchViewModel : INotifyPropertyChanged
     private ObservableCollection<SearchItemViewModel> _filteredItems;
     private string _searchText;
 
-    public SearchViewModel(MessageBus messaging)
+    public AdvancedSearchViewModel(MessageBus messaging)
     {
         _messaging = messaging;
         _searchText = string.Empty;
@@ -201,7 +201,7 @@ public class SearchViewModel : INotifyPropertyChanged
         }
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

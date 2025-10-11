@@ -21,7 +21,7 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 /// <summary>
 ///     Defines and handles the context menu commands for the graph viewer.
 /// </summary>
-internal class GraphViewModel : INotifyPropertyChanged
+internal sealed class GraphViewModel : INotifyPropertyChanged
 {
     private const int UndoStackSize = 10;
     private readonly ICodeGraphExplorer _explorer;
@@ -605,7 +605,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         return method is { ElementType: CodeElementType.Method or CodeElementType.Property or CodeElementType.Event };
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

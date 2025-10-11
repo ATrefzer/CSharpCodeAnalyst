@@ -8,7 +8,7 @@ using CSharpCodeAnalyst.Messages;
 namespace CSharpCodeAnalyst.Areas.TreeArea;
 
 [DebuggerDisplay("{Type} {Name}")]
-public class TreeItemViewModel : INotifyPropertyChanged
+public sealed class TreeItemViewModel : INotifyPropertyChanged
 {
     private bool _isExpanded;
     private bool _isHighlighted;
@@ -94,7 +94,7 @@ public class TreeItemViewModel : INotifyPropertyChanged
         return clone;
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
+    private void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

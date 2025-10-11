@@ -42,7 +42,7 @@ using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst;
 
-internal class MainViewModel : INotifyPropertyChanged
+internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
@@ -70,16 +70,11 @@ internal class MainViewModel : INotifyPropertyChanged
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
-    private SearchViewModel? _searchViewModel;
-
+    private AdvancedSearchViewModel? _searchViewModel;
 
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
-
-
-
-
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings, AnalyzerManager analyzerManager)
     {
@@ -231,7 +226,7 @@ internal class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public SearchViewModel? SearchViewModel
+    public AdvancedSearchViewModel? SearchViewModel
     {
         get => _searchViewModel;
         set
@@ -536,7 +531,7 @@ internal class MainViewModel : INotifyPropertyChanged
         _graphViewModel?.Clear();
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")
+    private void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

@@ -7,7 +7,7 @@ using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
-public class GraphHideDialogViewModel : INotifyPropertyChanged
+public sealed class GraphHideDialogViewModel : INotifyPropertyChanged
 {
 
     public GraphHideDialogViewModel(GraphHideFilter currentFilter)
@@ -92,7 +92,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
         return type.ToString();
     }
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -101,7 +101,7 @@ public class GraphHideDialogViewModel : INotifyPropertyChanged
 /// <summary>
 ///     Helper class for checkbox binding in the UI.
 /// </summary>
-public class CheckableItem<T> : INotifyPropertyChanged where T : struct, Enum
+public sealed class CheckableItem<T> : INotifyPropertyChanged where T : struct, Enum
 {
     private bool _isChecked;
 
@@ -130,7 +130,7 @@ public class CheckableItem<T> : INotifyPropertyChanged where T : struct, Enum
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

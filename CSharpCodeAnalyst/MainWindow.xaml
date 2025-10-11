@@ -10,6 +10,7 @@
         xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
         xmlns:dynamicDataGrid1="clr-namespace:CSharpCodeAnalyst.Shared.DynamicDataGrid"
         xmlns:treeArea="clr-namespace:CSharpCodeAnalyst.Areas.TreeArea"
+        xmlns:advancedSearchArea="clr-namespace:CSharpCodeAnalyst.Areas.AdvancedSearchArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
         Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
@@ -153,7 +154,7 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportDsi_Label}"
                                         ImageSource="/Resources/spreadsheet_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
-                                        Command="{Binding ExportToDsiCommand}"/>
+                                        Command="{Binding ExportToDsiCommand}" />
 
                         <RibbonSeparator />
 
@@ -265,15 +266,11 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
                 </RibbonGroup>
-
-
             </RibbonTab>
         </Ribbon>
 
         <Grid Grid.Row="1" x:Name="SplitterGrid">
             <Grid.ColumnDefinitions>
-
-
                 <ColumnDefinition x:Name="SplitterColumn" Width="Auto" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
@@ -316,137 +313,12 @@
 
                     <!-- Search Tab -->
                     <TabItem Header="Advanced Search">
-                        <Grid DataContext="{Binding SearchViewModel}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <!-- Search Box Area -->
-                            <DockPanel Grid.Row="0" Margin="5" Background="LightYellow">
-                                <Button Command="{Binding ClearSearchCommand}"
-                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
-                                        DockPanel.Dock="Right"
-                                        Width="22" Height="22" Margin="2,0,0,0">
-                                    <Image Source="Resources/clear_32.png" />
-                                </Button>
-
-                                <Grid DockPanel.Dock="Left" HorizontalAlignment="Stretch">
-                                    <TextBox Height="22"
-                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                             Margin="0"
-                                             Background="LightYellow"
-                                             FontSize="12" />
-
-                                    <Image Style="{StaticResource InfoStyle}"
-                                           ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
-                                </Grid>
-                            </DockPanel>
-
-                            <!-- Results List -->
-                            <DataGrid Grid.Row="1"
-                                      x:Name="SearchDataGrid"
-                                      Style="{StaticResource ReadOnlyGrid}"
-                                      ItemsSource="{Binding FilteredItems}"
-                                      AutoGenerateColumns="False"
-                                      GridLinesVisibility="Horizontal"
-                                      SelectionMode="Extended"
-                                      Margin="5,0,5,0">
-                                <DataGrid.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                                  Command="{Binding AddSelectedToGraphCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                        <MenuItem
-                                            Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                            Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                            CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-
-                                        <Separator />
-                                        <MenuItem Header="{x:Static resources:Strings.Partition}"
-                                                  Command="{Binding PartitionCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                        <Separator />
-
-                                        <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
-                                                  Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-
-
-                                    </ContextMenu>
-                                </DataGrid.ContextMenu>
-                                <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
-                                                            Width="Auto">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Image Source="{Binding Icon}" Width="16" Height="16"
-                                                       ToolTip="{Binding Type}" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
-                                                        Binding="{Binding Name}"
-                                                        Width="Auto" />
-
-
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
-                                                        Binding="{Binding FullPath}"
-                                                        Width="Auto" />
-                                </DataGrid.Columns>
-                            </DataGrid>
-
-                            <!-- Button Area -->
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Main Button -->
-                                    <Button Grid.Column="0"
-                                            Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                            Command="{Binding AddSelectedToGraphCommand}"
-                                            CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
-                                            FontWeight="Bold"
-                                            Padding="15,5" />
-
-                                    <!-- Dropdown Button -->
-                                    <Button Grid.Column="1"
-                                            Content="▼"
-                                            FontSize="8"
-                                            Width="20"
-                                            Padding="0"
-                                            x:Name="DropdownButton">
-                                        <Button.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem
-                                                    Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                                    Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                                    CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
-                                            </ContextMenu>
-                                        </Button.ContextMenu>
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <EventSetter Event="Click" Handler="DropdownButton_Click" />
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                        <advancedSearchArea:AdvancedSearchControl DataContext="{Binding SearchViewModel}" />
                     </TabItem>
 
                     <!-- Info Panel -->
                     <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
-
-                        <!-- Info panel -->
-                        <infoArea:InfoPanel
-                            VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                            DataContext="{Binding InfoPanelViewModel}" />
+                        <infoArea:InfoPanel DataContext="{Binding InfoPanelViewModel}" />
                     </TabItem>
 
                 </TabControl>

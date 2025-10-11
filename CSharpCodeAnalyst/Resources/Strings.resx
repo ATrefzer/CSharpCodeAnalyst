@@ -838,4 +838,8 @@ ISOLATE: MyApp.Domain.**</value>
   <data name="Info" xml:space="preserve">
 		<value>Info</value>
 	</data>  
+    
+    <data name="Gallery_Hint" xml:space="preserve">
+		<value>Single-click to preview, double-click to load</value>
+	</data>  
 </root>
