@@ -18,4 +18,6 @@ public interface IAnalyzer
     ///     Sets persistent data from JSON string
     /// </summary>
     void SetPersistentData(string? data);
+
+    bool IsDirty();
 }

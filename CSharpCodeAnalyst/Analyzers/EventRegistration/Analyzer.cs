@@ -49,6 +49,12 @@ public class Analyzer : IAnalyzer
         // EventRegistration analyzer has no persistent data
     }
 
+    public bool IsDirty()
+    {
+        // This analyzer has no data.
+        return false;
+    }
+
     private static List<Result> FindImbalances(CodeGraph originalGraph)
     {
         var relationships = originalGraph.GetAllRelationships().Where(r => r.Type == RelationshipType.Handles).ToHashSet();

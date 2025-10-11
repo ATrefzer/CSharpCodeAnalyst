@@ -60,4 +60,9 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
         _analyzers.Add(analyzer.Id, analyzer);
     }
+
+    public bool IsDirty()
+    {
+        return _analyzers.Values.Any(a => a.IsDirty());
+    }
 }

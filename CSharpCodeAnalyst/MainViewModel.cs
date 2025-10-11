@@ -855,7 +855,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     internal bool OnClosing()
     {
-        if (!_isSaved)
+        if (!_isSaved || _analyzerManager.IsDirty())
         {
             if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)

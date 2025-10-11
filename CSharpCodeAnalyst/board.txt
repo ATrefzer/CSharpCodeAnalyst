@@ -8,8 +8,6 @@
 
 - Virtual Refactorings: TreeView Update may be slow
 
-- Dirty Flag if analyzer has rules.
-
 - Most recent file list.
 
 - Focus on Edge
@@ -17,8 +15,6 @@
 - Deep incoming and outgoing references
 
 - Delete everything without arrows
-
-- Strings, i.e. Gallery should be in resources.
 
 - Property has not much contrast to method
 
