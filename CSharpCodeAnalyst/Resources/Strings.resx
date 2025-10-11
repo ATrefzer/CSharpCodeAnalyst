@@ -142,11 +142,11 @@
     <data name="CompleteRelationships" xml:space="preserve">
 		<value>Complete relationships</value>
 	</data>
-    <data name="Delete" xml:space="preserve">
-		<value>Delete</value>
+    <data name="RemoveWithoutChildren" xml:space="preserve">
+		<value>Remove from canvas</value>
 	</data>
-    <data name="DeleteWithChildren" xml:space="preserve">
-		<value>Delete with Children</value>
+    <data name="RemoveWithChildren" xml:space="preserve">
+		<value>Remove with children</value>
 	</data>
     <data name="Expand" xml:space="preserve">
 		<value>Expand</value>
@@ -187,8 +187,8 @@
     <data name="SelectedAddParent" xml:space="preserve">
 		<value>Selected: Add Parent</value>
 	</data>
-    <data name="SelectedDelete" xml:space="preserve">
-		<value>Selected: Delete (with children)</value>
+    <data name="SelectedRemoveWithChildren" xml:space="preserve">
+		<value>Selected: Remove (with children)</value>
 	</data>
     <data name="SelectedFocus" xml:space="preserve">
 		<value>Selected: Focus</value>
@@ -318,7 +318,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
 		<value>Clear search</value>
 	</data>
     <data name="AddToGraph_MenuItem" xml:space="preserve">
-		<value>Add to graph</value>
+		<value>Add to canvas</value>
 	</data>
     <data name="DeleteFromModel_MenuItem" xml:space="preserve">
 		<value>Delete from model</value>

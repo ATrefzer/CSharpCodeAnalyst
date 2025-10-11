@@ -70,7 +70,7 @@ internal class GraphViewModel : INotifyPropertyChanged
 
         // Edge commands
         _viewer.AddCommand(new RelationshipContextCommand(Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.Delete, DeleteEdges));
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.RemoveWithoutChildren, RemoveEdges));
 
 
         // Global commands
@@ -79,7 +79,7 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
         _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, FocusOnSelectedElements,
             CanHandleIfSelectedElements));
-        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedDelete,
+        _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren,
             DeleteSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
         _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents,
             CanHandleIfSelectedElements));
@@ -100,8 +100,8 @@ internal class GraphViewModel : INotifyPropertyChanged
         });
 
         _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.Delete, DeleteWithoutChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.DeleteWithChildren, DeleteWithChildren));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
         _viewer.AddCommand(new SeparatorCommand());
@@ -304,10 +304,10 @@ internal class GraphViewModel : INotifyPropertyChanged
         _viewer.LoadSession(newGraph, presentationState);
     }
 
-    private void DeleteEdges(string sourceId, string targetId, List<Relationship> relationships)
+    private void RemoveEdges(string sourceId, string targetId, List<Relationship> relationships)
     {
         PushUndo();
-        _viewer.DeleteFromGraph(relationships);
+        _viewer.RemoveFromGraph(relationships);
     }
 
     private void DeleteSelectedWithChildren(List<CodeElement> selectedElements)
@@ -324,7 +324,7 @@ internal class GraphViewModel : INotifyPropertyChanged
             idsToRemove.UnionWith(children);
         }
 
-        _viewer.DeleteFromGraph(idsToRemove);
+        _viewer.RemoveFromGraph(idsToRemove);
     }
 
     private void CompleteToTypes(List<CodeElement> obj)
@@ -414,18 +414,18 @@ internal class GraphViewModel : INotifyPropertyChanged
         _publisher.Publish(new LocateInTreeRequest(codeElement.Id));
     }
 
-    private void DeleteWithoutChildren(CodeElement element)
+    private void RemoveWithoutChildren(CodeElement element)
     {
         PushUndo();
-        _viewer.DeleteFromGraph([element.Id]);
+        _viewer.RemoveFromGraph([element.Id]);
     }
 
-    private void DeleteWithChildren(CodeElement element)
+    private void RemoveWithChildren(CodeElement element)
     {
         PushUndo();
         var graph = _viewer.GetGraph();
         var idsToRemove = graph.Nodes[element.Id].GetChildrenIncludingSelf();
-        _viewer.DeleteFromGraph(idsToRemove);
+        _viewer.RemoveFromGraph(idsToRemove);
     }
 
     private void PushUndo()

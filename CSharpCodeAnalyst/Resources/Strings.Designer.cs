@@ -88,7 +88,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to graph.
+        ///   Looks up a localized string similar to Add to canvas.
         /// </summary>
         public static string AddToGraph_MenuItem {
             get {
@@ -489,15 +489,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete.
-        /// </summary>
-        public static string Delete {
-            get {
-                return ResourceManager.GetString("Delete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Delete from model.
         /// </summary>
         public static string DeleteFromModel_MenuItem {
@@ -512,15 +503,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string DeleteFromModel_Message {
             get {
                 return ResourceManager.GetString("DeleteFromModel_Message", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Delete with Children.
-        /// </summary>
-        public static string DeleteWithChildren {
-            get {
-                return ResourceManager.GetString("DeleteWithChildren", resourceCulture);
             }
         }
         
@@ -1697,6 +1679,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove with children.
+        /// </summary>
+        public static string RemoveWithChildren {
+            get {
+                return ResourceManager.GetString("RemoveWithChildren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove from canvas.
+        /// </summary>
+        public static string RemoveWithoutChildren {
+            get {
+                return ResourceManager.GetString("RemoveWithoutChildren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rendering.
         /// </summary>
         public static string Rendering_Label {
@@ -1793,20 +1793,20 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Selected: Delete (with children).
-        /// </summary>
-        public static string SelectedDelete {
-            get {
-                return ResourceManager.GetString("SelectedDelete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Selected: Focus.
         /// </summary>
         public static string SelectedFocus {
             get {
                 return ResourceManager.GetString("SelectedFocus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected: Remove (with children).
+        /// </summary>
+        public static string SelectedRemoveWithChildren {
+            get {
+                return ResourceManager.GetString("SelectedRemoveWithChildren", resourceCulture);
             }
         }
         

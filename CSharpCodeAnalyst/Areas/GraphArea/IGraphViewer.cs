@@ -12,8 +12,8 @@ public interface IGraphViewer
     void ShowFlatGraph(bool value);
     void ShowInformationFlow(bool value);
     void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships, bool addCollapsed);
-    void DeleteFromGraph(HashSet<string> idsToRemove);
-    void DeleteFromGraph(List<Relationship> relationships);
+    void RemoveFromGraph(HashSet<string> idsToRemove);
+    void RemoveFromGraph(List<Relationship> relationships);
 
     void AddCommand(ICodeElementContextCommand command);
     void AddGlobalCommand(IGlobalCommand command);

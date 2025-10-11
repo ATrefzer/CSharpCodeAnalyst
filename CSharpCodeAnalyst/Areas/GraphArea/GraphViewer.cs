@@ -266,7 +266,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         OnGraphChanged();
     }
 
-    public void DeleteFromGraph(List<Relationship> relationships)
+    public void RemoveFromGraph(List<Relationship> relationships)
     {
         if (_msaglViewer is null)
         {
@@ -281,7 +281,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         RefreshGraph();
     }
 
-    public void DeleteFromGraph(HashSet<string> idsToRemove)
+    public void RemoveFromGraph(HashSet<string> idsToRemove)
     {
         if (_msaglViewer is null)
         {
