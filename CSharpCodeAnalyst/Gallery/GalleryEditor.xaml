@@ -6,11 +6,20 @@
         xmlns:gallery="clr-namespace:CSharpCodeAnalyst.Gallery"
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+        xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance gallery:GalleryEditorViewModel}"
         Title="{x:Static resources:Strings.Gallery_Label}" Height="450" Width="400">
 
     <Window.Resources>
+        
+        <CollectionViewSource x:Key="SortedItems" Source="{Binding Items}">
+            <CollectionViewSource.SortDescriptions>
+                <componentModel:SortDescription PropertyName="Name" Direction="Ascending" />
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+        
+        
         <Style x:Key="DeleteButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -42,13 +51,26 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBox Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
-                     Width="200" Margin="0,0,10,0" />
-            <Button Content="Add" Command="{Binding AddItemCommand}" Width="80" />
-        </StackPanel>
+        <DockPanel Grid.Row="0"  Margin="0,0,0,10">
+            
+            <Button DockPanel.Dock="Right" Content="Add" Command="{Binding AddItemCommand}" Width="80" />
+            
+            <TextBox DockPanel.Dock="Left" Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
+                      Margin="0,0,10,0"  HorizontalAlignment="Stretch">
+                
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter"
+                                Command="{Binding AddItemCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+            
+        </DockPanel>
 
-        <ListView Grid.Row="1" ItemsSource="{Binding Items}"
+        <!-- Does not bind directly to Items but to the collection view -->
+        <ListView Grid.Row="1" 
+                  
+                  ItemsSource="{Binding Source={StaticResource SortedItems}}" 
+               
                   SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                   SelectionChanged="ListView_SelectionChanged">
             <ListView.ItemContainerStyle>
@@ -82,14 +104,13 @@
             </b:Interaction.Triggers>
         </ListView>
 
-
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
             <TextBlock Text="{x:Static resources:Strings.Gallery_Hint}"
                        VerticalAlignment="Center"
                        Margin="0,0,10,0"
                        FontStyle="Italic"
                        Foreground="Gray" />
-            <Button Content="Close" Width="80" Click="CloseButton_Click" />
+            <Button Content="Close" Width="80" Click="CloseButton_Click" IsCancel="True"/>
         </StackPanel>
     </Grid>
 </Window>

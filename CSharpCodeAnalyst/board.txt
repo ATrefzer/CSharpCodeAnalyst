@@ -22,6 +22,9 @@
 
 - Jump to Code from context menu?
 
+- Sorting in Cycle groups element is alphanumeric.
+- Focus on flagged.
+
 
 
 UNHANDLED CASES

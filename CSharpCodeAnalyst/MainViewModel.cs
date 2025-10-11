@@ -38,6 +38,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Wpf;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst;
@@ -344,7 +345,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var editor = new GalleryEditor();
+        var editor = new GalleryEditor
+            {
+                Owner = Application.Current.MainWindow
+            };
+        
         var viewModel = new GalleryEditorViewModel(_gallery,
             PreviewSession,
             AddSession,
@@ -352,7 +357,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadSession);
 
         var backup = _graphViewModel.GetSession();
-        bool hasPreviewedSession = false;
+        var hasPreviewedSession = false;
 
         editor.DataContext = viewModel;
         editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
