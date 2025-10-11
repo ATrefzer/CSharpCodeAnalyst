@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace CSharpCodeAnalyst.Gallery;
 
@@ -15,5 +16,14 @@ public partial class GalleryEditor
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;
+    }
+
+    private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Single-click preview: when selection changes, trigger preview
+        if (DataContext is GalleryEditorViewModel viewModel && viewModel.SelectedItem != null)
+        {
+            viewModel.PreviewSelectedItemCommand.Execute(viewModel.SelectedItem);
+        }
     }
 }

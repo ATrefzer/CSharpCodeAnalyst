@@ -357,13 +357,13 @@ internal class MainViewModel : INotifyPropertyChanged
             LoadSession);
 
         var backup = _graphViewModel.GetSession();
-        GraphSession? preview = null;
+        bool hasPreviewedSession = false;
 
         editor.DataContext = viewModel;
         editor.WindowStartupLocation = WindowStartupLocation.CenterScreen;
         var result = editor.ShowDialog();
 
-        if (result is false && !ReferenceEquals(backup, preview))
+        if (result is false && hasPreviewedSession)
         {
             // Restore original state if previews were shown
             _graphViewModel.LoadSession(backup, false);
@@ -380,6 +380,7 @@ internal class MainViewModel : INotifyPropertyChanged
         void PreviewSession(GraphSession session)
         {
             _graphViewModel.LoadSession(session, false);
+            hasPreviewedSession = true;
         }
 
         void LoadSession(GraphSession session)

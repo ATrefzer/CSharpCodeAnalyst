@@ -8,23 +8,23 @@ namespace CSharpCodeAnalyst.Gallery;
 
 public class GalleryEditorViewModel : INotifyPropertyChanged
 {
-    private readonly Func<string, GraphSession> _addItemAction;
-    private readonly Action<GraphSession> _applySelectionAction;
-    private readonly Action<GraphSession> _removeItemAction;
-    private readonly Action<GraphSession> _selectItemAction;
+    private readonly Func<string, GraphSession> _addAction;
+    private readonly Action<GraphSession> _loadAction;
+    private readonly Action<GraphSession> _removeAction;
+    private readonly Action<GraphSession> _previewAction;
 
     private string _newItemName = string.Empty;
 
     private GraphSession? _selectedItem;
 
-    public GalleryEditorViewModel(Gallery gallery, Action<GraphSession> selectItemAction,
-        Func<string, GraphSession> addItemAction, Action<GraphSession> removeItemAction,
-        Action<GraphSession> applySelectionAction)
+    public GalleryEditorViewModel(Gallery gallery, Action<GraphSession> previewAction,
+        Func<string, GraphSession> addAction, Action<GraphSession> removeAction,
+        Action<GraphSession> loadAction)
     {
-        _selectItemAction = selectItemAction;
-        _addItemAction = addItemAction;
-        _removeItemAction = removeItemAction;
-        _applySelectionAction = applySelectionAction;
+        _previewAction = previewAction;
+        _addAction = addAction;
+        _removeAction = removeAction;
+        _loadAction = loadAction;
 
         Items = new ObservableCollection<GraphSession>(gallery.Sessions);
 
@@ -69,7 +69,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
     {
         if (SelectedItem != null)
         {
-            _applySelectionAction(SelectedItem);
+            _loadAction(SelectedItem);
         }
     }
 
@@ -80,7 +80,7 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
 
     private void AddItem()
     {
-        var state = _addItemAction(NewItemName);
+        var state = _addAction(NewItemName);
         Items.Add(state);
         NewItemName = string.Empty;
     }
@@ -92,13 +92,13 @@ public class GalleryEditorViewModel : INotifyPropertyChanged
 
     private void RemoveItem(GraphSession item)
     {
-        _removeItemAction(item);
+        _removeAction(item);
         Items.Remove(item);
     }
 
     private void SelectItem(GraphSession item)
     {
-        _selectItemAction(item);
+        _previewAction(item);
     }
 
     protected virtual void OnPropertyChanged(string propertyName)
