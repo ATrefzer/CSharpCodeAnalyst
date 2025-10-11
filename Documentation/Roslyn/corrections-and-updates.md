@@ -42,8 +42,6 @@ They are different cases in the MethodBodyWalker, but I can handle them in the e
 
 ## Lambdas
 
-Lambdas inside a method are treated special. The method gets a "uses" relationship to all types in the lambda.
-
-However method call are not considered. This is because I know that the method depends on these but when the lambda is actually called is unknown.
-
+Lambdas inside a method are treated specially. The method that creates the lambda gets a "uses" relationship with all types in the lambda. It needs to know these types to make the lambda.
+However, method calls in the lambda are not considered. This is because I don't know when the lambda is actually invoked.
 That would mean to analyze the code flow.
