@@ -209,7 +209,7 @@ public class TreeViewModel : INotifyPropertyChanged
         {
             // This may be slow but easy.
             LoadCodeGraph(moved.Graph);
-            _messaging.Publish(new LocateInTreeRequest(moved.NewParentId));
+            _messaging.Publish(new LocateInTreeRequest(moved.SourceId));
         }
     }
 

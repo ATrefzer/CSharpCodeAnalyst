@@ -2,6 +2,8 @@
 
 namespace Contracts.Graph;
 
+public record IntegrationResult(CodeElement CodeElement, bool IsAdded);
+
 public class CodeGraph : IGraphRepresentation<CodeElement>
 {
     public Dictionary<string, CodeElement> Nodes = new();
@@ -85,13 +87,13 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         }
     }
 
-    public CodeElement IntegrateCodeElementFromOriginal(CodeElement originalElement)
+    public IntegrationResult IntegrateCodeElementFromOriginal(CodeElement originalElement)
     {
         var existingElement = TryGetCodeElement(originalElement.Id);
         if (existingElement is not null)
         {
             // Code element is already integrated.
-            return existingElement;
+            return new IntegrationResult(existingElement, false);
         }
 
         // Check if the parent of the new element is already in the graph
@@ -116,7 +118,7 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         }
 
         Nodes.TryAdd(newElement.Id, newElement);
-        return newElement;
+        return new IntegrationResult(newElement, true);
     }
 
     public IEnumerable<Relationship> GetAllRelationships()

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -145,10 +145,17 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddCommand(new SeparatorCommand());
         var incoming_relationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
         var outgoing_relationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
+        
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships, icon: incoming_relationships));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships, icon: outgoing_relationships));
+     
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
+            FindAllIncomingRelationshipsDeep));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
+            FindAllOutgoingRelationshipsDeep));
+        
 
         /*
             Partition belongs to the tree view because it refers to all code elements inside the class.
@@ -528,6 +535,19 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var result = _explorer.FindIncomingRelationships(element.Id);
         AddToGraph(result.Elements, result.Relationships);
     }
+    
+    private void FindAllOutgoingRelationshipsDeep(CodeElement element)
+    {
+        var result = _explorer.FindOutgoingRelationshipsDeep(element.Id);
+        AddToGraph(result.Elements, result.Relationships, true);
+    }
+
+    private void FindAllIncomingRelationshipsDeep(CodeElement element)
+    {
+        var result = _explorer.FindIncomingRelationshipsDeep(element.Id);
+        // Everything that is not yet in graph should be collapsed
+        AddToGraph(result.Elements, result.Relationships, true);
+    }
 
     private void FindSpecializations(CodeElement method)
     {
@@ -735,7 +755,13 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
     {
-        return _viewer.TryHandleKeyEvent(keyEventArgs.Key);
+        if (keyEventArgs.Key == Key.Delete)
+        {
+            OnRemoveSelectedWithChildren();
+            return true;
+        }
+
+        return false;
     }
 
     private void OpenGraphHideDialog()

@@ -57,8 +57,7 @@ internal abstract class Term : IExpression
 
     public abstract bool Evaluate(CodeElement item);
 
-
-
+    
     private static bool TryGetCodeElementTypeFromName(string typeName, out CodeElementType type)
     {
         typeName = typeName.ToLowerInvariant();

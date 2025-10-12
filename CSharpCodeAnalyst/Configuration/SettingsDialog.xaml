@@ -3,6 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         Title="Settings" Height="400" Width="500"
+        SizeToContent="WidthAndHeight"
+        MinWidth="400"
+        MinHeight="430"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="5">
         <Grid.RowDefinitions>

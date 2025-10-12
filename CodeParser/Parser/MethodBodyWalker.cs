@@ -74,6 +74,9 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
         base.VisitImplicitObjectCreationExpression(node);
     }
 
+    /// <summary>
+    /// new Foo()
+    /// </summary>
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
         _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);

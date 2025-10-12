@@ -66,9 +66,8 @@ public static class CodeGraphBuilder
                 foreach (var originalDependency in originalDependencies)
                 {
                     // Ensure the vertices exist
-                    var source =
-                        detailedGraph.IntegrateCodeElementFromOriginal(
-                            originalGraph.Nodes[originalDependency.SourceId]);
+                    var sourceId = originalGraph.Nodes[originalDependency.SourceId];
+                    var source = detailedGraph.IntegrateCodeElementFromOriginal(sourceId).CodeElement;
 
                     detailedGraph.IntegrateCodeElementFromOriginal(
                         originalGraph.Nodes[originalDependency.TargetId]);

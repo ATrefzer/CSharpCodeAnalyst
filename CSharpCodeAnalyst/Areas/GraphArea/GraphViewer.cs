@@ -106,11 +106,16 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         }
 
         var original = originalCodeElements.ToList();
-        AddToGraphInternal(original, newRelationships);
+
+        // Actually I could iterate over the elements that w
+        //var previousElementIds = _clonedCodeGraph.Nodes.Values.Select(n => n.Id).ToHashSet();
+        //var newElementIds = original.Select(n => n.Id).Except(previousElementIds);
+        
+        var integrated =AddToGraphInternal(original, newRelationships);
 
         if (addCollapsed)
         {
-            foreach (var codeElement in original.Where(c => c.ElementType is CodeElementType.Assembly or CodeElementType.Namespace))
+            foreach (var codeElement in integrated.Where(c => c.Children.Any()))
             {
                 _presentationState.SetCollapsedState(codeElement.Id, true);
             }
@@ -637,15 +642,15 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         return _msaglViewer is not null;
     }
 
-    private void AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
+    private List<CodeElement> AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
         IEnumerable<Relationship> newRelationships)
     {
         if (_msaglViewer is null)
         {
-            return;
+            return [];
         }
 
-        IntegrateNewFromOriginal(originalCodeElements);
+        var integrated = IntegrateNewFromOriginal(originalCodeElements);
 
         // Add relationships we explicitly requested.
         foreach (var newRelationship in newRelationships)
@@ -653,6 +658,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             var sourceElement = _clonedCodeGraph.Nodes[newRelationship.SourceId];
             sourceElement.Relationships.Add(newRelationship);
         }
+        
+        return integrated;
     }
 
     public HashSet<string> GetSelectedElementIds()
@@ -676,12 +683,19 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     ///     We may add them later when adding new elements.
     ///     The original elements get cloned.
     /// </summary>
-    private void IntegrateNewFromOriginal(IEnumerable<CodeElement> originalCodeElements)
+    private List<CodeElement> IntegrateNewFromOriginal(IEnumerable<CodeElement> originalCodeElements)
     {
+        var integrated = new List<CodeElement>();
         foreach (var originalElement in originalCodeElements)
         {
-            _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
+            var result = _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
+            if (result.IsAdded)
+            {
+                integrated.Add(result.CodeElement);
+            }
         }
+
+        return integrated;
     }
 
     private bool ShouldProceedWithLargeGraph(int numberOfElements)

@@ -8,6 +8,8 @@
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         mc:Ignorable="d"
+        MinWidth="380"
+        MinHeight="400"
         d:DataContext="{d:DesignInstance gallery:GalleryEditorViewModel}"
         Title="{x:Static resources:Strings.Gallery_Label}" Height="450" Width="400">
 
