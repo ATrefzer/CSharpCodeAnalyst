@@ -105,8 +105,10 @@ public class RefactoringService
             IsExternal = false
         };
 
-        codeGraph.IntegrateCodeElementFromOriginal(element);
-        return element;
+        var result = codeGraph.IntegrateCodeElementFromOriginal(element);
+        
+        // Important: Return the cloned element that is actually integrated into the graph.
+        return result.CodeElement;
     }
 
 

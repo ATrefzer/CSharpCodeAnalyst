@@ -57,8 +57,8 @@ public class TreeViewModel : INotifyPropertyChanged
         }
 
         var newParent = _refactoringService.GetMovementTarget();
-        var source = tvm.CodeElement;
-        var oldParent = tvm.CodeElement.Parent;
+        var source = tvm!.CodeElement;
+        var oldParent = tvm.CodeElement!.Parent;
 
         if (newParent == null || source == null || oldParent == null)
         {

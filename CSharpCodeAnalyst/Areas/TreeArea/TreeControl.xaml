@@ -98,7 +98,12 @@
                     <Separator />
                     <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
                               Command="{Binding CopyToClipboardCommand}"
-                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/copy_fqn_16.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
 
                     <!--<MenuItem Header="{x:Static resources:Strings.PartitionWithBase}"
                                                   Command="{Binding PartitionWithBaseTreeCommand}"
