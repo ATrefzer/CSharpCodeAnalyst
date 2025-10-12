@@ -67,10 +67,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _selectedHighlightOption = HighlightOptions[0];
 
         var flag = IconLoader.LoadIcon("Resources/flag.png");
-
+        var remove_without_children = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
         // Edge commands
         _viewer.AddCommand(new RelationshipContextCommand(Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.RemoveWithoutChildren, RemoveEdges));
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.RemoveWithoutChildren, RemoveEdges, icon: remove_without_children));
 
 
         // Static commands
@@ -85,57 +85,70 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             IsVisible = false
         });
 
+
+        
+        var remove_with_children = IconLoader.LoadIcon("Resources/remove_with_children_16.png");
+        var find_in_tree = IconLoader.LoadIcon("Resources/find_in_tree_16.png");
+        var add_parent = IconLoader.LoadIcon("Resources/add_parent_16.png");
         _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, AddParent));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: remove_without_children));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: remove_with_children));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: find_in_tree));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, AddParent, icon: add_parent));
         _viewer.AddCommand(new SeparatorCommand());
 
 
         // Methods and properties
+        var find_specializations = IconLoader.LoadIcon("Resources/find_specializations_16.png");
+        var find_abstractions = IconLoader.LoadIcon("Resources/find_abstractions_16.png");
+        var incoming_calls = IconLoader.LoadIcon("Resources/incoming_calls_16.png");
+        var follow_incoming_calls = IconLoader.LoadIcon("Resources/follow_incoming_calls_16.png");
+        var outgoing_calls = IconLoader.LoadIcon("Resources/outgoing_calls_16.png");
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
         foreach (var elementType in elementTypes)
         {
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
-                FindOutgoingCalls));
+                FindOutgoingCalls, icon: outgoing_calls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
-                FindIncomingCalls));
+                FindIncomingCalls, icon: incoming_calls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
-                FollowIncomingCallsRecursive));
+                FollowIncomingCallsRecursive, icon: follow_incoming_calls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
-                FindSpecializations));
+                FindSpecializations, icon: find_specializations));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
-                FindAbstractions));
+                FindAbstractions, icon: find_abstractions));
         }
 
         // Classes, structs and interfaces
+        var find_inheritance_tree = IconLoader.LoadIcon("Resources/find_inheritance_tree_16.png");
         elementTypes = [CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct];
         foreach (var elementType in elementTypes)
         {
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
-                FindInheritanceTree));
+                FindInheritanceTree, icon: find_inheritance_tree));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
-                FindSpecializations));
+                FindSpecializations, icon: find_specializations));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
-                FindAbstractions));
+                FindAbstractions, icon: find_abstractions));
         }
 
         // Events
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
-            FindSpecializations));
+            FindSpecializations, icon: find_specializations));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
-            FindAbstractions));
+            FindAbstractions, icon: find_abstractions));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
-            FollowIncomingCallsRecursive));
+            FollowIncomingCallsRecursive, icon: follow_incoming_calls));
 
 
         // Everyone gets the in/out relationships
         _viewer.AddCommand(new SeparatorCommand());
+        var incoming_relationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
+        var outgoing_relationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
-            FindAllIncomingRelationships));
+            FindAllIncomingRelationships, icon: incoming_relationships));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
-            FindAllOutgoingRelationships));
+            FindAllOutgoingRelationships, icon: outgoing_relationships));
 
         /*
             Partition belongs to the tree view because it refers to all code elements inside the class.
@@ -144,10 +157,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
             PartitionClass));
         */
-
+        var copy_fqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
         _viewer.AddCommand(new SeparatorCommand());
         _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
-            OnCopyToClipboard));
+            OnCopyToClipboard, icon: copy_fqn));
 
 
         UndoCommand = new WpfCommand(Undo);
