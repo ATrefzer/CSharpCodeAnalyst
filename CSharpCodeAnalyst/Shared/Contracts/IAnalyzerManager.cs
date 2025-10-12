@@ -15,4 +15,6 @@ public interface IAnalyzerManager
     ///     Restores persistent data to all analyzers
     /// </summary>
     void RestoreAnalyzerData(Dictionary<string, string> data);
+
+    event EventHandler AnalyzerDataChanged;
 }

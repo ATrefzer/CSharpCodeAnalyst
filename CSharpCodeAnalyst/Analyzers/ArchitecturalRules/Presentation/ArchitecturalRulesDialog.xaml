@@ -42,13 +42,14 @@
                 <DockPanel Grid.Row="0">
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,5,0,5">
                     <Button x:Name="LoadFileButton" Content="Load from File..."
-                            Width="120" Height="25" Margin="0,0,10,0"
+                            Width="100"
+                            Height="25" Margin="0,0,10,0"
                             Click="LoadFileButton_Click" />
                     <Button x:Name="SaveFileButton" Content="Save to File..."
-                            Width="120" Height="25" Margin="0,0,10,0"
+                            Width="100" Height="25" Margin="0,0,10,0"
                             Click="SaveFileButton_Click" />
                     <Button x:Name="ClearButton" Content="Clear"
-                            Width="80" Height="25"
+                            Width="100" Height="25"
                             Click="ClearButton_Click" />
                 </StackPanel>
                 
@@ -73,10 +74,10 @@
         <!-- Buttons -->
             <StackPanel  Grid.Row="2"  Orientation="Horizontal"
                          HorizontalAlignment="Right">
-            <Button x:Name="ValidateButton" Content="Validate" Width="75" Height="25"
+            <Button x:Name="ValidateButton" Content="{x:Static resources:Strings.Validate}" Width="80" Height="25"
                     Margin="0,0,10,0" IsDefault="True"
                     Click="ValidateButton_Click" />
-            <Button x:Name="CloseButton" Content="Close" Width="75" Height="25"
+            <Button x:Name="CloseButton" Content="Close"  Height="25" Width="80"
                     IsCancel="True"
                     Click="CloseButton_Click" />
         </StackPanel>

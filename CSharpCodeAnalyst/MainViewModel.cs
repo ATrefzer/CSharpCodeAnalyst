@@ -38,10 +38,16 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Wpf;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst;
+
+internal enum DirtyState
+{
+    NotDirty,
+    DirtyProjectLoaded,
+    DirtyForceNewFile
+}
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
@@ -51,11 +57,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private readonly string _title = Strings.AppTitle;
+    private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
     private CodeGraph? _codeGraph;
 
     private Table? _cycles;
+
+    private DirtyState _dirtyState = DirtyState.NotDirty;
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -66,22 +76,24 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private bool _isGraphSearchPanelVisible = true;
     private bool _isLeftPanelExpanded = true;
     private bool _isLoading;
-    private bool _isSaved = true;
 
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
+    private string _openProjectFilePath = string.Empty;
     private AdvancedSearchViewModel? _searchViewModel;
 
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, AnalyzerManager analyzerManager)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager)
     {
         // Initialize settings
         _applicationSettings = settings;
+        _userSettings = userSettings;
         _analyzerManager = analyzerManager;
+        analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
         // Table data
         _cycles = null;
@@ -115,11 +127,37 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
         CopyToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
+        OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
 
         _loadMessage = string.Empty;
+
+        RefreshMru();
     }
 
+    private void OnAnalyzerDataChanged(object? sender, EventArgs e)
+    {
+        if (_analyzerManager.IsDirty())
+        {
+            SetDirty(false);            
+        }
+        
+    }
 
+    public ObservableCollection<Mru> RecentFiles { get; } = [];
+
+    public string OpenProjectFilePath
+    {
+        get => _openProjectFilePath;
+        set
+        {
+            if (value == _openProjectFilePath) return;
+            _openProjectFilePath = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Title));
+        }
+    }
+
+    private ICommand OpenRecentFileCommand { get; }
 
     public Table? AnalyzerResult
     {
@@ -311,7 +349,44 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public string Title
+    {
+        get
+        {
+            var title = string.IsNullOrEmpty(OpenProjectFilePath) ? _title : _title + " - " + OpenProjectFilePath;
+            if (IsDirty())
+            {
+                title += " *";
+            }
+
+            return title;
+        }
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool IsDirty()
+    {
+        return _dirtyState != DirtyState.NotDirty;
+    }
+
+    private async void OnOpenRecentFile(string filePath)
+    {
+        await LoadProjectFileAsync(filePath);
+    }
+
+    private void RefreshMru()
+    {
+        RecentFiles.Clear();
+
+        // Always a first browse command to avoid empty menu
+        RecentFiles.Add(new Mru(Strings.Browse, LoadProjectCommand) { ImageSource = "/Resources/load_project.png" });
+
+        foreach (var path in _userSettings.RecentFiles.Where(File.Exists).Select(f => new Mru(f, OpenRecentFileCommand)))
+        {
+            RecentFiles.Add(path);
+        }
+    }
 
     private void OnCopyCanvasToClipboard(FrameworkElement canvas)
     {
@@ -346,10 +421,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         var editor = new GalleryEditor
-            {
-                Owner = Application.Current.MainWindow
-            };
-        
+        {
+            Owner = Application.Current.MainWindow
+        };
+
         var viewModel = new GalleryEditorViewModel(_gallery,
             PreviewSession,
             AddSession,
@@ -374,7 +449,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         void RemoveSession(GraphSession session)
         {
             _gallery.Sessions.Remove(session);
-            _isSaved = false;
+            SetDirty(false);
         }
 
         void PreviewSession(GraphSession session)
@@ -394,9 +469,35 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             var session = _graphViewModel.GetSession();
             session.Name = name;
             _gallery.AddSession(session);
-            _isSaved = false;
+            SetDirty(false);
             return session;
         }
+    }
+
+    private void SetDirty(bool forceNewFile)
+    {
+        if (_dirtyState == DirtyState.DirtyForceNewFile)
+        {
+            // We already have the most strict dirty form.
+            return;
+        }
+        else if (forceNewFile || !string.IsNullOrEmpty(_openProjectFilePath))
+        {
+            _dirtyState = DirtyState.DirtyForceNewFile;
+        }
+        else
+        {
+            _dirtyState = DirtyState.DirtyProjectLoaded;    
+        }
+
+        OnPropertyChanged(nameof(Title));
+    }
+
+    private void ClearDirty(string projectFilePath)
+    {
+        OpenProjectFilePath = projectFilePath;
+        _dirtyState = DirtyState.NotDirty;
+        OnPropertyChanged(nameof(Title));
     }
 
     private void OnShowLegend()
@@ -602,7 +703,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadDefaultSettings();
             LoadCodeGraph(codeGraph);
             _gallery = new Gallery.Gallery();
-            _isSaved = false;
+
+            OpenProjectFilePath = string.Empty;
+            SetDirty(true);
         }
         catch (Exception ex)
         {
@@ -656,7 +759,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadCodeGraph(codeGraph);
 
             // Imported a new jdeps file
-            _isSaved = false;
+            OpenProjectFilePath = string.Empty;
+            SetDirty(true);
         }
         catch (Exception ex)
         {
@@ -726,7 +830,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             return;
         }
-        
+
         await LoadProjectFileAsync(openFileDialog.FileName);
     }
 
@@ -737,7 +841,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadMessage = "Loading ...";
             IsLoading = true;
 
-           
+
             var (codeGraph, projectData) = await Task.Run(() => LoadProject(fileName));
 
             LoadSettings(projectData.Settings);
@@ -747,7 +851,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             // Restore analyzer data
             _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
 
-            _isSaved = true;
+            ClearDirty(fileName);
+            _userSettings.AddRecentFile(fileName);
+            RefreshMru();
         }
         catch (Exception ex)
         {
@@ -821,13 +927,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var saveFileDialog = new SaveFileDialog
-        {
-            Filter = "JSON files (*.json)|*.json",
-            Title = "Save Project"
-        };
 
-        if (saveFileDialog.ShowDialog() != true)
+        if (!TryGetProjectSaveFilePath(out var filePath))
         {
             return;
         }
@@ -850,17 +951,43 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             WriteIndented = false
         };
         var json = JsonSerializer.Serialize(projectData, options);
-        File.WriteAllText(saveFileDialog.FileName, json);
-        _isSaved = true;
+        File.WriteAllText(filePath, json);
+
+        ClearDirty(filePath);
     }
-    
+
+    private bool TryGetProjectSaveFilePath(out string filePath)
+    {
+        if (_dirtyState != DirtyState.DirtyForceNewFile && !string.IsNullOrEmpty(OpenProjectFilePath))
+        {
+            // We already have an open project that we can override, unless we changed the project with refactorings.
+            filePath = OpenProjectFilePath;
+            return true;
+        }
+
+        var saveFileDialog = new SaveFileDialog
+        {
+            Filter = "JSON files (*.json)|*.json",
+            Title = "Save Project"
+        };
+
+        if (saveFileDialog.ShowDialog() != true || string.IsNullOrEmpty(saveFileDialog.FileName))
+        {
+            filePath = string.Empty;
+            return false;
+        }
+
+        filePath = saveFileDialog.FileName;
+        return true;
+    }
+
 
     /// <summary>
     ///     return true if you allow to close
     /// </summary>
     internal bool OnClosing()
     {
-        if (!_isSaved || _analyzerManager.IsDirty())
+        if (IsDirty())
         {
             if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
@@ -927,16 +1054,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _searchViewModel?.HandleCodeGraphRefactored(message);
         _graphViewModel?.HandleCodeGraphRefactored(message);
         _treeViewModel?.HandleCodeGraphRefactored(message);
-        
+
         // Brute force
         // LoadCodeGraph(_codeGraph);
-        
+
         // Maybe not valid anymore
         Cycles = null;
         AnalyzerResult = null;
         InfoPanelViewModel?.Clear();
 
         UpdateMetrics(message.Graph);
-        _isSaved = false;
+
+        // Force new file
+        SetDirty(true);
     }
 }

@@ -55,6 +55,8 @@ public class Analyzer : IAnalyzer
         return false;
     }
 
+    public event EventHandler? DataChanged;
+
     private static List<Result> FindImbalances(CodeGraph originalGraph)
     {
         var relationships = originalGraph.GetAllRelationships().Where(r => r.Type == RelationshipType.Handles).ToHashSet();

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -86,12 +87,14 @@ public partial class App
             .AddJsonFile("appsettings.json", false, true);
 
         IConfiguration configuration = builder.Build();
-        var settings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
+        var applicationSettings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
 
-        if (settings is null)
+        if (applicationSettings is null)
         {
-            settings = new ApplicationSettings();
+            applicationSettings = new ApplicationSettings();
         }
+
+        var userSettings = UserSettings.Instance;
 
         var messageBox = new WindowsUserNotification();
         var messaging = new MessageBus();
@@ -102,14 +105,13 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        var explorationGraphViewer = new GraphViewer(messaging, settings.WarningCodeElementLimit);
+        var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit);
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction);
-
         mainWindow.SetViewer(explorationGraphViewer);
-        var viewModel = new MainViewModel(messaging, settings, analyzerManager);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, settings);
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager);
+        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging);
         var infoPanelViewModel = new InfoPanelViewModel();
@@ -131,6 +133,9 @@ public partial class App
 
         // Refactorings are forwarded to all other view models
         messaging.Subscribe<CodeGraphRefactored>(viewModel.HandleCodeGraphRefactored);
+        // messaging.Subscribe<CodeElementsMoved>(viewModel.HandleCodeGraphRefactored);
+        // messaging.Subscribe<CodeElementsDeleted>(viewModel.HandleCodeGraphRefactored);
+        // messaging.Subscribe<CodeElementCreated>(viewModel.HandleCodeGraphRefactored);
         
 
         mainWindow.DataContext = viewModel;

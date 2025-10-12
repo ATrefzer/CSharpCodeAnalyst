@@ -19,7 +19,7 @@ public class Analyzer : IAnalyzer
     private string _rulesText;
     private ArchitecturalRulesDialog? _openDialog;
     private CodeGraph? _currentGraph;
-    private bool _isDirty = false;
+    private bool _isDirty;
 
     public Analyzer(IPublisher messaging, IUserNotification userNotification)
     {
@@ -119,9 +119,18 @@ public class Analyzer : IAnalyzer
         get => "ArchitecturalRules";
     }
 
+    void SetDirty(bool isDirty)
+    {
+        _isDirty = isDirty;
+        if (_isDirty)
+        {
+            DataChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public string? GetPersistentData()
     {
-        _isDirty = false;
+        SetDirty(false);
         
         if (string.IsNullOrEmpty(_rulesText))
         {
@@ -142,7 +151,7 @@ public class Analyzer : IAnalyzer
         {
             _rulesText = string.Empty;
             _rules.Clear();
-            _isDirty = false;
+           SetDirty(false);
             return;
         }
 
@@ -169,6 +178,8 @@ public class Analyzer : IAnalyzer
     {
         return _isDirty;
     }
+
+    public event EventHandler? DataChanged;
 
     /// <summary>
     ///     Direct analysis with rules from file (for command-line use)
@@ -205,7 +216,12 @@ public class Analyzer : IAnalyzer
     private void ParseAndStoreRules(string rulesText)
     {
         _rules = RuleParser.ParseRules(rulesText);
-        _isDirty |= _rulesText != rulesText;
+        
+        if (!_isDirty && _rulesText != rulesText)
+        {
+            SetDirty(true);
+        }
+         
         _rulesText = rulesText;
     }
 

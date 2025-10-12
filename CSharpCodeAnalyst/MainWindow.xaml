@@ -13,7 +13,7 @@
         xmlns:advancedSearchArea="clr-namespace:CSharpCodeAnalyst.Areas.AdvancedSearchArea"
         x:Name="RootWindow"
         Closing="RootWindow_Closing"
-        Title="{x:Static resources:Strings.AppTitle}" Height="520" Width="1200"
+        Title="{Binding Title}" Height="520" Width="1200"
         MinWidth="720" MinHeight="400"
         d:DataContext="{d:DesignInstance analyst:MainViewModel}"
         KeyDown="OnKeyDown">
@@ -71,9 +71,22 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="{x:Static resources:Strings.LoadProject_Label}"
-                                  LargeImageSource="/Resources/load_project.png"
-                                  Command="{Binding LoadProjectCommand}" />
+
+                    <RibbonSplitButton Label="{x:Static resources:Strings.LoadProject_Label}"
+                                       LargeImageSource="/Resources/load_project.png"
+                                       Command="{Binding LoadProjectCommand}"
+                                       ItemsSource="{Binding RecentFiles}">
+
+                        <RibbonSplitButton.ItemContainerStyle>
+                            <Style TargetType="RibbonMenuItem">
+                                <Setter Property="ImageSource" Value="{Binding ImageSource}" />
+                                <Setter Property="Header" Value="{Binding Path}" />
+                                <Setter Property="Command" Value="{Binding Command}" />
+                                <Setter Property="CommandParameter" Value="{Binding Path}" />
+                            </Style>
+                        </RibbonSplitButton.ItemContainerStyle>
+                    </RibbonSplitButton>
+
                     <RibbonButton Label="{x:Static resources:Strings.SaveProject_Label}"
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" />

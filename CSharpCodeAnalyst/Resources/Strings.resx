@@ -395,6 +395,10 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="NothingToUndo_Title" xml:space="preserve">
 		<value>Undo</value>
 	</data>
+
+    <data name="Validate" xml:space="preserve">
+		<value>Save/Validate</value>
+	</data>
     <data name="OperationFailed_Message" xml:space="preserve">
 		<value>Operation failed: {0}</value>
 	</data>
@@ -604,7 +608,7 @@ Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
 	</data>
-    
+
     <data name="TreeSearch_Tooltip" xml:space="preserve">
 		<value>Search in code element name. ENTER to start search.
 '!' Clears the search but keeps highlighting
@@ -615,11 +619,11 @@ Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
 	</data>
-    
+
     <data name="InfoPanel_TabHeader" xml:space="preserve">
 		<value>Info</value>
 	</data>
-  
+
     <data name="Warning_Title" xml:space="preserve">
 		<value>Warning</value>
 	</data>
@@ -815,7 +819,7 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Refactoring_SetAsMovementParent" xml:space="preserve">
 		<value>Set as movement parent</value>
 	</data>
-    
+
     <data name="ArchitectureRules_Info" xml:space="preserve">
 		<value>Three rules are supported:
 
@@ -835,11 +839,14 @@ ISOLATE: MyApp.Domain.**</value>
 	</data>
 
 
-  <data name="Info" xml:space="preserve">
+    <data name="Info" xml:space="preserve">
 		<value>Info</value>
-	</data>  
-    
+	</data>
+
     <data name="Gallery_Hint" xml:space="preserve">
 		<value>Single-click to preview, double-click to load</value>
-	</data>  
+	</data>
+    <data name="Browse" xml:space="preserve">
+		<value>Browse</value>
+	</data>
 </root>

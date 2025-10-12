@@ -20,4 +20,6 @@ public interface IAnalyzer
     void SetPersistentData(string? data);
 
     bool IsDirty();
+    
+    event EventHandler DataChanged;
 }

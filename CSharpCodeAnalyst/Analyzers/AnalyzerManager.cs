@@ -51,13 +51,23 @@ internal class AnalyzerManager : IAnalyzerManager
         }
     }
 
+    public event EventHandler? AnalyzerDataChanged;
+
+    private void RaiseAnalyzerDataChanged()
+    {
+        AnalyzerDataChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification)
     {
         _analyzers.Clear();
+
         IAnalyzer analyzer = new Analyzer(messaging);
+        analyzer.DataChanged += (sender, args) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 
         analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
+        analyzer.DataChanged += (sender, args) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
     }
 
