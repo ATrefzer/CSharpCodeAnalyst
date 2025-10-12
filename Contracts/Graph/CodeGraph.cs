@@ -85,13 +85,13 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         }
     }
 
-    public CodeElement IntegrateCodeElementFromOriginal(CodeElement originalElement)
+    public CodeElement? IntegrateCodeElementFromOriginal(CodeElement originalElement)
     {
         var existingElement = TryGetCodeElement(originalElement.Id);
         if (existingElement is not null)
         {
             // Code element is already integrated.
-            return existingElement;
+            return null;
         }
 
         // Check if the parent of the new element is already in the graph

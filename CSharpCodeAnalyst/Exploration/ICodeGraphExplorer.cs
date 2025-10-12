@@ -45,4 +45,7 @@ public interface ICodeGraphExplorer
     ///     If we already have a type the search stops.
     /// </summary>
     SearchResult CompleteToContainingTypes(HashSet<string> ids);
+
+    SearchResult FindOutgoingRelationshipsDeep(string id);
+    SearchResult FindIncomingRelationshipsDeep(string id);
 }

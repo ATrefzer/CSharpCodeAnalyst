@@ -133,6 +133,12 @@
     <data name="AllOutgoingRelationships" xml:space="preserve">
 		<value>All outgoing relationships</value>
 	</data>
+    <data name="AllIncomingRelationshipsDeep" xml:space="preserve">
+		<value>All incoming relationships (deep)</value>
+	</data>
+    <data name="AllOutgoingRelationshipsDeep" xml:space="preserve">
+		<value>All outgoing relationships (deep)</value>
+	</data>
     <data name="AppTitle" xml:space="preserve">
 		<value>C# Code Analyst</value>
 	</data>

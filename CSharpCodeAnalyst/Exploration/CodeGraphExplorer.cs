@@ -107,8 +107,44 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var elements = parents.Select(p => _codeGraph.Nodes[p]).ToHashSet();
         return new SearchResult(elements, []);
     }
+    
+    
+    public SearchResult FindOutgoingRelationshipsDeep(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
 
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
 
+        var element = _codeGraph.Nodes[id];
+        var sources = element.GetChildrenIncludingSelf();
+        var relationships = _codeGraph.GetAllRelationships().Where(r => sources.Contains(r.SourceId)).ToList();
+        var targets = relationships.Select(m => m.TargetId).ToList();
+        
+        var elements = (sources.Union(targets)).Select(i => _codeGraph.Nodes[i]).ToHashSet();
+
+        return new SearchResult(elements, relationships);
+    }
+
+    public SearchResult FindIncomingRelationshipsDeep(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var element = _codeGraph.Nodes[id];
+        var targets = element.GetChildrenIncludingSelf();
+        var relationships = _codeGraph.GetAllRelationships().Where(r => targets.Contains(r.TargetId)).ToList();
+        var sources = relationships.Select(d => d.SourceId);
+        var elements = (sources.Union(targets)).Select(i => _codeGraph.Nodes[i]).ToHashSet();
+
+        return new SearchResult(elements, relationships);
+    }
+    
     public SearchResult FindParents(List<string> ids)
     {
         if (_codeGraph is null)

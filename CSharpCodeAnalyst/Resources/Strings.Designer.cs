@@ -105,11 +105,29 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All incoming relationships (deep).
+        /// </summary>
+        public static string AllIncomingRelationshipsDeep {
+            get {
+                return ResourceManager.GetString("AllIncomingRelationshipsDeep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All outgoing relationships.
         /// </summary>
         public static string AllOutgoingRelationships {
             get {
                 return ResourceManager.GetString("AllOutgoingRelationships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All outgoing relationships (deep).
+        /// </summary>
+        public static string AllOutgoingRelationshipsDeep {
+            get {
+                return ResourceManager.GetString("AllOutgoingRelationshipsDeep", resourceCulture);
             }
         }
         

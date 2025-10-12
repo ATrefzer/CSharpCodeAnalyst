@@ -136,6 +136,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             FindAllIncomingRelationships));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
+            FindAllIncomingRelationshipsDeep));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
+            FindAllOutgoingRelationshipsDeep));
+        
 
         /*
             Partition belongs to the tree view because it refers to all code elements inside the class.
@@ -514,6 +519,19 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         var result = _explorer.FindIncomingRelationships(element.Id);
         AddToGraph(result.Elements, result.Relationships);
+    }
+    
+    private void FindAllOutgoingRelationshipsDeep(CodeElement element)
+    {
+        var result = _explorer.FindOutgoingRelationshipsDeep(element.Id);
+        AddToGraph(result.Elements, result.Relationships, true);
+    }
+
+    private void FindAllIncomingRelationshipsDeep(CodeElement element)
+    {
+        var result = _explorer.FindIncomingRelationshipsDeep(element.Id);
+        // Everything that is not yet in graph should be collapsed
+        AddToGraph(result.Elements, result.Relationships, true);
     }
 
     private void FindSpecializations(CodeElement method)
