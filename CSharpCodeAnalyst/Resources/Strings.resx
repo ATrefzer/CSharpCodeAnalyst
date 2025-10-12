@@ -143,7 +143,7 @@
 		<value>Complete relationships</value>
 	</data>
     <data name="RemoveWithoutChildren" xml:space="preserve">
-		<value>Remove from canvas</value>
+		<value>Remove from Code Explorer</value>
 	</data>
     <data name="RemoveWithChildren" xml:space="preserve">
 		<value>Remove with children</value>
@@ -293,9 +293,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="QuickInfo_Label" xml:space="preserve">
 		<value>Quick Info</value>
 	</data>
-    <data name="QuickInfo_Tooltip" xml:space="preserve">
-		<value>Show or hide the information panel. Only shown in the code graph explorer.</value>
-	</data>
     <data name="FlatGraph_Label" xml:space="preserve">
 		<value>Flat Graph</value>
 	</data>
@@ -318,7 +315,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
 		<value>Clear search</value>
 	</data>
     <data name="AddToGraph_MenuItem" xml:space="preserve">
-		<value>Add to canvas</value>
+		<value>Add to Code Explorer</value>
 	</data>
     <data name="DeleteFromModel_MenuItem" xml:space="preserve">
 		<value>Delete from model</value>
@@ -342,7 +339,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
 		<value>Code Elements</value>
 	</data>
     <data name="CopyToExplorerGraph_MenuItem" xml:space="preserve">
-		<value>Copy to explorer graph</value>
+		<value>Show in Code Explorer</value>
 	</data>
     <data name="Locations_Label" xml:space="preserve">
 		<value>Locations</value>
@@ -637,7 +634,7 @@ Search with resharper style = Use at least one uppercase character in a search t
 		<value>Export Dgml</value>
 	</data>
     <data name="ExportDgml_Tooltip" xml:space="preserve">
-		<value>Export canvas (expanded) graph to dgml</value>
+		<value>Export Code Explorer (expanded) graph to dgml</value>
 	</data>
     <data name="ExportDsi_Label" xml:space="preserve">
 		<value>Export Dsi</value>
@@ -649,10 +646,10 @@ Search with resharper style = Use at least one uppercase character in a search t
 		<value>Export Png</value>
 	</data>
     <data name="SavePng_Tooltip" xml:space="preserve">
-		<value>Exports the current visible canvas to png</value>
+		<value>Exports the current visible Code Explorer to png</value>
 	</data>
     <data name="ExportPlantUml_Tooltip" xml:space="preserve">
-		<value>Copy the canvas (expanded) graph as PlantUml class diagram syntax to the clipboard.</value>
+		<value>Copy the Code Explorer (expanded) graph as PlantUml class diagram syntax to the clipboard.</value>
 	</data>
     <data name="ExportPlantUml_Label" xml:space="preserve">
 		<value>Copy PlantUml class diagram</value>
@@ -667,10 +664,10 @@ Search with resharper style = Use at least one uppercase character in a search t
 		<value>Copy to clipboard</value>
 	</data>
     <data name="Copy_Clipboard_Tooltip" xml:space="preserve">
-		<value>Copy current canvas as image to clipboard</value>
+		<value>Copy current Code Explorer graph as image to clipboard</value>
 	</data>
     <data name="ExportSvg_Tooltip" xml:space="preserve">
-		<value>Export canvas (expanded) graph to svg. NOTE: Sub-graphs are not implemented!</value>
+		<value>Export Code Explorer (expanded) graph to svg. NOTE: Sub-graphs are not implemented!</value>
 	</data>
     <data name="ExportSvg_Label" xml:space="preserve">
 		<value>Export Svg</value>

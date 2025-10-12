@@ -378,6 +378,8 @@ public partial class DynamicDataGrid
             return;
         }
 
+        row.IsSelected = true;
+
         row.ContextMenu.Items.Clear();
 
         // Only Table may provide commands.

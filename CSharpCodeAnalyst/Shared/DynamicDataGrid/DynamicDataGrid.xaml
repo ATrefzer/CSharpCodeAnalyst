@@ -16,6 +16,7 @@
 
     <Grid>
         <DataGrid x:Name="MainDataGrid"
+                  SelectionMode="Single"
                   Style="{StaticResource ReadOnlyGrid}" LoadingRow="MainDataGrid_OnLoadingRow"
                   AutoGenerateColumns="False">
 

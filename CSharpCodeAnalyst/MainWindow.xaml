@@ -350,8 +350,7 @@
 
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}" x:Name="WorkingArea">
-                <TabItem>
-                    <TabItem.Header>Code Explorer</TabItem.Header>
+                <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
                     <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
 

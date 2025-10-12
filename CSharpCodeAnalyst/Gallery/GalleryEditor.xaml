@@ -56,7 +56,7 @@
             <Button DockPanel.Dock="Right" Content="Add" Command="{Binding AddItemCommand}" Width="80" />
             
             <TextBox DockPanel.Dock="Left" Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
-                      Margin="0,0,10,0"  HorizontalAlignment="Stretch">
+                      Margin="0,0,10,0"  HorizontalAlignment="Stretch" x:Name="NameBox">
                 
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter"

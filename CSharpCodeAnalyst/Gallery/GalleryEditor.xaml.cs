@@ -11,6 +11,7 @@ public partial class GalleryEditor
     public GalleryEditor()
     {
         InitializeComponent();
+        NameBox.Focus();
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)

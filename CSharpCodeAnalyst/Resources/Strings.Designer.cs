@@ -87,7 +87,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to canvas.
+        ///   Looks up a localized string similar to Add to Code Explorer.
         /// </summary>
         public static string AddToGraph_MenuItem {
             get {
@@ -434,7 +434,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy current canvas as image to clipboard.
+        ///   Looks up a localized string similar to Copy current Code Explorer graph as image to clipboard.
         /// </summary>
         public static string Copy_Clipboard_Tooltip {
             get {
@@ -452,7 +452,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy to explorer graph.
+        ///   Looks up a localized string similar to Show in Code Explorer.
         /// </summary>
         public static string CopyToExplorerGraph_MenuItem {
             get {
@@ -587,7 +587,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export canvas (expanded) graph to dgml.
+        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to dgml.
         /// </summary>
         public static string ExportDgml_Tooltip {
             get {
@@ -641,7 +641,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy the canvas (expanded) graph as PlantUml class diagram syntax to the clipboard..
+        ///   Looks up a localized string similar to Copy the Code Explorer (expanded) graph as PlantUml class diagram syntax to the clipboard..
         /// </summary>
         public static string ExportPlantUml_Tooltip {
             get {
@@ -659,7 +659,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export canvas (expanded) graph to svg. NOTE: Sub-graphs are not implemented!.
+        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to svg. NOTE: Sub-graphs are not implemented!.
         /// </summary>
         public static string ExportSvg_Tooltip {
             get {
@@ -1444,15 +1444,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show or hide the information panel. Only shown in the code graph explorer..
-        /// </summary>
-        public static string QuickInfo_Tooltip {
-            get {
-                return ResourceManager.GetString("QuickInfo_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Refactor.
         /// </summary>
         public static string Refactor {
@@ -1705,7 +1696,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove from canvas.
+        ///   Looks up a localized string similar to Remove from Code Explorer.
         /// </summary>
         public static string RemoveWithoutChildren {
             get {
@@ -1759,7 +1750,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exports the current visible canvas to png.
+        ///   Looks up a localized string similar to Exports the current visible Code Explorer to png.
         /// </summary>
         public static string SavePng_Tooltip {
             get {
