@@ -44,8 +44,8 @@ namespace CSharpCodeAnalyst;
 
 internal enum DirtyState
 {
-    NotDirty,
-    DirtyProjectLoaded,
+    Saved,
+    Dirty,
     DirtyForceNewFile
 }
 
@@ -65,7 +65,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private Table? _cycles;
 
-    private DirtyState _dirtyState = DirtyState.NotDirty;
+    private DirtyState _dirtyState = DirtyState.Saved;
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -367,7 +367,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private bool IsDirty()
     {
-        return _dirtyState != DirtyState.NotDirty;
+        return _dirtyState != DirtyState.Saved;
     }
 
     private async void OnOpenRecentFile(string filePath)
@@ -481,13 +481,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             // We already have the most strict dirty form.
             return;
         }
-        else if (forceNewFile || !string.IsNullOrEmpty(_openProjectFilePath))
+        
+        if (forceNewFile)
         {
             _dirtyState = DirtyState.DirtyForceNewFile;
         }
         else
         {
-            _dirtyState = DirtyState.DirtyProjectLoaded;    
+            _dirtyState = DirtyState.Dirty;    
         }
 
         OnPropertyChanged(nameof(Title));
@@ -496,7 +497,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private void ClearDirty(string projectFilePath)
     {
         OpenProjectFilePath = projectFilePath;
-        _dirtyState = DirtyState.NotDirty;
+        _dirtyState = DirtyState.Saved;
         OnPropertyChanged(nameof(Title));
     }
 
@@ -705,7 +706,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             _gallery = new Gallery.Gallery();
 
             OpenProjectFilePath = string.Empty;
-            SetDirty(true);
+            SetDirty(false);
         }
         catch (Exception ex)
         {
@@ -760,7 +761,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
             // Imported a new jdeps file
             OpenProjectFilePath = string.Empty;
-            SetDirty(true);
+            SetDirty(false);
         }
         catch (Exception ex)
         {
