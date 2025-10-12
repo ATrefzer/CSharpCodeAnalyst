@@ -688,10 +688,10 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         var integrated = new List<CodeElement>();
         foreach (var originalElement in originalCodeElements)
         {
-            var integratedElement = _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
-            if (integratedElement != null)
+            var result = _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
+            if (result.IsAdded)
             {
-                integrated.Add(integratedElement);
+                integrated.Add(result.CodeElement);
             }
         }
 

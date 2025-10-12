@@ -740,7 +740,13 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
     {
-        return _viewer.TryHandleKeyEvent(keyEventArgs.Key);
+        if (keyEventArgs.Key == Key.Delete)
+        {
+            OnRemoveSelectedWithChildren();
+            return true;
+        }
+
+        return false;
     }
 
     private void OpenGraphHideDialog()
