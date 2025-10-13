@@ -79,7 +79,13 @@
                     <Button Command="{Binding ExpandEverythingCommand}"
                             ToolTip="{x:Static resources:Strings.ExpandEverything}"
                             Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/four-arrows_32.png" Width="24" Height="24" />
+                        <Image Source="/Resources/expand-all_32.png" Width="24" Height="24" />
+                    </Button>
+
+                    <Button Command="{Binding CollapseEverythingCommand}"
+                            ToolTip="{x:Static resources:Strings.CollapseEverything}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/collapse-all_32.png" Width="24" Height="24" />
                     </Button>
 
                     <Button Command="{Binding RemoveSelectedCommand}"

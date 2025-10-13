@@ -10,6 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\collapse-all_32.png" />
+      <None Remove="Resources\expand-all_32.png" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Page Update="Areas\TableArea\Templates\CodeElementLineTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
@@ -50,7 +55,9 @@
 
     <ItemGroup>
         <Resource Include="Resources\add_parent_16.png" />
+        <Resource Include="Resources\collapse-all_32.png" />
         <Resource Include="Resources\copy_fqn_16.png" />
+        <Resource Include="Resources\expand-all_32.png" />
         <Resource Include="Resources\find_abstractions_16.png" />
         <Resource Include="Resources\find_inheritance_tree_16.png" />
         <Resource Include="Resources\find_in_tree_16.png" />

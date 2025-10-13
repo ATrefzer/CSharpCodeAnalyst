@@ -160,7 +160,10 @@
     <data name="ExpandEverything" xml:space="preserve">
 		<value>Expand everything</value>
 	</data>
-    <data name="FindAbstractions" xml:space="preserve">
+    <data name="CollapseEverything" xml:space="preserve">
+		<value>Collapse everything</value>
+	</data>
+  <data name="FindAbstractions" xml:space="preserve">
 		<value>Find abstractions</value>
 	</data>
     <data name="FindIncomingCalls" xml:space="preserve">

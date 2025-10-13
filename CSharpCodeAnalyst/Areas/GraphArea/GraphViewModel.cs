@@ -179,6 +179,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         ClearAllFlagsCommand = new WpfCommand(OnClearAllFlags);
         FocusOnSelectedCommand = new WpfCommand(OnFocusOnSelected);
         ExpandEverythingCommand = new WpfCommand(OnExpandEverything);
+        CollapseEverythingCommand = new WpfCommand(OnCollapseEverything);
         RemoveSelectedCommand = new WpfCommand(OnRemoveSelectedWithChildren);
         
         // Global commands, moved to toolbar
@@ -202,6 +203,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     public ICommand ClearAllFlagsCommand { get; }
     public ICommand FocusOnSelectedCommand { get; }
     public ICommand ExpandEverythingCommand { get; }
+    public ICommand RemoveSelectedCommand { get; }
+    public ICommand CollapseEverythingCommand { get; }
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
@@ -273,9 +276,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
     }
 
-    public ICommand RemoveSelectedCommand { get; }
-
-
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -285,20 +285,33 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         var session = _viewer.GetSession();
         var graph = _viewer.GetGraph();
+        var state = session.PresentationState;
 
         // Create a new presentation state with no collapsed nodes
-        var newPresentationState = new PresentationState();
+        state.NodeIdToCollapsed.Clear();
 
-        // Copy the flagged states but not the collapsed states
+        _viewer.LoadSession(graph, state);
+    }
+
+    private void OnCollapseEverything()
+    {
+        PushUndo();
+
+        var session = _viewer.GetSession();
+        var graph = _viewer.GetGraph();
+        var state = session.PresentationState;
+
+        // Create a new presentation state with all collapsed nodes
+
         foreach (var nodeId in graph.Nodes.Keys)
         {
-            if (session.PresentationState.IsFlagged(nodeId))
+            if (graph.Nodes[nodeId].Children.Any())
             {
-                newPresentationState.SetFlaggedState(nodeId, true);
+                state.SetCollapsedState(nodeId, true);
             }
         }
 
-        _viewer.LoadSession(graph, newPresentationState);
+        _viewer.LoadSession(graph, state);
     }
 
     private void OnFocusOnSelected()
