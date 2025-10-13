@@ -45,3 +45,13 @@ They are different cases in the MethodBodyWalker, but I can handle them in the e
 Lambdas inside a method are treated specially. The method that creates the lambda gets a "uses" relationship with all types in the lambda. It needs to know these types to make the lambda.
 However, method calls in the lambda are not considered. This is because I don't know when the lambda is actually invoked.
 That would mean to analyze the code flow.
+
+
+
+## Constructors of generic types not detected
+
+The problem was that constructors are never generic in C#. 
+
+So **ISymbol.IsGeneric** returns always false. But for Generics we need the **OriginalDefinition** found in Phase 1.
+
+TestCase in TestSuit: GenericUtilities.GenericPair in TestSuite.

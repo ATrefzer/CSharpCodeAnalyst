@@ -17,10 +17,10 @@ Referes to
   - LambdaBodyWalker:39, 54, 68, 115 - Same pattern: get symbol/type, check, add relationship
   - Could be extracted to helper methods
 
-  C. Normalization Logic Scattered
-  - RelationshipAnalyzer:311, 822, 950, 1022, 1067 - OriginalDefinition handling appears 5+ times
-  - Inconsistent: sometimes uses OriginalDefinition, sometimes NormalizeToOriginalDefinition
-  - Should be centralized in one place
+  ~~C. Normalization Logic Scattered~~
+  - ~~RelationshipAnalyzer:311, 822, 950, 1022, 1067 - OriginalDefinition handling appears 5+ times~~
+  - ~~Inconsistent: sometimes uses OriginalDefinition, sometimes NormalizeToOriginalDefinition~~
+  - ~~Should be centralized in one place~~
 
   Medium Priority
 
@@ -34,11 +34,11 @@ Referes to
 
   High Priority
 
-  A. AddRelationshipWithFallbackToContainingType (Lines 997-1066)
-  - 70 lines long, does too much
-  - Handles: symbol lookup, normalization, internal/external distinction, fallback logic, external element creation
-  - Should be: Multiple smaller methods with clear single responsibilities
-  - Difficult to test and understand
+  ~~A. AddRelationshipWithFallbackToContainingType (Lines 997-1066)~~
+  - ~~70 lines long, does too much~~
+  - ~~Handles: symbol lookup, normalization, internal/external distinction, fallback logic, external element creation~~
+  - ~~Should be: Multiple smaller methods with clear single responsibilities~~
+  - ~~Difficult to test and understand~~
 
   B. DetermineCallAttributes + AnalyzeMemberAccessCallType (Lines 1163-1235)
   - Two methods to determine one thing (call attributes)

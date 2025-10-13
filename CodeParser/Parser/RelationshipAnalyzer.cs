@@ -308,7 +308,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             {
                 // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
                 // So IsGeneric is never true, yet we need the original definition.
-                var normalizedConstructor = (IMethodSymbol)constructorSymbol.NormalizeToOriginalDefinition();
+                var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
                 if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
                 {
                     var location = objectCreationSyntax.GetSyntaxLocation();
@@ -817,9 +817,11 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
         }
 
-        if (methodSymbol.IsGenericMethod && FindInternalCodeElement(methodSymbol) is null)
+        // Normalize generic methods to find original definition (only if not already found internally)
+        // This preserves any specific instantiations that might exist in our internal map
+        if (FindInternalCodeElement(methodSymbol) is null)
         {
-            methodSymbol = methodSymbol.OriginalDefinition;
+            methodSymbol = methodSymbol.NormalizeToOriginalDefinition();
         }
 
         // If the method is not in our map, we might want to add a relationship to its containing type
@@ -946,9 +948,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // Note the constructed type is not in our CodeElement map!
         // It is not found in phase1 the way we parse it but the original definition is.
         // For constructed generic types (List<int>), use the original definition (List<T>)
-        var normalizedSymbol = namedTypeSymbol is { IsGenericType: true, IsDefinition: false }
-            ? namedTypeSymbol.OriginalDefinition
-            : namedTypeSymbol;
+        var normalizedSymbol = namedTypeSymbol.NormalizeToOriginalDefinition();
 
         targetElement = FindInternalCodeElement(normalizedSymbol);
         if (targetElement == null && _config.IncludeExternals)
@@ -1055,9 +1055,9 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     Tries to find the containing type as an internal element.
     ///     Used for: enum values, primary constructor properties, etc.
     /// </summary>
-    private CodeElement? TryFindInternalContainingType(ISymbol symbol)
+    private CodeElement? TryFindInternalContainingType(ISymbol? symbol)
     {
-        if (symbol.ContainingType == null)
+        if (symbol?.ContainingType == null)
         {
             return null;
         }
@@ -1080,7 +1080,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
 
         // Normalize to original definition (List<int> → List<T>)
-        typeSymbol = (INamedTypeSymbol)typeSymbol.NormalizeToOriginalDefinition();
+        typeSymbol = typeSymbol.NormalizeToOriginalDefinition();
 
         return TryGetOrCreateExternalCodeElement(typeSymbol);
     }

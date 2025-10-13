@@ -282,6 +282,11 @@ public static class SymbolExtensions
     {
         return symbol switch
         {
+            // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
+            // So IsGeneric is never true, yet we need the original definition.
+            // TestCase: GenericUtilities.GenericPair in TestSuite.
+            IMethodSymbol { MethodKind: MethodKind.Constructor} ctor => ctor.OriginalDefinition,
+
             // Generic method (independent of container)
             IMethodSymbol { IsGenericMethod: true, IsDefinition: false } method => method.OriginalDefinition,
 
@@ -296,5 +301,14 @@ public static class SymbolExtensions
 
             _ => symbol
         };
+    }
+
+    /// <summary>
+    ///     Generic overload that preserves the specific symbol type.
+    ///     Eliminates the need for casts at call sites.
+    /// </summary>
+    public static T NormalizeToOriginalDefinition<T>(this T symbol) where T : ISymbol
+    {
+        return (T)NormalizeToOriginalDefinition((ISymbol)symbol);
     }
 }
