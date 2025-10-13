@@ -63,8 +63,38 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
 
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
-        // Do NOT track invocations - we don't know when the lambda executes
-        // Skip - don't call base to avoid descending into arguments
+        // Track method references with "Uses" relationship (not "Calls")
+        // We don't know when the lambda executes, but we know it references these methods
+        var symbolInfo = _semanticModel.GetSymbolInfo(node);
+        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
+        {
+            // Skip local functions - they should not be part of the dependency graph
+            if (calledMethod.MethodKind == MethodKind.LocalFunction)
+            {
+                return;
+            }
+
+            var location = node.GetSyntaxLocation();
+
+            // Add "Uses" relationship to the method (with fallback to containing type)
+            _analyzer.AddSymbolRelationshipPublic(
+                _sourceElement,
+                calledMethod,
+                RelationshipType.Uses,
+                [location],
+                RelationshipAttribute.None);
+
+            // Handle generic method invocations - track type arguments
+            if (calledMethod.IsGenericMethod)
+            {
+                foreach (var typeArg in calledMethod.TypeArguments)
+                {
+                    _analyzer.AddTypeRelationshipPublic(_sourceElement, typeArg, RelationshipType.Uses, location);
+                }
+            }
+        }
+
+        // Don't call base - we don't want to descend into arguments or track other relationships
     }
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
@@ -81,8 +111,28 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
 
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-        // Do NOT track member access
-        // Skip - don't call base
+        // Track member references (properties, fields, events) with "Uses" relationship
+        var symbolInfo = _semanticModel.GetSymbolInfo(node);
+        var symbol = symbolInfo.Symbol;
+        var location = node.GetSyntaxLocation();
+
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            _analyzer.AddSymbolRelationshipPublic(
+                _sourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IFieldSymbol fieldSymbol)
+        {
+            _analyzer.AddSymbolRelationshipPublic(
+                _sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IEventSymbol eventSymbol)
+        {
+            _analyzer.AddSymbolRelationshipPublic(
+                _sourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+
+        // Don't call base - we don't want to descend further
     }
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

@@ -82,7 +82,10 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls._privateField",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.ProtectedField",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClass -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+
+            // Lambda has uses not calls relationship
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass.Nop"
         };
 
         CollectionAssert.AreEquivalent(expected, uses);

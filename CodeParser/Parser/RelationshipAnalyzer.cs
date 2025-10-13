@@ -148,6 +148,16 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
+    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external symbols.
+    /// </summary>
+    public void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
+        RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
+    {
+        AddRelationshipWithFallbackToContainingType(sourceElement, targetSymbol, relationshipType, locations, attributes);
+    }
+
+    /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeIdentifier" />
     /// </summary>
     public void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,

@@ -56,4 +56,11 @@ public interface ISyntaxNodeHandler
     void AddTypeRelationshipPublic(CodeElement sourceElement, ITypeSymbol typeSymbol,
         RelationshipType relationshipType,
         SourceLocation? location = null);
+
+    /// <summary>
+    ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
+    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external symbols.
+    /// </summary>
+    void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
+        RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
 }
