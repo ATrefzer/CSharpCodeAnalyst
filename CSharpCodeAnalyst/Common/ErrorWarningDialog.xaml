@@ -1,7 +1,8 @@
 ﻿<Window x:Class="CSharpCodeAnalyst.Common.ErrorWarningDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Errors and Warnings"
+        xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+        Title="{x:Static resources:Strings.ErrorsAndWarnings_Title}"
         WindowStartupLocation="CenterOwner"
         Width="600" Height="400"
         MinWidth="400" MinHeight="250"
@@ -14,12 +15,12 @@
         <DockPanel>
             <!-- Buttons -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                <Button Width="100" Height="30" Margin="5,0" Content="OK" IsDefault="True" Click="OkButton_Click" />
+                <Button Width="100" Height="30" Margin="5,0" Content="{x:Static resources:Strings.Ok}" IsDefault="True" Click="OkButton_Click" />
             </StackPanel>
 
             <!-- Content -->
             <TabControl x:Name="Tabs" Margin="0,0,0,10">
-                <TabItem x:Name="ErrorTab" Header="❌ Errors">
+                <TabItem x:Name="ErrorTab" Header="{x:Static resources:Strings.ErrorsAndWarnings_Errors}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="ErrorList">
                             <ItemsControl.ItemTemplate>
@@ -34,7 +35,7 @@
                     </ScrollViewer>
                 </TabItem>
 
-                <TabItem x:Name="WarningTab" Header="⚠️ Warnings">
+                <TabItem x:Name="WarningTab" Header="{x:Static resources:Strings.ErrorsAndWarnings_Warnings}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="WarningList">
                             <ItemsControl.ItemTemplate>

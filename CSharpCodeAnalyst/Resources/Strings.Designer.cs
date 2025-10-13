@@ -61,7 +61,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add Parent.
+        ///   Looks up a localized string similar to Add _parent.
         /// </summary>
         public static string AddParent {
             get {
@@ -70,7 +70,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add selected to graph.
+        ///   Looks up a localized string similar to _Add selected to graph.
         /// </summary>
         public static string AddSelectedToGraph_Label {
             get {
@@ -79,7 +79,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  Add selected to graph (collapsed).
+        ///   Looks up a localized string similar to Add selected to graph (_collapsed).
         /// </summary>
         public static string AddSelectedToGraphCollapsed_Label {
             get {
@@ -88,7 +88,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add to Code Explorer.
+        ///   Looks up a localized string similar to _Add to Code Explorer.
         /// </summary>
         public static string AddToGraph_MenuItem {
             get {
@@ -97,7 +97,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All incoming relationships.
+        ///   Looks up a localized string similar to All in_coming relationships.
         /// </summary>
         public static string AllIncomingRelationships {
             get {
@@ -115,7 +115,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to All outgoing relationships.
+        ///   Looks up a localized string similar to All out_going relationships.
         /// </summary>
         public static string AllOutgoingRelationships {
             get {
@@ -219,7 +219,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Browse.
+        ///   Looks up a localized string similar to Browse ....
         /// </summary>
         public static string Browse {
             get {
@@ -228,7 +228,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cancel.
+        ///   Looks up a localized string similar to _Cancel.
         /// </summary>
         public static string Cancel {
             get {
@@ -462,7 +462,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy current Code Explorer graph as image to clipboard.
+        ///   Looks up a localized string similar to Copy current Code Explorer graph as image to clipboard..
         /// </summary>
         public static string Copy_Clipboard_Tooltip {
             get {
@@ -471,7 +471,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy full qualified name.
+        ///   Looks up a localized string similar to Copy full qualified _name.
         /// </summary>
         public static string CopyFullQualifiedNameToClipboard {
             get {
@@ -507,7 +507,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Default.
+        ///   Looks up a localized string similar to _Default.
         /// </summary>
         public static string Default {
             get {
@@ -525,7 +525,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete from model.
+        ///   Looks up a localized string similar to _Delete from model.
         /// </summary>
         public static string DeleteFromModel_MenuItem {
             get {
@@ -579,6 +579,33 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ❌ Errors.
+        /// </summary>
+        public static string ErrorsAndWarnings_Errors {
+            get {
+                return ResourceManager.GetString("ErrorsAndWarnings_Errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Errors and warnings.
+        /// </summary>
+        public static string ErrorsAndWarnings_Title {
+            get {
+                return ResourceManager.GetString("ErrorsAndWarnings_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ⚠️ Warnings.
+        /// </summary>
+        public static string ErrorsAndWarnings_Warnings {
+            get {
+                return ResourceManager.GetString("ErrorsAndWarnings_Warnings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exit.
         /// </summary>
         public static string Exit_Header {
@@ -606,7 +633,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Dgml.
+        ///   Looks up a localized string similar to Export DGML ....
         /// </summary>
         public static string ExportDgml_Label {
             get {
@@ -615,7 +642,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to dgml.
+        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to DGML (directed graph markup language)..
         /// </summary>
         public static string ExportDgml_Tooltip {
             get {
@@ -624,7 +651,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Dsi.
+        ///   Looks up a localized string similar to Export DSI ....
         /// </summary>
         public static string ExportDsi_Label {
             get {
@@ -633,7 +660,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exports the whole project to dsi.
+        ///   Looks up a localized string similar to Exports the whole project to DSI (design structure import)..
         /// </summary>
         public static string ExportDsi_Tooltip {
             get {
@@ -651,7 +678,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PlantUml class diagram syntax has been copied to clipboard!.
+        ///   Looks up a localized string similar to PlantUml class diagram syntax has been copied to clipboard..
         /// </summary>
         public static string ExportPlantUml_Success {
             get {
@@ -660,7 +687,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;Export Successful.
+        ///   Looks up a localized string similar to &quot;Export successful.
         /// </summary>
         public static string ExportPlantUml_Title {
             get {
@@ -678,7 +705,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Svg.
+        ///   Looks up a localized string similar to Export SVG ....
         /// </summary>
         public static string ExportSvg_Label {
             get {
@@ -687,7 +714,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to svg. NOTE: Sub-graphs are not implemented!.
+        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to SVG. NOTE: Sub-graphs are not implemented!.
         /// </summary>
         public static string ExportSvg_Tooltip {
             get {
@@ -701,6 +728,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string File_Header {
             get {
                 return ResourceManager.GetString("File_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular expressions to exclude projects.
+        /// </summary>
+        public static string FilterDialog_ProjectFilters_Tooltip {
+            get {
+                return ResourceManager.GetString("FilterDialog_ProjectFilters_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set project exclusion filters.
+        /// </summary>
+        public static string FilterDialog_Title {
+            get {
+                return ResourceManager.GetString("FilterDialog_Title", resourceCulture);
             }
         }
         
@@ -732,7 +777,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Find abstractions.
+        ///   Looks up a localized string similar to Find _abstractions.
         /// </summary>
         public static string FindAbstractions {
             get {
@@ -750,7 +795,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Find inheritance tree.
+        ///   Looks up a localized string similar to Find _inheritance tree.
         /// </summary>
         public static string FindInheritanceTree {
             get {
@@ -759,7 +804,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Find in tree.
+        ///   Looks up a localized string similar to Find in _tree.
         /// </summary>
         public static string FindInTree {
             get {
@@ -777,7 +822,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Find specializations.
+        ///   Looks up a localized string similar to Find _specializations.
         /// </summary>
         public static string FindSpecializations {
             get {
@@ -836,6 +881,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string FullPath_Label {
             get {
                 return ResourceManager.GetString("FullPath_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Add.
+        /// </summary>
+        public static string Gallery_Add {
+            get {
+                return ResourceManager.GetString("Gallery_Add", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Close.
+        /// </summary>
+        public static string Gallery_Close {
+            get {
+                return ResourceManager.GetString("Gallery_Close", resourceCulture);
             }
         }
         
@@ -1047,7 +1110,25 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import Solution.
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        public static string Import_Label {
+            get {
+                return ResourceManager.GetString("Import_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import from _jdeps ....
+        /// </summary>
+        public static string ImportJdeps_Label {
+            get {
+                return ResourceManager.GetString("ImportJdeps_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import Visual Studio _solution ....
         /// </summary>
         public static string ImportSolution_Label {
             get {
@@ -1371,7 +1452,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ok.
+        ///   Looks up a localized string similar to _Ok.
         /// </summary>
         public static string Ok {
             get {
@@ -1400,7 +1481,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Partition (base exclusive).
+        ///   Looks up a localized string similar to _Partition (base exclusive).
         /// </summary>
         public static string Partition {
             get {
@@ -1472,7 +1553,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Refactor.
+        ///   Looks up a localized string similar to _Refactor.
         /// </summary>
         public static string Refactor {
             get {
@@ -1481,7 +1562,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Create code element.
+        ///   Looks up a localized string similar to Create code _element.
         /// </summary>
         public static string Refactor_CreateCodeElement {
             get {
@@ -1490,7 +1571,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move.
+        ///   Looks up a localized string similar to _Move.
         /// </summary>
         public static string Refactor_MoveCodeElement {
             get {
@@ -1508,7 +1589,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Set as movement parent.
+        ///   Looks up a localized string similar to _Set as movement parent.
         /// </summary>
         public static string Refactoring_SetAsMovementParent {
             get {
@@ -1715,7 +1796,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove with children.
+        ///   Looks up a localized string similar to Remove _with children.
         /// </summary>
         public static string RemoveWithChildren {
             get {
@@ -1724,7 +1805,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove from Code Explorer.
+        ///   Looks up a localized string similar to _Remove from Code Explorer.
         /// </summary>
         public static string RemoveWithoutChildren {
             get {
@@ -1769,7 +1850,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Export Png.
+        ///   Looks up a localized string similar to Export PNG ....
         /// </summary>
         public static string SavePng_Label {
             get {
@@ -1778,7 +1859,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exports the current visible Code Explorer to png.
+        ///   Looks up a localized string similar to Exports the current visible Code Explorer to PNG..
         /// </summary>
         public static string SavePng_Tooltip {
             get {
@@ -1847,7 +1928,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically add containing type.
+        ///   Looks up a localized string similar to Automatically _add containing type.
         /// </summary>
         public static string Settings_AddContainingType {
             get {
@@ -1856,7 +1937,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code Element Warning Limit:.
+        ///   Looks up a localized string similar to Code Element Warning _Limit:.
         /// </summary>
         public static string Settings_CodeElementWarningLimit {
             get {
@@ -1892,6 +1973,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open application settings dialog.
+        /// </summary>
+        public static string Settings_Header_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_Header_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to These settings are applied after a restart of the application..
         /// </summary>
         public static string Settings_Hint {
@@ -1901,7 +1991,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Include external code.
+        ///   Looks up a localized string similar to Include _external code.
         /// </summary>
         public static string Settings_IncludeExternalCode {
             get {
@@ -1937,7 +2027,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Default Project Exclude Filter:.
+        ///   Looks up a localized string similar to Default Project Exclude _Filter:.
         /// </summary>
         public static string Settings_ProjectFilters_Text {
             get {
@@ -2009,7 +2099,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warn if hide filters are active.
+        ///   Looks up a localized string similar to _Warn if hide filters are active.
         /// </summary>
         public static string Settings_WarnIfFiltersActive {
             get {
@@ -2063,7 +2153,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Toggle Flag.
+        ///   Looks up a localized string similar to Toggle _flag.
         /// </summary>
         public static string ToggleFlag {
             get {

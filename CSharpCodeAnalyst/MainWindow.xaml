@@ -1,4 +1,5 @@
-﻿<Window x:Class="CSharpCodeAnalyst.MainWindow"
+﻿<ribbon:RibbonWindow x:Class="CSharpCodeAnalyst.MainWindow"
+                     xmlns:ribbon="clr-namespace:System.Windows.Controls.Ribbon;assembly=System.Windows.Controls.Ribbon"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
@@ -37,35 +38,36 @@
 
         <Ribbon>
             <Ribbon.ApplicationMenu>
-                <RibbonApplicationMenu>
+                <RibbonApplicationMenu KeyTip="F">
 
                     <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Settings_Header}"
                                                Command="{Binding OpenSettingsDialogCommand}"
-                                               ToolTip="Open application settings dialog"
-                                               ImageSource="/Resources/slider.png" />
+                                               ToolTip="{x:Static resources:Strings.Settings_Header_Tooltip}"
+                                               ImageSource="/Resources/slider.png" KeyTip="S"/>
 
-                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" />
+                    <RibbonApplicationMenuItem Header="{x:Static resources:Strings.Exit_Header}" Click="Exit_Click" KeyTip="X"/>
 
 
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
-            <RibbonTab Header="Home">
+            <RibbonTab Header="{x:Static resources:Strings.Home_Header}" KeyTip="H">
                 <RibbonGroup Header="{x:Static resources:Strings.File_Header}"
                              LargeImageSource="/Resources/save_project.png">
-                    <RibbonSplitButton Label="Import"
+                    <RibbonSplitButton Label="{x:Static resources:Strings.Import_Label}"
                                        LargeImageSource="/Resources/import_solution.png"
-                                       Command="{Binding LoadSolutionCommand}">
+                                       Command="{Binding LoadSolutionCommand}"
+                                       KeyTip="I">
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportSolution_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding LoadSolutionCommand}" />
-                        <RibbonMenuItem Header="Import from jdeps"
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportJdeps_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportJdepsCommand}" />
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
-                                  Command="{Binding OpenFilterDialogCommand}">
+                                  Command="{Binding OpenFilterDialogCommand}" KeyTip="P">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.ProjectFilter_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -75,7 +77,8 @@
                     <RibbonSplitButton Label="{x:Static resources:Strings.LoadProject_Label}"
                                        LargeImageSource="/Resources/load_project.png"
                                        Command="{Binding LoadProjectCommand}"
-                                       ItemsSource="{Binding RecentFiles}">
+                                       ItemsSource="{Binding RecentFiles}"
+                                       KeyTip="L">
 
                         <RibbonSplitButton.ItemContainerStyle>
                             <Style TargetType="RibbonMenuItem">
@@ -89,18 +92,18 @@
 
                     <RibbonButton Label="{x:Static resources:Strings.SaveProject_Label}"
                                   LargeImageSource="/Resources/save_project.png"
-                                  Command="{Binding SaveProjectCommand}" />
+                                  Command="{Binding SaveProjectCommand}" KeyTip="S"/>
 
                 </RibbonGroup>
 
                 <RibbonGroup Header="Tools" LargeImageSource="/Resources/cycle_32.png">
                     <RibbonButton Label="{x:Static resources:Strings.Find_Cycles_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
-                                  Command="{Binding FindCyclesCommand}" />
+                                  Command="{Binding FindCyclesCommand}" KeyTip="Y"/>
 
                     <RibbonSplitButton Label="{x:Static resources:Strings.Analyzers_Label}"
                                        LargeImageSource="/Resources/analysis_32.png"
-                                       ItemsSource="{Binding Analyzers}">
+                                       ItemsSource="{Binding Analyzers}" KeyTip="A">
 
                         <!-- Integrate analyzers -->
                         <RibbonSplitButton.ItemContainerStyle>
@@ -122,7 +125,7 @@
                              LargeImageSource="/Resources/four-arrows_32.png">
                     <RibbonButton Label="{x:Static resources:Strings.Clear_Label}"
                                   LargeImageSource="/Resources/trash-can_32.png"
-                                  Command="{Binding GraphClearCommand}">
+                                  Command="{Binding GraphClearCommand}" KeyTip="C">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Clear_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -130,7 +133,7 @@
 
                     <RibbonButton Label="{x:Static resources:Strings.HideFilter_Label}"
                                   LargeImageSource="/Resources/filter_32.png"
-                                  Command="{Binding GraphViewModel.OpenGraphHideDialogCommand}">
+                                  Command="{Binding GraphViewModel.OpenGraphHideDialogCommand}" KeyTip="H">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.HideFilter_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -138,7 +141,7 @@
 
                     <RibbonButton Label="{x:Static resources:Strings.Layout_Label}"
                                   LargeImageSource="/Resources/four-arrows_32.png"
-                                  Command="{Binding GraphLayoutCommand}">
+                                  Command="{Binding GraphLayoutCommand}" KeyTip="O">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Layout_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -147,7 +150,7 @@
 
                     <RibbonSplitButton Label="Export"
                                        LargeImageSource="/Resources/document-xml_32.png"
-                                       Command="{Binding ExportToDgmlCommand}">
+                                       Command="{Binding ExportToDgmlCommand}" KeyTip="E">
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportDgml_Label}"
                                         ImageSource="/Resources/document-xml_32.png"
@@ -188,7 +191,7 @@
 
                     <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"
                                   LargeImageSource="/Resources/undo_32.png"
-                                  Command="{Binding GraphViewModel.UndoCommand}">
+                                  Command="{Binding GraphViewModel.UndoCommand}" KeyTip="U">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Undo_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -196,7 +199,7 @@
 
                     <RibbonButton Label="{x:Static resources:Strings.Gallery_Label}"
                                   LargeImageSource="/Resources/document_graph_32.png"
-                                  Command="{Binding ShowGalleryCommand}">
+                                  Command="{Binding ShowGalleryCommand}" KeyTip="FG">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Gallery_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -230,7 +233,7 @@
                                             Grid.Row="0" Grid.Column="0"
                                             Label="{x:Static resources:Strings.Flow_Label}"
                                             SmallImageSource="/Resources/guidepost_small.png"
-                                            IsChecked="{Binding GraphViewModel.ShowDataFlow, Mode=TwoWay}">
+                                            IsChecked="{Binding GraphViewModel.ShowDataFlow, Mode=TwoWay}" KeyTip="SF">
                             <RibbonToggleButton.ToolTip>
                                 <ToolTip Content="{x:Static resources:Strings.Flow_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
@@ -240,7 +243,7 @@
                         <RibbonToggleButton Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left"
                                             Label="{x:Static resources:Strings.FlatGraph_Label}"
                                             SmallImageSource="/Resources/left-right_small.png"
-                                            IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}">
+                                            IsChecked="{Binding GraphViewModel.ShowFlatGraph, Mode=TwoWay}" KeyTip="G">
                             <RibbonToggleButton.ToolTip>
                                 <ToolTip Content="{x:Static resources:Strings.FlatGraph_Tooltip}" />
                             </RibbonToggleButton.ToolTip>
@@ -274,7 +277,7 @@
                     <RibbonButton Label="{x:Static resources:Strings.Legend_Label}"
                                   LargeImageSource="/Resources/legend_32.png"
 
-                                  Command="{Binding ShowLegendCommand}">
+                                  Command="{Binding ShowLegendCommand}" KeyTip="LG">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Legend_Tooltip}" />
                         </RibbonButton.ToolTip>
@@ -379,4 +382,4 @@
             </StackPanel>
         </Grid>
     </Grid>
-</Window>
+</ribbon:RibbonWindow>

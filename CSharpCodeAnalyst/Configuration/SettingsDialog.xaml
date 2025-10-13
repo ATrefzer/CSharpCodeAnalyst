@@ -40,8 +40,8 @@
 
                 <GroupBox Header="{x:Static resources:Strings.Settings_Performance}" Margin="5,0,0,0">
                     <StackPanel Margin="10">
-                        <TextBlock Margin="0 0 0 3"
-                                   Text="{x:Static resources:Strings.Settings_CodeElementWarningLimit}" />
+                        <Label Margin="0 0 0 3"
+                                   Content="{x:Static resources:Strings.Settings_CodeElementWarningLimit}" />
                         <TextBox x:Name="WarningLimitTextBox"
                                  Width="100"
                                  HorizontalAlignment="Left"
@@ -52,7 +52,7 @@
 
                 <GroupBox Header="{x:Static resources:Strings.Settings_ProjectFilters}" Margin="5,0,0,0">
                     <StackPanel Margin="10">
-                        <TextBlock Margin="0 0 0 3" Text="{x:Static resources:Strings.Settings_ProjectFilters_Text}" />
+                        <Label Margin="0 0 0 3" Content="{x:Static resources:Strings.Settings_ProjectFilters_Text}" />
                         <TextBox x:Name="ProjectExcludeFilterTextBox"
                                  Height="80"
 

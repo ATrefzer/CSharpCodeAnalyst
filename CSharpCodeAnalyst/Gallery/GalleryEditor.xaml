@@ -55,7 +55,7 @@
 
         <DockPanel Grid.Row="0"  Margin="0,0,0,10">
             
-            <Button DockPanel.Dock="Right" Content="Add" Command="{Binding AddItemCommand}" Width="80" />
+            <Button DockPanel.Dock="Right" Content="{x:Static resources:Strings.Gallery_Add}" Command="{Binding AddItemCommand}" Width="80" />
             
             <TextBox DockPanel.Dock="Left" Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}"
                       Margin="0,0,10,0"  HorizontalAlignment="Stretch" x:Name="NameBox">
@@ -112,7 +112,7 @@
                        Margin="0,0,10,0"
                        FontStyle="Italic"
                        Foreground="Gray" />
-            <Button Content="Close" Width="80" Click="CloseButton_Click" IsCancel="True"/>
+            <Button Content="{x:Static resources:Strings.Gallery_Close}" Width="80" Click="CloseButton_Click" IsCancel="True"/>
         </StackPanel>
     </Grid>
 </Window>
