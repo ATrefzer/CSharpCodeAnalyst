@@ -34,32 +34,28 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
 
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
-        // Track object creation - the method needs to know these types
-
-        // Use "Uses" relationship instead of "Creates" for lambdas
-        var typeInfo = _semanticModel.GetTypeInfo(node);
-        if (typeInfo.Type != null)
-        {
-            var location = node.GetSyntaxLocation();
-            _analyzer.AddTypeRelationshipPublic(_sourceElement, typeInfo.Type, RelationshipType.Uses, location);
-        }
-
+        TrackObjectCreationAsUses(node);
         base.VisitImplicitObjectCreationExpression(node);
     }
 
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
-        // Track object creation - the method needs to know these types
+        TrackObjectCreationAsUses(node);
+        base.VisitObjectCreationExpression(node);
+    }
 
-        // Use "Uses" relationship instead of "Creates" for lambdas
+    /// <summary>
+    ///     Tracks object creation with "Uses" relationship (not "Creates" for lambdas).
+    ///     Handles both implicit (new()) and explicit (new Foo()) object creation.
+    /// </summary>
+    private void TrackObjectCreationAsUses(BaseObjectCreationExpressionSyntax node)
+    {
         var typeInfo = _semanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
         {
             var location = node.GetSyntaxLocation();
             _analyzer.AddTypeRelationshipPublic(_sourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
-
-        base.VisitObjectCreationExpression(node);
     }
 
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)

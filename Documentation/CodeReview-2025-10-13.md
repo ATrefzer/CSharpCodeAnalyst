@@ -7,11 +7,11 @@ Referes to
 
   High Priority
 
-  A. Object Creation Duplication in LambdaBodyWalker (Lines 34-62)
-  - VisitImplicitObjectCreationExpression and VisitObjectCreationExpression have nearly identical code
-  - Both just extract type and call AddTypeRelationshipPublic
-  - This logic duplicates part of what AnalyzeObjectCreation does in RelationshipAnalyzer
-  - Impact: Maintenance burden, divergence risk
+  ~~A. Object Creation Duplication in LambdaBodyWalker (Lines 34-62)~~
+  - ~~VisitImplicitObjectCreationExpression and VisitObjectCreationExpression have nearly identical code~~
+  - ~~Both just extract type and call AddTypeRelationshipPublic~~
+  - ~~This logic duplicates part of what AnalyzeObjectCreation does in RelationshipAnalyzer~~
+  - ~~Impact: Maintenance burden, divergence risk~~
 
   B. GetSymbolInfo/GetTypeInfo Pattern Repeated
   - LambdaBodyWalker:39, 54, 68, 115 - Same pattern: get symbol/type, check, add relationship

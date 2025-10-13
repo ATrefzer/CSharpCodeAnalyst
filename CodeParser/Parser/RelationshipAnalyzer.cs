@@ -1045,17 +1045,10 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
 
         // Try normalized version (for constructed generics)
+        // NormalizeToOriginalDefinition might return the same symbol or a normalized version
+        // The Key() method will determine uniqueness across compilations
         var normalizedSymbol = symbol.NormalizeToOriginalDefinition();
-        if (!SymbolEqualityComparer.Default.Equals(normalizedSymbol, symbol))
-        {
-            element = FindInternalCodeElement(normalizedSymbol);
-            if (element != null)
-            {
-                return element;
-            }
-        }
-
-        return null;
+        return FindInternalCodeElement(normalizedSymbol);
     }
 
     /// <summary>
