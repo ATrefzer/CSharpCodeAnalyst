@@ -1,7 +1,3 @@
----
-Referes to 
-
-
 
   1. CODE DUPLICATION ISSUES
 
@@ -52,10 +48,10 @@ Referes to
 
   Medium Priority
 
-  D. Comments Indicate Complexity
-  - Line 295: "(!) We do not want a fallback..." - indicates confusing behavior
-  - Line 1039: "FALLBACK BEHAVIOR: Currently creates..." - configuration through comments
-  - These suggest the logic is too implicit
+  ~~D. Comments Indicate Complexity~~
+  - ~~Line 295: "(!) We do not want a fallback..." - indicates confusing behavior~~
+  - ~~Line 1039: "FALLBACK BEHAVIOR: Currently creates..." - configuration through comments~~
+  - ~~These suggest the logic is too implicit~~
 
 ---
   3. MISSING CASES (Potentially Significant)
@@ -217,7 +213,7 @@ Referes to
   Critical (Do First)
 
   1. Fix LambdaBodyWalker.VisitIdentifierName - Should track fields/properties like MethodBodyWalker
-  2. Update outdated comment in LambdaBodyWalker (line 10)
+  2. ~~Update outdated comment in LambdaBodyWalker (line 10)~~
   3. Add typeof() support - Common and important for reflection
   4. Add cast/is/as support - Very common operations
   5. Refactor AddRelationshipWithFallbackToContainingType - Split into smaller methods
