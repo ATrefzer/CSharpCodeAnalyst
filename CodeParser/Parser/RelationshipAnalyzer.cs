@@ -994,85 +994,117 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
     /// <summary>
     ///     Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
-    ///     Current behavior: For external symbols, creates relationships to the CONTAINING TYPE only.
+    ///     Tries in order: direct symbol → normalized symbol → containing type → external element
+    ///     For external symbols, creates relationships to the CONTAINING TYPE only.
     ///     Example: myList.Add(5) -> relationship to List&lt;T&gt; (not to List&lt;T&gt;.Add)
-    /// 
-    ///     TO CHANGE TO METHOD-LEVEL EXTERNAL RELATIONSHIPS:
-    ///     Change line marked with "FALLBACK BEHAVIOR" below from:
-    ///     GetOrCreateCodeElement(targetSymbol.ContainingType)
-    ///     To:
-    ///     GetOrCreateCodeElement(targetSymbol)
-    ///     This will create external method/property/field elements instead of just type-level relationships.
     /// </summary>
     private void AddRelationshipWithFallbackToContainingType(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         locations ??= [];
 
-        // Try to find the symbol as-is first (covers any edge cases with generics)
-        var targetElement = FindInternalCodeElement(targetSymbol);
+        // Step 1: Try to find internal element (direct or normalized)
+        var targetElement = TryFindInternalElementWithNormalization(targetSymbol);
         if (targetElement != null)
         {
             AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
             return;
         }
 
-
-        // If not found, and it's a constructed type/member, normalize and try again
-        var normalizedSymbol = targetSymbol.NormalizeToOriginalDefinition();
-        if (!SymbolEqualityComparer.Default.Equals(normalizedSymbol, targetSymbol))
+        // Step 2: Try containing type (for enum values, primary ctor properties, etc.)
+        targetElement = TryFindInternalContainingType(targetSymbol);
+        if (targetElement != null)
         {
-            targetElement = FindInternalCodeElement(normalizedSymbol);
-            if (targetElement != null)
-            {
-                AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
-                return;
-            }
-        }
-
-        // Not found internally - try containing type
-        var containingTypeElement = FindInternalCodeElement(targetSymbol.ContainingType);
-        if (containingTypeElement != null)
-        {
-            // Containing type found internally, use it
-            // Examples: containing type may be
-            // - Enum when an enum value is referenced.
-            // - Class or Record when a primary constructor initialized property is accessed (member access)
-            AddRelationship(sourceElement, relationshipType, containingTypeElement, locations, attributes);
+            AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
             return;
         }
 
-        // External handling
+        // Step 3: Handle external symbols (if configured)
         if (_config.IncludeExternals)
         {
-            // FALLBACK BEHAVIOR: Currently creates relationship to types only.
-            // I also map all relationships to "Uses". If you want method level consider also that you find Enum values etc.
-
-            INamedTypeSymbol? externalType = null;
-
-            // If target is already a type use it.
-            if (targetSymbol is INamedTypeSymbol namedType)
+            targetElement = TryCreateExternalElementForSymbol(targetSymbol);
+            if (targetElement != null)
             {
-                externalType = namedType;
-            }
-            // Otherwise use ContainingType (for Methods, Properties, Fields, etc.)
-            else if (targetSymbol.ContainingType != null)
-            {
-                externalType = targetSymbol.ContainingType;
-            }
-
-            if (externalType != null)
-            {
-                // Normalize to OriginalDefinition (z.B. List<int> → List<T>)
-                externalType = (INamedTypeSymbol)externalType.NormalizeToOriginalDefinition();
-
-                var externalElement = TryGetOrCreateExternalCodeElement(externalType);
-                if (externalElement is not null)
-                {
-                    AddRelationship(sourceElement, RelationshipType.Uses, externalElement, locations, attributes);
-                }
+                // External relationships always use "Uses" type (not "Calls", "Creates", etc.)
+                AddRelationship(sourceElement, RelationshipType.Uses, targetElement, locations, attributes);
             }
         }
+    }
+
+    /// <summary>
+    ///     Tries to find an internal element for the symbol, with normalization fallback.
+    ///     Handles constructed generics (List&lt;int&gt; → List&lt;T&gt;).
+    /// </summary>
+    private CodeElement? TryFindInternalElementWithNormalization(ISymbol symbol)
+    {
+        // Try direct lookup first
+        var element = FindInternalCodeElement(symbol);
+        if (element != null)
+        {
+            return element;
+        }
+
+        // Try normalized version (for constructed generics)
+        var normalizedSymbol = symbol.NormalizeToOriginalDefinition();
+        if (!SymbolEqualityComparer.Default.Equals(normalizedSymbol, symbol))
+        {
+            element = FindInternalCodeElement(normalizedSymbol);
+            if (element != null)
+            {
+                return element;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Tries to find the containing type as an internal element.
+    ///     Used for: enum values, primary constructor properties, etc.
+    /// </summary>
+    private CodeElement? TryFindInternalContainingType(ISymbol symbol)
+    {
+        if (symbol.ContainingType == null)
+        {
+            return null;
+        }
+
+        return FindInternalCodeElement(symbol.ContainingType);
+    }
+
+    /// <summary>
+    ///     Creates or retrieves an external element for the symbol.
+    ///     Always returns the containing TYPE element (not method/property/field level).
+    ///     Returns null if the symbol is from source code or if external element creation fails.
+    /// </summary>
+    private CodeElement? TryCreateExternalElementForSymbol(ISymbol symbol)
+    {
+        // Extract the type symbol (symbol itself if it's a type, otherwise its containing type)
+        var typeSymbol = GetTypeSymbolForExternal(symbol);
+        if (typeSymbol == null)
+        {
+            return null;
+        }
+
+        // Normalize to original definition (List<int> → List<T>)
+        typeSymbol = (INamedTypeSymbol)typeSymbol.NormalizeToOriginalDefinition();
+
+        return TryGetOrCreateExternalCodeElement(typeSymbol);
+    }
+
+    /// <summary>
+    ///     Extracts the type symbol to use for external element creation.
+    ///     - If symbol is a type, returns it
+    ///     - If symbol is a member (method/property/field), returns its containing type
+    /// </summary>
+    private INamedTypeSymbol? GetTypeSymbolForExternal(ISymbol symbol)
+    {
+        return symbol switch
+        {
+            INamedTypeSymbol namedType => namedType,
+            { ContainingType: not null } => symbol.ContainingType,
+            _ => null
+        };
     }
 
     /// <summary>

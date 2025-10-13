@@ -1,4 +1,8 @@
 ---
+Referes to 
+
+
+
   1. CODE DUPLICATION ISSUES
 
   High Priority
@@ -122,10 +126,10 @@
 
   High Priority
 
-  A. Inconsistent Comment (LambdaBodyWalker:10)
-  - Comment says: "Only tracks type relationships... but NOT method calls"
-  - BUT NOW IT DOES track method invocations (after our change)
-  - Comment is outdated and misleading
+  ~~A. Inconsistent Comment (LambdaBodyWalker:10)~~
+  - ~~Comment says: "Only tracks type relationships... but NOT method calls"~~
+  - ~~BUT NOW IT DOES track method invocations (after our change)~~
+  - ~~Comment is outdated and misleading~~
 
   B. Inconsistent Behavior: IdentifierName
   - MethodBodyWalker:40-44 tracks all identifier names
@@ -244,7 +248,7 @@
 
   Weaknesses:
   - Code duplication in walkers
-  - Overcomplexity in AddRelationshipWithFallbackToContainingType
+  - ~~Overcomplexity in AddRelationshipWithFallbackToContainingType~~
   - Missing modern C# features (pattern matching, switch expressions)
   - Inconsistency between MethodBodyWalker and LambdaBodyWalker (identifier tracking)
   - Our recent change may have introduced more issues (not tracking argument children)
