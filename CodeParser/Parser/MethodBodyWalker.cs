@@ -84,34 +84,34 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     }
 
     /// <summary>
-    ///     Lambda expressions: Track type relationships but not method calls.
+    ///     Lambda expressions: Track types and method/member references with "Uses" relationships.
     ///     x => x.Method()
     /// </summary>
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
-        // Use a specialized walker that only tracks types, not method calls
+        // Use a specialized walker that tracks types and method/member references with "Uses" relationships
         var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
         lambdaWalker.Visit(node.Body);
     }
 
     /// <summary>
-    ///     Lambda expressions: Track type relationships but not method calls.
+    ///     Lambda expressions: Track types and method/member references with "Uses" relationships.
     ///     (x, y) => x.Method()
     /// </summary>
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
-        // Use a specialized walker that only tracks types, not method calls
+        // Use a specialized walker that tracks types and method/member references with "Uses" relationships
         var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
         lambdaWalker.Visit(node.Body);
     }
 
     /// <summary>
-    ///     Anonymous methods: Track type relationships but not method calls.
+    ///     Anonymous methods: Track types and method/member references with "Uses" relationships.
     ///     delegate { Method(); }
     /// </summary>
     public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
     {
-        // Use a specialized walker that only tracks types, not method calls
+        // Use a specialized walker that tracks types and method/member references with "Uses" relationships
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (node.Block != null)
         {

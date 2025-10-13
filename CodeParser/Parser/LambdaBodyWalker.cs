@@ -7,9 +7,10 @@ namespace CodeParser.Parser;
 
 /// <summary>
 ///     Specialized walker for lambda/anonymous method bodies.
-///     Only tracks type relationships (object creation, variable declarations) but NOT method calls.
-///     This reflects the fact that we know what types are needed to define the lambda,
-///     but we don't know when/if the lambda will execute its method calls.
+///     Tracks type relationships (object creation, variable declarations) and method/member references
+///     using "Uses" relationships (not "Calls" or "Creates").
+///     This reflects the fact that we know what types and members are referenced to define the lambda,
+///     but we don't know when/if the lambda will execute (hence "Uses" instead of "Calls").
 /// </summary>
 internal class LambdaBodyWalker : CSharpSyntaxWalker
 {
