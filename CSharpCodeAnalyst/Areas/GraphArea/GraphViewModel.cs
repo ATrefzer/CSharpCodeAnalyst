@@ -839,5 +839,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();
             _viewer.LoadSession(nodes, relationships, session.PresentationState);
         }
+        
+        // Added elements are for sure not in this graph yet.
     }
 }

@@ -1064,6 +1064,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _searchViewModel?.HandleCodeGraphRefactored(message);
         _graphViewModel?.HandleCodeGraphRefactored(message);
         _treeViewModel?.HandleCodeGraphRefactored(message);
+        _gallery?.HandleCodeGraphRefactored(message);
 
         // Brute force
         // LoadCodeGraph(_codeGraph);
