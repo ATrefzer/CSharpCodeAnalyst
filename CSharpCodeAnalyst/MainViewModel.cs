@@ -102,7 +102,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Apply settings
         _projectExclusionFilters = new ProjectExclusionRegExCollection();
 
-        _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
+        try
+        {
+            _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter);
+        }
+        catch
+        {
+            _projectExclusionFilters.Initialize("");
+        }
 
         _messaging = messaging;
         _gallery = new Gallery.Gallery();
@@ -892,7 +899,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             GraphViewModel.ShowDataFlow = false;
         }
 
-        _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter, ";");
+        _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter);
     }
 
     private void LoadSettings(Dictionary<string, string> settings)
@@ -912,7 +919,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         if (settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
         {
-            _projectExclusionFilters.Initialize(projectExcludeRegEx, ";");
+            _projectExclusionFilters.Initialize(projectExcludeRegEx);
         }
 
         // IncludeExternals is not a configurable setting. It is global for the application.
@@ -1032,7 +1039,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Cycles = new CycleGroupsViewModel(cycleGroups, _messaging);
         SelectedRightTabIndex = 1;
     }
-
 
 
     public void HandleShowPartitionsRequest(ShowPartitionsRequest request)

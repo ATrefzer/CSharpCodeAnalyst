@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Text.RegularExpressions;
+using System.Windows;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 
@@ -17,20 +18,17 @@ public partial class FilterDialog
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-        var expressions = FiltersTextBox.Text
-            .Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries)
-            .Select(f => f.Trim())
-            .Where(f => !string.IsNullOrWhiteSpace(f))
-            .ToList();
-
-        if (expressions.Any(f => f.Contains(";")))
+        try
+        {
+            _filter.Initialize(FiltersTextBox.Text);
+        }
+        catch (RegexParseException ex)
         {
             MessageBox.Show(Strings.InvalidFilter_Message, Strings.InvalidFilter_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);
-            return;
+            return; 
         }
-
-        _filter.Initialize(expressions);
+    
         DialogResult = true;
         Close();
     }

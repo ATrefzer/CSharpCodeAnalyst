@@ -89,7 +89,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
     private static async Task<CodeGraph> ParseSolution(string solutionPath, ApplicationSettings settings)
     {
         var filter = new ProjectExclusionRegExCollection();
-        filter.Initialize(settings.DefaultProjectExcludeFilter, ";");
+        filter.Initialize(settings.DefaultProjectExcludeFilter);
         var parser = new Parser(new ParserConfig(filter, settings.IncludeExternalCode));
         var graph = await parser.Parse(solutionPath).ConfigureAwait(false);
 

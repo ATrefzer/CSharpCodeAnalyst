@@ -389,7 +389,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Error</value>
   </data>
   <data name="InvalidFilter_Message" xml:space="preserve">
-    <value>Filters cannot contain semicolons (;).</value>
+    <value>Invalid project filter regular expression.</value>
   </data>
   <data name="InvalidFilter_Title" xml:space="preserve">
     <value>Invalid filters</value>

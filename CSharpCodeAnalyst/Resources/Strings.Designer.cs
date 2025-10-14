@@ -1154,7 +1154,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filters cannot contain semicolons (;)..
+        ///   Looks up a localized string similar to Invalid project filter regular expression..
         /// </summary>
         public static string InvalidFilter_Message {
             get {

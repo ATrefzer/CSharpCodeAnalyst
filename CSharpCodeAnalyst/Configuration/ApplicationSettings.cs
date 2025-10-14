@@ -5,8 +5,26 @@ namespace CSharpCodeAnalyst.Configuration;
 
 public class ApplicationSettings
 {
+    private string _defaultProjectExcludeFilter = string.Empty;
     public int WarningCodeElementLimit { get; set; } = 300;
-    public string DefaultProjectExcludeFilter { get; set; } = string.Empty;
+    public static string CleanupProjectFilters(string filterText)
+    {
+        char[] separators = [';', '\n', '\r'];
+        var parts = filterText
+            .Split(separators, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Trim())
+            .Where(f => !string.IsNullOrWhiteSpace(f))
+            .ToList();
+        return string.Join(";", parts);
+    }
+    
+
+    public string DefaultProjectExcludeFilter
+    {
+        get => CleanupProjectFilters(_defaultProjectExcludeFilter);
+        set => _defaultProjectExcludeFilter = CleanupProjectFilters(value);
+    }
+
     public bool AutomaticallyAddContainingType { get; set; } = true;
 
     public bool IncludeExternalCode { get; set; } = false;

@@ -6,19 +6,29 @@ public class ProjectExclusionRegExCollection
 {
     public List<string> Expressions { get; private set; } = [];
 
-    public void Initialize(List<string> expressions)
+    private static void ThrowIfInvalidRegex(List<string> expressions)
     {
-        Expressions = expressions;
+        foreach (var expression in expressions)
+        {
+            // Throw exception if not valid
+            _ = Regex.Match("", expression);
+        }
     }
 
-    public void Initialize(string expressions, string separator)
-    {
-        List<string> separators = [separator];
 
-        Expressions = expressions.Split(separators.ToArray(), StringSplitOptions.RemoveEmptyEntries)
-            .Select(f => f.Trim())
+    public void Initialize(string filterText)
+    {
+        // Accept various inputs.
+        char[] separators = [';', '\r', '\n'];
+
+        var expressions =filterText
+            .Split(separators, StringSplitOptions.RemoveEmptyEntries)
+            .Select(e => e.Trim())
             .Where(f => !string.IsNullOrWhiteSpace(f))
             .ToList();
+        
+        ThrowIfInvalidRegex(expressions);
+        Expressions = expressions;
     }
 
 

@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Text.RegularExpressions;
+using System.Windows;
+using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Configuration;
@@ -18,7 +20,9 @@ public partial class SettingsDialog
     {
         AutoAddContainingTypeCheckBox.IsChecked = Settings.AutomaticallyAddContainingType;
         WarningLimitTextBox.Text = Settings.WarningCodeElementLimit.ToString();
-        ProjectExcludeFilterTextBox.Text = Settings.DefaultProjectExcludeFilter;
+        
+        // Internal format to new line separated.
+        ProjectExcludeFilterTextBox.Text = Settings.DefaultProjectExcludeFilter.Replace(";", Environment.NewLine);
         IncludeExternalCodeCheckBox.IsChecked = Settings.IncludeExternalCode;
         WarnIfFiltersActiveCheckBox.IsChecked = Settings.WarnIfFiltersActive;
     }
@@ -33,8 +37,8 @@ public partial class SettingsDialog
         {
             Settings.WarningCodeElementLimit = warningLimit;
         }
-
-        Settings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text.Trim();
+        
+        Settings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text;
     }
 
     private void LoadDefaultSettings()
@@ -58,6 +62,19 @@ public partial class SettingsDialog
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
+      
+        try
+        {
+            // Verify
+            var filter = new ProjectExclusionRegExCollection();
+            filter.Initialize(ProjectExcludeFilterTextBox.Text);
+        }
+        catch (RegexParseException ex)
+        {
+            MessageBox.Show(Strings.InvalidFilter_Message, Strings.InvalidFilter_Title, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return; 
+        }
         SaveSettingsFromUi();
         DialogResult = true;
         Close();
