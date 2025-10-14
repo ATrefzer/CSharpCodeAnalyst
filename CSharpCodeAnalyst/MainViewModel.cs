@@ -683,6 +683,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private async void OnLoadSolution()
     {
+        AskUserToSaveProject();
+        
         var openFileDialog = new OpenFileDialog
         {
             Filter = "Solution files (*.sln)|*.sln",
@@ -738,6 +740,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnImportJdeps()
     {
+        AskUserToSaveProject();
+        
         var openFileDialog = new OpenFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
@@ -821,6 +825,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private async void OnLoadProject()
     {
+        AskUserToSaveProject();
         var openFileDialog = new OpenFileDialog
         {
             Filter = "JSON files (*.json)|*.json",
@@ -988,6 +993,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     internal bool OnClosing()
     {
+        AskUserToSaveProject();
+        return true;
+    }
+
+    private void AskUserToSaveProject()
+    {
         if (IsDirty())
         {
             if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
@@ -996,8 +1007,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
                 OnSaveProject();
             }
         }
-
-        return true;
     }
 
     public void HandleShowCycleGroupRequest(ShowCycleGroupRequest request)
