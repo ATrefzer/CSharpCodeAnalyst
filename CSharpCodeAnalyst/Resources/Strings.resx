@@ -401,7 +401,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Undo</value>
   </data>
   <data name="Validate" xml:space="preserve">
-    <value>Save/Validate</value>
+    <value>Save/_Validate</value>
   </data>
   <data name="OperationFailed_Message" xml:space="preserve">
     <value>Operation failed: {0}</value>
@@ -458,7 +458,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Assembly</value>
   </data>
   <data name="Close_Button" xml:space="preserve">
-    <value>Close</value>
+    <value>_Close</value>
   </data>
   <data name="Help_Header" xml:space="preserve">
     <value>Help</value>
@@ -782,7 +782,7 @@ Search with resharper style = Use at least one uppercase character in a search t
     <value>Show a warning if hide filters are active when performing graph operations</value>
   </data>
   <data name="GraphFilterDialog_Title" xml:space="preserve">
-    <value>Hide Elements and Relationships</value>
+    <value>Hide elements and relationships</value>
   </data>
   <data name="GraphFilterDialog_CodeElements" xml:space="preserve">
     <value>Hide code element types:</value>
@@ -791,10 +791,10 @@ Search with resharper style = Use at least one uppercase character in a search t
     <value>Hide relationship types:</value>
   </data>
   <data name="Apply" xml:space="preserve">
-    <value>Apply</value>
+    <value>_Apply</value>
   </data>
   <data name="Reset" xml:space="preserve">
-    <value>Reset</value>
+    <value>_Reset</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>_Cancel</value>
@@ -872,5 +872,23 @@ ISOLATE: MyApp.Domain.**</value>
   </data>
   <data name="ErrorsAndWarnings_Warnings" xml:space="preserve">
     <value>⚠️ Warnings</value>
+  </data>
+  <data name="ArchitecturalRules_Title" xml:space="preserve">
+    <value>Architectural rules configuration</value>
+  </data>
+  <data name="Rules_LoadFromFile" xml:space="preserve">
+    <value>_Load from file...</value>
+  </data>
+  <data name="Rules_Clear" xml:space="preserve">
+    <value>_Clear</value>
+  </data>
+  <data name="Rules_SaveToFile" xml:space="preserve">
+    <value>_Save to file...</value>
+  </data>
+  <data name="Rules_RuleDefinition" xml:space="preserve">
+    <value>Rules definition</value>
+  </data>
+  <data name="Rules_Header" xml:space="preserve">
+    <value>Define the architectural rules for your solution:</value>
   </data>
 </root>

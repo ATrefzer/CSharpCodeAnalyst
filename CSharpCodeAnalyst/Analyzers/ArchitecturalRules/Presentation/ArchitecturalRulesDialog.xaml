@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         mc:Ignorable="d"
-        Title="Architectural rules configuration"
+        Title="{x:Static resources:Strings.ArchitecturalRules_Title}"
         Height="600" Width="800"
         MinWidth="450" MinHeight="560"
         WindowStartupLocation="CenterOwner"
@@ -28,11 +28,11 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Define the architectural rules for your solution:"
+        <TextBlock Grid.Row="0" Text="{x:Static resources:Strings.Rules_Header}"
                    FontSize="14" FontWeight="Bold" Margin="0,0,0,10" />
 
         <!-- Main text area -->
-        <GroupBox Grid.Row="1" Header="Rules Definition" Margin="0,0,0,10">
+        <GroupBox Grid.Row="1" Header="{x:Static resources:Strings.Rules_RuleDefinition}" Margin="0,0,0,10">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -42,14 +42,14 @@
                 <!-- Toolbar -->
                 <DockPanel Grid.Row="0">
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,5,0,5">
-                    <Button x:Name="LoadFileButton" Content="Load from File..."
+                    <Button x:Name="LoadFileButton" Content="{x:Static resources:Strings.Rules_LoadFromFile}"
                             Width="100"
                             Height="25" Margin="0,0,10,0"
                             Click="LoadFileButton_Click" />
-                    <Button x:Name="SaveFileButton" Content="Save to File..."
+                    <Button x:Name="SaveFileButton" Content="{x:Static resources:Strings.Rules_SaveToFile}"
                             Width="100" Height="25" Margin="0,0,10,0"
                             Click="SaveFileButton_Click" />
-                    <Button x:Name="ClearButton" Content="Clear"
+                    <Button x:Name="ClearButton" Content="{x:Static resources:Strings.Rules_Clear}"
                             Width="100" Height="25"
                             Click="ClearButton_Click" />
                 </StackPanel>
@@ -78,7 +78,7 @@
             <Button x:Name="ValidateButton" Content="{x:Static resources:Strings.Validate}" Width="80" Height="25"
                     Margin="0,0,10,0" IsDefault="True"
                     Click="ValidateButton_Click" />
-            <Button x:Name="CloseButton" Content="Close"  Height="25" Width="80"
+            <Button x:Name="CloseButton" Content="{x:Static resources:Strings.Close_Button}"  Height="25" Width="80"
                     IsCancel="True"
                     Click="CloseButton_Click" />
         </StackPanel>
