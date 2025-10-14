@@ -193,6 +193,7 @@
   D. No base.Visit() calls in most methods
   - VisitInvocationExpression:97 - doesn't call base
   - VisitMemberAccessExpression:135 - doesn't call base
+  - ~~VisitAssignmentExpressions is indeed  a problem: We missed  **Traversal.Dfs(n => n.FullName = n.GetFullPath()**~~
   - Problem: Arguments in invocations won't be visited
   - Impact: x => Foo(Bar()) tracks Foo but might miss types in Bar() arguments
 

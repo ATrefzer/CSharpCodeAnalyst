@@ -73,7 +73,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private bool _isCanvasHintsVisible = true;
 
-    private bool _isGraphSearchPanelVisible = true;
+    private bool _isGraphToolPanelVisible = true;
     private bool _isLeftPanelExpanded = true;
     private bool _isLoading;
 
@@ -338,13 +338,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public ICommand CopyToClipboardCommand { get; set; }
 
-    public bool IsGraphSearchPanelVisible
+    public bool IsGraphToolPanelVisible
     {
-        get => _isGraphSearchPanelVisible;
+        get => _isGraphToolPanelVisible;
         set
         {
-            if (value == _isGraphSearchPanelVisible) return;
-            _isGraphSearchPanelVisible = value;
+            if (value == _isGraphToolPanelVisible) return;
+            _isGraphToolPanelVisible = value;
             OnPropertyChanged();
         }
     }
@@ -393,12 +393,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         try
         {
             // Get rid of the magnifier icon
-            IsGraphSearchPanelVisible = false;
+            IsGraphToolPanelVisible = false;
             Export.ToClipboard(canvas);
         }
         finally
         {
-            IsGraphSearchPanelVisible = true;
+            IsGraphToolPanelVisible = true;
         }
     }
 
@@ -797,12 +797,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         try
         {
             // Get rid of the magnifier icon
-            IsGraphSearchPanelVisible = false;
+            IsGraphToolPanelVisible = false;
             Export.ToPng(canvas);
         }
         finally
         {
-            IsGraphSearchPanelVisible = true;
+            IsGraphToolPanelVisible = true;
         }
     }
 

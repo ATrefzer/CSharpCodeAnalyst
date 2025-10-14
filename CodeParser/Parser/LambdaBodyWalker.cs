@@ -91,18 +91,21 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
             }
         }
 
-        // Don't call base - we don't want to descend into arguments or track other relationships
+        // Added to capture x => Foo(Bar())
+        base.VisitInvocationExpression(node);
     }
 
+    // ReSharper disable once RedundantOverriddenMember
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        // Do NOT track assignments (property/field access, event registration)
-        // Skip - don't call base
+        // We need to walk further to capture following expressions:
+        // Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
+        base.VisitAssignmentExpression(node);
     }
 
     public override void VisitIdentifierName(IdentifierNameSyntax node)
     {
-        // Do NOT track identifier references
+        // Do NOT track identifier references. My assumption is that including the leaf nodes generates just "using" noise.
         // Skip - don't call base
     }
 
@@ -129,7 +132,7 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
                 _sourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
 
-        // Don't call base - we don't want to descend further
+        base.VisitMemberAccessExpression(node);
     }
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

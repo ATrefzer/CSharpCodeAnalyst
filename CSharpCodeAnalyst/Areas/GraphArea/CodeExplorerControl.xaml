@@ -50,6 +50,7 @@
                 <!-- Search Control and tool buttons as overlay -->
                 <!-- The tool buttons replace the global context menu -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
                             Margin="0 0 40 0" DataContext="{Binding GraphViewModel}">
 
                     <Button Command="{Binding CompleteToContainingTypesCommand}"
@@ -98,7 +99,7 @@
                 <local:GraphSearchControl x:Name="SearchControl"
                                           HorizontalAlignment="Right"
                                           VerticalAlignment="Top"
-                                          Visibility="{Binding DataContext.IsGraphSearchPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
+                                          Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
                                           IsHitTestVisible="True" />
 
             </Grid>
