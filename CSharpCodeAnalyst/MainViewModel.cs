@@ -57,7 +57,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
-    private readonly string _title = Strings.AppTitle;
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
@@ -353,7 +352,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         get
         {
-            var title = string.IsNullOrEmpty(OpenProjectFilePath) ? _title : _title + " - " + OpenProjectFilePath;
+            var title = Strings.AppTitle;
+            
+            if (_dirtyState == DirtyState.DirtyForceNewFile)
+            {
+                // Don't show filename when no longer valid
+                title = title + " - " + "Refactored (model changed)";
+            }
+            else if (!string.IsNullOrEmpty(OpenProjectFilePath))
+            {
+                title = title + " - " + OpenProjectFilePath;
+            }
+            
             if (IsDirty())
             {
                 title += " *";
