@@ -1,6 +1,5 @@
-﻿namespace CSharpLanguage.Ns1.Ns2
+﻿namespace CSharpLanguage.Ns1.Ns2;
+
+public class ClassX
 {
-    public class ClassX
-    {
-    }
 }

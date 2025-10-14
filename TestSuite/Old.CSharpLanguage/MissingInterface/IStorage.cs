@@ -1,7 +1,6 @@
-﻿namespace CSharpLanguage.MissingInterface
+﻿namespace CSharpLanguage.MissingInterface;
+
+internal interface IStorage
 {
-    internal interface IStorage
-    {
-        void Load();
-    }
+    void Load();
 }

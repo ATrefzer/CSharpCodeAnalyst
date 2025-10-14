@@ -63,4 +63,11 @@ public interface ISyntaxNodeHandler
     /// </summary>
     void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
+
+    /// <summary>
+    /// typeof(),
+    /// sizeof()
+    /// (cast)
+    /// </summary>
+    void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node);
 }

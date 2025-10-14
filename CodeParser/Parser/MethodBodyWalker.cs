@@ -1,6 +1,5 @@
 ﻿using Contracts.Graph;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CodeParser.Parser;
@@ -9,43 +8,30 @@ namespace CodeParser.Parser;
 ///     Syntax walker for analyzing method and property bodies.
 ///     This approach simplifies the analysis by focusing on specific syntax nodes.
 /// </summary>
-internal class MethodBodyWalker : CSharpSyntaxWalker
+internal class MethodBodyWalker : SyntaxWalkerBase
 {
-    private readonly ISyntaxNodeHandler _analyzer;
-    private readonly bool _isFieldInitializer;
-    private readonly SemanticModel _semanticModel;
-    private readonly CodeElement _sourceElement;
-
+  
     public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
+        : base(analyzer, sourceElement, semanticModel, isFieldInitializer)
     {
-        _analyzer = analyzer;
-        _sourceElement = sourceElement;
-        _semanticModel = semanticModel;
-        _isFieldInitializer = isFieldInitializer;
     }
 
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
-        _analyzer.AnalyzeInvocation(_sourceElement, node, _semanticModel);
+        Analyzer.AnalyzeInvocation(SourceElement, node, SemanticModel);
         // Note: We still call base to visit arguments, but AnalyzeInvocation won't re-process them
         base.VisitInvocationExpression(node);
     }
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        _analyzer.AnalyzeAssignment(_sourceElement, node, _semanticModel);
+        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
-    }
-
-    public override void VisitIdentifierName(IdentifierNameSyntax node)
-    {
-        _analyzer.AnalyzeIdentifier(_sourceElement, node, _semanticModel);
-        base.VisitIdentifierName(node);
     }
 
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-        _analyzer.AnalyzeMemberAccess(_sourceElement, node, _semanticModel);
+        Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel);
 
         // Explicitly visit only the Expression (left side: obj in obj.Property)
         // The Name (right side: Property) is already handled by AnalyzeMemberAccess
@@ -53,24 +39,12 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
         Visit(node.Expression);
     }
 
-    public override void VisitArgument(ArgumentSyntax node)
-    {
-        _analyzer.AnalyzeArgument(_sourceElement, node, _semanticModel);
-        base.VisitArgument(node);
-    }
-
-    public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-    {
-        _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
-        base.VisitLocalDeclarationStatement(node);
-    }
-
     /// <summary>
     ///     new() is ImplicitObjectCreationExpressionSyntax. So ObjectCreationExpressionSyntax does not detect it.
     /// </summary>
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
-        _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
+        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node, IsFieldInitializer);
         base.VisitImplicitObjectCreationExpression(node);
     }
 
@@ -79,7 +53,7 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     /// </summary>
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
-        _analyzer.AnalyzeObjectCreation(_sourceElement, _semanticModel, node, _isFieldInitializer);
+        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node, IsFieldInitializer);
         base.VisitObjectCreationExpression(node);
     }
 
@@ -90,7 +64,7 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
         // Use a specialized walker that tracks types and method/member references with "Uses" relationships
-        var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+        var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
         lambdaWalker.Visit(node.Body);
     }
 
@@ -101,7 +75,7 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
     public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
     {
         // Use a specialized walker that tracks types and method/member references with "Uses" relationships
-        var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+        var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
         lambdaWalker.Visit(node.Body);
     }
 
@@ -115,8 +89,10 @@ internal class MethodBodyWalker : CSharpSyntaxWalker
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (node.Block != null)
         {
-            var lambdaWalker = new LambdaBodyWalker(_analyzer, _sourceElement, _semanticModel);
+            var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
             lambdaWalker.Visit(node.Block);
         }
     }
+    
+
 }

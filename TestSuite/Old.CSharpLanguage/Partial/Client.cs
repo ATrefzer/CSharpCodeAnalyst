@@ -1,13 +1,12 @@
-﻿namespace CSharpLanguage.Partial
+﻿namespace CSharpLanguage.Partial;
+
+internal class Client
 {
-    internal class Client
+    public static Client CreateInstance()
     {
-        public static Client CreateInstance()
-        {
-            var p = new PartialClass();
-            p.MethodInPartialClassPart1();
-            p.MethodInPartialClassPart2();
-            return new Client();
-        }
+        var p = new PartialClass();
+        p.MethodInPartialClassPart1();
+        p.MethodInPartialClassPart2();
+        return new Client();
     }
 }

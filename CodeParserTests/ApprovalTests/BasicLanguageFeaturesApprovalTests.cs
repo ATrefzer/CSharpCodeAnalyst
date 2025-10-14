@@ -18,7 +18,8 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);
@@ -85,7 +86,16 @@ public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers._baseClassList -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
 
             // Lambda has uses not calls relationship
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass.Nop"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass.Nop",
+
+            // is as and typeof
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf.Experiment1 -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf.Experiment2 -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf.Experiment3 -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Foo",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Method"
         };
 
         CollectionAssert.AreEquivalent(expected, uses);

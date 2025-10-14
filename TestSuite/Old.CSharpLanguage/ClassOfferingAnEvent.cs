@@ -12,7 +12,7 @@ public class ClassOfferingAnEvent
 
     public event MyDelegate MyEvent1;
 
-    void OnEvent()
+    private void OnEvent()
     {
         MyEvent2(null, null);
     }

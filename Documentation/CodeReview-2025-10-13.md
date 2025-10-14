@@ -58,25 +58,25 @@
 
   Likely Missing
 
-  A. Arguments in Lambdas
-  - MethodBodyWalker has VisitArgument (line 56)
-  - LambdaBodyWalker does NOT have VisitArgument
-  - Impact: Lambda like x => Foo(SomeMethod) won't track method groups passed as arguments
+  ~~A. Arguments in Lambdas~~
+  - ~~MethodBodyWalker has VisitArgument (line 56)~~
+  - ~~LambdaBodyWalker does NOT have VisitArgument~~
+  - ~~Impact: Lambda like x => Foo(SomeMethod) won't track method groups passed as arguments~~
 
-  B. Cast and Type Testing Expressions
-  - No handling for: (MyType)obj, obj as MyType, obj is MyType
-  - These reference types but aren't tracked
-  - Impact: Type dependencies missed
+  ~~B. Cast and Type Testing Expressions~~
+  - ~~No handling for: (MyType)obj, obj as MyType, obj is MyType~~
+  - ~~These reference types but aren't tracked~~
+  - ~~Impact: Type dependencies missed~~
 
-  C. typeof() Expressions
-  - No VisitTypeOfExpression
-  - typeof(MyClass) creates a type dependency but isn't tracked
-  - Impact: Reflection-related dependencies missed
+  ~~C. typeof() Expressions~~
+  - ~~No VisitTypeOfExpression~~
+  - ~~typeof(MyClass) creates a type dependency but isn't tracked~~
+  - ~~Impact: Reflection-related dependencies missed~~
 
-  D. Default Expressions
-  - No VisitDefaultExpression
-  - default(MyType) references a type
-  - Impact: Some type dependencies missed
+  ~~D. Default Expressions~~
+  - ~~No VisitDefaultExpression~~
+  - ~~default(MyType) references a type~~
+  - ~~Impact: Some type dependencies missed~~
 
   E. Tuple Types
   - No special handling for (int, string) or ValueTuple<T1, T2>
@@ -190,12 +190,12 @@
 
   LambdaBodyWalker.cs
 
-  D. No base.Visit() calls in most methods
-  - VisitInvocationExpression:97 - doesn't call base
-  - VisitMemberAccessExpression:135 - doesn't call base
+  ~~D. No base.Visit() calls in most methods~~
+  - ~~VisitInvocationExpression:97 - doesn't call base~~
+  - ~~VisitMemberAccessExpression:135 - doesn't call base~~
   - ~~VisitAssignmentExpressions is indeed  a problem: We missed  **Traversal.Dfs(n => n.FullName = n.GetFullPath()**~~
-  - Problem: Arguments in invocations won't be visited
-  - Impact: x => Foo(Bar()) tracks Foo but might miss types in Bar() arguments
+  - ~~Problem: Arguments in invocations won't be visited~~
+  - ~~Impact: x => Foo(Bar()) tracks Foo but might miss types in Bar() arguments~~
 
   E. Lines 34-62 - Object Creation
   - Calls base.Visit() - will descend into arguments
@@ -215,15 +215,15 @@
 
   1. Fix LambdaBodyWalker.VisitIdentifierName - Should track fields/properties like MethodBodyWalker
   2. ~~Update outdated comment in LambdaBodyWalker (line 10)~~
-  3. Add typeof() support - Common and important for reflection
-  4. Add cast/is/as support - Very common operations
-  5. Refactor AddRelationshipWithFallbackToContainingType - Split into smaller methods
+  3. ~~Add typeof() support - Common and important for reflection~~
+  4. ~~Add cast/is/as support - Very common operations~~
+  5. ~~Refactor AddRelationshipWithFallbackToContainingType - Split into smaller methods~~
 
   Important (Should Do)
 
   6. Add VisitArgument to LambdaBodyWalker - Track method groups in lambda arguments
-  7. Consolidate object creation logic - Remove duplication in LambdaBodyWalker
-  8. Centralize normalization - One place for OriginalDefinition logic
+  7. ~~Consolidate object creation logic - Remove duplication in LambdaBodyWalker~~
+  8. ~~Centralize normalization - One place for OriginalDefinition logic~~
   9. Consider assignment tracking in lambdas - Or document why it's intentionally skipped
   10. Add pattern matching support - Increasingly common in modern C#
 

@@ -1,25 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Core.BasicLanguageFeatures
+namespace Core.BasicLanguageFeatures;
+
+internal class Lambdas
 {
-    internal class Lambdas
+    private void Start()
     {
-        void Start()
+        var x = () =>
         {
-            var x = () =>
-            {
-                // Start -> uses -> CreatableClass
-                var creatableClass = new CreatableClass();
+            // Start -> uses -> CreatableClass
+            var creatableClass = new CreatableClass();
 
-                // Not extracted
-                creatableClass.Nop();
-            };
+            // Not extracted
+            creatableClass.Nop();
+        };
 
-        }
+
+        var y = () =>
+        {
+            BaseClass? baseClass;
+            
+        };
+
+
+        var z = () => Foo(Method);
+    }
+
+    private void Foo(Action method)
+    {
+    }
+
+    private void Method()
+    {
     }
 }

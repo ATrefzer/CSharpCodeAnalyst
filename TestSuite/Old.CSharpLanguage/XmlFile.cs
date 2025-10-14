@@ -1,10 +1,9 @@
-﻿namespace CSharpLanguage
-{
-    internal class XmlFile<T>
-    {
-    }
+﻿namespace CSharpLanguage;
 
-    internal class Project
-    {
-    }
+internal class XmlFile<T>
+{
+}
+
+internal class Project
+{
 }

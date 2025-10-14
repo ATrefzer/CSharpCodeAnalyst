@@ -379,8 +379,11 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="ClearAllFlags" xml:space="preserve">
     <value>Clear All Flags</value>
   </data>
-  <data name="DeleteFromModel_Message" xml:space="preserve">
-    <value>Deleting model elements will clear the code graph. Do you want to proceed?</value>
+  <data name="Refactoring_DeleteFromModel_Message" xml:space="preserve">
+    <value>Deleting model elements cannot be undone. Make sure your project is saved. Do you want to proceed?</value>
+  </data>
+  <data name="Refactoring_Move_Message" xml:space="preserve">
+    <value>Moving model elements cannot be undone. Make sure your project is saved. Do you want to proceed?</value>
   </data>
   <data name="Error_Title" xml:space="preserve">
     <value>Error</value>

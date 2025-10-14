@@ -1,12 +1,11 @@
-﻿namespace CSharpLanguage
-{
-    internal record RecordA
-    {
-        RecordB _recordB;
-    }
+﻿namespace CSharpLanguage;
 
-    internal record RecordB
-    {
-        RecordA _recordA;
-    }
+internal record RecordA
+{
+    private RecordB _recordB;
+}
+
+internal record RecordB
+{
+    private RecordA _recordA;
 }

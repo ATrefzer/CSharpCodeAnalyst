@@ -4,11 +4,7 @@ namespace Core.BasicLanguageFeatures;
 
 public class BaseClass
 {
-    public BaseClass()
-    {
-        // Constructor with body
-    }
-    
+
     protected string ProtectedField = "base";
 
     public virtual string GetMessage()
@@ -27,6 +23,7 @@ public class BaseClass
         {
             var obj = new CreatableClass();
         }
+
         LocalFunction();
     }
 }

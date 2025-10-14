@@ -1,45 +1,43 @@
-﻿namespace CSharpLanguage.Regression_FollowIncomingCalls1
+﻿namespace CSharpLanguage.Regression_FollowIncomingCalls1;
+
+internal abstract class Base
 {
-    abstract class Base
+    private Base _base;
+
+    protected virtual void AddToSlave()
     {
-        Base _base;
-
-        protected virtual void AddToSlave()
-        {
-            _base.AddToSlave();
-        }
-
-        public void Build()
-        {
-            AddToSlave();
-        }
+        _base.AddToSlave();
     }
 
-
-    class ViewModelAdapter1 : Base
+    public void Build()
     {
-        protected override void AddToSlave()
-        {
-            base.AddToSlave();
-        }
+        AddToSlave();
     }
+}
 
-    class ViewModelAdapter2 : Base
+internal class ViewModelAdapter1 : Base
+{
+    protected override void AddToSlave()
     {
-        protected override void AddToSlave()
-        {
-            base.AddToSlave();
-        }
+        base.AddToSlave();
     }
+}
 
-    class Driver
+internal class ViewModelAdapter2 : Base
+{
+    protected override void AddToSlave()
     {
-        ViewModelAdapter1 _adpater1 = new ViewModelAdapter1();
-        ViewModelAdapter2 _adpater2 = new ViewModelAdapter2();
+        base.AddToSlave();
+    }
+}
 
-        public Driver()
-        {
-            _adpater1.Build();
-        }
+internal class Driver
+{
+    private readonly ViewModelAdapter1 _adpater1 = new();
+    private ViewModelAdapter2 _adpater2 = new();
+
+    public Driver()
+    {
+        _adpater1.Build();
     }
 }

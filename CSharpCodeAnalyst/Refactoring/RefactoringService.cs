@@ -135,7 +135,7 @@ public class RefactoringService
             return [];
         }
 
-        if (!_refactoringInteraction.AskUserToProceed(Strings.DeleteFromModel_Message))
+        if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_DeleteFromModel_Message))
         {
             return [];
         }
@@ -199,6 +199,11 @@ public class RefactoringService
     public bool MoveCodeElement(CodeElement? source)
     {
         if (!CanMoveCodeElement(source))
+        {
+            return false;
+        }
+        
+        if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_Move_Message))
         {
             return false;
         }

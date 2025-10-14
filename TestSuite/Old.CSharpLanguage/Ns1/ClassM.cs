@@ -1,6 +1,5 @@
-﻿namespace CSharpLanguage.Ns1
+﻿namespace CSharpLanguage.Ns1;
+
+internal class ClassM
 {
-    internal class ClassM
-    {
-    }
 }

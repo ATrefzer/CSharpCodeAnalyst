@@ -12,24 +12,11 @@ namespace CodeParser.Parser;
 ///     This reflects the fact that we know what types and members are referenced to define the lambda,
 ///     but we don't know when/if the lambda will execute (hence "Uses" instead of "Calls").
 /// </summary>
-internal class LambdaBodyWalker : CSharpSyntaxWalker
+internal class LambdaBodyWalker : SyntaxWalkerBase
 {
-    private readonly ISyntaxNodeHandler _analyzer;
-    private readonly SemanticModel _semanticModel;
-    private readonly CodeElement _sourceElement;
-
     public LambdaBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel)
+        : base(analyzer, sourceElement, semanticModel, false)
     {
-        _analyzer = analyzer;
-        _sourceElement = sourceElement;
-        _semanticModel = semanticModel;
-    }
-
-    public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-    {
-        // Track local variable declarations - the method needs to know these types
-        _analyzer.AnalyzeLocalDeclaration(_sourceElement, node, _semanticModel);
-        base.VisitLocalDeclarationStatement(node);
     }
 
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
@@ -50,11 +37,11 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
     /// </summary>
     private void TrackObjectCreationAsUses(BaseObjectCreationExpressionSyntax node)
     {
-        var typeInfo = _semanticModel.GetTypeInfo(node);
+        var typeInfo = SemanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
         {
             var location = node.GetSyntaxLocation();
-            _analyzer.AddTypeRelationshipPublic(_sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
     }
 
@@ -62,7 +49,10 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
     {
         // Track method references with "Uses" relationship (not "Calls")
         // We don't know when the lambda executes, but we know it references these methods
-        var symbolInfo = _semanticModel.GetSymbolInfo(node);
+        
+        // Code is similar to MethodBodyWalker but does not capture event invocation.
+        
+        var symbolInfo = SemanticModel.GetSymbolInfo(node);
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {
             // Skip local functions - they should not be part of the dependency graph
@@ -74,8 +64,8 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
             var location = node.GetSyntaxLocation();
 
             // Add "Uses" relationship to the method (with fallback to containing type)
-            _analyzer.AddSymbolRelationshipPublic(
-                _sourceElement,
+            Analyzer.AddSymbolRelationshipPublic(
+                SourceElement,
                 calledMethod,
                 RelationshipType.Uses,
                 [location],
@@ -86,7 +76,7 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
             {
                 foreach (var typeArg in calledMethod.TypeArguments)
                 {
-                    _analyzer.AddTypeRelationshipPublic(_sourceElement, typeArg, RelationshipType.Uses, location);
+                    Analyzer.AddTypeRelationshipPublic(SourceElement, typeArg, RelationshipType.Uses, location);
                 }
             }
         }
@@ -103,33 +93,27 @@ internal class LambdaBodyWalker : CSharpSyntaxWalker
         base.VisitAssignmentExpression(node);
     }
 
-    public override void VisitIdentifierName(IdentifierNameSyntax node)
-    {
-        // Do NOT track identifier references. My assumption is that including the leaf nodes generates just "using" noise.
-        // Skip - don't call base
-    }
-
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
         // Track member references (properties, fields, events) with "Uses" relationship
-        var symbolInfo = _semanticModel.GetSymbolInfo(node);
+        var symbolInfo = SemanticModel.GetSymbolInfo(node);
         var symbol = symbolInfo.Symbol;
         var location = node.GetSyntaxLocation();
 
         if (symbol is IPropertySymbol propertySymbol)
         {
-            _analyzer.AddSymbolRelationshipPublic(
-                _sourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+            Analyzer.AddSymbolRelationshipPublic(
+                SourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
-            _analyzer.AddSymbolRelationshipPublic(
-                _sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+            Analyzer.AddSymbolRelationshipPublic(
+                SourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
         else if (symbol is IEventSymbol eventSymbol)
         {
-            _analyzer.AddSymbolRelationshipPublic(
-                _sourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+            Analyzer.AddSymbolRelationshipPublic(
+                SourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
 
         base.VisitMemberAccessExpression(node);

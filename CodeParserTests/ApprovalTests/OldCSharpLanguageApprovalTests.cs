@@ -243,7 +243,13 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.CreatorOfGenericTypes.Create -> Old.CSharpLanguage.global.CSharpLanguage.XmlFile",
             "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo",
             "Old.CSharpLanguage.global.CSharpLanguage.Partial.Client.CreateInstance -> Old.CSharpLanguage.global.CSharpLanguage.Partial.PartialClass",
-            "Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer"
+            "Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer",
+
+            // Because of the event in AnalyzeIdentifier
+            "Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.OnEvent -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise1 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise2 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise3 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent"
         };
 
         CollectionAssert.AreEquivalent(expected, actual);
@@ -304,19 +310,25 @@ public class OldCSharpLanguageApprovalTests : ProjectTestBase
         var graph = GetTestAssemblyGraph();
 
         // Registration and un-registration
-        var actual = GetAllEventRegistrations(graph);
+        var actual = GetAllEventUsages(graph);
         var expected = new HashSet<string>
         {
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
-            "Old.CSharpLanguage.global.CSharpLanguage.EventSink..ctor -> Old.CSharpLanguage.global.CSharpLanguage.IInterfaceWithEvent.MyEvent"
+            "Old.CSharpLanguage.global.CSharpLanguage.EventSink..ctor -> Old.CSharpLanguage.global.CSharpLanguage.IInterfaceWithEvent.MyEvent",
+
+
+            "Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.OnEvent -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise1 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise2 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise3 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent"
         };
 
 
         CollectionAssert.AreEquivalent(expected, actual);
     }
 
-    private static HashSet<string> GetAllEventRegistrations(CodeGraph graph)
+    private static HashSet<string> GetAllEventUsages(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)

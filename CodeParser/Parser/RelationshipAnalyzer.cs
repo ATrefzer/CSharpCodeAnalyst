@@ -158,6 +158,24 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    /// <inheritdoc cref="ISyntaxNodeHandler.AnalyzeTypeSyntax"/>
+    /// </summary>
+    public void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node)
+    {
+        if (node is null)
+        {
+            return;
+        }
+        // typeof(Foo) creates a "Uses" relationship to the type
+        var typeInfo = semanticModel.GetTypeInfo(node);
+        if (typeInfo.Type != null)
+        {
+            var location = node.GetSyntaxLocation();
+            AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
+        }
+    }
+
+    /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeIdentifier" />
     /// </summary>
     public void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
@@ -178,6 +196,11 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             var location = identifierSyntax.GetSyntaxLocation();
             AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+        }
+        else if (symbol is IEventSymbol eventSymbol) 
+        {
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddEventUsageRelationship(sourceElement, eventSymbol, location);
         }
     }
 
