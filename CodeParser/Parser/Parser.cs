@@ -23,14 +23,52 @@ public class Parser(ParserConfig config)
     {
         get => _diagnostics;
     }
-
-    public async Task<CodeGraph> ParseSolution(string solutionPath)
+    
+    
+    public async Task<CodeGraph> Parse(string path)
+    {
+        var extension = Path.GetExtension(path).ToLowerInvariant();
+    
+        return extension switch
+        {
+            ".sln" => await ParseSolution(path),
+            ".csproj" => await ParseProject(path),
+            _ => throw new ArgumentException($"Unsupported file type: {extension}. Expected .sln or .csproj")
+        };
+    }
+    
+    /// <summary>
+    /// Parses a single project and builds a code graph.
+    /// </summary>
+    private async Task<CodeGraph> ParseProject(string projectPath)
     {
         _diagnostics.Clear();
-
         var sw = Stopwatch.StartNew();
 
-        Progress.SendProgress("Compiling ...");
+        Progress.SendProgress("Compiling project ...");
+
+        using var workspace = MSBuildWorkspace.Create();
+        workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
+        var project = await workspace.OpenProjectAsync(projectPath);
+        
+        // Create a solution from the single project
+        var solution = project.Solution;
+
+        sw.Stop();
+        Trace.TraceInformation("Compiling: " + sw.Elapsed);
+
+        return await ParseSolutionInternal(solution);
+    }
+
+    /// <summary>
+    /// Parses a complete solution and builds a code graph.
+    /// </summary>
+    private async Task<CodeGraph> ParseSolution(string solutionPath)
+    {
+        _diagnostics.Clear();
+        var sw = Stopwatch.StartNew();
+
+        Progress.SendProgress("Compiling solution ...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
@@ -38,7 +76,16 @@ public class Parser(ParserConfig config)
 
         sw.Stop();
         Trace.TraceInformation("Compiling: " + sw.Elapsed);
-        sw = Stopwatch.StartNew();
+
+        return await ParseSolutionInternal(solution);
+    }
+
+    /// <summary>
+    /// Internal method that does the actual parsing work.
+    /// </summary>
+    private async Task<CodeGraph> ParseSolutionInternal(Solution solution)
+    {
+        var sw = Stopwatch.StartNew();
 
         // First Pass: Build Hierarchy
         var phase1 = new HierarchyAnalyzer(Progress, config);
@@ -49,7 +96,6 @@ public class Parser(ParserConfig config)
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
-        // We don't need to iterate over the projects
         var phase2 = new RelationshipAnalyzer(Progress, config);
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
@@ -68,7 +114,7 @@ public class Parser(ParserConfig config)
         return codeGraph;
     }
 
-
+    
     private void Workspace_WorkspaceFailed(object? sender, WorkspaceDiagnosticEventArgs e)
     {
         _diagnostics.Add(e.Diagnostic);

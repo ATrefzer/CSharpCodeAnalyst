@@ -658,7 +658,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         LoadMessage = Strings.Load_Message_Default;
         var parser = new Parser(new ParserConfig(_projectExclusionFilters, _applicationSettings.IncludeExternalCode));
         parser.Progress.ParserProgress += OnProgress;
-        var graph = await parser.ParseSolution(solutionPath).ConfigureAwait(true);
+        var graph = await parser.Parse(solutionPath).ConfigureAwait(true);
 
         parser.Progress.ParserProgress -= OnProgress;
         return (graph, parser.Diagnostics);
