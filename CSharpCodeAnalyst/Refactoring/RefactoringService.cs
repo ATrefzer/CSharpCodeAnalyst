@@ -1,6 +1,8 @@
 using CodeParser.Extensions;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Refactoring;
 
@@ -10,13 +12,21 @@ namespace CSharpCodeAnalyst.Refactoring;
 /// </summary>
 public class RefactoringService
 {
+    private readonly IPublisher _messaging;
     private readonly RefactoringInteraction _refactoringInteraction;
+    private CodeGraph? _graph;
     private CodeElement? _target;
 
 
-    public RefactoringService(RefactoringInteraction refactoringInteraction)
+    public RefactoringService(RefactoringInteraction refactoringInteraction, IPublisher messaging)
     {
         _refactoringInteraction = refactoringInteraction;
+        _messaging = messaging;
+    }
+
+    public void LoadCodeGraph(CodeGraph graph)
+    {
+        _graph = graph;
     }
 
 
@@ -79,24 +89,25 @@ public class RefactoringService
         };
     }
 
-    public CodeElement? CreateCodeElement(CodeGraph? codeGraph, CodeElement? parent)
+    public void CreateCodeElement(string? parentId)
     {
-        if (codeGraph is null)
+        if (_graph is null)
         {
-            return null;
+            return;
         }
 
-        if (!CanCreateCodeElement(parent))
+        if (!CanCreateCodeElement(parentId))
         {
-            return null;
+            return;
         }
 
-        var naming = new CodeElementNaming(codeGraph, parent);
+        var parent = FindCodeElement(parentId);
+        var naming = new CodeElementNaming(_graph, parent);
         var validChildTypes = GetValidChildTypes(parent);
         var specs = _refactoringInteraction.AskUserForCodeElementSpecs(parent, validChildTypes, naming);
         if (specs == null)
         {
-            return null;
+            return;
         }
 
         var id = Guid.NewGuid().ToString();
@@ -105,10 +116,23 @@ public class RefactoringService
             IsExternal = false
         };
 
-        var result = codeGraph.IntegrateCodeElementFromOriginal(element);
+        var result = _graph.IntegrateCodeElementFromOriginal(element);
         
         // Important: Return the cloned element that is actually integrated into the graph.
-        return result.CodeElement;
+        if (result.IsAdded)
+        {
+            _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_graph, result.CodeElement));    
+        }
+    }
+
+    private CodeElement? FindCodeElement(string? id)
+    {
+        if (_graph is null)
+        {
+            return null;
+        }
+        
+        return id == null ? null : _graph.Nodes[id];
     }
 
 
@@ -122,33 +146,53 @@ public class RefactoringService
         return $"{parent.FullName}.{name}";
     }
 
-    public static bool CanCreateCodeElement(CodeElement? parent)
+    public bool CanCreateCodeElement(string? parentId)
     {
+        if (_graph is null)
+        {
+            return false;
+        }
+        
+        var parent = FindCodeElement(parentId);
         var validChildren = GetValidChildTypes(parent);
         return validChildren.Count > 0;
     }
 
-    public HashSet<string> DeleteCodeElementAndAllChildren(CodeGraph? codeGraph, string id)
+    public void DeleteCodeElementAndAllChildren(string? elementId)
     {
-        if (codeGraph is null)
+        if (_graph is null || elementId is null)
         {
-            return [];
+            return;
         }
 
         if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_DeleteFromModel_Message))
         {
-            return [];
+            return;
         }
 
-        return codeGraph.DeleteCodeElementAndAllChildren(id);
+        // Augment infos about delete elemets
+        var element = FindCodeElement(elementId);
+        var parentId = element?.Parent?.Id;
+        var deletedIds = _graph.DeleteCodeElementAndAllChildren(elementId);
+        if (deletedIds.Any())
+        {
+            _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_graph, elementId, parentId, deletedIds));
+        }
     }
 
-    public bool CanMoveCodeElement(CodeElement? source)
+    public bool CanMoveCodeElement(string? sourceId)
     {
-        if (source is null || _target is null)
+        if (_graph is null)
         {
             return false;
         }
+
+        if (sourceId is null || _target is null)
+        {
+            return false;
+        }
+
+        var source = _graph.Nodes[sourceId];
 
         if (source.ElementType is CodeElementType.Assembly)
         {
@@ -164,14 +208,16 @@ public class RefactoringService
         return validChildTypesForParent.Contains(source.ElementType);
     }
 
-    public bool CanSetMovementTarget(CodeElement? codeElement)
+    public bool CanSetMovementTarget(string? elementId)
     {
-        if (codeElement is null)
+        if (_graph is null || elementId is null)
         {
             return false;
         }
 
-        if (codeElement.ElementType is 
+        var codeElement = _graph.Nodes[elementId];
+
+        if (codeElement.ElementType is
             CodeElementType.Field or
             CodeElementType.Event or
             CodeElementType.Delegate or
@@ -184,9 +230,15 @@ public class RefactoringService
         return true;
     }
 
-    public bool SetMovementTarget(CodeElement? target)
+    public bool SetMovementTarget(string? targetId)
     {
-        if (!CanSetMovementTarget(target))
+        if (_graph is null || targetId is null)
+        {
+            return false;
+        }
+
+        var target = _graph.Nodes[targetId];
+        if (!CanSetMovementTarget(targetId))
         {
             return false;
         }
@@ -196,24 +248,56 @@ public class RefactoringService
     }
 
 
-    public bool MoveCodeElement(CodeElement? source)
+    public void MoveCodeElement(string? sourceId)
     {
-        if (!CanMoveCodeElement(source))
+        if (_graph is null || sourceId is null)
         {
-            return false;
-        }
-        
-        if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_Move_Message))
-        {
-            return false;
+            return;
         }
 
-        source!.MoveTo(_target!);
-        return true;
+        if (!CanMoveCodeElement(sourceId))
+        {
+            return;
+        }
+
+        if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_Move_Message))
+        {
+            return;
+        }
+
+        var source = _graph.Nodes[sourceId];
+        source.MoveTo(_target!);
+
+
+        var oldParent = source.Parent;
+        var newParent = GetMovementTarget();
+        if (newParent == null || oldParent == null)
+        {
+            // We can't move assemblies, so old parent is never null
+            return;
+        }
+
+        _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_graph, source.Id, oldParent.Id, newParent.Id));
     }
 
     public CodeElement? GetMovementTarget()
     {
         return _target;
+    }
+
+    public void DeleteRelationships(List<Relationship> relationships)
+    {
+        if (_graph is null || !relationships.Any())
+        {
+            return;
+        }
+
+        if (!_refactoringInteraction.AskUserToProceed(Strings.Refactoring_DeleteRelationships_Message))
+        {
+            return;
+        }
+
+        _graph.DeleteRelationships(relationships);
+        _messaging.Publish<CodeGraphRefactored>(new RelationshipsDeleted(_graph, relationships));
     }
 }

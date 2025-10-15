@@ -17,13 +17,17 @@ internal class CodeElementCreated(CodeGraph codeGraph, CodeElement newElement) :
     public CodeElement NewElement { get; set; } = newElement;
 }
 
-internal class CodeElementsDeleted(CodeGraph codeGraph, CodeElement deletedElement, HashSet<string> deletedIds) : CodeGraphRefactored(codeGraph)
+internal class CodeElementsDeleted(CodeGraph codeGraph, string deletedElementId, string? parentId, HashSet<string> deletedIds) : CodeGraphRefactored(codeGraph)
 {
-
-    public CodeElement
-        DeletedElement { get; } = deletedElement;
-
+    public string DeletedElementId { get; } = deletedElementId;
     public HashSet<string> DeletedIds { get; } = deletedIds;
+    public string? ParentId { get; set; } = parentId;
+}
+
+internal class RelationshipsDeleted(CodeGraph codeGraph, List<Relationship> deleted) : CodeGraphRefactored(codeGraph)
+{
+    public List<Relationship> Deleted { get; } = deleted;
+
 }
 
 internal class CodeElementsMoved(CodeGraph codeGraph, string sourceId, string oldParentId, string newParentId) : CodeGraphRefactored(codeGraph)

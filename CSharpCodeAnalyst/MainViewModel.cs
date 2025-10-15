@@ -33,6 +33,7 @@ using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Project;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -53,6 +54,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
+    private readonly RefactoringService _refactoringService;
 
     private readonly MessageBus _messaging;
 
@@ -86,12 +88,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager, RefactoringService refactoringService)
     {
         // Initialize settings
         _applicationSettings = settings;
         _userSettings = userSettings;
         _analyzerManager = analyzerManager;
+        _refactoringService = refactoringService;
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
         // Table data
@@ -674,6 +677,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
+        _refactoringService.LoadCodeGraph(codeGraph);
 
         // Rebuild tree view and graph
         TreeViewModel?.LoadCodeGraph(_codeGraph);

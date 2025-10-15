@@ -16,22 +16,33 @@ public class RelationshipContextCommand : IRelationshipContextCommand
         Label = label;
         Icon = icon;
     }
+    
+    public RelationshipContextCommand(string subMenuGroup, string label, RelationshipType type, Action<string, string, List<Relationship>> action, ImageSource? icon = null)
+    {
+        _type = type;
+        _action = action;
+        SubMenuGroup = subMenuGroup;
+        Label = label;
+        Icon = icon;
+    }
 
     /// <summary>
     ///     Generic for all code elements
     /// </summary>
-    public RelationshipContextCommand(string label, Action<string, string, List<Relationship>> action,
+    public RelationshipContextCommand(string subMenuGroup, string label, Action<string, string, List<Relationship>> action,
         Func<List<Relationship>, bool>? canExecute = null, ImageSource? icon = null)
     {
         _type = null;
         _action = action;
         _canExecute = canExecute;
+        SubMenuGroup = subMenuGroup;
         Label = label;
         Icon = icon;
     }
 
     public string Label { get; }
     public ImageSource? Icon { get; }
+    public string? SubMenuGroup { get; }
 
     public bool CanHandle(List<Relationship> relationships)
     {

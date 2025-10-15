@@ -800,12 +800,27 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             return;
         }
 
+        Dictionary<string, MenuItem> subMenus = [];
         foreach (var cmd in _edgeCommands)
         {
+            
             if (cmd.CanHandle(relationships))
             {
+                MenuItem? parentMenu = null;
                 var menuItem = new MenuItem { Header = cmd.Label };
-
+                
+                var isSubMenu = !string.IsNullOrEmpty(cmd.SubMenuGroup);
+                if (isSubMenu && cmd.SubMenuGroup != null)
+                {
+                    if (!subMenus.TryGetValue(cmd.SubMenuGroup, out parentMenu))
+                    {
+                        parentMenu = new MenuItem();
+                        parentMenu.Header = cmd.SubMenuGroup;
+                        subMenus[cmd.SubMenuGroup] = parentMenu;
+                        contextMenu.Items.Add(parentMenu);
+                    }
+                }
+                
                 // Add icon if provided
                 if (cmd.Icon != null)
                 {
@@ -819,7 +834,15 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
                 }
 
                 menuItem.Click += (_, _) => cmd.Invoke(sourceId, targetId, relationships);
-                contextMenu.Items.Add(menuItem);
+
+                if (!isSubMenu)
+                {
+                    contextMenu.Items.Add(menuItem);    
+                }
+                else
+                {
+                    parentMenu!.Items.Add(menuItem);                    
+                }
             }
         }
     }

@@ -385,6 +385,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Refactoring_Move_Message" xml:space="preserve">
     <value>Moving model elements cannot be undone. Make sure your project is saved. Do you want to proceed?</value>
   </data>
+  <data name="Refactoring_DeleteRelationships_Message" xml:space="preserve">
+    <value>Deleting relationships from the model cannot be undone. Make sure your project is saved. Do you want to proceed?</value>
+  </data>
   <data name="Error_Title" xml:space="preserve">
     <value>Error</value>
   </data>
@@ -810,6 +813,9 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Refactor_CreateCodeElement" xml:space="preserve">
     <value>Create code _element</value>
+  </data>
+  <data name="Refactor_DeleteEdgeFromModel" xml:space="preserve">
+    <value>Delete edge from model</value>
   </data>
   <data name="Refactor_MoveCodeElementTo" xml:space="preserve">
     <value>Move to '{0}'</value>

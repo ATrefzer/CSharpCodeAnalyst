@@ -46,36 +46,22 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private bool RefactoringCanMoveCodeElement(TreeItemViewModel tvm)
     {
-        return _refactoringService.CanMoveCodeElement(tvm?.CodeElement);
+        return _refactoringService.CanMoveCodeElement(tvm?.CodeElement?.Id);
     }
 
     private void RefactoringMoveCodeElement(TreeItemViewModel? tvm)
     {
-        if (!_refactoringService.MoveCodeElement(tvm?.CodeElement))
-        {
-            return;
-        }
-
-        var newParent = _refactoringService.GetMovementTarget();
-        var source = tvm!.CodeElement;
-        var oldParent = tvm.CodeElement!.Parent;
-
-        if (newParent == null || source == null || oldParent == null)
-        {
-            return;
-        }
-        
-        _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_codeGraph!, source.Id, oldParent.Id, newParent.Id));
+        _refactoringService.MoveCodeElement(tvm?.CodeElement?.Id);
     }
 
     private bool RefactoringCanSetMovementTarget(TreeItemViewModel tvm)
     {
-        return _refactoringService.CanSetMovementTarget(tvm?.CodeElement);
+        return _refactoringService.CanSetMovementTarget(tvm?.CodeElement?.Id);
     }
 
     private void RefactoringSetMovementTarget(TreeItemViewModel tvm)
     {
-        _refactoringService.SetMovementTarget(tvm?.CodeElement);
+        _refactoringService.SetMovementTarget(tvm?.CodeElement?.Id);
     }
 
     public ICommand CollapseTreeCommand { get; }
@@ -116,12 +102,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private bool RefactoringCanCreateCodeElement(TreeItemViewModel? tvm)
-    {
-        // null tvm means root level (empty space in tree) - this is allowed
-        // Otherwise check if the CodeElement can have children
-        return RefactoringService.CanCreateCodeElement(tvm?.CodeElement);
-    }
+
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)
     {
@@ -179,16 +160,7 @@ public class TreeViewModel : INotifyPropertyChanged
             _messaging.Publish(new AddNodeToGraphRequest(item.CodeElement));
         }
     }
-
-    /// <summary>
-    ///     Creates a code element at the root level (e.g., Assembly).
-    ///     Public method to be called from UI when right-clicking empty space.
-    /// </summary>
-    public void RefactoringCreateCodeElementAtRoot()
-    {
-        RefactoringCreateCodeElement(null);
-    }
-
+    
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
@@ -201,9 +173,7 @@ public class TreeViewModel : INotifyPropertyChanged
         }
         else if (message is CodeElementsDeleted deleted)
         {
-            var deletedElement = deleted.DeletedElement;
-            var parent = deletedElement.Parent;
-            RefactoringCodeElementDeleted(deletedElement.Id, parent?.Id, deleted.DeletedIds);
+            RefactoringCodeElementDeleted(deleted.DeletedElementId, deleted.ParentId, deleted.DeletedIds);
         }
         else if (message is CodeElementsMoved moved)
         {
@@ -271,38 +241,36 @@ public class TreeViewModel : INotifyPropertyChanged
             }
         }
     }
+    
+    /// <summary>
+    ///     Creates a code element at the root level (e.g., Assembly).
+    ///     Public method to be called from UI when right-clicking empty space.
+    /// </summary>
+    public void RefactoringCreateCodeElementAtRoot()
+    {
+        RefactoringCreateCodeElement(null);
+    }
+    
+    private bool RefactoringCanCreateCodeElement(TreeItemViewModel? tvm)
+    {
+        // null tvm means root level (empty space in tree) - this is allowed
+        // Otherwise check if the CodeElement can have children
+        return _refactoringService.CanCreateCodeElement(tvm?.CodeElement?.Id);
+    }
+
 
     private void RefactoringCreateCodeElement(TreeItemViewModel? item)
     {
-        var parent = item?.CodeElement; // null means root level
-        var newElement = _refactoringService.CreateCodeElement(_codeGraph, parent);
-        if (newElement is null)
-        {
-            return;
-        }
-
-        _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_codeGraph!, newElement));
+        var parentId = item?.CodeElement?.Id; // null means root level
+        _refactoringService.CreateCodeElement(parentId);
     }
 
     private void RefactoringDeleteCodeElement(TreeItemViewModel tvi)
     {
-        if (_codeGraph is null)
-        {
-            return;
-        }
-
         var codeElement = tvi.CodeElement;
         var id = codeElement?.Id;
-        if (id is null)
-        {
-            return;
-        }
 
-        var deletedIds = _refactoringService.DeleteCodeElementAndAllChildren(_codeGraph, id);
-        if (deletedIds.Any())
-        {
-            _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_codeGraph, codeElement!, deletedIds));
-        }
+        _refactoringService.DeleteCodeElementAndAllChildren(id);
     }
 
 
@@ -453,4 +421,6 @@ public class TreeViewModel : INotifyPropertyChanged
         var target = _refactoringService.GetMovementTarget();
         return target?.Name != null ? target.Name : string.Empty;
     }
+
+ 
 }
