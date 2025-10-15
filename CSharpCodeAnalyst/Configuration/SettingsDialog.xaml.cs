@@ -69,7 +69,7 @@ public partial class SettingsDialog
             var filter = new ProjectExclusionRegExCollection();
             filter.Initialize(ProjectExcludeFilterTextBox.Text);
         }
-        catch (RegexParseException ex)
+        catch (RegexParseException)
         {
             MessageBox.Show(Strings.InvalidFilter_Message, Strings.InvalidFilter_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);

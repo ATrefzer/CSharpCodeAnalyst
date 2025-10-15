@@ -27,8 +27,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private const int UndoStackSize = 10;
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
-    private readonly ApplicationSettings _settings;
     private readonly RefactoringService _refactoringService;
+    private readonly ApplicationSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
 
@@ -72,9 +72,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var flag = IconLoader.LoadIcon("Resources/flag.png");
         var removeWithoutChildren = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
         // Edge commands
-        _viewer.AddCommand(new RelationshipContextCommand(string.Empty,Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
+        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
         _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.Refactor,  Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
 
 
         // Static commands
@@ -90,7 +90,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         });
 
 
-        
+
         var removeWithChildren = IconLoader.LoadIcon("Resources/remove_with_children_16.png");
         var findInTree = IconLoader.LoadIcon("Resources/find_in_tree_16.png");
         var addParent = IconLoader.LoadIcon("Resources/add_parent_16.png");
@@ -98,7 +98,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, AddParent, icon: addParent));
+        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
         _viewer.AddCommand(new SeparatorCommand());
 
 
@@ -112,15 +112,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         foreach (var elementType in elementTypes)
         {
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
-                FindOutgoingCalls, icon: outgoingCalls));
+                FindOutgoingCalls, outgoingCalls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
-                FindIncomingCalls, icon: incomingCalls));
+                FindIncomingCalls, incomingCalls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
-                FollowIncomingCallsRecursive, icon: followIncomingCalls));
+                FollowIncomingCallsRecursive, followIncomingCalls));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
-                FindSpecializations, icon: findSpecializations));
+                FindSpecializations, findSpecializations));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
-                FindAbstractions, icon: findAbstractions));
+                FindAbstractions, findAbstractions));
         }
 
         // Classes, structs and interfaces
@@ -129,37 +129,37 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         foreach (var elementType in elementTypes)
         {
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
-                FindInheritanceTree, icon: findInheritanceTree));
+                FindInheritanceTree, findInheritanceTree));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
-                FindSpecializations, icon: findSpecializations));
+                FindSpecializations, findSpecializations));
             _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
-                FindAbstractions, icon: findAbstractions));
+                FindAbstractions, findAbstractions));
         }
 
         // Events
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
-            FindSpecializations, icon: findSpecializations));
+            FindSpecializations, findSpecializations));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
-            FindAbstractions, icon: findAbstractions));
+            FindAbstractions, findAbstractions));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
-            FollowIncomingCallsRecursive, icon: followIncomingCalls));
+            FollowIncomingCallsRecursive, followIncomingCalls));
 
 
         // Everyone gets the in/out relationships
         _viewer.AddCommand(new SeparatorCommand());
         var incomingRelationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
         var outgoingRelationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
-        
+
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships, icon: incomingRelationships));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships, icon: outgoingRelationships));
-     
+
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
             FindAllIncomingRelationshipsDeep));
         _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
             FindAllOutgoingRelationshipsDeep));
-        
+
 
         /*
             Partition belongs to the tree view because it refers to all code elements inside the class.
@@ -185,7 +185,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         ExpandEverythingCommand = new WpfCommand(OnExpandEverything);
         CollapseEverythingCommand = new WpfCommand(OnCollapseEverything);
         RemoveSelectedCommand = new WpfCommand(OnRemoveSelectedWithChildren);
-        
+        AddParentsCommand = new WpfCommand(OnAddParents);
+
         // Global commands, moved to toolbar
         // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
         // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
@@ -193,16 +194,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
         // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
         //_viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
-        
-        
-        // Not in toolbar yet. Did someone use it?
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents, CanHandleIfSelectedElements));
-
-    }
-
-    private void DeleteEdgeFromModel(string sourceId, string targetId, List<Relationship> relationships)
-    {
-        _refactoringService.DeleteRelationships(relationships);
     }
 
     public ICommand CompleteToContainingTypesCommand { get; set; }
@@ -285,8 +276,17 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
     }
 
+    public ICommand AddParentsCommand { get; }
+
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+
+
+    private void DeleteEdgeFromModel(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        _refactoringService.DeleteRelationships(relationships);
+    }
 
     private void OnExpandEverything()
     {
@@ -425,9 +425,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         {
             return;
         }
-        
+
         PushUndo();
-        
+
 
         var graph = _viewer.GetGraph();
         var idsToRemove = new HashSet<string>();
@@ -478,15 +478,23 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.Expand(codeElement.Id);
     }
 
-    private void AddParent(CodeElement codeElement)
+    private void OnAddParent(CodeElement codeElement)
     {
-        AddParents([codeElement]);
+        AddParents([codeElement.Id]);
     }
 
-    private void AddParents(List<CodeElement> codeElements)
+    private void OnAddParents()
+    {
+        var elementIds = _viewer.GetSelectedElementIds().ToList();
+        if (elementIds.Any())
+        {
+            AddParents(elementIds);
+        }
+    }
+
+    private void AddParents(List<string> ids)
     {
         // We do not know the original graph.
-        var ids = codeElements.Select(c => c.Id).ToList();
         var result = _explorer.FindParents(ids);
         AddToGraph(result.Elements, []);
     }
@@ -557,7 +565,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var result = _explorer.FindIncomingRelationships(element.Id);
         AddToGraph(result.Elements, result.Relationships);
     }
-    
+
     private void FindAllOutgoingRelationshipsDeep(CodeElement element)
     {
         var result = _explorer.FindOutgoingRelationshipsDeep(element.Id);
@@ -853,7 +861,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             // Get rid of relationships in the canvas graph.
             _viewer.RemoveFromGraph(relationshipsDeleted.Deleted);
         }
-        
+
         // Added elements are for sure not in this graph yet.
     }
 }

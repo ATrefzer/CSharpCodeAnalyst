@@ -88,6 +88,12 @@
                             Style="{StaticResource ToggleButtonStyle}">
                         <Image Source="/Resources/collapse-all_32.png" Width="24" Height="24" />
                     </Button>
+                    
+                    <Button Command="{Binding AddParentsCommand}"
+                            ToolTip="{x:Static resources:Strings.AddParents_Tooltip}"
+                            Style="{StaticResource ToggleButtonStyle}">
+                        <Image Source="/Resources/add-parent_32.png" Width="24" Height="24" />
+                    </Button>
 
                     <Button Command="{Binding RemoveSelectedCommand}"
                             ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"

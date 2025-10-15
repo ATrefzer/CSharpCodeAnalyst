@@ -69,6 +69,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adds the parent code element to all selected code elements..
+        /// </summary>
+        public static string AddParents_Tooltip {
+            get {
+                return ResourceManager.GetString("AddParents_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Add selected to graph.
         /// </summary>
         public static string AddSelectedToGraph_Label {

@@ -22,7 +22,7 @@ public partial class FilterDialog
         {
             _filter.Initialize(FiltersTextBox.Text);
         }
-        catch (RegexParseException ex)
+        catch (RegexParseException)
         {
             MessageBox.Show(Strings.InvalidFilter_Message, Strings.InvalidFilter_Title, MessageBoxButton.OK,
                 MessageBoxImage.Error);

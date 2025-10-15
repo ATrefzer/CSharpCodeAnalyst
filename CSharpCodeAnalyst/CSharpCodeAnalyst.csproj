@@ -135,6 +135,8 @@
         <Resource Include="Resources\restore_32.png" />
         <None Remove="Resources\snapshot_32.png" />
         <Resource Include="Resources\snapshot_32.png" />
+        <None Remove="Resources\add-parent_32.png" />
+        <Resource Include="Resources\add-parent_32.png" />
     </ItemGroup>
 
 

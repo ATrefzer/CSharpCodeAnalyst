@@ -59,7 +59,8 @@
               : using a System.ComponentModel.TypeConverter
               : and then encoded with base64 encoding.
       -->
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                id="root"
                 xmlns="">
         <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
         <xsd:element name="root" msdata:IsDataSet="true">
@@ -249,7 +250,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="PartitionWithBase" xml:space="preserve">
     <value>Partition (base inclusive)</value>
   </data>
-  <data name="ImportSolution_Label" xml:space="preserve">
+    <data name="ImportSolution_Label" xml:space="preserve">
     <value>Import Visual Studio _solution or C# project ...</value>
   </data>
     <data name="ImportJdeps_Label" xml:space="preserve">
@@ -902,10 +903,10 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="Rules_Header" xml:space="preserve">
     <value>Define the architectural rules for your solution:</value>
   </data>
-  <data name="Import_FileFilter" xml:space="preserve">
+    <data name="Import_FileFilter" xml:space="preserve">
     <value>Solution files (*.sln)|*.sln|C# project (*.csproj)|*.csproj</value>
   </data>
-  <data name="Import_DialogTitle" xml:space="preserve">
+    <data name="Import_DialogTitle" xml:space="preserve">
     <value>Select a solution or project file</value>
   </data>
     <data name="Snapshot_Success" xml:space="preserve">
@@ -938,4 +939,9 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="Restore_Tooltip" xml:space="preserve">
     <value>Restores the previously taken snapshot.</value>
   </data>
+    <data name="AddParents_Tooltip" xml:space="preserve">
+    <value>Adds the parent code element to all selected code elements.</value>
+  </data>
+
+
 </root>
