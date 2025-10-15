@@ -290,6 +290,26 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
                 </RibbonGroup>
+
+                <!-- Helpers Ribbon Group -->
+                <RibbonGroup Header="Helpers"
+                             LargeImageSource="/Resources/snapshot_32.png">
+                    <RibbonButton Label="Snapshot"
+                                  LargeImageSource="/Resources/snapshot_32.png"
+                                  Command="{Binding SnapshotCommand}" KeyTip="SN">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Capture current state for later restoration" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="Restore"
+                                  LargeImageSource="/Resources/restore_32.png"
+                                  Command="{Binding RestoreCommand}" KeyTip="RE">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="Restore previously captured snapshot" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                </RibbonGroup>
             </RibbonTab>
         </Ribbon>
 
