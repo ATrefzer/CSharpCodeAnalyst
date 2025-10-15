@@ -1,13 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
-using CodeParser.Analysis.Cycles;
+﻿using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
 using CodeParser.Parser;
@@ -33,12 +24,23 @@ using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Project;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
@@ -53,6 +55,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
+    private readonly RefactoringService _refactoringService;
 
     private readonly MessageBus _messaging;
 
@@ -68,6 +71,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
+
+    private ProjectData? _snapshot;
     private InfoPanelViewModel? _infoPanelViewModel;
 
     private bool _isCanvasHintsVisible = true;
@@ -86,12 +91,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private int _selectedRightTabIndex;
     private TreeViewModel? _treeViewModel;
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager, RefactoringService refactoringService)
     {
         // Initialize settings
         _applicationSettings = settings;
         _userSettings = userSettings;
         _analyzerManager = analyzerManager;
+        _refactoringService = refactoringService;
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
         // Table data
@@ -134,6 +140,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
         CopyToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
         OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
+        SnapshotCommand = new WpfCommand(OnSnapshot);
+        RestoreCommand = new WpfCommand(OnRestore);
 
         _loadMessage = string.Empty;
 
@@ -259,6 +267,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand ExportToPngCommand { get; }
     public ICommand ShowLegendCommand { get; }
     public ICommand ExecuteAnalyzerCommand { get; set; }
+    public ICommand SnapshotCommand { get; }
+    public ICommand RestoreCommand { get; }
 
 
     public TreeViewModel? TreeViewModel
@@ -674,6 +684,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
+        _refactoringService.LoadCodeGraph(codeGraph);
 
         // Rebuild tree view and graph
         TreeViewModel?.LoadCodeGraph(_codeGraph);
@@ -864,15 +875,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadMessage = "Loading ...";
             IsLoading = true;
 
+            var projectData = await Task.Run(() => LoadProject(fileName));
 
-            var (codeGraph, projectData) = await Task.Run(() => LoadProject(fileName));
-
-            LoadSettings(projectData.Settings);
-            LoadCodeGraph(codeGraph);
-            _gallery = projectData.GetGallery();
-
-            // Restore analyzer data
-            _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
+            RestoreProjectData(projectData);
 
             ClearDirty(fileName);
             _userSettings.AddRecentFile(fileName);
@@ -925,7 +930,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // IncludeExternals is not a configurable setting. It is global for the application.
     }
 
-    private static (CodeGraph codeGraph, ProjectData projectData) LoadProject(string fileName)
+    private static ProjectData LoadProject(string fileName)
     {
         var json = File.ReadAllText(fileName);
         var options = new JsonSerializerOptions
@@ -938,9 +943,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             throw new NullReferenceException();
         }
 
-        var codeGraph = projectData.GetCodeGraph();
-
-        return (codeGraph, projectData);
+        return projectData;
     }
 
     private void OnSaveProject()
@@ -950,21 +953,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-
         if (!TryGetProjectSaveFilePath(out var filePath))
         {
             return;
         }
 
-        var projectData = new ProjectData();
-        projectData.SetCodeGraph(_codeGraph);
-        projectData.SetGallery(_gallery ?? new Gallery.Gallery());
-        projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel.ShowFlatGraph.ToString();
-        projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
-        projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
-
-        // Collect analyzer data
-        projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
+        var projectData = CollectProjectData();
 
         // Add other settings here
 
@@ -978,6 +972,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         ClearDirty(filePath);
     }
+
 
     private bool TryGetProjectSaveFilePath(out string filePath)
     {
@@ -1094,5 +1089,81 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         // Force new file
         SetDirty(true);
+    }
+
+
+    private ProjectData CollectProjectData()
+    {
+        var projectData = new ProjectData();
+        projectData.SetCodeGraph(_codeGraph!);
+        projectData.SetGallery(_gallery ?? new Gallery.Gallery());
+        projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel!.ShowFlatGraph.ToString();
+        projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
+        projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
+        projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
+        return projectData;
+    }
+
+    private void OnSnapshot()
+    {
+        if (_codeGraph is null || _graphViewModel is null)
+        {
+            return;
+        }
+
+        try
+        {
+            // Create a snapshot by capturing the current state (similar to OnSaveProject)
+            var projectData = CollectProjectData();
+
+            // Store the snapshot in memory
+            _snapshot = projectData;
+
+            ToastManager.ShowSuccess(Strings.Snapshot_Success);
+        }
+        catch (Exception ex)
+        {
+            var message = $"{Strings.Snapshot_Failed}: {ex.Message}";
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnRestore()
+    {
+        if (_snapshot is null)
+        {
+            ToastManager.ShowWarning(Strings.Restore_NoSnapshot);
+            return;
+        }
+
+        try
+        {
+            LoadMessage =Strings.Restore_LoadMessage;
+            IsLoading = true;
+
+            RestoreProjectData(_snapshot);
+
+            ToastManager.ShowSuccess(Strings.Restore_Success);
+        }
+        catch (Exception ex)
+        {
+            var message = $"{Strings.Restore_Failed}: {ex.Message}";
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+    }
+
+    private void RestoreProjectData(ProjectData projectData)
+    {
+        LoadSettings(projectData.Settings);
+        LoadCodeGraph(projectData.GetCodeGraph());
+        _gallery = projectData.GetGallery();
+
+        // Restore analyzer data
+        _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
     }
 }

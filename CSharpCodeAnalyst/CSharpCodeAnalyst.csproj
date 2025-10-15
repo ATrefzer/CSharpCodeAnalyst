@@ -131,6 +131,10 @@
         <Resource Include="Resources\flag-empty_32.png" />
         <None Remove="Resources\lamp.ico" />
         <Resource Include="Resources\lamp.ico" />
+        <None Remove="Resources\restore_32.png" />
+        <Resource Include="Resources\restore_32.png" />
+        <None Remove="Resources\snapshot_32.png" />
+        <Resource Include="Resources\snapshot_32.png" />
     </ItemGroup>
 
 

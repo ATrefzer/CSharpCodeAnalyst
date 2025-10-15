@@ -11,6 +11,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.UI;
@@ -27,6 +28,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly ApplicationSettings _settings;
+    private readonly RefactoringService _refactoringService;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
 
@@ -36,13 +38,14 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private bool _showFlatGraph;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
-        ApplicationSettings settings)
+        ApplicationSettings settings, RefactoringService refactoringService)
     {
         _undoStack = [];
         _viewer = viewer;
         _explorer = explorer;
         _publisher = publisher;
         _settings = settings;
+        _refactoringService = refactoringService;
 
         // Initialize RenderOptions
         RenderOptions =
@@ -69,8 +72,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var flag = IconLoader.LoadIcon("Resources/flag.png");
         var removeWithoutChildren = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
         // Edge commands
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
+        _viewer.AddCommand(new RelationshipContextCommand(string.Empty,Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
+        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
+        _viewer.AddCommand(new RelationshipContextCommand(Strings.Refactor,  Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
 
 
         // Static commands
@@ -194,6 +198,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // Not in toolbar yet. Did someone use it?
         // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedAddParent, AddParents, CanHandleIfSelectedElements));
 
+    }
+
+    private void DeleteEdgeFromModel(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        _refactoringService.DeleteRelationships(relationships);
     }
 
     public ICommand CompleteToContainingTypesCommand { get; set; }
@@ -838,6 +847,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             // However, the parent / child relationships have changed.
             var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();
             _viewer.LoadSession(nodes, relationships, session.PresentationState);
+        }
+        else if (message is RelationshipsDeleted relationshipsDeleted)
+        {
+            // Get rid of relationships in the canvas graph.
+            _viewer.RemoveFromGraph(relationshipsDeleted.Deleted);
         }
         
         // Added elements are for sure not in this graph yet.

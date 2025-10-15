@@ -1,4 +1,5 @@
-﻿using Contracts.GraphInterface;
+﻿using System.ComponentModel.Design;
+using Contracts.GraphInterface;
 
 namespace Contracts.Graph;
 
@@ -139,5 +140,16 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         var relationshipNames = relationships.Select(d => $"{d.Item1} -({d.Item2})-> {d.Item3} {d.Item4}");
         return string.Join("\n", elementNames.OrderBy(x => x)) + "\n" +
                string.Join("\n", relationshipNames.OrderBy(x => x));
+    }
+
+    public bool DeleteRelationships(List<Relationship> relationships)
+    {
+        var removed = 0;
+        foreach (var relationship in relationships)
+        {
+            var sourceNode =  Nodes[relationship.SourceId];
+            removed += sourceNode.Relationships.RemoveWhere(relationships.Contains);
+        }
+        return removed > 0;
     }
 }

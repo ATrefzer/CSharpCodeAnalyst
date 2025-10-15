@@ -108,10 +108,10 @@ public partial class App
         var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit);
 
         var refactoringInteraction = new RefactoringInteraction();
-        var refactoringService = new RefactoringService(refactoringInteraction);
+        var refactoringService = new RefactoringService(refactoringInteraction, messaging);
         mainWindow.SetViewer(explorationGraphViewer);
-        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings);
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService);
+        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging);
         var infoPanelViewModel = new InfoPanelViewModel();
@@ -128,9 +128,9 @@ public partial class App
         messaging.Subscribe<QuickInfoUpdateRequest>(infoPanelViewModel.HandleUpdateQuickInfo);
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
-  
         messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
 
+        
         // Refactorings are forwarded to all other view models
         messaging.Subscribe<CodeGraphRefactored>(viewModel.HandleCodeGraphRefactored);
         // messaging.Subscribe<CodeElementsMoved>(viewModel.HandleCodeGraphRefactored);
