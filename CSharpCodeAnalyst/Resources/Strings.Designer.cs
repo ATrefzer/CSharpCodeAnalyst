@@ -1867,6 +1867,60 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Restore.
+        /// </summary>
+        public static string Restore {
+            get {
+                return ResourceManager.GetString("Restore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to restore snapshot..
+        /// </summary>
+        public static string Restore_Failed {
+            get {
+                return ResourceManager.GetString("Restore_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restoring snapshot....
+        /// </summary>
+        public static string Restore_LoadMessage {
+            get {
+                return ResourceManager.GetString("Restore_LoadMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No snapshot available to restore..
+        /// </summary>
+        public static string Restore_NoSnapshot {
+            get {
+                return ResourceManager.GetString("Restore_NoSnapshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snapshot restored successfully..
+        /// </summary>
+        public static string Restore_Success {
+            get {
+                return ResourceManager.GetString("Restore_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restores the previously taken snapshot..
+        /// </summary>
+        public static string Restore_Tooltip {
+            get {
+                return ResourceManager.GetString("Restore_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Clear.
         /// </summary>
         public static string Rules_Clear {
@@ -2193,6 +2247,42 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_WarnIfFiltersActive_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_WarnIfFiltersActive_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snapshot.
+        /// </summary>
+        public static string Snapshot {
+            get {
+                return ResourceManager.GetString("Snapshot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to create snapshot.
+        /// </summary>
+        public static string Snapshot_Failed {
+            get {
+                return ResourceManager.GetString("Snapshot_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snapshot captured successfully..
+        /// </summary>
+        public static string Snapshot_Success {
+            get {
+                return ResourceManager.GetString("Snapshot_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Capture current state for later restoration.
+        /// </summary>
+        public static string Snapshot_Tooltip {
+            get {
+                return ResourceManager.GetString("Snapshot_Tooltip", resourceCulture);
             }
         }
         

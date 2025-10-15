@@ -1119,11 +1119,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             // Store the snapshot in memory
             _snapshot = projectData;
 
-            ToastManager.ShowSuccess("Snapshot captured successfully.");
+            ToastManager.ShowSuccess(Strings.Snapshot_Success);
         }
         catch (Exception ex)
         {
-            var message = $"Failed to create snapshot: {ex.Message}";
+            var message = $"{Strings.Snapshot_Failed}: {ex.Message}";
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
@@ -1132,22 +1132,22 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         if (_snapshot is null)
         {
-            ToastManager.ShowWarning("No snapshot available to restore.");
+            ToastManager.ShowWarning(Strings.Restore_NoSnapshot);
             return;
         }
 
         try
         {
-            LoadMessage = "Restoring snapshot...";
+            LoadMessage =Strings.Restore_LoadMessage;
             IsLoading = true;
 
             RestoreProjectData(_snapshot);
 
-            ToastManager.ShowSuccess("Snapshot restored successfully.");
+            ToastManager.ShowSuccess(Strings.Restore_Success);
         }
         catch (Exception ex)
         {
-            var message = $"Failed to restore snapshot: {ex.Message}";
+            var message = $"{Strings.Restore_Failed}: {ex.Message}";
             MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
