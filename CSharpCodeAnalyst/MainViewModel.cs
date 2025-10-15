@@ -704,8 +704,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         
         var openFileDialog = new OpenFileDialog
         {
-            Filter = "Solution files (*.sln)|*.sln",
-            Title = "Select a solution file"
+            Filter = Strings.Import_FileFilter,
+            Title = Strings.Import_DialogTitle
         };
 
         if (openFileDialog.ShowDialog() != true)
