@@ -245,7 +245,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Partition (base inclusive)</value>
   </data>
   <data name="ImportSolution_Label" xml:space="preserve">
-    <value>Import Visual Studio _solution ...</value>
+    <value>Import Visual Studio _solution or C# project ...</value>
   </data>
   <data name="ImportJdeps_Label" xml:space="preserve">
     <value>Import from _jdeps ...</value>
@@ -890,5 +890,11 @@ ISOLATE: MyApp.Domain.**</value>
   </data>
   <data name="Rules_Header" xml:space="preserve">
     <value>Define the architectural rules for your solution:</value>
+  </data>
+  <data name="Import_FileFilter" xml:space="preserve">
+    <value>Solution files (*.sln)|*.sln|C# project (*.csproj)|*.csproj</value>
+  </data>
+  <data name="Import_DialogTitle" xml:space="preserve">
+    <value>Select a solution or project file</value>
   </data>
 </root>

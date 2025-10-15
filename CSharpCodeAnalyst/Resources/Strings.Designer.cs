@@ -1110,6 +1110,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select a solution or project file.
+        /// </summary>
+        public static string Import_DialogTitle {
+            get {
+                return ResourceManager.GetString("Import_DialogTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution files (*.sln)|*.sln|C# project (*.csproj)|*.csproj.
+        /// </summary>
+        public static string Import_FileFilter {
+            get {
+                return ResourceManager.GetString("Import_FileFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Import.
         /// </summary>
         public static string Import_Label {
@@ -1128,7 +1146,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import Visual Studio _solution ....
+        ///   Looks up a localized string similar to Import Visual Studio _solution or C# project ....
         /// </summary>
         public static string ImportSolution_Label {
             get {
