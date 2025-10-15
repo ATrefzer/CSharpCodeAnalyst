@@ -1132,7 +1132,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         if (_snapshot is null)
         {
-            ToastManager.ShowSuccess("No snapshot available to restore.");
+            ToastManager.ShowWarning("No snapshot available to restore.");
             return;
         }
 

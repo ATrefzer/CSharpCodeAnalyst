@@ -142,12 +142,14 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
                string.Join("\n", relationshipNames.OrderBy(x => x));
     }
 
-    public void DeleteRelationships(List<Relationship> relationships)
+    public bool DeleteRelationships(List<Relationship> relationships)
     {
+        var removed = 0;
         foreach (var relationship in relationships)
         {
             var sourceNode =  Nodes[relationship.SourceId];
-            sourceNode.Relationships.RemoveWhere(relationships.Contains);
+            removed += sourceNode.Relationships.RemoveWhere(relationships.Contains);
         }
+        return removed > 0;
     }
 }

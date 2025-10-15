@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using Contracts.Graph;
@@ -180,6 +181,11 @@ public class TreeViewModel : INotifyPropertyChanged
             // This may be slow but easy.
             LoadCodeGraph(moved.Graph);
             _messaging.Publish(new LocateInTreeRequest(moved.SourceId));
+        }
+        else if (message is RelationshipsDeleted relationshipsDeleted)
+        {
+            // We already have the latest code graph, so no action needed.
+            Debug.Assert(!_codeGraph!.DeleteRelationships(relationshipsDeleted.Deleted));
         }
     }
 

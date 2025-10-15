@@ -848,6 +848,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();
             _viewer.LoadSession(nodes, relationships, session.PresentationState);
         }
+        else if (message is RelationshipsDeleted relationshipsDeleted)
+        {
+            // Get rid of relationships in the canvas graph.
+            _viewer.RemoveFromGraph(relationshipsDeleted.Deleted);
+        }
         
         // Added elements are for sure not in this graph yet.
     }
