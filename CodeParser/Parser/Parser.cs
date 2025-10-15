@@ -17,7 +17,13 @@ public class Parser(ParserConfig config)
 {
 
     private readonly ParserDiagnostics _diagnostics = new();
-    public Progress Progress { get; } = new();
+    private readonly Progress _progress = new Progress();
+
+
+    public IProgress Progress
+    {
+        get => _progress;
+    }
 
     public IParserDiagnostics Diagnostics
     {
@@ -45,7 +51,7 @@ public class Parser(ParserConfig config)
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
 
-        Progress.SendProgress("Compiling project ...");
+        _progress.SendProgress("Compiling project ...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
@@ -68,7 +74,7 @@ public class Parser(ParserConfig config)
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
 
-        Progress.SendProgress("Compiling solution ...");
+        _progress.SendProgress("Compiling solution ...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
@@ -88,7 +94,7 @@ public class Parser(ParserConfig config)
         var sw = Stopwatch.StartNew();
 
         // First Pass: Build Hierarchy
-        var phase1 = new HierarchyAnalyzer(Progress, config);
+        var phase1 = new HierarchyAnalyzer(_progress, config);
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
         sw.Stop();
@@ -96,7 +102,7 @@ public class Parser(ParserConfig config)
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
-        var phase2 = new RelationshipAnalyzer(Progress, config);
+        var phase2 = new RelationshipAnalyzer(_progress, config);
         await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
 
         sw.Stop();

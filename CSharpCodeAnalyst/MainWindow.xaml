@@ -13,6 +13,7 @@
         xmlns:treeArea="clr-namespace:CSharpCodeAnalyst.Areas.TreeArea"
         xmlns:advancedSearchArea="clr-namespace:CSharpCodeAnalyst.Areas.AdvancedSearchArea"
         x:Name="RootWindow"
+        Icon="/Resources/lamp.ico"
         Closing="RootWindow_Closing"
         Title="{Binding Title}" Height="520" Width="1200"
         MinWidth="720" MinHeight="400"

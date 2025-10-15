@@ -129,6 +129,8 @@
         <Resource Include="Resources\puzzle.png" />
         <Resource Include="Resources\synchronize_32.png" />
         <Resource Include="Resources\flag-empty_32.png" />
+        <None Remove="Resources\lamp.ico" />
+        <Resource Include="Resources\lamp.ico" />
     </ItemGroup>
 
 
