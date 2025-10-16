@@ -148,12 +148,6 @@
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
     </ItemGroup>
 
-    <!--<ItemGroup>
-        <PackageReference Include="AutomaticGraphLayout.WpfGraphControl" Version="1.1.12" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
-        <PackageReference Include="Prism.Core" Version="8.1.97" />
-    </ItemGroup>-->
-
     <ItemGroup>
         <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
         <ProjectReference Include="..\Contracts\Contracts.csproj" />
@@ -184,5 +178,13 @@
             <Generator>PublicResXFileCodeGenerator</Generator>
             <LastGenOutput>Strings.Designer.cs</LastGenOutput>
         </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Copy ThirdPartyNotices to output directory for license compliance -->
+        <None Include="..\ThirdPartyNotices\**\*">
+            <Link>ThirdPartyNotices\%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 </Project>
