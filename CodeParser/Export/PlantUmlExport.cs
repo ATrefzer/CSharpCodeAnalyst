@@ -80,7 +80,7 @@ public class PlantUmlExport
     // Recursive writer for assemblies and namespaces
     private static void WriteContainerRecursive(StringBuilder builder, CodeElement containerNode, string indent)
     {
-        var containerName = SanitizeClassName(containerNode.Name, false);
+        var containerName = SanitizeName(containerNode.Name, false);
 
         var keyword = containerNode.ElementType switch
         {
@@ -108,8 +108,8 @@ public class PlantUmlExport
 
     private static void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
     {
-        var typeDisplayName = SanitizeClassName(node.Name, false);
-        var alias = SanitizeClassName(node.FullName, true);
+        var typeDisplayName = SanitizeName(node.Name, false);
+        var alias = SanitizeName(node.FullName, true);
 
         // Always use alias syntax with full path as the identifier
         builder.AppendLine($"{indent}class \"{typeDisplayName}\" as {alias} {{");
@@ -160,8 +160,8 @@ public class PlantUmlExport
             if (!IsClassDiagramType(targetNode.ElementType)) continue;
 
             // This already uses the full path aka alias
-            var sourceAlias = SanitizeClassName(sourceNode.FullName, true);
-            var targetAlias = SanitizeClassName(targetNode.FullName, true);
+            var sourceAlias = SanitizeName(sourceNode.FullName, true);
+            var targetAlias = SanitizeName(targetNode.FullName, true);
             WriteUmlArrow(builder, sourceAlias, targetAlias, umlArrowType);
         }
 
@@ -173,8 +173,8 @@ public class PlantUmlExport
 
             // We need the full path for the dependencies so we do not confuse 
             // namespaces and classes with same names.
-            var sourceAlias = SanitizeClassName(sourceNode.FullName, true);
-            var targetAlias = SanitizeClassName(targetNode.FullName, true);
+            var sourceAlias = SanitizeName(sourceNode.FullName, true);
+            var targetAlias = SanitizeName(targetNode.FullName, true);
 
             var key = (sourceAlias, targetAlias);
             if (!processedRelationships.Add(key))
@@ -313,7 +313,7 @@ public class PlantUmlExport
             CodeElementType.Event;
     }
 
-    private static string SanitizeClassName(string fullPath, bool replaceNamespaceSeparator)
+    private static string SanitizeName(string fullPath, bool replaceNamespaceSeparator)
     {
         var sanitized = fullPath.Replace("<", "_").Replace(">", "_").Replace(",", "_").Replace(" ", "_");
         if (replaceNamespaceSeparator)
