@@ -203,8 +203,14 @@ Please take note of the following issues:
 
 - The beautiful **images** in the user interface are <a href="https://de.freepik.com/search">Images from juicy_fish on Freepik</a>.
   You can find the direct link to the collection here: [Icon-Portfolio des Autors Juicy_fish | Freepik](https://de.freepik.com/autor/juicy-fish/icons)
-- The dependency graphs are created using the **"Automatic Graph Layout" package"**. You can find more information about it at:
+- The dependency graphs are created using the **"Automatic Graph Layout" package"**. 
+  MSAGL was developed in Microsoft by Lev Nachmanson, Sergey Pupyrev, Tim Dwyer, Ted Hart, and Roman Prutkin:
   https://github.com/microsoft/automatic-graph-layout
+- Drag and drop functionality is provided by the **gong-wpf-dragdrop** library.
+  Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
+  https://github.com/punker76/gong-wpf-dragdrop
+
+For complete third-party license information, see the [ThirdPartyNotices](ThirdPartyNotices/) folder.
 
 ## Supporting this project
 

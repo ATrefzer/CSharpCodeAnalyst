@@ -1,0 +1,79 @@
+MIT-Licensed Libraries
+================================================================================
+
+This file contains the MIT License text for all MIT-licensed third-party
+libraries used in this project.
+
+================================================================================
+
+
+1. MICROSOFT .NET LIBRARIES
+================================================================================
+
+https://github.com/dotnet/runtime
+https://github.com/dotnet/roslyn
+https://github.com/microsoft/automatic-graph-layout
+https://github.com/microsoft/XamlBehaviorsWpf
+
+The following Microsoft packages are used in this project:
+
+Production Dependencies:
+- Microsoft.Extensions.Configuration
+- Microsoft.Extensions.Configuration.Binder
+- Microsoft.Extensions.Configuration.Json
+- Microsoft.Xaml.Behaviors.Wpf
+- Microsoft.Build.Locator
+- Microsoft.CodeAnalysis.Analyzers
+- Microsoft.CodeAnalysis.Common
+- Microsoft.CodeAnalysis.CSharp
+- Microsoft.CodeAnalysis.CSharp.Workspaces
+- Microsoft.CodeAnalysis.Workspaces.Common
+- Microsoft.CodeAnalysis.Workspaces.MSBuild
+- Microsoft.Msagl (Automatic Graph Layout)
+- Microsoft.Msagl.Drawing
+- Microsoft.Msagl.WpfGraphControl
+
+Test Dependencies:
+- Microsoft.NET.Test.Sdk
+- NUnit
+- NUnit.Analyzers
+- NUnit3TestAdapter
+
+
+2. LIBGIT2SHARP
+================================================================================
+
+https://github.com/libgit2/libgit2sharp
+
+LibGit2Sharp is a .NET wrapper for libgit2, used in the ApprovalTestTool
+(internal testing tool, not distributed with the application).
+
+Copyright (c) LibGit2Sharp contributors
+
+
+================================================================================
+MIT LICENSE TEXT
+================================================================================
+
+MIT License
+
+Copyright (c) .NET Foundation and Contributors
+Copyright (c) LibGit2Sharp contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

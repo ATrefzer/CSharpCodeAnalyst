@@ -46,7 +46,7 @@
         <Border ClipToBounds="True"
                 dd:DragDrop.IsDropTarget="True"
                 dd:DragDrop.DropHandler="{Binding GraphViewModel.DropHandler}">
-            <Grid>
+            <Grid Background="Transparent">
                 <!-- Top margin to get below the overlay buttons -->
                 <DockPanel x:Name="GraphPanel" Margin="20" />
 
