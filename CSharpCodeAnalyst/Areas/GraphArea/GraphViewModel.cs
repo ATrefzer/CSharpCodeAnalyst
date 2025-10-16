@@ -31,6 +31,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly ApplicationSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
+    private readonly GraphDropHandler _dropHandler;
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
@@ -46,6 +47,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _publisher = publisher;
         _settings = settings;
         _refactoringService = refactoringService;
+        _dropHandler = new GraphDropHandler(publisher);
 
         // Initialize RenderOptions
         RenderOptions =
@@ -278,6 +280,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public ICommand AddParentsCommand { get; }
 
+    public GraphDropHandler DropHandler => _dropHandler;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

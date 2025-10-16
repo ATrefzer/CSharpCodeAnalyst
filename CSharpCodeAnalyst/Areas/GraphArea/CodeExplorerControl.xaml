@@ -6,6 +6,7 @@
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
              xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
+             xmlns:dd="urn:gong-wpf-dragdrop"
              mc:Ignorable="d"
              x:Name="CodeExplorationControl"
              d:DataContext="{d:DesignInstance analyst:MainViewModel}"
@@ -42,7 +43,9 @@
             <TextBlock Text="{x:Static resources:Strings.Hint_GlobalContext}" Style="{StaticResource HintStyle}" />
             <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" Style="{StaticResource HintStyle}" />
         </StackPanel>
-        <Border ClipToBounds="True">
+        <Border ClipToBounds="True"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.DropHandler="{Binding GraphViewModel.DropHandler}">
             <Grid>
                 <!-- Top margin to get below the overlay buttons -->
                 <DockPanel x:Name="GraphPanel" Margin="20" />
