@@ -1,0 +1,41 @@
+﻿@startuml
+!theme plain
+hide footbox
+hide circle
+set namespaceSeparator .
+
+namespace Export {
+    class "DgmlExport" as CodeParser_CodeParser_Export_DgmlExport {
+        Export()
+        GetEdgeLabel()
+        WriteCategories()
+    }
+}
+namespace Parser {
+    class "LambdaBodyWalker" as CodeParser_CodeParser_Parser_LambdaBodyWalker {
+    }
+    class "MethodBodyWalker" as CodeParser_CodeParser_Parser_MethodBodyWalker {
+    }
+    class "Progress" as CodeParser_CodeParser_Parser_Progress {
+    }
+    class "SyntaxWalkerBase" as CodeParser_CodeParser_Parser_SyntaxWalkerBase {
+    }
+}
+class "Export" as CSharpCodeAnalyst_CSharpCodeAnalyst_Exports_Export {
+    ToDgml()
+}
+class "IProgress" as Contracts_Contracts_Common_IProgress {
+}
+Contracts_Contracts_Common_IProgress <<interface>>
+class "MainViewModel" as CSharpCodeAnalyst_CSharpCodeAnalyst_MainViewModel {
+    _codeGraph
+}
+class "CodeGraph" as Contracts_Contracts_Graph_CodeGraph {
+}
+
+    CodeParser_CodeParser_Parser_LambdaBodyWalker --|> CodeParser_CodeParser_Parser_SyntaxWalkerBase
+    CodeParser_CodeParser_Parser_MethodBodyWalker --|> CodeParser_CodeParser_Parser_SyntaxWalkerBase
+    CodeParser_CodeParser_Parser_Progress ..|> Contracts_Contracts_Common_IProgress
+    CSharpCodeAnalyst_CSharpCodeAnalyst_MainViewModel --> Contracts_Contracts_Graph_CodeGraph
+    CSharpCodeAnalyst_CSharpCodeAnalyst_Exports_Export ..> CodeParser_CodeParser_Export_DgmlExport
+@enduml

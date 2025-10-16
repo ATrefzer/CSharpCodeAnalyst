@@ -153,6 +153,13 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
 
         return childrenIncludingSelf;
     }
+    
+    public HashSet<string> GetChildren()
+    {
+        var children = GetChildrenIncludingSelf();
+        children.Remove(Id);
+        return children;
+    }
 
     /// <summary>
     ///     Moves the CodeElement to the new parent.

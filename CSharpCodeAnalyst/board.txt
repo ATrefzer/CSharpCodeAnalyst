@@ -6,22 +6,11 @@
 
 - Consider adding the access modifiers. We could get rid of all private members.
 
+
 - Virtual Refactorings: TreeView Update may be slow
-
-- Most recent file list.
-
-- Focus on Edge
-
-- Deep incoming and outgoing references
-
-- Delete everything without arrows
-
 - Property has not much contrast to method
-
 - Namespace icon differs from others
-
 - Jump to Code from context menu?
-
 - Focus on flagged.
 
 
