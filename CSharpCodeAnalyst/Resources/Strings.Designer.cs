@@ -470,20 +470,20 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy to clipboard.
+        ///   Looks up a localized string similar to Copy to image to clipboard.
         /// </summary>
-        public static string Copy_Clipboard_Label {
+        public static string Copy_BitmapClipboard_Label {
             get {
-                return ResourceManager.GetString("Copy_Clipboard_Label", resourceCulture);
+                return ResourceManager.GetString("Copy_BitmapClipboard_Label", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Copy current Code Explorer graph as image to clipboard..
         /// </summary>
-        public static string Copy_Clipboard_Tooltip {
+        public static string Copy_BitmapClipboard_Tooltip {
             get {
-                return ResourceManager.GetString("Copy_Clipboard_Tooltip", resourceCulture);
+                return ResourceManager.GetString("Copy_BitmapClipboard_Tooltip", resourceCulture);
             }
         }
         
@@ -677,6 +677,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export plain text ....
+        /// </summary>
+        public static string ExportPlainText_Label {
+            get {
+                return ResourceManager.GetString("ExportPlainText_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CExport Code Explorer (expanded) graph to plain text..
+        /// </summary>
+        public static string ExportPlainText_Tooltip {
+            get {
+                return ResourceManager.GetString("ExportPlainText_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy PlantUml class diagram.
         /// </summary>
         public static string ExportPlantUml_Label {
@@ -691,15 +709,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string ExportPlantUml_Success {
             get {
                 return ResourceManager.GetString("ExportPlantUml_Success", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &quot;Export successful.
-        /// </summary>
-        public static string ExportPlantUml_Title {
-            get {
-                return ResourceManager.GetString("ExportPlantUml_Title", resourceCulture);
             }
         }
         
@@ -1150,6 +1159,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string ImportJdeps_Label {
             get {
                 return ResourceManager.GetString("ImportJdeps_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import plain text ....
+        /// </summary>
+        public static string ImportPlainText_Label {
+            get {
+                return ResourceManager.GetString("ImportPlainText_Label", resourceCulture);
             }
         }
         

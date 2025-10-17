@@ -51,7 +51,7 @@ public static class Export
         }
     }
 
-    public static void ToClipboard(FrameworkElement? canvas)
+    public static void ToBitmapClipboard(FrameworkElement? canvas)
     {
         if (canvas is null)
         {
@@ -202,5 +202,35 @@ public static class Export
 
         process.StartInfo = startInfo;
         process.Start();
+    }
+
+    public static void ToPlainText(CodeGraph? graph)
+    {
+        if (graph is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "TXT files (*.txt)|*.txt",
+                Title = "Export to TXT"
+            };
+
+            if (saveFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            CodeGraphSerializer.SerializeToFile(graph, saveFileDialog.FileName);
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError(ex.ToString());
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

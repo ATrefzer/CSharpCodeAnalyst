@@ -65,6 +65,9 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportJdeps_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportJdepsCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportPlainText_Label}"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding ImportPlainTextCommand}" />
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"
@@ -180,6 +183,11 @@
                                         ImageSource="/Resources/spreadsheet_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
                                         Command="{Binding ExportToDsiCommand}" />
+                        
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlainText_Label}"
+                                        ImageSource="/Resources/png-file_32.png"
+                                        ToolTip="{x:Static resources:Strings.ExportPlainText_Tooltip}"
+                                        Command="{Binding ExportPlainTextCommand}" />
 
                         <RibbonSeparator />
 
@@ -188,13 +196,12 @@
                                         ToolTip="{x:Static resources:Strings.ExportPlantUml_Tooltip}"
                                         Command="{Binding ExportToPlantUmlCommand}" />
 
-                        <RibbonMenuItem Header="{x:Static resources:Strings.Copy_Clipboard_Label}"
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Copy_BitmapClipboard_Label}"
                                         ImageSource="/Resources/png-file_32.png"
-                                        ToolTip="{x:Static resources:Strings.Copy_Clipboard_Tooltip}"
-                                        Command="{Binding CopyToClipboardCommand}"
+                                        ToolTip="{x:Static resources:Strings.Copy_BitmapClipboard_Tooltip}"
+                                        Command="{Binding CopyBitmapToClipboardCommand}"
                                         CommandParameter="{Binding ElementName=ExplorationControl}" />
-
-
+                        
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"

@@ -670,14 +670,18 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="ExportPlantUml_Success" xml:space="preserve">
     <value>PlantUml class diagram syntax has been copied to clipboard.</value>
   </data>
-    <data name="ExportPlantUml_Title" xml:space="preserve">
-    <value>"Export successful</value>
+
+    <data name="Copy_BitmapClipboard_Label" xml:space="preserve">
+    <value>Copy to image to clipboard</value>
   </data>
-    <data name="Copy_Clipboard_Label" xml:space="preserve">
-    <value>Copy to clipboard</value>
-  </data>
-    <data name="Copy_Clipboard_Tooltip" xml:space="preserve">
+    <data name="Copy_BitmapClipboard_Tooltip" xml:space="preserve">
     <value>Copy current Code Explorer graph as image to clipboard.</value>
+  </data>
+    <data name="ExportPlainText_Label" xml:space="preserve">
+    <value>Export plain text ...</value>
+  </data>
+    <data name="ExportPlainText_Tooltip" xml:space="preserve">
+    <value>CExport Code Explorer (expanded) graph to plain text.</value>
   </data>
     <data name="ExportSvg_Tooltip" xml:space="preserve">
     <value>Export Code Explorer (expanded) graph to SVG. NOTE: Sub-graphs are not implemented!</value>
@@ -942,6 +946,8 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="AddParents_Tooltip" xml:space="preserve">
     <value>Adds the parent code element to all selected code elements.</value>
   </data>
-
-
+    <data name="ImportPlainText_Label" xml:space="preserve">
+    <value>Import plain text ...</value>
+  </data>
+  
 </root>

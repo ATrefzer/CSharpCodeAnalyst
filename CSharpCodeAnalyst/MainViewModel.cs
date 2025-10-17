@@ -1,4 +1,13 @@
-﻿using CodeParser.Analysis.Cycles;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Windows;
+using System.Windows.Input;
+using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
 using CodeParser.Parser;
@@ -32,15 +41,6 @@ using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
 using Microsoft.Win32;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Windows;
-using System.Windows.Input;
 
 namespace CSharpCodeAnalyst;
 
@@ -55,11 +55,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
-    private readonly RefactoringService _refactoringService;
 
     private readonly MessageBus _messaging;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private readonly RefactoringService _refactoringService;
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
@@ -71,8 +71,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private Gallery.Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
-
-    private ProjectData? _snapshot;
     private InfoPanelViewModel? _infoPanelViewModel;
 
     private bool _isCanvasHintsVisible = true;
@@ -89,6 +87,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
+
+    private ProjectData? _snapshot;
     private TreeViewModel? _treeViewModel;
 
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager, RefactoringService refactoringService)
@@ -122,6 +122,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         SearchCommand = new WpfCommand(Search);
         LoadSolutionCommand = new WpfCommand(OnLoadSolution);
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
+        ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
+
         LoadProjectCommand = new WpfCommand(OnLoadProject);
         SaveProjectCommand = new WpfCommand(OnSaveProject);
         GraphClearCommand = new WpfCommand(OnGraphClear);
@@ -138,7 +140,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExportToSvgCommand = new WpfCommand(OnExportToSvg);
         ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
-        CopyToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
+        ExportPlainTextCommand = new WpfCommand(OnExportPlainText);
+        CopyBitmapToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
         OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
         SnapshotCommand = new WpfCommand(OnSnapshot);
         RestoreCommand = new WpfCommand(OnRestore);
@@ -148,14 +151,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         RefreshMru();
     }
 
-    private void OnAnalyzerDataChanged(object? sender, EventArgs e)
-    {
-        if (_analyzerManager.IsDirty())
-        {
-            SetDirty(false);            
-        }
-        
-    }
+
+
+    public WpfCommand ExportPlainTextCommand { get; set; }
 
     public ObservableCollection<Mru> RecentFiles { get; } = [];
 
@@ -352,7 +350,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _analyzerManager.All;
     }
 
-    public ICommand CopyToClipboardCommand { get; set; }
+    public ICommand CopyBitmapToClipboardCommand { get; set; }
 
     public bool IsGraphToolPanelVisible
     {
@@ -370,7 +368,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get
         {
             var title = Strings.AppTitle;
-            
+
             if (_dirtyState == DirtyState.DirtyForceNewFile)
             {
                 // Don't show filename when no longer valid
@@ -380,7 +378,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             {
                 title = title + " - " + OpenProjectFilePath;
             }
-            
+
             if (IsDirty())
             {
                 title += " *";
@@ -390,7 +388,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public ICommand ImportPlainTextCommand { get; set; }
+
     public event PropertyChangedEventHandler? PropertyChanged;
+
+
+    private void OnAnalyzerDataChanged(object? sender, EventArgs e)
+    {
+        if (_analyzerManager.IsDirty())
+        {
+            SetDirty(false);
+        }
+    }
 
     private bool IsDirty()
     {
@@ -421,7 +430,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Get rid of the magnifier icon
             IsGraphToolPanelVisible = false;
-            Export.ToClipboard(canvas);
+            Export.ToBitmapClipboard(canvas);
         }
         finally
         {
@@ -508,14 +517,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             // We already have the most strict dirty form.
             return;
         }
-        
+
         if (forceNewFile)
         {
             _dirtyState = DirtyState.DirtyForceNewFile;
         }
         else
         {
-            _dirtyState = DirtyState.Dirty;    
+            _dirtyState = DirtyState.Dirty;
         }
 
         OnPropertyChanged(nameof(Title));
@@ -712,7 +721,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private async void OnLoadSolution()
     {
         AskUserToSaveProject();
-        
+
         var openFileDialog = new OpenFileDialog
         {
             Filter = Strings.Import_FileFilter,
@@ -766,10 +775,55 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         return codeGraph;
     }
 
+
+
+    private void OnImportPlainText()
+    {
+        AskUserToSaveProject();
+
+        var openFileDialog = new OpenFileDialog
+        {
+            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
+            Title = "Select plaint text graph file"
+        };
+
+        if (openFileDialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            IsLoading = true;
+            LoadMessage = "Importing plaint text graph...";
+
+            var codeGraph = CodeGraphSerializer.DeserializeFromFile(openFileDialog.FileName);
+            LoadCodeGraph(codeGraph);
+
+            // Imported a new plaintext file
+            OpenProjectFilePath = string.Empty;
+            SetDirty(false);
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsCanvasHintsVisible = false;
+            IsLoading = false;
+            LoadMessage = string.Empty;
+        }
+    }
+
+
+
     private void OnImportJdeps()
     {
         AskUserToSaveProject();
-        
+
         var openFileDialog = new OpenFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
@@ -836,6 +890,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             IsGraphToolPanelVisible = true;
         }
+    }
+
+    private void OnExportPlainText()
+    {
+        Export.ToPlainText(_graphViewModel?.ExportGraph());
     }
 
     /// <summary>
@@ -1138,7 +1197,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            LoadMessage =Strings.Restore_LoadMessage;
+            LoadMessage = Strings.Restore_LoadMessage;
             IsLoading = true;
 
             RestoreProjectData(_snapshot);
