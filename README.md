@@ -215,3 +215,16 @@ For complete third-party license information, see the [ThirdPartyNotices](ThirdP
 ## Supporting this project
 
 If you find any uncovered cases or bugs, please create an issue to support this project.
+
+## License
+
+This project is licensed under the GPL-3.0 License.
+
+**Note:** Versions prior to v0.9.0 were released under the MIT License.
+
+### What this means for you:
+
+- ✅ Use it freely in your projects (even commercial)
+- ✅ Modify and improve it
+- ⚠️ If you distribute modified versions, share your changes under GPL-3.0
+- ℹ️ This is a development tool - it won't affect your analyzed code
