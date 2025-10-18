@@ -178,6 +178,11 @@ public class RefactoringService
         {
             _messaging.Publish<CodeGraphRefactored>(new CodeElementsDeleted(_graph, elementId, parentId, deletedIds));
         }
+
+        if (_target != null && deletedIds.Contains(_target.Id))
+        {
+            _target = null;
+        }
     }
 
     public bool CanMoveCodeElement(string? sourceId)
