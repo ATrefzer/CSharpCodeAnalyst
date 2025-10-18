@@ -397,8 +397,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnImportStateChanged(object? sender, ImportStateChangedArgs e)
     {
-        LoadMessage = e.ProgressMessage;
         IsLoading = e.IsLoading;
+        LoadMessage = e.ProgressMessage;
     }
 
     private void OnAnalyzerDataChanged(object? sender, EventArgs e)
