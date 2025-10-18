@@ -315,11 +315,12 @@ public class PlantUmlExport
 
     private static string SanitizeName(string fullPath, bool replaceNamespaceSeparator)
     {
-        var sanitized = fullPath.Replace("<", "_").Replace(">", "_").Replace(",", "_").Replace(" ", "_");
+        var sanitized = fullPath.Replace("<", "_").Replace(">", "_").Replace(",", "_").Replace(" ", "_").Replace("-", "_");
         if (replaceNamespaceSeparator)
         {
             // We do not see the alias, but it must not contain the namespace separator!
             // Otherwise, plantuml builds the namespace hierarchy from the class name.
+            // Note: An alias does also not support underscores in the name but this is handled above.
             sanitized = sanitized.Replace(".", "_");
         }
 
