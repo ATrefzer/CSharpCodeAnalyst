@@ -7,6 +7,11 @@ internal class ParserDiagnostics : IParserDiagnostics
 {
     private List<WorkspaceDiagnostic> Diagnostics { get; } = [];
 
+    public bool HasDiagnostics
+    {
+        get => Failures.Any() || Warnings.Any();
+    }
+
     public string FormatFailures()
     {
         return string.Join(Environment.NewLine, Failures);

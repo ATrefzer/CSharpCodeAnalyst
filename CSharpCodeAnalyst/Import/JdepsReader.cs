@@ -3,7 +3,7 @@ using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Import;
 
-public class JdepsImporter
+public class JdepsReader
 {
     private readonly Dictionary<string, CodeElement> _codeElements = new();
     private int _nextId = 1;

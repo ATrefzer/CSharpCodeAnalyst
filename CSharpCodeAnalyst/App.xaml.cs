@@ -96,11 +96,11 @@ public partial class App
 
         var userSettings = UserSettings.Instance;
 
-        var messageBox = new WindowsUserNotification();
+        var uiNotification = new WindowsUserNotification();
         var messaging = new MessageBus();
 
         var analyzerManager = new AnalyzerManager();
-        analyzerManager.LoadAnalyzers(messaging, messageBox);
+        analyzerManager.LoadAnalyzers(messaging, uiNotification);
 
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();

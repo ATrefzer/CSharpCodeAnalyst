@@ -31,7 +31,7 @@ public class Parser(ParserConfig config)
     }
     
     
-    public async Task<CodeGraph> Parse(string path)
+    public async Task<CodeGraph> ParseAsync(string path)
     {
         var extension = Path.GetExtension(path).ToLowerInvariant();
     
