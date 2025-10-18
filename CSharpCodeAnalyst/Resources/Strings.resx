@@ -145,7 +145,7 @@
     <value>Collapse</value>
   </data>
     <data name="CompleteRelationships" xml:space="preserve">
-    <value>Complete relationships</value>
+    <value>Adds all missing relationships between code elements that are present in the Code Explorer</value>
   </data>
     <data name="RemoveWithoutChildren" xml:space="preserve">
     <value>_Remove from Code Explorer</value>
@@ -199,7 +199,7 @@
     <value>Selected: Remove (with children)</value>
   </data>
     <data name="SelectedFocus" xml:space="preserve">
-    <value>Selected: Focus</value>
+    <value>Focus on the selected code elements. All other elements are removed from the Code Explorer.</value>
   </data>
     <data name="Layout_Tooltip" xml:space="preserve">
     <value>Resets zoom level and fits to screen</value>
@@ -377,7 +377,8 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>• Right-click on empty space: global context commands (i.e. selection)</value>
   </data>
     <data name="CompleteToTypes" xml:space="preserve">
-    <value>Complete to containing types</value>
+    <value>For code elements like methods and fields, it is ensured that at least the containing class (or struct) is present in the Code Explorer.
+If code elements are missing in the hierarchy of present code elements, the gaps are filled.</value>
   </data>
     <data name="ToggleFlag" xml:space="preserve">
     <value>Toggle _flag</value>

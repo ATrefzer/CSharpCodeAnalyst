@@ -57,9 +57,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             new BottomToTopRenderOptions()
         ];
 
-
-
-
         HighlightOptions =
         [
             HighlightOption.Default,
@@ -410,11 +407,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
     }
 
-    private static bool CanHandleIfSelectedElements(List<CodeElement> selectedElements)
-    {
-        return selectedElements.Any();
-    }
-
     private void RemoveEdges(string sourceId, string targetId, List<Relationship> relationships)
     {
         PushUndo();
@@ -443,18 +435,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         _viewer.RemoveFromGraph(idsToRemove);
-    }
-
-    private void CompleteToTypes(List<CodeElement> _)
-    {
-        // Context menu
-        OnCompleteToContainingTypes();
-    }
-
-    private void CompleteRelationships(List<CodeElement> _)
-    {
-        // Context menu
-        OnCompleteRelationships();
     }
 
     private bool CanCollapse(CodeElement codeElement)
@@ -603,10 +583,16 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships,
         bool addCollapsed = false)
     {
-        PushUndo();
-
         var elementsToAdd = originalCodeElements.ToList();
         var relationshipsToAdd = relationships.ToList();
+
+        if (elementsToAdd.Count == 0 && relationshipsToAdd.Count == 0)
+        {
+            // Don't trigger undo
+            return;
+        }
+        
+        PushUndo();
 
         // Apply "Automatically add containing type" setting
         if (_settings.AutomaticallyAddContainingType)
