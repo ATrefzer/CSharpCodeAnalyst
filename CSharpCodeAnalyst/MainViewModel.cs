@@ -702,7 +702,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         Cycles = null;
         AnalyzerResult = null;
-        InfoPanelViewModel?.Clear();
+        InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateMetrics(codeGraph);
     }
@@ -1142,7 +1142,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Maybe not valid anymore
         Cycles = null;
         AnalyzerResult = null;
-        InfoPanelViewModel?.Clear();
+        InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateMetrics(message.Graph);
 
@@ -1224,5 +1224,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
+    }
+
+    
+    
+    
+    
+    
+    public void ClearQuickInfo()
+    {
+        _infoPanelViewModel?.ClearQuickInfo();
+        _graphViewModel.ClearQuickInfo();
     }
 }

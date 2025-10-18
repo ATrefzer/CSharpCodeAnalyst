@@ -83,4 +83,11 @@ public interface IGraphViewer
     void SetHideFilter(GraphHideFilter hideFilter);
     GraphHideFilter GetHideFilter();
     HashSet<string> GetSelectedElementIds();
+    
+    /// <summary>
+    /// Allows to release the last clicked object.
+    /// If an object was clicked while the info area is not visible the quick info event is ignored.
+    /// However, the viewer locks the last clicked object. This gives bad user experience.
+    /// </summary>
+    void ClearQuickInfo();
 }

@@ -27,13 +27,23 @@ public partial class CodeExplorerControl
     {
         // Better user experience.
         // Allow context menu in space not occupied by the graph canvas
-        if (DataContext is MainViewModel mainVm && e is
-            {
-                ButtonState: MouseButtonState.Pressed,
-                ChangedButton: MouseButton.Right
-            })
+        // if (DataContext is MainViewModel mainVm && e is
+        //     {
+        //         ButtonState: MouseButtonState.Pressed,
+        //         ChangedButton: MouseButton.Right
+        //     })
+        // {
+        //     // Replaced by toolbar
+        //     mainVm.GraphViewModel?.ShowGlobalContextMenu();
+        //   
+        // }
+
+        // If this is called no viewer object was hit. If an object was clicked while the info area is not visible
+        // It is ignored, but the viewer locks the last clicked object.
+        if (DataContext is MainViewModel mainVm)
         {
-            mainVm.GraphViewModel?.ShowGlobalContextMenu();
+            mainVm.ClearQuickInfo();    
         }
+        
     }
 }

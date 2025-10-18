@@ -677,6 +677,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         return selectedIds;
     }
 
+    public void ClearQuickInfo()
+    {
+        _clickedObject = null;
+    }
+
     /// <summary>
     ///     Adds the new nodes, integrating hierarchical relationships from
     ///     original master nodes. Parent / child connections not present in this graph are discarded.

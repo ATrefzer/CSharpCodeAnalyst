@@ -69,7 +69,8 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adds the parent code element to all selected code elements..
+        ///   Looks up a localized string similar to If code elements are selected, their parent is added. 
+        ///If no code element is selected the parent for all code elements is added..
         /// </summary>
         public static string AddParents_Tooltip {
             get {

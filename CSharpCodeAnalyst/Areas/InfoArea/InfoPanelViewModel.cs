@@ -82,7 +82,7 @@ internal sealed class InfoPanelViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public void Clear()
+    public void ClearQuickInfo()
     {
         QuickInfo = QuickInfoFactory.DefaultInfo;
         OnPropertyChanged(nameof(QuickInfo));

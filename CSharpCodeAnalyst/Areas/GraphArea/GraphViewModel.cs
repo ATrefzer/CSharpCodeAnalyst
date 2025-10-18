@@ -489,6 +489,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void OnAddParents()
     {
         var elementIds = _viewer.GetSelectedElementIds().ToList();
+
+        if (!elementIds.Any())
+        {
+            elementIds = _viewer.GetGraph().GetRoots().Select(r => r.Id).ToList();
+        }
+        
         if (elementIds.Any())
         {
             AddParents(elementIds);
@@ -866,5 +872,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         // Added elements are for sure not in this graph yet.
+    }
+
+    public void ClearQuickInfo()
+    {
+        _viewer.ClearQuickInfo();
     }
 }

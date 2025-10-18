@@ -944,7 +944,8 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Restores the previously taken snapshot.</value>
   </data>
     <data name="AddParents_Tooltip" xml:space="preserve">
-    <value>Adds the parent code element to all selected code elements.</value>
+    <value>If code elements are selected, their parent is added. 
+If no code element is selected the parent for all code elements is added.</value>
   </data>
     <data name="ImportPlainText_Label" xml:space="preserve">
     <value>Import plain text ...</value>
