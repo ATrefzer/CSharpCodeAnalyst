@@ -1,11 +1,9 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Windows;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Import;
 using CSharpCodeAnalyst.Resources;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Project;
 
@@ -14,7 +12,13 @@ namespace CSharpCodeAnalyst.Project;
 /// </summary>
 public class Project
 {
+    private readonly IUserNotification _ui;
     private ProjectData? _snapshot;
+
+    public Project(IUserNotification ui)
+    {
+        _ui = ui;
+    }
 
     public bool HasSnapshot
     {
@@ -29,18 +33,13 @@ public class Project
     /// </summary>
     public async Task<Result<(string fileName, ProjectData)>> LoadProjectAsync()
     {
-        var dialog = new OpenFileDialog
-        {
-            Filter = "JSON files (*.json)|*.json",
-            Title = "Load Project"
-        };
-
-        if (dialog.ShowDialog() != true)
+        var fileName = _ui.ShowOpenFileDialog("JSON files (*.json)|*.json", "Load Project");
+        if (string.IsNullOrEmpty(fileName))
         {
             return Result<(string, ProjectData)>.Canceled();
         }
 
-        return await LoadProjectFromFileAsync(dialog.FileName);
+        return await LoadProjectFromFileAsync(fileName);
     }
 
     /// <summary>
@@ -71,10 +70,10 @@ public class Project
         LoadingStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
     }
 
-    private static void ShowError(Exception ex)
+    private void ShowError(Exception ex)
     {
         var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-        MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        _ui.ShowError(message);
     }
 
     /// <summary>
@@ -99,36 +98,35 @@ public class Project
         }
     }
 
-    public Result<bool> RestoreSnapshot(Action<ProjectData> restoreAction)
+    public void RestoreSnapshot(Action<ProjectData> restoreAction)
     {
-        var result = Result<bool>.Success(true);
+        if (!HasSnapshot)
+        {
+            _ui.ShowWarning(Strings.Restore_NoSnapshot);
+            return;
+        }
+
         try
         {
             OnLoadingStateChanged(Strings.Restore_LoadMessage, true);
-            restoreAction(_snapshot); // Let MainViewModel handle it
+            restoreAction(_snapshot!); // Let MainViewModel handle it
+            _ui.ShowSuccess(Strings.Restore_Success);
         }
         catch (Exception ex)
         {
-            result = Result<bool>.Failure(ex);
             ShowError(ex);
         }
         finally
         {
             OnLoadingStateChanged(string.Empty, false);
         }
-
-        return result;
     }
 
 
     public void CreateSnapshot(ProjectData projectData)
     {
         _snapshot = projectData;
-    }
-
-    public ProjectData? GetSnapshot()
-    {
-        return _snapshot;
+        _ui.ShowSuccess(Strings.Snapshot_Success);
     }
 
 
@@ -153,29 +151,24 @@ public class Project
         File.WriteAllText(filePath, json);
     }
 
-    private bool TryGetSaveFilePath(string? currentFilePath, out string filePath)
+    private bool TryGetSaveFilePath(string? currentFilePath, out string outFileName)
     {
         // If we have a current file path, reuse it
         if (!string.IsNullOrEmpty(currentFilePath))
         {
-            filePath = currentFilePath;
+            outFileName = currentFilePath;
             return true;
         }
 
-        // Otherwise show dialog
-        var dialog = new SaveFileDialog
-        {
-            Filter = "JSON files (*.json)|*.json",
-            Title = "Save Project"
-        };
 
-        if (dialog.ShowDialog() == true)
+        var fileName = _ui.ShowSaveFileDialog("JSON files (*.json)|*.json", "Save Project");
+        if (string.IsNullOrEmpty(fileName))
         {
-            filePath = dialog.FileName;
-            return true;
+            outFileName = string.Empty;
+            return false;
         }
 
-        filePath = string.Empty;
-        return false;
+        outFileName = fileName;
+        return true;
     }
 }

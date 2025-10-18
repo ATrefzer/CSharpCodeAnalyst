@@ -3,22 +3,29 @@ using System.IO;
 using System.Windows;
 using CodeParser.Export;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Export;
 
 /// <summary>
 ///     Facade for various export formats.
 /// </summary>
-public static class Exporter
+public class Exporter
 {
+    private readonly IUserNotification _ui;
+
+    public Exporter(IUserNotification ui)
+    {
+        _ui = ui;
+    }
+
     /// <summary>
     ///     Svg export is special because it is a feature of the
     ///     Msagl graph library.
     /// </summary>
-    public static void ToSvg(Action<FileStream>? svgExport)
+    public void ToSvg(Action<FileStream>? svgExport)
     {
         if (svgExport is null)
         {
@@ -27,31 +34,22 @@ public static class Exporter
 
         try
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "SVG files (*.svg)|*.svg",
-                Title = "Export to SVG"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
+            var fileName = _ui.ShowSaveFileDialog("SVG files (*.svg)|*.svg", "Export to SVG");
+            if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
 
-            using (var stream = new FileStream(saveFileDialog.FileName, FileMode.Create))
-            {
-                svgExport(stream);
-            }
+            using var stream = new FileStream(fileName, FileMode.Create);
+            svgExport(stream);
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 
-    public static void ToBitmapClipboard(FrameworkElement? canvas)
+    public void ToBitmapClipboard(FrameworkElement? canvas)
     {
         if (canvas is null)
         {
@@ -68,14 +66,14 @@ public static class Exporter
         }
     }
 
-    private static void ShowError(Exception ex)
+    private void ShowError(Exception ex)
     {
         Trace.TraceError(ex.ToString());
         var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-        MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        _ui.ShowError(message);
     }
 
-    public static void ToPng(FrameworkElement? canvas)
+    public void ToPng(FrameworkElement? canvas)
     {
         if (canvas is null)
         {
@@ -84,18 +82,13 @@ public static class Exporter
 
         try
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "PNG files (*.png)|*.png",
-                Title = "Export to PNG"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
+            var fileName = _ui.ShowSaveFileDialog("PNG files (*.png)|*.png", "Export to PNG");
+            if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
 
-            ImageWriter.SaveToPng(canvas, saveFileDialog.FileName);
+            ImageWriter.SaveToPng(canvas, fileName);
         }
         catch (Exception ex)
         {
@@ -103,25 +96,17 @@ public static class Exporter
         }
     }
 
-    public static void ToDgml(CodeGraph? exportGraph)
+    public void ToDgml(CodeGraph? exportGraph)
     {
         if (exportGraph is null) return;
 
         try
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "DGML files (*.dgml)|*.dgml",
-                Title = "Export to DGML"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
+            var fileName = _ui.ShowSaveFileDialog("DGML files (*.dgml)|*.dgml", "Export to DGML");
+            if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
-
-            var fileName = saveFileDialog.FileName;
-
 
             DgmlExport.Export(fileName, exportGraph);
         }
@@ -131,7 +116,7 @@ public static class Exporter
         }
     }
 
-    public static void ToPlantUml(CodeGraph? exportGraph)
+    public void ToPlantUml(CodeGraph? exportGraph)
     {
         if (exportGraph is null)
         {
@@ -144,7 +129,7 @@ public static class Exporter
             var plantUml = exporter.Export(exportGraph);
 
             Clipboard.SetText(plantUml);
-            ToastManager.ShowSuccess(Strings.ExportPlantUml_Success, 2500);
+            _ui.ShowSuccess(Strings.ExportPlantUml_Success);
         }
         catch (Exception ex)
         {
@@ -152,7 +137,7 @@ public static class Exporter
         }
     }
 
-    public static void ToDsi(CodeGraph? codeGraph)
+    public void ToDsi(CodeGraph? codeGraph)
     {
         if (codeGraph is null)
         {
@@ -161,18 +146,11 @@ public static class Exporter
 
         try
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "DSI files (*.dsi)|*.dsi",
-                Title = "Export to DSI"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
+            var fileName = _ui.ShowSaveFileDialog("DSI files (*.dsi)|*.dsi", "Export to DSI");
+            if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
-
-            var fileName = saveFileDialog.FileName;
 
             DsiExport.Export(fileName, codeGraph);
         }
@@ -200,7 +178,7 @@ public static class Exporter
         process.Start();
     }
 
-    public static void ToPlainText(CodeGraph? graph)
+    public void ToPlainText(CodeGraph? graph)
     {
         if (graph is null)
         {
@@ -209,18 +187,13 @@ public static class Exporter
 
         try
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "TXT files (*.txt)|*.txt",
-                Title = "Export to TXT"
-            };
-
-            if (saveFileDialog.ShowDialog() != true)
+            var fileName = _ui.ShowSaveFileDialog("TXT files (*.txt)|*.txt", "Export to TXT");
+            if (string.IsNullOrEmpty(fileName))
             {
                 return;
             }
 
-            CodeGraphSerializer.SerializeToFile(graph, saveFileDialog.FileName);
+            CodeGraphSerializer.SerializeToFile(graph, fileName);
         }
         catch (Exception ex)
         {

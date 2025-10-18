@@ -8,9 +8,7 @@ public partial class ErrorWarningDialog : Window
     private ErrorWarningDialog(List<string> errors, List<string> warnings)
     {
         InitializeComponent();
-
-
-
+        
         ErrorList.ItemsSource = errors;
         WarningList.ItemsSource = warnings;
 

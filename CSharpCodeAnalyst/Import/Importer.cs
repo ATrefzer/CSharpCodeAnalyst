@@ -1,11 +1,9 @@
-﻿using System.Windows;
-using CodeParser.Parser;
+﻿using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Import;
 
@@ -14,10 +12,17 @@ namespace CSharpCodeAnalyst.Import;
 /// </summary>
 public class Importer
 {
+    private readonly IUserNotification _ui;
+
     /// <summary>
     ///     Store this value because we cannot show the diagnostics dialog in the worker.
     /// </summary>
     private IParserDiagnostics? _parserDiagnostics;
+
+    public Importer(IUserNotification ui)
+    {
+        _ui = ui;
+    }
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
@@ -35,7 +40,7 @@ public class Importer
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
-            ErrorWarningDialog.Show(_parserDiagnostics.Failures, _parserDiagnostics.Warnings, Application.Current.MainWindow);
+            _ui.ShowErrorWarningDialog(_parserDiagnostics.Failures, _parserDiagnostics.Warnings);
         }
 
 
@@ -126,7 +131,7 @@ public class Importer
         catch (Exception ex)
         {
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            _ui.ShowError(message);
             return Result<CodeGraph>.Failure(ex);
         }
         finally
@@ -137,44 +142,25 @@ public class Importer
 
     private string? TryGetImportJdepsFilePath()
     {
-        var openFileDialog = new OpenFileDialog
-        {
-            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
-            Title = "Select jdeps output file"
-        };
+        var filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+        var title = "Select jdeps output file";
 
-        return ShowOpenFileDialog(openFileDialog);
+        return _ui.ShowOpenFileDialog(filter, title);
     }
 
-    private static string? TryGetImportSolutionPath()
+    private string? TryGetImportSolutionPath()
     {
-        var openFileDialog = new OpenFileDialog
-        {
-            Filter = Strings.Import_FileFilter,
-            Title = Strings.Import_DialogTitle
-        };
+        var filter = Strings.Import_FileFilter;
+        var title = Strings.Import_DialogTitle;
 
-        return ShowOpenFileDialog(openFileDialog);
+        return _ui.ShowOpenFileDialog(filter, title);
     }
 
-    private static string? TryGetImportPlainTextPath()
+    private string? TryGetImportPlainTextPath()
     {
-        var openFileDialog = new OpenFileDialog
-        {
-            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
-            Title = "Select plaint text graph file"
-        };
+        var filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+        var title = "Select plaint text graph file";
 
-        return ShowOpenFileDialog(openFileDialog);
-    }
-
-    private static string? ShowOpenFileDialog(OpenFileDialog openFileDialog)
-    {
-        if (openFileDialog.ShowDialog() != true)
-        {
-            return null;
-        }
-
-        return openFileDialog.FileName;
+        return _ui.ShowOpenFileDialog(filter, title);
     }
 }

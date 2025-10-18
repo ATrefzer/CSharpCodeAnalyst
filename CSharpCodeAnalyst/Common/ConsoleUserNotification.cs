@@ -23,4 +23,25 @@ internal class ConsoleUserNotification : IUserNotification
     {
         Trace.TraceWarning(message);
     }
+
+    public string? ShowOpenFileDialog(string filter, string title)
+    {
+        // Not in console mode
+        return null;
+    }
+
+    public string? ShowSaveFileDialog(string filter, string title)
+    {
+        // Not in console mode
+        return null;
+    }
+
+    public void ShowErrorWarningDialog(List<string> errors, List<string> warnings)
+    {
+    }
+
+    public bool AskYesNoQuestion(string saveMessage, string saveTitle)
+    {
+        return true;
+    }
 }

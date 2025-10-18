@@ -34,7 +34,6 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst;
@@ -50,6 +49,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
+    private readonly Exporter _exporter;
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
@@ -57,6 +57,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
+    private readonly IUserNotification _ui;
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
@@ -95,11 +96,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _userSettings = userSettings;
         _analyzerManager = analyzerManager;
         _refactoringService = refactoringService;
+
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
-        _importer = new Importer();
+        _ui = new WindowsUserNotification();
+        _importer = new Importer(_ui);
+        _exporter = new Exporter(_ui);
         _importer.ImportStateChanged += OnUpdateProgress;
-        _project = new Project.Project();
+        _project = new Project.Project(_ui);
         _project.LoadingStateChanged += OnUpdateProgress;
 
 
@@ -434,7 +438,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Get rid of the magnifier icon
             IsGraphToolPanelVisible = false;
-            Exporter.ToBitmapClipboard(canvas);
+            _exporter.ToBitmapClipboard(canvas);
         }
         finally
         {
@@ -594,8 +598,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             // Log error or show message to user
-            MessageBox.Show($"{Strings.Settings_Save_Error} {ex.Message}", Strings.Error_Title,
-                MessageBoxButton.OK, MessageBoxImage.Warning);
+            _ui.ShowError($"{Strings.Settings_Save_Error} {ex.Message}");
         }
     }
 
@@ -611,9 +614,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
         }
         finally
         {
@@ -626,7 +627,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnExportToDsi()
     {
-        Exporter.ToDsi(_codeGraph);
+        _exporter.ToDsi(_codeGraph);
     }
 
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
@@ -651,9 +652,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
         catch (Exception ex)
         {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
         }
         finally
         {
@@ -762,12 +761,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnExportToPlantUml()
     {
-        Exporter.ToPlantUml(_graphViewModel?.ExportGraph());
+        _exporter.ToPlantUml(_graphViewModel?.ExportGraph());
     }
 
     private void OnExportToDgml()
     {
-        Exporter.ToDgml(_graphViewModel?.ExportGraph());
+        _exporter.ToDgml(_graphViewModel?.ExportGraph());
     }
 
     private void OnExportToPng(FrameworkElement? canvas)
@@ -776,7 +775,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Get rid of the magnifier icon
             IsGraphToolPanelVisible = false;
-            Exporter.ToPng(canvas);
+            _exporter.ToPng(canvas);
         }
         finally
         {
@@ -786,7 +785,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnExportPlainText()
     {
-        Exporter.ToPlainText(_graphViewModel?.ExportGraph());
+        _exporter.ToPlainText(_graphViewModel?.ExportGraph());
     }
 
     /// <summary>
@@ -799,7 +798,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        Exporter.ToSvg(_graphViewModel.SaveToSvg);
+        _exporter.ToSvg(_graphViewModel.SaveToSvg);
     }
 
     private async void OnOpenRecentFile(string filePath)
@@ -923,13 +922,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void AskUserToSaveProject()
     {
-        if (IsDirty())
+        if (IsDirty() && _ui.AskYesNoQuestion(Strings.Save_Message, Strings.Save_Title))
         {
-            if (MessageBox.Show(Strings.Save_Message, Strings.Save_Title,
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                OnSaveProject();
-            }
+            OnSaveProject();
         }
     }
 
@@ -963,7 +958,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         if (partitions.Count <= 1)
         {
-            MessageBox.Show(Strings.Partitions_NoPartitions, Strings.Information_Title, MessageBoxButton.OK, MessageBoxImage.Information);
+            _ui.ShowInfo(Strings.Partitions_NoPartitions);
             return;
         }
 
@@ -1018,35 +1013,26 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnSnapshot()
     {
-        if (_codeGraph is null || _graphViewModel is null) return;
+        if (_codeGraph is null || _graphViewModel is null)
+        {
+            return;
+        }
 
         try
         {
             // Create a snapshot by capturing the current state (similar to OnSaveProject)
             var projectData = CollectProjectData();
             _project.CreateSnapshot(projectData);
-            ToastManager.ShowSuccess(Strings.Snapshot_Success);
         }
         catch (Exception ex)
         {
-            var message = $"{Strings.Snapshot_Failed}: {ex.Message}";
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            _ui.ShowError($"{Strings.Snapshot_Failed}: {ex.Message}");
         }
     }
 
     private void OnRestore()
     {
-        if (!_project.HasSnapshot)
-        {
-            ToastManager.ShowWarning(Strings.Restore_NoSnapshot);
-            return;
-        }
-
-        var result = _project.RestoreSnapshot(RestoreProjectData);
-        if (result.IsSuccess)
-        {
-            ToastManager.ShowSuccess(Strings.Restore_Success);
-        }
+        _project.RestoreSnapshot(RestoreProjectData);
     }
 
     private void RestoreProjectData(ProjectData projectData)
