@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using CodeParser.Export;
 using Contracts.Graph;
-using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 using Microsoft.Win32;
@@ -88,7 +87,7 @@ public static class Exporter
             var saveFileDialog = new SaveFileDialog
             {
                 Filter = "PNG files (*.png)|*.png",
-                Title = "Export to DGML"
+                Title = "Export to PNG"
             };
 
             if (saveFileDialog.ShowDialog() != true)
