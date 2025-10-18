@@ -52,59 +52,64 @@
 
                 <!-- Search Control and tool buttons as overlay -->
                 <!-- The tool buttons replace the global context menu -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top"
-                            Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
-                            Margin="0 0 40 0" DataContext="{Binding GraphViewModel}">
+                <Border
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0 0 40 0" DataContext="{Binding GraphViewModel}"
+                    CornerRadius="6">
 
-                    <Button Command="{Binding CompleteToContainingTypesCommand}"
-                            ToolTip="{x:Static resources:Strings.CompleteToTypes}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/puzzle.png" Width="24" Height="24" />
-                    </Button>
+                    <StackPanel Orientation="Horizontal">
 
-                    <Button Command="{Binding CompleteRelationshipsCommand}"
-                            ToolTip="{x:Static resources:Strings.CompleteRelationships}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/synchronize_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding CompleteToContainingTypesCommand}"
+                                ToolTip="{x:Static resources:Strings.CompleteToTypes}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/puzzle.png" Width="24" Height="24" />
+                        </Button>
 
-                    <Button Command="{Binding ClearAllFlagsCommand}"
-                            ToolTip="{x:Static resources:Strings.ClearAllFlags}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/flag-empty_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding CompleteRelationshipsCommand}"
+                                ToolTip="{x:Static resources:Strings.CompleteRelationships}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/synchronize_32.png" Width="24" Height="24" />
+                        </Button>
 
-                    <Button Command="{Binding FocusOnSelectedCommand}"
-                            ToolTip="{x:Static resources:Strings.SelectedFocus}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/focus_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding ClearAllFlagsCommand}"
+                                ToolTip="{x:Static resources:Strings.ClearAllFlags}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/flag-empty_32.png" Width="24" Height="24" />
+                        </Button>
 
-                    <Button Command="{Binding ExpandEverythingCommand}"
-                            ToolTip="{x:Static resources:Strings.ExpandEverything}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/expand-all_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding FocusOnSelectedCommand}"
+                                ToolTip="{x:Static resources:Strings.SelectedFocus}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/focus_32.png" Width="24" Height="24" />
+                        </Button>
 
-                    <Button Command="{Binding CollapseEverythingCommand}"
-                            ToolTip="{x:Static resources:Strings.CollapseEverything}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/collapse-all_32.png" Width="24" Height="24" />
-                    </Button>
-                    
-                    <Button Command="{Binding AddParentsCommand}"
-                            ToolTip="{x:Static resources:Strings.AddParents_Tooltip}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/add-parent_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding ExpandEverythingCommand}"
+                                ToolTip="{x:Static resources:Strings.ExpandEverything}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/expand-all_32.png" Width="24" Height="24" />
+                        </Button>
 
-                    <Button Command="{Binding RemoveSelectedCommand}"
-                            ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"
-                            Style="{StaticResource ToggleButtonStyle}">
-                        <Image Source="/Resources/trash-can_32.png" Width="24" Height="24" />
-                    </Button>
+                        <Button Command="{Binding CollapseEverythingCommand}"
+                                ToolTip="{x:Static resources:Strings.CollapseEverything}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/collapse-all_32.png" Width="24" Height="24" />
+                        </Button>
 
-                </StackPanel>
+                        <Button Command="{Binding AddParentsCommand}"
+                                ToolTip="{x:Static resources:Strings.AddParents_Tooltip}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/add-parent_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding RemoveSelectedCommand}"
+                                ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/trash-can_32.png" Width="24" Height="24" />
+                        </Button>
+
+                    </StackPanel>
+                </Border>
                 <local:GraphSearchControl x:Name="SearchControl"
                                           HorizontalAlignment="Right"
                                           VerticalAlignment="Top"

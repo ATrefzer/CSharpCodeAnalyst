@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+             xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
              mc:Ignorable="d"
              d:DesignHeight="50" d:DesignWidth="300">
 
@@ -37,14 +38,16 @@
 
     <Grid>
         <!-- Toggle Button -->
+        
         <Button x:Name="ToggleButton"
-                Style="{StaticResource ToggleButtonStyle}"
+                Style="{StaticResource ToolbarButtonStyle}"
                 Click="ToggleButton_Click"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Top"
                 ToolTip="Toggle Search">
             <Image Source="/Resources/search_32.png" Width="24" Height="24" />
         </Button>
+           
 
         <!-- Search Panel -->
         <Border Style="{StaticResource SearchPanelStyle}"

@@ -69,7 +69,8 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If code elements are selected, their parent is added. 
+        ///   Looks up a localized string similar to Add parents.
+        ///If code elements are selected, their parent is added. 
         ///If no code element is selected the parent for all code elements is added..
         /// </summary>
         public static string AddParents_Tooltip {
@@ -453,7 +454,8 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Adds all missing relationships between code elements that are present in the Code Explorer.
+        ///   Looks up a localized string similar to Complete relationships
+        ///Adds all missing relationships between code elements in the Code Explorer.
         /// </summary>
         public static string CompleteRelationships {
             get {
@@ -462,8 +464,10 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to For code elements like methods and fields, it is ensured that at least the containing class (or struct) is present in the Code Explorer.
-        ///If code elements are missing in the hierarchy of present code elements, the gaps are filled..
+        ///   Looks up a localized string similar to Complete to containing types.
+        ///For code elements like methods and fields, it is ensured that at least the containing class (or struct) 
+        ///is present in the Code Explorer. If code elements are missing in the hierarchy of present code elements, 
+        ///the gaps are filled..
         /// </summary>
         public static string CompleteToTypes {
             get {
@@ -2091,7 +2095,8 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Focus on the selected code elements. All other elements are removed from the Code Explorer..
+        ///   Looks up a localized string similar to Focus on the selected code elements. 
+        ///All other elements are removed from the Code Explorer..
         /// </summary>
         public static string SelectedFocus {
             get {
@@ -2100,7 +2105,8 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Selected: Remove (with children).
+        ///   Looks up a localized string similar to Remove selected code elements from Code Explorer.
+        ///Children are included.
         /// </summary>
         public static string SelectedRemoveWithChildren {
             get {

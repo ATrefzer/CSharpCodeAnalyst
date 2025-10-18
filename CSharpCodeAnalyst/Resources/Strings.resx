@@ -144,9 +144,6 @@
     <data name="Collapse" xml:space="preserve">
     <value>Collapse</value>
   </data>
-    <data name="CompleteRelationships" xml:space="preserve">
-    <value>Adds all missing relationships between code elements that are present in the Code Explorer</value>
-  </data>
     <data name="RemoveWithoutChildren" xml:space="preserve">
     <value>_Remove from Code Explorer</value>
   </data>
@@ -196,13 +193,30 @@
     <value>Selected: Add Parent</value>
   </data>
     <data name="SelectedRemoveWithChildren" xml:space="preserve">
-    <value>Selected: Remove (with children)</value>
+    <value>Remove selected code elements from Code Explorer.
+Children are included</value>
   </data>
     <data name="SelectedFocus" xml:space="preserve">
-    <value>Focus on the selected code elements. All other elements are removed from the Code Explorer.</value>
+    <value>Focus on the selected code elements. 
+All other elements are removed from the Code Explorer.</value>
+  </data>
+    <data name="AddParents_Tooltip" xml:space="preserve">
+    <value>Add parents.
+If code elements are selected, their parent is added. 
+If no code element is selected the parent for all code elements is added.</value>
+  </data>
+    <data name="CompleteRelationships" xml:space="preserve">
+    <value>Complete relationships
+Adds all missing relationships between code elements in the Code Explorer</value>
   </data>
     <data name="Layout_Tooltip" xml:space="preserve">
     <value>Resets zoom level and fits to screen</value>
+  </data>
+    <data name="CompleteToTypes" xml:space="preserve">
+    <value>Complete to containing types.
+For code elements like methods and fields, it is ensured that at least the containing class (or struct) 
+is present in the Code Explorer. If code elements are missing in the hierarchy of present code elements, 
+the gaps are filled.</value>
   </data>
     <data name="TooMuchElementsMessage" xml:space="preserve">
     <value>The graph contains {0} elements. It may take extremely long to render this data. 
@@ -375,10 +389,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   </data>
     <data name="Hint_GlobalContext" xml:space="preserve">
     <value>• Right-click on empty space: global context commands (i.e. selection)</value>
-  </data>
-    <data name="CompleteToTypes" xml:space="preserve">
-    <value>For code elements like methods and fields, it is ensured that at least the containing class (or struct) is present in the Code Explorer.
-If code elements are missing in the hierarchy of present code elements, the gaps are filled.</value>
   </data>
     <data name="ToggleFlag" xml:space="preserve">
     <value>Toggle _flag</value>
@@ -944,12 +954,8 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="Restore_Tooltip" xml:space="preserve">
     <value>Restores the previously taken snapshot.</value>
   </data>
-    <data name="AddParents_Tooltip" xml:space="preserve">
-    <value>If code elements are selected, their parent is added. 
-If no code element is selected the parent for all code elements is added.</value>
-  </data>
     <data name="ImportPlainText_Label" xml:space="preserve">
     <value>Import plain text ...</value>
   </data>
-  
+
 </root>
