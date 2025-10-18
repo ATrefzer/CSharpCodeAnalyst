@@ -3,8 +3,6 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
@@ -38,7 +36,6 @@ using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst;
 
@@ -56,6 +53,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
+    private readonly Project.Project _project;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
@@ -87,7 +85,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private int _selectedLeftTabIndex;
     private int _selectedRightTabIndex;
 
-    private ProjectData? _snapshot;
     private TreeViewModel? _treeViewModel;
 
 
@@ -100,8 +97,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _refactoringService = refactoringService;
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
-        _importer = new Importer(_applicationSettings);
-        _importer.ImportStateChanged += OnImportStateChanged;
+        _importer = new Importer();
+        _importer.ImportStateChanged += OnUpdateProgress;
+        _project = new Project.Project();
+        _project.LoadingStateChanged += OnUpdateProgress;
+
 
         // Table data
         _cycles = null;
@@ -395,7 +395,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnImportStateChanged(object? sender, ImportStateChangedArgs e)
+    private void OnUpdateProgress(object? sender, ImportStateChangedArgs e)
     {
         IsLoading = e.IsLoading;
         LoadMessage = e.ProgressMessage;
@@ -414,10 +414,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         return _dirtyState != DirtyState.Saved;
     }
 
-    private async void OnOpenRecentFile(string filePath)
-    {
-        await LoadProjectFileAsync(filePath);
-    }
 
     private void RefreshMru()
     {
@@ -687,8 +683,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-
-
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
@@ -721,7 +715,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         AskUserToSaveProject();
 
-        var result = await _importer.ImportSolutionAsync(_projectExclusionFilters);
+        var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode);
+
+        if (result.IsCanceled)
+        {
+            return;
+        }
+
         if (result.IsSuccess)
         {
             CompleteImport(result.Data!);
@@ -802,50 +802,62 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Exporter.ToSvg(_graphViewModel.SaveToSvg);
     }
 
+    private async void OnOpenRecentFile(string filePath)
+    {
+        await LoadProject(filePath);
+    }
+
     private async void OnLoadProject()
     {
-        AskUserToSaveProject();
-        var openFileDialog = new OpenFileDialog
-        {
-            Filter = "JSON files (*.json)|*.json",
-            Title = "Load Project"
-        };
+        await LoadProject(null);
+    }
 
-        if (openFileDialog.ShowDialog() != true)
+    /// <summary>
+    ///     Called from command line
+    /// </summary>
+    public async Task LoadProjectFileAsync(string filePath)
+    {
+        await LoadProject(filePath);
+    }
+
+    private async Task LoadProject(string? filePath)
+    {
+        AskUserToSaveProject();
+
+        Result<(string, ProjectData)> result;
+        if (filePath is null)
+        {
+            result = await _project.LoadProjectAsync();
+        }
+        else
+        {
+            result = await _project.LoadProjectFromFileAsync(filePath);
+        }
+
+        if (result.IsCanceled)
         {
             return;
         }
 
-        await LoadProjectFileAsync(openFileDialog.FileName);
+        if (result.IsSuccess)
+        {
+            var (fileName, projectData) = result.Data;
+            CompleteProjectLoaded(projectData, fileName);
+        }
     }
 
-    public async Task LoadProjectFileAsync(string fileName)
+    private void CompleteProjectLoaded(ProjectData projectData, string fileName)
     {
-        try
-        {
-            LoadMessage = "Loading ...";
-            IsLoading = true;
+        RestoreProjectData(projectData);
+        ClearDirty(fileName);
+        _userSettings.AddRecentFile(fileName);
+        RefreshMru();
 
-            var projectData = await Task.Run(() => LoadProject(fileName));
-
-            RestoreProjectData(projectData);
-
-            ClearDirty(fileName);
-            _userSettings.AddRecentFile(fileName);
-            RefreshMru();
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            LoadMessage = string.Empty;
-            IsCanvasHintsVisible = false;
-            IsLoading = false;
-        }
+        LoadMessage = string.Empty;
+        IsCanvasHintsVisible = false;
+        IsLoading = false;
     }
+
 
     private void LoadDefaultSettings()
     {
@@ -881,75 +893,24 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // IncludeExternals is not a configurable setting. It is global for the application.
     }
 
-    private static ProjectData LoadProject(string fileName)
-    {
-        var json = File.ReadAllText(fileName);
-        var options = new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.Preserve
-        };
-        var projectData = JsonSerializer.Deserialize<ProjectData>(json, options);
-        if (projectData is null)
-        {
-            throw new NullReferenceException();
-        }
-
-        return projectData;
-    }
-
     private void OnSaveProject()
     {
-        if (_codeGraph is null || _graphViewModel is null)
-        {
-            return;
-        }
-
-        if (!TryGetProjectSaveFilePath(out var filePath))
-        {
-            return;
-        }
+        if (_codeGraph is null || _graphViewModel is null) return;
 
         var projectData = CollectProjectData();
 
-        // Add other settings here
+        // Current path is only provided if we do not force a new file
+        var currentPath = _dirtyState != DirtyState.DirtyForceNewFile
+            ? _openProjectFilePath
+            : null;
 
-        var options = new JsonSerializerOptions
+        var result = _project.SaveProject(projectData, currentPath);
+
+        if (result.IsSuccess)
         {
-            // The file gets quite large, so we don't want to have it indented.
-            WriteIndented = false
-        };
-        var json = JsonSerializer.Serialize(projectData, options);
-        File.WriteAllText(filePath, json);
-
-        ClearDirty(filePath);
-    }
-
-
-    private bool TryGetProjectSaveFilePath(out string filePath)
-    {
-        if (_dirtyState != DirtyState.DirtyForceNewFile && !string.IsNullOrEmpty(OpenProjectFilePath))
-        {
-            // We already have an open project that we can override, unless we changed the project with refactorings.
-            filePath = OpenProjectFilePath;
-            return true;
+            ClearDirty(result.Data!);
         }
-
-        var saveFileDialog = new SaveFileDialog
-        {
-            Filter = "JSON files (*.json)|*.json",
-            Title = "Save Project"
-        };
-
-        if (saveFileDialog.ShowDialog() != true || string.IsNullOrEmpty(saveFileDialog.FileName))
-        {
-            filePath = string.Empty;
-            return false;
-        }
-
-        filePath = saveFileDialog.FileName;
-        return true;
     }
-
 
     /// <summary>
     ///     return true if you allow to close
@@ -1057,19 +1018,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnSnapshot()
     {
-        if (_codeGraph is null || _graphViewModel is null)
-        {
-            return;
-        }
+        if (_codeGraph is null || _graphViewModel is null) return;
 
         try
         {
             // Create a snapshot by capturing the current state (similar to OnSaveProject)
             var projectData = CollectProjectData();
-
-            // Store the snapshot in memory
-            _snapshot = projectData;
-
+            _project.CreateSnapshot(projectData);
             ToastManager.ShowSuccess(Strings.Snapshot_Success);
         }
         catch (Exception ex)
@@ -1081,30 +1036,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnRestore()
     {
-        if (_snapshot is null)
+        if (!_project.HasSnapshot)
         {
             ToastManager.ShowWarning(Strings.Restore_NoSnapshot);
             return;
         }
 
-        try
+        var result = _project.RestoreSnapshot(RestoreProjectData);
+        if (result.IsSuccess)
         {
-            LoadMessage = Strings.Restore_LoadMessage;
-            IsLoading = true;
-
-            RestoreProjectData(_snapshot);
-
             ToastManager.ShowSuccess(Strings.Restore_Success);
-        }
-        catch (Exception ex)
-        {
-            var message = $"{Strings.Restore_Failed}: {ex.Message}";
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally
-        {
-            LoadMessage = string.Empty;
-            IsLoading = false;
         }
     }
 

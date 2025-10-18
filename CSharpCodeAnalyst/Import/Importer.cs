@@ -4,7 +4,6 @@ using CodeParser.Parser.Config;
 using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Resources;
 using Microsoft.Win32;
 
@@ -13,7 +12,7 @@ namespace CSharpCodeAnalyst.Import;
 /// <summary>
 ///     Imports various file format into a CodeGraph.
 /// </summary>
-public class Importer(ApplicationSettings applicationSettings)
+public class Importer
 {
     /// <summary>
     ///     Store this value because we cannot show the diagnostics dialog in the worker.
@@ -22,7 +21,7 @@ public class Importer(ApplicationSettings applicationSettings)
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters)
+    public async Task<Result<CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -32,7 +31,7 @@ public class Importer(ApplicationSettings applicationSettings)
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters));
+            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -82,9 +81,9 @@ public class Importer(ApplicationSettings applicationSettings)
     }
 
 
-    private async Task<CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters)
+    private async Task<CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode)
     {
-        var parser = new Parser(new ParserConfig(filters, applicationSettings.IncludeExternalCode));
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode));
         parser.Progress.ParserProgress += OnParserProgress;
 
         try
