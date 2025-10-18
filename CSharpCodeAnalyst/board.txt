@@ -13,8 +13,9 @@
 - Jump to Code from context menu?
 - Focus on flagged.
 
-- Drag Drop from Advanced Search View.
+
 - Collapsed nodes should be recognized
+- Snapshots / restore do no care about storage state. Is this ok?
 
 
 

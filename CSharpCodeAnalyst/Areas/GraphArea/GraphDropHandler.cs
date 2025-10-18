@@ -1,4 +1,5 @@
 using System.Windows;
+using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -21,7 +22,17 @@ internal sealed class GraphDropHandler : IDropTarget
     public void DragOver(IDropInfo dropInfo)
     {
         // Check if the dragged data is a TreeItemViewModel
-        if (dropInfo.Data is TreeItemViewModel treeItem && treeItem.CodeElement != null)
+        if (dropInfo.Data is TreeItemViewModel { CodeElement: not null })
+        {
+            dropInfo.Effects = DragDropEffects.Copy;
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+        }
+        else if (dropInfo.Data is SearchItemViewModel { CodeElement: not null })
+        {
+            dropInfo.Effects = DragDropEffects.Copy;
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+        }
+        else if (dropInfo.Data is List<object> list && list.OfType<SearchItemViewModel>().Any())
         {
             dropInfo.Effects = DragDropEffects.Copy;
             dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
@@ -35,10 +46,27 @@ internal sealed class GraphDropHandler : IDropTarget
     public void Drop(IDropInfo dropInfo)
     {
         // Extract the TreeItemViewModel from the drag data
-        if (dropInfo.Data is TreeItemViewModel treeItem && treeItem.CodeElement != null)
+        if (dropInfo.Data is TreeItemViewModel { CodeElement: not null } treeItem)
         {
             // Publish the same message that the context menu uses
             _publisher.Publish(new AddNodeToGraphRequest(treeItem.CodeElement));
+        }
+        else if (dropInfo.Data is SearchItemViewModel { CodeElement: not null } searchItem)
+        {
+            _publisher.Publish(new AddNodeToGraphRequest(searchItem.CodeElement));
+        }
+        else if (dropInfo.Data is List<object> list)
+        {
+            var elements = list
+                .OfType<SearchItemViewModel>()
+                .Where(s => s.CodeElement != null)
+                .Select(s => s.CodeElement)
+                .ToList();
+            
+            if (elements.Any())
+            {
+                _publisher.Publish(new AddNodeToGraphRequest(elements!, false));
+            }
         }
     }
 }
