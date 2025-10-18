@@ -3,16 +3,17 @@ using System.IO;
 using System.Windows;
 using CodeParser.Export;
 using Contracts.Graph;
+using CSharpCodeAnalyst.Exports;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 using Microsoft.Win32;
 
-namespace CSharpCodeAnalyst.Exports;
+namespace CSharpCodeAnalyst.Export;
 
 /// <summary>
 ///     Facade for various export formats.
 /// </summary>
-public static class Export
+public static class Exporter
 {
     /// <summary>
     ///     Svg export is special because it is a feature of the
@@ -64,10 +65,15 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
+    }
+
+    private static void ShowError(Exception ex)
+    {
+        Trace.TraceError(ex.ToString());
+        var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+        MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
     public static void ToPng(FrameworkElement? canvas)
@@ -94,9 +100,7 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 
@@ -124,9 +128,7 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 
@@ -147,9 +149,7 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 
@@ -179,10 +179,7 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 
@@ -228,9 +225,7 @@ public static class Export
         }
         catch (Exception ex)
         {
-            Trace.TraceError(ex.ToString());
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowError(ex);
         }
     }
 }

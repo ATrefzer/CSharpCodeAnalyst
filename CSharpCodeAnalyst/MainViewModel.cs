@@ -10,9 +10,7 @@ using System.Windows.Input;
 using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 using CodeParser.Extensions;
-using CodeParser.Parser;
 using CodeParser.Parser.Config;
-using Contracts.Common;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -26,7 +24,7 @@ using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.Exports;
+using CSharpCodeAnalyst.Export;
 using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.Gallery;
 using CSharpCodeAnalyst.Help;
@@ -55,6 +53,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
     private readonly AnalyzerManager _analyzerManager;
+    private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
 
@@ -91,6 +90,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private ProjectData? _snapshot;
     private TreeViewModel? _treeViewModel;
 
+
     internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager, RefactoringService refactoringService)
     {
         // Initialize settings
@@ -99,6 +99,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _analyzerManager = analyzerManager;
         _refactoringService = refactoringService;
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
+
+        _importer = new Importer(_applicationSettings);
+        _importer.ImportStateChanged += OnImportStateChanged;
 
         // Table data
         _cycles = null;
@@ -120,7 +123,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _messaging = messaging;
         _gallery = new Gallery.Gallery();
         SearchCommand = new WpfCommand(Search);
-        LoadSolutionCommand = new WpfCommand(OnLoadSolution);
+        LoadSolutionCommand = new WpfCommand(OnImportSolution);
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
         ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
 
@@ -157,7 +160,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public ObservableCollection<Mru> RecentFiles { get; } = [];
 
-    public string OpenProjectFilePath
+    private string OpenProjectFilePath
     {
         get => _openProjectFilePath;
         set
@@ -392,6 +395,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private void OnImportStateChanged(object? sender, ImportStateChangedArgs e)
+    {
+        LoadMessage = e.ProgressMessage;
+        IsLoading = e.IsLoading;
+    }
 
     private void OnAnalyzerDataChanged(object? sender, EventArgs e)
     {
@@ -430,7 +438,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Get rid of the magnifier icon
             IsGraphToolPanelVisible = false;
-            Export.ToBitmapClipboard(canvas);
+            Exporter.ToBitmapClipboard(canvas);
         }
         finally
         {
@@ -622,7 +630,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void OnExportToDsi()
     {
-        Export.ToDsi(_codeGraph);
+        Exporter.ToDsi(_codeGraph);
     }
 
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
@@ -679,16 +687,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private async Task<(CodeGraph, IParserDiagnostics)> ImportSolutionAsync(string solutionPath)
-    {
-        LoadMessage = Strings.Load_Message_Default;
-        var parser = new Parser(new ParserConfig(_projectExclusionFilters, _applicationSettings.IncludeExternalCode));
-        parser.Progress.ParserProgress += OnProgress;
-        var graph = await parser.Parse(solutionPath).ConfigureAwait(true);
 
-        parser.Progress.ParserProgress -= OnProgress;
-        return (graph, parser.Diagnostics);
-    }
 
     private void LoadCodeGraph(CodeGraph codeGraph)
     {
@@ -718,164 +717,57 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Metrics = outputs;
     }
 
-    private async void OnLoadSolution()
+    private async void OnImportSolution()
     {
         AskUserToSaveProject();
 
-        var openFileDialog = new OpenFileDialog
+        var result = await _importer.ImportSolutionAsync(_projectExclusionFilters);
+        if (result.IsSuccess)
         {
-            Filter = Strings.Import_FileFilter,
-            Title = Strings.Import_DialogTitle
-        };
-
-        if (openFileDialog.ShowDialog() != true)
-        {
-            return;
-        }
-
-        var solutionPath = openFileDialog.FileName;
-
-        try
-        {
-            IsLoading = true;
-
-            var codeGraph = await LoadSolutionAsync(solutionPath);
-            LoadDefaultSettings();
-            LoadCodeGraph(codeGraph);
-            _gallery = new Gallery.Gallery();
-
-            OpenProjectFilePath = string.Empty;
-            SetDirty(false);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsCanvasHintsVisible = false;
-            IsLoading = false;
+            CompleteImport(result.Data!);
         }
     }
 
-    private async Task<CodeGraph> LoadSolutionAsync(string solutionPath)
+    private void CompleteImport(CodeGraph graph)
     {
-        var (codeGraph, diagnostics) = await Task.Run(async () => await ImportSolutionAsync(solutionPath));
-
-        var failures = diagnostics.FormatFailures();
-        if (!string.IsNullOrEmpty(failures))
-        {
-            //var failureText = Strings.Parser_FailureHeader + failures;
-            //MessageBox.Show(failureText, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Warning);
-            ErrorWarningDialog.Show(diagnostics.Failures, diagnostics.Warnings);
-        }
-
-        return codeGraph;
+        LoadDefaultSettings();
+        LoadCodeGraph(graph);
+        _gallery = new Gallery.Gallery();
+        OpenProjectFilePath = string.Empty;
+        SetDirty(false);
+        IsCanvasHintsVisible = false;
     }
 
-
-
-    private void OnImportPlainText()
+    private async void OnImportPlainText()
     {
         AskUserToSaveProject();
 
-        var openFileDialog = new OpenFileDialog
+        var result = await _importer.ImportPlainTextAsync();
+        if (result.IsSuccess)
         {
-            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
-            Title = "Select plaint text graph file"
-        };
-
-        if (openFileDialog.ShowDialog() != true)
-        {
-            return;
-        }
-
-        try
-        {
-            IsLoading = true;
-            LoadMessage = "Importing plaint text graph...";
-
-            var codeGraph = CodeGraphSerializer.DeserializeFromFile(openFileDialog.FileName);
-            LoadCodeGraph(codeGraph);
-
-            // Imported a new plaintext file
-            OpenProjectFilePath = string.Empty;
-            SetDirty(false);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsCanvasHintsVisible = false;
-            IsLoading = false;
-            LoadMessage = string.Empty;
+            CompleteImport(result.Data!);
         }
     }
 
-
-
-    private void OnImportJdeps()
+    private async void OnImportJdeps()
     {
         AskUserToSaveProject();
 
-        var openFileDialog = new OpenFileDialog
+        var result = await _importer.ImportJdepsAsync();
+        if (result.IsSuccess)
         {
-            Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*",
-            Title = "Select jdeps output file"
-        };
-
-        if (openFileDialog.ShowDialog() != true)
-        {
-            return;
+            CompleteImport(result.Data!);
         }
-
-        try
-        {
-            IsLoading = true;
-            LoadMessage = "Importing jdeps data...";
-
-            var importer = new JdepsImporter();
-            var codeGraph = importer.ImportFromFile(openFileDialog.FileName);
-
-            LoadCodeGraph(codeGraph);
-
-            // Imported a new jdeps file
-            OpenProjectFilePath = string.Empty;
-            SetDirty(false);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsCanvasHintsVisible = false;
-            IsLoading = false;
-            LoadMessage = string.Empty;
-        }
-    }
-
-    private void OnProgress(object? sender, ParserProgressArg e)
-    {
-        LoadMessage = e.Message;
     }
 
     private void OnExportToPlantUml()
     {
-        Export.ToPlantUml(_graphViewModel?.ExportGraph());
+        Exporter.ToPlantUml(_graphViewModel?.ExportGraph());
     }
 
     private void OnExportToDgml()
     {
-        Export.ToDgml(_graphViewModel?.ExportGraph());
+        Exporter.ToDgml(_graphViewModel?.ExportGraph());
     }
 
     private void OnExportToPng(FrameworkElement? canvas)
@@ -884,7 +776,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Get rid of the magnifier icon
             IsGraphToolPanelVisible = false;
-            Export.ToPng(canvas);
+            Exporter.ToPng(canvas);
         }
         finally
         {
@@ -894,7 +786,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnExportPlainText()
     {
-        Export.ToPlainText(_graphViewModel?.ExportGraph());
+        Exporter.ToPlainText(_graphViewModel?.ExportGraph());
     }
 
     /// <summary>
@@ -907,7 +799,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        Export.ToSvg(_graphViewModel.SaveToSvg);
+        Exporter.ToSvg(_graphViewModel.SaveToSvg);
     }
 
     private async void OnLoadProject()

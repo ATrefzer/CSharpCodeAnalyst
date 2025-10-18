@@ -5,7 +5,7 @@ using CSharpCodeAnalyst.Import;
 namespace CodeParserTests.UnitTests;
 
 [TestFixture]
-public static class JdepsImporterTest
+public static class JdepsReaderTest
 {
     [Test]
     public static void Import_jdeps()
@@ -19,7 +19,7 @@ public static class JdepsImporterTest
             "services.article.representation.bo.RepresentationType -> java.lang.Class java.base"
         };
 
-        var importer = new JdepsImporter();
+        var importer = new JdepsReader();
         var codeGraph = importer.ImportFromLines(sampleData);
 
 

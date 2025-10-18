@@ -13,6 +13,9 @@
 - Jump to Code from context menu?
 - Focus on flagged.
 
+- EventArgs import export service.
+- Collapsed nodes should be recognized
+
 
 
 UNHANDLED CASES
