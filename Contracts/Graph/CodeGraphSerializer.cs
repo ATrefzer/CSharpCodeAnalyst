@@ -4,41 +4,28 @@ namespace Contracts.Graph;
 
 /// <summary>
 ///     Serializes and deserializes CodeGraph to/from a human-readable text format.
-///     Format:
-///     # Elements
+///     Format (no headers, auto-detection):
 ///     ElementType Id [ name=Name] [ full=FullName] [ parent=ParentId] [ external] [ attr=Attr1,Attr2]
 ///     [loc=File:Line,Col]*
-/// 
-///     # Relationships
 ///     SourceId  RelType  TargetId [ Attr1,Attr2]
 ///     [loc=File:Line,Col]*
 /// </summary>
 public static class CodeGraphSerializer
 {
-    private const string ElementsHeader = "# Elements";
-    private const string RelationshipsHeader = "# Relationships";
     private const string Separator = "  ";
 
     public static string Serialize(CodeGraph graph)
     {
         var sb = new StringBuilder();
 
-        // Serialize elements
-        sb.AppendLine(ElementsHeader);
-
+        // Serialize elements first (no header)
         var sortedElements = GetSortedElements(graph);
-
         foreach (var element in sortedElements)
         {
             SerializeElement(sb, element);
         }
 
-        sb.AppendLine();
-
-        // Serialize relationships
-        sb.AppendLine(RelationshipsHeader);
-
-        // Any ordering is fine
+        // Serialize relationships (no header, no blank line)
         var relationships = graph.GetAllRelationships().OrderBy(r => GetRelationshipSortKey(graph, r));
         foreach (var rel in relationships)
         {
@@ -149,48 +136,52 @@ public static class CodeGraphSerializer
         var lines = content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Select(l => l.TrimEnd()).ToArray();
 
         var currentLine = 0;
-
-        // Skip to Elements section
-        while (currentLine < lines.Length && !lines[currentLine].StartsWith(ElementsHeader))
-        {
-            currentLine++;
-        }
-
-        if (currentLine >= lines.Length)
-        {
-            throw new InvalidOperationException("Elements header not found");
-        }
-
-        currentLine++; // Skip header
-
-        // Parse elements - store parent IDs for later linking
         var parentIds = new Dictionary<string, string>(); // childId -> parentId
 
+        // Parse line by line with auto-detection
         while (currentLine < lines.Length)
         {
             var line = lines[currentLine].Trim();
-
-            // Check if we reached relationships section
-            if (line.StartsWith(RelationshipsHeader))
+            
+            // Skip empty lines or comments
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
             {
-                break;
+                currentLine++;
+                continue;
             }
 
-            // Parse element
-            var (element, parentId, linesConsumed) = ParseElement(lines, currentLine);
-            currentLine += linesConsumed;
-
-            // Add to graph
-            graph.Nodes[element.Id] = element;
-
-            // Track parent ID for later linking
-            if (parentId != null)
+            var parts = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
             {
-                parentIds[element.Id] = parentId;
+                throw new InvalidOperationException($"Invalid line format at {currentLine}: {line}");
+            }
+
+            // Try to detect: Element or Relationship?
+            var isElement = IsElementLine(parts, graph, currentLine);
+
+            if (isElement)
+            {
+                // Parse as Element
+                var (element, parentId, linesConsumed) = ParseElement(lines, currentLine);
+                currentLine += linesConsumed;
+
+                graph.Nodes[element.Id] = element;
+
+                if (parentId != null)
+                {
+                    parentIds[element.Id] = parentId;
+                }
+            }
+            else
+            {
+                // Parse as Relationship
+                var (relationship, linesConsumed) = ParseRelationship(lines, currentLine);
+                currentLine += linesConsumed;
+                graph.Nodes[relationship.SourceId].Relationships.Add(relationship);
             }
         }
 
-        // Link parent-child relationships in one place
+        // Link parent-child relationships
         foreach (var (childId, parentId) in parentIds)
         {
             if (graph.Nodes.TryGetValue(childId, out var child) &&
@@ -201,26 +192,39 @@ public static class CodeGraphSerializer
             }
         }
 
-        // Skip relationships header
-        currentLine++;
+        return graph;
+    }
 
-        // Parse relationships
-        while (currentLine < lines.Length)
+    
+    /// <summary>
+    /// Determines if a line represents an Element or Relationship.
+    /// Strategy: 
+    /// 1. Check if it's a relationship: existing sourceId + valid RelationshipType + ANY targetId → Relationship
+    /// 2. Otherwise try to parse first token as ElementType (case-insensitive) → Element
+    /// 3. Otherwise → Error
+    /// 
+    /// This order is critical: Relationships have priority to avoid ambiguity when an element ID
+    /// matches an ElementType name (e.g., element with ID="Class").
+    /// </summary>
+    private static bool IsElementLine(string[] parts, CodeGraph graph, int currentLine)
+    {
+        // Check if it's a relationship: existing ID + RelationshipType + existing ID
+        if (parts.Length >= 3 &&
+            graph.Nodes.ContainsKey(parts[0]) &&
+            graph.Nodes.ContainsKey(parts[2]) &&
+            Enum.TryParse<RelationshipType>(parts[1], ignoreCase: true, out _))
         {
-            var line = lines[currentLine].Trim();
-
-            // Parse relationship
-            var (relationship, linesConsumed) = ParseRelationship(lines, currentLine);
-            currentLine += linesConsumed;
-
-            // Add relationship to source element
-            if (graph.Nodes.TryGetValue(relationship.SourceId, out var sourceElement))
-            {
-                sourceElement.Relationships.Add(relationship);
-            }
+            return false; // It's a relationship
+        }
+        
+        // Try to parse as ElementType (case-insensitive)
+        if (Enum.TryParse<CodeElementType>(parts[0], ignoreCase: true, out _))
+        {
+            return true;
         }
 
-        return graph;
+        throw new InvalidOperationException(
+            $"Malformed line. Cannot determine if it is CodeElement or Relationship at line {currentLine}");
     }
 
     public static CodeGraph DeserializeFromFile(string filePath)
@@ -232,8 +236,6 @@ public static class CodeGraphSerializer
     private static (CodeElement element, string? parentId, int linesConsumed) ParseElement(string[] lines, int startLine)
     {
         var mainLine = lines[startLine];
-        
-        // Split arbitrary spaces
         var parts = mainLine.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length < 2)
@@ -241,7 +243,12 @@ public static class CodeGraphSerializer
             throw new InvalidOperationException($"Invalid element format at line {startLine}: {mainLine}");
         }
 
-        var elementType = Enum.Parse<CodeElementType>(parts[0]);
+        // Parse with ignoreCase
+        if (!Enum.TryParse<CodeElementType>(parts[0], ignoreCase: true, out var elementType))
+        {
+            throw new InvalidOperationException($"Unknown element type '{parts[0]}' at line {startLine}");
+        }
+
         var id = parts[1];
 
         string? name = null;
@@ -281,7 +288,7 @@ public static class CodeGraphSerializer
             }
         }
 
-        // Fallbacks for ooptional parameters
+        // Fallbacks
         name ??= id;
         fullName ??= name;
 
@@ -316,7 +323,13 @@ public static class CodeGraphSerializer
         }
     
         var sourceId = parts[0];
-        var relType = Enum.Parse<RelationshipType>(parts[1]);
+        
+        // Parse with ignoreCase
+        if (!Enum.TryParse<RelationshipType>(parts[1], ignoreCase: true, out var relType))
+        {
+            throw new InvalidOperationException($"Unknown relationship type '{parts[1]}' at line {startLine}");
+        }
+        
         var targetId = parts[2];
     
         var attributes = RelationshipAttribute.None;
@@ -327,7 +340,7 @@ public static class CodeGraphSerializer
             var attrList = parts[3].Split(',');
             foreach (var attr in attrList)
             {
-                if (Enum.TryParse<RelationshipAttribute>(attr.Trim(), out var flag))
+                if (Enum.TryParse<RelationshipAttribute>(attr.Trim(), ignoreCase: true, out var flag))
                 {
                     attributes |= flag;
                 }
@@ -368,7 +381,6 @@ public static class CodeGraphSerializer
 
         return new SourceLocation(file, line, column);
     }
-
 
     private static (List<SourceLocation> locations, int linesConsumed) ParseSourceLocations(string[] lines, int startLine)
     {
