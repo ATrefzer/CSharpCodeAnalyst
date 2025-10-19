@@ -1,6 +1,6 @@
 ﻿using CSharpCodeAnalyst.Common;
 
-namespace CodeParserTests.UnitTests;
+namespace CodeParserTests.Search;
 
 [TestFixture]
 public class PascalCaseSearchTests

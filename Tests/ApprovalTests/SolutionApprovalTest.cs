@@ -3,7 +3,7 @@
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
-public class SolutionApprovalTests : ProjectTestBase
+public class SolutionApprovalTests : ApprovalTestBase
 {
 
     [Test]

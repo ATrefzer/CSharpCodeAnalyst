@@ -6,7 +6,7 @@ namespace CodeParserTests.ApprovalTests;
 ///     Focused approval tests for method group functionality.
 /// </summary>
 [TestFixture]
-public class MethodGroupApprovalTests : ProjectTestBase
+public class MethodGroupApprovalTests : ApprovalTestBase
 {
 
     private CodeGraph GetTestAssemblyGraph()

@@ -2,7 +2,7 @@ using CSharpCodeAnalyst.Exploration;
 
 namespace CodeParserTests.ApprovalTests;
 
-public class CodeExplorerApprovalTests : ProjectTestBase
+public class CodeExplorerApprovalTests : ApprovalTestBase
 {
     [Test]
     public void CodeExplorer_FollowIncomingCalls_1()

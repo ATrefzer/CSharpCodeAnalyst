@@ -91,6 +91,7 @@ You can explore scenarios such as:
 
 - What happens if you remove a code element?
 - What happens if you move a class to another namespace?
+- What happens if you cut a dependency between two code elements?
 
 After your modifications, you can rerun the cycle search to observe the impact.
 
@@ -104,6 +105,10 @@ Context Menu Options:
 - **Delete from model** – Removes the selected element from the model.
 - **Set as movement parent** – Sets the current element as the parent for subsequent move operations.
 - **Move** – Once a movement parent is set, this option moves the selected element and all its children to the chosen parent.
+
+Additionally in the Code Explorer
+
+- **Delete edge from model** – Deletes the relationships between two code elements. If the edge is bundled, multiple relationships get deleted.
 
 ## Validate your architectural rules
 

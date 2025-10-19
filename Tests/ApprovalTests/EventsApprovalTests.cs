@@ -3,7 +3,7 @@ using Contracts.Graph;
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
-public class EventsApprovalTests : ProjectTestBase
+public class EventsApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestGraph()
     {

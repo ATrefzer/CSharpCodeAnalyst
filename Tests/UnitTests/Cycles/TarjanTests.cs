@@ -1,7 +1,7 @@
 ﻿using CodeParser.Analysis.Cycles;
 using CodeParser.Analysis.Shared;
 
-namespace CodeParserTests.UnitTests;
+namespace CodeParserTests.UnitTests.Cycles;
 
 [TestFixture]
 public class TarjanTests

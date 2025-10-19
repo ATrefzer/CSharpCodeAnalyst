@@ -181,6 +181,14 @@
     </ItemGroup>
 
     <ItemGroup>
+
+        <!-- Copy LICENSE file to output directory -->
+        <None Include="..\LICENSE">
+            <Link>LICENSE</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        
+        
         <!-- Copy ThirdPartyNotices to output directory for license compliance -->
         <None Include="..\ThirdPartyNotices\**\*">
             <Link>ThirdPartyNotices\%(RecursiveDir)%(FileName)%(Extension)</Link>

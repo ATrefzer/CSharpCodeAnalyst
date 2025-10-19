@@ -1032,6 +1032,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnRestore()
     {
+        // Note we do not touch the dirty flags when restoring.
+        // If you refactored a new file to save is already requested.
+        // If not, nothing you did with the application triggered the dirty flag.
         _project.RestoreSnapshot(RestoreProjectData);
     }
 

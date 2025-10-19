@@ -7,7 +7,7 @@ namespace CodeParserTests.ApprovalTests;
 /// <summary>
 ///     Old legacy tests
 /// </summary>
-public class OldCSharpLanguageApprovalTests : ProjectTestBase
+public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {

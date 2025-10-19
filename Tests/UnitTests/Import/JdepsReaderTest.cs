@@ -2,7 +2,7 @@ using System.Text;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Import;
 
-namespace CodeParserTests.UnitTests;
+namespace CodeParserTests.UnitTests.Import;
 
 [TestFixture]
 public static class JdepsReaderTest

@@ -1,11 +1,8 @@
 using CodeParser.Export;
 using CodeParserTests.Helper;
 using Contracts.Graph;
-using Microsoft.Build.Tasks.Deployment.ManifestUtilities;
-using System.Linq;
-using System.Xml.Linq;
 
-namespace CodeParserTests.UnitTests;
+namespace CodeParserTests.UnitTests.Export;
 
 [TestFixture]
 public class PlantUmlExportTests

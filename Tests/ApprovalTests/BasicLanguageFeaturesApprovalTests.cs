@@ -3,7 +3,7 @@ using Contracts.Graph;
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
-public class BasicLanguageFeaturesApprovalTests : ProjectTestBase
+public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
 {
 
     [Test]

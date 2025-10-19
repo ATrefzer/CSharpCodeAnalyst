@@ -5,7 +5,7 @@ using Contracts.Graph;
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
-public class ObjectOrientedApprovalTests : ProjectTestBase
+public class ObjectOrientedApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {

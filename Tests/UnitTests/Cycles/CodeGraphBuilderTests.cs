@@ -1,7 +1,7 @@
 ﻿using CodeParser.Analysis.Cycles;
 using Contracts.Graph;
 
-namespace CodeParserTests.UnitTests;
+namespace CodeParserTests.UnitTests.Cycles;
 
 /// <summary>
 ///     Assumes the SearchGraphBuilder test are ok.

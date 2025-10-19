@@ -3,7 +3,7 @@ using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using Contracts.Graph;
 
-namespace CodeParserTests;
+namespace CodeParserTests.ApprovalTests;
 
 public class ResolvedRelationship
 {
@@ -59,7 +59,7 @@ internal static class Init
 ///     Base class for project-focused approval tests.
 ///     Provides common filtering and assertion methods.
 /// </summary>
-public abstract class ProjectTestBase
+public abstract class ApprovalTestBase
 {
 
     protected CodeGraph Graph = null!;
