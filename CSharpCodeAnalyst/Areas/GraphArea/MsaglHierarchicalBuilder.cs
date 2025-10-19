@@ -64,7 +64,20 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private static void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
+    protected override Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
+    {
+        var node = base.CreateNode(graph, codeElement, presentationState);
+
+        if (codeElement.Children.Any() && presentationState.IsCollapsed(codeElement.Id))
+        {
+            // This is a collapsed node. Show bold if it hides children and can be expanded.
+            node.Label.FontStyle = FontStyle.Bold;
+        }
+
+        return node;
+    }
+
+    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
         Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         // Add nodes and sub graphs. Each node that has children becomes a subgraph.
@@ -99,7 +112,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private static void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
+    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         var newNode = CreateNode(graph, node, presentationState);
         if (node.Parent != null)

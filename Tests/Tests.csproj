@@ -24,6 +24,15 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Reference Include="Microsoft.Msagl">
+            <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.dll</HintPath>
+        </Reference>
+        <Reference Include="Microsoft.Msagl.Drawing">
+            <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.Drawing.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 

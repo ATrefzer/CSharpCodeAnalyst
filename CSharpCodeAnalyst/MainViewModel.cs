@@ -1047,15 +1047,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
     }
-
-    
-    
-    
-    
     
     public void ClearQuickInfo()
     {
         _infoPanelViewModel?.ClearQuickInfo();
-        _graphViewModel.ClearQuickInfo();
+        _graphViewModel?.ClearQuickInfo();
     }
 }

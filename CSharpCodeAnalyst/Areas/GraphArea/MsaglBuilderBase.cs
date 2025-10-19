@@ -100,7 +100,7 @@ internal abstract class MsaglBuilderBase
         return new Color((byte)r, (byte)g, (byte)b);
     }
 
-    protected static Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
+    protected virtual Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
     {
         var node = graph.AddNode(codeElement.Id);
         node.LabelText = codeElement.Name;

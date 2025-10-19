@@ -12,7 +12,7 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
         return CreateFlatGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
 
-    private static Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
+    private Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
