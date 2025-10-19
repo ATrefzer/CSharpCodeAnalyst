@@ -24,7 +24,7 @@ While this application was written to analyze cyclic code structures, it also of
 
 - Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
 
-- To perform operations on multiple selected elements, use the context menu in the space surrounding the graph. 
+- To perform operations on multiple selected elements, use the tool buttons in the Code Explorer. 
 
 - Note: You can export graphs to DGML format for further analysis in Visual Studio. Also, PlantUML class diagrams are supported.
 

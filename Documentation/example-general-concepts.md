@@ -30,7 +30,7 @@ But as soon as you add the class, the hierarchical information is complete, show
 
 
 
-You can achieve the same by clicking the **Complete to containing types** context menu in the the space around the graph.
+You can achieve the same by clicking the **Complete to containing types** tool button.
 
 ![](Images/example-complete-to-containing-types.png)
 
@@ -46,7 +46,7 @@ Only what you see in the graph gets connected.
 
 In the screenshot below we have three methods in the canvas
 
-In the context menu in the free space around the graph, you choose **Complete relationships**.
+In the tool button area click **Complete relationships**.
 
 
 
@@ -60,7 +60,7 @@ This function adds all existing dependencies between the visual code elements.
 
 
 
-The method calls alone are sometimes not helpful without context. Again, in the global context menu (space around graph), you can select **Complete to containing types**. This gives you a better picture. There is one "calls" and one "implements" relationship.
+The method calls alone are sometimes not helpful without context. Again, click the  **Complete to containing types** button. This gives you a better picture. There is one "calls" and one "implements" relationship.
 
 Note:
 
