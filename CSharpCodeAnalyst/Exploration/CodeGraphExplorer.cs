@@ -518,10 +518,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
 
-    // Alternative implementation
     private HashSet<string> FillGapsInHierarchy(HashSet<string> knownIds)
     {
         var added = new HashSet<string>();
+
         if (_codeGraph is null)
         {
             return added;
@@ -534,17 +534,19 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue; // Skip invalid Id
             }
 
-            // Walk up until we reach a parent already known or run out.
-            while (current.Parent is not null && !knownIds.Contains(current.Parent.Id))
+            var fromRootToCurrent = current.GetPathToRoot(false).ToList();
+            var addFromHere = false;
+            foreach (var parent in fromRootToCurrent)
             {
-                if (added.Add(current.Parent.Id))
+                if (knownIds.Contains(parent.Id))
                 {
-                    current = current.Parent;
+                    // Found a parent, all elements from here down to current need to be present.
+                    addFromHere = true;
                 }
-                else
+
+                if (addFromHere)
                 {
-                    // Already added
-                    current = current.Parent;
+                    added.Add(parent.Id);
                 }
             }
         }
