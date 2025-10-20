@@ -65,6 +65,8 @@
                   Margin="5"
                   dd:DragDrop.IsDragSource="True">
 
+            <!-- Note: The TreeVie SelectedItem is not a DependencyProperty, so we need to use
+            an Interaction Trigger to bind it to the ViewModel -->
             <b:Interaction.Triggers>
                 <b:EventTrigger EventName="SelectedItemChanged">
                     <b:InvokeCommandAction Command="{Binding SelectedItemChangedCommand}"
