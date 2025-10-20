@@ -6,7 +6,6 @@ namespace CSharpCodeAnalyst.Exploration;
 
 public class CodeGraphExplorer : ICodeGraphExplorer
 {
-    private List<Relationship> _allRelationships = [];
     private CodeGraph? _codeGraph;
 
     public void LoadCodeGraph(CodeGraph graph)
@@ -14,7 +13,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         _codeGraph = graph;
 
         // Clear all cached data
-        _allRelationships = [];
     }
 
     public List<CodeElement> GetElements(List<string> ids)
@@ -30,7 +28,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         foreach (var id in ids)
         {
             if (_codeGraph.Nodes.TryGetValue(id, out var element))
-                // The element is cloned internally and the relationships discarded.
             {
                 elements.Add(element);
             }
@@ -40,18 +37,18 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
     /// <summary>
-    ///     Adds the containers for all low level elements like fields or methods to give more
-    ///     context.
+    ///     Adds the containers for all low level elements like fields or methods
+    ///     to give more context.
     ///     The method fills also any missing intermediate containers.
     /// </summary>
-    public SearchResult CompleteToContainingTypes(HashSet<string> knownIds)
+    public SearchResult FindMissingTypesForLonelyTypeMembers(HashSet<string> knownIds)
     {
         if (_codeGraph is null)
         {
             return new SearchResult([], []);
         }
 
-        var parents = new HashSet<string>();
+        var parentIds = new HashSet<string>();
 
         var existing = knownIds.ToArray();
         for (var i = 0; i < existing.Length; i++)
@@ -59,8 +56,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             // We hit each pair twice so we walk only one direction here.
             var possibleChild = _codeGraph.Nodes[existing[i]];
 
-            // Step 1 Ensure that the parent container exists for low level elements like fields.
-            // We then can proceed with the container.
             while (possibleChild.Parent is not null &&
                    CodeElementClassifier.GetContainerLevel(possibleChild.ElementType) == 0)
             {
@@ -68,62 +63,35 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 var parent = possibleChild.Parent;
                 if (!knownIds.Contains(parent.Id))
                 {
-                    parents.Add(parent.Id);
+                    parentIds.Add(parent.Id);
                 }
 
                 possibleChild = possibleChild.Parent;
             }
-
-            // Step 2 
-            // Ensure all gaps are filled
-            for (var j = 0; j < existing.Length; j++)
-            {
-                if (i == j)
-                {
-                    continue;
-                }
-
-                var possibleParent = _codeGraph.Nodes[existing[j]];
-
-                // Only search for missing gaps if we have an ancestor relationship
-                if (!possibleChild.IsChildOf(possibleParent))
-                {
-                    continue;
-                }
-
-                while (possibleChild.Parent != null && possibleChild.Id != possibleParent.Id)
-                {
-                    var parent = possibleChild.Parent;
-                    if (!knownIds.Contains(parent.Id))
-                    {
-                        parents.Add(parent.Id);
-                    }
-
-                    possibleChild = parent;
-                }
-            }
         }
 
-        var elements = parents.Select(p => _codeGraph.Nodes[p]).ToHashSet();
+        // Fill also gaps.
+        var gapFillingIds = FillGapsInHierarchy(knownIds);
+        var elementIds = gapFillingIds.Union(parentIds);
+
+        var elements = elementIds.Select(p => _codeGraph.Nodes[p]).ToHashSet();
         return new SearchResult(elements, []);
     }
-    
-    
+
     public SearchResult FindOutgoingRelationshipsDeep(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
         var sources = element.GetChildrenIncludingSelf();
         var relationships = _codeGraph.GetAllRelationships().Where(r => sources.Contains(r.SourceId)).ToList();
         var targets = relationships.Select(m => m.TargetId).ToList();
-        
-        var elements = (sources.Union(targets)).Select(i => _codeGraph.Nodes[i]).ToHashSet();
+
+        var elements = sources.Union(targets).Select(i => _codeGraph.Nodes[i]).ToHashSet();
 
         return new SearchResult(elements, relationships);
     }
@@ -131,20 +99,20 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     public SearchResult FindIncomingRelationshipsDeep(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
-        if (_codeGraph is null)
+
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
-        var targets = element.GetChildrenIncludingSelf();
-        var relationships = _codeGraph.GetAllRelationships().Where(r => targets.Contains(r.TargetId)).ToList();
+        var targetIds = element.GetChildrenIncludingSelf();
+        var relationships = _codeGraph.GetAllRelationships().Where(r => targetIds.Contains(r.TargetId)).ToList();
         var sources = relationships.Select(d => d.SourceId);
-        var elements = (sources.Union(targets)).Select(i => _codeGraph.Nodes[i]).ToHashSet();
+        var elements = sources.Union(targetIds).Select(i => _codeGraph.Nodes[i]).ToHashSet();
 
         return new SearchResult(elements, relationships);
     }
-    
+
     public SearchResult FindParents(List<string> ids)
     {
         if (_codeGraph is null)
@@ -177,24 +145,17 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return [];
         }
 
-        var relationships = _codeGraph.Nodes.Values
-            .SelectMany(n => n.Relationships)
-            .Where(d => ids.Contains(d.SourceId) && ids.Contains(d.TargetId))
-            .ToList();
-
-        return relationships;
+        return GetRelationships(d => ids.Contains(d.SourceId) && ids.Contains(d.TargetId));
     }
 
     public Invocation FindIncomingCalls(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var method))
         {
             return new Invocation([], []);
         }
-
-        var method = _codeGraph.Nodes[id];
 
         var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
         var calls = allCalls.Where(call => call.TargetId == method.Id).ToArray();
@@ -208,12 +169,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var method))
         {
             return new Invocation([], []);
         }
-
-        var method = _codeGraph.Nodes[id];
 
         var processingQueue = new Queue<CodeElement>();
         processingQueue.Enqueue(method);
@@ -240,7 +199,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             foreach (var methodToExplore in methods)
             {
-                processingQueue.Enqueue(_codeGraph.Nodes[methodToExplore.Id]);
+                processingQueue.Enqueue(methodToExplore);
             }
         }
 
@@ -314,7 +273,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             if (element.ElementType == CodeElementType.Method)
             {
                 // Calls
-                var calls = allCalls.Where(call => call.TargetId == element.Id && currentContext.IsCallAllowed(call)).ToArray();
+                var calls = allCalls.Where(call => call.TargetId == element.Id && currentContext.IsCallAllowed(call))
+                    .ToArray();
                 foundRelationships.UnionWith(calls);
 
                 // We may restrict further paths
@@ -340,7 +300,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                         newContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
                     }
 
-                    if (call.Attributes == RelationshipAttribute.IsBaseCall)
+                    if (call.HasAttribute(RelationshipAttribute.IsBaseCall))
                     {
                         // Call to own base class restricts the possible further calls.
                         newContext = currentContext.Clone();
@@ -372,13 +332,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(foundElements, foundRelationships);
 
 
-
-
         void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context, int priority)
         {
             foreach (var elementToExplore in elementsToExplore)
             {
-                processingQueue.Enqueue((_codeGraph.Nodes[elementToExplore.Id], context), priority);
+                processingQueue.Enqueue((elementToExplore, context), priority);
             }
         }
     }
@@ -390,14 +348,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var type))
         {
             return new SearchResult([], []);
         }
 
-        var type = _codeGraph.Nodes[id];
+        // For completeness add the start type.
+        var types = new HashSet<CodeElement> { type };
 
-        var types = new HashSet<CodeElement>();
+
         var relationships = new HashSet<Relationship>();
         var processingQueue = new Queue<CodeElement>();
 
@@ -464,16 +423,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
-
         var relationships = _codeGraph.GetAllRelationships()
-            .Where(d => d.Type is RelationshipType.Overrides or RelationshipType.Implements &&
-                        d.TargetId == element.Id).ToList();
+            .Where(d =>
+                d.Type is RelationshipType.Overrides or RelationshipType.Inherits or RelationshipType.Implements &&
+                d.TargetId == element.Id).ToList();
         var methods = relationships.Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
         return new SearchResult(methods, relationships);
     }
@@ -485,16 +443,15 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
-
         var relationships = element.Relationships
-            .Where(d => d.Type is RelationshipType.Overrides or RelationshipType.Inherits or RelationshipType.Implements &&
-                        d.SourceId == element.Id).ToList();
+            .Where(d =>
+                d.Type is RelationshipType.Overrides or RelationshipType.Inherits or RelationshipType.Implements &&
+                d.SourceId == element.Id).ToList();
         var methods = relationships.Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
         return new SearchResult(methods, relationships);
     }
@@ -504,12 +461,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var method))
         {
             return new Invocation([], []);
         }
-
-        var method = _codeGraph.Nodes[id];
 
         var calls = method.Relationships
             .Where(d => d.Type == RelationshipType.Calls).ToList();
@@ -521,12 +476,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     {
         ArgumentNullException.ThrowIfNull(id);
 
-        if (_codeGraph is null)
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
         var relationships = element.Relationships;
         var targets = relationships.Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
         return new SearchResult(targets, relationships);
@@ -535,12 +489,12 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     public SearchResult FindIncomingRelationships(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
-        if (_codeGraph is null)
+
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element))
         {
             return new SearchResult([], []);
         }
 
-        var element = _codeGraph.Nodes[id];
         var relationships = _codeGraph.Nodes.Values
             .SelectMany(node => node.Relationships)
             .Where(d => d.TargetId == element.Id).ToList();
@@ -551,7 +505,65 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
     /// <summary>
-    ///     Returns all allowed call forbidden within the hierarchy.
+    ///     The method fills any missing intermediate containers.
+    /// </summary>
+    public SearchResult FindGapsInHierarchy(HashSet<string> knownIds)
+    {
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var newElements = FillGapsInHierarchy(knownIds);
+
+        var elements = newElements.Select(p => _codeGraph.Nodes[p]).ToHashSet();
+        return new SearchResult(elements, []);
+    }
+
+    private HashSet<string> FillGapsInHierarchy(HashSet<string> knownIds)
+    {
+        HashSet<string> newElementsIds = [];
+        var existing = knownIds.ToArray();
+        for (var i = 0; i < existing.Length; i++)
+        {
+            // We hit each pair twice so we walk only one direction here.
+            var possibleChild = _codeGraph!.Nodes[existing[i]];
+
+            for (var j = 0; j < existing.Length; j++)
+            {
+                if (i == j)
+                {
+                    continue;
+                }
+
+                var possibleParent = _codeGraph.Nodes[existing[j]];
+
+                // Only search for missing gaps if we have an ancestor relationship
+                if (!possibleChild.IsChildOf(possibleParent))
+                {
+                    continue;
+                }
+
+                // Don't override possible child while climbing up.
+                var currentChild = possibleChild;
+                while (currentChild.Parent != null && currentChild.Id != possibleParent.Id)
+                {
+                    var parent = currentChild.Parent;
+                    if (!knownIds.Contains(parent.Id))
+                    {
+                        newElementsIds.Add(parent.Id);
+                    }
+
+                    currentChild = parent;
+                }
+            }
+        }
+
+        return newElementsIds;
+    }
+
+    /// <summary>
+    ///     Returns all forbidden calls within the hierarchy.
     /// </summary>
     private HashSet<CodeElement> RestrictHierarchyCallSources(CodeElement someMethodInHierarchy)
     {
@@ -584,8 +596,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var forbiddenHierarchy = expandedBaseClasses.Except(allowedHierarchy).ToHashSet();
         return forbiddenHierarchy;
     }
-
-
 
     /// <summary>
     ///     The given element is not included in the result.
@@ -624,8 +634,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return baseClasses;
     }
 
-    public static CodeElement? GetMethodContainer(CodeElement element)
+    public static CodeElement? GetMethodContainer(CodeElement method)
     {
+        var element = method;
         while (element.ElementType != CodeElementType.Class
                && element.ElementType != CodeElementType.Struct
                && element.ElementType != CodeElementType.Interface
@@ -659,8 +670,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         {
             var currentElement = queue.Dequeue();
 
-            var derivedClasses = GetRelationships(d => d.Type == RelationshipType.Inherits && d.TargetId == currentElement.Id)
-                .Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
+            var derivedClasses =
+                GetRelationships(d => d.Type == RelationshipType.Inherits && d.TargetId == currentElement.Id)
+                    .Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
 
             foreach (var derived in derivedClasses)
             {
@@ -684,25 +696,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
 
-
-    private List<Relationship> GetCachedRelationships()
+    private List<Relationship> GetRelationships(Func<Relationship, bool> filter)
     {
         if (_codeGraph is null)
         {
             return [];
         }
 
-        if (_allRelationships.Count == 0)
-        {
-            _allRelationships = _codeGraph.GetAllRelationships().ToList();
-        }
-
-        return _allRelationships;
-    }
-
-    private List<Relationship> GetRelationships(Func<Relationship, bool> filter)
-    {
-        return GetCachedRelationships().Where(filter).ToList();
+        return _codeGraph.GetAllRelationships().Where(filter).ToList();
     }
 
     private HashSet<Relationship> FindInheritsAndImplementsRelationships()

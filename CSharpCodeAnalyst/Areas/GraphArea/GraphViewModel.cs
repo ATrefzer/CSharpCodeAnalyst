@@ -379,7 +379,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         var viewerGraph = _viewer.GetGraph();
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
-        var result = _explorer.CompleteToContainingTypes(ids);
+        var result = _explorer.FindMissingTypesForLonelyTypeMembers(ids);
         AddToGraph(result.Elements, []);
     }
 
@@ -602,7 +602,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
                 .Select(e => e.Id)
                 .Union(_viewer.GetGraph().Nodes.Keys).ToHashSet();
 
-            var result = _explorer.CompleteToContainingTypes(elementIds);
+            var result = _explorer.FindMissingTypesForLonelyTypeMembers(elementIds);
             elementsToAdd.AddRange(result.Elements);
             relationshipsToAdd.AddRange(result.Relationships);
         }

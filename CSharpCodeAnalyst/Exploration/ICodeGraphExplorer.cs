@@ -44,7 +44,7 @@ public interface ICodeGraphExplorer
     ///     Completes the list of Ids such that at least the containing type is present.
     ///     If we already have a type the search stops.
     /// </summary>
-    SearchResult CompleteToContainingTypes(HashSet<string> ids);
+    SearchResult FindMissingTypesForLonelyTypeMembers(HashSet<string> ids);
 
     SearchResult FindOutgoingRelationshipsDeep(string id);
     SearchResult FindIncomingRelationshipsDeep(string id);
