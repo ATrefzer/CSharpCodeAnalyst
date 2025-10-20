@@ -908,6 +908,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (result.IsSuccess)
         {
             ClearDirty(result.Data!);
+            _userSettings.AddRecentFile(result.Data!);
+            RefreshMru();
         }
     }
 
