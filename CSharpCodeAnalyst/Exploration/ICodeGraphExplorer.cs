@@ -4,13 +4,13 @@ namespace CSharpCodeAnalyst.Exploration;
 
 public interface ICodeGraphExplorer
 {
-    Invocation FindIncomingCalls(string id);
-    Invocation FindOutgoingCalls(string id);
+    SearchResult FindIncomingCalls(string id);
+    SearchResult FindOutgoingCalls(string id);
 
     /// <summary>
     ///     Follows all incoming calls recursively.
     /// </summary>
-    Invocation FindIncomingCallsRecursive(string id);
+    SearchResult FindIncomingCallsRecursive(string id);
 
     /// <summary>
     ///     Traces back callers of the given method. Includes also abstractions and their callers

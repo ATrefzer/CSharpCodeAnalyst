@@ -647,7 +647,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         // Use the node from the original graph
         var callee = _explorer.FindIncomingCalls(method.Id);
-        AddToGraph(callee.Methods, callee.Calls);
+        AddToGraph(callee.Elements, callee.Relationships);
     }
 
     internal void FindIncomingCallsRecursive(CodeElement method)
@@ -659,7 +659,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         var callers =
             _explorer.FindIncomingCallsRecursive(method.Id);
-        AddToGraph(callers.Methods, callers.Calls);
+        AddToGraph(callers.Elements, callers.Relationships);
     }
 
 
@@ -695,7 +695,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var callers = _explorer.FindOutgoingCalls(method.Id);
-        AddToGraph(callers.Methods, callers.Calls);
+        AddToGraph(callers.Elements, callers.Relationships);
     }
 
     private static bool IsCallable(CodeElement? method)
