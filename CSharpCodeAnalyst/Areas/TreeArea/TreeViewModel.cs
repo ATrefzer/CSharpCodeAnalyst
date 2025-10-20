@@ -18,6 +18,7 @@ public class TreeViewModel : INotifyPropertyChanged
     private readonly MessageBus _messaging;
     private readonly RefactoringService _refactoringService;
     private CodeGraph? _codeGraph;
+    private string? _lastSelectedCodeElement;
     private string _searchText;
     private ObservableCollection<TreeItemViewModel> _treeItems;
 
@@ -41,8 +42,57 @@ public class TreeViewModel : INotifyPropertyChanged
 
         SetMovementTargetCommand = new WpfCommand<TreeItemViewModel>(RefactoringSetMovementTarget, RefactoringCanSetMovementTarget);
         MoveCommand = new WpfCommand<TreeItemViewModel>(RefactoringMoveCodeElement, RefactoringCanMoveCodeElement);
+        SelectedItemChangedCommand = new WpfCommand<TreeItemViewModel>(OnSelectedItemChanged);
 
         _treeItems = [];
+    }
+
+    public ICommand CollapseTreeCommand { get; }
+
+    public ICommand ClearSearchCommand { get; }
+
+
+    public ObservableCollection<TreeItemViewModel> TreeItems
+    {
+        get => _treeItems;
+        set
+        {
+            _treeItems = value;
+            OnPropertyChanged(nameof(TreeItems));
+        }
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value;
+            OnPropertyChanged(nameof(SearchText));
+        }
+    }
+
+    public ICommand SearchCommand { get; }
+    public ICommand AddNodeToGraphCommand { get; private set; }
+    public ICommand DeleteFromModelCommand { get; }
+    public ICommand PartitionTreeCommand { get; private set; }
+    public ICommand PartitionWithBaseTreeCommand { get; private set; }
+    public ICommand CopyToClipboardCommand { get; private set; }
+    public ICommand CreateCodeElementCommand { get; private set; }
+
+    public ICommand SetMovementTargetCommand { get; private set; }
+    public ICommand MoveCommand { get; private set; }
+
+    public ICommand SelectedItemChangedCommand { get; }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnSelectedItemChanged(TreeItemViewModel item)
+    {
+        if (item?.CodeElement != null)
+        {
+            _lastSelectedCodeElement = item.CodeElement.Id;
+        }
     }
 
     private bool RefactoringCanMoveCodeElement(TreeItemViewModel tvm)
@@ -64,44 +114,6 @@ public class TreeViewModel : INotifyPropertyChanged
     {
         _refactoringService.SetMovementTarget(tvm?.CodeElement?.Id);
     }
-
-    public ICommand CollapseTreeCommand { get; }
-
-    public ICommand ClearSearchCommand { get; }
-
-
-    public ObservableCollection<TreeItemViewModel> TreeItems
-    {
-        get => _treeItems;
-        set
-        {
-            _treeItems = value;
-            OnPropertyChanged(nameof(TreeItems));
-        }
-    }
-    
-    public string SearchText
-    {
-        get => _searchText;
-        set
-        {
-            _searchText = value;
-            OnPropertyChanged(nameof(SearchText));
-        }
-    }
-
-    public ICommand SearchCommand { get; }
-    public ICommand AddNodeToGraphCommand { get; private set; }
-    public ICommand DeleteFromModelCommand { get; }
-    public ICommand PartitionTreeCommand { get; private set; }
-    public ICommand PartitionWithBaseTreeCommand { get; private set; }
-    public ICommand CopyToClipboardCommand { get; private set; }
-    public ICommand CreateCodeElementCommand { get; private set; }
-    
-    public ICommand SetMovementTargetCommand { get; private set; }
-    public ICommand MoveCommand { get; private set; }
-
-    public event PropertyChangedEventHandler? PropertyChanged;
 
 
 
@@ -161,12 +173,12 @@ public class TreeViewModel : INotifyPropertyChanged
             _messaging.Publish(new AddNodeToGraphRequest(item.CodeElement));
         }
     }
-    
+
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
         // Note: Graph is actually the same
-        
+
         // Tree updates are slow, so do the update manually.
         if (message is CodeElementCreated created)
         {
@@ -192,7 +204,7 @@ public class TreeViewModel : INotifyPropertyChanged
     private void RefactoringCodeElementDeleted(string deletedElementId, string? parentId, HashSet<string> deletedIds)
     {
         // Refresh the tree to show the new element
-      
+
         // Delete from tree.
         if (!CodeElementIdToViewModel.TryGetValue(deletedElementId, out _))
         {
@@ -247,7 +259,7 @@ public class TreeViewModel : INotifyPropertyChanged
             }
         }
     }
-    
+
     /// <summary>
     ///     Creates a code element at the root level (e.g., Assembly).
     ///     Public method to be called from UI when right-clicking empty space.
@@ -256,7 +268,7 @@ public class TreeViewModel : INotifyPropertyChanged
     {
         RefactoringCreateCodeElement(null);
     }
-    
+
     private bool RefactoringCanCreateCodeElement(TreeItemViewModel? tvm)
     {
         // null tvm means root level (empty space in tree) - this is allowed
@@ -356,6 +368,14 @@ public class TreeViewModel : INotifyPropertyChanged
         else if (SearchText.Trim() == "!")
         {
             ResetVisibility(TreeItems, true);
+            if (!string.IsNullOrEmpty(_lastSelectedCodeElement))
+            {
+                // Since I want to keep the highlighting, I likely want to keep the location.
+                if ((bool)_codeGraph?.Nodes.ContainsKey(_lastSelectedCodeElement))
+                {
+                    _messaging.Publish(new LocateInTreeRequest(_lastSelectedCodeElement));
+                }
+            }
         }
         else
         {
@@ -422,11 +442,9 @@ public class TreeViewModel : INotifyPropertyChanged
         return anyMatch;
     }
 
-    public string? GetRefactoringNewMoveParent()
+    public string GetRefactoringNewMoveParent()
     {
         var target = _refactoringService.GetMovementTarget();
         return target?.Name != null ? target.Name : string.Empty;
     }
-
- 
 }

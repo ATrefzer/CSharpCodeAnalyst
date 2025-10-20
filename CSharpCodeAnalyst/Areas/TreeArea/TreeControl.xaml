@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.TreeArea"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              d:DataContext="{d:DesignInstance local:TreeViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
@@ -63,6 +64,13 @@
                   ItemsSource="{Binding TreeItems}"
                   Margin="5"
                   dd:DragDrop.IsDragSource="True">
+
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="SelectedItemChanged">
+                    <b:InvokeCommandAction Command="{Binding SelectedItemChangedCommand}"
+                                           CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=TreeView}}" />
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
 
             <TreeView.ContextMenu>
                 <ContextMenu>
