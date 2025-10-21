@@ -502,7 +502,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
     /// <summary>
-    ///     The method fills any missing intermediate containers.
+    ///     The method finds and returns the missing code elements in the hierarchy.
     /// </summary>
     public SearchResult FindGapsInHierarchy(HashSet<string> knownIds)
     {
@@ -538,15 +538,16 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             var addFromHere = false;
             foreach (var parent in fromRootToCurrent)
             {
+                if (addFromHere)
+                {
+                    added.Add(parent.Id);
+                    continue;
+                }
+
                 if (knownIds.Contains(parent.Id))
                 {
                     // Found a parent, all elements from here down to current need to be present.
                     addFromHere = true;
-                }
-
-                if (addFromHere)
-                {
-                    added.Add(parent.Id);
                 }
             }
         }
