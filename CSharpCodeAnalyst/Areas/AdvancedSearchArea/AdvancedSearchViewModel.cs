@@ -38,12 +38,11 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
             ExecuteSearchInternal();
         };
 
-        SearchCommand = new WpfCommand(ExecuteSearch);
         ClearSearchCommand = new WpfCommand(ClearSearch);
         AddSelectedToGraphCommand = new WpfCommand<object>(AddSelectedToGraph);
         AddSelectedToGraphCollapsedCommand = new WpfCommand<object>(AddSelectedToGraphCollapsed);
         PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
-        CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
+        CopyToClipboardCommand = new WpfCommand<object>(OnCopyToClipboard);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -79,7 +78,6 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         }
     }
 
-    public ICommand SearchCommand { get; }
     public ICommand ClearSearchCommand { get; }
     public ICommand AddSelectedToGraphCommand { get; }
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
@@ -88,9 +86,11 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private static void OnCopyToClipboard(SearchItemViewModel vm)
+    private static void OnCopyToClipboard(object? items)
     {
-        var text = vm?.CodeElement?.FullName;
+        var elements = GetSelectedCodeElements(items);
+
+        var text = string.Join(Environment.NewLine, elements.Select(e => e.FullName));
         if (string.IsNullOrEmpty(text))
         {
             return;
@@ -111,13 +111,13 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
             _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
         }
     }
-    
+
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
         // This operation is not that expensive
         LoadCodeGraph(message.Graph);
     }
-    
+
 
     public void LoadCodeGraph(CodeGraph codeGraph)
     {
@@ -187,18 +187,40 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 
     private void AddSelectedToGraphInternal(object? selectedItems, bool addCollapsed)
     {
+        var codeElements = GetSelectedCodeElements(selectedItems);
+
+        if (codeElements.Count > 0)
+        {
+            _messaging.Publish(new AddNodeToGraphRequest(codeElements, addCollapsed));
+        }
+    }
+
+    private static List<CodeElement> GetSelectedCodeElements(object? selectedItems)
+    {
+        var elements = new List<CodeElement>();
+
+        if (selectedItems is null)
+        {
+            return elements;
+        }
+
+        if (selectedItems is SearchItemViewModel { CodeElement: not null } item)
+        {
+            elements.Add(item.CodeElement);
+            return elements;
+        }
+
         if (selectedItems is IList list)
         {
-            var codeElements = list.Cast<SearchItemViewModel>()
-                .Where(item => item.CodeElement != null)
-                .Select(item => item.CodeElement!)
+            var codeElements = list.OfType<SearchItemViewModel>()
+                .Where(i => i.CodeElement != null)
+                .Select(i => i.CodeElement!)
                 .ToList();
 
-            if (codeElements.Count > 0)
-            {
-                _messaging.Publish(new AddNodeToGraphRequest(codeElements, addCollapsed));
-            }
+            elements.AddRange(codeElements);
         }
+
+        return elements;
     }
 
     private void OnPropertyChanged(string propertyName)

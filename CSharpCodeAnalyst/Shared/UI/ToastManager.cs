@@ -11,7 +11,7 @@ public enum ToastType
 
 public static class ToastManager
 {
-    private static readonly List<ToastNotification> _activeToasts = new();
+    private static readonly List<ToastNotification> ActiveToasts = new();
     private static readonly double ToastSpacing = 10; // Spacing between stacked toasts
     private static readonly double RightMargin = 20;
     private static readonly double TopMargin = 100;
@@ -48,12 +48,12 @@ public static class ToastManager
             };
 
             // Track active toasts
-            _activeToasts.Add(toast);
+            ActiveToasts.Add(toast);
 
             // Remove from tracking when closed
             toast.Closed += (s, e) =>
             {
-                _activeToasts.Remove(toast);
+                ActiveToasts.Remove(toast);
                 RepositionToasts(workingArea);
             };
 
@@ -67,12 +67,12 @@ public static class ToastManager
         // Calculate vertical offset based on number of existing toasts
         double topOffset = TopMargin;
 
-        int index = _activeToasts.IndexOf(toast);
+        int index = ActiveToasts.IndexOf(toast);
         for (int i = 0; i < index; i++)
         {
-            if (_activeToasts[i].IsLoaded)
+            if (ActiveToasts[i].IsLoaded)
             {
-                topOffset += _activeToasts[i].ActualHeight + ToastSpacing;
+                topOffset += ActiveToasts[i].ActualHeight + ToastSpacing;
             }
         }
 
@@ -86,7 +86,7 @@ public static class ToastManager
         // Reposition all active toasts to fill gaps
         double topOffset = TopMargin;
 
-        foreach (var toast in _activeToasts)
+        foreach (var toast in ActiveToasts)
         {
             if (toast.IsLoaded)
             {

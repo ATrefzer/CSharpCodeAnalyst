@@ -16,7 +16,6 @@
                 <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
                 <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
         </ResourceDictionary>
     </UserControl.Resources>
@@ -76,7 +75,7 @@
 
                                         <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
                                                   Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
                                             <MenuItem.Icon>
                                                 <Image Source="/Resources/copy_fqn_16.png" />
                                             </MenuItem.Icon>
