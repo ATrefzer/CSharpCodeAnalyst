@@ -40,7 +40,6 @@
             <TextBlock Text="{x:Static resources:Strings.Hint_DetailInfo}" Style="{StaticResource HintStyle}" />
             <TextBlock Text="{x:Static resources:Strings.Hint_Select}" Style="{StaticResource HintStyle}" />
             <TextBlock Text="{x:Static resources:Strings.Hint_Context}" Style="{StaticResource HintStyle}" />
-            <TextBlock Text="{x:Static resources:Strings.Hint_GlobalContext}" Style="{StaticResource HintStyle}" />
             <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" Style="{StaticResource HintStyle}" />
         </StackPanel>
         <Border ClipToBounds="True"

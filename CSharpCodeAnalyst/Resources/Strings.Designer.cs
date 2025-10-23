@@ -1052,7 +1052,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to • Right-click on code element: context-sensitive commands.
+        ///   Looks up a localized string similar to • Right-click on code element or relationship: context-sensitive commands.
         /// </summary>
         public static string Hint_Context {
             get {
@@ -1061,7 +1061,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to • Left-click on code element: show detail in Info tab.
+        ///   Looks up a localized string similar to • Left-click on code element or relationship: show details in Info tab.
         /// </summary>
         public static string Hint_DetailInfo {
             get {
@@ -1070,20 +1070,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to • Double-click on container: expand / collapse.
+        ///   Looks up a localized string similar to • Double-click on code element: expand / collapse.
         /// </summary>
         public static string Hint_ExpandCollapse {
             get {
                 return ResourceManager.GetString("Hint_ExpandCollapse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to • Right-click on empty space: global context commands (i.e. selection).
-        /// </summary>
-        public static string Hint_GlobalContext {
-            get {
-                return ResourceManager.GetString("Hint_GlobalContext", resourceCulture);
             }
         }
         

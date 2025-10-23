@@ -376,19 +376,16 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>• Shift + left-click + mouse move: panning</value>
   </data>
     <data name="Hint_ExpandCollapse" xml:space="preserve">
-    <value>• Double-click on container: expand / collapse</value>
+    <value>• Double-click on code element: expand / collapse</value>
   </data>
     <data name="Hint_DetailInfo" xml:space="preserve">
-    <value>• Left-click on code element: show detail in Info tab</value>
+    <value>• Left-click on code element or relationship: show details in Info tab</value>
   </data>
     <data name="Hint_Select" xml:space="preserve">
     <value>• Ctrl + left-click: (multi) select code element</value>
   </data>
     <data name="Hint_Context" xml:space="preserve">
-    <value>• Right-click on code element: context-sensitive commands</value>
-  </data>
-    <data name="Hint_GlobalContext" xml:space="preserve">
-    <value>• Right-click on empty space: global context commands (i.e. selection)</value>
+    <value>• Right-click on code element or relationship: context-sensitive commands</value>
   </data>
     <data name="ToggleFlag" xml:space="preserve">
     <value>Toggle _flag</value>
