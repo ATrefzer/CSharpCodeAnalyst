@@ -60,9 +60,9 @@
                                       Margin="5,0,5,0">
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Select All"
+                                        <MenuItem Header="{x:Static resources:Strings.SelectAllVisible_Label}"
                                                   Command="{Binding SelectAllCommand}" />
-                                        <MenuItem Header="Deselect All"
+                                        <MenuItem Header="{x:Static resources:Strings.DeselectAllVisible_Label}"
                                                   Command="{Binding DeselectAllCommand}" />
                                         <Separator />
 
@@ -89,9 +89,22 @@
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
-                                    <DataGridCheckBoxColumn Header=""
+
+                                    <!-- Don't use the DataGridCheckBoxColumn. 
+                                    It requires to click twice on a checkbox to check it -->
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox HorizontalAlignment="Center"
+                                                          Width="30"
+                                                          IsChecked="{Binding Path=IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!--<DataGridCheckBoxColumn Header=""
                                                             Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
-                                                            Width="30" />
+                                                            Width="30" />-->
 
                                     <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
                                                             Width="Auto"

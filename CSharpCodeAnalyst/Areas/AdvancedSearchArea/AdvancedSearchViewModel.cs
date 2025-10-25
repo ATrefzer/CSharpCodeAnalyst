@@ -215,10 +215,13 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Including the currently non-visible
+    /// </summary>
     private List<CodeElement> GetSelectedCodeElements()
     {
         return FilteredItems
-            .Where(item => item.IsSelected && item.CodeElement != null)
+            .Where(item => item is { IsSelected: true, CodeElement: not null })
             .Select(item => item.CodeElement!)
             .ToList();
     }

@@ -955,4 +955,11 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Import plain text ...</value>
   </data>
 
+  <data name="SelectAllVisible_Label" xml:space="preserve">
+    <value>Select all visible</value>
+  </data>
+    <data name="DeselectAllVisible_Label" xml:space="preserve">
+    <value>Deselect all visible</value>
+  </data>
+
 </root>
