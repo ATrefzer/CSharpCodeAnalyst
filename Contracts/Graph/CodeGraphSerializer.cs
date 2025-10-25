@@ -133,7 +133,7 @@ public static class CodeGraphSerializer
     public static CodeGraph Deserialize(string content)
     {
         var graph = new CodeGraph();
-        var lines = content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Select(l => l.TrimEnd()).ToArray();
+        var lines = content.Split(new[]{'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries).Select(l => l.TrimEnd()).ToArray();
 
         var currentLine = 0;
         var parentIds = new Dictionary<string, string>(); // childId -> parentId

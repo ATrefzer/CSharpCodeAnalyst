@@ -13,11 +13,9 @@ public partial class AdvancedSearchControl : UserControl
     
     private void DropdownButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { ContextMenu: not null } button
-            && button.ContextMenu.Items[0] is MenuItem item)
+        if (sender is Button { ContextMenu: not null } button)
         {
             button.ContextMenu.PlacementTarget = button;
-            item.Tag = SearchDataGrid;
             button.ContextMenu.Placement = PlacementMode.Bottom;
             button.ContextMenu.IsOpen = true;
         }
