@@ -52,20 +52,26 @@
                                       dd:DragDrop.IsDragSource="True"
                                       x:Name="SearchDataGrid"
                                       Style="{StaticResource ReadOnlyGrid}"
+                                      IsReadOnly="False"
                                       ItemsSource="{Binding FilteredItems}"
                                       AutoGenerateColumns="False"
                                       GridLinesVisibility="Horizontal"
-                                      SelectionMode="Extended"
+                                      SelectionMode="Single"
+                                      PreviewKeyDown="SearchDataGrid_PreviewKeyDown"
                                       Margin="5,0,5,0">
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
+                                        <MenuItem Header="{x:Static resources:Strings.SelectAllVisible_Label}"
+                                                  Command="{Binding SelectAllCommand}" />
+                                        <MenuItem Header="{x:Static resources:Strings.DeselectAllVisible_Label}"
+                                                  Command="{Binding DeselectAllCommand}" />
+                                        <Separator />
+
                                         <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                                  Command="{Binding AddSelectedToGraphCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                                  Command="{Binding AddSelectedToGraphCommand}" />
                                         <MenuItem
                                             Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                            Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                            CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                            Command="{Binding AddSelectedToGraphCollapsedCommand}" />
 
                                         <Separator />
                                         <MenuItem Header="{x:Static resources:Strings.Partition}"
@@ -75,7 +81,7 @@
 
                                         <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
                                                   Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItems, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" >
                                             <MenuItem.Icon>
                                                 <Image Source="/Resources/copy_fqn_16.png" />
                                             </MenuItem.Icon>
@@ -85,8 +91,26 @@
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
+
+                                    <!-- Don't use the DataGridCheckBoxColumn.
+                                    It requires to click twice on a checkbox to check it -->
+                                    <DataGridTemplateColumn SortMemberPath="IsSelected" CanUserSort="True">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox HorizontalAlignment="Center"
+                                                          Width="30"
+                                                          IsChecked="{Binding Path=IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                    <!--<DataGridCheckBoxColumn Header=""
+                                                            Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                                                            Width="30" />-->
+
                                     <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
-                                                            Width="Auto">
+                                                            Width="Auto"
+                                                            IsReadOnly="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Image Source="{Binding Icon}" Width="16" Height="16"
@@ -97,12 +121,14 @@
 
                                     <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
                                                         Binding="{Binding Name}"
-                                                        Width="Auto" />
+                                                        Width="Auto"
+                                                        IsReadOnly="True" />
 
 
                                     <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
                                                         Binding="{Binding FullPath}"
-                                                        Width="Auto" />
+                                                        Width="Auto"
+                                                        IsReadOnly="True" />
                                 </DataGrid.Columns>
                             </DataGrid>
 
@@ -118,7 +144,6 @@
                                     <Button Grid.Column="0"
                                             Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
                                             Command="{Binding AddSelectedToGraphCommand}"
-                                            CommandParameter="{Binding SelectedItems, ElementName=SearchDataGrid}"
                                             FontWeight="Bold"
                                             Padding="15,5" />
 
@@ -133,8 +158,7 @@
                                             <ContextMenu>
                                                 <MenuItem
                                                     Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                                    Command="{Binding AddSelectedToGraphCollapsedCommand}"
-                                                    CommandParameter="{Binding Path=Tag.SelectedItems, RelativeSource={RelativeSource Self}}" />
+                                                    Command="{Binding AddSelectedToGraphCollapsedCommand}" />
                                             </ContextMenu>
                                         </Button.ContextMenu>
                                         <Button.Style>

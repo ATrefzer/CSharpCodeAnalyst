@@ -39,10 +39,12 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         };
 
         ClearSearchCommand = new WpfCommand(ClearSearch);
-        AddSelectedToGraphCommand = new WpfCommand<object>(AddSelectedToGraph);
-        AddSelectedToGraphCollapsedCommand = new WpfCommand<object>(AddSelectedToGraphCollapsed);
+        AddSelectedToGraphCommand = new WpfCommand(AddSelectedToGraph);
+        AddSelectedToGraphCollapsedCommand = new WpfCommand(AddSelectedToGraphCollapsed);
         PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
-        CopyToClipboardCommand = new WpfCommand<object>(OnCopyToClipboard);
+        CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
+        SelectAllCommand = new WpfCommand(SelectAll);
+        DeselectAllCommand = new WpfCommand(DeselectAll);
     }
 
     public ObservableCollection<SearchItemViewModel> AllItems
@@ -83,14 +85,14 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
     public ICommand PartitionCommand { get; }
     public ICommand CopyToClipboardCommand { get; }
+    public ICommand SelectAllCommand { get; }
+    public ICommand DeselectAllCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private static void OnCopyToClipboard(object? items)
+    private void OnCopyToClipboard(SearchItemViewModel item)
     {
-        var elements = GetSelectedCodeElements(items);
-
-        var text = string.Join(Environment.NewLine, elements.Select(e => e.FullName));
+        var text = item.CodeElement?.FullName;
         if (string.IsNullOrEmpty(text))
         {
             return;
@@ -175,19 +177,35 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         ExecuteSearchInternal(); // Immediately show all items
     }
 
-    private void AddSelectedToGraph(object? selectedItems)
+    private void SelectAll()
     {
-        AddSelectedToGraphInternal(selectedItems, false);
+        foreach (var item in FilteredItems)
+        {
+            item.IsSelected = true;
+        }
     }
 
-    private void AddSelectedToGraphCollapsed(object? selectedItems)
+    private void DeselectAll()
     {
-        AddSelectedToGraphInternal(selectedItems, true);
+        foreach (var item in FilteredItems)
+        {
+            item.IsSelected = false;
+        }
     }
 
-    private void AddSelectedToGraphInternal(object? selectedItems, bool addCollapsed)
+    private void AddSelectedToGraph()
     {
-        var codeElements = GetSelectedCodeElements(selectedItems);
+        AddSelectedToGraphInternal(false);
+    }
+
+    private void AddSelectedToGraphCollapsed()
+    {
+        AddSelectedToGraphInternal(true);
+    }
+
+    private void AddSelectedToGraphInternal(bool addCollapsed)
+    {
+        var codeElements = GetSelectedCodeElements();
 
         if (codeElements.Count > 0)
         {
@@ -195,32 +213,16 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         }
     }
 
-    private static List<CodeElement> GetSelectedCodeElements(object? selectedItems)
+    /// <summary>
+    /// Gets selected code elements from all items, including the
+    /// currently non-visible.
+    /// </summary>
+    private List<CodeElement> GetSelectedCodeElements()
     {
-        var elements = new List<CodeElement>();
-
-        if (selectedItems is null)
-        {
-            return elements;
-        }
-
-        if (selectedItems is SearchItemViewModel { CodeElement: not null } item)
-        {
-            elements.Add(item.CodeElement);
-            return elements;
-        }
-
-        if (selectedItems is IList list)
-        {
-            var codeElements = list.OfType<SearchItemViewModel>()
-                .Where(i => i.CodeElement != null)
-                .Select(i => i.CodeElement!)
-                .ToList();
-
-            elements.AddRange(codeElements);
-        }
-
-        return elements;
+        return AllItems
+            .Where(item => item is { IsSelected: true, CodeElement: not null })
+            .Select(item => item.CodeElement!)
+            .ToList();
     }
 
     private void OnPropertyChanged(string propertyName)

@@ -9,10 +9,25 @@ namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public sealed class SearchItemViewModel : INotifyPropertyChanged
 {
+    private bool _isSelected;
+
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string FullPath { get; set; } = string.Empty;
     public CodeElement? CodeElement { get; set; }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged(nameof(IsSelected));
+            }
+        }
+    }
 
     public BitmapImage? Icon
     {
