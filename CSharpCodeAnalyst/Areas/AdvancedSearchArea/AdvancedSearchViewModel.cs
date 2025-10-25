@@ -42,7 +42,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         AddSelectedToGraphCommand = new WpfCommand(AddSelectedToGraph);
         AddSelectedToGraphCollapsedCommand = new WpfCommand(AddSelectedToGraphCollapsed);
         PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
-        CopyToClipboardCommand = new WpfCommand<object>(OnCopyToClipboard);
+        CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
         SelectAllCommand = new WpfCommand(SelectAll);
         DeselectAllCommand = new WpfCommand(DeselectAll);
     }
@@ -90,11 +90,9 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnCopyToClipboard(object? items)
+    private void OnCopyToClipboard(SearchItemViewModel item)
     {
-        var elements = GetSelectedCodeElements();
-
-        var text = string.Join(Environment.NewLine, elements.Select(e => e.FullName));
+        var text = item.CodeElement?.FullName;
         if (string.IsNullOrEmpty(text))
         {
             return;
@@ -216,11 +214,12 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Including the currently non-visible
+    /// Gets selected code elements from all items, including the
+    /// currently non-visible.
     /// </summary>
     private List<CodeElement> GetSelectedCodeElements()
     {
-        return FilteredItems
+        return AllItems
             .Where(item => item is { IsSelected: true, CodeElement: not null })
             .Select(item => item.CodeElement!)
             .ToList();

@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 
 namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 
@@ -18,6 +19,18 @@ public partial class AdvancedSearchControl : UserControl
             button.ContextMenu.PlacementTarget = button;
             button.ContextMenu.Placement = PlacementMode.Bottom;
             button.ContextMenu.IsOpen = true;
+        }
+    }
+
+    private void SearchDataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.A && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+        {
+            if (sender is DataGrid {DataContext: AdvancedSearchViewModel viewModel})
+            {
+                e.Handled = true;
+                viewModel.SelectAllCommand.Execute(null);
+            }
         }
     }
 }

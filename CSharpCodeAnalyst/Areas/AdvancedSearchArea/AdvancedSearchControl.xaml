@@ -57,6 +57,7 @@
                                       AutoGenerateColumns="False"
                                       GridLinesVisibility="Horizontal"
                                       SelectionMode="Single"
+                                      PreviewKeyDown="SearchDataGrid_PreviewKeyDown"
                                       Margin="5,0,5,0">
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
@@ -79,7 +80,8 @@
                                         <Separator />
 
                                         <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
-                                                  Command="{Binding CopyToClipboardCommand}">
+                                                  Command="{Binding CopyToClipboardCommand}"
+                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" >
                                             <MenuItem.Icon>
                                                 <Image Source="/Resources/copy_fqn_16.png" />
                                             </MenuItem.Icon>
@@ -90,9 +92,9 @@
                                 </DataGrid.ContextMenu>
                                 <DataGrid.Columns>
 
-                                    <!-- Don't use the DataGridCheckBoxColumn. 
+                                    <!-- Don't use the DataGridCheckBoxColumn.
                                     It requires to click twice on a checkbox to check it -->
-                                    <DataGridTemplateColumn>
+                                    <DataGridTemplateColumn SortMemberPath="IsSelected" CanUserSort="True">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <CheckBox HorizontalAlignment="Center"
