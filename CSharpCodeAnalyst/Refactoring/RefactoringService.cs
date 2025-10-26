@@ -188,7 +188,7 @@ public class RefactoringService
 
 
 
-    public bool CanMoveCodeElements(List<string> sourceIds)
+    public bool CanMoveCodeElements(HashSet<string> sourceIds)
     {
         if (_graph is null)
         {
@@ -203,7 +203,10 @@ public class RefactoringService
         var involved = new List<CodeElement>();
         foreach (var id in sourceIds)
         {
-            var source = _graph.Nodes[id];
+            if (!_graph.Nodes.TryGetValue(id, out var source))
+            {
+                return false;
+            }
 
             if (source.ElementType is CodeElementType.Assembly)
             {
@@ -211,6 +214,12 @@ public class RefactoringService
             }
 
             if (_target.Id == source.Id)
+            {
+                return false;
+            }
+
+            // Check if target is a child of source (would create circular hierarchy)
+            if (_target.IsChildOf(source))
             {
                 return false;
             }
@@ -273,7 +282,7 @@ public class RefactoringService
     }
 
 
-    public void MoveCodeElements(List<string> sourceIds)
+    public void MoveCodeElements(HashSet<string> sourceIds)
     {
         if (_graph is null || !sourceIds.Any() || _target is null)
         {

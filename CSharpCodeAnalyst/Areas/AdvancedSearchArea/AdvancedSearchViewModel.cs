@@ -100,18 +100,18 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 
     private bool RefactoringCanSetMovementTarget(SearchItemViewModel vm)
     {
-        return _refactoringService.CanSetMovementTarget(vm?.CodeElement?.Id);
+        return _refactoringService.CanSetMovementTarget(vm.CodeElement?.Id);
     }
 
     private bool RefactoringCanMoveCodeElement()
     {
-        var ids = GetSelectedCodeElements().Select(e => e.Id).ToList();
+        var ids = GetSelectedCodeElements().Select(e => e.Id).ToHashSet();
         return _refactoringService.CanMoveCodeElements(ids);
     }
 
     private void RefactoringMoveCodeElement()
     {
-        var elementIds = GetSelectedCodeElements().Select(e => e.Id).ToList();
+        var elementIds = GetSelectedCodeElements().Select(e => e.Id).ToHashSet();
         if (elementIds.Any())
         {
             _refactoringService.MoveCodeElements(elementIds);
@@ -127,7 +127,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 
     private void RefactoringSetMovementTarget(SearchItemViewModel vm)
     {
-        _refactoringService.SetMovementTarget(vm?.CodeElement?.Id);
+        _refactoringService.SetMovementTarget(vm.CodeElement?.Id);
     }
 
     private void OnCopyToClipboard(SearchItemViewModel item)

@@ -29,8 +29,8 @@ internal class RelationshipsDeleted(CodeGraph codeGraph, List<Relationship> dele
     public List<Relationship> Deleted { get; } = deleted;
 }
 
-internal class CodeElementsMoved(CodeGraph codeGraph, List<string> sourceIds, string newParentId) : CodeGraphRefactored(codeGraph)
+internal class CodeElementsMoved(CodeGraph codeGraph, HashSet<string> sourceIds, string newParentId) : CodeGraphRefactored(codeGraph)
 {
-    public List<string> SourceIds { get; } = sourceIds;
+    public HashSet<string> SourceIds { get; } = sourceIds;
     public string NewParentId { get; } = newParentId;
 }

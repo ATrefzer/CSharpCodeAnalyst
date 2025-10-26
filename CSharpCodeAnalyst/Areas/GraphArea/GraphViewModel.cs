@@ -848,7 +848,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
                 return;
             }
 
-            // I don't know where the element was moved to. I add its parent.
+            // Add the new parent to ensure the moved elements are visible with correct hierarchy
             // Since I cant move an assembly parent is never null    
             ids.Add(moved.NewParentId);
 
