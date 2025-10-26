@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -36,10 +35,9 @@ public partial class App
 
         // Run in UI mode
         StartUi();
-        
+
         // Faster debugging
         await LoadProjectFileFromCommandLineAsync(e);
-        
     }
 
     private async Task LoadProjectFileFromCommandLineAsync(StartupEventArgs e)
@@ -52,7 +50,7 @@ public partial class App
             {
                 return;
             }
-            
+
             // Allow loading a project file (json) via command line for faster debugging
             if (MainWindow?.DataContext is MainViewModel dc)
             {
@@ -70,8 +68,8 @@ public partial class App
         // ToolTipService.BetweenShowDelayProperty.OverrideMetadata(
         //     typeof(DependencyObject),
         //     new FrameworkPropertyMetadata(delayMs));
-        
-        
+
+
         try
         {
             Initializer.InitializeMsBuildLocator();
@@ -113,7 +111,7 @@ public partial class App
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
-        var searchViewModel = new AdvancedSearchViewModel(messaging);
+        var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);
         var infoPanelViewModel = new InfoPanelViewModel();
 
         viewModel.InfoPanelViewModel = infoPanelViewModel;
@@ -130,13 +128,13 @@ public partial class App
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
         messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
 
-        
+
         // Refactorings are forwarded to all other view models
         messaging.Subscribe<CodeGraphRefactored>(viewModel.HandleCodeGraphRefactored);
         // messaging.Subscribe<CodeElementsMoved>(viewModel.HandleCodeGraphRefactored);
         // messaging.Subscribe<CodeElementsDeleted>(viewModel.HandleCodeGraphRefactored);
         // messaging.Subscribe<CodeElementCreated>(viewModel.HandleCodeGraphRefactored);
-        
+
 
         mainWindow.DataContext = viewModel;
         MainWindow = mainWindow;

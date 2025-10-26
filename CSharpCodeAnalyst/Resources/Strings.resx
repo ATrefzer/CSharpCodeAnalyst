@@ -841,6 +841,14 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Refactor_MoveCodeElement" xml:space="preserve">
     <value>_Move</value>
   </data>
+    <data name="Refactor_MoveSelectedCodeElements" xml:space="preserve">
+    <value>_Move selected</value>
+  </data>
+    <data name="Refactor_MoveSelectedCodeElementTo" xml:space="preserve">
+    <value>Move selected to '{0}'</value>
+  </data>
+
+
     <data name="Refactoring_SetAsMovementParent" xml:space="preserve">
     <value>_Set as movement parent</value>
   </data>
@@ -955,7 +963,7 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Import plain text ...</value>
   </data>
 
-  <data name="SelectAllVisible_Label" xml:space="preserve">
+    <data name="SelectAllVisible_Label" xml:space="preserve">
     <value>Select all visible</value>
   </data>
     <data name="DeselectAllVisible_Label" xml:space="preserve">

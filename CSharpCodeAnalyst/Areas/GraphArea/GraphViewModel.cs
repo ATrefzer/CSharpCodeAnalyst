@@ -31,7 +31,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly ApplicationSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
-    private readonly GraphDropHandler _dropHandler;
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
@@ -47,7 +46,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _publisher = publisher;
         _settings = settings;
         _refactoringService = refactoringService;
-        _dropHandler = new GraphDropHandler(publisher);
+        DropHandler = new GraphDropHandler(publisher);
 
         // Initialize RenderOptions
         RenderOptions =
@@ -277,7 +276,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public ICommand AddParentsCommand { get; }
 
-    public GraphDropHandler DropHandler => _dropHandler;
+    public GraphDropHandler DropHandler { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -474,7 +473,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         {
             elementIds = _viewer.GetGraph().GetRoots().Select(r => r.Id).ToList();
         }
-        
+
         if (elementIds.Any())
         {
             AddParents(elementIds);
@@ -591,7 +590,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             // Don't trigger undo
             return;
         }
-        
+
         PushUndo();
 
         // Apply "Automatically add containing type" setting
@@ -828,6 +827,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
         else if (message is CodeElementsMoved moved)
         {
+            // TODO May be sufficient to just check the source ids and not their children.
             // Add the same node ids with the same relationships. This fixes parent/child hierarchy.
             // We may have moved more nodes than in the graph. Or the graph is not affected at all by this movement.
 
@@ -836,13 +836,19 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
             // Is the canvas graph affected at all?
             var originalGraph = moved.Graph;
-            var movedIds = originalGraph.Nodes[moved.SourceId].GetChildrenIncludingSelf().ToHashSet();
+            var movedIds = new HashSet<string>();
+            foreach (var element in moved.SourceIds.Select(movedId => originalGraph.Nodes[movedId]))
+            {
+                movedIds.UnionWith(element.GetChildrenIncludingSelf());
+            }
+
             if (!movedIds.Intersect(ids).Any())
             {
+                // None of the moved ids is in the graph
                 return;
             }
 
-            // I don't know where the element was moved to. I add its parent.
+            // Add the new parent to ensure the moved elements are visible with correct hierarchy
             // Since I cant move an assembly parent is never null    
             ids.Add(moved.NewParentId);
 

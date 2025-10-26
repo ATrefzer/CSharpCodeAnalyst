@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
@@ -7,6 +6,7 @@ using System.Windows.Threading;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Wpf;
 
 namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -14,15 +14,17 @@ namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 {
     private readonly MessageBus _messaging;
+    private readonly RefactoringService _refactoringService;
     private readonly DispatcherTimer _searchTimer;
     private ObservableCollection<SearchItemViewModel> _allItems;
     private CodeGraph? _codeGraph;
     private ObservableCollection<SearchItemViewModel> _filteredItems;
     private string _searchText;
 
-    public AdvancedSearchViewModel(MessageBus messaging)
+    public AdvancedSearchViewModel(MessageBus messaging, RefactoringService refactoringService)
     {
         _messaging = messaging;
+        _refactoringService = refactoringService;
         _searchText = string.Empty;
         _allItems = [];
         _filteredItems = [];
@@ -45,7 +47,11 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
         SelectAllCommand = new WpfCommand(SelectAll);
         DeselectAllCommand = new WpfCommand(DeselectAll);
+
+        SetMovementTargetCommand = new WpfCommand<SearchItemViewModel>(RefactoringSetMovementTarget, RefactoringCanSetMovementTarget);
+        MoveSelectedCommand = new WpfCommand(RefactoringMoveCodeElement, RefactoringCanMoveCodeElement);
     }
+
 
     public ObservableCollection<SearchItemViewModel> AllItems
     {
@@ -87,8 +93,42 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     public ICommand CopyToClipboardCommand { get; }
     public ICommand SelectAllCommand { get; }
     public ICommand DeselectAllCommand { get; }
+    public ICommand SetMovementTargetCommand { get; }
+    public ICommand MoveSelectedCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private bool RefactoringCanSetMovementTarget(SearchItemViewModel vm)
+    {
+        return _refactoringService.CanSetMovementTarget(vm.CodeElement?.Id);
+    }
+
+    private bool RefactoringCanMoveCodeElement()
+    {
+        var ids = GetSelectedCodeElements().Select(e => e.Id).ToHashSet();
+        return _refactoringService.CanMoveCodeElements(ids);
+    }
+
+    private void RefactoringMoveCodeElement()
+    {
+        var elementIds = GetSelectedCodeElements().Select(e => e.Id).ToHashSet();
+        if (elementIds.Any())
+        {
+            _refactoringService.MoveCodeElements(elementIds);
+        }
+    }
+
+    public string GetRefactoringNewMoveParent()
+    {
+        var target = _refactoringService.GetMovementTarget();
+        return target?.Name != null ? target.Name : string.Empty;
+    }
+
+
+    private void RefactoringSetMovementTarget(SearchItemViewModel vm)
+    {
+        _refactoringService.SetMovementTarget(vm.CodeElement?.Id);
+    }
 
     private void OnCopyToClipboard(SearchItemViewModel item)
     {
@@ -214,8 +254,8 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Gets selected code elements from all items, including the
-    /// currently non-visible.
+    ///     Gets selected code elements from all items, including the
+    ///     currently non-visible.
     /// </summary>
     private List<CodeElement> GetSelectedCodeElements()
     {
