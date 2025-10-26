@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CodeParser.Extensions;
 using Contracts.Graph;
 using CSharpCodeAnalyst.Messages;
@@ -117,11 +118,11 @@ public class RefactoringService
         };
 
         var result = _graph.IntegrateCodeElementFromOriginal(element);
-        
+
         // Important: Return the cloned element that is actually integrated into the graph.
         if (result.IsAdded)
         {
-            _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_graph, result.CodeElement));    
+            _messaging.Publish<CodeGraphRefactored>(new CodeElementCreated(_graph, result.CodeElement));
         }
     }
 
@@ -131,7 +132,7 @@ public class RefactoringService
         {
             return null;
         }
-        
+
         return id == null ? null : _graph.Nodes[id];
     }
 
@@ -152,7 +153,7 @@ public class RefactoringService
         {
             return false;
         }
-        
+
         var parent = FindCodeElement(parentId);
         var validChildren = GetValidChildTypes(parent);
         return validChildren.Count > 0;
@@ -185,32 +186,51 @@ public class RefactoringService
         }
     }
 
-    public bool CanMoveCodeElement(string? sourceId)
+
+
+    public bool CanMoveCodeElements(List<string> sourceIds)
     {
         if (_graph is null)
         {
             return false;
         }
 
-        if (sourceId is null || _target is null)
+        if (!sourceIds.Any() || _target is null)
         {
             return false;
         }
 
-        var source = _graph.Nodes[sourceId];
-
-        if (source.ElementType is CodeElementType.Assembly)
+        var involved = new List<CodeElement>();
+        foreach (var id in sourceIds)
         {
-            return false;
+            var source = _graph.Nodes[id];
+
+            if (source.ElementType is CodeElementType.Assembly)
+            {
+                return false;
+            }
+
+            if (_target.Id == source.Id)
+            {
+                return false;
+            }
+
+            var validChildTypesForParent = GetValidChildTypes(_target);
+            if (!validChildTypesForParent.Contains(source.ElementType))
+            {
+                return false;
+            }
+
+            // Don't move overlapping elements.
+            if (involved.Any(i => i.IsChildOf(source) || i.IsParentOf(source)))
+            {
+                return false;
+            }
+
+            involved.Add(source);
         }
 
-        if (_target.Id == source.Id)
-        {
-            return false;
-        }
-
-        var validChildTypesForParent = GetValidChildTypes(_target);
-        return validChildTypesForParent.Contains(source.ElementType);
+        return true;
     }
 
     public bool CanSetMovementTarget(string? elementId)
@@ -253,14 +273,14 @@ public class RefactoringService
     }
 
 
-    public void MoveCodeElement(string? sourceId)
+    public void MoveCodeElements(List<string> sourceIds)
     {
-        if (_graph is null || sourceId is null)
+        if (_graph is null || !sourceIds.Any() || _target is null)
         {
             return;
         }
 
-        if (!CanMoveCodeElement(sourceId))
+        if (!CanMoveCodeElements(sourceIds))
         {
             return;
         }
@@ -270,19 +290,16 @@ public class RefactoringService
             return;
         }
 
-        var source = _graph.Nodes[sourceId];
-        source.MoveTo(_target!);
-
-
-        var oldParent = source.Parent;
-        var newParent = GetMovementTarget();
-        if (newParent == null || oldParent == null)
+        foreach (var sourceId in sourceIds)
         {
-            // We can't move assemblies, so old parent is never null
-            return;
+            var source = _graph.Nodes[sourceId];
+            source.MoveTo(_target!);
+
+            Debug.Assert(source.ElementType != CodeElementType.Assembly && source.Parent != null);
         }
 
-        _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_graph, source.Id, oldParent.Id, newParent.Id));
+
+        _messaging.Publish<CodeGraphRefactored>(new CodeElementsMoved(_graph, sourceIds, _target.Id));
     }
 
     public CodeElement? GetMovementTarget()

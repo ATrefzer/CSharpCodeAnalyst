@@ -97,12 +97,19 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private bool RefactoringCanMoveCodeElement(TreeItemViewModel tvm)
     {
-        return _refactoringService.CanMoveCodeElement(tvm?.CodeElement?.Id);
+        var id = tvm?.CodeElement?.Id;
+        return id != null && _refactoringService.CanMoveCodeElements([id]);
     }
 
     private void RefactoringMoveCodeElement(TreeItemViewModel? tvm)
     {
-        _refactoringService.MoveCodeElement(tvm?.CodeElement?.Id);
+        var id = tvm?.CodeElement?.Id;
+        if (id == null)
+        {
+            return;
+        }
+
+        _refactoringService.MoveCodeElements([id]);
     }
 
     private bool RefactoringCanSetMovementTarget(TreeItemViewModel tvm)
@@ -119,7 +126,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)
     {
-        var text = vm?.CodeElement?.FullName;
+        var text = vm.CodeElement?.FullName;
         if (string.IsNullOrEmpty(text))
         {
             return;
@@ -192,7 +199,14 @@ public class TreeViewModel : INotifyPropertyChanged
         {
             // This may be slow but easy.
             LoadCodeGraph(moved.Graph);
-            _messaging.Publish(new LocateInTreeRequest(moved.SourceId));
+            if (moved.SourceIds.Count == 1)
+            {
+                _messaging.Publish(new LocateInTreeRequest(moved.SourceIds.Single()));
+            }
+            else
+            {
+                _messaging.Publish(new LocateInTreeRequest(moved.NewParentId));
+            }
         }
         else if (message is RelationshipsDeleted relationshipsDeleted)
         {

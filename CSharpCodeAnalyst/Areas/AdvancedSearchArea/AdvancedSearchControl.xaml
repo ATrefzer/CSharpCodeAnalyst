@@ -20,154 +20,167 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-                            <!-- Search Box Area -->
-                            <DockPanel Grid.Row="0" Margin="5" Background="LightYellow">
-                                <Button Command="{Binding ClearSearchCommand}"
-                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
-                                        DockPanel.Dock="Right"
-                                        Width="22" Height="22" Margin="2,0,0,0">
-                                    <Image Source="/Resources/clear_32.png" />
-                                </Button>
+        <!-- Search Box Area -->
+        <DockPanel Grid.Row="0" Margin="5" Background="LightYellow">
+            <Button Command="{Binding ClearSearchCommand}"
+                    ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}"
+                    DockPanel.Dock="Right"
+                    Width="22" Height="22" Margin="2,0,0,0">
+                <Image Source="/Resources/clear_32.png" />
+            </Button>
 
-                                <Grid DockPanel.Dock="Left" HorizontalAlignment="Stretch">
-                                    <TextBox Height="22"
-                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                             Margin="0"
-                                             Background="LightYellow"
-                                             FontSize="12" />
+            <Grid DockPanel.Dock="Left" HorizontalAlignment="Stretch">
+                <TextBox Height="22"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0"
+                         Background="LightYellow"
+                         FontSize="12" />
 
-                                    <Image Style="{StaticResource InfoStyle}"
-                                           ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
-                                </Grid>
-                            </DockPanel>
+                <Image Style="{StaticResource InfoStyle}"
+                       ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}" />
+            </Grid>
+        </DockPanel>
 
-                            <!-- Results List -->
-                            <DataGrid Grid.Row="1"
-                                      dd:DragDrop.IsDragSource="True"
-                                      x:Name="SearchDataGrid"
-                                      Style="{StaticResource ReadOnlyGrid}"
-                                      IsReadOnly="False"
-                                      ItemsSource="{Binding FilteredItems}"
-                                      AutoGenerateColumns="False"
-                                      GridLinesVisibility="Horizontal"
-                                      SelectionMode="Single"
-                                      PreviewKeyDown="SearchDataGrid_PreviewKeyDown"
-                                      Margin="5,0,5,0">
-                                <DataGrid.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="{x:Static resources:Strings.SelectAllVisible_Label}"
-                                                  Command="{Binding SelectAllCommand}" />
-                                        <MenuItem Header="{x:Static resources:Strings.DeselectAllVisible_Label}"
-                                                  Command="{Binding DeselectAllCommand}" />
-                                        <Separator />
+        <!-- Results List -->
+        <DataGrid Grid.Row="1"
+                  dd:DragDrop.IsDragSource="True"
+                  x:Name="SearchDataGrid"
+                  Style="{StaticResource ReadOnlyGrid}"
+                  IsReadOnly="False"
+                  ItemsSource="{Binding FilteredItems}"
+                  AutoGenerateColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  SelectionMode="Single"
+                  PreviewKeyDown="SearchDataGrid_PreviewKeyDown"
+                  ContextMenuOpening="SearchDataGrid_OnContextMenuOpening"
+                  Margin="5,0,5,0">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="{x:Static resources:Strings.SelectAllVisible_Label}"
+                              Command="{Binding SelectAllCommand}" />
+                    <MenuItem Header="{x:Static resources:Strings.DeselectAllVisible_Label}"
+                              Command="{Binding DeselectAllCommand}" />
+                    <Separator />
 
-                                        <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                                  Command="{Binding AddSelectedToGraphCommand}" />
-                                        <MenuItem
-                                            Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                            Command="{Binding AddSelectedToGraphCollapsedCommand}" />
+                    <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"
+                              Command="{Binding AddSelectedToGraphCommand}" />
+                    <MenuItem
+                        Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
+                        Command="{Binding AddSelectedToGraphCollapsedCommand}" />
 
-                                        <Separator />
-                                        <MenuItem Header="{x:Static resources:Strings.Partition}"
-                                                  Command="{Binding PartitionCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                        <Separator />
-
-                                        <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
-                                                  Command="{Binding CopyToClipboardCommand}"
-                                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" >
-                                            <MenuItem.Icon>
-                                                <Image Source="/Resources/copy_fqn_16.png" />
-                                            </MenuItem.Icon>
-                                        </MenuItem>
+                    <Separator />
+                    <MenuItem Header="{x:Static resources:Strings.Partition}"
+                              Command="{Binding PartitionCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                    <Separator />
 
 
-                                    </ContextMenu>
-                                </DataGrid.ContextMenu>
-                                <DataGrid.Columns>
+                    <!-- Refactoring -->
+                    <MenuItem Header="{x:Static resources:Strings.Refactor}">
+                        <MenuItem Header="{x:Static resources:Strings.Refactoring_SetAsMovementParent}"
+                                  Command="{Binding SetMovementTargetCommand}"
+                                  CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                        <MenuItem Header="{x:Static resources:Strings.Refactor_MoveSelectedCodeElements}"
+                                  x:Name="MenuRefactoringMove"
+                                  Command="{Binding MoveSelectedCommand}" />
+                    </MenuItem>
 
-                                    <!-- Don't use the DataGridCheckBoxColumn.
+                    <Separator />
+                    <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
+                              Command="{Binding CopyToClipboardCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
+                        <MenuItem.Icon>
+                            <Image Source="/Resources/copy_fqn_16.png" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+
+
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+
+                <!-- Don't use the DataGridCheckBoxColumn.
                                     It requires to click twice on a checkbox to check it -->
-                                    <DataGridTemplateColumn SortMemberPath="IsSelected" CanUserSort="True">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <CheckBox HorizontalAlignment="Center"
-                                                          Width="30"
-                                                          IsChecked="{Binding Path=IsSelected, UpdateSourceTrigger=PropertyChanged}" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn SortMemberPath="IsSelected" CanUserSort="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox HorizontalAlignment="Center"
+                                      Width="30"
+                                      IsChecked="{Binding Path=IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                                    <!--<DataGridCheckBoxColumn Header=""
+                <!--<DataGridCheckBoxColumn Header=""
                                                             Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
                                                             Width="30" />-->
 
-                                    <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
-                                                            Width="Auto"
-                                                            IsReadOnly="True">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Image Source="{Binding Icon}" Width="16" Height="16"
-                                                       ToolTip="{Binding Type}" />
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="{x:Static resources:Strings.Type_Label}"
+                                        Width="Auto"
+                                        IsReadOnly="True">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding Icon}" Width="16" Height="16"
+                                   ToolTip="{Binding Type}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
-                                                        Binding="{Binding Name}"
-                                                        Width="Auto"
-                                                        IsReadOnly="True" />
+                <DataGridTextColumn Header="{x:Static resources:Strings.Name_Label}"
+                                    Binding="{Binding Name}"
+                                    Width="Auto"
+                                    IsReadOnly="True" />
 
 
-                                    <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
-                                                        Binding="{Binding FullPath}"
-                                                        Width="Auto"
-                                                        IsReadOnly="True" />
-                                </DataGrid.Columns>
-                            </DataGrid>
+                <DataGridTextColumn Header="{x:Static resources:Strings.FullPath_Label}"
+                                    Binding="{Binding FullPath}"
+                                    Width="Auto"
+                                    IsReadOnly="True" />
+            </DataGrid.Columns>
+        </DataGrid>
 
-                            <!-- Button Area -->
-                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+        <!-- Button Area -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                                    <!-- Main Button -->
-                                    <Button Grid.Column="0"
-                                            Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
-                                            Command="{Binding AddSelectedToGraphCommand}"
-                                            FontWeight="Bold"
-                                            Padding="15,5" />
+                <!-- Main Button -->
+                <Button Grid.Column="0"
+                        Content="{x:Static resources:Strings.AddSelectedToGraph_Label}"
+                        Command="{Binding AddSelectedToGraphCommand}"
+                        FontWeight="Bold"
+                        Padding="15,5" />
 
-                                    <!-- Dropdown Button -->
-                                    <Button Grid.Column="1"
-                                            Content="▼"
-                                            FontSize="8"
-                                            Width="20"
-                                            Padding="0"
-                                            x:Name="DropdownButton">
-                                        <Button.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem
-                                                    Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
-                                                    Command="{Binding AddSelectedToGraphCollapsedCommand}" />
-                                            </ContextMenu>
-                                        </Button.ContextMenu>
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <EventSetter Event="Click" Handler="DropdownButton_Click" />
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
+                <!-- Dropdown Button -->
+                <Button Grid.Column="1"
+                        Content="▼"
+                        FontSize="8"
+                        Width="20"
+                        Padding="0"
+                        x:Name="DropdownButton">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem
+                                Header="{x:Static resources:Strings.AddSelectedToGraphCollapsed_Label}"
+                                Command="{Binding AddSelectedToGraphCollapsedCommand}" />
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <EventSetter Event="Click" Handler="DropdownButton_Click" />
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Grid>
 </UserControl>

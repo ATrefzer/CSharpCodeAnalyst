@@ -27,12 +27,10 @@ internal class CodeElementsDeleted(CodeGraph codeGraph, string deletedElementId,
 internal class RelationshipsDeleted(CodeGraph codeGraph, List<Relationship> deleted) : CodeGraphRefactored(codeGraph)
 {
     public List<Relationship> Deleted { get; } = deleted;
-
 }
 
-internal class CodeElementsMoved(CodeGraph codeGraph, string sourceId, string oldParentId, string newParentId) : CodeGraphRefactored(codeGraph)
+internal class CodeElementsMoved(CodeGraph codeGraph, List<string> sourceIds, string newParentId) : CodeGraphRefactored(codeGraph)
 {
-    public string SourceId { get; } = sourceId;
-    public string OldParentId { get; } = oldParentId;
+    public List<string> SourceIds { get; } = sourceIds;
     public string NewParentId { get; } = newParentId;
 }
