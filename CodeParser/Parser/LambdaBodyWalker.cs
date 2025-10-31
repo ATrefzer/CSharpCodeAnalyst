@@ -85,9 +85,39 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitInvocationExpression(node);
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
+        // Track event registration/unregistration in lambdas
+        // This prevents false positives in the EventImbalance analyzer when events are
+        // unregistered (or registered) inside lambda expressions or anonymous methods
+        var isRegistration = node.IsKind(SyntaxKind.AddAssignmentExpression);
+        var isUnregistration = node.IsKind(SyntaxKind.SubtractAssignmentExpression);
+
+        if (isRegistration || isUnregistration)
+        {
+            var leftSymbol = SemanticModel.GetSymbolInfo(node.Left).Symbol;
+            var rightSymbol = SemanticModel.GetSymbolInfo(node.Right).Symbol;
+
+            if (leftSymbol is IEventSymbol eventSymbol)
+            {
+                var attribute = isRegistration
+                    ? RelationshipAttribute.EventRegistration
+                    : RelationshipAttribute.EventUnregistration;
+
+                var location = node.GetSyntaxLocation();
+
+                // Track event usage from the CONTAINING method (not the lambda itself)
+                Analyzer.AddEventUsageRelationshipPublic(SourceElement, eventSymbol, location, attribute);
+
+                // If the right side is a method, add a Handles relationship
+                if (rightSymbol is IMethodSymbol methodSymbol)
+                {
+                    // Track handler relationship from the CONTAINING method
+                    Analyzer.AddEventHandlerRelationshipPublic(methodSymbol, eventSymbol, location, attribute);
+                }
+            }
+        }
+
         // We need to walk further to capture following expressions:
         // Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
         base.VisitAssignmentExpression(node);

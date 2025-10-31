@@ -65,6 +65,18 @@ public interface ISyntaxNodeHandler
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
 
     /// <summary>
+    ///     Public wrapper for AddEventUsageRelationship to allow access from LambdaBodyWalker
+    /// </summary>
+    void AddEventUsageRelationshipPublic(CodeElement sourceElement, IEventSymbol eventSymbol,
+        SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None);
+
+    /// <summary>
+    ///     Public wrapper for AddEventHandlerRelationship to allow access from LambdaBodyWalker
+    /// </summary>
+    void AddEventHandlerRelationshipPublic(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
+        SourceLocation location, RelationshipAttribute attribute);
+
+    /// <summary>
     /// typeof(),
     /// sizeof()
     /// (cast)

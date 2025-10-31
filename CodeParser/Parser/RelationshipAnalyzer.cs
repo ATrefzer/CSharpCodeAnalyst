@@ -158,6 +158,24 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    ///     Public wrapper for AddEventUsageRelationship to allow access from LambdaBodyWalker
+    /// </summary>
+    public void AddEventUsageRelationshipPublic(CodeElement sourceElement, IEventSymbol eventSymbol,
+        SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None)
+    {
+        AddEventUsageRelationship(sourceElement, eventSymbol, location, attribute);
+    }
+
+    /// <summary>
+    ///     Public wrapper for AddEventHandlerRelationship to allow access from LambdaBodyWalker
+    /// </summary>
+    public void AddEventHandlerRelationshipPublic(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
+        SourceLocation location, RelationshipAttribute attribute)
+    {
+        AddEventHandlerRelationship(handlerMethod, eventSymbol, location, attribute);
+    }
+
+    /// <summary>
     /// <inheritdoc cref="ISyntaxNodeHandler.AnalyzeTypeSyntax"/>
     /// </summary>
     public void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node)
