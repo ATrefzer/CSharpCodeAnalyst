@@ -13,12 +13,11 @@ public interface ISyntaxNodeHandler
         SemanticModel semanticModel);
 
     /// <summary>
-    ///     Analyzes assignment expressions, tracking property/field access and event registration/unregistration.
-    ///     The propertyAccessType parameter controls whether property/field access creates "Calls" or "Uses" relationships.
-    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
+    ///     Analyzes assignment expressions for event registration/unregistration.
+    ///     Property/field access on left and right sides is handled by the walker's normal traversal.
     /// </summary>
     void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
-        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
+        SemanticModel semanticModel);
 
     /// <summary>
     ///     Analyzes standalone identifier references (fields, properties, etc.).

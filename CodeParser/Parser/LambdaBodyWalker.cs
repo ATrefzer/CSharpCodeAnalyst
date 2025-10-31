@@ -87,15 +87,10 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        // Lambda assignment analysis uses "Uses" relationships instead of "Calls" because:
-        // - We don't know when (or if) the lambda will be executed
-        // - The containing method has a static dependency on the types/members referenced to DEFINE the lambda
-        // - This is consistent with how lambdas track method invocations and object creation
-        //
-        // Note: Event registration/unregistration is tracked regardless of lambda vs method body,
-        // but property/field access inside assignments now uses "Uses" for lambdas vs "Calls" for methods.
-        // This prevents false positives in the EventImbalance analyzer while maintaining accurate dependencies.
-        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        // Track event registration/unregistration (handled by AnalyzeAssignment)
+        // Property/field access on both sides is handled by the walker's normal traversal,
+        // which correctly uses "Uses" relationships for lambdas (see VisitIdentifierName and VisitMemberAccessExpression)
+        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
     }
 

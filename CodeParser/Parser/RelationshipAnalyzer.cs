@@ -103,13 +103,10 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     public void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
-        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
+        SemanticModel semanticModel)
     {
-        // Analyze the left side of the assignment (target)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Left, semanticModel, propertyAccessType);
-
-        // Analyze the right side of the assignment (value)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel, propertyAccessType);
+        // Note: Property/field access on left and right sides is handled by the walker's normal traversal
+        // (VisitIdentifierName and VisitMemberAccessExpression). We only need to handle event registration/unregistration here.
 
         var isRegistration = assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression);
         var isUnregistration = assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression);
@@ -830,21 +827,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
         //Trace.WriteLine(
         //    $"Unable to add 'Handles' relationship: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
-    }
-
-    private void AnalyzeExpressionForPropertyAccess(CodeElement sourceElement, ExpressionSyntax expression,
-        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
-    {
-        switch (expression)
-        {
-            case IdentifierNameSyntax identifierSyntax:
-                AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel, propertyAccessType);
-                break;
-            case MemberAccessExpressionSyntax memberAccessSyntax:
-                AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel, propertyAccessType);
-                break;
-            // Add more cases if needed for other types of expressions
-        }
     }
 
     private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location, RelationshipAttribute attributes)
