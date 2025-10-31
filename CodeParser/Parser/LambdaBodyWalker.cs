@@ -87,66 +87,37 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        // Track event registration/unregistration in lambdas
-        // This prevents false positives in the EventImbalance analyzer when events are
-        // unregistered (or registered) inside lambda expressions or anonymous methods
-        var isRegistration = node.IsKind(SyntaxKind.AddAssignmentExpression);
-        var isUnregistration = node.IsKind(SyntaxKind.SubtractAssignmentExpression);
-
-        if (isRegistration || isUnregistration)
-        {
-            var leftSymbol = SemanticModel.GetSymbolInfo(node.Left).Symbol;
-            var rightSymbol = SemanticModel.GetSymbolInfo(node.Right).Symbol;
-
-            if (leftSymbol is IEventSymbol eventSymbol)
-            {
-                var attribute = isRegistration
-                    ? RelationshipAttribute.EventRegistration
-                    : RelationshipAttribute.EventUnregistration;
-
-                var location = node.GetSyntaxLocation();
-
-                // Track event usage from the CONTAINING method (not the lambda itself)
-                Analyzer.AddEventUsageRelationshipPublic(SourceElement, eventSymbol, location, attribute);
-
-                // If the right side is a method, add a Handles relationship
-                if (rightSymbol is IMethodSymbol methodSymbol)
-                {
-                    // Track handler relationship from the CONTAINING method
-                    Analyzer.AddEventHandlerRelationshipPublic(methodSymbol, eventSymbol, location, attribute);
-                }
-            }
-        }
-
-        // We need to walk further to capture following expressions:
-        // Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
+        // Lambda assignment analysis uses "Uses" relationships instead of "Calls" because:
+        // - We don't know when (or if) the lambda will be executed
+        // - The containing method has a static dependency on the types/members referenced to DEFINE the lambda
+        // - This is consistent with how lambdas track method invocations and object creation
+        //
+        // Note: Event registration/unregistration is tracked regardless of lambda vs method body,
+        // but property/field access inside assignments now uses "Uses" for lambdas vs "Calls" for methods.
+        // This prevents false positives in the EventImbalance analyzer while maintaining accurate dependencies.
+        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel, RelationshipType.Uses);
         base.VisitAssignmentExpression(node);
+    }
+
+    /// <summary>
+    ///     Override to use "Uses" instead of "Calls" for standalone identifiers in lambdas.
+    ///     Example: x => MyProperty (standalone property reference)
+    /// </summary>
+    public override void VisitIdentifierName(IdentifierNameSyntax node)
+    {
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitIdentifierName(node);
     }
 
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-        // Track member references (properties, fields, events) with "Uses" relationship
-        var symbolInfo = SemanticModel.GetSymbolInfo(node);
-        var symbol = symbolInfo.Symbol;
-        var location = node.GetSyntaxLocation();
+        // Delegate to AnalyzeMemberAccess with "Uses" relationship type for lambdas
+        // Same rationale as VisitAssignmentExpression - we don't know when/if the lambda executes
+        Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
 
-        if (symbol is IPropertySymbol propertySymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IFieldSymbol fieldSymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IEventSymbol eventSymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-
-        base.VisitMemberAccessExpression(node);
+        // Explicitly visit only the Expression (left side: obj in obj.Property)
+        // The Name (right side: Property) is already handled by AnalyzeMemberAccess
+        Visit(node.Expression);
     }
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
