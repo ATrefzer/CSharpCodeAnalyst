@@ -95,8 +95,9 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
     }
 
     /// <summary>
-    ///     Override to use "Uses" instead of "Calls" for standalone identifiers in lambdas.
-    ///     Example: x => MyProperty (standalone property reference)
+    ///     Visit standalone identifiers (properties, fields, etc.).
+    ///     Uses "Uses" relationship for lambda bodies (we don't know when/if lambda executes).
+    ///     Examples: x => MyProperty (standalone), not obj.MyProperty (that's MemberAccess)
     /// </summary>
     public override void VisitIdentifierName(IdentifierNameSyntax node)
     {
@@ -110,9 +111,9 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         // Same rationale as VisitAssignmentExpression - we don't know when/if the lambda executes
         Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
 
-        // Explicitly visit only the Expression (left side: obj in obj.Property)
-        // The Name (right side: Property) is already handled by AnalyzeMemberAccess
-        Visit(node.Expression);
+        // Now safe to call base traversal since VisitIdentifierName is overridden in this class
+        // and will use RelationshipType.Uses (not the default Calls)
+        base.VisitMemberAccessExpression(node);
     }
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
