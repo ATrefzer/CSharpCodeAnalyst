@@ -1,6 +1,6 @@
 using System;
 
-namespace Regression.SpecificBugs;
+namespace Regression.SpecificBugs.RecordsAndStructs;
 
 // Test records and struct interfaces
 public record RecordA(string Name, RecordB RecordB);

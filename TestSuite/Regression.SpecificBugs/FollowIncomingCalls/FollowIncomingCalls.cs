@@ -1,4 +1,4 @@
-namespace Regression.SpecificBugs;
+namespace Regression.SpecificBugs.FollowIncomingCalls;
 
 // Test cases for following incoming calls regression
 public class Base
