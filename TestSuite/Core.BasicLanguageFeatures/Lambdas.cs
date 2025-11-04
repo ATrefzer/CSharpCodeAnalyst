@@ -19,7 +19,6 @@ internal class Lambdas
         var y = () =>
         {
             BaseClass? baseClass;
-            
         };
 
 

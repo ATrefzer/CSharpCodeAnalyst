@@ -5,16 +5,16 @@ namespace CodeParserTests.ApprovalTests.Regression;
 [TestFixture]
 public class AssignmentDuplicateTests : ApprovalTestBase
 {
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph GetTestGraph()
     {
-        return GetTestGraph("Regression.SpecificBugs");
+        return GetTestGraph("Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate");
     }
-    
+
 
     [Test]
     public void AssignmentExpressions_ShouldNotCreateDuplicateRelationships()
     {
-        var graph = GetTestAssemblyGraph();
+        var graph = GetTestGraph();
 
         // Find our test method
         var testMethod = graph.Nodes.Values
@@ -68,46 +68,27 @@ public class AssignmentDuplicateTests : ApprovalTestBase
     }
 
     [Test]
-    public void MemberAccessExpressions_ShouldNotCreateDuplicateRelationships()
+    public void Classes_should_be_detected()
     {
-        var graph = GetTestAssemblyGraph();
+        var classes = GetAllClasses(GetTestGraph()).ToList();
 
-        // Find our test method
-        var testMethod = graph.Nodes.Values
-            .FirstOrDefault(n => n.Name == "TestMethod" && n.FullName.Contains("MemberAccessDuplicate"));
-
-        Assert.IsNotNull(testMethod, "TestMethod not found in MemberAccessDuplicateTest");
-
-        // Check relationships from TestMethod
-        var relationships = testMethod.Relationships;
-
-        // Find OriginalElement property relationships
-        var originalElementRelationships = relationships
-            .Where(r => r.Type == RelationshipType.Calls)
-            .Where(r =>
-            {
-                var target = graph.Nodes.GetValueOrDefault(r.TargetId);
-                return target?.Name == "OriginalElement";
-            })
-            .ToList();
-
-        Assert.Greater(originalElementRelationships.Count, 0, "Should have OriginalElement relationships");
-
-        // Check for duplicate SourceLocations in the same relationship
-        foreach (var rel in originalElementRelationships)
+        var expected = new[]
         {
-            // Group by line number to check for duplicates in same line
-            var sourceLocationsByLine = rel.SourceLocations.GroupBy(loc => loc.Line);
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate"
+        };
 
-            foreach (var lineGroup in sourceLocationsByLine)
-            {
-                if (lineGroup.Count() > 1)
-                {
-                    Assert.Fail($"Found {lineGroup.Count()} SourceLocations for line {lineGroup.Key} in relationship to OriginalElement. " +
-                                $"Columns: {string.Join(", ", lineGroup.Select(loc => loc.Column))}. " +
-                                $"This indicates the same property access is being processed twice by different analyzers.");
-                }
-            }
-        }
+        CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
+    }
+
+    [Test]
+    public void MethodCalls_should_be_detected()
+    {
+        var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+
+        var expected = new[]
+        {
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate.TestProperty"
+        };
+        CollectionAssert.AreEquivalent(expected, calls);
     }
 }

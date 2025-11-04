@@ -27,7 +27,7 @@ public class PlantUmlExportTests
 
         // Dots should be replaced in alias (aka FullName)
         var implClass = g.CreateClass("Export-ServiceImpl", nsExport, "Export.ServiceImpl");
-      
+
 
         var structType = g.CreateStruct("Export-Data", nsExport);
         var enumType = g.CreateEnum("Export-Color", nsExport);
@@ -88,7 +88,6 @@ public class PlantUmlExportTests
     [Test]
     public void Members_ShouldBeOrderedAndFormatted()
     {
-        
         var text = Export(BuildBasicGraph());
         // Extract block for ServiceImpl
         var lines = text.Split('\n');
@@ -100,7 +99,7 @@ public class PlantUmlExportTests
 
         // Expect order: Method (), Property, Event, Field
         // Note class members allow '-' so it is not sanitized here, but the class name is.
-        var expectedOrder = new[] { "Export-ServiceImpl.DoWork()", "Export-ServiceImpl.State", "Export-ServiceImpl.Changed", "Export-ServiceImpl._data"};
+        var expectedOrder = new[] { "Export-ServiceImpl.DoWork()", "Export-ServiceImpl.State", "Export-ServiceImpl.Changed", "Export-ServiceImpl._data" };
         CollectionAssert.AreEqual(expectedOrder, memberLines);
     }
 

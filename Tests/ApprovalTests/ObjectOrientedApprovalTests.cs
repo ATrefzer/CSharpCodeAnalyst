@@ -9,7 +9,7 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.ObjectOriented");
+        return GetTestGraph("Core.ObjectOriented");
     }
 
     [Test]

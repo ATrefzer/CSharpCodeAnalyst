@@ -27,7 +27,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
 
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.BasicLanguageFeatures");
+        return GetTestGraph("Core.BasicLanguageFeatures");
     }
 
 

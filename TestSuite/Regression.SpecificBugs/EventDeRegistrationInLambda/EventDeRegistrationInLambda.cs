@@ -3,24 +3,29 @@ using System.Collections.Generic;
 
 namespace Regression.SpecificBugs.EventDeRegistrationInLambda;
 
-
 public class Source
 {
-    event EventHandler<ExtendedType> MyEvent;
+    public event EventHandler MyEvent;
 }
 
 public class EventDeRegistrationInLambda
 {
-    void Do()
+    private void Do()
     {
-        
-        
-        
+        var source = new Source();
+        source.MyEvent += MyHandler;
+
+
+        List<Source> sources = [source];
+        sources.ForEach(x => x.MyEvent -= MyHandler);
+    }
+
+    private void MyHandler(object? sender, EventArgs e)
+    {
     }
 }
 
-
-static class Extensions
+internal static class Extensions
 {
     public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
     {

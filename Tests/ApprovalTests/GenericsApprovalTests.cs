@@ -7,7 +7,7 @@ public class GenericsApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.Generics");
+        return GetTestGraph("Core.Generics");
     }
 
     [Test]

@@ -9,9 +9,9 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
 
     private CodeGraph GetTestAssemblyGraph()
     {
-        var g0 = GetAssemblyGraph("ModuleLevel0");
-        var g1 = GetAssemblyGraph("ModuleLevel1");
-        var g2 = GetAssemblyGraph("ModuleLevel2");
+        var g0 = GetTestGraph("ModuleLevel0");
+        var g1 = GetTestGraph("ModuleLevel1");
+        var g2 = GetTestGraph("ModuleLevel2");
 
         return Graph.SubGraphOf(g0.Nodes.Keys.Union(g1.Nodes.Keys).Union(g2.Nodes.Keys).ToHashSet());
     }
@@ -48,8 +48,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
             "ModuleLevel0.global.ModuleLevel2.InterfaceImplementerInDifferentCompilation",
             "ModuleLevel2.global.ClassInGlobalNs",
             "ModuleLevel2.global.Insight.Analyzers",
-            "ModuleLevel2.global.Insight.Dialogs.TrendViewModel",
-            
+            "ModuleLevel2.global.Insight.Dialogs.TrendViewModel"
         };
 
         CollectionAssert.AreEquivalent(expected, classes);

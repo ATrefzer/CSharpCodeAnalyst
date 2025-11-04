@@ -2,7 +2,7 @@
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
 
-internal class Result
+public class Result
 {
     public Result(CodeElement handler, CodeElement evt, List<SourceLocation> locations)
     {
