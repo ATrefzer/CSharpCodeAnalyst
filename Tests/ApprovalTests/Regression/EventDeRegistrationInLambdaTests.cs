@@ -44,6 +44,7 @@ public class EventDeRegistrationInLambdaTests : ApprovalTestBase
 
         var expected = new string[]
         {
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.EventDeRegistrationInLambda.Do -> Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.Extensions.LoopOver"
         };
         CollectionAssert.AreEquivalent(expected, calls);
     }

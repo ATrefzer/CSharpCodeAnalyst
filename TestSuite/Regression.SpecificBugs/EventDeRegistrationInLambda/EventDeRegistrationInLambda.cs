@@ -17,7 +17,7 @@ public class EventDeRegistrationInLambda
 
 
         List<Source> sources = [source];
-        sources.ForEach(x => x.MyEvent -= MyHandler);
+        sources.LoopOver(x => x.MyEvent -= MyHandler);
     }
 
     private void MyHandler(object? sender, EventArgs e)
@@ -27,7 +27,7 @@ public class EventDeRegistrationInLambda
 
 internal static class Extensions
 {
-    public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
+    public static void LoopOver<T>(this IEnumerable<T> enumerable, Action<T> action)
     {
         foreach (var item in enumerable)
         {
