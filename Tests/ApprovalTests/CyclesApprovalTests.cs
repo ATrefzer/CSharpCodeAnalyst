@@ -9,7 +9,7 @@ public class CyclesApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.Cycles");
+        return GetTestGraph("Core.Cycles");
     }
 
     // All cycles we expect fo find in the project

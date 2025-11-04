@@ -102,11 +102,10 @@ public abstract class ApprovalTestBase
         return element.FullName.StartsWith(projectFilter);
     }
 
-    protected CodeGraph GetAssemblyGraph(string name)
+    protected CodeGraph GetTestGraph(string rootElementName)
     {
-        var assemblies = Graph.Nodes.Values.Where(n => n.ElementType == CodeElementType.Assembly).ToList();
-        var assembly = assemblies.First(n => name == n.Name);
-        return Graph.SubGraphOf(assembly);
+        var root = Graph.Nodes.Values.Single(n => n.FullName == rootElementName);
+        return Graph.SubGraphOf(root);
     }
 
     [OneTimeSetUp]
@@ -118,6 +117,11 @@ public abstract class ApprovalTestBase
     protected HashSet<string> GetAllClasses(CodeGraph graph)
     {
         return GetElementOfType(graph, CodeElementType.Class);
+    }
+
+    protected HashSet<string> GetAllClasses(CodeGraph graph, string inNamespace)
+    {
+        return GetElementOfType(graph, CodeElementType.Class, inNamespace);
     }
 
     protected static HashSet<string> GetAllNodes(CodeGraph graph)
@@ -134,11 +138,17 @@ public abstract class ApprovalTestBase
             .ToHashSet();
     }
 
-    private static HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type)
+    private static HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type, string? inNamespace = null!)
     {
-        return graph.Nodes.Values
-            .Where(n => n.ElementType == type)
-            .Select(n => n.FullName)
+        var elements = graph.Nodes.Values
+            .Where(n => n.ElementType == type);
+
+        if (inNamespace != null)
+        {
+            elements = elements.Where(n => n.Parent?.FullName == inNamespace);
+        }
+
+        return elements.Select(n => n.FullName)
             .ToHashSet();
     }
 

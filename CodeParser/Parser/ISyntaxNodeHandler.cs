@@ -12,24 +12,32 @@ public interface ISyntaxNodeHandler
     void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
         SemanticModel semanticModel);
 
-    void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+    /// <summary>
+    ///     Analyzes assignment expressions for event registration/unregistration.
+    ///     Property/field access on left and right sides is handled by the walker's normal traversal.
+    /// </summary>
+    void AnalyzeEventRegistrationAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel);
 
     /// <summary>
     ///     Analyzes standalone identifier references (fields, properties, etc.).
     ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
     ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
+    ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
+    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
     /// </summary>
     void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
-        SemanticModel semanticModel);
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
 
     /// <summary>
     ///     Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
     ///     Ownership: Handles the member being accessed (the .Name part on the right side).
     ///     The Expression (left side) is handled by the walker, which will visit it independently.
+    ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
+    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
     /// </summary>
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
-        SemanticModel semanticModel);
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
 
     void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel);
 

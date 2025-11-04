@@ -1,4 +1,4 @@
-namespace Regression.SpecificBugs;
+namespace Regression.SpecificBugs.MemberAccessDuplicate;
 
 public class SearchGraphSource
 {
@@ -10,7 +10,7 @@ public class SearchNode
     public string Name { get; set; }
 }
 
-public class MemberAccessDuplicateTest
+public class MemberAccessDuplicate
 {
     public void TestMethod()
     {

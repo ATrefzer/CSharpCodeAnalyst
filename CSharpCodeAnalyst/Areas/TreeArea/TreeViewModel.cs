@@ -89,7 +89,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private void OnSelectedItemChanged(TreeItemViewModel item)
     {
-        if (item?.CodeElement != null)
+        if (item.CodeElement != null)
         {
             _lastSelectedCodeElement = item.CodeElement.Id;
         }
@@ -97,7 +97,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private bool RefactoringCanMoveCodeElement(TreeItemViewModel tvm)
     {
-        var id = tvm?.CodeElement?.Id;
+        var id = tvm.CodeElement?.Id;
         return id != null && _refactoringService.CanMoveCodeElements([id]);
     }
 
@@ -114,15 +114,13 @@ public class TreeViewModel : INotifyPropertyChanged
 
     private bool RefactoringCanSetMovementTarget(TreeItemViewModel tvm)
     {
-        return _refactoringService.CanSetMovementTarget(tvm?.CodeElement?.Id);
+        return _refactoringService.CanSetMovementTarget(tvm.CodeElement?.Id);
     }
 
     private void RefactoringSetMovementTarget(TreeItemViewModel tvm)
     {
-        _refactoringService.SetMovementTarget(tvm?.CodeElement?.Id);
+        _refactoringService.SetMovementTarget(tvm.CodeElement?.Id);
     }
-
-
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)
     {

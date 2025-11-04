@@ -85,37 +85,34 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitInvocationExpression(node);
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        // We need to walk further to capture following expressions:
-        // Traversal.Dfs(newParent, n => n.FullName = n.GetFullPath());
+        // Track event registration/unregistration (handled by AnalyzeAssignment)
+        // Property/field access on both sides is handled by the walker's normal traversal,
+        // which correctly uses "Uses" relationships for lambdas (see VisitIdentifierName and VisitMemberAccessExpression)
+        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
+    }
+
+    /// <summary>
+    ///     Visit standalone identifiers (properties, fields, etc.).
+    ///     Uses "Uses" relationship for lambda bodies (we don't know when/if lambda executes).
+    ///     Examples: x => MyProperty (standalone), not obj.MyProperty (that's MemberAccess)
+    /// </summary>
+    public override void VisitIdentifierName(IdentifierNameSyntax node)
+    {
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitIdentifierName(node);
     }
 
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-        // Track member references (properties, fields, events) with "Uses" relationship
-        var symbolInfo = SemanticModel.GetSymbolInfo(node);
-        var symbol = symbolInfo.Symbol;
-        var location = node.GetSyntaxLocation();
+        // Delegate to AnalyzeMemberAccess with "Uses" relationship type for lambdas
+        // Same rationale as VisitAssignmentExpression - we don't know when/if the lambda executes
+        Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
 
-        if (symbol is IPropertySymbol propertySymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IFieldSymbol fieldSymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-        else if (symbol is IEventSymbol eventSymbol)
-        {
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement, eventSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
-        }
-
+        // Now safe to call base traversal since VisitIdentifierName is overridden in this class
+        // and will use RelationshipType.Uses (not the default Calls)
         base.VisitMemberAccessExpression(node);
     }
 

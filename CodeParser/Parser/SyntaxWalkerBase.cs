@@ -32,16 +32,10 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
         base.VisitArgument(node);
     }
 
-    /// <summary>
-    /// The walker ensures we only visit standalone identifiers
-    /// like MyProperty, not: obj.MyProperty
-    /// </summary>
-    public override void VisitIdentifierName(IdentifierNameSyntax node)
-    {
-        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel);
-        base.VisitIdentifierName(node);
-    }
-    
+    // Note: VisitIdentifierName is NOT overridden here because concrete walkers need to specify
+    // their relationship type (Calls for MethodBodyWalker, Uses for LambdaBodyWalker).
+    // Each walker overrides VisitIdentifierName with the appropriate RelationshipType parameter.
+
     public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
         Analyzer.AnalyzeLocalDeclaration(SourceElement, node, SemanticModel);

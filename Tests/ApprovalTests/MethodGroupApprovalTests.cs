@@ -11,7 +11,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
 
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.MethodGroups");
+        return GetTestGraph("Core.MethodGroups");
     }
 
     [Test]

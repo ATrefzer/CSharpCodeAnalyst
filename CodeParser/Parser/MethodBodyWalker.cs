@@ -16,6 +16,17 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     {
     }
 
+    /// <summary>
+    ///     Visit standalone identifiers (properties, fields, etc.).
+    ///     Uses "Calls" relationship for method bodies.
+    ///     Examples: MyProperty (standalone), not obj.MyProperty (that's MemberAccess)
+    /// </summary>
+    public override void VisitIdentifierName(IdentifierNameSyntax node)
+    {
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel, RelationshipType.Calls);
+        base.VisitIdentifierName(node);
+    }
+
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
         Analyzer.AnalyzeInvocation(SourceElement, node, SemanticModel);
@@ -25,7 +36,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel);
+        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
     }
 

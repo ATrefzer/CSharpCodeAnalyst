@@ -11,7 +11,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Old.CSharpLanguage");
+        return GetTestGraph("Old.CSharpLanguage");
     }
 
     [Test]

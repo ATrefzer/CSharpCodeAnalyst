@@ -7,7 +7,7 @@ public class NamespacesApprovalTests : ApprovalTestBase
 {
     private CodeGraph GetTestAssemblyGraph()
     {
-        return GetAssemblyGraph("Core.Namespaces");
+        return GetTestGraph("Core.Namespaces");
     }
 
     [Test]

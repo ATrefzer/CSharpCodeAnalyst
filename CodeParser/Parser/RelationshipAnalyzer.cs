@@ -102,14 +102,11 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
     }
 
-    public void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+    public void AnalyzeEventRegistrationAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel)
     {
-        // Analyze the left side of the assignment (target)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Left, semanticModel);
-
-        // Analyze the right side of the assignment (value)
-        AnalyzeExpressionForPropertyAccess(sourceElement, assignmentExpression.Right, semanticModel);
+        // Note: Property/field access on left and right sides is handled by the walker's normal traversal
+        // (VisitIdentifierName and VisitMemberAccessExpression). We only need to handle event registration/unregistration here.
 
         var isRegistration = assignmentExpression.IsKind(SyntaxKind.AddAssignmentExpression);
         var isUnregistration = assignmentExpression.IsKind(SyntaxKind.SubtractAssignmentExpression);
@@ -179,7 +176,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeIdentifier" />
     /// </summary>
     public void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
         var symbol = symbolInfo.Symbol;
@@ -190,14 +187,14 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
+            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
             AddRelationshipWithFallbackToContainingType(sourceElement, fieldSymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
         }
-        else if (symbol is IEventSymbol eventSymbol) 
+        else if (symbol is IEventSymbol eventSymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
             AddEventUsageRelationship(sourceElement, eventSymbol, location);
@@ -208,7 +205,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeMemberAccess" />
     /// </summary>
     public void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
     {
         // Analyze the member being accessed (the right side of the dot)
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
@@ -217,7 +214,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = memberAccessSyntax.GetSyntaxLocation();
-            AddPropertyCallRelationship(sourceElement, propertySymbol, [location], RelationshipAttribute.None);
+            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -814,21 +811,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         //    $"Unable to add 'Handles' relationship: Handler {handlerMethod.Name} or Event {eventSymbol.Name} not found in codebase.");
     }
 
-    private void AnalyzeExpressionForPropertyAccess(CodeElement sourceElement, ExpressionSyntax expression,
-        SemanticModel semanticModel)
-    {
-        switch (expression)
-        {
-            case IdentifierNameSyntax identifierSyntax:
-                AnalyzeIdentifier(sourceElement, identifierSyntax, semanticModel);
-                break;
-            case MemberAccessExpressionSyntax memberAccessSyntax:
-                AnalyzeMemberAccess(sourceElement, memberAccessSyntax, semanticModel);
-                break;
-            // Add more cases if needed for other types of expressions
-        }
-    }
-
     private void AddCallsRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location, RelationshipAttribute attributes)
     {
         //Debug.Assert(FindCodeElement(methodSymbol)!= null);
@@ -1004,15 +986,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
 
         return _externalCodeElementCache.TryGetOrCreateExternalCodeElement(symbol);
-    }
-
-    /// <summary>
-    ///     Calling a property is treated like calling a method.
-    /// </summary>
-    private void AddPropertyCallRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
-        List<SourceLocation> locations, RelationshipAttribute attributes)
-    {
-        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Calls, locations, attributes);
     }
 
     /// <summary>

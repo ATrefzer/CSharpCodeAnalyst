@@ -1,6 +1,6 @@
-namespace Regression.SpecificBugs;
+namespace Regression.SpecificBugs.AssignmentDuplicate;
 
-public class AssignmentDuplicateTest
+public class AssignmentDuplicate
 {
     public string TestField;
     public string TestProperty { get; set; }
