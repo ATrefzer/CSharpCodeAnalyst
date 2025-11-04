@@ -36,7 +36,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
 
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel);
+        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
     }
 

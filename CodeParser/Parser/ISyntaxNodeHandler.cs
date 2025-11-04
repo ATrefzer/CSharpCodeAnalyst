@@ -16,14 +16,14 @@ public interface ISyntaxNodeHandler
     ///     Analyzes assignment expressions for event registration/unregistration.
     ///     Property/field access on left and right sides is handled by the walker's normal traversal.
     /// </summary>
-    void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+    void AnalyzeEventRegistrationAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel);
 
     /// <summary>
     ///     Analyzes standalone identifier references (fields, properties, etc.).
     ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
     ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
-    ///     The propertyAccessType parameter controls whether property/field access creates "Calls" or "Uses" relationships.
+    ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
     ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
     /// </summary>
     void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
@@ -33,7 +33,7 @@ public interface ISyntaxNodeHandler
     ///     Analyzes member access expressions (obj.Property, obj.Field, obj.Event).
     ///     Ownership: Handles the member being accessed (the .Name part on the right side).
     ///     The Expression (left side) is handled by the walker, which will visit it independently.
-    ///     The propertyAccessType parameter controls whether property/field access creates "Calls" or "Uses" relationships.
+    ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
     ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
     /// </summary>
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
@@ -71,18 +71,6 @@ public interface ISyntaxNodeHandler
     /// </summary>
     void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
-
-    /// <summary>
-    ///     Public wrapper for AddEventUsageRelationship to allow access from LambdaBodyWalker
-    /// </summary>
-    void AddEventUsageRelationshipPublic(CodeElement sourceElement, IEventSymbol eventSymbol,
-        SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None);
-
-    /// <summary>
-    ///     Public wrapper for AddEventHandlerRelationship to allow access from LambdaBodyWalker
-    /// </summary>
-    void AddEventHandlerRelationshipPublic(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
-        SourceLocation location, RelationshipAttribute attribute);
 
     /// <summary>
     /// typeof(),

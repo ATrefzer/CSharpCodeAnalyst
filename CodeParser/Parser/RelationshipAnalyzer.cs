@@ -102,7 +102,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
     }
 
-    public void AnalyzeAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+    public void AnalyzeEventRegistrationAssignment(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
         SemanticModel semanticModel)
     {
         // Note: Property/field access on left and right sides is handled by the walker's normal traversal
@@ -152,24 +152,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
     {
         AddRelationshipWithFallbackToContainingType(sourceElement, targetSymbol, relationshipType, locations, attributes);
-    }
-
-    /// <summary>
-    ///     Public wrapper for AddEventUsageRelationship to allow access from LambdaBodyWalker
-    /// </summary>
-    public void AddEventUsageRelationshipPublic(CodeElement sourceElement, IEventSymbol eventSymbol,
-        SourceLocation location, RelationshipAttribute attribute = RelationshipAttribute.None)
-    {
-        AddEventUsageRelationship(sourceElement, eventSymbol, location, attribute);
-    }
-
-    /// <summary>
-    ///     Public wrapper for AddEventHandlerRelationship to allow access from LambdaBodyWalker
-    /// </summary>
-    public void AddEventHandlerRelationshipPublic(IMethodSymbol handlerMethod, IEventSymbol eventSymbol,
-        SourceLocation location, RelationshipAttribute attribute)
-    {
-        AddEventHandlerRelationship(handlerMethod, eventSymbol, location, attribute);
     }
 
     /// <summary>

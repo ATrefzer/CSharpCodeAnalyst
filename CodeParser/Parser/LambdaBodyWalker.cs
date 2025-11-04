@@ -90,7 +90,7 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         // Track event registration/unregistration (handled by AnalyzeAssignment)
         // Property/field access on both sides is handled by the walker's normal traversal,
         // which correctly uses "Uses" relationships for lambdas (see VisitIdentifierName and VisitMemberAccessExpression)
-        Analyzer.AnalyzeAssignment(SourceElement, node, SemanticModel);
+        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
         base.VisitAssignmentExpression(node);
     }
 
