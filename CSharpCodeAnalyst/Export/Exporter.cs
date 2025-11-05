@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using CodeParser.Export;
-using Contracts.Graph;
+using CodeGraph.Export;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst.Export;
 
@@ -96,7 +94,7 @@ public class Exporter
         }
     }
 
-    public void ToDgml(CodeGraph? exportGraph)
+    public void ToDgml(CodeGraph.Graph.CodeGraph? exportGraph)
     {
         if (exportGraph is null) return;
 
@@ -116,7 +114,7 @@ public class Exporter
         }
     }
 
-    public void ToPlantUml(CodeGraph? exportGraph)
+    public void ToPlantUml(CodeGraph.Graph.CodeGraph? exportGraph)
     {
         if (exportGraph is null)
         {
@@ -137,7 +135,7 @@ public class Exporter
         }
     }
 
-    public void ToDsi(CodeGraph? codeGraph)
+    public void ToDsi(CodeGraph.Graph.CodeGraph? codeGraph)
     {
         if (codeGraph is null)
         {
@@ -178,7 +176,7 @@ public class Exporter
         process.Start();
     }
 
-    public void ToPlainText(CodeGraph? graph)
+    public void ToPlainText(CodeGraph.Graph.CodeGraph? graph)
     {
         if (graph is null)
         {

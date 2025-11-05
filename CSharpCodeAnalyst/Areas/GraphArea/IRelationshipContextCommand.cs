@@ -1,5 +1,5 @@
 ﻿using System.Windows.Media;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
@@ -7,7 +7,7 @@ public interface IRelationshipContextCommand
 {
     string Label { get; }
     ImageSource? Icon { get; }
-    
+
     string? SubMenuGroup { get; }
 
     bool CanHandle(List<Relationship> relationships);

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using CodeGraph.Exploration;
 using CodeParser.Parser;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
@@ -9,7 +10,6 @@ using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
 using CSharpCodeAnalyst.Shared.Messages;

@@ -1,5 +1,4 @@
-﻿using CodeParser.Analysis.Cycles;
-using CodeParser.Analysis.Shared;
+﻿using CodeGraph.Algorithms.Cycles;
 
 namespace CodeParserTests.UnitTests.Cycles;
 

@@ -1,4 +1,4 @@
-﻿using Contracts.Common;
+﻿using CodeGraph.Contracts;
 
 namespace CodeParser.Parser;
 

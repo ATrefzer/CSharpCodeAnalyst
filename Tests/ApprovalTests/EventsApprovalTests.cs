@@ -1,11 +1,11 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
 public class EventsApprovalTests : ApprovalTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph.Graph.CodeGraph GetTestGraph()
     {
         return GetTestGraph("Core.Events");
     }

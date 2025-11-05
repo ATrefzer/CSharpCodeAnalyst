@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
@@ -25,7 +25,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
         CollectionAssert.AreEquivalent(expected, classes);
     }
 
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Core.BasicLanguageFeatures");
     }

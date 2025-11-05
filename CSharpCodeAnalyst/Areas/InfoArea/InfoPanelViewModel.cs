@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Help;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;

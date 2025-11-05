@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Refactoring;
 

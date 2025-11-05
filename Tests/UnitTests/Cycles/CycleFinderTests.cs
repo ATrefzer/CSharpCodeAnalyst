@@ -1,6 +1,6 @@
-﻿using CodeParser.Analysis.Cycles;
+﻿using CodeGraph.Algorithms.Cycles;
+using CodeGraph.Graph;
 using CodeParserTests.Helper;
-using Contracts.Graph;
 
 // ReSharper disable InconsistentNaming
 
@@ -352,9 +352,9 @@ public class CycleFinderTests
         Assert.True(scc.CodeGraph.Nodes.ContainsKey("C"));
     }
 
-    private static CodeGraph CreateCodeGraphForShouldFindScc()
+    private static CodeGraph.Graph.CodeGraph CreateCodeGraphForShouldFindScc()
     {
-        var codeStructure = new CodeGraph();
+        var codeStructure = new CodeGraph.Graph.CodeGraph();
 
         // Create nodes
         var nodeA = new CodeElement("A", CodeElementType.Class,

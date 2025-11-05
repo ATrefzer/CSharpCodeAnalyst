@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
@@ -17,7 +17,7 @@ public class TreeViewModel : INotifyPropertyChanged
     private static readonly Dictionary<string, TreeItemViewModel> CodeElementIdToViewModel = new();
     private readonly MessageBus _messaging;
     private readonly RefactoringService _refactoringService;
-    private CodeGraph? _codeGraph;
+    private CodeGraph.Graph.CodeGraph? _codeGraph;
     private string? _lastSelectedCodeElement;
     private string _searchText;
     private ObservableCollection<TreeItemViewModel> _treeItems;
@@ -304,7 +304,7 @@ public class TreeViewModel : INotifyPropertyChanged
     }
 
 
-    public void LoadCodeGraph(CodeGraph codeGraph)
+    public void LoadCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
         TreeItems.Clear();

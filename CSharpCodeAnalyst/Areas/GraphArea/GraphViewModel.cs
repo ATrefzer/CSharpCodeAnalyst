@@ -3,8 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using CodeParser.Extensions;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Configuration;
@@ -609,7 +608,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddToGraph(elementsToAdd, relationshipsToAdd, addCollapsed);
     }
 
-    public void LoadCodeGraph(CodeGraph codeGraph)
+    public void LoadCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
     {
         _explorer.LoadCodeGraph(codeGraph);
         Clear();
@@ -710,7 +709,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Note that relationship type "Contains" is treated special
     /// </summary>
-    public CodeGraph ExportGraph()
+    public CodeGraph.Graph.CodeGraph ExportGraph()
     {
         return _viewer.GetGraph();
     }
@@ -725,7 +724,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.ShowGlobalContextMenu();
     }
 
-    public void ImportCycleGroup(CodeGraph graph)
+    public void ImportCycleGroup(CodeGraph.Graph.CodeGraph graph)
     {
         PushUndo();
         _viewer.Clear();

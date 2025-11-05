@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 using System.Windows.Media;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 

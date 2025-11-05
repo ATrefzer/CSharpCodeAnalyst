@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using Microsoft.Msagl.Drawing;
 
@@ -11,13 +11,13 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 /// </summary>
 internal class MsaglHierarchicalBuilder : MsaglBuilderBase
 {
-    public override Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
+    public override Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter)
     {
         return CreateHierarchicalGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
 
-    private Graph CreateHierarchicalGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
+    private Graph CreateHierarchicalGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         var visibleGraph = GetVisibleGraph(codeGraph, presentationState, hideFilter);
         var graph = new Graph("graph");
@@ -29,9 +29,9 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return graph;
     }
 
-    private static CodeGraph GetVisibleGraph(CodeGraph codeGraph, PresentationState state, GraphHideFilter hideFilter)
+    private static CodeGraph.Graph.CodeGraph GetVisibleGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState state, GraphHideFilter hideFilter)
     {
-        var visibleGraph = new CodeGraph();
+        var visibleGraph = new CodeGraph.Graph.CodeGraph();
         var roots = codeGraph.Nodes.Values.Where(n => n.Parent is null);
         foreach (var root in roots)
         {
@@ -42,7 +42,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return visibleGraph;
     }
 
-    private static void CollectVisibleNodes(CodeElement root, PresentationState state, CodeGraph visibleGraph, GraphHideFilter hideFilter)
+    private static void CollectVisibleNodes(CodeElement root, PresentationState state, CodeGraph.Graph.CodeGraph visibleGraph, GraphHideFilter hideFilter)
     {
         // Skip hidden elements
         if (hideFilter.ShouldHideElement(root))
@@ -77,7 +77,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return node;
     }
 
-    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph visibleGraph, CodeGraph codeGraph,
+    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph.Graph.CodeGraph visibleGraph, CodeGraph.Graph.CodeGraph codeGraph,
         Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         // Add nodes and sub graphs. Each node that has children becomes a subgraph.
@@ -121,7 +121,8 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph codeGraph, CodeGraph visibleGraph, bool showInformationFlow, PresentationState state, GraphHideFilter hideFilter)
+    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph.Graph.CodeGraph codeGraph, CodeGraph.Graph.CodeGraph visibleGraph, bool showInformationFlow, PresentationState state,
+        GraphHideFilter hideFilter)
     {
         var relationships = GetCollapsedRelationships(codeGraph, visibleGraph, showInformationFlow, hideFilter);
         foreach (var relationship in relationships)
@@ -130,8 +131,8 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private static Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph codeGraph,
-        CodeGraph visibleGraph, bool showInformationFlow, GraphHideFilter hideFilter)
+    private static Dictionary<(string, string), List<Relationship>> GetCollapsedRelationships(CodeGraph.Graph.CodeGraph codeGraph,
+        CodeGraph.Graph.CodeGraph visibleGraph, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         var allRelationships = codeGraph.GetAllRelationships();
         var relationships = new Dictionary<(string, string), List<Relationship>>();
@@ -189,7 +190,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
     /// <summary>
     ///     Pre-creates all sub-graphs
     /// </summary>
-    private static Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph codeGraph, CodeGraph visibleGraph, PresentationState state)
+    private static Dictionary<string, Subgraph> CreateSubGraphs(CodeGraph.Graph.CodeGraph codeGraph, CodeGraph.Graph.CodeGraph visibleGraph, PresentationState state)
     {
         return visibleGraph.Nodes.Values
             .Where(n => visibleGraph.Nodes[n.Id].Children.Any())
@@ -201,7 +202,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
             });
     }
 
-    private static string GetHighestVisibleParentOrSelf(string id, CodeGraph codeGraph, CodeGraph visibleGraph)
+    private static string GetHighestVisibleParentOrSelf(string id, CodeGraph.Graph.CodeGraph codeGraph, CodeGraph.Graph.CodeGraph visibleGraph)
     {
         // Assume the parent is always visible!
         var current = codeGraph.Nodes[id];
@@ -218,7 +219,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return current.Id;
     }
 
-    private static bool HasVisibleParentOrSelf(CodeElement element, CodeGraph visibleGraph)
+    private static bool HasVisibleParentOrSelf(CodeElement element, CodeGraph.Graph.CodeGraph visibleGraph)
     {
         var current = element;
         while (current != null)
@@ -277,7 +278,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private static bool IsMethod(CodeGraph codeGraph, string id)
+    private static bool IsMethod(CodeGraph.Graph.CodeGraph codeGraph, string id)
     {
         return codeGraph.Nodes[id].ElementType == CodeElementType.Method;
     }

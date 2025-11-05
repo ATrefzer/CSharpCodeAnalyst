@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 

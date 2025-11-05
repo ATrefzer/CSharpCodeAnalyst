@@ -1,5 +1,4 @@
-﻿using Contracts.Graph;
-using Microsoft.Msagl.Drawing;
+﻿using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
@@ -7,7 +6,7 @@ internal class EdgeHoveredHighlighting : HighlightingBase
 {
 
     public override void Highlight(IGraphViewerHighlighting graphViewer,
-        IViewerObject? viewerObject, CodeGraph? codeGraph)
+        IViewerObject? viewerObject, CodeGraph.Graph.CodeGraph? codeGraph)
     {
         if (codeGraph is null)
         {

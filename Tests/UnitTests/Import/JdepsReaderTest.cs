@@ -1,5 +1,5 @@
 using System.Text;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Import;
 
 namespace CodeParserTests.UnitTests.Import;

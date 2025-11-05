@@ -1,12 +1,11 @@
-﻿using Contracts.Graph;
-using Microsoft.Msagl.Drawing;
+﻿using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 
 internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
 {
     public override void Highlight(IGraphViewerHighlighting graphViewer,
-        IViewerObject? viewerObject, CodeGraph? codeGraph)
+        IViewerObject? viewerObject, CodeGraph.Graph.CodeGraph? codeGraph)
     {
         var msagl = graphViewer.GetMsaglGraphViewer();
         if (codeGraph is null || msagl is null)

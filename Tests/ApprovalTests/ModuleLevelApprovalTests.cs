@@ -1,5 +1,4 @@
-using CodeParser.Extensions;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
@@ -7,7 +6,7 @@ namespace CodeParserTests.ApprovalTests;
 public class ModuleLevelApprovalTests : ApprovalTestBase
 {
 
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         var g0 = GetTestGraph("ModuleLevel0");
         var g1 = GetTestGraph("ModuleLevel1");

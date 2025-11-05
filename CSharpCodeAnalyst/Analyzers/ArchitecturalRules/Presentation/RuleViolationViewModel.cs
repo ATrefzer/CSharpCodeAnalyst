@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -13,10 +12,10 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 
 public class RuleViolationViewModel : TableRow
 {
-    private readonly CodeGraph _codeGraph;
+    private readonly CodeGraph.Graph.CodeGraph _codeGraph;
     private readonly Violation _violation;
 
-    public RuleViolationViewModel(Violation violation, CodeGraph codeGraph)
+    public RuleViolationViewModel(Violation violation, CodeGraph.Graph.CodeGraph codeGraph)
     {
         ErrorIcon = IconLoader.LoadIcon("Resources/error.png");
         _violation = violation;

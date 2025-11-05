@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Refactoring;
@@ -17,7 +17,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     private readonly RefactoringService _refactoringService;
     private readonly DispatcherTimer _searchTimer;
     private ObservableCollection<SearchItemViewModel> _allItems;
-    private CodeGraph? _codeGraph;
+    private CodeGraph.Graph.CodeGraph? _codeGraph;
     private ObservableCollection<SearchItemViewModel> _filteredItems;
     private string _searchText;
 
@@ -161,7 +161,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     }
 
 
-    public void LoadCodeGraph(CodeGraph codeGraph)
+    public void LoadCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
         BuildFlatList();

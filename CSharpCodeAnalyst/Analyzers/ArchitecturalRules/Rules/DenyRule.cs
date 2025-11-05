@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 

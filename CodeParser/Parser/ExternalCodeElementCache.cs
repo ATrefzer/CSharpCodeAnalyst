@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 
 namespace CodeParser.Parser;

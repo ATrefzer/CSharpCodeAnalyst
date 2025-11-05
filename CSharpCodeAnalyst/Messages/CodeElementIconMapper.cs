@@ -1,5 +1,5 @@
 using System.Windows.Media.Imaging;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Messages;
 

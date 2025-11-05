@@ -1,13 +1,13 @@
-using CodeParser.Export;
+using CodeGraph.Export;
+using CodeGraph.Graph;
 using CodeParserTests.Helper;
-using Contracts.Graph;
 
 namespace CodeParserTests.UnitTests.Export;
 
 [TestFixture]
 public class PlantUmlExportTests
 {
-    private static string Export(CodeGraph g)
+    private static string Export(CodeGraph.Graph.CodeGraph g)
     {
         var exporter = new PlantUmlExport();
         return exporter.Export(g);

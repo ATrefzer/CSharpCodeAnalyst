@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -285,7 +285,7 @@ public static class SymbolExtensions
             // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
             // So IsGeneric is never true, yet we need the original definition.
             // TestCase: GenericUtilities.GenericPair in TestSuite.
-            IMethodSymbol { MethodKind: MethodKind.Constructor} ctor => ctor.OriginalDefinition,
+            IMethodSymbol { MethodKind: MethodKind.Constructor } ctor => ctor.OriginalDefinition,
 
             // Generic method (independent of container)
             IMethodSymbol { IsGenericMethod: true, IsDefinition: false } method => method.OriginalDefinition,

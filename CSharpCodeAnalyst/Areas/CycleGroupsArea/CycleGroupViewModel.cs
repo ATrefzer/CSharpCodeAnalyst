@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using CodeParser.Analysis.Shared;
-using Contracts.Graph;
+using CodeGraph.Algorithms.Cycles;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -10,12 +10,14 @@ namespace CSharpCodeAnalyst.Areas.CycleGroupsArea;
 internal class CycleGroupViewModel : TableRow
 {
     private ObservableCollection<CodeElementLineViewModel> _highLevelElements;
+    private string _name;
 
 
     public CycleGroupViewModel(CycleGroup cycleGroup)
     {
         CycleGroup = cycleGroup;
 
+        Name = cycleGroup.Name;
 
         var nodes = CycleGroup.CodeGraph.Nodes.Values;
         List<CodeElementLineViewModel> vms;
@@ -46,6 +48,17 @@ internal class CycleGroupViewModel : TableRow
         vms.Sort(new Sorter());
 
         _highLevelElements = new ObservableCollection<CodeElementLineViewModel>(vms);
+    }
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (value == _name) return;
+            _name = value;
+            OnPropertyChanged();
+        }
     }
 
     public ObservableCollection<CodeElementLineViewModel> CodeElements

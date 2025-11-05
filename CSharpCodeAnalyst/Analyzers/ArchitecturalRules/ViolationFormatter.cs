@@ -1,11 +1,10 @@
 ﻿using System.Text;
-using Contracts.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public static class ViolationsFormatter
 {
-    public static string Format(CodeGraph graph, List<Violation> violations)
+    public static string Format(CodeGraph.Graph.CodeGraph graph, List<Violation> violations)
     {
         var sb = new StringBuilder();
 

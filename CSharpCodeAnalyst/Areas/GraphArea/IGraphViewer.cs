@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Windows.Input;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Help;
@@ -37,7 +37,7 @@ public interface IGraphViewer
     /// </summary>
     void SetQuickInfoFactory(IQuickInfoFactory factory);
 
-    CodeGraph GetGraph();
+    CodeGraph.Graph.CodeGraph GetGraph();
     void UpdateRenderOption(RenderOption renderOption);
     void SaveToSvg(FileStream stream);
     void SetHighlightMode(HighlightMode valueMode);
@@ -60,7 +60,7 @@ public interface IGraphViewer
     /// <summary>
     ///     Cycle groups, focus on selected elements
     /// </summary>
-    void LoadSession(CodeGraph newGraph, PresentationState? presentationState);
+    void LoadSession(CodeGraph.Graph.CodeGraph newGraph, PresentationState? presentationState);
 
     void AddCommand(IRelationshipContextCommand command);
 
@@ -77,17 +77,17 @@ public interface IGraphViewer
     void ClearSearchHighlights();
 
     // Event for graph changes to notify search UI
-    event Action<CodeGraph>? GraphChanged;
+    event Action<CodeGraph.Graph.CodeGraph>? GraphChanged;
     bool TryHandleKeyEvent(Key key);
 
     void SetHideFilter(GraphHideFilter hideFilter);
     GraphHideFilter GetHideFilter();
     HashSet<string> GetSelectedElementIds();
-    
+
     /// <summary>
-    /// Allows to release the last clicked object.
-    /// If an object was clicked while the info area is not visible the quick info event is ignored.
-    /// However, the viewer locks the last clicked object. This gives bad user experience.
+    ///     Allows to release the last clicked object.
+    ///     If an object was clicked while the info area is not visible the quick info event is ignored.
+    ///     However, the viewer locks the last clicked object. This gives bad user experience.
     /// </summary>
     void ClearQuickInfo();
 }

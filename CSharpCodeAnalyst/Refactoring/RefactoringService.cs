@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using CodeParser.Extensions;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -15,7 +14,7 @@ public class RefactoringService
 {
     private readonly IPublisher _messaging;
     private readonly RefactoringInteraction _refactoringInteraction;
-    private CodeGraph? _graph;
+    private CodeGraph.Graph.CodeGraph? _graph;
     private CodeElement? _target;
 
 
@@ -25,7 +24,7 @@ public class RefactoringService
         _messaging = messaging;
     }
 
-    public void LoadCodeGraph(CodeGraph graph)
+    public void LoadCodeGraph(CodeGraph.Graph.CodeGraph graph)
     {
         _graph = graph;
     }

@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Refactoring;
 
-public class CodeElementNaming(CodeGraph codeGraph, CodeElement? parent) : ICodeElementNaming
+public class CodeElementNaming(CodeGraph.Graph.CodeGraph codeGraph, CodeElement? parent) : ICodeElementNaming
 {
     /// <summary>
     ///     Generates a user-friendly default name for a new element.

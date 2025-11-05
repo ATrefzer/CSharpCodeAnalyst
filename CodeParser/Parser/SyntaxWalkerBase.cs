@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CodeParser.Parser;
 
 /// <summary>
-/// Handling here does not distinguish between method or lambda bodies.
+///     Handling here does not distinguish between method or lambda bodies.
 /// </summary>
-internal class SyntaxWalkerBase  : CSharpSyntaxWalker
+internal class SyntaxWalkerBase : CSharpSyntaxWalker
 {
     protected readonly ISyntaxNodeHandler Analyzer;
-    protected readonly CodeElement SourceElement;
-    protected readonly SemanticModel SemanticModel;
     protected readonly bool IsFieldInitializer;
+    protected readonly SemanticModel SemanticModel;
+    protected readonly CodeElement SourceElement;
 
     protected SyntaxWalkerBase(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
     {
@@ -22,9 +22,9 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
         SemanticModel = semanticModel;
         IsFieldInitializer = isFieldInitializer;
     }
-    
+
     /// <summary>
-    /// We need this also for lambdas to capture:  x => Foo(SomeMethod)
+    ///     We need this also for lambdas to capture:  x => Foo(SomeMethod)
     /// </summary>
     public override void VisitArgument(ArgumentSyntax node)
     {
@@ -43,27 +43,27 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
     }
 
     /// <summary>
-    /// typeof(Foo)
+    ///     typeof(Foo)
     /// </summary>
     public override void VisitTypeOfExpression(TypeOfExpressionSyntax node)
     {
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
-        
+
         // Don't get down to the identifier
         //base.VisitTypeOfExpression(node);
     }
-    
+
     /// <summary>
-    /// sizeof(Foo)
+    ///     sizeof(Foo)
     /// </summary>
     public override void VisitSizeOfExpression(SizeOfExpressionSyntax node)
     {
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
         base.VisitSizeOfExpression(node);
     }
-    
+
     /// <summary>
-    /// default(Foo)
+    ///     default(Foo)
     /// </summary>
     public override void VisitDefaultExpression(DefaultExpressionSyntax node)
     {
@@ -71,9 +71,9 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
         base.VisitDefaultExpression(node);
     }
-    
+
     /// <summary>
-    /// var x = (Foo)y
+    ///     var x = (Foo)y
     /// </summary>
     public override void VisitCastExpression(CastExpressionSyntax node)
     {
@@ -81,10 +81,10 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
         base.VisitCastExpression(node);
     }
-    
+
     /// <summary>
-    /// var x = y as Foo
-    /// var x = y is Foo
+    ///     var x = y as Foo
+    ///     var x = y is Foo
     /// </summary>
     public override void VisitBinaryExpression(BinaryExpressionSyntax node)
     {
@@ -99,6 +99,7 @@ internal class SyntaxWalkerBase  : CSharpSyntaxWalker
                 Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
             }
         }
+
         base.VisitBinaryExpression(node);
     }
 }

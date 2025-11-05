@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.Exploration;
+using CodeGraph.Exploration;
 
 namespace CodeParserTests.ApprovalTests;
 

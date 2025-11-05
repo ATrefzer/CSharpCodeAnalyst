@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Messages;
 
 namespace CSharpCodeAnalyst.Areas.TreeArea;
@@ -16,11 +16,12 @@ public sealed class TreeItemViewModel : INotifyPropertyChanged
 
     public string? Name { get; set; }
     public string? Type { get; set; }
-    
+
     /// <summary>
-    /// Virtual nodes like external code have no code element assigned.
+    ///     Virtual nodes like external code have no code element assigned.
     /// </summary>
     public CodeElement? CodeElement { get; set; }
+
     public ObservableCollection<TreeItemViewModel> Children { get; set; } = [];
 
     public BitmapImage? Icon

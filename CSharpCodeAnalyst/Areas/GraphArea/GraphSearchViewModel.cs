@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Windows.Threading;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
@@ -76,12 +75,12 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnGraphChanged(CodeGraph newGraph)
+    private void OnGraphChanged(CodeGraph.Graph.CodeGraph newGraph)
     {
         UpdateGraph(newGraph);
     }
 
-    private void UpdateGraph(CodeGraph graph)
+    private void UpdateGraph(CodeGraph.Graph.CodeGraph graph)
     {
         // Re-execute search with new graph if we have search text
         if (!string.IsNullOrWhiteSpace(_searchText))
