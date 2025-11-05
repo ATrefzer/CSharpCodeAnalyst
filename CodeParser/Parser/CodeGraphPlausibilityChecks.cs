@@ -1,17 +1,16 @@
 ﻿using System.Diagnostics;
-using Contracts.Graph;
 
 namespace CodeParser.Parser;
 
 internal static class CodeGraphPlausibilityChecks
 {
-    public static void PlausibilityChecks(CodeGraph codeGraph)
+    public static void PlausibilityChecks(CodeGraph.Graph.CodeGraph codeGraph)
     {
         MultipleSourceLocationsInSameLineAreUnlikely(codeGraph);
         RelationshipsHaveNoDeadEnds(codeGraph);
     }
 
-    private static void RelationshipsHaveNoDeadEnds(CodeGraph codeGraph)
+    private static void RelationshipsHaveNoDeadEnds(CodeGraph.Graph.CodeGraph codeGraph)
     {
         var deadEnds = codeGraph.GetAllRelationships().Where(r => !codeGraph.Nodes.ContainsKey(r.SourceId) ||
                                                                   !codeGraph.Nodes.ContainsKey(r.TargetId));
@@ -22,7 +21,7 @@ internal static class CodeGraphPlausibilityChecks
         }
     }
 
-    private static void MultipleSourceLocationsInSameLineAreUnlikely(CodeGraph codeGraph)
+    private static void MultipleSourceLocationsInSameLineAreUnlikely(CodeGraph.Graph.CodeGraph codeGraph)
     {
         var codeGraphNodes = codeGraph.Nodes.Values;
 

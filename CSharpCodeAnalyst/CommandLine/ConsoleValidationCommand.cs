@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
@@ -76,7 +75,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return settings;
     }
 
-    private static List<Violation> RunAnalysis(string rulesFilePath, CodeGraph graph)
+    private static List<Violation> RunAnalysis(string rulesFilePath, CodeGraph.Graph.CodeGraph graph)
     {
         var messaging = new MessageBus();
         var messageBox = new ConsoleUserNotification();
@@ -86,7 +85,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return violations;
     }
 
-    private static async Task<CodeGraph> ParseSolution(string solutionPath, ApplicationSettings settings)
+    private static async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath, ApplicationSettings settings)
     {
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);

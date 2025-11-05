@@ -1,5 +1,5 @@
 ﻿using System.Windows.Media;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
@@ -16,7 +16,7 @@ public class RelationshipContextCommand : IRelationshipContextCommand
         Label = label;
         Icon = icon;
     }
-    
+
     public RelationshipContextCommand(string subMenuGroup, string label, RelationshipType type, Action<string, string, List<Relationship>> action, ImageSource? icon = null)
     {
         _type = type;

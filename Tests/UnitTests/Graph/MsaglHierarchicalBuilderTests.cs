@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 
@@ -7,9 +7,9 @@ namespace CodeParserTests.UnitTests.Graph;
 [TestFixture]
 public class MsaglHierarchicalBuilderTests
 {
-    private CodeGraph BuildHierarchy()
+    private CodeGraph.Graph.CodeGraph BuildHierarchy()
     {
-        var g = new CodeGraph();
+        var g = new CodeGraph.Graph.CodeGraph();
         var asm = new CodeElement("Asm", CodeElementType.Assembly, "Asm", "Asm", null);
         var ns = new CodeElement("Ns", CodeElementType.Namespace, "Ns", "Ns", asm);
         var cls = new CodeElement("Cls", CodeElementType.Class, "Cls", "Ns.Cls", ns);
@@ -87,7 +87,7 @@ public class MsaglHierarchicalBuilderTests
     [Test]
     public void InformationFlow_ReversesHandlesOverridesImplements()
     {
-        var g = new CodeGraph();
+        var g = new CodeGraph.Graph.CodeGraph();
         var clsA = new CodeElement("A", CodeElementType.Class, "A", "A", null);
         var clsB = new CodeElement("B", CodeElementType.Class, "B", "B", null);
         g.Nodes[clsA.Id] = clsA;

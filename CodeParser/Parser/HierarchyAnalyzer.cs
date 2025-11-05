@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using CodeGraph.Graph;
 using CodeParser.Parser.Config;
-using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,7 +12,7 @@ namespace CodeParser.Parser;
 public class HierarchyAnalyzer
 {
     private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = [];
-    private readonly CodeGraph _codeGraph = new();
+    private readonly CodeGraph.Graph.CodeGraph _codeGraph = new();
     private readonly ParserConfig _config;
     private readonly Dictionary<string, ISymbol> _elementIdToSymbolMap = new();
 
@@ -29,7 +29,7 @@ public class HierarchyAnalyzer
         _config = config;
     }
 
-    public async Task<(CodeGraph codeGraph, Artifacts artifacts)> BuildHierarchy(Solution solution)
+    public async Task<(CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)> BuildHierarchy(Solution solution)
     {
         CollectAllFilePathInSolution(solution);
 
@@ -379,6 +379,7 @@ public class HierarchyAnalyzer
             {
                 continue;
             }
+
             if (!_config.IsProjectIncluded(project.Name))
             {
                 continue;
@@ -396,7 +397,7 @@ public class HierarchyAnalyzer
 
     private bool IsUnrecognizedProject(string? projectFilePath)
     {
-        var unrecognized = new List<string>()
+        var unrecognized = new List<string>
         {
             ".vbproj",
             ".fsproj",

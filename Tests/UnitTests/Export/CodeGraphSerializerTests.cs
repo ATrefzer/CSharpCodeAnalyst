@@ -1,14 +1,15 @@
 using System.Text;
-using Contracts.Graph;
+using CodeGraph.Export;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Export;
 
 [TestFixture]
 public class CodeGraphSerializerTests
 {
-    private CodeGraph CreateSampleGraph()
+    private CodeGraph.Graph.CodeGraph CreateSampleGraph()
     {
-        var g = new CodeGraph();
+        var g = new CodeGraph.Graph.CodeGraph();
         var asm = new CodeElement("Asm", CodeElementType.Assembly, "Asm", "Asm", null);
         var ns = new CodeElement("Ns", CodeElementType.Namespace, "Ns", "Ns", asm);
         var cls = new CodeElement("Cls", CodeElementType.Class, "Cls", "Ns.Cls", ns);

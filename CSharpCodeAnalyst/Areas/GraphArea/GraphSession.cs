@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Areas.GraphArea;
 
@@ -30,7 +30,7 @@ public class GraphSession
     public string Name { get; set; }
     public PresentationState PresentationState { get; set; }
 
-    public static GraphSession Create(string name, CodeGraph codeGraph, PresentationState presentationState)
+    public static GraphSession Create(string name, CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState)
     {
         // No references in this state should be shared with the original state
         var codeElementIds = codeGraph.Nodes.Keys.ToList();

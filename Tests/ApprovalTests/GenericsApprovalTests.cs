@@ -1,11 +1,11 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
 public class GenericsApprovalTests : ApprovalTestBase
 {
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Core.Generics");
     }

@@ -1,4 +1,4 @@
-﻿using CodeParser.Analysis.Shared;
+﻿using CodeGraph.Algorithms.Cycles;
 
 namespace CSharpCodeAnalyst.Messages;
 

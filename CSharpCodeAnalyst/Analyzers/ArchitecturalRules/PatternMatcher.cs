@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -8,7 +8,7 @@ public static class PatternMatcher
     ///     Resolves a pattern like "Business.**" to a set of CodeElement IDs
     ///     Pattern format: "Base.Path" or "Base.Path.*" or "Base.Path.**"
     /// </summary>
-    public static HashSet<string> ResolvePattern(string pattern, CodeGraph codeGraph)
+    public static HashSet<string> ResolvePattern(string pattern, CodeGraph.Graph.CodeGraph codeGraph)
     {
         var matchingIds = new HashSet<string>();
 
@@ -47,7 +47,7 @@ public static class PatternMatcher
         return (pattern, ExpansionMode.Self);
     }
 
-    private static CodeElement? FindStartElement(string basePath, CodeGraph codeGraph)
+    private static CodeElement? FindStartElement(string basePath, CodeGraph.Graph.CodeGraph codeGraph)
     {
         // Find element with exact FullName match
         return codeGraph.Nodes.Values.FirstOrDefault(element =>

@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
@@ -9,7 +9,7 @@ namespace CodeParserTests.ApprovalTests;
 public class MethodGroupApprovalTests : ApprovalTestBase
 {
 
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Core.MethodGroups");
     }

@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -10,7 +10,7 @@ namespace CodeParser.Parser;
 /// </summary>
 internal class MethodBodyWalker : SyntaxWalkerBase
 {
-  
+
     public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
         : base(analyzer, sourceElement, semanticModel, isFieldInitializer)
     {
@@ -23,7 +23,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     /// </summary>
     public override void VisitIdentifierName(IdentifierNameSyntax node)
     {
-        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel, RelationshipType.Calls);
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel);
         base.VisitIdentifierName(node);
     }
 
@@ -60,7 +60,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     }
 
     /// <summary>
-    /// new Foo()
+    ///     new Foo()
     /// </summary>
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
@@ -104,6 +104,4 @@ internal class MethodBodyWalker : SyntaxWalkerBase
             lambdaWalker.Visit(node.Block);
         }
     }
-    
-
 }

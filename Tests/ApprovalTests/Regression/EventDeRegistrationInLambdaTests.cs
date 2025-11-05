@@ -1,11 +1,11 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests.Regression;
 
 [TestFixture]
 public class EventDeRegistrationInLambdaTests : ApprovalTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph.Graph.CodeGraph GetTestGraph()
     {
         return GetTestGraph("Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda");
     }
@@ -42,7 +42,7 @@ public class EventDeRegistrationInLambdaTests : ApprovalTestBase
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
-        var expected = new string[]
+        var expected = new[]
         {
             "Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.EventDeRegistrationInLambda.Do -> Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.Extensions.LoopOver"
         };

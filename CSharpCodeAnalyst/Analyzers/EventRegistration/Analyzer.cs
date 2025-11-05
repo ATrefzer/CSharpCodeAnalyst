@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -19,7 +19,7 @@ public class Analyzer : IAnalyzer
         _messaging = messaging;
     }
 
-    public void Analyze(CodeGraph graph)
+    public void Analyze(CodeGraph.Graph.CodeGraph graph)
     {
         var imbalances = FindImbalances(graph);
 
@@ -57,7 +57,7 @@ public class Analyzer : IAnalyzer
 
     public event EventHandler? DataChanged;
 
-    public static List<Result> FindImbalances(CodeGraph originalGraph)
+    public static List<Result> FindImbalances(CodeGraph.Graph.CodeGraph originalGraph)
     {
         var relationships = originalGraph.GetAllRelationships().Where(r => r.Type == RelationshipType.Handles).ToHashSet();
 

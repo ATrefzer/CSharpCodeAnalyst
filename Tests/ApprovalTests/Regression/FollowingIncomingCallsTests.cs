@@ -1,11 +1,11 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests.Regression;
 
 [TestFixture]
 public class FollowingIncomingCallsTests : ApprovalTestBase
 {
-    private CodeGraph GetTestGraph()
+    private CodeGraph.Graph.CodeGraph GetTestGraph()
     {
         return GetTestGraph("Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls");
     }

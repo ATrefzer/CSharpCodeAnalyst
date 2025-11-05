@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Refactoring;
@@ -27,7 +27,4 @@ public class RefactoringInteraction : IRefactoringInteraction
     {
         return MessageBox.Show(message, Strings.Proceed_Title, MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK;
     }
-
-
-
 }

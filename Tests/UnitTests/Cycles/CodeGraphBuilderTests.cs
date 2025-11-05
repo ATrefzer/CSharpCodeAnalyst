@@ -1,5 +1,5 @@
-﻿using CodeParser.Analysis.Cycles;
-using Contracts.Graph;
+﻿using CodeGraph.Algorithms.Cycles;
+using CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Cycles;
 
@@ -12,7 +12,7 @@ public class CodeGraphGeneratorTests
     [Test]
     public void GenerateDetailedCodeGraph_SimpleClassDependency_PreservesDependency()
     {
-        var originalGraph = new CodeGraph();
+        var originalGraph = new CodeGraph.Graph.CodeGraph();
         var classA = new CodeElement("A", CodeElementType.Class,
             "ClassA",
             "", null);
@@ -38,7 +38,7 @@ public class CodeGraphGeneratorTests
     [Test]
     public void GenerateDetailedCodeGraph_MethodDependency_PreservesMethodLevelDependency()
     {
-        var originalGraph = new CodeGraph();
+        var originalGraph = new CodeGraph.Graph.CodeGraph();
         var classA = new CodeElement("A", CodeElementType.Class,
             "ClassA",
             "", null);
@@ -75,7 +75,7 @@ public class CodeGraphGeneratorTests
     [Test]
     public void GenerateDetailedCodeGraph_MultipleDependencies_PreservesAllDependencies()
     {
-        var originalGraph = new CodeGraph();
+        var originalGraph = new CodeGraph.Graph.CodeGraph();
         var classA = new CodeElement("A", CodeElementType.Class,
             "ClassA",
             "", null);

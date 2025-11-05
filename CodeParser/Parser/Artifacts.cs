@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 

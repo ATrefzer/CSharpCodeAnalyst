@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -49,9 +49,9 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
     {
         // Track method references with "Uses" relationship (not "Calls")
         // We don't know when the lambda executes, but we know it references these methods
-        
+
         // Code is similar to MethodBodyWalker but does not capture event invocation.
-        
+
         var symbolInfo = SemanticModel.GetSymbolInfo(node);
         if (symbolInfo.Symbol is IMethodSymbol calledMethod)
         {

@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
@@ -9,7 +8,7 @@ public class RuleViolationsViewModel : Table
 {
     private readonly ObservableCollection<TableRow> _violations;
 
-    public RuleViolationsViewModel(List<Violation> violations, CodeGraph codeGraph)
+    public RuleViolationsViewModel(List<Violation> violations, CodeGraph.Graph.CodeGraph codeGraph)
     {
         var violationViewModels = violations.Select(v => new RuleViolationViewModel(v, codeGraph));
         _violations = new ObservableCollection<TableRow>(violationViewModels);

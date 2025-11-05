@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Project;
 
@@ -38,7 +38,7 @@ public class ProjectData
     /// <summary>
     ///     Flatten the recursive structures.
     /// </summary>
-    public void SetCodeGraph(CodeGraph codeGraph)
+    public void SetCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
     {
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
@@ -59,9 +59,9 @@ public class ProjectData
             .ToList();
     }
 
-    public CodeGraph GetCodeGraph()
+    public CodeGraph.Graph.CodeGraph GetCodeGraph()
     {
-        var codeStructure = new CodeGraph();
+        var codeStructure = new CodeGraph.Graph.CodeGraph();
 
         // Pass one: Create elements
         foreach (var se in CodeElements)

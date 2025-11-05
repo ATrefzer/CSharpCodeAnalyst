@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 
@@ -9,7 +9,7 @@ public interface IQuickInfoFactory
     List<QuickInfo> CrateQuickInfo(object? obj);
 }
 
-internal class QuickInfoFactory(CodeGraph graph) : IQuickInfoFactory
+internal class QuickInfoFactory(CodeGraph.Graph.CodeGraph graph) : IQuickInfoFactory
 {
     internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
     internal static readonly List<QuickInfo> NoInfoProviderRegistered = [new("No info provider registered")];

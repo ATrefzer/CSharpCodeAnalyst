@@ -1,8 +1,8 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 
 namespace CodeParserTests.Helper;
 
-public class TestCodeGraph : CodeGraph
+public class TestCodeGraph : CodeGraph.Graph.CodeGraph
 {
     public CodeElement CreateNamespace(string id, CodeElement? parent = null)
     {

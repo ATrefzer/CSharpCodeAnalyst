@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using CodeParser.Analysis.Shared;
+using CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
@@ -54,8 +54,7 @@ internal class CycleGroupsViewModel : Table
             {
                 Type = ColumnType.Text,
                 Header = Strings.ElementCount_Header,
-                PropertyName = nameof(CycleGroupViewModel.HighLevelElementCount),
-                
+                PropertyName = nameof(CycleGroupViewModel.HighLevelElementCount)
             },
             new()
             {
@@ -63,7 +62,14 @@ internal class CycleGroupsViewModel : Table
                 Header = Strings.CodeElements_Header,
                 PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
                 SortMemberName = nameof(CycleGroupViewModel.InvolvedCodeElementsCount)
-            }
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Cycle_Name,
+                PropertyName = nameof(CycleGroupViewModel.Name),
+                IsExpandable = false
+            },
         };
     }
 

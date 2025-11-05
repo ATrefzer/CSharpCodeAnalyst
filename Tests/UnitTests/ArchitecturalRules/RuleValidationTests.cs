@@ -1,5 +1,5 @@
+using CodeGraph.Graph;
 using CodeParserTests.Helper;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;

@@ -1,7 +1,7 @@
-﻿using CodeParser.Parser;
+﻿using CodeGraph.Contracts;
+using CodeGraph.Export;
+using CodeParser.Parser;
 using CodeParser.Parser.Config;
-using Contracts.Common;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
 
@@ -26,12 +26,12 @@ public class Importer
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode)
+    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph>.Canceled();
+            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
         }
 
         var result = await ExecuteGuardedImportAsync(
@@ -47,12 +47,12 @@ public class Importer
         return result;
     }
 
-    public async Task<Result<CodeGraph>> ImportJdepsAsync()
+    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportJdepsAsync()
     {
         var fileName = TryGetImportJdepsFilePath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph>.Canceled();
+            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
         }
 
         return await ExecuteGuardedImportAsync(
@@ -60,12 +60,12 @@ public class Importer
             () => ImportJDepsFuncAsync(fileName));
     }
 
-    public async Task<Result<CodeGraph>> ImportPlainTextAsync()
+    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportPlainTextAsync()
     {
         var fileName = TryGetImportPlainTextPath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph>.Canceled();
+            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
         }
 
         return await ExecuteGuardedImportAsync(
@@ -73,20 +73,20 @@ public class Importer
             () => ImportPlainTextFuncAsync(fileName));
     }
 
-    private Task<CodeGraph> ImportJDepsFuncAsync(string filePath)
+    private Task<CodeGraph.Graph.CodeGraph> ImportJDepsFuncAsync(string filePath)
     {
         var importer = new JdepsReader();
         return Task.FromResult(importer.ImportFromFile(filePath));
     }
 
-    private Task<CodeGraph> ImportPlainTextFuncAsync(string filePath)
+    private Task<CodeGraph.Graph.CodeGraph> ImportPlainTextFuncAsync(string filePath)
     {
         var graph = CodeGraphSerializer.DeserializeFromFile(filePath);
         return Task.FromResult(graph);
     }
 
 
-    private async Task<CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode)
+    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode)
     {
         var parser = new Parser(new ParserConfig(filters, includeExternalCode));
         parser.Progress.ParserProgress += OnParserProgress;
@@ -119,20 +119,20 @@ public class Importer
         ImportStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
     }
 
-    private async Task<Result<CodeGraph>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<CodeGraph>> importFunc)
+    private async Task<Result<CodeGraph.Graph.CodeGraph>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<CodeGraph.Graph.CodeGraph>> importFunc)
     {
         try
         {
             OnImportStateChanged(progressMessage, true);
 
             var graph = await Task.Run(importFunc);
-            return Result<CodeGraph>.Success(graph);
+            return Result<CodeGraph.Graph.CodeGraph>.Success(graph);
         }
         catch (Exception ex)
         {
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             _ui.ShowError(message);
-            return Result<CodeGraph>.Failure(ex);
+            return Result<CodeGraph.Graph.CodeGraph>.Failure(ex);
         }
         finally
         {

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Messages;
 
 namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using CodeGraph.Graph;
 using CodeParser.Parser.Config;
-using Contracts.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -18,7 +18,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     private readonly object _lock = new();
     private readonly Progress _progress;
     private Artifacts? _artifacts;
-    private CodeGraph? _codeGraph;
+    private CodeGraph.Graph.CodeGraph? _codeGraph;
     private long _lastProgress;
 
     private int _processedCodeElements;
@@ -146,7 +146,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
     /// <summary>
     ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
-    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external symbols.
+    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external
+    ///     symbols.
     /// </summary>
     public void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
@@ -155,7 +156,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
-    /// <inheritdoc cref="ISyntaxNodeHandler.AnalyzeTypeSyntax"/>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeTypeSyntax" />
     /// </summary>
     public void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node)
     {
@@ -163,6 +164,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             return;
         }
+
         // typeof(Foo) creates a "Uses" relationship to the type
         var typeInfo = semanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
@@ -344,7 +346,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     Entry for relationship analysis.
     ///     The code graph is updated in place.
     /// </summary>
-    public Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    public Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)
     {
         ArgumentNullException.ThrowIfNull(solution, nameof(solution));
         ArgumentNullException.ThrowIfNull(codeGraph, nameof(codeGraph));
@@ -408,7 +410,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// <summary>
     ///     The code graph is updated, the artifacts are read only.
     /// </summary>
-    public Task AnalyzeRelationshipsSingleThreaded(Solution solution, CodeGraph codeGraph, Artifacts artifacts)
+    public Task AnalyzeRelationshipsSingleThreaded(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)
     {
         _codeGraph = codeGraph;
         _artifacts = artifacts;

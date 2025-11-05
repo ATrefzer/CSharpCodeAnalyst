@@ -1,4 +1,4 @@
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 // ReSharper disable StringLiteralTypo
 
@@ -7,7 +7,7 @@ namespace CodeParserTests.ApprovalTests;
 [TestFixture]
 public class ObjectOrientedApprovalTests : ApprovalTestBase
 {
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Core.ObjectOriented");
     }

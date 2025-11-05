@@ -969,5 +969,8 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="DeselectAllVisible_Label" xml:space="preserve">
     <value>Deselect all visible</value>
   </data>
-
+    <data name="Cycle_Name" xml:space="preserve">
+    <value>Cycle name</value>
+  </data>  
+    
 </root>

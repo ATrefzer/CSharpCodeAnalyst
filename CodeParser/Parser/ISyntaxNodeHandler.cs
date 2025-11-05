@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -24,7 +24,8 @@ public interface ISyntaxNodeHandler
     ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
     ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
     ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
-    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
+    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda
+    ///     executes.
     /// </summary>
     void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
@@ -34,7 +35,8 @@ public interface ISyntaxNodeHandler
     ///     Ownership: Handles the member being accessed (the .Name part on the right side).
     ///     The Expression (left side) is handled by the walker, which will visit it independently.
     ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
-    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda executes.
+    ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda
+    ///     executes.
     /// </summary>
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
@@ -67,15 +69,16 @@ public interface ISyntaxNodeHandler
 
     /// <summary>
     ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
-    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external symbols.
+    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external
+    ///     symbols.
     /// </summary>
     void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
 
     /// <summary>
-    /// typeof(),
-    /// sizeof()
-    /// (cast)
+    ///     typeof(),
+    ///     sizeof()
+    ///     (cast)
     /// </summary>
     void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node);
 }

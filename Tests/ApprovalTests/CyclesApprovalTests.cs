@@ -1,13 +1,12 @@
 using System.Diagnostics;
-using CodeParser.Analysis.Cycles;
-using Contracts.Graph;
+using CodeGraph.Algorithms.Cycles;
 
 namespace CodeParserTests.ApprovalTests;
 
 [TestFixture]
 public class CyclesApprovalTests : ApprovalTestBase
 {
-    private CodeGraph GetTestAssemblyGraph()
+    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Core.Cycles");
     }

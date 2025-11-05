@@ -1,5 +1,5 @@
 using System.IO;
-using Contracts.Graph;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Import;
 
@@ -8,13 +8,13 @@ public class JdepsReader
     private readonly Dictionary<string, CodeElement> _codeElements = new();
     private int _nextId = 1;
 
-    public CodeGraph ImportFromFile(string filePath)
+    public CodeGraph.Graph.CodeGraph ImportFromFile(string filePath)
     {
         var lines = File.ReadAllLines(filePath);
         return ImportFromLines(lines);
     }
 
-    public CodeGraph ImportFromLines(IEnumerable<string> lines)
+    public CodeGraph.Graph.CodeGraph ImportFromLines(IEnumerable<string> lines)
     {
         _codeElements.Clear();
         _nextId = 1;
@@ -26,7 +26,7 @@ public class JdepsReader
         }
 
 
-        var graph = new CodeGraph
+        var graph = new CodeGraph.Graph.CodeGraph
         {
             Nodes = _codeElements.ToDictionary(kvp => kvp.Value.Id, c => c.Value)
         };

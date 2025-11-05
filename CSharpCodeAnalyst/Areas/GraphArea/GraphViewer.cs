@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Contracts.Graph;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
 using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
@@ -43,7 +43,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     /// </summary>
     private IViewerObject? _clickedObject;
 
-    private CodeGraph _clonedCodeGraph = new();
+    private CodeGraph.Graph.CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
     private bool _flow;
 
@@ -110,8 +110,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         // Actually I could iterate over the elements that w
         //var previousElementIds = _clonedCodeGraph.Nodes.Values.Select(n => n.Id).ToHashSet();
         //var newElementIds = original.Select(n => n.Id).Except(previousElementIds);
-        
-        var integrated =AddToGraphInternal(original, newRelationships);
+
+        var integrated = AddToGraphInternal(original, newRelationships);
 
         if (addCollapsed)
         {
@@ -146,7 +146,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         RefreshGraph();
     }
 
-    public CodeGraph GetGraph()
+    public CodeGraph.Graph.CodeGraph GetGraph()
     {
         return _clonedCodeGraph;
     }
@@ -263,7 +263,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             return;
         }
 
-        _clonedCodeGraph = new CodeGraph();
+        _clonedCodeGraph = new CodeGraph.Graph.CodeGraph();
 
         // Nothing collapsed by default
         _presentationState = new PresentationState();
@@ -393,7 +393,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         OnGraphChanged();
     }
 
-    public void LoadSession(CodeGraph newGraph, PresentationState? presentationState)
+    public void LoadSession(CodeGraph.Graph.CodeGraph newGraph, PresentationState? presentationState)
     {
         if (presentationState is null)
         {
@@ -406,7 +406,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         OnGraphChanged();
     }
 
-    public event Action<CodeGraph>? GraphChanged;
+    public event Action<CodeGraph.Graph.CodeGraph>? GraphChanged;
 
     public bool TryHandleKeyEvent(Key key)
     {
@@ -426,6 +426,26 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         }
 
         return false;
+    }
+
+    public HashSet<string> GetSelectedElementIds()
+    {
+        if (_msaglViewer is null)
+        {
+            return [];
+        }
+
+        var selectedIds = _msaglViewer.Entities
+            .Where(e => e.MarkedForDragging)
+            .OfType<IViewerNode>()
+            .Select(n => n.Node.Id)
+            .ToHashSet();
+        return selectedIds;
+    }
+
+    public void ClearQuickInfo()
+    {
+        _clickedObject = null;
     }
 
     public Microsoft.Msagl.WpfGraphControl.GraphViewer? GetMsaglGraphViewer()
@@ -658,28 +678,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             var sourceElement = _clonedCodeGraph.Nodes[newRelationship.SourceId];
             sourceElement.Relationships.Add(newRelationship);
         }
-        
+
         return integrated;
-    }
-
-    public HashSet<string> GetSelectedElementIds()
-    {
-        if (_msaglViewer is null)
-        {
-            return [];
-        }
-
-        var selectedIds = _msaglViewer.Entities
-            .Where(e => e.MarkedForDragging)
-            .OfType<IViewerNode>()
-            .Select(n => n.Node.Id)
-            .ToHashSet();
-        return selectedIds;
-    }
-
-    public void ClearQuickInfo()
-    {
-        _clickedObject = null;
     }
 
     /// <summary>
@@ -808,12 +808,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         Dictionary<string, MenuItem> subMenus = [];
         foreach (var cmd in _edgeCommands)
         {
-            
             if (cmd.CanHandle(relationships))
             {
                 MenuItem? parentMenu = null;
                 var menuItem = new MenuItem { Header = cmd.Label };
-                
+
                 var isSubMenu = !string.IsNullOrEmpty(cmd.SubMenuGroup);
                 if (isSubMenu && cmd.SubMenuGroup != null)
                 {
@@ -825,7 +824,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
                         contextMenu.Items.Add(parentMenu);
                     }
                 }
-                
+
                 // Add icon if provided
                 if (cmd.Icon != null)
                 {
@@ -842,11 +841,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
                 if (!isSubMenu)
                 {
-                    contextMenu.Items.Add(menuItem);    
+                    contextMenu.Items.Add(menuItem);
                 }
                 else
                 {
-                    parentMenu!.Items.Add(menuItem);                    
+                    parentMenu!.Items.Add(menuItem);
                 }
             }
         }

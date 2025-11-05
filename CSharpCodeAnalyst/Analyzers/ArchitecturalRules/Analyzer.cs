@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Common;
@@ -13,13 +12,13 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {
-    private readonly IUserNotification _userNotification;
     private readonly IPublisher _messaging;
+    private readonly IUserNotification _userNotification;
+    private CodeGraph.Graph.CodeGraph? _currentGraph;
+    private bool _isDirty;
+    private ArchitecturalRulesDialog? _openDialog;
     private List<RuleBase> _rules = [];
     private string _rulesText;
-    private ArchitecturalRulesDialog? _openDialog;
-    private CodeGraph? _currentGraph;
-    private bool _isDirty;
 
     public Analyzer(IPublisher messaging, IUserNotification userNotification)
     {
@@ -35,7 +34,7 @@ public class Analyzer : IAnalyzer
         _rulesText = GetSampleRules();
     }
 
-    public void Analyze(CodeGraph graph)
+    public void Analyze(CodeGraph.Graph.CodeGraph graph)
     {
         // If dialog is already open, just bring it to front
         if (_openDialog != null)
@@ -69,6 +68,71 @@ public class Analyzer : IAnalyzer
 
         _openDialog.Show();
     }
+
+    public string Name
+    {
+        get => "Architectural rules";
+    }
+
+    public string Description { get; } = "Validates your architectural constraints based on user-defined rules";
+
+    public string Id
+    {
+        get => "ArchitecturalRules";
+    }
+
+    public string? GetPersistentData()
+    {
+        SetDirty(false);
+
+        if (string.IsNullOrEmpty(_rulesText))
+        {
+            return null;
+        }
+
+        var persistentData = new PersistenceData
+        {
+            RulesText = _rulesText
+        };
+
+        return JsonSerializer.Serialize(persistentData);
+    }
+
+    public void SetPersistentData(string? data)
+    {
+        if (string.IsNullOrEmpty(data))
+        {
+            _rulesText = string.Empty;
+            _rules.Clear();
+            SetDirty(false);
+            return;
+        }
+
+        try
+        {
+            var persistentData = JsonSerializer.Deserialize<PersistenceData>(data);
+            if (persistentData != null)
+            {
+                var rulesText = persistentData.RulesText ?? string.Empty;
+                ParseAndStoreRules(rulesText);
+            }
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine(ex);
+
+            // If deserialization fails, reset to empty
+            _rulesText = string.Empty;
+            _rules.Clear();
+        }
+    }
+
+    public bool IsDirty()
+    {
+        return _isDirty;
+    }
+
+    public event EventHandler? DataChanged;
 
     private void OnValidateRules(string rulesText)
     {
@@ -107,19 +171,7 @@ public class Analyzer : IAnalyzer
         _openDialog?.Close();
     }
 
-    public string Name
-    {
-        get => "Architectural rules";
-    }
-
-    public string Description { get; } = "Validates your architectural constraints based on user-defined rules";
-
-    public string Id
-    {
-        get => "ArchitecturalRules";
-    }
-
-    void SetDirty(bool isDirty)
+    private void SetDirty(bool isDirty)
     {
         _isDirty = isDirty;
         if (_isDirty)
@@ -128,63 +180,10 @@ public class Analyzer : IAnalyzer
         }
     }
 
-    public string? GetPersistentData()
-    {
-        SetDirty(false);
-        
-        if (string.IsNullOrEmpty(_rulesText))
-        {
-            return null;
-        }
-
-        var persistentData = new PersistenceData
-        {
-            RulesText = _rulesText
-        };
-
-        return JsonSerializer.Serialize(persistentData);
-    }
-
-    public void SetPersistentData(string? data)
-    {
-        if (string.IsNullOrEmpty(data))
-        {
-            _rulesText = string.Empty;
-            _rules.Clear();
-           SetDirty(false);
-            return;
-        }
-
-        try
-        {
-            var persistentData = JsonSerializer.Deserialize<PersistenceData>(data);
-            if (persistentData != null)
-            {
-                var rulesText = persistentData.RulesText ?? string.Empty;
-                ParseAndStoreRules(rulesText);
-            }
-        }
-        catch (Exception ex)
-        {
-            Trace.WriteLine(ex);
-
-            // If deserialization fails, reset to empty
-            _rulesText = string.Empty;
-            _rules.Clear();
-        }
-    }
-
-    public bool IsDirty()
-    {
-        return _isDirty;
-    }
-
-    public event EventHandler? DataChanged;
-
     /// <summary>
     ///     Direct analysis with rules from file (for command-line use)
     /// </summary>
-    public List<Violation> Analyze(CodeGraph graph, string fileToRules)
+    public List<Violation> Analyze(CodeGraph.Graph.CodeGraph graph, string fileToRules)
     {
         ParseAndStoreRules(File.ReadAllText(fileToRules));
         return ExecuteAnalysis(graph);
@@ -216,16 +215,16 @@ public class Analyzer : IAnalyzer
     private void ParseAndStoreRules(string rulesText)
     {
         _rules = RuleParser.ParseRules(rulesText);
-        
+
         if (!_isDirty && _rulesText != rulesText)
         {
             SetDirty(true);
         }
-         
+
         _rulesText = rulesText;
     }
 
-    private List<Violation> ExecuteAnalysis(CodeGraph graph)
+    private List<Violation> ExecuteAnalysis(CodeGraph.Graph.CodeGraph graph)
     {
         var violations = new List<Violation>();
 

@@ -1,5 +1,5 @@
+using CodeGraph.Graph;
 using CodeParserTests.Helper;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
@@ -17,7 +17,7 @@ public class AnalyzerIntegrationTests
 
     private TestCodeGraph _codeGraph;
 
-    private static List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
+    private static List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph.Graph.CodeGraph graph)
     {
         var rules = RuleParser.ParseRules(rulesText);
         var violations = new List<Violation>();

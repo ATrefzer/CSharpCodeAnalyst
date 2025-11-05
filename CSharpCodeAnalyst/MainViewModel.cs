@@ -5,11 +5,12 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using CodeParser.Analysis.Cycles;
-using CodeParser.Analysis.Shared;
-using CodeParser.Extensions;
+using CodeGraph.Algorithms.Cycles;
+using CodeGraph.Algorithms.Metrics;
+using CodeGraph.Algorithms.Partitioning;
+using CodeGraph.Algorithms.Traversal;
+using CodeGraph.Graph;
 using CodeParser.Parser.Config;
-using Contracts.Graph;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 using CSharpCodeAnalyst.Areas.CycleGroupsArea;
@@ -21,7 +22,6 @@ using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Export;
 using CSharpCodeAnalyst.Filter;
 using CSharpCodeAnalyst.Gallery;
@@ -61,7 +61,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
-    private CodeGraph? _codeGraph;
+    private CodeGraph.Graph.CodeGraph? _codeGraph;
 
     private Table? _cycles;
 
@@ -648,7 +648,26 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             IsLoading = true;
             LoadMessage = Strings.SearchingCycles_Message;
-            await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(_codeGraph); });
+            await Task.Run(() =>
+            {
+                cycleGroups = CycleFinder.FindCycleGroups(_codeGraph);
+                
+                // Find a useful name for the groups
+                foreach (var cycleGroup in cycleGroups)
+                {
+                    var metrics = DependencyMetrics.Calculate(cycleGroup.CodeGraph);
+
+                    // This sequence should keep the name stable when dependencies are removed.
+                    var sorted = metrics
+                        .OrderByDescending(m => m.Incoming)
+                        .ThenByDescending(m => m.Outgoing)
+                        .ThenBy(m => m.Element.Name);
+
+                    var name = sorted.First().Element.Name;
+                    cycleGroup.Name = name;
+                }
+                
+            });
         }
         catch (Exception ex)
         {
@@ -682,7 +701,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private void LoadCodeGraph(CodeGraph codeGraph)
+    private void LoadCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
     {
         _codeGraph = codeGraph;
         _refactoringService.LoadCodeGraph(codeGraph);
@@ -699,7 +718,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         UpdateMetrics(codeGraph);
     }
 
-    private void UpdateMetrics(CodeGraph codeGraph)
+    private void UpdateMetrics(CodeGraph.Graph.CodeGraph codeGraph)
     {
         // Default output: summary of graph
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
@@ -727,7 +746,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void CompleteImport(CodeGraph graph)
+    private void CompleteImport(CodeGraph.Graph.CodeGraph graph)
     {
         LoadDefaultSettings();
         LoadCodeGraph(graph);
@@ -1049,7 +1068,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
     }
-    
+
     public void ClearQuickInfo()
     {
         _infoPanelViewModel?.ClearQuickInfo();

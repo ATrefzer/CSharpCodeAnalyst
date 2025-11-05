@@ -1,4 +1,4 @@
-﻿using Contracts.Graph;
+﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using Microsoft.Msagl.Drawing;
 
@@ -6,13 +6,13 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 
 internal class MsaglFlatBuilder : MsaglBuilderBase
 {
-    public override Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
+    public override Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter)
     {
         return CreateFlatGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
 
-    private Graph CreateFlatGraph(CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
+    private Graph CreateFlatGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 

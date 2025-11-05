@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-using Contracts.Colors;
-using Contracts.Graph;
+using CodeGraph.Colors;
+using CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Help;
 

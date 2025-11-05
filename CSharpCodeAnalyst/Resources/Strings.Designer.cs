@@ -521,6 +521,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cycle name.
+        /// </summary>
+        public static string Cycle_Name {
+            get {
+                return ResourceManager.GetString("Cycle_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle summary.
         /// </summary>
         public static string CycleSummary_TabHeader {

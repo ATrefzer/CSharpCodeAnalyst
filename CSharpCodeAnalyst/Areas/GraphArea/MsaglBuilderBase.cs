@@ -1,5 +1,5 @@
-﻿using Contracts.Colors;
-using Contracts.Graph;
+﻿using CodeGraph.Colors;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
 using Microsoft.Msagl.Drawing;
 
@@ -24,7 +24,7 @@ internal abstract class MsaglBuilderBase
         { RelationshipType.UsesAttribute, false } // Decorated -> Attribute (metadata flow)
     };
 
-    public abstract Graph CreateGraph(CodeGraph codeGraph, PresentationState presentationState,
+    public abstract Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter);
 
     protected static NodeAttr CreateNodeAttr(CodeElement element, PresentationState presentationState)
@@ -111,7 +111,7 @@ internal abstract class MsaglBuilderBase
     }
 
 
-    protected static bool ShouldReverseInFlowMode(CodeGraph graph, string sourceId, RelationshipType relationshipType)
+    protected static bool ShouldReverseInFlowMode(CodeGraph.Graph.CodeGraph graph, string sourceId, RelationshipType relationshipType)
     {
         if (relationshipType == RelationshipType.Implements)
         {
