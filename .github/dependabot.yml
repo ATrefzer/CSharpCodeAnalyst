@@ -6,6 +6,6 @@
 version: 2
 updates:
   - package-ecosystem: "dotnet-sdk" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/CSharpCodeAnalyst" # Location of package manifests
     schedule:
       interval: "weekly"
