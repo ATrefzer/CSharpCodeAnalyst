@@ -41,7 +41,7 @@ public class GenericsApprovalTests : ApprovalTestBase
             "Core.Generics.global.Core.Generics.StringValidator"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(classes, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -57,7 +57,7 @@ public class GenericsApprovalTests : ApprovalTestBase
             "Core.Generics.global.Core.Generics.ComparableItem"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(classes, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -96,6 +96,6 @@ public class GenericsApprovalTests : ApprovalTestBase
             // "Core.Generics.global.Core.Generics.GenericSorter.Sort -> Core.Generics.global.Core.Generics.IComparable.CompareTo",
         };
 
-        CollectionAssert.AreEquivalent(expected, callRelationships.ToArray());
+        Assert.That(callRelationships.ToArray(), Is.EquivalentTo(expected));
     }
 }

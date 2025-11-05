@@ -29,6 +29,6 @@ public class SolutionApprovalTests : ApprovalTestBase
             "ModuleLevel2",
             "Old.CSharpLanguage"
         };
-        CollectionAssert.AreEquivalent(expected, assemblies);
+        Assert.That(assemblies, Is.EquivalentTo(expected));
     }
 }

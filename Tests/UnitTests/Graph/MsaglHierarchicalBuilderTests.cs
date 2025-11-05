@@ -47,11 +47,13 @@ public class MsaglHierarchicalBuilderTests
 
         // Graph should have nodes: Asm, Ns, Cls only
         var ids = msagl.Nodes.Select(n => n.Id).ToHashSet();
-        CollectionAssert.AreEquivalent(new[] { "Cls" }, ids);
+
+        Assert.That(ids, Is.EquivalentTo(["Cls"]));
 
         // Nodes with children are subgraphs: Asm, Ns, Cls
         var subGraphs = msagl.SubgraphMap.Values.Select(s => s.LabelText);
-        CollectionAssert.AreEquivalent(new[] { "Asm", "Ns", "the root subgraph's boundary" }, subGraphs);
+
+        Assert.That(subGraphs, Is.EquivalentTo(["Asm", "Ns", "the root subgraph's boundary"]));
     }
 
     [Test]
@@ -60,13 +62,14 @@ public class MsaglHierarchicalBuilderTests
         var g = BuildHierarchy();
         var (builder, state, filter) = CreateBuilder();
         var msagl = builder.CreateGraph(g, state, false, filter);
-
         var ids = msagl.Nodes.Select(n => n.Id).ToHashSet();
-        CollectionAssert.AreEquivalent(new[] { "M1", "M2" }, ids);
-
+        
+        Assert.That(ids, Is.EquivalentTo(["M1", "M2"]));
+        
         // Nodes with children are subgraphs: Asm, Ns, Cls
         var subGraphs = msagl.SubgraphMap.Values.Select(s => s.LabelText);
-        CollectionAssert.AreEquivalent(new[] { "Asm", "Ns", "Cls", "the root subgraph's boundary" }, subGraphs);
+
+        Assert.That(subGraphs, Is.EquivalentTo(["Asm", "Ns", "Cls", "the root subgraph's boundary"]));
     }
 
     [Test]

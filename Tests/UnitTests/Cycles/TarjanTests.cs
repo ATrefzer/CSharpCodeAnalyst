@@ -20,10 +20,10 @@ public class TarjanTests
 
         var sccs = Tarjan.FindStronglyConnectedComponents(new SearchGraph(graph));
 
-        Assert.AreEqual(1, sccs.Count);
-        Assert.AreEqual(3, sccs[0].Vertices.Count);
-        Assert.IsTrue(sccs[0].Vertices.Contains(nodeA));
-        Assert.IsTrue(sccs[0].Vertices.Contains(nodeB));
-        Assert.IsTrue(sccs[0].Vertices.Contains(nodeC));
+        Assert.That(sccs.Count, Is.EqualTo(1));
+        Assert.That(sccs[0].Vertices.Count, Is.EqualTo(3));
+        Assert.That(sccs[0].Vertices.Contains(nodeA));
+        Assert.That(sccs[0].Vertices.Contains(nodeB));
+        Assert.That(sccs[0].Vertices.Contains(nodeC));
     }
 }

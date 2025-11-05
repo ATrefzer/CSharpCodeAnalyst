@@ -19,7 +19,7 @@ public class MemberAccessDuplicateTests : ApprovalTestBase
         var testMethod = graph.Nodes.Values
             .FirstOrDefault(n => n.Name == "TestMethod" && n.FullName.Contains("MemberAccessDuplicate"));
 
-        Assert.IsNotNull(testMethod, "TestMethod not found in MemberAccessDuplicateTest");
+        Assert.That(testMethod != null);
 
         // Check relationships from TestMethod
         var relationships = testMethod.Relationships;
@@ -34,7 +34,7 @@ public class MemberAccessDuplicateTests : ApprovalTestBase
             })
             .ToList();
 
-        Assert.Greater(originalElementRelationships.Count, 0, "Should have OriginalElement relationships");
+        Assert.That(originalElementRelationships.Count > 0);
 
         // Check for duplicate SourceLocations in the same relationship
         foreach (var rel in originalElementRelationships)
@@ -66,7 +66,7 @@ public class MemberAccessDuplicateTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicate.SearchNode"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
+        Assert.That(classes.OrderBy(x => x).ToArray(), Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -79,6 +79,6 @@ public class MemberAccessDuplicateTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicate.MemberAccessDuplicate.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicate.SearchGraphSource.OriginalElement",
             "Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicate.MemberAccessDuplicate.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.MemberAccessDuplicate.SearchNode.Name"
         };
-        CollectionAssert.AreEquivalent(expected, calls);
+        Assert.That(calls, Is.EquivalentTo(expected));
     }
 }

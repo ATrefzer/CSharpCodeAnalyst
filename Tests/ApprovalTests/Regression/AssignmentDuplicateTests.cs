@@ -20,7 +20,7 @@ public class AssignmentDuplicateTests : ApprovalTestBase
         var testMethod = graph.Nodes.Values
             .FirstOrDefault(n => n.Name == "TestMethod" && n.FullName.Contains("AssignmentDuplicate"));
 
-        Assert.IsNotNull(testMethod, "TestMethod not found in AssignmentDuplicateTest");
+        Assert.That(testMethod != null);
 
         // Check relationships from TestMethod
         var relationships = testMethod.Relationships;
@@ -63,8 +63,8 @@ public class AssignmentDuplicateTests : ApprovalTestBase
         }
 
         // Also check that we have the expected number of relationships
-        Assert.Greater(testPropertyRelationships.Count, 0, "Should have TestProperty relationships");
-        Assert.Greater(testFieldRelationships.Count, 0, "Should have TestField relationships");
+        Assert.That(testPropertyRelationships.Count > 0);
+        Assert.That(testFieldRelationships.Count > 0);
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class AssignmentDuplicateTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
+        Assert.That(classes.OrderBy(x => x).ToArray(), Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -89,6 +89,7 @@ public class AssignmentDuplicateTests : ApprovalTestBase
         {
             "Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate.TestMethod -> Regression.SpecificBugs.global.Regression.SpecificBugs.AssignmentDuplicate.AssignmentDuplicate.TestProperty"
         };
-        CollectionAssert.AreEquivalent(expected, calls);
+
+        Assert.That(calls, Is.EquivalentTo(expected));
     }
 }

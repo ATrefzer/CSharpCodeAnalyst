@@ -40,9 +40,9 @@ public class RuleValidationTests
         var violations = denyRule.ValidateRule(sourceIds, targetIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(1, violations.Count);
-        Assert.AreEqual(businessClass.Id, violations[0].SourceId);
-        Assert.AreEqual(dataClass.Id, violations[0].TargetId);
+        Assert.That(violations.Count, Is.EqualTo(1));
+        Assert.That(violations[0].SourceId, Is.EqualTo(businessClass.Id));
+        Assert.That(violations[0].TargetId, Is.EqualTo(dataClass.Id));
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class RuleValidationTests
         var violations = denyRule.ValidateRule(sourceIds, targetIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(0, violations.Count);
+        Assert.That(violations.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -86,9 +86,9 @@ public class RuleValidationTests
         var violations = isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(1, violations.Count);
-        Assert.AreEqual(domainClass.Id, violations[0].SourceId);
-        Assert.AreEqual(externalClass.Id, violations[0].TargetId);
+        Assert.That(violations.Count, Is.EqualTo(1));
+        Assert.That(violations[0].SourceId, Is.EqualTo(domainClass.Id));
+        Assert.That(violations[0].TargetId, Is.EqualTo(externalClass.Id));
     }
 
     [Test]
@@ -110,7 +110,7 @@ public class RuleValidationTests
         var violations = isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(0, violations.Count);
+        Assert.That(violations.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -150,9 +150,9 @@ public class RuleValidationTests
         var violations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(1, violations.Count); // Only the Data dependency should violate
-        Assert.AreEqual(controller.Id, violations[0].SourceId);
-        Assert.AreEqual(dataClass.Id, violations[0].TargetId);
+        Assert.That(violations.Count, Is.EqualTo(1)); // Only the Data dependency should violate
+        Assert.That(violations[0].SourceId, Is.EqualTo(controller.Id));
+        Assert.That(violations[0].TargetId, Is.EqualTo(dataClass.Id));
     }
 
     [Test]
@@ -176,6 +176,6 @@ public class RuleValidationTests
         var violations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
 
         // Assert
-        Assert.AreEqual(0, violations.Count);
+        Assert.That(violations.Count, Is.EqualTo(0));
     }
 }

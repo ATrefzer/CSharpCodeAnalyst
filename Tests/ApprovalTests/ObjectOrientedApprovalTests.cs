@@ -15,7 +15,7 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestAssemblyGraph());
+        var actual = GetAllClasses(GetTestAssemblyGraph());
 
         var expected = new[]
         {
@@ -37,14 +37,13 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
             "Core.ObjectOriented.global.Core.ObjectOriented.Vehicle"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void InheritanceRelationships_ShouldBeDetected()
     {
-        var inheritanceRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Inherits)
-            ;
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Inherits);
 
         var expected = new[]
         {
@@ -58,13 +57,13 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
             "Core.ObjectOriented.global.Core.ObjectOriented.Motorcycle -> Core.ObjectOriented.global.Core.ObjectOriented.Vehicle"
         };
 
-        CollectionAssert.AreEquivalent(expected, inheritanceRelationships.ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void ImplementsRelationships_ShouldBeDetected()
     {
-        var inheritanceRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Implements);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Implements);
 
         var expected = new[]
         {
@@ -91,6 +90,6 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
             "Core.ObjectOriented.global.Core.ObjectOriented.AdvancedShape.DrawWithEffect -> Core.ObjectOriented.global.Core.ObjectOriented.IAdvancedDrawable.DrawWithEffect"
         };
 
-        CollectionAssert.AreEquivalent(expected, inheritanceRelationships.ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

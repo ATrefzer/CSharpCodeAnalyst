@@ -13,7 +13,7 @@ public class FollowingIncomingCallsTests : ApprovalTestBase
     [Test]
     public void Classes_should_be_detected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var actual = GetAllClasses(GetTestGraph()).ToList();
 
         var expected = new[]
         {
@@ -23,13 +23,13 @@ public class FollowingIncomingCallsTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls.ViewModelAdapter2"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void MethodCalls_should_be_detected()
     {
-        var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
         var expected = new[]
         {
@@ -39,6 +39,7 @@ public class FollowingIncomingCallsTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls.ViewModelAdapter2.AddToSlave -> Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls.Base.AddToSlave",
             "Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls.Driver..ctor -> Regression.SpecificBugs.global.Regression.SpecificBugs.FollowIncomingCalls.Base.Build"
         };
-        CollectionAssert.AreEquivalent(expected, calls);
+
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

@@ -9,7 +9,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
     [Test]
     public void Core_BasicLanguageFeatures_Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
+        var actual = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -22,7 +22,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
@@ -34,7 +34,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
     [Test]
     public void Core_BasicLanguageFeatures_Structs_ShouldBeDetected()
     {
-        var structs = GetAllStructs(GetTestAssemblyGraph()).ToList();
+        var actual = GetAllStructs(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -42,7 +42,7 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Rectangle"
         };
 
-        CollectionAssert.AreEquivalent(expected, structs.OrderBy(x => x).ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -62,13 +62,13 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass"
         };
 
-        CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
+        Assert.That(methodCalls.ToArray(), Is.EquivalentTo(expected));
     }
 
     [Test]
     public void Core_BasicLanguageFeatures_Uses_ShouldBeDetected()
     {
-        var uses = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses)
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses)
             .Select(r => r.ToString())
             .OrderBy(x => x)
             .ToArray();
@@ -98,13 +98,13 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Method"
         };
 
-        CollectionAssert.AreEquivalent(expected, uses);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void Core_BasicLanguageFeatures_Enums_ShouldBeDetected()
     {
-        var enums = GetAllEnums(GetTestAssemblyGraph()).ToList();
+        var actual = GetAllEnums(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -112,13 +112,13 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Priority"
         };
 
-        CollectionAssert.AreEquivalent(expected, enums);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void Core_BasicLanguageFeatures_MethodCalls_ShouldBeDetected()
     {
-        var methodCalls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls)
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls)
             .Select(r => r.ToString())
             .OrderBy(x => x)
             .ToList();
@@ -135,20 +135,20 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.BaseMethod"
         };
 
-        CollectionAssert.AreEquivalent(expected, methodCalls.ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
     [Test]
     public void Core_BasicLanguageFeatures_Properties_ShouldBeDetected()
     {
-        var properties = GetAllProperties(GetTestAssemblyGraph());
+        var actual = GetAllProperties(GetTestAssemblyGraph());
 
         var expected = new[]
         {
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty"
         };
 
-        CollectionAssert.AreEquivalent(expected, properties.ToArray());
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

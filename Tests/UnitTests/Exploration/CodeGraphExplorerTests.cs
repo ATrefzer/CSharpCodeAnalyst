@@ -32,7 +32,7 @@ public class CodeGraphExplorerTests
         var a = _graph.CreateClass("A");
         var b = _graph.CreateMethod("B", a);
         var list = _explorer.GetElements(new List<string> { "A", "B", "C" });
-        CollectionAssert.AreEquivalent(new[] { a, b }, list);
+        Assert.That(list, Is.EquivalentTo([a, b]));
     }
 
     [Test]
@@ -42,7 +42,7 @@ public class CodeGraphExplorerTests
         var m1 = _graph.CreateMethod("M1", cls);
         var m2 = _graph.CreateMethod("M2", cls);
         var result = _explorer.FindParents(new List<string> { m1.Id, m2.Id });
-        CollectionAssert.AreEquivalent(new[] { cls }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([cls]));
         Assert.That(result.Relationships, Is.Empty);
     }
 
@@ -78,7 +78,7 @@ public class CodeGraphExplorerTests
         var m2 = _graph.CreateMethod("M2", cls);
         Rel(m1, m2, RelationshipType.Calls);
         var result = _explorer.FindOutgoingCalls(m1.Id);
-        CollectionAssert.AreEquivalent(new[] { m2 }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([m2]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(1));
     }
 
@@ -90,7 +90,7 @@ public class CodeGraphExplorerTests
         var caller = _graph.CreateMethod("Caller", cls);
         Rel(caller, target, RelationshipType.Calls);
         var result = _explorer.FindIncomingCalls(target.Id);
-        CollectionAssert.AreEquivalent(new[] { caller }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([caller]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(1));
     }
 
@@ -104,7 +104,7 @@ public class CodeGraphExplorerTests
         Rel(m2, m1, RelationshipType.Calls);
         Rel(m3, m2, RelationshipType.Calls);
         var result = _explorer.FindIncomingCallsRecursive(m1.Id);
-        CollectionAssert.AreEquivalent(new[] { m2, m3 }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([m2, m3]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(2));
     }
 
@@ -117,7 +117,7 @@ public class CodeGraphExplorerTests
         Rel(m1, m2, RelationshipType.Calls);
         Rel(m1, m2, RelationshipType.Uses);
         var result = _explorer.FindOutgoingRelationships(m1.Id);
-        CollectionAssert.AreEquivalent(new[] { m2, m2 }, result.Elements); // duplicates allowed
+        Assert.That(result.Elements, Is.EquivalentTo([m2, m2])); // duplicates allowed
         Assert.That(result.Relationships.Count(), Is.EqualTo(2));
     }
 
@@ -130,7 +130,7 @@ public class CodeGraphExplorerTests
         Rel(m2, m1, RelationshipType.Calls);
         Rel(m2, m1, RelationshipType.Uses);
         var result = _explorer.FindIncomingRelationships(m1.Id);
-        CollectionAssert.AreEquivalent(new[] { m2, m2 }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([m2, m2]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(2));
     }
 
@@ -145,7 +145,7 @@ public class CodeGraphExplorerTests
         Rel(b, c, RelationshipType.Calls);
         var set = new HashSet<string> { a.Id, b.Id }; // only r1 qualifies
         var rels = _explorer.FindAllRelationships(set).ToList();
-        CollectionAssert.AreEquivalent(new[] { r1 }, rels);
+        Assert.That(rels, Is.EquivalentTo([r1]));
     }
 
     [Test]
@@ -186,7 +186,7 @@ public class CodeGraphExplorerTests
         Rel(derived1, baseCls, RelationshipType.Inherits);
         Rel(derived2, baseCls, RelationshipType.Inherits);
         var result = _explorer.FindFullInheritanceTree(baseCls.Id);
-        CollectionAssert.AreEquivalent(new[] { baseCls, derived1, derived2 }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([baseCls, derived1, derived2]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(2));
     }
 
@@ -197,7 +197,7 @@ public class CodeGraphExplorerTests
         var impl = _graph.CreateClass("Impl");
         Rel(impl, iface, RelationshipType.Implements);
         var result = _explorer.FindSpecializations(iface.Id);
-        CollectionAssert.AreEquivalent(new[] { impl }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([impl]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(1));
     }
 
@@ -208,7 +208,7 @@ public class CodeGraphExplorerTests
         var impl = _graph.CreateClass("Impl");
         Rel(impl, iface, RelationshipType.Implements);
         var result = _explorer.FindAbstractions(impl.Id);
-        CollectionAssert.AreEquivalent(new[] { iface }, result.Elements);
+        Assert.That(result.Elements, Is.EquivalentTo([iface]));
         Assert.That(result.Relationships.Count(), Is.EqualTo(1));
     }
 

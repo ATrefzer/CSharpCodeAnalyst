@@ -18,8 +18,8 @@ public class EventDeRegistrationInLambdaTests : ApprovalTestBase
         var handler = graph.Nodes.Values.First(n => n.ElementType == CodeElementType.Method && n is { Name: "MyHandler", Parent.Name: "EventDeRegistrationInLambda" });
         var handles = graph.GetAllRelationships().Single(r => r.Type == RelationshipType.Handles && r.SourceId == handler.Id);
 
-        Assert.IsTrue(handles.HasAttribute(RelationshipAttribute.EventRegistration));
-        Assert.IsTrue(handles.HasAttribute(RelationshipAttribute.EventUnregistration));
+        Assert.That(handles.HasAttribute(RelationshipAttribute.EventRegistration));
+        Assert.That(handles.HasAttribute(RelationshipAttribute.EventUnregistration));
     }
 
     [Test]
@@ -34,7 +34,7 @@ public class EventDeRegistrationInLambdaTests : ApprovalTestBase
             "Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.Source"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes.OrderBy(x => x).ToArray());
+        Assert.That(classes.OrderBy(x => x).ToArray(), Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -46,6 +46,6 @@ public class EventDeRegistrationInLambdaTests : ApprovalTestBase
         {
             "Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.EventDeRegistrationInLambda.Do -> Regression.SpecificBugs.global.Regression.SpecificBugs.EventDeRegistrationInLambda.Extensions.LoopOver"
         };
-        CollectionAssert.AreEquivalent(expected, calls);
+        Assert.That(calls, Is.EquivalentTo(expected));
     }
 }

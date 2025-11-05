@@ -20,7 +20,7 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
     }
 
 
@@ -44,8 +44,8 @@ public class CycleFinderTests
         //var export = new DgmlExport();
         //export.Export("d:\\out.dgml", codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(5, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(5));
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(0, groups.Count);
+        Assert.That(groups.Count, Is.EqualTo(0));
 
         //var export = new DgmlExport();
         //export.Export("d:\\out.dgml", codeGraph);
@@ -112,8 +112,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(7, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(7));
 
         //var export = new DgmlExport();
         //export.Export("d:\\nested_namespaces.dgml", codeGraph);
@@ -134,8 +134,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(4, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(4));
     }
 
     [Test]
@@ -157,8 +157,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(8, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(8));
     }
 
     [Test]
@@ -175,8 +175,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(4, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(4));
     }
 
     [Test]
@@ -194,8 +194,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(4, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(4));
     }
 
     [Test]
@@ -212,8 +212,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(2, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -230,8 +230,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(3, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(3));
     }
 
     [Test]
@@ -250,11 +250,11 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
 
         // Note: ClassA is missing because there is no dependency in the original graph
         // to or from ClassA
-        Assert.AreEqual(3, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(3));
     }
 
     [Test]
@@ -270,7 +270,7 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(0, groups.Count);
+        Assert.That(groups.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -286,8 +286,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(2, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -303,8 +303,8 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(1, groups.Count);
-        Assert.AreEqual(2, groups.First().CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(1));
+        Assert.That(groups.First().CodeGraph.Nodes.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -326,9 +326,9 @@ public class CycleFinderTests
 
         var groups = CycleFinder.FindCycleGroups(codeGraph);
 
-        Assert.AreEqual(2, groups.Count);
-        Assert.AreEqual(2, groups[0].CodeGraph.Nodes.Count);
-        Assert.AreEqual(2, groups[1].CodeGraph.Nodes.Count);
+        Assert.That(groups.Count, Is.EqualTo(2));
+        Assert.That(groups[0].CodeGraph.Nodes.Count, Is.EqualTo(2));
+        Assert.That(groups[1].CodeGraph.Nodes.Count, Is.EqualTo(2));
     }
 
     /// <summary>
@@ -344,12 +344,12 @@ public class CycleFinderTests
         var sccs = CycleFinder.FindCycleGroups(codeStructure);
 
         // Assert
-        Assert.AreEqual(1, sccs.Count); // We expect one SCC
+        Assert.That(sccs.Count, Is.EqualTo(1)); // We expect one SCC
         var scc = sccs[0];
-        Assert.AreEqual(3, scc.CodeGraph.Nodes.Values.Count);
-        Assert.True(scc.CodeGraph.Nodes.ContainsKey("A"));
-        Assert.True(scc.CodeGraph.Nodes.ContainsKey("B"));
-        Assert.True(scc.CodeGraph.Nodes.ContainsKey("C"));
+        Assert.That(scc.CodeGraph.Nodes.Values.Count, Is.EqualTo(3));
+        Assert.That(scc.CodeGraph.Nodes.ContainsKey("A"));
+        Assert.That(scc.CodeGraph.Nodes.ContainsKey("B"));
+        Assert.That(scc.CodeGraph.Nodes.ContainsKey("C"));
     }
 
     private static CodeGraph.Graph.CodeGraph CreateCodeGraphForShouldFindScc()

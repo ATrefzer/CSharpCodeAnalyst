@@ -29,7 +29,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -66,7 +66,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TransformString"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsPositive"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -103,7 +103,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.SetupCommands -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ExecutePredicate"
         };
 
-        CollectionAssert.AreEquivalent(expected, callsRelationships);
+        Assert.That(callsRelationships, Is.EquivalentTo(expected));
 
         // Note: This test verifies that method groups are NOT creating Calls relationships
         // They should create Uses relationships with IsMethodGroup attribute instead
@@ -113,8 +113,7 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             call.Contains("IsEven") ||
             call.Contains("TransformString")).ToList();
 
-        Assert.IsEmpty(methodGroupCalls,
-            $"Method groups should not create Calls relationships. Found: {string.Join("", methodGroupCalls)}");
+        Assert.That(methodGroupCalls.Count == 0);
     }
 
     [Test]
@@ -133,6 +132,6 @@ public class MethodGroupApprovalTests : ApprovalTestBase
 
         // Note: Event handlers use existing += syntax which already works
         // This test verifies the existing functionality still works
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

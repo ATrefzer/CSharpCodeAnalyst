@@ -120,26 +120,26 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
         // Assert - Verify all expected violations are detected
-        Assert.AreEqual(3, results.Count); // 3 different rule types should find violations
+        Assert.That(results.Count, Is.EqualTo(3)); // 3 different rule types should find violations
 
         // Check DENY violation
         var denyViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("DENY"));
-        Assert.IsNotNull(denyViolation);
-        Assert.AreEqual(1, denyViolation.ViolatingRelationships.Count);
-        Assert.AreEqual(orderBusiness.Id, denyViolation.ViolatingRelationships[0].SourceId);
-        Assert.AreEqual(orderRepository.Id, denyViolation.ViolatingRelationships[0].TargetId);
+        Assert.That(denyViolation != null);
+        Assert.That(denyViolation.ViolatingRelationships.Count, Is.EqualTo(1));
+        Assert.That(denyViolation.ViolatingRelationships[0].SourceId, Is.EqualTo(orderBusiness.Id));
+        Assert.That(denyViolation.ViolatingRelationships[0].TargetId, Is.EqualTo(orderRepository.Id));
 
         // Check RESTRICT violations (should have 2)
         var restrictViolations = results.Where(v => v.Rule.RuleText.Contains("RESTRICT")).ToList();
-        Assert.AreEqual(1, restrictViolations.Count);
-        Assert.AreEqual(2, restrictViolations[0].ViolatingRelationships.Count);
+        Assert.That(restrictViolations.Count, Is.EqualTo(1));
+        Assert.That(restrictViolations[0].ViolatingRelationships.Count, Is.EqualTo(2));
 
         // Check ISOLATE violation
         var isolateViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("ISOLATE"));
-        Assert.IsNotNull(isolateViolation);
-        Assert.AreEqual(1, isolateViolation.ViolatingRelationships.Count);
-        Assert.AreEqual(orderEntity.Id, isolateViolation.ViolatingRelationships[0].SourceId);
-        Assert.AreEqual(orderRepository.Id, isolateViolation.ViolatingRelationships[0].TargetId);
+        Assert.That(isolateViolation != null);
+        Assert.That(isolateViolation.ViolatingRelationships.Count, Is.EqualTo(1));
+        Assert.That(isolateViolation.ViolatingRelationships[0].SourceId, Is.EqualTo(orderEntity.Id));
+        Assert.That(isolateViolation.ViolatingRelationships[0].TargetId, Is.EqualTo(orderRepository.Id));
     }
 
     [Test]
@@ -169,7 +169,7 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
         // Assert
-        Assert.AreEqual(0, results.Count);
+        Assert.That(results.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -197,7 +197,7 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis("", _codeGraph);
 
         // Assert
-        Assert.AreEqual(0, results.Count);
+        Assert.That(results.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -228,9 +228,9 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
         // Assert - Should only have 1 violation (the Data dependency)
-        Assert.AreEqual(1, results.Count);
-        Assert.AreEqual(controller.Id, results[0].ViolatingRelationships[0].SourceId);
-        Assert.AreEqual(repository.Id, results[0].ViolatingRelationships[0].TargetId);
+        Assert.That(results.Count, Is.EqualTo(1));
+        Assert.That(results[0].ViolatingRelationships[0].SourceId, Is.EqualTo(controller.Id));
+        Assert.That(results[0].ViolatingRelationships[0].TargetId, Is.EqualTo(repository.Id));
     }
 
     [Test]
@@ -255,8 +255,8 @@ public class AnalyzerIntegrationTests
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
         // Assert - Should detect violation despite nested structure
-        Assert.AreEqual(1, results.Count);
-        Assert.AreEqual(orderService.Id, results[0].ViolatingRelationships[0].SourceId);
-        Assert.AreEqual(repository.Id, results[0].ViolatingRelationships[0].TargetId);
+        Assert.That(results.Count, Is.EqualTo(1));
+        Assert.That(results[0].ViolatingRelationships[0].SourceId, Is.EqualTo(orderService.Id));
+        Assert.That(results[0].ViolatingRelationships[0].TargetId, Is.EqualTo(repository.Id));
     }
 }

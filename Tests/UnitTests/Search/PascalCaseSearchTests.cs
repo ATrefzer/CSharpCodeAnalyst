@@ -15,13 +15,13 @@ public class PascalCaseSearchTests
         const string searchTerm = "InvBoC";
         var (isPascalCase, regex) = PascalCaseSearch.CreateSearchRegex(searchTerm);
 
-        Assert.AreEqual(isPascalCaseExpected, isPascalCase);
+        Assert.That(isPascalCase, Is.EqualTo(isPascalCaseExpected));
 
         if (!isPascalCaseExpected || regex == null)
         {
             return;
         }
 
-        Assert.AreEqual(isMatch, regex.IsMatch(searchInput));
+        Assert.That(regex.IsMatch(searchInput), Is.EqualTo(isMatch));
     }
 }

@@ -27,12 +27,12 @@ public class CodeGraphGeneratorTests
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
         var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
-        Assert.AreEqual(2, detailedGraph.Nodes.Count);
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A"));
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B"));
-        Assert.AreEqual(1, detailedGraph.Nodes["A"].Relationships.Count);
-        Assert.AreEqual(0, detailedGraph.Nodes["B"].Relationships.Count);
-        Assert.AreEqual("B", detailedGraph.Nodes["A"].Relationships.First().TargetId);
+        Assert.That(detailedGraph.Nodes.Count, Is.EqualTo(2));
+        Assert.That(detailedGraph.Nodes.ContainsKey("A"));
+        Assert.That(detailedGraph.Nodes.ContainsKey("B"));
+        Assert.That(detailedGraph.Nodes["A"].Relationships.Count, Is.EqualTo(1));
+        Assert.That(detailedGraph.Nodes["B"].Relationships.Count, Is.EqualTo(0));
+        Assert.That(detailedGraph.Nodes["A"].Relationships.First().TargetId, Is.EqualTo("B"));
     }
 
     [Test]
@@ -63,13 +63,13 @@ public class CodeGraphGeneratorTests
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
         var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
-        Assert.AreEqual(4, detailedGraph.Nodes.Count);
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A"));
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("A.M"));
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B"));
-        Assert.IsTrue(detailedGraph.Nodes.ContainsKey("B.M"));
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M"].Relationships.Count);
-        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M"].Relationships.First().TargetId);
+        Assert.That(detailedGraph.Nodes.Count, Is.EqualTo(4));
+        Assert.That(detailedGraph.Nodes.ContainsKey("A"));
+        Assert.That(detailedGraph.Nodes.ContainsKey("A.M"));
+        Assert.That(detailedGraph.Nodes.ContainsKey("B"));
+        Assert.That(detailedGraph.Nodes.ContainsKey("B.M"));
+        Assert.That(detailedGraph.Nodes["A.M"].Relationships.Count, Is.EqualTo(1));
+        Assert.That(detailedGraph.Nodes["A.M"].Relationships.First().TargetId, Is.EqualTo("B.M"));
     }
 
     [Test]
@@ -107,10 +107,10 @@ public class CodeGraphGeneratorTests
         var searchGraph = SearchGraphBuilder.BuildSearchGraph(originalGraph);
         var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(searchGraph.Vertices, originalGraph);
 
-        Assert.AreEqual(5, detailedGraph.Nodes.Count);
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M1"].Relationships.Count);
-        Assert.AreEqual("B", detailedGraph.Nodes["A.M1"].Relationships.First().TargetId);
-        Assert.AreEqual(1, detailedGraph.Nodes["A.M2"].Relationships.Count);
-        Assert.AreEqual("B.M", detailedGraph.Nodes["A.M2"].Relationships.First().TargetId);
+        Assert.That(detailedGraph.Nodes.Count, Is.EqualTo(5));
+        Assert.That(detailedGraph.Nodes["A.M1"].Relationships.Count, Is.EqualTo(1));
+        Assert.That(detailedGraph.Nodes["A.M1"].Relationships.First().TargetId, Is.EqualTo("B"));
+        Assert.That(detailedGraph.Nodes["A.M2"].Relationships.Count, Is.EqualTo(1));
+        Assert.That(detailedGraph.Nodes["A.M2"].Relationships.First().TargetId, Is.EqualTo("B.M"));
     }
 }

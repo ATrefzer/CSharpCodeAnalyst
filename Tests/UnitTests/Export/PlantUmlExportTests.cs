@@ -100,7 +100,7 @@ public class PlantUmlExportTests
         // Expect order: Method (), Property, Event, Field
         // Note class members allow '-' so it is not sanitized here, but the class name is.
         var expectedOrder = new[] { "Export-ServiceImpl.DoWork()", "Export-ServiceImpl.State", "Export-ServiceImpl.Changed", "Export-ServiceImpl._data" };
-        CollectionAssert.AreEqual(expectedOrder, memberLines);
+        Assert.That(memberLines, Is.EqualTo(expectedOrder));
     }
 
     [Test]

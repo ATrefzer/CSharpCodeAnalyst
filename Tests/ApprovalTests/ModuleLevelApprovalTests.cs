@@ -18,7 +18,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestAssemblyGraph());
+        var actual = GetAllClasses(GetTestAssemblyGraph());
 
         var expected = new[]
         {
@@ -50,15 +50,15 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
             "ModuleLevel2.global.Insight.Dialogs.TrendViewModel"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void Properties_ShouldBeDetected()
     {
-        var properties = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Property);
+        var actual = GetAllNodesOfType(GetTestAssemblyGraph(), CodeElementType.Property);
 
-        var expectedProperties = new HashSet<string>
+        var expected = new HashSet<string>
         {
             "ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty",
             "ModuleLevel1.global.ModuleLevel1.Model.ModelA.ModelCPropertyOfModelA",
@@ -74,7 +74,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expectedProperties, properties);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     private static CodeElement GetAssembly(CodeElement element)
@@ -85,7 +85,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
             assembly = assembly.Parent;
         }
 
-        Assert.NotNull(assembly);
+        Assert.That(assembly != null);
         return assembly;
     }
 
@@ -123,7 +123,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
             "ModuleLevel0.global.ModuleLevel0.Bootstrapper.Run -> ModuleLevel1.global.ModuleLevel1.IServiceC"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -139,7 +139,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -155,7 +155,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -170,6 +170,6 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

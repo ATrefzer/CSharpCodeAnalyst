@@ -43,34 +43,34 @@ public static class JdepsReaderTest
             sb.AppendLine($"  {from.FullName} -> {to.FullName} ({rel.Type})");
         }
 
-        var reference = """
-                        Imported 15 code elements
-                        Created 5 relationships
-                        Namespace: java
-                          Namespace: lang
-                            Class: Boolean
-                            Class: Class
-                            Class: Integer
-                            Class: Long
-                        Namespace: services
-                          Namespace: article
-                            Namespace: bo
-                              Class: ArticleHeadImpl
-                            Namespace: representation
-                              Namespace: bo
-                                Class: Representation
-                                Class: RepresentationArticleImpl
-                                Class: RepresentationType
-                        Relationships:
-                          services.article.representation.bo.Representation -> java.lang.Integer (Uses)
-                          services.article.representation.bo.Representation -> java.lang.Long (Uses)
-                          services.article.representation.bo.RepresentationArticleImpl -> services.article.bo.ArticleHeadImpl (Uses)
-                          services.article.representation.bo.RepresentationArticleImpl -> java.lang.Boolean (Uses)
-                          services.article.representation.bo.RepresentationType -> java.lang.Class (Uses)
-                        """.Trim();
+        var expected = """
+                       Imported 15 code elements
+                       Created 5 relationships
+                       Namespace: java
+                         Namespace: lang
+                           Class: Boolean
+                           Class: Class
+                           Class: Integer
+                           Class: Long
+                       Namespace: services
+                         Namespace: article
+                           Namespace: bo
+                             Class: ArticleHeadImpl
+                           Namespace: representation
+                             Namespace: bo
+                               Class: Representation
+                               Class: RepresentationArticleImpl
+                               Class: RepresentationType
+                       Relationships:
+                         services.article.representation.bo.Representation -> java.lang.Integer (Uses)
+                         services.article.representation.bo.Representation -> java.lang.Long (Uses)
+                         services.article.representation.bo.RepresentationArticleImpl -> services.article.bo.ArticleHeadImpl (Uses)
+                         services.article.representation.bo.RepresentationArticleImpl -> java.lang.Boolean (Uses)
+                         services.article.representation.bo.RepresentationType -> java.lang.Class (Uses)
+                       """.Trim();
 
         var actual = sb.ToString().Trim();
-        Assert.AreEqual(reference, actual);
+        Assert.That(actual, Is.EqualTo(expected));
     }
 
     private static void PrintElement(StringBuilder sb, CodeElement element, int indent)

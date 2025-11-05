@@ -94,7 +94,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expectedMethods, methods);
+        Assert.That(methods, Is.EquivalentTo(expectedMethods));
     }
 
     [Test]
@@ -157,7 +157,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls2.ViewModelAdapter2"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -198,7 +198,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer..ctor"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -252,7 +252,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise3 -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.MyEvent"
         };
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -275,7 +275,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -300,7 +300,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -325,7 +325,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     private static HashSet<string> GetAllEventUsages(CodeGraph.Graph.CodeGraph graph)
@@ -356,7 +356,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -374,7 +374,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -392,7 +392,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -416,7 +416,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -444,7 +444,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -468,7 +468,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         };
 
 
-        CollectionAssert.AreEquivalent(expected, actual);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
@@ -482,12 +482,12 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         var iLoad = iStorage.Children.Single();
         var load = baseStorage.Children.Single();
 
-        Assert.IsTrue(
-            storage.Relationships.Any(d => d.TargetId == iStorage.Id && d.Type == RelationshipType.Implements));
-        Assert.IsTrue(
-            storage.Relationships.Any(d => d.TargetId == baseStorage.Id && d.Type == RelationshipType.Inherits));
+        Assert.That(
+            storage.Relationships.Any(d => d.TargetId == iStorage.Id && d.Type == RelationshipType.Implements), Is.True);
+        Assert.That(
+            storage.Relationships.Any(d => d.TargetId == baseStorage.Id && d.Type == RelationshipType.Inherits), Is.True);
 
         // Not detected!
-        Assert.IsTrue(load.Relationships.Any(d => d.TargetId == iLoad.Id && d.Type == RelationshipType.Implements));
+        Assert.That(load.Relationships.Any(d => d.TargetId == iLoad.Id && d.Type == RelationshipType.Implements), Is.True);
     }
 }

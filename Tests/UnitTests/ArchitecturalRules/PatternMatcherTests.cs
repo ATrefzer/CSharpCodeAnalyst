@@ -26,8 +26,8 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(1, result.Count);
-        Assert.IsTrue(result.Contains(businessNamespace.Id));
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(result.Contains(businessNamespace.Id));
     }
 
     [Test]
@@ -45,11 +45,11 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(3, result.Count); // Business + OrderService + UserService (no grandchildren)
-        Assert.IsTrue(result.Contains(businessNamespace.Id));
-        Assert.IsTrue(result.Contains(orderService.Id));
-        Assert.IsTrue(result.Contains(userService.Id));
-        Assert.IsFalse(result.Contains(grandChild.Id));
+        Assert.That(result.Count, Is.EqualTo(3)); // Business + OrderService + UserService (no grandchildren)
+        Assert.That(result.Contains(businessNamespace.Id));
+        Assert.That(result.Contains(orderService.Id));
+        Assert.That(result.Contains(userService.Id));
+        Assert.That(result.Contains(grandChild.Id), Is.False);
     }
 
     [Test]
@@ -67,11 +67,11 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(4, result.Count); // All elements
-        Assert.IsTrue(result.Contains(businessNamespace.Id));
-        Assert.IsTrue(result.Contains(orderService.Id));
-        Assert.IsTrue(result.Contains(processMethod.Id));
-        Assert.IsTrue(result.Contains(validateMethod.Id));
+        Assert.That(result.Count, Is.EqualTo(4)); // All elements
+        Assert.That(result.Contains(businessNamespace.Id));
+        Assert.That(result.Contains(orderService.Id));
+        Assert.That(result.Contains(processMethod.Id));
+        Assert.That(result.Contains(validateMethod.Id));
     }
 
     [Test]
@@ -85,7 +85,7 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(0, result.Count);
+        Assert.That(result.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -99,8 +99,8 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(1, result.Count);
-        Assert.IsTrue(result.Contains(businessNamespace.Id));
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(result.Contains(businessNamespace.Id));
     }
 
     [Test]
@@ -114,7 +114,7 @@ public class PatternMatcherTests
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
 
         // Assert
-        Assert.AreEqual(0, result.Count);
+        Assert.That(result.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -130,10 +130,10 @@ public class PatternMatcherTests
 
         // Test exact match
         var exactResult = PatternMatcher.ResolvePattern("MyApp.Business.Services.OrderService", _codeGraph);
-        Assert.AreEqual(1, exactResult.Count); // OrderService + ProcessOrder (GetChildrenIncludingSelf)
+        Assert.That(exactResult.Count, Is.EqualTo(1)); // OrderService + ProcessOrder (GetChildrenIncludingSelf)
 
         // Test recursive match
         var recursiveResult = PatternMatcher.ResolvePattern("MyApp.Business.**", _codeGraph);
-        Assert.AreEqual(4, recursiveResult.Count); // Business + Services + OrderService + ProcessOrder
+        Assert.That(recursiveResult.Count, Is.EqualTo(4)); // Business + Services + OrderService + ProcessOrder
     }
 }

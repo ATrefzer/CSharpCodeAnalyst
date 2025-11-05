@@ -58,8 +58,10 @@ public class CodeGraphSerializerTests
             Assert.That(copy.Name, Is.EqualTo(orig.Name));
             Assert.That(copy.FullName, Is.EqualTo(orig.FullName));
             Assert.That(copy.Parent?.Id, Is.EqualTo(orig.Parent?.Id));
-            CollectionAssert.AreEquivalent(orig.Attributes, copy.Attributes);
-            CollectionAssert.AreEquivalent(orig.SourceLocations, copy.SourceLocations);
+
+
+            Assert.That(copy.Attributes, Is.EquivalentTo(orig.Attributes));
+            Assert.That(copy.SourceLocations, Is.EquivalentTo(orig.SourceLocations));
         }
 
         // Relationship checks (only one in sample)

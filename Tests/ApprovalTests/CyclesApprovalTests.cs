@@ -202,7 +202,7 @@ public class CyclesApprovalTests : ApprovalTestBase
     {
         var groups = CycleFinder.FindCycleGroups(GetTestAssemblyGraph());
 
-        Assert.AreEqual(8, groups.Count);
+        Assert.That(groups.Count, Is.EqualTo(8));
 
         // We expect to find all cycles
         foreach (var group in groups)
@@ -231,7 +231,7 @@ public class CyclesApprovalTests : ApprovalTestBase
                 Trace.WriteLine(formattedRelationships);
             }
 
-            Assert.IsTrue(found);
+            Assert.That(found);
         }
     }
 }

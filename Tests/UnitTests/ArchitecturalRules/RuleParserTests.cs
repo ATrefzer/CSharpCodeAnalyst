@@ -16,11 +16,11 @@ public class RuleParserTests
         var rule = RuleParser.ParseRule(ruleText);
 
         // Assert
-        Assert.IsInstanceOf<DenyRule>(rule);
+        Assert.That(rule, Is.InstanceOf<DenyRule>());
         var denyRule = (DenyRule)rule;
-        Assert.AreEqual("Business.**", denyRule.Source);
-        Assert.AreEqual("Data.**", denyRule.Target);
-        Assert.AreEqual(ruleText, denyRule.RuleText);
+        Assert.That(denyRule.Source, Is.EqualTo("Business.**"));
+        Assert.That(denyRule.Target, Is.EqualTo("Data.**"));
+        Assert.That(denyRule.RuleText, Is.EqualTo(ruleText));
     }
 
     [Test]
@@ -33,10 +33,10 @@ public class RuleParserTests
         var rule = RuleParser.ParseRule(ruleText);
 
         // Assert
-        Assert.IsInstanceOf<RestrictRule>(rule);
+        Assert.That(rule, Is.InstanceOf<RestrictRule>());
         var restrictRule = (RestrictRule)rule;
-        Assert.AreEqual("Controllers.**", restrictRule.Source);
-        Assert.AreEqual("Services.**", restrictRule.Target);
+        Assert.That(restrictRule.Source, Is.EqualTo("Controllers.**"));
+        Assert.That(restrictRule.Target, Is.EqualTo("Services.**"));
     }
 
     [Test]
@@ -49,9 +49,9 @@ public class RuleParserTests
         var rule = RuleParser.ParseRule(ruleText);
 
         // Assert
-        Assert.IsInstanceOf<IsolateRule>(rule);
+        Assert.That(rule, Is.InstanceOf<IsolateRule>());
         var isolateRule = (IsolateRule)rule;
-        Assert.AreEqual("Domain.**", isolateRule.Source);
+        Assert.That(isolateRule.Source, Is.EqualTo("Domain.**"));
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class RuleParserTests
         var rule = RuleParser.ParseRule(ruleText);
 
         // Assert
-        Assert.IsInstanceOf<DenyRule>(rule);
+        Assert.That(rule, Is.InstanceOf<DenyRule>());
     }
 
     [Test]
@@ -78,8 +78,8 @@ public class RuleParserTests
 
         // Assert
         var denyRule = (DenyRule)rule;
-        Assert.AreEqual("Business.**", denyRule.Source);
-        Assert.AreEqual("Data.**", denyRule.Target);
+        Assert.That(denyRule.Source, Is.EqualTo("Business.**"));
+        Assert.That(denyRule.Target, Is.EqualTo("Data.**"));
     }
 
     [Test]
@@ -109,10 +109,10 @@ public class RuleParserTests
         var rules = RuleParser.ParseRules(rulesText);
 
         // Assert
-        Assert.AreEqual(3, rules.Count);
-        Assert.IsInstanceOf<DenyRule>(rules[0]);
-        Assert.IsInstanceOf<RestrictRule>(rules[1]);
-        Assert.IsInstanceOf<IsolateRule>(rules[2]);
+        Assert.That(rules.Count, Is.EqualTo(3));
+        Assert.That(rules[0], Is.InstanceOf<DenyRule>());
+        Assert.That(rules[1], Is.InstanceOf<RestrictRule>());
+        Assert.That(rules[2], Is.InstanceOf<IsolateRule>());
     }
 
     [Test]
@@ -132,7 +132,7 @@ public class RuleParserTests
         var rules = RuleParser.ParseRules(rulesText);
 
         // Assert
-        Assert.AreEqual(2, rules.Count);
+        Assert.That(rules.Count, Is.EqualTo(2));
     }
 
     [Test]

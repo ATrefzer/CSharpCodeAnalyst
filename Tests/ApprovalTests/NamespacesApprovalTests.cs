@@ -13,7 +13,7 @@ public class NamespacesApprovalTests : ApprovalTestBase
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestAssemblyGraph()).ToList();
+        var actual = GetAllClasses(GetTestAssemblyGraph()).ToList();
 
         var expected = new[]
         {
@@ -26,13 +26,13 @@ public class NamespacesApprovalTests : ApprovalTestBase
             "Core.Namespaces.global.Core.Namespaces.RootClass"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void Usages_ShouldBeDetected()
     {
-        var crossNamespaceUsages = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses);
 
 
         var expected = new[]
@@ -53,13 +53,13 @@ public class NamespacesApprovalTests : ApprovalTestBase
             "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class"
         };
 
-        CollectionAssert.AreEquivalent(expected, crossNamespaceUsages);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var methodCalls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
+        var actual = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
 
 
         var expected = new[]
@@ -75,6 +75,6 @@ public class NamespacesApprovalTests : ApprovalTestBase
             "Core.Namespaces.global.Core.Namespaces.RootClass.UseLevel3 -> Core.Namespaces.global.Core.Namespaces.Level1.Level2.Level3.Level3Class.DeepOperation"
         };
 
-        CollectionAssert.AreEquivalent(expected, methodCalls);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }

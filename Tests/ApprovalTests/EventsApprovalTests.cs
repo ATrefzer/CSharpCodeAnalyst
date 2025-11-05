@@ -13,7 +13,7 @@ public class EventsApprovalTests : ApprovalTestBase
     [Test]
     public void Classes_ShouldBeDetected()
     {
-        var classes = GetAllClasses(GetTestGraph()).ToList();
+        var actual = GetAllClasses(GetTestGraph()).ToList();
 
         var expected = new[]
         {
@@ -40,13 +40,13 @@ public class EventsApprovalTests : ApprovalTestBase
             "Core.Events.global.Core.Events.SmsNotificationService"
         };
 
-        CollectionAssert.AreEquivalent(expected, classes);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
     [Test]
     public void EventSubscriptions_ShouldBeDetected()
     {
-        var eventSubscriptions = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
+        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
 
         var expected = new[]
         {
@@ -72,7 +72,7 @@ public class EventsApprovalTests : ApprovalTestBase
             "Core.Events.global.Core.Events.NotificationMonitor.HandleNotificationSent -> Core.Events.global.Core.Events.INotificationService.NotificationSent"
         };
 
-        CollectionAssert.AreEquivalent(expected, eventSubscriptions);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 
 
@@ -80,7 +80,7 @@ public class EventsApprovalTests : ApprovalTestBase
     [Test]
     public void MethodCalls_ShouldBeDetected()
     {
-        var callRelationships = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
+        var actual = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
 
         var expected = new[]
@@ -122,6 +122,6 @@ public class EventsApprovalTests : ApprovalTestBase
             "Core.Events.global.Core.Events.EventSubscriber.HandleDataChanged -> Core.Events.global.Core.Events.DataChangedEventArgs.OldValue"
         };
 
-        CollectionAssert.AreEquivalent(expected, callRelationships);
+        Assert.That(actual, Is.EquivalentTo(expected));
     }
 }
