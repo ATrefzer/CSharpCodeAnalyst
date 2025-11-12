@@ -493,8 +493,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return new SearchResult([], []);
         }
 
-        var relationships = _codeGraph.Nodes.Values
-            .SelectMany(node => node.Relationships)
+        var relationships = _codeGraph.GetAllRelationships()
             .Where(d => d.TargetId == element.Id).ToList();
 
         var elements = relationships.Select(d => _codeGraph.Nodes[d.SourceId]);
