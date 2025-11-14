@@ -25,6 +25,7 @@ public class FileOpener
     private static readonly List<(EditorType, string)> KnownEditors =
     [
         (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\devenv.exe"),
+        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\devenv.exe"),
         (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"),
         (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"),
         (EditorType.NotepadPlusPlus, @"C:\Program Files\Notepad++\notepad++.exe"),
