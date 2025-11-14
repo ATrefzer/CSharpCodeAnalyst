@@ -24,6 +24,7 @@ public class FileOpener
     /// </summary>
     private static readonly List<(EditorType, string)> KnownEditors =
     [
+        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\devenv.exe"),
         (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"),
         (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"),
         (EditorType.NotepadPlusPlus, @"C:\Program Files\Notepad++\notepad++.exe"),
@@ -117,7 +118,7 @@ public class FileOpener
     {
         // "VisualStudio.DTE.17.0" (VS 2022),
         // "VisualStudio.DTE.16.0" (VS 2019)
-        var progId = "VisualStudio.DTE.17.0";
+        var progId = "VisualStudio.DTE.18.0";
 
         object? obj = null;
         object? mainWindow = null;
