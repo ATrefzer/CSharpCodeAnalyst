@@ -22,7 +22,7 @@ jobs:
       with:
         languages: csharp
         # Inline-Konfiguration statt externe Datei
-        queries: security-and-quality
+        queries: security-extended
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
