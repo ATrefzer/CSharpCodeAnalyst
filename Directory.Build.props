@@ -12,4 +12,32 @@
         <PackageProjectUrl>https://github.com/ATrefzer/CSharpCodeAnalyst</PackageProjectUrl>
         <Title>CSharp Code Analyst</Title>
     </PropertyGroup>
+
+    <ItemGroup>
+        <!-- 
+          Exclude MSBuild assemblies from runtime output to prevent assembly-loading conflicts.
+          
+          MSBuild.Locator is used by Microsoft.CodeAnalysis.Workspaces.MSBuild to dynamically
+          locate and load MSBuild assemblies at runtime from the installed SDK location.
+          
+          If these assemblies are copied to the application's bin folder (via normal NuGet
+          package restore), they can conflict with the MSBuild runtime that's already loaded
+          by the host process, causing RPC_E_CALL_REJECTED errors and other runtime failures.
+          
+          By setting ExcludeAssets="runtime", we ensure:
+          - Build-time: Assemblies are available for compilation
+          - Run-time: Assemblies are loaded dynamically from SDK, not from bin folder
+          
+          This applies to all projects that transitively depend on Microsoft.Build packages
+          through the CodeParser project reference.
+          
+          Note: The version should match what comes transitively from Microsoft.Build.Locator.
+          To check the current transitive version, run:
+            dotnet list package (with include-transitive flag)
+          Update this version when upgrading Microsoft.Build.Locator or related packages.
+        -->
+        <PackageReference Include="Microsoft.Build.Framework" Version="17.11.31">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>
