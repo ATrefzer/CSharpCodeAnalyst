@@ -36,7 +36,7 @@
             dotnet list package (with include-transitive flag)
           Update this version when upgrading Microsoft.Build.Locator or related packages.
         -->
-        <PackageReference Include="Microsoft.Build.Framework" Version="17.11.31">
+        <PackageReference Include="Microsoft.Build.Framework" Version="18.0.2">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>
