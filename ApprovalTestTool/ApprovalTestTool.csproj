@@ -12,14 +12,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeParser\CodeParser.csproj"/>
-        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj"/>
+        <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
+        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <None Update="Repositories.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.0.2" />
     </ItemGroup>
 
 </Project>

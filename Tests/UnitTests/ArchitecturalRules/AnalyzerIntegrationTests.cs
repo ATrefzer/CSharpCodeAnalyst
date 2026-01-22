@@ -125,7 +125,7 @@ public class AnalyzerIntegrationTests
         // Check DENY violation
         var denyViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("DENY"));
         Assert.That(denyViolation != null);
-        Assert.That(denyViolation.ViolatingRelationships.Count, Is.EqualTo(1));
+        Assert.That(denyViolation!.ViolatingRelationships.Count, Is.EqualTo(1));
         Assert.That(denyViolation.ViolatingRelationships[0].SourceId, Is.EqualTo(orderBusiness.Id));
         Assert.That(denyViolation.ViolatingRelationships[0].TargetId, Is.EqualTo(orderRepository.Id));
 
@@ -137,7 +137,7 @@ public class AnalyzerIntegrationTests
         // Check ISOLATE violation
         var isolateViolation = results.FirstOrDefault(v => v.Rule.RuleText.Contains("ISOLATE"));
         Assert.That(isolateViolation != null);
-        Assert.That(isolateViolation.ViolatingRelationships.Count, Is.EqualTo(1));
+        Assert.That(isolateViolation!.ViolatingRelationships.Count, Is.EqualTo(1));
         Assert.That(isolateViolation.ViolatingRelationships[0].SourceId, Is.EqualTo(orderEntity.Id));
         Assert.That(isolateViolation.ViolatingRelationships[0].TargetId, Is.EqualTo(orderRepository.Id));
     }

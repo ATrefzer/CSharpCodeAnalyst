@@ -17,7 +17,7 @@ internal class CycleGroupViewModel : TableRow
     {
         CycleGroup = cycleGroup;
 
-        Name = cycleGroup.Name;
+        _name = cycleGroup.Name;
 
         var nodes = CycleGroup.CodeGraph.Nodes.Values;
         List<CodeElementLineViewModel> vms;

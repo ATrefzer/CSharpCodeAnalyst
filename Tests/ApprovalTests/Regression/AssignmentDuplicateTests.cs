@@ -23,7 +23,7 @@ public class AssignmentDuplicateTests : ApprovalTestBase
         Assert.That(testMethod != null);
 
         // Check relationships from TestMethod
-        var relationships = testMethod.Relationships;
+        var relationships = testMethod!.Relationships;
 
         // Count how many times TestProperty is referenced
         var testPropertyRelationships = relationships

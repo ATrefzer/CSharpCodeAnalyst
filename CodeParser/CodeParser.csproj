@@ -20,7 +20,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj"/>
+        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.0.2" />
     </ItemGroup>
 
 </Project>

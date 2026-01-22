@@ -54,7 +54,7 @@ public class Parser(ParserConfig config)
         _progress.SendProgress("Compiling project ...");
 
         using var workspace = MSBuildWorkspace.Create();
-        workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
+        workspace.RegisterWorkspaceFailedHandler(WorkspaceFailedHandler);
         var project = await workspace.OpenProjectAsync(projectPath);
 
         // Create a solution from the single project
@@ -64,6 +64,12 @@ public class Parser(ParserConfig config)
         Trace.TraceInformation("Compiling: " + sw.Elapsed);
 
         return await ParseSolutionInternal(solution);
+    }
+
+    private void WorkspaceFailedHandler(WorkspaceDiagnosticEventArgs e)
+    {
+        _diagnostics.Add(e.Diagnostic);
+        Trace.WriteLine(e.Diagnostic.Message);
     }
 
     /// <summary>
@@ -77,7 +83,7 @@ public class Parser(ParserConfig config)
         _progress.SendProgress("Compiling solution ...");
 
         using var workspace = MSBuildWorkspace.Create();
-        workspace.WorkspaceFailed += Workspace_WorkspaceFailed;
+        workspace.RegisterWorkspaceFailedHandler(WorkspaceFailedHandler);
         var solution = await workspace.OpenSolutionAsync(solutionPath);
 
         sw.Stop();
@@ -120,12 +126,6 @@ public class Parser(ParserConfig config)
         return codeGraph;
     }
 
-
-    private void Workspace_WorkspaceFailed(object? sender, WorkspaceDiagnosticEventArgs e)
-    {
-        _diagnostics.Add(e.Diagnostic);
-        Trace.WriteLine(e.Diagnostic.Message);
-    }
 
     /// <summary>
     ///     If any assembly uses the global namespace we add the global namespace to all assemblies.

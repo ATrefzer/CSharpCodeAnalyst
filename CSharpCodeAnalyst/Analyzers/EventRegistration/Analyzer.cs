@@ -80,4 +80,9 @@ public class Analyzer : IAnalyzer
             return !(r.HasAttribute(RelationshipAttribute.EventUnregistration) && r.HasAttribute(RelationshipAttribute.EventRegistration));
         }
     }
+
+    protected virtual void OnDataChanged()
+    {
+        DataChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

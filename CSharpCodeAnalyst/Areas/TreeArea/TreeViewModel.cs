@@ -383,7 +383,7 @@ public class TreeViewModel : INotifyPropertyChanged
             if (!string.IsNullOrEmpty(_lastSelectedCodeElement))
             {
                 // Since I want to keep the highlighting, I likely want to keep the location.
-                if ((bool)_codeGraph?.Nodes.ContainsKey(_lastSelectedCodeElement))
+                if (_codeGraph != null && _codeGraph.Nodes.ContainsKey(_lastSelectedCodeElement))
                 {
                     _messaging.Publish(new LocateInTreeRequest(_lastSelectedCodeElement));
                 }

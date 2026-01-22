@@ -86,7 +86,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         }
 
         Assert.That(assembly != null);
-        return assembly;
+        return assembly!;
     }
 
     [Test]

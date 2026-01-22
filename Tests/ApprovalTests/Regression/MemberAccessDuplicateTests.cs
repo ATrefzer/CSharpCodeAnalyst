@@ -22,7 +22,7 @@ public class MemberAccessDuplicateTests : ApprovalTestBase
         Assert.That(testMethod != null);
 
         // Check relationships from TestMethod
-        var relationships = testMethod.Relationships;
+        var relationships = testMethod!.Relationships;
 
         // Find OriginalElement property relationships
         var originalElementRelationships = relationships
