@@ -197,6 +197,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Update="Microsoft.Build.Framework" Version="18.0.2" />
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.3.3" />
     </ItemGroup>
 </Project>
