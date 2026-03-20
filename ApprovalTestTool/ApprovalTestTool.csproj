@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Update="Microsoft.Build.Framework" Version="18.0.2" />
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.4.0" />
     </ItemGroup>
 
 </Project>
