@@ -26,62 +26,82 @@
 - `Tests/` — Unit Tests
 - `TestSuite/` — Testprojekte für den Analyzer
 
-## Aktuelles Vorhaben: MCP Server für KI-gestützte Strukturanalyse
+
+
+## Aktuelles Vorhaben: AI Advisor für KI-gestützte Strukturanalyse
 
 ### Motivation
 
-Der CSharpCodeAnalyst arbeitet auf einer höheren Abstraktionsebene als Quellcode — er zeigt Abhängigkeiten, Zyklen und Strukturen. Die Idee ist, KI (Claude) auf dieser Ebene arbeiten zu lassen, um strukturelle Verbesserungen zu diskutieren und zu erarbeiten.
+Der CSharpCodeAnalyst arbeitet auf einer höheren Abstraktionsebene als Quellcode — er zeigt Abhängigkeiten, Zyklen und Strukturen. Die Idee ist, KI (Claude) auf dieser Ebene arbeiten zu lassen, um strukturelle Verbesserungen vorzuschlagen. Auf dieser Ebene lassen sich Designverbesserungen besser erkennen als auf der Codeeben. 
 
-### Philosophie dahinter
 
-Ich beschäftigt sich mit dem Thema Software-Wartbarkeit. Kernideen aus früheren Diskussionen:
-- Funktionale Dekomposition (Parnas, Löwy) kann zu unwartbarem Code führen
-- Volatilitätsbasierte Dekomposition ist die Alternative — Modulgrenzen entlang dessen, was sich unabhängig ändert
-- Zyklenfreiheit auf Namespace-Ebene ist ein zentrales Qualitätskriterium
-- Hierarchische Strukturen sind kognitiv leichter zu erfassen
-- Navigierbarkeit im Code (Bottom-up, "Show me what calls this") ist wichtiger als Lesbarkeit im Clean-Code-Sinne
 
-### Geplante MCP-Tools (priorisiert)
+## Soll-Ablauf
 
-#### Phase 1: Query-Tools (Einstieg)
-- `get_cycles(level)` — Zyklen auf Namespace-/Klassen-/Methoden-Ebene abrufen
-- `get_dependencies(element)` — Abhängigkeiten eines Code-Elements abfragen
-- `get_graph_summary()` — Überblick: Anzahl Namespaces, stärkste Kopplungen, größte Zyklen
-- `get_architectural_violations()` — Definierte Regeln prüfen und Verletzungen zurückgeben
+Funktionieren soll das ganze wie folgt.
 
-#### Phase 2: Simulated Refactoring (Vielleicht, Ziel ist Phase 3. Evt ist dieser Schritt nötig?)
-- `snapshot()` — Snapshot des aktuellen Graphen
-- `restore()` — Snapshot nach einem fehlgeschlagenen Refactorings wieder herstellen.
-- `simulate_move(element, target_namespace)` — Klasse verschieben, neuen Zyklus-Status zurückgeben
-- `simulate_remove(element)` — Element entfernen, Auswirkung auf Zyklen zeigen
-- `simulate_cut_dependency(source, target)` — Kante schneiden, Ergebnis zeigen
+- Der Benutzer importiert eine C# solution und klickt auf Cycles um sich alle Strongly Connected Components im der Solution anzeigen zu lassen. Im Code wird SCC auf Cycle Group genannt.
 
-#### Phase 3: KI-gestützte Analyse
-- `suggest_architectural_rules()` — Claude schlägt Regeln basierend auf erkannter Struktur vor
-- `analyze_cycle(cycle_id)` — Detailanalyse eines Zyklus mit Abhängigkeitstypen
-- `suggest_cycle_resolution(cycle_id)` — Claude schlägt konkrete Auflösungsstrategien vor
+- Diese Anzeige erfolgt in dem Tool in einer Listendarstellung. 
 
-### Technische Entscheidungen
+- Der Benutzer klickt mit der rechten Maustaste auf einen Zeile (SCC).
 
-1. **Export-basierter Ansatz**: Der MCP Server arbeitet auf einem bereits analysierten Graphen — kein Roslyn im MCP Server nötig. Wichtig: Zuerst prüfen, welches Speicher-/Ladeformat das WPF-Tool bereits verwendet. Falls der MCP Server das `CodeGraph`-Projekt referenziert, kann er möglicherweise dasselbe Format direkt laden. Kein neues Serialisierungsformat einführen, wenn es nicht nötig ist.
-2. **C# MCP SDK**: `ModelContextProtocol` NuGet-Paket (offizielles SDK, gepflegt von Microsoft + Anthropic)
-3. **Transport**: stdio (Standard für Claude Code / Claude Desktop)
-4. **Neues Projekt**: `CSharpCodeAnalyst.Mcp` als Konsolenprojekt in der bestehenden Solution
-5. **Referenz**: Das MCP-Projekt referenziert `CodeGraph` für das Graphmodell und die Analyse-Logik
+- Nun wird dieser SCC in den Code Explorer übernommen, wo der Benutzer den Graphen analysieren kann.
+  Soweit ist das alles bestehende Funktionalität.
 
-### Nächste Schritte
+- Im Ribbon neben dem Cycle Button gibt es ein weiterer Button "AI Advise" (Um das Icon kümmere ich mich)
 
-1. Bestehendes Speicherformat des WPF-Tools analysieren — kann der MCP Server den Graphen direkt über die `CodeGraph`-Bibliothek laden?
-2. Neues Konsolenprojekt `CSharpCodeAnalyst.Mcp` erstellen
-3. NuGet-Paket `ModelContextProtocol` einbinden
-4. Erstes Tool `get_cycles` implementieren
-5. In Claude Code registrieren: `claude mcp add`
-6. Testen und iterativ erweitern
+- Klickt der Nutzer, werden zu erst im aktuellen Code Explorer Inhalt noch einmal nach Zyklengruppen gesucht. Das sollte genau eine sein. Aber der Graph kann auch auf anderem Wege aufgebaut werden und muss daher keine Zyklen enthalten. Dann erfolgt eine Meldung über Toast notification "Keine Zyklen gefunden"
 
-### Hinweise für Claude Code
+- Ansonsten wird der Inhalt des Code Explorers (kleiner Ausschnitt aus dem gesamten Code Graphen) in Text exportiert. Siehe dazu CodeGraphSerializer.Serialize. GraphViewer kenn den aktuellen Inhalt des Graphen. Über GetSession kann der Graph abgefragt werden.
 
-- Das Projekt verwendet .NET (siehe Directory.Build.props für die Version)
-- Der Graph wird im `CodeGraph`-Projekt modelliert — dort liegt die Zyklen-Erkennung
-- Die Klasse für stark zusammenhängende Komponenten (Tarjan's Algorithmus) ist in `CodeGraph/`
-- Beim Erstellen des MCP Servers: Minimale Abhängigkeiten halten, nur `CodeGraph` referenzieren
-- Vor dem Erstellen eines neuen Exportformats: Prüfen wie das WPF-Tool den Graphen heute speichert/lädt. Das bestehende Format wiederverwenden, wenn möglich. Der Graph muss enthalten: Knoten (mit Typ, Name, Namespace, Parent) und Kanten (mit Typ: Calls, Inherits, Implements, Uses, etc.)
+- Nun wird mit dieser Graphen Information ein LLM gefragt. Hier wäre ein Promt als Beispiel
+
+- Hier wäre z.B. der immer gleichbleibende Prompt um Zyklen aufzulösen.
+
+   
+
+  Here is a cycle group extracted from C# source code.
+
+  The cycle occurs on the {0} level.
+
+  In graph theroy terms this is a strongly connected component.
+
+   
+
+  The graph is in following format (plain text, human readable form):
+
+   
+
+  CodeElementType Id [ name=Name] [ full=FullName] [ parent=ParentId] [ external] [ attr=Attr1,Attr2]
+
+  [loc=File:Line,Col]*
+
+  SourceId Relationship Type TargetId [ Attr1,Attr2]
+
+  [loc=File:Line,Col]*
+
+   
+
+   
+
+  Please come up with ideas on how this cycle group can be removed or at least broken down in smaller parts.
+
+  Provide your answer as markdown.
+
+   
+
+  The cycle group starts here:
+
+  
+
+  {1}
+
+- Hier soll folgender Ablauf implemeniert sein. Ist keine KI hinterlegt, soll eine Fehlermeldung (Toast) erscheinen, dass kein KI Endpunkt konfiguriert ist.
+
+- Der Nutzer kann in den Settings Endpunkt und API Key eingeben. Ich möchte hier explizit nicht das Anthropic SDK verwenden, sondern einen HTTP Aufruf selbst machen. Hintergrund ist, dass ich ggf auch ein Lokales LLM verwenden will oder eine andere kompatible Endstelle. Mache eine Vorschlag wo wir diese Information sicher abspeichern. Windows Credential Manager? 
+
+- Nun wird der Prompt ausgeführt (und die Platzhalter ausgefüllt). Die KI Antwortet im Markdown Format.
+
+- Daher brauchen wir jetzt eine C# Bibliotk die Markdown Rendern und anzeigen kann. Ich stelle mir das so vor dann ein NICHT modales Fenster aufgeht wo der Verbesserungsvorschlag angezeigt wird. So kann man den Vorschlag neben den Graphen legen. Wenn ich die Hauptanwendung beende soll auch dieses Fenster beendet werden.
+

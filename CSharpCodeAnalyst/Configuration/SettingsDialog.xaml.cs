@@ -20,11 +20,19 @@ public partial class SettingsDialog
     {
         AutoAddContainingTypeCheckBox.IsChecked = Settings.AutomaticallyAddContainingType;
         WarningLimitTextBox.Text = Settings.WarningCodeElementLimit.ToString();
-        
+
         // Internal format to new line separated.
         ProjectExcludeFilterTextBox.Text = Settings.DefaultProjectExcludeFilter.Replace(";", Environment.NewLine);
         IncludeExternalCodeCheckBox.IsChecked = Settings.IncludeExternalCode;
         WarnIfFiltersActiveCheckBox.IsChecked = Settings.WarnIfFiltersActive;
+
+        AiEndpointTextBox.Text = UserSettings.Instance.AiEndpoint;
+        AiModelTextBox.Text = UserSettings.Instance.AiModel;
+        // Show placeholder asterisks if a key is already stored
+        if (AiCredentialStorage.HasApiKey())
+        {
+            AiApiKeyBox.Password = "placeholder";
+        }
     }
 
     private void SaveSettingsFromUi()
@@ -37,8 +45,19 @@ public partial class SettingsDialog
         {
             Settings.WarningCodeElementLimit = warningLimit;
         }
-        
+
         Settings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text;
+
+        UserSettings.Instance.AiEndpoint = AiEndpointTextBox.Text.Trim();
+        UserSettings.Instance.AiModel = AiModelTextBox.Text.Trim();
+        UserSettings.Instance.Save();
+
+        // Only update the stored key if the user actually typed something new
+        var typedKey = AiApiKeyBox.Password;
+        if (typedKey != "placeholder" && typedKey.Length > 0)
+        {
+            AiCredentialStorage.SaveApiKey(typedKey);
+        }
     }
 
     private void LoadDefaultSettings()

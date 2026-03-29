@@ -25,6 +25,10 @@ public class UserSettings
 
     public List<string> RecentFiles { get; set; } = [];
 
+    public string AiEndpoint { get; set; } = "https://api.anthropic.com/v1/messages";
+
+    public string AiModel { get; set; } = "claude-opus-4-6";
+
     public static UserSettings Instance { get; } = LoadOrCreate();
 
     private static UserSettings LoadOrCreate()
