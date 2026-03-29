@@ -37,7 +37,6 @@ using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Ai;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
-using CodeGraph.Export;
 
 namespace CSharpCodeAnalyst;
 
@@ -61,6 +60,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
     private readonly IUserNotification _ui;
+    private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
@@ -656,7 +656,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             await Task.Run(() =>
             {
                 cycleGroups = CycleFinder.FindCycleGroups(_codeGraph);
-                
+
                 // Find a useful name for the groups
                 foreach (var cycleGroup in cycleGroups)
                 {
@@ -671,7 +671,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
                     var name = sorted.First().Element.Name;
                     cycleGroup.Name = name;
                 }
-                
             });
         }
         catch (Exception ex)
@@ -723,16 +722,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             IsLoading = false;
         }
 
-        if (cycleGroups == null || cycleGroups.Count == 0)
+        if (cycleGroups is not { Count: > 0 })
         {
             ToastManager.ShowWarning(Strings.AiAdvisor_NoCycles);
             return;
         }
-
-        var cycleGraph = cycleGroups[0].CodeGraph;
-        var level = GetCycleLevel(cycleGraph);
-        var serialized = CodeGraphSerializer.Serialize(cycleGraph);
-        var prompt = BuildCyclePrompt(level, serialized);
 
         string? response = null;
         try
@@ -740,8 +734,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             IsLoading = true;
             LoadMessage = Strings.AiAdvisor_Querying;
             var apiKey = AiCredentialStorage.LoadApiKey();
-            var model = UserSettings.Instance.AiModel;
-            response = await new AiClient().SendAsync(endpoint, apiKey, model, prompt);
+            response = await _aiAdvisorService.GetCycleAdviceAsync(
+                cycleGroups[0], endpoint, apiKey, UserSettings.Instance.AiModel);
         }
         catch (AiClientException ex)
         {
@@ -763,48 +757,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AiAdvisorWindow.ShowAdvice(response);
         }
-    }
-
-    private static string GetCycleLevel(CodeGraph.Graph.CodeGraph cycleGraph)
-    {
-        var types = cycleGraph.Nodes.Values
-            .Where(n => !n.IsExternal)
-            .Select(n => n.ElementType)
-            .ToList();
-
-        if (types.Any(t => t is CodeElementType.Method or CodeElementType.Property or CodeElementType.Field))
-            return "method";
-
-        if (types.Any(t => t is CodeElementType.Class or CodeElementType.Interface
-                or CodeElementType.Struct or CodeElementType.Record or CodeElementType.Enum))
-            return "class";
-
-        return "namespace";
-    }
-
-    private static string BuildCyclePrompt(string level, string serializedGraph)
-    {
-        return $"""
-            Here is a cycle group extracted from C# source code.
-
-            The cycle occurs on the {level} level.
-
-            In graph theory terms this is a strongly connected component.
-
-            The graph is in the following format (plain text, human readable form):
-
-            CodeElementType Id [ name=Name] [ full=FullName] [ parent=ParentId] [ external] [ attr=Attr1,Attr2]
-            [loc=File:Line,Col]*
-            SourceId RelationshipType TargetId [ Attr1,Attr2]
-            [loc=File:Line,Col]*
-
-            Please come up with ideas on how this cycle group can be removed or at least broken down into smaller parts.
-            Provide your answer as markdown.
-
-            The cycle group starts here:
-
-            {serializedGraph}
-            """;
     }
 
     private void OnGraphLayout()

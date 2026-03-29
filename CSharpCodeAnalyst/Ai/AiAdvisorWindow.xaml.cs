@@ -40,9 +40,9 @@ public partial class AiAdvisorWindow
         _instance.SetContent(markdownText);
     }
 
-    protected virtual void SetContent(string markdownText)
+    private void SetContent(string markdownText)
     {
-        ResponseTextBox.Text = markdownText;
+        MarkdownViewer.Markdown = markdownText;
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
