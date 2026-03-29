@@ -994,11 +994,23 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="Settings_AiApiKey_Tooltip" xml:space="preserve">
     <value>Your API key. It is encrypted with Windows DPAPI and stored locally — only the current Windows user can read it.</value>
   </data>
+    <data name="AiAdvise_Label" xml:space="preserve">
+    <value>AI Advise</value>
+  </data>
+    <data name="AiAdvise_Tooltip" xml:space="preserve">
+    <value>Ask AI for suggestions on how to resolve the cycle in the current graph</value>
+  </data>
     <data name="AiAdvisor_NoCycles" xml:space="preserve">
     <value>No cycles found in the current graph.</value>
   </data>
     <data name="AiAdvisor_NoEndpoint" xml:space="preserve">
     <value>No AI endpoint configured. Please open Settings and enter your API endpoint and key.</value>
+  </data>
+    <data name="AiAdvisor_Analyzing" xml:space="preserve">
+    <value>Searching for cycles...</value>
+  </data>
+    <data name="AiAdvisor_Querying" xml:space="preserve">
+    <value>Asking AI...</value>
   </data>
 
 </root>

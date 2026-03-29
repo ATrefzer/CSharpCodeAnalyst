@@ -34,7 +34,10 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Ai;
+using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
+using CodeGraph.Export;
 
 namespace CSharpCodeAnalyst;
 
@@ -136,6 +139,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         GraphClearCommand = new WpfCommand(OnGraphClear);
         GraphLayoutCommand = new WpfCommand(OnGraphLayout);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
+        AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
 
         ShowGalleryCommand = new WpfCommand(OnShowGallery);
@@ -267,6 +271,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
     public ICommand FindCyclesCommand { get; }
+    public ICommand AiAdviseCommand { get; }
     public ICommand ExportToDsiCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
@@ -684,6 +689,122 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             _messaging.Publish(new CycleCalculationComplete(cycleGroups));
             SelectedRightTabIndex = 1;
         }
+    }
+
+    private async void OnAiAdvise()
+    {
+        if (_graphViewModel is null) return;
+
+        var endpoint = UserSettings.Instance.AiEndpoint;
+        if (string.IsNullOrWhiteSpace(endpoint) || !AiCredentialStorage.HasApiKey())
+        {
+            ToastManager.ShowWarning(Strings.AiAdvisor_NoEndpoint);
+            return;
+        }
+
+        var currentGraph = _graphViewModel.GetGraph();
+        if (currentGraph.Nodes.Count == 0) return;
+
+        List<CycleGroup>? cycleGroups = null;
+        try
+        {
+            IsLoading = true;
+            LoadMessage = Strings.AiAdvisor_Analyzing;
+            await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(currentGraph); });
+        }
+        catch (Exception ex)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
+            return;
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+
+        if (cycleGroups == null || cycleGroups.Count == 0)
+        {
+            ToastManager.ShowWarning(Strings.AiAdvisor_NoCycles);
+            return;
+        }
+
+        var cycleGraph = cycleGroups[0].CodeGraph;
+        var level = GetCycleLevel(cycleGraph);
+        var serialized = CodeGraphSerializer.Serialize(cycleGraph);
+        var prompt = BuildCyclePrompt(level, serialized);
+
+        string? response = null;
+        try
+        {
+            IsLoading = true;
+            LoadMessage = Strings.AiAdvisor_Querying;
+            var apiKey = AiCredentialStorage.LoadApiKey();
+            var model = UserSettings.Instance.AiModel;
+            response = await new AiClient().SendAsync(endpoint, apiKey, model, prompt);
+        }
+        catch (AiClientException ex)
+        {
+            _ui.ShowError(ex.Message);
+            return;
+        }
+        catch (Exception ex)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
+            return;
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+
+        if (response != null)
+        {
+            AiAdvisorWindow.ShowAdvice(response);
+        }
+    }
+
+    private static string GetCycleLevel(CodeGraph.Graph.CodeGraph cycleGraph)
+    {
+        var types = cycleGraph.Nodes.Values
+            .Where(n => !n.IsExternal)
+            .Select(n => n.ElementType)
+            .ToList();
+
+        if (types.Any(t => t is CodeElementType.Method or CodeElementType.Property or CodeElementType.Field))
+            return "method";
+
+        if (types.Any(t => t is CodeElementType.Class or CodeElementType.Interface
+                or CodeElementType.Struct or CodeElementType.Record or CodeElementType.Enum))
+            return "class";
+
+        return "namespace";
+    }
+
+    private static string BuildCyclePrompt(string level, string serializedGraph)
+    {
+        return $"""
+            Here is a cycle group extracted from C# source code.
+
+            The cycle occurs on the {level} level.
+
+            In graph theory terms this is a strongly connected component.
+
+            The graph is in the following format (plain text, human readable form):
+
+            CodeElementType Id [ name=Name] [ full=FullName] [ parent=ParentId] [ external] [ attr=Attr1,Attr2]
+            [loc=File:Line,Col]*
+            SourceId RelationshipType TargetId [ Attr1,Attr2]
+            [loc=File:Line,Col]*
+
+            Please come up with ideas on how this cycle group can be removed or at least broken down into smaller parts.
+            Provide your answer as markdown.
+
+            The cycle group starts here:
+
+            {serializedGraph}
+            """;
     }
 
     private void OnGraphLayout()

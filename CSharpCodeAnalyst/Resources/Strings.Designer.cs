@@ -108,6 +108,33 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AI Advise.
+        /// </summary>
+        public static string AiAdvise_Label {
+            get {
+                return ResourceManager.GetString("AiAdvise_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ask AI for suggestions on how to resolve the cycle in the current graph.
+        /// </summary>
+        public static string AiAdvise_Tooltip {
+            get {
+                return ResourceManager.GetString("AiAdvise_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Searching for cycles....
+        /// </summary>
+        public static string AiAdvisor_Analyzing {
+            get {
+                return ResourceManager.GetString("AiAdvisor_Analyzing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No cycles found in the current graph..
         /// </summary>
         public static string AiAdvisor_NoCycles {
@@ -122,6 +149,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string AiAdvisor_NoEndpoint {
             get {
                 return ResourceManager.GetString("AiAdvisor_NoEndpoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Asking AI....
+        /// </summary>
+        public static string AiAdvisor_Querying {
+            get {
+                return ResourceManager.GetString("AiAdvisor_Querying", resourceCulture);
             }
         }
         
