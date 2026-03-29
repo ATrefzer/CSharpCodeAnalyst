@@ -22,7 +22,7 @@
                 <GroupBox Header="{x:Static resources:Strings.Settings_General}" Margin="5,0,0,0">
                     <StackPanel Margin="10">
                         <CheckBox x:Name="AutoAddContainingTypeCheckBox"
-                                  Content="{x:Static resources:Strings.Settings_AddContainingType}"
+                                   Content="{x:Static resources:Strings.Settings_AddContainingType}"
                                   Margin="0,5"
                                   ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
 
@@ -62,6 +62,34 @@
                                  HorizontalAlignment="Stretch"
                                  Margin="0,0,0,10"
                                  ToolTip="{x:Static resources:Strings.Settings_ProjectFilters_Tooltip}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="{x:Static resources:Strings.Settings_AiAdvisor}" Margin="5,5,0,0">
+                    <StackPanel Margin="10">
+                        <Label Margin="0 0 0 3"
+                               Content="{x:Static resources:Strings.Settings_AiEndpoint}"
+                               ToolTip="{x:Static resources:Strings.Settings_AiEndpoint_Tooltip}" />
+                        <TextBox x:Name="AiEndpointTextBox"
+                                 HorizontalAlignment="Stretch"
+                                 Margin="0,0,0,8"
+                                 ToolTip="{x:Static resources:Strings.Settings_AiEndpoint_Tooltip}" />
+
+                        <Label Margin="0 0 0 3"
+                               Content="{x:Static resources:Strings.Settings_AiModel}"
+                               ToolTip="{x:Static resources:Strings.Settings_AiModel_Tooltip}" />
+                        <TextBox x:Name="AiModelTextBox"
+                                 HorizontalAlignment="Stretch"
+                                 Margin="0,0,0,8"
+                                 ToolTip="{x:Static resources:Strings.Settings_AiModel_Tooltip}" />
+
+                        <Label Margin="0 0 0 3"
+                               Content="{x:Static resources:Strings.Settings_AiApiKey}"
+                               ToolTip="{x:Static resources:Strings.Settings_AiApiKey_Tooltip}" />
+                        <PasswordBox x:Name="AiApiKeyBox"
+                                     HorizontalAlignment="Stretch"
+                                     Margin="0,0,0,8"
+                                     ToolTip="{x:Static resources:Strings.Settings_AiApiKey_Tooltip}" />
                     </StackPanel>
                 </GroupBox>
             </StackPanel>

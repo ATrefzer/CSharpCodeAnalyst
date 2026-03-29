@@ -23,7 +23,14 @@ public class UserSettings
         _settingsPath = settingsPath;
     }
 
+    public const string DefaultAiEndpoint = "https://api.anthropic.com/v1/messages";
+    public const string DefaultAiModel = "claude-opus-4-6";
+
     public List<string> RecentFiles { get; set; } = [];
+
+    public string AiEndpoint { get; set; } = DefaultAiEndpoint;
+
+    public string AiModel { get; set; } = DefaultAiModel;
 
     public static UserSettings Instance { get; } = LoadOrCreate();
 
@@ -79,5 +86,16 @@ public class UserSettings
         }
 
         Save();
+    }
+
+    public UserSettings Clone()
+    {
+        return new UserSettings
+        {
+            RecentFiles = new List<string>(this.RecentFiles),
+            AiEndpoint = this.AiEndpoint,
+            AiModel = this.AiModel,
+            _settingsPath = this._settingsPath
+        };
     }
 }

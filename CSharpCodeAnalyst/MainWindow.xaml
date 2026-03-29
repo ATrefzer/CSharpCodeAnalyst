@@ -112,6 +112,14 @@
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" KeyTip="CY" />
 
+                    <RibbonButton Label="{x:Static resources:Strings.AiAdvise_Label}"
+                                  LargeImageSource="/Resources/advisor.png"
+                                  Command="{Binding AiAdviseCommand}" KeyTip="AI">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.AiAdvise_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
                     <RibbonSplitButton Label="{x:Static resources:Strings.Analyzers_Label}"
                                        LargeImageSource="/Resources/analysis_32.png"
                                        ItemsSource="{Binding Analyzers}" KeyTip="AN">

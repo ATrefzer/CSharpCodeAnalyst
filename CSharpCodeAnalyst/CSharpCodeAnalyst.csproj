@@ -10,6 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Remove="Resources\advisor.png" />
         <None Remove="Resources\collapse-all_32.png" />
         <None Remove="Resources\expand-all_32.png" />
     </ItemGroup>
@@ -129,19 +130,17 @@
         <Resource Include="Resources\puzzle.png" />
         <Resource Include="Resources\synchronize_32.png" />
         <Resource Include="Resources\flag-empty_32.png" />
-        <None Remove="Resources\lamp.ico" />
         <Resource Include="Resources\lamp.ico" />
-        <None Remove="Resources\restore_32.png" />
         <Resource Include="Resources\restore_32.png" />
-        <None Remove="Resources\snapshot_32.png" />
         <Resource Include="Resources\snapshot_32.png" />
-        <None Remove="Resources\add-parent_32.png" />
         <Resource Include="Resources\add-parent_32.png" />
+        <Resource Include="Resources\advisor.png" />
     </ItemGroup>
 
 
     <ItemGroup>
         <PackageReference Include="gong-wpf-dragdrop" Version="4.0.0" />
+        <PackageReference Include="MdXaml" Version="1.27.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.5" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />

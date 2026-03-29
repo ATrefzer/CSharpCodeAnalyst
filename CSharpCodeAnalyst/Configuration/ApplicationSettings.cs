@@ -7,6 +7,20 @@ public class ApplicationSettings
 {
     private string _defaultProjectExcludeFilter = string.Empty;
     public int WarningCodeElementLimit { get; set; } = 300;
+
+
+    public string DefaultProjectExcludeFilter
+    {
+        get => CleanupProjectFilters(_defaultProjectExcludeFilter);
+        set => _defaultProjectExcludeFilter = CleanupProjectFilters(value);
+    }
+
+    public bool AutomaticallyAddContainingType { get; set; } = true;
+
+    public bool IncludeExternalCode { get; set; }
+
+    public bool WarnIfFiltersActive { get; set; } = true;
+
     public static string CleanupProjectFilters(string filterText)
     {
         char[] separators = [';', '\n', '\r'];
@@ -17,19 +31,6 @@ public class ApplicationSettings
             .ToList();
         return string.Join(";", parts);
     }
-    
-
-    public string DefaultProjectExcludeFilter
-    {
-        get => CleanupProjectFilters(_defaultProjectExcludeFilter);
-        set => _defaultProjectExcludeFilter = CleanupProjectFilters(value);
-    }
-
-    public bool AutomaticallyAddContainingType { get; set; } = true;
-
-    public bool IncludeExternalCode { get; set; } = false;
-
-    public bool WarnIfFiltersActive { get; set; } = true;
 
     public void Save(string appSettingsPath)
     {
@@ -37,5 +38,17 @@ public class ApplicationSettings
         var options = new JsonSerializerOptions { WriteIndented = true };
         var json = JsonSerializer.Serialize(root, options);
         File.WriteAllText(appSettingsPath, json);
+    }
+
+    public ApplicationSettings Clone()
+    {
+        return new ApplicationSettings
+        {
+            WarningCodeElementLimit = this.WarningCodeElementLimit,
+            DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,
+            AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
+            IncludeExternalCode = this.IncludeExternalCode,
+            WarnIfFiltersActive = this.WarnIfFiltersActive
+        };
     }
 }

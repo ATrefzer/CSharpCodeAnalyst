@@ -81,6 +81,16 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 **In general, it's a good guideline to keep your software system free of cycles at the namespace level.**
 
+### AI Advise
+
+Once you have loaded a cycle group into the Code Explorer, the **AI Advise** button in the toolbar sends the cycle to a configured LLM and asks it for ideas on how to resolve or break down the dependency cycle.
+
+To use this feature, open **Settings** and enter your API endpoint and key. The tool supports any OpenAI-compatible endpoint, including local models (e.g. Ollama) and Anthropic's API.
+
+> **Use with care.** The AI suggestions are generated without any knowledge of your actual business domain, team conventions, or broader system constraints. They may be technically incorrect, impractical, or simply not applicable to your situation. 
+
+That said, the feature can be genuinely useful for getting a first set of ideas when you are staring at a complex cycle and don't know where to begin. The AI often recognises structural patterns — such as hidden abstractions, circular service dependencies, or missing interfaces — that are worth considering. The advice can be saved as a Markdown file for later reference.
+
 ## Simulated refactoring
 
 The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.

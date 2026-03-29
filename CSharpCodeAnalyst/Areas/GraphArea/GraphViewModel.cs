@@ -750,6 +750,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         return _viewer.GetSession();
     }
 
+    public CodeGraph.Graph.CodeGraph GetGraph()
+    {
+        return _viewer.GetGraph();
+    }
+
     public void LoadSession(GraphSession session, bool withUndo)
     {
         if (withUndo)

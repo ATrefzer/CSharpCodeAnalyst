@@ -971,6 +971,65 @@ ISOLATE: MyApp.Domain.**</value>
   </data>
     <data name="Cycle_Name" xml:space="preserve">
     <value>Cycle name</value>
-  </data>  
-    
+  </data>
+
+    <data name="Settings_AiAdvisor" xml:space="preserve">
+    <value>AI Advisor</value>
+  </data>
+    <data name="Settings_AiEndpoint" xml:space="preserve">
+    <value>API Endpoint URL</value>
+  </data>
+    <data name="Settings_AiEndpoint_Tooltip" xml:space="preserve">
+    <value>OpenAI-compatible API endpoint, e.g. https://api.anthropic.com/v1/messages</value>
+  </data>
+    <data name="Settings_AiModel" xml:space="preserve">
+    <value>Model</value>
+  </data>
+    <data name="Settings_AiModel_Tooltip" xml:space="preserve">
+    <value>Model identifier, e.g. claude-opus-4-6</value>
+  </data>
+    <data name="Settings_AiApiKey" xml:space="preserve">
+    <value>API Key (stored encrypted)</value>
+  </data>
+    <data name="Settings_AiApiKey_Tooltip" xml:space="preserve">
+    <value>Your API key. It is encrypted with Windows DPAPI and stored locally — only the current Windows user can read it.</value>
+  </data>
+    <data name="AiAdvise_Label" xml:space="preserve">
+    <value>AI Advise</value>
+  </data>
+    <data name="AiAdvise_Tooltip" xml:space="preserve">
+    <value>Ask AI for suggestions on how to resolve the cycle in the current graph</value>
+  </data>
+    <data name="AiAdvisor_NoCycles" xml:space="preserve">
+    <value>No cycles found in the current graph.</value>
+  </data>
+    <data name="AiAdvisor_NoEndpoint" xml:space="preserve">
+    <value>No AI endpoint configured. Please open Settings and enter your API endpoint and key.</value>
+  </data>
+    <data name="AiAdvisor_Analyzing" xml:space="preserve">
+    <value>Searching for cycles...</value>
+  </data>
+    <data name="AiAdvisor_Querying" xml:space="preserve">
+    <value>Asking AI...</value>
+  </data>
+
+    <data name="AiAdvisorWindow_Title" xml:space="preserve">
+    <value>AI Advisor</value>
+  </data>
+    <data name="AiAdvisorWindow_Save" xml:space="preserve">
+    <value>Save...</value>
+  </data>
+    <data name="AiAdvisorWindow_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_Title" xml:space="preserve">
+    <value>Save AI advice</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_Filter" xml:space="preserve">
+    <value>Markdown files (*.md)|*.md|Text files (*.txt)|*.txt</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_DefaultFileName" xml:space="preserve">
+    <value>ai-advice</value>
+  </data>
+
 </root>
