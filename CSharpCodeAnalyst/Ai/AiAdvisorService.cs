@@ -44,23 +44,39 @@ public class AiAdvisorService
     private static string BuildCyclePrompt(string level, string serializedGraph)
     {
         return $"""
-            Here is a cycle group extracted from C# source code.
+            You are a software architect analyzing a C# dependency cycle.
 
-            The cycle occurs on the {level} level.
+            The cycle exists at the **{level}** level and is represented as a strongly connected component (SCC)
+            — every element in the group can reach every other element through the dependency graph.
 
-            In graph theory terms this is a strongly connected component.
+            ## Your task
 
-            The graph is in the following format (plain text, human readable form):
+            1. **Trace the cycles.** Identify the concrete dependency paths that form the loop(s).
+               Name the specific elements involved (use their `name` or `full` attributes).
+            2. **Characterize the coupling.** For each path, explain what kind of dependency it is
+               (e.g. type reference, method call chain, inheritance, instantiation).
+            3. **Propose targeted refactorings.** Each suggestion must reference the specific elements
+               and relationships from this graph by name. Do not give generic software-engineering advice.
+               Instead, explain exactly which dependency to cut or redirect, and how.
 
-            CodeElementType Id [ name=Name] [ full=FullName] [ parent=ParentId] [ external] [ attr=Attr1,Attr2]
-            [loc=File:Line,Col]*
-            SourceId RelationshipType TargetId [ Attr1,Attr2]
-            [loc=File:Line,Col]*
+            ## Relationship types
 
-            Please come up with ideas on how this cycle group can be removed or at least broken down into smaller parts.
-            Provide your answer as markdown.
+            - `Calls` — a method or property invokes another method or property
+            - `Uses` — a type references another type (field type, parameter type, return type, local variable)
+            - `Inherits` — class inherits from a base class
+            - `Implements` — class or struct implements an interface
+            - `Instantiates` — a type creates an instance of another type
 
-            The cycle group starts here:
+            ## Graph format
+
+            ```
+            CodeElementType Id [name=Name] [full=FullName] [parent=ParentId] [external]
+            [loc=File:Line,Col]
+            SourceId RelationshipType TargetId
+            [loc=File:Line,Col]
+            ```
+
+            ## Cycle group
 
             {serializedGraph}
             """;

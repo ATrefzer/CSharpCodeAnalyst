@@ -28,8 +28,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeGraph", "CodeGraph\Code
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApprovalTestTool", "ApprovalTestTool\ApprovalTestTool.csproj", "{767539BE-FBE3-4B46-9A5E-21D60E1B278B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCodeAnalyst.Mcp", "CSharpCodeAnalyst.Mcp\CSharpCodeAnalyst.Mcp.csproj", "{391D7263-AFC7-4FC7-BED1-105930871AC9}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
