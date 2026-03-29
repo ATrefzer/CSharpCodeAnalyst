@@ -162,6 +162,60 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        public static string AiAdvisorWindow_Close {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_Close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save....
+        /// </summary>
+        public static string AiAdvisorWindow_Save {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ai-advice.
+        /// </summary>
+        public static string AiAdvisorWindow_SaveDialog_DefaultFileName {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_SaveDialog_DefaultFileName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Markdown files (*.md)|*.md|Text files (*.txt)|*.txt.
+        /// </summary>
+        public static string AiAdvisorWindow_SaveDialog_Filter {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_SaveDialog_Filter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save AI advice.
+        /// </summary>
+        public static string AiAdvisorWindow_SaveDialog_Title {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_SaveDialog_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AI Advisor.
+        /// </summary>
+        public static string AiAdvisorWindow_Title {
+            get {
+                return ResourceManager.GetString("AiAdvisorWindow_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All in_coming relationships.
         /// </summary>
         public static string AllIncomingRelationships {

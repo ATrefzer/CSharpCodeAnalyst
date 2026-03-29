@@ -1013,4 +1013,23 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Asking AI...</value>
   </data>
 
+    <data name="AiAdvisorWindow_Title" xml:space="preserve">
+    <value>AI Advisor</value>
+  </data>
+    <data name="AiAdvisorWindow_Save" xml:space="preserve">
+    <value>Save...</value>
+  </data>
+    <data name="AiAdvisorWindow_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_Title" xml:space="preserve">
+    <value>Save AI advice</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_Filter" xml:space="preserve">
+    <value>Markdown files (*.md)|*.md|Text files (*.txt)|*.txt</value>
+  </data>
+    <data name="AiAdvisorWindow_SaveDialog_DefaultFileName" xml:space="preserve">
+    <value>ai-advice</value>
+  </data>
+
 </root>

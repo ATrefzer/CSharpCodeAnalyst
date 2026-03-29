@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -8,9 +9,9 @@ using System.Windows.Input;
 using CodeGraph.Algorithms.Cycles;
 using CodeGraph.Algorithms.Metrics;
 using CodeGraph.Algorithms.Partitioning;
-using CodeGraph.Algorithms.Traversal;
 using CodeGraph.Graph;
 using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.Ai;
 using CSharpCodeAnalyst.Analyzers;
 using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
 using CSharpCodeAnalyst.Areas.CycleGroupsArea;
@@ -34,7 +35,6 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Ai;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Wpf;
 
@@ -50,6 +50,7 @@ internal enum DirtyState
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private const int InfoPanelTabIndex = 2;
+    private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
     private readonly Exporter _exporter;
     private readonly Importer _importer;
@@ -60,7 +61,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
     private readonly IUserNotification _ui;
-    private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
@@ -173,7 +173,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _openProjectFilePath;
         set
         {
-            if (value == _openProjectFilePath) return;
+            if (value == _openProjectFilePath)
+            {
+                return;
+            }
+
             _openProjectFilePath = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Title));
@@ -207,7 +211,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _infoPanelViewModel;
         set
         {
-            if (Equals(value, _infoPanelViewModel)) return;
+            if (Equals(value, _infoPanelViewModel))
+            {
+                return;
+            }
+
             _infoPanelViewModel = value;
             OnPropertyChanged();
         }
@@ -350,7 +358,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _selectedLeftTabIndex;
         set
         {
-            if (value == _selectedLeftTabIndex) return;
+            if (value == _selectedLeftTabIndex)
+            {
+                return;
+            }
+
             _selectedLeftTabIndex = value;
             InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
             OnPropertyChanged();
@@ -369,7 +381,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _isGraphToolPanelVisible;
         set
         {
-            if (value == _isGraphToolPanelVisible) return;
+            if (value == _isGraphToolPanelVisible)
+            {
+                return;
+            }
+
             _isGraphToolPanelVisible = value;
             OnPropertyChanged();
         }
@@ -692,7 +708,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private async void OnAiAdvise()
     {
-        if (_graphViewModel is null) return;
+        if (_graphViewModel is null)
+        {
+            return;
+        }
 
         var endpoint = UserSettings.Instance.AiEndpoint;
         if (string.IsNullOrWhiteSpace(endpoint) || !AiCredentialStorage.HasApiKey())
@@ -702,7 +721,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         var currentGraph = _graphViewModel.GetGraph();
-        if (currentGraph.Nodes.Count == 0) return;
+        if (currentGraph.Nodes.Count == 0)
+        {
+            return;
+        }
 
         List<CycleGroup>? cycleGroups = null;
         try
@@ -728,7 +750,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        string? response = null;
+        string? response;
         try
         {
             IsLoading = true;
@@ -753,7 +775,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             IsLoading = false;
         }
 
-        if (response != null)
+        if (!string.IsNullOrWhiteSpace(response))
         {
             AiAdvisorWindow.ShowAdvice(response);
         }
@@ -804,18 +826,25 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private async void OnImportSolution()
     {
-        AskUserToSaveProject();
-
-        var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode);
-
-        if (result.IsCanceled)
+        try
         {
-            return;
+            AskUserToSaveProject();
+
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode);
+
+            if (result.IsCanceled)
+            {
+                return;
+            }
+
+            if (result.IsSuccess)
+            {
+                CompleteImport(result.Data!);
+            }
         }
-
-        if (result.IsSuccess)
+        catch (Exception e)
         {
-            CompleteImport(result.Data!);
+            Trace.WriteLine($"Failed {nameof(OnImportSolution)} {e}");
         }
     }
 
@@ -986,7 +1015,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnSaveProject()
     {
-        if (_codeGraph is null || _graphViewModel is null) return;
+        if (_codeGraph is null || _graphViewModel is null)
+        {
+            return;
+        }
 
         var projectData = CollectProjectData();
 
