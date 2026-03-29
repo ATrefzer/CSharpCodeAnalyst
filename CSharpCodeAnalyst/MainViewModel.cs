@@ -61,7 +61,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
     private readonly IUserNotification _ui;
-    private readonly UserSettings _userSettings;
+    private UserSettings _userSettings;
     private Table? _analyzerResult;
     private ApplicationSettings _applicationSettings;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
@@ -588,7 +588,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnOpenSettingsDialog()
     {
-        var settingsDialog = new SettingsDialog(_applicationSettings)
+        var settingsDialog = new SettingsDialog(_applicationSettings, _userSettings)
         {
             Owner = Application.Current.MainWindow,
             WindowStartupLocation = WindowStartupLocation.CenterOwner
@@ -596,17 +596,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         if (settingsDialog.ShowDialog() == true)
         {
-            _applicationSettings = settingsDialog.Settings;
-            ApplySettings();
+            _applicationSettings = settingsDialog.AppSettings;
+            _userSettings = settingsDialog.UserSettings;
+            SaveSettings();
         }
-    }
-
-    private void ApplySettings()
-    {
-        // Settings must be reloaded
-
-        // Save settings to configuration file
-        SaveSettings();
     }
 
     private void SaveSettings()
@@ -615,10 +608,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             var appSettingsPath = Path.Join(Directory.GetCurrentDirectory(), "appsettings.json");
             _applicationSettings.Save(appSettingsPath);
+            _userSettings.Save();
         }
         catch (Exception ex)
         {
-            // Log error or show message to user
             _ui.ShowError($"{Strings.Settings_Save_Error} {ex.Message}");
         }
     }
@@ -713,7 +706,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var endpoint = UserSettings.Instance.AiEndpoint;
+        var endpoint = _userSettings.AiEndpoint;
         if (string.IsNullOrWhiteSpace(endpoint) || !AiCredentialStorage.HasApiKey())
         {
             ToastManager.ShowWarning(Strings.AiAdvisor_NoEndpoint);
@@ -757,7 +750,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             LoadMessage = Strings.AiAdvisor_Querying;
             var apiKey = AiCredentialStorage.LoadApiKey();
             response = await _aiAdvisorService.GetCycleAdviceAsync(
-                cycleGroups[0], endpoint, apiKey, UserSettings.Instance.AiModel);
+                cycleGroups[0], endpoint, apiKey, _userSettings.AiModel);
         }
         catch (AiClientException ex)
         {
