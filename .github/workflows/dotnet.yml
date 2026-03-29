@@ -46,19 +46,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Create or update Release with fix tag "latest"
-      - name: Create or Update Latest Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: "v${{ env.BUILD_VERSION }} (Latest)"
-          body: |
-            Automated build **v${{ env.BUILD_VERSION }}**
-            - Build number: ${{ github.run_number }}
-            - Commit: ${{ github.sha }}
-            - Triggered by: ${{ github.actor }}
-          draft: false
-          prerelease: false
-          files: |
-            latest-release.zip
+      - name: Create Latest Release
+        run: |
+          gh release create latest latest-release.zip `
+            --title "v${{ env.BUILD_VERSION }} (Latest)" `
+            --notes "Automated build **v${{ env.BUILD_VERSION }}**
+          - Build number: ${{ github.run_number }}
+          - Commit: ${{ github.sha }}
+          - Triggered by: ${{ github.actor }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
