@@ -1,5 +1,4 @@
 name: .NET Build and Release (Latest)
-
 on:
   # Commenting out automatic triggers
   # push:
@@ -9,24 +8,19 @@ on:
 
   # Manually trigger release
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: windows-latest
     env:
       BUILD_VERSION: 0.9.${{ github.run_number }}
-
     steps:
-      - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v6
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-
       - name: Restore dependencies
         run: dotnet restore
   
@@ -53,7 +47,7 @@ jobs:
 
       # Create or update Release with fix tag "latest"
       - name: Create or Update Latest Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: "v${{ env.BUILD_VERSION }} (Latest)"
