@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
 ///     Isolates source pattern from any external dependencies

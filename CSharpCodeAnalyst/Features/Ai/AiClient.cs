@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace CSharpCodeAnalyst.Ai;
+namespace CSharpCodeAnalyst.Features.Ai;
 
 /// <summary>
 ///     Sends a single user prompt to an LLM endpoint and returns the response text.

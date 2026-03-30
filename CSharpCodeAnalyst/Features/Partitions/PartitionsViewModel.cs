@@ -3,7 +3,7 @@ using System.Windows;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Areas.PartitionsArea;
+namespace CSharpCodeAnalyst.Features.Partitions;
 
 public class PartitionsViewModel : Table
 {
@@ -36,7 +36,7 @@ public class PartitionsViewModel : Table
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Areas/Shared/CodeElementLineTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Shared/UI/CodeElementLineTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }

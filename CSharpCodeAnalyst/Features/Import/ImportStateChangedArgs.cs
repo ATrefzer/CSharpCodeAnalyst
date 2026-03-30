@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Import;
+﻿namespace CSharpCodeAnalyst.Features.Import;
 
 public class ImportStateChangedArgs(string progressMessage, bool isLoading) : EventArgs
 {

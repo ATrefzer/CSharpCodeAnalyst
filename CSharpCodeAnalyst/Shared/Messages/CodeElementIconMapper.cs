@@ -1,7 +1,7 @@
 using System.Windows.Media.Imaging;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Messages;
+namespace CSharpCodeAnalyst.Shared.Messages;
 
 public static class CodeElementIconMapper
 {

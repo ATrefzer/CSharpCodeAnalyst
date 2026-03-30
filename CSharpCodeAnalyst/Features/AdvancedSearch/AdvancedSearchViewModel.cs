@@ -4,12 +4,12 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Refactoring;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Features.Refactoring;
+using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
+namespace CSharpCodeAnalyst.Features.AdvancedSearch;
 
 public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
 {

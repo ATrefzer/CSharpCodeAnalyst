@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public partial class GraphSearchControl : UserControl
 {

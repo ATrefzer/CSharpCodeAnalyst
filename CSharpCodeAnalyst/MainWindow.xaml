@@ -7,11 +7,11 @@
                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                      mc:Ignorable="d"
                      xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
-                     xmlns:graphArea="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
-                     xmlns:infoArea="clr-namespace:CSharpCodeAnalyst.Areas.InfoArea"
                      xmlns:dynamicDataGrid1="clr-namespace:CSharpCodeAnalyst.Shared.DynamicDataGrid"
-                     xmlns:treeArea="clr-namespace:CSharpCodeAnalyst.Areas.TreeArea"
-                     xmlns:advancedSearchArea="clr-namespace:CSharpCodeAnalyst.Areas.AdvancedSearchArea"
+                     xmlns:tree="clr-namespace:CSharpCodeAnalyst.Features.Tree"
+                     xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
+                     xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
+                     xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -368,17 +368,17 @@
 
                     <!-- Tree View Tab -->
                     <TabItem Header="Tree View">
-                        <treeArea:TreeControl x:Name="TreeControl" DataContext="{Binding TreeViewModel}" />
+                        <tree:TreeControl x:Name="TreeControl" DataContext="{Binding TreeViewModel}" />
                     </TabItem>
 
                     <!-- Search Tab -->
                     <TabItem Header="Advanced Search">
-                        <advancedSearchArea:AdvancedSearchControl DataContext="{Binding SearchViewModel}" />
+                        <advancedSearch:AdvancedSearchControl DataContext="{Binding SearchViewModel}" />
                     </TabItem>
 
                     <!-- Info Panel -->
                     <TabItem Header="{x:Static resources:Strings.InfoPanel_TabHeader}">
-                        <infoArea:InfoPanel DataContext="{Binding InfoPanelViewModel}" />
+                        <info:InfoPanel DataContext="{Binding InfoPanelViewModel}" />
                     </TabItem>
 
                 </TabControl>
@@ -397,7 +397,7 @@
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}" x:Name="WorkingArea">
                 <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
-                    <graphArea:CodeExplorerControl x:Name="ExplorationControl" />
+                    <graph:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">

@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 public partial class CreateCodeElementDialog : Window
 {

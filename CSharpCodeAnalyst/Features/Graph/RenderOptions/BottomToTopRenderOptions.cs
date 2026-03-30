@@ -1,7 +1,7 @@
 ﻿using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
+namespace CSharpCodeAnalyst.Features.Graph.RenderOptions;
 
 internal class BottomToTopRenderOptions : RenderOption
 {
@@ -10,7 +10,7 @@ internal class BottomToTopRenderOptions : RenderOption
         Name = Strings.Bottom_To_Top_Label;
     }
 
-    public override void Apply(Graph graph)
+    public override void Apply(Microsoft.Msagl.Drawing.Graph graph)
     {
         graph.Attr.LayerDirection = LayerDirection.BT;
     }

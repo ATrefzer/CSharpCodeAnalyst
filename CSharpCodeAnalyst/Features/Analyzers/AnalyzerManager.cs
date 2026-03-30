@@ -1,8 +1,8 @@
-﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
-using CSharpCodeAnalyst.Common;
+﻿using CSharpCodeAnalyst.Features.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Analyzers;
+namespace CSharpCodeAnalyst.Features.Analyzers;
 
 internal class AnalyzerManager : IAnalyzerManager
 {

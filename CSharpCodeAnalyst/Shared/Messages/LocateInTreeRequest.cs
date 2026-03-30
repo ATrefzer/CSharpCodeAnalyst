@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Messages;
+﻿namespace CSharpCodeAnalyst.Shared.Messages;
 
 public class LocateInTreeRequest(string id)
 {

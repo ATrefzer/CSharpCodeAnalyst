@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
+namespace CSharpCodeAnalyst.Features.Analyzers.EventRegistration;
 
 public class Result
 {

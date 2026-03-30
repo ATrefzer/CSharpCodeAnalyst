@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
 
 public static class ViolationsFormatter
 {

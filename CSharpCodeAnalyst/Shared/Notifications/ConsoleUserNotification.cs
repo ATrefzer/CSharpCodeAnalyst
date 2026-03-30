@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Shared.Notifications;
 
 internal class ConsoleUserNotification : IUserNotification
 {

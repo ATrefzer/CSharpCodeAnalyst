@@ -5,8 +5,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst;

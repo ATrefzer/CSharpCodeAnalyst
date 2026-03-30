@@ -1,12 +1,12 @@
-﻿<UserControl x:Class="CSharpCodeAnalyst.Areas.GraphArea.CodeExplorerControl"
+﻿<UserControl x:Class="CSharpCodeAnalyst.Features.Graph.CodeExplorerControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
-             xmlns:local="clr-namespace:CSharpCodeAnalyst.Areas.GraphArea"
              xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
              xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
              mc:Ignorable="d"
              x:Name="CodeExplorationControl"
              d:DataContext="{d:DesignInstance analyst:MainViewModel}"
@@ -109,7 +109,7 @@
 
                     </StackPanel>
                 </Border>
-                <local:GraphSearchControl x:Name="SearchControl"
+                <graph:GraphSearchControl x:Name="SearchControl"
                                           HorizontalAlignment="Right"
                                           VerticalAlignment="Top"
                                           Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"

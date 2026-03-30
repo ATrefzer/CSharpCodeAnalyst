@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Minimum state required to restore a graph session.

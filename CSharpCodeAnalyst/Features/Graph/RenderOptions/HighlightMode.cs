@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
+﻿namespace CSharpCodeAnalyst.Features.Graph.RenderOptions;
 
 public enum HighlightMode
 {

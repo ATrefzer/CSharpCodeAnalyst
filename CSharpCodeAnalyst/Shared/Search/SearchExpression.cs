@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Shared.Search;
 
 /// <summary>
 ///     Helper to build (very) simple search expressions with AND/OR/TERM

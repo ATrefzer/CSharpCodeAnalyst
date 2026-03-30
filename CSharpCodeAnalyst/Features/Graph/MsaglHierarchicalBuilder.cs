@@ -1,8 +1,8 @@
 ﻿using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Transformation of a CodGraph to Msagl graph structure.
@@ -11,16 +11,16 @@ namespace CSharpCodeAnalyst.Areas.GraphArea;
 /// </summary>
 internal class MsaglHierarchicalBuilder : MsaglBuilderBase
 {
-    public override Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
+    public override Microsoft.Msagl.Drawing.Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter)
     {
         return CreateHierarchicalGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
 
-    private Graph CreateHierarchicalGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
+    private Microsoft.Msagl.Drawing.Graph CreateHierarchicalGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         var visibleGraph = GetVisibleGraph(codeGraph, presentationState, hideFilter);
-        var graph = new Graph("graph");
+        var graph = new Microsoft.Msagl.Drawing.Graph("graph");
         var subGraphs = CreateSubGraphs(codeGraph, visibleGraph, presentationState);
 
         AddNodesToHierarchicalGraph(graph, visibleGraph, codeGraph, subGraphs, presentationState);
@@ -64,7 +64,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    protected override Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
+    protected override Node CreateNode(Microsoft.Msagl.Drawing.Graph graph, CodeElement codeElement, PresentationState presentationState)
     {
         var node = base.CreateNode(graph, codeElement, presentationState);
 
@@ -77,7 +77,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return node;
     }
 
-    private void AddNodesToHierarchicalGraph(Graph graph, CodeGraph.Graph.CodeGraph visibleGraph, CodeGraph.Graph.CodeGraph codeGraph,
+    private void AddNodesToHierarchicalGraph(Microsoft.Msagl.Drawing.Graph graph, CodeGraph.Graph.CodeGraph visibleGraph, CodeGraph.Graph.CodeGraph codeGraph,
         Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         // Add nodes and sub graphs. Each node that has children becomes a subgraph.
@@ -99,7 +99,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private static void AddSubgraphToParent(Graph graph, CodeElement visibleNode, Subgraph subGraph,
+    private static void AddSubgraphToParent(Microsoft.Msagl.Drawing.Graph graph, CodeElement visibleNode, Subgraph subGraph,
         Dictionary<string, Subgraph> subGraphs)
     {
         if (visibleNode.Parent == null)
@@ -112,7 +112,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private void AddNodeToParent(Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
+    private void AddNodeToParent(Microsoft.Msagl.Drawing.Graph graph, CodeElement node, Dictionary<string, Subgraph> subGraphs, PresentationState presentationState)
     {
         var newNode = CreateNode(graph, node, presentationState);
         if (node.Parent != null)
@@ -121,7 +121,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         }
     }
 
-    private void AddEdgesToHierarchicalGraph(Graph graph, CodeGraph.Graph.CodeGraph codeGraph, CodeGraph.Graph.CodeGraph visibleGraph, bool showInformationFlow, PresentationState state,
+    private void AddEdgesToHierarchicalGraph(Microsoft.Msagl.Drawing.Graph graph, CodeGraph.Graph.CodeGraph codeGraph, CodeGraph.Graph.CodeGraph visibleGraph, bool showInformationFlow, PresentationState state,
         GraphHideFilter hideFilter)
     {
         var relationships = GetCollapsedRelationships(codeGraph, visibleGraph, showInformationFlow, hideFilter);
@@ -235,7 +235,7 @@ internal class MsaglHierarchicalBuilder : MsaglBuilderBase
         return false;
     }
 
-    private static void CreateEdgeForHierarchicalStructure(Graph graph,
+    private static void CreateEdgeForHierarchicalStructure(Microsoft.Msagl.Drawing.Graph graph,
         KeyValuePair<(string source, string target), List<Relationship>> mappedRelationships, PresentationState state)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.

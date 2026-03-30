@@ -3,7 +3,7 @@ using System.Windows;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Filter;
+namespace CSharpCodeAnalyst.Shared.Filter;
 
 public partial class FilterDialog
 {

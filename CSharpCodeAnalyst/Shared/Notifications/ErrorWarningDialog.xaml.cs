@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Shared.Notifications;
 
 public partial class ErrorWarningDialog : Window
 {

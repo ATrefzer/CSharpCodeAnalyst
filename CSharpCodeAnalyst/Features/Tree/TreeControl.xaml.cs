@@ -2,10 +2,10 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Areas.TreeArea;
+namespace CSharpCodeAnalyst.Features.Tree;
 
 public partial class TreeControl : UserControl
 {

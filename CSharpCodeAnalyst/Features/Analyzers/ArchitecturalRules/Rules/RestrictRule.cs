@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
 ///     Restricts source to only depend on target patterns (all others are denied)

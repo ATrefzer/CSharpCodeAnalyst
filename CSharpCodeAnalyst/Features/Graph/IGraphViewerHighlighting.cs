@@ -1,6 +1,6 @@
 ﻿using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public interface IGraphViewerHighlighting
 {

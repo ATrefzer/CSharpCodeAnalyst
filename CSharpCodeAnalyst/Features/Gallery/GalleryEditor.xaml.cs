@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace CSharpCodeAnalyst.Gallery;
+namespace CSharpCodeAnalyst.Features.Gallery;
 
 /// <summary>
 ///     Interaction logic for GalleryEditor.xaml

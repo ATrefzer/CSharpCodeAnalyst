@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 public sealed class CreateCodeElementDialogViewModel : INotifyPropertyChanged
 {

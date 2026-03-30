@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace CSharpCodeAnalyst.Converters;
+namespace CSharpCodeAnalyst.Shared.Converters;
 
 public class InvertBooleanConverter : IValueConverter
 {

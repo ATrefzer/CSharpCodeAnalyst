@@ -1,8 +1,8 @@
 ﻿using System.Windows.Media.Imaging;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Areas.Shared;
+namespace CSharpCodeAnalyst.Shared.UI;
 
 internal class Sorter : Comparer<CodeElementLineViewModel>
 {

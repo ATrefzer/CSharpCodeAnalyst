@@ -1,13 +1,12 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using CodeGraph.Algorithms.Cycles;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.CycleGroupsArea;
+namespace CSharpCodeAnalyst.Features.CycleGroups;
 
 internal class CycleGroupsViewModel : Table
 {
@@ -81,7 +80,7 @@ internal class CycleGroupsViewModel : Table
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Areas/Shared/CodeElementLineTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Shared/UI/CodeElementLineTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }

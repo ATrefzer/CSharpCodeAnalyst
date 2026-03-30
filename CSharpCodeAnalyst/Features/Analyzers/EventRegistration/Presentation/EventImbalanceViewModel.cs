@@ -5,9 +5,9 @@ using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Services;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.EventRegistration.Presentation;
 
 public class EventImbalanceViewModel : TableRow
 {

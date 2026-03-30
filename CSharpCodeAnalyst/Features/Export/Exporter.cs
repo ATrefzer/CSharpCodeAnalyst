@@ -2,10 +2,10 @@
 using System.IO;
 using System.Windows;
 using CodeGraph.Export;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Export;
+namespace CSharpCodeAnalyst.Features.Export;
 
 /// <summary>
 ///     Facade for various export formats.

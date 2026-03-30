@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 
 /// <summary>
 ///     A line in the detail view. Note a view model is created for each source location in a relationship.

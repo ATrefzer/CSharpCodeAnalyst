@@ -1,11 +1,11 @@
 ﻿using CodeGraph.Graph;
-using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
+using CSharpCodeAnalyst.Features.Analyzers.EventRegistration.Presentation;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration;
+namespace CSharpCodeAnalyst.Features.Analyzers.EventRegistration;
 
 /// <summary>
 ///     Finds imbalances between event registrations and un-registrations.

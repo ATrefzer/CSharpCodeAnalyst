@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace CSharpCodeAnalyst.Areas.InfoArea;
+namespace CSharpCodeAnalyst.Features.Info;
 
 /// <summary>
 ///     Interaction logic for InfoPanel.xaml

@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Shared.Search;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public sealed class GraphSearchViewModel : INotifyPropertyChanged
 {

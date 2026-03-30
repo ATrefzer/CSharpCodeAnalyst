@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Wpf;
+namespace CSharpCodeAnalyst.Shared.Wpf;
 
 internal class Mru(string path, ICommand command)
 {

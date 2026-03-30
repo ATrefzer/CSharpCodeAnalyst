@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Data;
 
-namespace CSharpCodeAnalyst.Converters;
+namespace CSharpCodeAnalyst.Shared.Converters;
 
 public class NumberToVisibilityConverter : IValueConverter
 {

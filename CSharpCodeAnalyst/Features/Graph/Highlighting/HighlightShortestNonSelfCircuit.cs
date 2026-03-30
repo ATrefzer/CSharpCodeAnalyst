@@ -1,11 +1,11 @@
 ﻿using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
+namespace CSharpCodeAnalyst.Features.Graph.Highlighting;
 
 internal class HighlightShortestNonSelfCircuit : HighlightingBase
 {
     private Dictionary<string, IViewerNode> _idToViewerNode = new();
-    private Graph? _lastGraph;
+    private Microsoft.Msagl.Drawing.Graph? _lastGraph;
 
 
     private void Clear(IGraphViewerHighlighting graphViewer)

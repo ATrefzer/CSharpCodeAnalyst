@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Algorithms.Cycles;
 
-namespace CSharpCodeAnalyst.Messages;
+namespace CSharpCodeAnalyst.Shared.Messages;
 
 public class ShowCycleGroupRequest(CycleGroup cycleGroup)
 {

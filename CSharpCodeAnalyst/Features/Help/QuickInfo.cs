@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Help;
+namespace CSharpCodeAnalyst.Features.Help;
 
 public class QuickInfo
 {

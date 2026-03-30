@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Common;
+﻿using CSharpCodeAnalyst.Shared.Search;
 
 namespace CodeParserTests.UnitTests.Search;
 

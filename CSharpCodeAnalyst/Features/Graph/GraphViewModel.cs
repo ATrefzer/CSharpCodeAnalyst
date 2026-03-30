@@ -4,19 +4,19 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
-using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Exploration;
-using CSharpCodeAnalyst.Help;
-using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Refactoring;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
+using CSharpCodeAnalyst.Features.Graph.RenderOptions;
+using CSharpCodeAnalyst.Features.Help;
+using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Defines and handles the context menu commands for the graph viewer.

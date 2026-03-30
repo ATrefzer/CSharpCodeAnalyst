@@ -3,7 +3,7 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 using Microsoft.Win32;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Shared.Notifications;
 
 internal class WindowsUserNotification : IUserNotification
 {

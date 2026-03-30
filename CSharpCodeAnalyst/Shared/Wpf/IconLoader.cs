@@ -1,7 +1,7 @@
 ﻿using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace CSharpCodeAnalyst.Wpf;
+namespace CSharpCodeAnalyst.Shared.Wpf;
 
 internal static class IconLoader
 {

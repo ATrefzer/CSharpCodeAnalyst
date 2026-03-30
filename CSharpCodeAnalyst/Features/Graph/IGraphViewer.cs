@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Windows.Input;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
-using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
-using CSharpCodeAnalyst.Help;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
+using CSharpCodeAnalyst.Features.Graph.RenderOptions;
+using CSharpCodeAnalyst.Features.Help;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public interface IGraphViewer
 {

@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Messages;
+namespace CSharpCodeAnalyst.Shared.Messages;
 
 /// <summary>
 ///     Base class for all refactoring related notifications.

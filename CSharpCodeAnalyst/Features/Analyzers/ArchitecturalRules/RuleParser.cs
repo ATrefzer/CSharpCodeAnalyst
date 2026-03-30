@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
 
 public static class RuleParser
 {

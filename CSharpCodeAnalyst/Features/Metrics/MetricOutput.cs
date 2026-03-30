@@ -1,7 +1,7 @@
 ﻿using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.Attributes;
 
-namespace CSharpCodeAnalyst.Areas.MetricArea;
+namespace CSharpCodeAnalyst.Features.Metrics;
 
 internal class MetricOutput(string metric, string value) : IMetric
 {

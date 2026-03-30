@@ -2,10 +2,11 @@
 using CodeGraph.Export;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
+using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Import;
+namespace CSharpCodeAnalyst.Features.Import;
 
 /// <summary>
 ///     Imports various file format into a CodeGraph.

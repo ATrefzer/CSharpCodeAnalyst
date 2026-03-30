@@ -1,6 +1,6 @@
 ﻿using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
+namespace CSharpCodeAnalyst.Features.Graph.RenderOptions;
 
 public class HighlightOption(HighlightMode mode, string label)
 {

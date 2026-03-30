@@ -3,13 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Help;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Services;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.InfoArea;
+namespace CSharpCodeAnalyst.Features.Info;
 
 internal sealed class InfoPanelViewModel : INotifyPropertyChanged
 {

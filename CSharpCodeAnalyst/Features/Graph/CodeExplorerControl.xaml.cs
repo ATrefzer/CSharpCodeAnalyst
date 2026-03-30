@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public partial class CodeExplorerControl
 {

@@ -2,7 +2,7 @@
 using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Help;
+namespace CSharpCodeAnalyst.Features.Help;
 
 public interface IQuickInfoFactory
 {

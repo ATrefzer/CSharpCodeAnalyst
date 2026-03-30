@@ -1,6 +1,6 @@
 ﻿using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
+namespace CSharpCodeAnalyst.Features.Graph.Highlighting;
 
 internal class OutgoingEdgesOfChildrenAndSelfHighlighting : HighlightingBase
 {

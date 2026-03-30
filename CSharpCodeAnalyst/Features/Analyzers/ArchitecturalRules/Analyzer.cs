@@ -2,13 +2,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
-using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
-using CSharpCodeAnalyst.Common;
+using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
+using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {

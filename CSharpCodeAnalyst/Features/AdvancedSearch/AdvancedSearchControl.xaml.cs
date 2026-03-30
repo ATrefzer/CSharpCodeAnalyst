@@ -4,7 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
+namespace CSharpCodeAnalyst.Features.AdvancedSearch;
 
 public partial class AdvancedSearchControl : UserControl
 {

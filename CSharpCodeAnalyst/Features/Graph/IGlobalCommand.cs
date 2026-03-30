@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 public interface IGlobalCommand
 {

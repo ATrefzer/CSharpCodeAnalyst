@@ -1,6 +1,6 @@
-﻿using CSharpCodeAnalyst.Help;
+﻿using CSharpCodeAnalyst.Features.Help;
 
-namespace CSharpCodeAnalyst.Messages;
+namespace CSharpCodeAnalyst.Shared.Messages;
 
 public class QuickInfoUpdateRequest(List<QuickInfo> quickInfo)
 {

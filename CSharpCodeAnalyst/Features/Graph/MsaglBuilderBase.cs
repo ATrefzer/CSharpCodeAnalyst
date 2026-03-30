@@ -1,9 +1,9 @@
 ﻿using CodeGraph.Colors;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 internal abstract class MsaglBuilderBase
 {
@@ -24,7 +24,7 @@ internal abstract class MsaglBuilderBase
         { RelationshipType.UsesAttribute, false } // Decorated -> Attribute (metadata flow)
     };
 
-    public abstract Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
+    public abstract Microsoft.Msagl.Drawing.Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter);
 
     protected static NodeAttr CreateNodeAttr(CodeElement element, PresentationState presentationState)
@@ -100,7 +100,7 @@ internal abstract class MsaglBuilderBase
         return new Color((byte)r, (byte)g, (byte)b);
     }
 
-    protected virtual Node CreateNode(Graph graph, CodeElement codeElement, PresentationState presentationState)
+    protected virtual Node CreateNode(Microsoft.Msagl.Drawing.Graph graph, CodeElement codeElement, PresentationState presentationState)
     {
         var node = graph.AddNode(codeElement.Id);
         node.LabelText = codeElement.Name;

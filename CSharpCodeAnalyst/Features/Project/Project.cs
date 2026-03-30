@@ -1,11 +1,12 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CSharpCodeAnalyst.Common;
-using CSharpCodeAnalyst.Import;
+using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
+using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Project;
+namespace CSharpCodeAnalyst.Features.Project;
 
 /// <summary>
 ///     Loading and saving project data.

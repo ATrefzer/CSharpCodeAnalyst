@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 public class CodeElementNaming(CodeGraph.Graph.CodeGraph codeGraph, CodeElement? parent) : ICodeElementNaming
 {

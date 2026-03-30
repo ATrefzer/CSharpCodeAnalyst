@@ -2,12 +2,12 @@
               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
               xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
               xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-              xmlns:shared="clr-namespace:CSharpCodeAnalyst.Areas.Shared"
+              xmlns:ui="clr-namespace:CSharpCodeAnalyst.Shared.UI"
               mc:Ignorable="d">
     <ItemsControl ItemsSource="{Binding CodeElements}">
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <Grid Margin="20 0 0 0" d:DataContext="{d:DesignInstance shared:CodeElementLineViewModel }">
+                <Grid Margin="20 0 0 0" d:DataContext="{d:DesignInstance ui:CodeElementLineViewModel }">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />

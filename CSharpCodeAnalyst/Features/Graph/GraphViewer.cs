@@ -6,18 +6,18 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
-using CSharpCodeAnalyst.Areas.GraphArea.Highlighting;
-using CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
-using CSharpCodeAnalyst.Help;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
+using CSharpCodeAnalyst.Features.Graph.Highlighting;
+using CSharpCodeAnalyst.Features.Graph.RenderOptions;
+using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Msagl.Core.Routing;
 using Microsoft.Msagl.Drawing;
 using Node = Microsoft.Msagl.Drawing.Node;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Note:
@@ -730,7 +730,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
                     var elements = graph.Nodes.Count() + graph.Edges.Count() + graph.SubgraphMap.Count;
                     if (!ShouldProceedWithLargeGraph(elements))
                     {
-                        _msaglViewer.Graph = new Graph();
+                        _msaglViewer.Graph = new Microsoft.Msagl.Drawing.Graph();
                         return false;
                     }
                 }

@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+namespace CSharpCodeAnalyst.Features.Graph.Filtering;
 
 public sealed class GraphHideDialogViewModel : INotifyPropertyChanged
 {

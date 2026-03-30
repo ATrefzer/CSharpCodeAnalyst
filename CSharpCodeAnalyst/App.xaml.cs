@@ -2,17 +2,16 @@
 using System.Windows;
 using CodeGraph.Exploration;
 using CodeParser.Parser;
-using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.InfoArea;
-using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.CommandLine;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Refactoring;
+using CSharpCodeAnalyst.Features.AdvancedSearch;
+using CSharpCodeAnalyst.Features.Analyzers;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Features.Info;
+using CSharpCodeAnalyst.Features.Refactoring;
+using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Notifications;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;

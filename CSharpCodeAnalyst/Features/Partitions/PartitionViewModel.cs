@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
-using CSharpCodeAnalyst.Areas.Shared;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.Shared.UI;
 
-namespace CSharpCodeAnalyst.Areas.PartitionsArea;
+namespace CSharpCodeAnalyst.Features.Partitions;
 
 public class PartitionViewModel : TableRow
 {

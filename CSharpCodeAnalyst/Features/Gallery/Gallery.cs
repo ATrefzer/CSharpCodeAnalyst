@@ -1,7 +1,7 @@
-﻿using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Messages;
+﻿using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Gallery;
+namespace CSharpCodeAnalyst.Features.Gallery;
 
 [Serializable]
 public class Gallery

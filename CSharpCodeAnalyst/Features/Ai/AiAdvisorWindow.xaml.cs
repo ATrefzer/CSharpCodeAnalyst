@@ -1,10 +1,9 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Input;
 using CSharpCodeAnalyst.Resources;
 using Microsoft.Win32;
 
-namespace CSharpCodeAnalyst.Ai;
+namespace CSharpCodeAnalyst.Features.Ai;
 
 public partial class AiAdvisorWindow
 {

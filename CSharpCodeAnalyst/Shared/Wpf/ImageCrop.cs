@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media.Imaging;
 
-namespace CSharpCodeAnalyst.Wpf;
+namespace CSharpCodeAnalyst.Shared.Wpf;
 
 public static class ImageCrop
 {

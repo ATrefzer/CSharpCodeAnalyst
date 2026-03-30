@@ -2,7 +2,7 @@ using CodeGraph.Algorithms.Cycles;
 using CodeGraph.Export;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Ai;
+namespace CSharpCodeAnalyst.Features.Ai;
 
 /// <summary>
 ///     Orchestrates AI-assisted cycle analysis: builds the prompt, calls the LLM, returns the Markdown response.

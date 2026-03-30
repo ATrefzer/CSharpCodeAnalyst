@@ -1,11 +1,11 @@
 using System.Windows;
-using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
-using CSharpCodeAnalyst.Areas.TreeArea;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Features.AdvancedSearch;
+using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 using GongSolutions.Wpf.DragDrop;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Handles drag and drop operations from the TreeView to the Graph area.

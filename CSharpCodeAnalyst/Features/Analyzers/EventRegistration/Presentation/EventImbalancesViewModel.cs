@@ -3,7 +3,7 @@ using System.Windows;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.EventRegistration.Presentation;
 
 internal class EventImbalancesViewModel : Table
 {
@@ -37,7 +37,7 @@ internal class EventImbalancesViewModel : Table
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Analyzers/EventRegistration/Presentation/SourceLocationTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Features/Analyzers/EventRegistration/Presentation/SourceLocationTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }

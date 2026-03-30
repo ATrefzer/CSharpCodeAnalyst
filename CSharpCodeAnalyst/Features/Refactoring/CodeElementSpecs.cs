@@ -1,6 +1,6 @@
 ﻿using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 public class CodeElementSpecs(CodeElementType elementType, string name)
 {

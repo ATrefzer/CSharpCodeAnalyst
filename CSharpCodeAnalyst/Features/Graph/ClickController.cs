@@ -3,7 +3,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 internal enum States
 {

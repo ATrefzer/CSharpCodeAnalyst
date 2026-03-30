@@ -11,32 +11,31 @@ using CodeGraph.Algorithms.Metrics;
 using CodeGraph.Algorithms.Partitioning;
 using CodeGraph.Graph;
 using CodeParser.Parser.Config;
-using CSharpCodeAnalyst.Ai;
-using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
-using CSharpCodeAnalyst.Areas.CycleGroupsArea;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.InfoArea;
-using CSharpCodeAnalyst.Areas.MetricArea;
-using CSharpCodeAnalyst.Areas.PartitionsArea;
-using CSharpCodeAnalyst.Areas.Shared;
-using CSharpCodeAnalyst.Areas.TreeArea;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Export;
-using CSharpCodeAnalyst.Filter;
-using CSharpCodeAnalyst.Gallery;
-using CSharpCodeAnalyst.Help;
-using CSharpCodeAnalyst.Import;
-using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Project;
-using CSharpCodeAnalyst.Refactoring;
+using CSharpCodeAnalyst.Features.AdvancedSearch;
+using CSharpCodeAnalyst.Features.Ai;
+using CSharpCodeAnalyst.Features.Analyzers;
+using CSharpCodeAnalyst.Features.CycleGroups;
+using CSharpCodeAnalyst.Features.Export;
+using CSharpCodeAnalyst.Features.Gallery;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Features.Help;
+using CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Features.Info;
+using CSharpCodeAnalyst.Features.Metrics;
+using CSharpCodeAnalyst.Features.Partitions;
+using CSharpCodeAnalyst.Features.Project;
+using CSharpCodeAnalyst.Features.Refactoring;
+using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.Shared.Filter;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Notifications;
 using CSharpCodeAnalyst.Shared.UI;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst;
 
@@ -56,7 +55,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
-    private readonly Project.Project _project;
+    private readonly Project _project;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
@@ -69,7 +68,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private Table? _cycles;
 
     private DirtyState _dirtyState = DirtyState.Saved;
-    private Gallery.Gallery? _gallery;
+    private Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
     private InfoPanelViewModel? _infoPanelViewModel;
@@ -106,7 +105,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _importer = new Importer(_ui);
         _exporter = new Exporter(_ui);
         _importer.ImportStateChanged += OnUpdateProgress;
-        _project = new Project.Project(_ui);
+        _project = new Project(_ui);
         _project.LoadingStateChanged += OnUpdateProgress;
 
 
@@ -128,7 +127,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         _messaging = messaging;
-        _gallery = new Gallery.Gallery();
+        _gallery = new Gallery();
         SearchCommand = new WpfCommand(Search);
         LoadSolutionCommand = new WpfCommand(OnImportSolution);
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
@@ -845,7 +844,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         LoadDefaultSettings();
         LoadCodeGraph(graph);
-        _gallery = new Gallery.Gallery();
+        _gallery = new Gallery();
         OpenProjectFilePath = string.Empty;
         SetDirty(false);
         IsCanvasHintsVisible = false;
@@ -1122,7 +1121,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         var projectData = new ProjectData();
         projectData.SetCodeGraph(_codeGraph!);
-        projectData.SetGallery(_gallery ?? new Gallery.Gallery());
+        projectData.SetGallery(_gallery ?? new Gallery());
         projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel!.ShowFlatGraph.ToString();
         projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
         projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();

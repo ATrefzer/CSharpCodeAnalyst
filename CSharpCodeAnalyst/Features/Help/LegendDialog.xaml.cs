@@ -3,7 +3,7 @@ using System.Windows.Media;
 using CodeGraph.Colors;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Help;
+namespace CSharpCodeAnalyst.Features.Help;
 
 public partial class LegendDialog
 {

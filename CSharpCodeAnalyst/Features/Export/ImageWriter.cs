@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Export;
+namespace CSharpCodeAnalyst.Features.Export;
 
 /// <summary>
 ///     This class was taken from https://github.com/microsoft/automatic-graph-layout samples.

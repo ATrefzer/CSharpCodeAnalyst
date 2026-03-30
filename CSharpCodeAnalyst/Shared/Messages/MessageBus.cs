@@ -1,6 +1,6 @@
 ﻿using CSharpCodeAnalyst.Shared.Contracts;
 
-namespace CSharpCodeAnalyst.Common;
+namespace CSharpCodeAnalyst.Shared.Messages;
 
 public class MessageBus : ISubscriber, IPublisher
 {

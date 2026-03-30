@@ -2,7 +2,7 @@
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 public class RefactoringInteraction : IRefactoringInteraction
 {

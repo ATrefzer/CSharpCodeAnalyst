@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 /// <summary>
 ///     Global command to work on all selected code elements

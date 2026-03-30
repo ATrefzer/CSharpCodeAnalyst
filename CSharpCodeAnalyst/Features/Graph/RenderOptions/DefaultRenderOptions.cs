@@ -1,7 +1,7 @@
 ﻿using CSharpCodeAnalyst.Resources;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
+namespace CSharpCodeAnalyst.Features.Graph.RenderOptions;
 
 public class DefaultRenderOptions : RenderOption
 {
@@ -10,7 +10,7 @@ public class DefaultRenderOptions : RenderOption
         Name = Strings.Default_Label;
     }
 
-    public override void Apply(Graph graph)
+    public override void Apply(Microsoft.Msagl.Drawing.Graph graph)
     {
         graph.Attr.LayerDirection = LayerDirection.TB;
     }

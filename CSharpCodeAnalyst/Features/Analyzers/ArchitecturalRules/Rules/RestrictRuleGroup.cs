@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
 ///     Groups multiple RESTRICT rules with the same source pattern

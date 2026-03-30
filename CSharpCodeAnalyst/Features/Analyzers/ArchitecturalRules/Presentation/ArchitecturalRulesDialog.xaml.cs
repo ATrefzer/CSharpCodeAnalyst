@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.Win32;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 
 public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 {

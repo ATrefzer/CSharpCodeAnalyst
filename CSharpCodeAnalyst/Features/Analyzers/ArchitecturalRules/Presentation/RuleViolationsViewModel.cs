@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 
 public class RuleViolationsViewModel : Table
 {

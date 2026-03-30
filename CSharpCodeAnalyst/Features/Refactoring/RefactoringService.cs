@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Messages;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Refactoring;
+namespace CSharpCodeAnalyst.Features.Refactoring;
 
 /// <summary>
 ///     Service for virtual refactorings - modifying the code graph without changing source code.

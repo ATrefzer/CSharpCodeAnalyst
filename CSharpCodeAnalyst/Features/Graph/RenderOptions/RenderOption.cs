@@ -1,6 +1,4 @@
-﻿using Microsoft.Msagl.Drawing;
-
-namespace CSharpCodeAnalyst.Areas.GraphArea.RenderOptions;
+﻿namespace CSharpCodeAnalyst.Features.Graph.RenderOptions;
 
 public abstract class RenderOption
 {
@@ -11,5 +9,5 @@ public abstract class RenderOption
         return Name;
     }
 
-    public abstract void Apply(Graph graph);
+    public abstract void Apply(Microsoft.Msagl.Drawing.Graph graph);
 }

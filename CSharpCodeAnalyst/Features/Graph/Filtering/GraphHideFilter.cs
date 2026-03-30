@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+namespace CSharpCodeAnalyst.Features.Graph.Filtering;
 
 /// <summary>
 ///     Represents which CodeElement types and Relationship types should be hidden from the graph view.

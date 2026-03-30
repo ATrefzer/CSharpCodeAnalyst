@@ -2,9 +2,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Areas.AdvancedSearchArea;
+namespace CSharpCodeAnalyst.Features.AdvancedSearch;
 
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public sealed class SearchItemViewModel : INotifyPropertyChanged

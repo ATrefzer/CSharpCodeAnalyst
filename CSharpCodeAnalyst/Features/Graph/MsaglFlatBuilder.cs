@@ -1,22 +1,22 @@
 ﻿using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
 using Microsoft.Msagl.Drawing;
 
-namespace CSharpCodeAnalyst.Areas.GraphArea;
+namespace CSharpCodeAnalyst.Features.Graph;
 
 internal class MsaglFlatBuilder : MsaglBuilderBase
 {
-    public override Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
+    public override Microsoft.Msagl.Drawing.Graph CreateGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState,
         bool showInformationFlow, GraphHideFilter hideFilter)
     {
         return CreateFlatGraph(codeGraph, presentationState, showInformationFlow, hideFilter);
     }
 
-    private Graph CreateFlatGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
+    private Microsoft.Msagl.Drawing.Graph CreateFlatGraph(CodeGraph.Graph.CodeGraph codeGraph, PresentationState presentationState, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         // Since we start with a fresh graph we don't need to check for existing nodes and edges.
 
-        var graph = new Graph("graph");
+        var graph = new Microsoft.Msagl.Drawing.Graph("graph");
 
         // Add nodes (excluding hidden ones)
         foreach (var codeElement in codeGraph.Nodes.Values)
@@ -69,7 +69,7 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
         }
     }
 
-    private static void CreateContainmentEdge(Graph graph, Relationship relationship)
+    private static void CreateContainmentEdge(Microsoft.Msagl.Drawing.Graph graph, Relationship relationship)
     {
         var edge = graph.AddEdge(relationship.SourceId, relationship.TargetId);
         edge.LabelText = "";
@@ -78,7 +78,7 @@ internal class MsaglFlatBuilder : MsaglBuilderBase
         edge.UserData = relationship;
     }
 
-    private static void CreateEdgeForFlatStructure(Graph graph, Relationship relationship, bool reverseEdge, PresentationState state)
+    private static void CreateEdgeForFlatStructure(Microsoft.Msagl.Drawing.Graph graph, Relationship relationship, bool reverseEdge, PresentationState state)
     {
         // MSAGL does not allow two same edges with different labels to the same subgraph.
 

@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Shared.Messages;
 
-namespace CSharpCodeAnalyst.Areas.TreeArea;
+namespace CSharpCodeAnalyst.Features.Tree;
 
 [DebuggerDisplay("{Type} {Name}")]
 public sealed class TreeItemViewModel : INotifyPropertyChanged

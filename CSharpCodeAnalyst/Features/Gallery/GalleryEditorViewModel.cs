@@ -1,10 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Input;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Wpf;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Gallery;
+namespace CSharpCodeAnalyst.Features.Gallery;
 
 public sealed class GalleryEditorViewModel : INotifyPropertyChanged
 {
