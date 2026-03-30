@@ -1,5 +1,6 @@
 ﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
 using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Features.Help;

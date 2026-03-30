@@ -5,6 +5,7 @@ using System.Windows.Input;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;

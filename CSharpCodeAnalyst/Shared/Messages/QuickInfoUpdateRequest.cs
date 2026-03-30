@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Features.Help;
+﻿using CSharpCodeAnalyst.Shared;
 
 namespace CSharpCodeAnalyst.Shared.Messages;
 

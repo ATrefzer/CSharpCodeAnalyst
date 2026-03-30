@@ -60,7 +60,7 @@ public class RuleViolationsViewModel : Table
     public override DataTemplate? GetRowDetailsTemplate()
     {
         var uri = new Uri(
-            "/CSharpCodeAnalyst;component/Analyzers/ArchitecturalRules/Presentation/RelationshipViewModelTemplate.xaml",
+            "/CSharpCodeAnalyst;component/Features/Analyzers/ArchitecturalRules/Presentation/RelationshipViewModelTemplate.xaml",
             UriKind.Relative);
         return (DataTemplate)Application.LoadComponent(uri);
     }
