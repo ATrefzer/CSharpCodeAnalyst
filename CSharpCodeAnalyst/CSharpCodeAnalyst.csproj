@@ -16,27 +16,22 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Page Update="Areas\TableArea\Templates\CodeElementLineTemplate.xaml">
+        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
+        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
+        <Page Update="Features\Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
-        <Page Update="Areas\Shared\CodeElementLineTemplate.xaml">
+        <Page Update="Shared\UI\CodeElementLineTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Styles\ImageStyles.xaml">
