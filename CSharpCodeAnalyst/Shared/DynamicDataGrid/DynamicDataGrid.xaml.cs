@@ -82,16 +82,17 @@ public partial class DynamicDataGrid
             return;
         }
 
-        control.RebuildDataGridFromSelfDescribingData();
+        var data = e.NewValue as IEnumerable;
+        control.RebuildDataGridFromSelfDescribingData(data);
     }
 
-    private void RebuildDataGridFromSelfDescribingData()
+    private void RebuildDataGridFromSelfDescribingData(IEnumerable? data)
     {
         try
         {
             ClearColumns();
 
-            var items = SelfDescribingData?.OfType<object>().ToArray();
+            var items = data?.OfType<object>().ToArray();
             if (items is null || items.Length == 0)
             {
                 ShowEmptyState(true);
@@ -105,7 +106,7 @@ public partial class DynamicDataGrid
             }
 
             // Bind data
-            MainDataGrid.ItemsSource = SelfDescribingData;
+            MainDataGrid.ItemsSource = items;
 
             ShowEmptyState(!items.Any());
         }
@@ -499,5 +500,4 @@ public partial class DynamicDataGrid
 
         e.Row.ContextMenuOpening += RowOnContextMenuOpening;
     }
-    
 }
