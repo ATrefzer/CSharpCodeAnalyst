@@ -2,17 +2,16 @@
 using System.Windows;
 using CodeGraph.Exploration;
 using CodeParser.Parser;
-using CSharpCodeAnalyst.Analyzers;
-using CSharpCodeAnalyst.Areas.AdvancedSearchArea;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.InfoArea;
-using CSharpCodeAnalyst.Areas.TreeArea;
 using CSharpCodeAnalyst.CommandLine;
-using CSharpCodeAnalyst.Common;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Messages;
-using CSharpCodeAnalyst.Refactoring;
+using CSharpCodeAnalyst.Features.AdvancedSearch;
+using CSharpCodeAnalyst.Features.Analyzers;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Features.Info;
+using CSharpCodeAnalyst.Features.Refactoring;
+using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Notifications;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
@@ -107,7 +106,7 @@ public partial class App
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer);
+        mainWindow.SetViewer(explorationGraphViewer, messaging);
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);

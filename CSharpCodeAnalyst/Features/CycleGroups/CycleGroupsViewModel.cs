@@ -1,0 +1,87 @@
+using System.Collections.ObjectModel;
+using System.Windows;
+using CodeGraph.Algorithms.Cycles;
+using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Wpf;
+
+namespace CSharpCodeAnalyst.Features.CycleGroups;
+
+internal class CycleGroupsViewModel : Table
+{
+    private readonly ObservableCollection<TableRow> _cycleGroups;
+    private readonly MessageBus _messaging;
+
+    public CycleGroupsViewModel(List<CycleGroup> cycleGroups, MessageBus messaging)
+    {
+        _messaging = messaging;
+        var vms = cycleGroups.Select(g => new CycleGroupViewModel(g));
+        var ordered = vms.OrderBy(g => g.Level).ThenBy(g => g.HighLevelElementCount);
+        _cycleGroups = new ObservableCollection<TableRow>(ordered);
+    }
+
+
+    public override List<CommandDefinition> GetCommands()
+    {
+        return
+        [
+            new CommandDefinition
+            {
+                Header = Strings.CopyToExplorerGraph_MenuItem,
+                Command = new WpfCommand<CycleGroupViewModel>(vm =>
+                {
+                    // Send event to main view model
+                    _messaging.Publish(new ShowCycleGroupRequest(vm.CycleGroup));
+                })
+            }
+        ];
+    }
+
+    public override IEnumerable<TableColumnDefinition> GetColumns()
+    {
+        return new List<TableColumnDefinition>
+        {
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Level_Header,
+                PropertyName = nameof(CycleGroupViewModel.Level),
+                IsExpandable = true
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.ElementCount_Header,
+                PropertyName = nameof(CycleGroupViewModel.HighLevelElementCount)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.CodeElements_Header,
+                PropertyName = nameof(CycleGroupViewModel.CodeElementsDescription),
+                SortMemberName = nameof(CycleGroupViewModel.InvolvedCodeElementsCount)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Cycle_Name,
+                PropertyName = nameof(CycleGroupViewModel.Name),
+                IsExpandable = false
+            },
+        };
+    }
+
+    public override ObservableCollection<TableRow> GetData()
+    {
+        return _cycleGroups;
+    }
+
+    public override DataTemplate? GetRowDetailsTemplate()
+    {
+        var uri = new Uri(
+            "/CSharpCodeAnalyst;component/Shared/UI/CodeElementLineTemplate.xaml",
+            UriKind.Relative);
+        return (DataTemplate)Application.LoadComponent(uri);
+    }
+}

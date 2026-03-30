@@ -1,6 +1,6 @@
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Areas.GraphArea.Filtering;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
 
 namespace CodeParserTests.UnitTests.Graph;
 

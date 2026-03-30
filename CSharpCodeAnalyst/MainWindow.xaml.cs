@@ -5,14 +5,18 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.Areas.GraphArea;
-using CSharpCodeAnalyst.Messages;
+using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst;
 
 public partial class MainWindow
 {
+    public const double TreeMinWidthCollapsed = 24;
+    public const double TreeMinWidthExpanded = 400;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -32,9 +36,9 @@ public partial class MainWindow
         Dispatcher.BeginInvoke(new Action(() =>
         {
             // Always ensure we have a fixed width to prevent jumping
-            if (SplitterColumn.Width.IsAuto || SplitterColumn.Width.Value < Constants.TreeMinWidthExpanded)
+            if (SplitterColumn.Width.IsAuto || SplitterColumn.Width.Value < TreeMinWidthExpanded)
             {
-                SplitterColumn.Width = new GridLength(Constants.TreeMinWidthExpanded);
+                SplitterColumn.Width = new GridLength(TreeMinWidthExpanded);
             }
         }), DispatcherPriority.Loaded);
     }
@@ -66,7 +70,7 @@ public partial class MainWindow
         var newWidth = SplitterColumn.ActualWidth + e.HorizontalChange;
 
         // Set a minimum width (adjust as needed)
-        var minWidth = expander.IsExpanded ? Constants.TreeMinWidthExpanded : Constants.TreeMinWidthCollapsed;
+        var minWidth = expander.IsExpanded ? TreeMinWidthExpanded : TreeMinWidthCollapsed;
 
         if (newWidth < minWidth)
         {
@@ -93,9 +97,9 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer)
+    public void SetViewer(GraphViewer explorationGraphViewer, IPublisher publisher)
     {
-        ExplorationControl.SetViewer(explorationGraphViewer);
+        ExplorationControl.SetViewer(explorationGraphViewer, publisher);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

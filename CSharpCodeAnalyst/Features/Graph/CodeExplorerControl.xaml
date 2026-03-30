@@ -1,0 +1,121 @@
+﻿<UserControl x:Class="CSharpCodeAnalyst.Features.Graph.CodeExplorerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+             xmlns:analyst="clr-namespace:CSharpCodeAnalyst"
+             xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
+             mc:Ignorable="d"
+             x:Name="CodeExplorationControl"
+             d:DataContext="{d:DesignInstance analyst:MainViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="/Styles/DataGridStyles.xaml" />
+                <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+            <Style TargetType="TextBlock" x:Key="HintStyle">
+                <Setter Property="FontSize" Value="22" />
+                <Setter Property="Margin" Value="8" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+        </ResourceDictionary>
+
+
+    </UserControl.Resources>
+    <Grid Background="Transparent" MouseDown="OnMouseButtonDown">
+        <StackPanel
+            IsHitTestVisible="false" Panel.ZIndex="100"
+            Visibility="{Binding IsCanvasHintsVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <TextBlock Text="{x:Static resources:Strings.Hint_ExpandCollapse}" Style="{StaticResource HintStyle}" />
+            <TextBlock Text="{x:Static resources:Strings.Hint_DetailInfo}" Style="{StaticResource HintStyle}" />
+            <TextBlock Text="{x:Static resources:Strings.Hint_Select}" Style="{StaticResource HintStyle}" />
+            <TextBlock Text="{x:Static resources:Strings.Hint_Context}" Style="{StaticResource HintStyle}" />
+            <TextBlock Text="{x:Static resources:Strings.Hint_Panning}" Style="{StaticResource HintStyle}" />
+        </StackPanel>
+        <Border ClipToBounds="True"
+                dd:DragDrop.IsDropTarget="True"
+                dd:DragDrop.DropHandler="{Binding GraphViewModel.DropHandler}">
+            <Grid Background="Transparent">
+                <!-- Top margin to get below the overlay buttons -->
+                <DockPanel x:Name="GraphPanel" Margin="20" />
+
+                <!-- Search Control and tool buttons as overlay -->
+                <!-- The tool buttons replace the global context menu -->
+                <Border
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Margin="0 0 40 0" DataContext="{Binding GraphViewModel}"
+                    CornerRadius="6">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <Button Command="{Binding CompleteToContainingTypesCommand}"
+                                ToolTip="{x:Static resources:Strings.CompleteToTypes}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/puzzle.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding CompleteRelationshipsCommand}"
+                                ToolTip="{x:Static resources:Strings.CompleteRelationships}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/synchronize_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding ClearAllFlagsCommand}"
+                                ToolTip="{x:Static resources:Strings.ClearAllFlags}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/flag-empty_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding FocusOnSelectedCommand}"
+                                ToolTip="{x:Static resources:Strings.SelectedFocus}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/focus_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding ExpandEverythingCommand}"
+                                ToolTip="{x:Static resources:Strings.ExpandEverything}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/expand-all_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding CollapseEverythingCommand}"
+                                ToolTip="{x:Static resources:Strings.CollapseEverything}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/collapse-all_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding AddParentsCommand}"
+                                ToolTip="{x:Static resources:Strings.AddParents_Tooltip}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/add-parent_32.png" Width="24" Height="24" />
+                        </Button>
+
+                        <Button Command="{Binding RemoveSelectedCommand}"
+                                ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"
+                                Style="{StaticResource ToolbarButtonStyle}">
+                            <Image Source="/Resources/trash-can_32.png" Width="24" Height="24" />
+                        </Button>
+
+                    </StackPanel>
+                </Border>
+                <graph:GraphSearchControl x:Name="SearchControl"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Top"
+                                          Visibility="{Binding DataContext.IsGraphToolPanelVisible, ElementName=CodeExplorationControl ,Converter={StaticResource BooleanToVisibilityConverter}}"
+                                          IsHitTestVisible="True" />
+
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
