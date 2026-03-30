@@ -4,6 +4,7 @@ namespace CSharpCodeAnalyst.Shared.Messages;
 
 /// <summary>
 ///     Base class for all refactoring related notifications.
+///     This is one of the few messages that justifies the message bus because it has many subscribers.
 /// </summary>
 public abstract class CodeGraphRefactored(CodeGraph.Graph.CodeGraph codeGraph)
 {

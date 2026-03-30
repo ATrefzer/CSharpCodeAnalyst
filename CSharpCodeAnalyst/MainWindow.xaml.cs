@@ -14,6 +14,9 @@ namespace CSharpCodeAnalyst;
 
 public partial class MainWindow
 {
+    private const double TreeMinWidthCollapsed = 24;
+    private const double TreeMinWidthExpanded = 400;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -33,9 +36,9 @@ public partial class MainWindow
         Dispatcher.BeginInvoke(new Action(() =>
         {
             // Always ensure we have a fixed width to prevent jumping
-            if (SplitterColumn.Width.IsAuto || SplitterColumn.Width.Value < Constants.TreeMinWidthExpanded)
+            if (SplitterColumn.Width.IsAuto || SplitterColumn.Width.Value < TreeMinWidthExpanded)
             {
-                SplitterColumn.Width = new GridLength(Constants.TreeMinWidthExpanded);
+                SplitterColumn.Width = new GridLength(TreeMinWidthExpanded);
             }
         }), DispatcherPriority.Loaded);
     }
@@ -67,7 +70,7 @@ public partial class MainWindow
         var newWidth = SplitterColumn.ActualWidth + e.HorizontalChange;
 
         // Set a minimum width (adjust as needed)
-        var minWidth = expander.IsExpanded ? Constants.TreeMinWidthExpanded : Constants.TreeMinWidthCollapsed;
+        var minWidth = expander.IsExpanded ? TreeMinWidthExpanded : TreeMinWidthCollapsed;
 
         if (newWidth < minWidth)
         {
