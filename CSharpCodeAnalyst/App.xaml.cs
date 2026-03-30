@@ -106,7 +106,7 @@ public partial class App
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer);
+        mainWindow.SetViewer(explorationGraphViewer, messaging);
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);

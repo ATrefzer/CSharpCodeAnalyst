@@ -127,6 +127,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         _messaging = messaging;
+        _messaging.Subscribe<ClearQuickInfoRequest>(_ => ClearQuickInfo());
         _gallery = new Gallery();
         SearchCommand = new WpfCommand(Search);
         LoadSolutionCommand = new WpfCommand(OnImportSolution);

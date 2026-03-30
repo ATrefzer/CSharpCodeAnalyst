@@ -6,6 +6,7 @@ using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
@@ -93,9 +94,9 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer)
+    public void SetViewer(GraphViewer explorationGraphViewer, IPublisher publisher)
     {
-        ExplorationControl.SetViewer(explorationGraphViewer);
+        ExplorationControl.SetViewer(explorationGraphViewer, publisher);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

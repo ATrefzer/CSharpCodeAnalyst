@@ -1,18 +1,22 @@
 ﻿using System.Windows.Input;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 
 namespace CSharpCodeAnalyst.Features.Graph;
 
 public partial class CodeExplorerControl
 {
     private GraphSearchViewModel? _searchViewModel;
+    private IPublisher? _publisher;
 
     public CodeExplorerControl()
     {
         InitializeComponent();
     }
 
-    public void SetViewer(IGraphBinding graphViewer)
+    public void SetViewer(IGraphBinding graphViewer, IPublisher publisher)
     {
+        _publisher = publisher;
         graphViewer.Bind(GraphPanel);
 
         // Initialize search functionality if the viewer implements IGraphViewer
@@ -25,25 +29,8 @@ public partial class CodeExplorerControl
 
     private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
     {
-        // Better user experience.
-        // Allow context menu in space not occupied by the graph canvas
-        // if (DataContext is MainViewModel mainVm && e is
-        //     {
-        //         ButtonState: MouseButtonState.Pressed,
-        //         ChangedButton: MouseButton.Right
-        //     })
-        // {
-        //     // Replaced by toolbar
-        //     mainVm.GraphViewModel?.ShowGlobalContextMenu();
-        //   
-        // }
-
         // If this is called no viewer object was hit. If an object was clicked while the info area is not visible
-        // It is ignored, but the viewer locks the last clicked object.
-        if (DataContext is MainViewModel mainVm)
-        {
-            mainVm.ClearQuickInfo();    
-        }
-        
+        // it is ignored, but the viewer locks the last clicked object.
+        _publisher?.Publish(new ClearQuickInfoRequest());
     }
 }
