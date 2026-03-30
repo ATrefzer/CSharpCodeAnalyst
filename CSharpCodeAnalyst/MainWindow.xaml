@@ -350,10 +350,10 @@
 
                 <Expander.Style>
                     <Style TargetType="Expander">
-                        <Setter Property="MinWidth" Value="24" />
+                        <Setter Property="MinWidth" Value="{x:Static analyst:MainWindow.TreeMinWidthCollapsed}" />
                         <Style.Triggers>
                             <Trigger Property="IsExpanded" Value="True">
-                                <Setter Property="MinWidth" Value="400" />
+                                <Setter Property="MinWidth" Value="{x:Static analyst:MainWindow.TreeMinWidthExpanded}" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>

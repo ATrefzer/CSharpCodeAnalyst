@@ -14,8 +14,8 @@ namespace CSharpCodeAnalyst;
 
 public partial class MainWindow
 {
-    private const double TreeMinWidthCollapsed = 24;
-    private const double TreeMinWidthExpanded = 400;
+    public const double TreeMinWidthCollapsed = 24;
+    public const double TreeMinWidthExpanded = 400;
 
     public MainWindow()
     {
