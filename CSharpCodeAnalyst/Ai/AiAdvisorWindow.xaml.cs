@@ -59,7 +59,7 @@ public partial class AiAdvisorWindow
 
         if (dialog.ShowDialog() == true)
         {
-            File.WriteAllText(dialog.FileName, MarkdownViewer.Markdown);
+            File.WriteAllText(dialog.FileName, MarkdownViewer.Markdown ?? string.Empty);
         }
     }
 

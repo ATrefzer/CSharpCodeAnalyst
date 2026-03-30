@@ -5,15 +5,14 @@ namespace CSharpCodeAnalyst.Configuration;
 
 public class ApplicationSettings
 {
-    private string _defaultProjectExcludeFilter = string.Empty;
     public int WarningCodeElementLimit { get; set; } = 300;
 
 
     public string DefaultProjectExcludeFilter
     {
-        get => CleanupProjectFilters(_defaultProjectExcludeFilter);
-        set => _defaultProjectExcludeFilter = CleanupProjectFilters(value);
-    }
+        get => CleanupProjectFilters(field);
+        set => field = CleanupProjectFilters(value);
+    } = string.Empty;
 
     public bool AutomaticallyAddContainingType { get; set; } = true;
 

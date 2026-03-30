@@ -224,6 +224,9 @@ Please take note of the following issues:
 - Drag and drop functionality is provided by the **gong-wpf-dragdrop** library.
   Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
   https://github.com/punker76/gong-wpf-dragdrop
+- Markdown rendering in the AI Advisor window is powered by **Markdig.Wpf** and **Markdig**.
+  Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
+  https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
 
 For complete third-party license information, see the [ThirdPartyNotices](ThirdPartyNotices/) folder.
 
