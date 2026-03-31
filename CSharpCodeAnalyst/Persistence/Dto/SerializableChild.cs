@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Features.Project;
+namespace CSharpCodeAnalyst.Persistence.Dto;
 
 [Serializable]
 public class SerializableChild(string childId, string parentId)

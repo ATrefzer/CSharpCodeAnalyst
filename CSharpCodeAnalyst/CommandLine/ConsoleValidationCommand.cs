@@ -45,7 +45,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         Initializer.InitializeMsBuildLocator();
 
         // Parse solution and do analysis
-        var settings = LoadApplicationSettings();
+        var settings = LoadAppSettings();
         var graph = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
         var violations = RunAnalysis(rulesFile, graph);
 
@@ -64,15 +64,15 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return resultCode;
     }
 
-    private static ApplicationSettings LoadApplicationSettings()
+    private static AppSettings LoadAppSettings()
     {
         var builder = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", false, true);
 
         IConfiguration configuration = builder.Build();
-        var settings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
-        settings ??= new ApplicationSettings();
+        var settings = configuration.GetSection("ApplicationSettings").Get<AppSettings>();
+        settings ??= new AppSettings();
         return settings;
     }
 
@@ -86,7 +86,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return violations;
     }
 
-    private static async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath, ApplicationSettings settings)
+    private static async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath, AppSettings settings)
     {
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);

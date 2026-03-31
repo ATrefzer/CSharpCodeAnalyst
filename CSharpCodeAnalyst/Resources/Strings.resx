@@ -582,7 +582,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Shows warning when graph contains more than this number of elements</value>
   </data>
     <data name="Settings_ProjectFilters" xml:space="preserve">
-    <value>Project Filters</value>
+    <value>Default Project Filters</value>
   </data>
     <data name="Settings_ProjectFilters_Tooltip" xml:space="preserve">
     <value>Regular expressions to exclude projects (separated by semicolon)</value>
@@ -973,6 +973,18 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Cycle name</value>
   </data>
 
+    <data name="Settings_Tab_Application" xml:space="preserve">
+    <value>Application Settings</value>
+  </data>
+    <data name="Settings_Tab_Application_Hint" xml:space="preserve">
+    <value>Stored in appsettings.json — applies to all users of this installation.</value>
+  </data>
+    <data name="Settings_Tab_User" xml:space="preserve">
+    <value>User Preferences</value>
+  </data>
+    <data name="Settings_Tab_User_Hint" xml:space="preserve">
+    <value>Stored per user in %LocalAppData% — applies only to you.</value>
+  </data>
     <data name="Settings_AiAdvisor" xml:space="preserve">
     <value>AI Advisor</value>
   </data>

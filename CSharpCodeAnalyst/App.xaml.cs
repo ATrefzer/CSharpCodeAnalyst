@@ -5,6 +5,7 @@ using CodeParser.Parser;
 using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.AdvancedSearch;
+using CSharpCodeAnalyst.Persistence.Json;
 using CSharpCodeAnalyst.Features.Analyzers;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Info;
@@ -84,14 +85,14 @@ public partial class App
             .AddJsonFile("appsettings.json", false, true);
 
         IConfiguration configuration = builder.Build();
-        var applicationSettings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
+        var applicationSettings = configuration.GetSection("ApplicationSettings").Get<AppSettings>();
 
         if (applicationSettings is null)
         {
-            applicationSettings = new ApplicationSettings();
+            applicationSettings = new AppSettings();
         }
 
-        var userSettings = UserSettings.Instance;
+        var userSettings = UserPreferences.LoadOrCreate();
 
         var uiNotification = new WindowsUserNotification();
         var messaging = new MessageBus();
@@ -107,7 +108,11 @@ public partial class App
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
         mainWindow.SetViewer(explorationGraphViewer, messaging);
-        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService);
+
+        var projectStorage = new JsonProjectStorage(uiNotification);
+        var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
+
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);

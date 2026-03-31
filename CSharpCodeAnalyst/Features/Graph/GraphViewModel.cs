@@ -27,7 +27,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly RefactoringService _refactoringService;
-    private readonly ApplicationSettings _settings;
+    private readonly AppSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
 
@@ -37,7 +37,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private bool _showFlatGraph;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
-        ApplicationSettings settings, RefactoringService refactoringService)
+        AppSettings settings, RefactoringService refactoringService)
     {
         _undoStack = [];
         _viewer = viewer;

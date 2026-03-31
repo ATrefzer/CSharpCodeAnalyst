@@ -1,6 +1,7 @@
-﻿using CodeGraph.Graph;
+using CodeGraph.Graph;
+using CSharpCodeAnalyst.Features.Gallery;
 
-namespace CSharpCodeAnalyst.Features.Project;
+namespace CSharpCodeAnalyst.Persistence.Dto;
 
 [Serializable]
 public class ProjectData
@@ -11,29 +12,27 @@ public class ProjectData
 
     public List<SerializableRelationship> Relationships { get; set; } = [];
 
-    public Dictionary<string, string> Settings { get; set; } = new();
+    public ProjectSettings Settings { get; set; } = new();
 
     /// <summary>
-    ///     Analyzer persistent data. Key = Analyzer.Id, Value = JSON string from analyzer
+    ///     Analyzer persistent data. Key = Analyzer.Id, Value = JSON string from analyzer.
     /// </summary>
     public Dictionary<string, string> AnalyzerData { get; set; } = new();
 
     /// <summary>
     ///     Gallery is already serializable.
     /// </summary>
-    public Gallery.Gallery Gallery { get; set; } = new();
+    public Gallery Gallery { get; set; } = new();
 
-    public void SetGallery(Gallery.Gallery gallery)
+    public void SetGallery(Gallery gallery)
     {
-        // This would save space. But we have to restore the relationships.
         Gallery = gallery;
     }
 
-    public Gallery.Gallery GetGallery()
+    public Gallery GetGallery()
     {
         return Gallery;
     }
-
 
     /// <summary>
     ///     Flatten the recursive structures.
@@ -93,7 +92,6 @@ public class ProjectData
             };
             source.Relationships.Add(relationship);
         }
-
 
         return codeStructure;
     }

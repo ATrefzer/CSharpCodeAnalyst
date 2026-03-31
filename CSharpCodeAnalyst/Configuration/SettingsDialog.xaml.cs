@@ -8,17 +8,17 @@ namespace CSharpCodeAnalyst.Configuration;
 public partial class SettingsDialog
 {
 
-    public SettingsDialog(ApplicationSettings applSettings, UserSettings userSettings)
+    public SettingsDialog(AppSettings applSettings, UserPreferences userSettings)
     {
         InitializeComponent();
-        UserSettings = userSettings.Clone();
+        UserPreferences = userSettings.Clone();
         AppSettings = applSettings.Clone();
         LoadSettingsToUi();
     }
 
-    public UserSettings UserSettings { get; }
+    public UserPreferences UserPreferences { get; }
 
-    public ApplicationSettings AppSettings { get; private set; }
+    public AppSettings AppSettings { get; private set; }
 
     private void LoadSettingsToUi()
     {
@@ -30,8 +30,8 @@ public partial class SettingsDialog
         IncludeExternalCodeCheckBox.IsChecked = AppSettings.IncludeExternalCode;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
 
-        AiEndpointTextBox.Text = UserSettings.AiEndpoint;
-        AiModelTextBox.Text = UserSettings.AiModel;
+        AiEndpointTextBox.Text = UserPreferences.AiEndpoint;
+        AiModelTextBox.Text = UserPreferences.AiModel;
         if (AiCredentialStorage.HasApiKey())
         {
             AiApiKeyBox.Password = "placeholder";
@@ -55,8 +55,8 @@ public partial class SettingsDialog
 
         AppSettings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text;
 
-        UserSettings.AiEndpoint = AiEndpointTextBox.Text.Trim();
-        UserSettings.AiModel = AiModelTextBox.Text.Trim();
+        UserPreferences.AiEndpoint = AiEndpointTextBox.Text.Trim();
+        UserPreferences.AiModel = AiModelTextBox.Text.Trim();
 
         // Only update the stored key if the user actually typed something new
         var typedKey = AiApiKeyBox.Password;
@@ -68,9 +68,9 @@ public partial class SettingsDialog
 
     private void LoadDefaultSettings()
     {
-        AppSettings = new ApplicationSettings();
-        UserSettings.AiEndpoint = UserSettings.DefaultAiEndpoint;
-        UserSettings.AiModel = UserSettings.DefaultAiModel;
+        AppSettings = new AppSettings();
+        UserPreferences.AiEndpoint = UserPreferences.DefaultAiEndpoint;
+        UserPreferences.AiModel = UserPreferences.DefaultAiModel;
         LoadSettingsToUi();
     }
 

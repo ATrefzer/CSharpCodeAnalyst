@@ -1,38 +1,34 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Persistence.Contracts;
+using CSharpCodeAnalyst.Persistence.Dto;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Notifications;
 
-namespace CSharpCodeAnalyst.Features.Project;
+namespace CSharpCodeAnalyst.Persistence.Json;
 
 /// <summary>
-///     Loading and saving project data.
+///     JSON-file based implementation of <see cref="IProjectStorage" />.
 /// </summary>
-public class Project
+public class JsonProjectStorage : IProjectStorage
 {
     private readonly IUserNotification _ui;
     private ProjectData? _snapshot;
 
-    public Project(IUserNotification ui)
+    public JsonProjectStorage(IUserNotification ui)
     {
         _ui = ui;
     }
 
-    public bool HasSnapshot
-    {
-        get => _snapshot != null;
-    }
+    public bool HasSnapshot => _snapshot != null;
 
     public event EventHandler<ImportStateChangedArgs>? LoadingStateChanged;
 
-
-    /// <summary>
-    ///     Shows file dialog and loads project from selected file.
-    /// </summary>
-    public async Task<Result<(string fileName, ProjectData)>> LoadProjectAsync()
+    /// <inheritdoc />
+    public async Task<Result<(string fileName, ProjectData data)>> LoadAsync()
     {
         var fileName = _ui.ShowOpenFileDialog("JSON files (*.json)|*.json", "Load Project");
         if (string.IsNullOrEmpty(fileName))
@@ -40,13 +36,11 @@ public class Project
             return Result<(string, ProjectData)>.Canceled();
         }
 
-        return await LoadProjectFromFileAsync(fileName);
+        return await LoadFromFileAsync(fileName);
     }
 
-    /// <summary>
-    ///     Loads project from specific file path.
-    /// </summary>
-    public async Task<Result<(string, ProjectData)>> LoadProjectFromFileAsync(string filePath)
+    /// <inheritdoc />
+    public async Task<Result<(string fileName, ProjectData data)>> LoadFromFileAsync(string filePath)
     {
         try
         {
@@ -66,21 +60,8 @@ public class Project
         }
     }
 
-    private void OnLoadingStateChanged(string message, bool isLoading)
-    {
-        LoadingStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
-    }
-
-    private void ShowError(Exception ex)
-    {
-        var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-        _ui.ShowError(message);
-    }
-
-    /// <summary>
-    ///     Shows file dialog and saves project.
-    /// </summary>
-    public Result<string> SaveProject(ProjectData projectData, string? currentFilePath = null)
+    /// <inheritdoc />
+    public Result<string> Save(ProjectData data, string? currentFilePath = null)
     {
         if (!TryGetSaveFilePath(currentFilePath, out var filePath))
         {
@@ -89,7 +70,7 @@ public class Project
 
         try
         {
-            SerializeProject(projectData, filePath);
+            SerializeProject(data, filePath);
             return Result<string>.Success(filePath);
         }
         catch (Exception ex)
@@ -99,6 +80,14 @@ public class Project
         }
     }
 
+    /// <inheritdoc />
+    public void CreateSnapshot(ProjectData data)
+    {
+        _snapshot = data;
+        _ui.ShowSuccess(Strings.Snapshot_Success);
+    }
+
+    /// <inheritdoc />
     public void RestoreSnapshot(Action<ProjectData> restoreAction)
     {
         if (!HasSnapshot)
@@ -110,7 +99,7 @@ public class Project
         try
         {
             OnLoadingStateChanged(Strings.Restore_LoadMessage, true);
-            restoreAction(_snapshot!); // Let MainViewModel handle it
+            restoreAction(_snapshot!);
             _ui.ShowSuccess(Strings.Restore_Success);
         }
         catch (Exception ex)
@@ -123,13 +112,16 @@ public class Project
         }
     }
 
-
-    public void CreateSnapshot(ProjectData projectData)
+    private void OnLoadingStateChanged(string message, bool isLoading)
     {
-        _snapshot = projectData;
-        _ui.ShowSuccess(Strings.Snapshot_Success);
+        LoadingStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
     }
 
+    private void ShowError(Exception ex)
+    {
+        var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+        _ui.ShowError(message);
+    }
 
     private static ProjectData DeserializeProject(string filePath)
     {
@@ -154,13 +146,11 @@ public class Project
 
     private bool TryGetSaveFilePath(string? currentFilePath, out string outFileName)
     {
-        // If we have a current file path, reuse it
         if (!string.IsNullOrEmpty(currentFilePath))
         {
             outFileName = currentFilePath;
             return true;
         }
-
 
         var fileName = _ui.ShowSaveFileDialog("JSON files (*.json)|*.json", "Save Project");
         if (string.IsNullOrEmpty(fileName))
