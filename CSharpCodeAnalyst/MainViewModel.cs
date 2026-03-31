@@ -985,25 +985,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _projectExclusionFilters.Initialize(_applicationSettings.DefaultProjectExcludeFilter);
     }
 
-    private void LoadSettings(Dictionary<string, string> settings)
+    private void LoadSettings(ProjectSettings settings)
     {
         if (GraphViewModel != null)
         {
-            if (settings.TryGetValue(nameof(GraphViewModel.ShowFlatGraph), out var showFlatGraph))
-            {
-                GraphViewModel.ShowFlatGraph = bool.Parse(showFlatGraph);
-            }
-
-            if (settings.TryGetValue(nameof(GraphViewModel.ShowDataFlow), out var showFlow))
-            {
-                GraphViewModel.ShowDataFlow = bool.Parse(showFlow);
-            }
+            GraphViewModel.ShowFlatGraph = settings.ShowFlatGraph;
+            GraphViewModel.ShowDataFlow = settings.ShowDataFlow;
         }
 
-        if (settings.TryGetValue(nameof(ProjectExclusionRegExCollection), out var projectExcludeRegEx))
-        {
-            _projectExclusionFilters.Initialize(projectExcludeRegEx);
-        }
+        _projectExclusionFilters.Initialize(settings.ExclusionFilter);
 
         // IncludeExternals is not a configurable setting. It is global for the application.
     }
@@ -1125,9 +1115,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         var projectData = new ProjectData();
         projectData.SetCodeGraph(_codeGraph!);
         projectData.SetGallery(_gallery ?? new Gallery());
-        projectData.Settings[nameof(GraphViewModel.ShowFlatGraph)] = _graphViewModel!.ShowFlatGraph.ToString();
-        projectData.Settings[nameof(GraphViewModel.ShowDataFlow)] = _graphViewModel.ShowDataFlow.ToString();
-        projectData.Settings[nameof(ProjectExclusionRegExCollection)] = _projectExclusionFilters.ToString();
+        projectData.Settings.ShowFlatGraph = _graphViewModel!.ShowFlatGraph;
+        projectData.Settings.ShowDataFlow = _graphViewModel.ShowDataFlow;
+        projectData.Settings.ExclusionFilter = _projectExclusionFilters.ToString();
         projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
         return projectData;
     }

@@ -12,7 +12,7 @@ public class ProjectData
 
     public List<SerializableRelationship> Relationships { get; set; } = [];
 
-    public Dictionary<string, string> Settings { get; set; } = new();
+    public ProjectSettings Settings { get; set; } = new();
 
     /// <summary>
     ///     Analyzer persistent data. Key = Analyzer.Id, Value = JSON string from analyzer.
