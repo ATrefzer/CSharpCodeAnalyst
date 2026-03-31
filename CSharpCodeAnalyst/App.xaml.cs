@@ -109,8 +109,8 @@ public partial class App
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
         mainWindow.SetViewer(explorationGraphViewer, messaging);
 
-        var projectStorage = new JsonProjectStorage(uiNotification);
-        var projectService = new ProjectService(projectStorage, userSettings);
+        var projectStorage = new JsonProjectStorage();
+        var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);

@@ -2,26 +2,29 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
+using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Notifications;
 
 namespace CSharpCodeAnalyst.Persistence.Json;
 
 /// <summary>
 ///     Default implementation of <see cref="IProjectService" />.
-///     Orchestrates <see cref="IProjectStorage" /> with dirty-state tracking and MRU management.
+///     Orchestrates <see cref="IProjectStorage" /> with file-dialog handling, user notifications,
+///     dirty-state tracking, and MRU management.
 /// </summary>
 public class ProjectService : IProjectService
 {
     private readonly IProjectStorage _storage;
-    private readonly UserPreferences _userSettings;
+    private readonly IUserNotification _ui;
+    private readonly UserPreferences _userPreferences;
 
     private DirtyState _dirtyState = DirtyState.Saved;
-    private string? _currentFilePath;
 
-    public ProjectService(IProjectStorage storage, UserPreferences userSettings)
+    public ProjectService(IProjectStorage storage, IUserNotification ui, UserPreferences userPreferences)
     {
         _storage = storage;
-        _userSettings = userSettings;
-        _storage.LoadingStateChanged += (_, e) => ProgressChanged?.Invoke(this, e);
+        _ui = ui;
+        _userPreferences = userPreferences;
     }
 
     public event EventHandler<ProjectLoadedEventArgs>? ProjectLoaded;
@@ -32,35 +35,59 @@ public class ProjectService : IProjectService
     public bool IsDirty => _dirtyState != DirtyState.Saved;
     public bool RequiresNewFilePath => _dirtyState == DirtyState.DirtyForceNewFile;
     public bool HasSnapshot => _storage.HasSnapshot;
-    public string? CurrentFilePath => _currentFilePath;
+    public string? CurrentFilePath { get; private set; }
 
     /// <inheritdoc />
     public async Task LoadAsync(string? filePath = null)
     {
-        var result = filePath is null
-            ? await _storage.LoadAsync()
-            : await _storage.LoadFromFileAsync(filePath);
-
-        if (result.IsSuccess)
+        var path = filePath ?? _ui.ShowOpenFileDialog("JSON files (*.json)|*.json", "Load Project");
+        if (string.IsNullOrEmpty(path))
         {
-            var (fileName, data) = result.Data;
-            ClearDirty(fileName);
-            _userSettings.AddRecentFile(fileName);
-            ProjectLoaded?.Invoke(this, new ProjectLoadedEventArgs(data, fileName));
+            return;
+        }
+
+        ProgressChanged?.Invoke(this, new ImportStateChangedArgs("Loading...", true));
+        try
+        {
+            var result = await _storage.LoadFromFileAsync(path);
+
+            if (result.IsSuccess)
+            {
+                ClearDirty(path);
+                _userPreferences.AddRecentFile(path);
+                ProjectLoaded?.Invoke(this, new ProjectLoadedEventArgs(result.Data!, path));
+            }
+            else
+            {
+                _ui.ShowError(string.Format(Strings.OperationFailed_Message, result.Error!.Message));
+            }
+        }
+        finally
+        {
+            ProgressChanged?.Invoke(this, new ImportStateChangedArgs(string.Empty, false));
         }
     }
 
     /// <inheritdoc />
     public void Save(ProjectData data, bool forceNewFile = false)
     {
-        var path = forceNewFile ? null : _currentFilePath;
-        var result = _storage.Save(data, path);
+        var path = ResolveSavePath(forceNewFile);
+        if (path is null)
+        {
+            return;
+        }
+
+        var result = _storage.SaveToFile(data, path);
 
         if (result.IsSuccess)
         {
-            ClearDirty(result.Data!);
-            _userSettings.AddRecentFile(result.Data!);
-            ProjectSaved?.Invoke(this, result.Data!);
+            ClearDirty(path);
+            _userPreferences.AddRecentFile(path);
+            ProjectSaved?.Invoke(this, path);
+        }
+        else
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, result.Error!.Message));
         }
     }
 
@@ -68,16 +95,30 @@ public class ProjectService : IProjectService
     public void CreateSnapshot(ProjectData data)
     {
         _storage.CreateSnapshot(data);
+        _ui.ShowSuccess(Strings.Snapshot_Success);
     }
 
     /// <inheritdoc />
     public void RestoreSnapshot()
     {
-        _storage.RestoreSnapshot(data =>
+        if (!HasSnapshot)
+        {
+            _ui.ShowWarning(Strings.Restore_NoSnapshot);
+            return;
+        }
+
+        var result = _storage.RestoreSnapshot();
+
+        if (result.IsSuccess)
         {
             // Restoring does not change the current file path.
-            ProjectLoaded?.Invoke(this, new ProjectLoadedEventArgs(data, _currentFilePath ?? string.Empty));
-        });
+            ProjectLoaded?.Invoke(this, new ProjectLoadedEventArgs(result.Data!, CurrentFilePath ?? string.Empty));
+            _ui.ShowSuccess(Strings.Restore_Success);
+        }
+        else
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, result.Error!.Message));
+        }
     }
 
     /// <inheritdoc />
@@ -85,7 +126,6 @@ public class ProjectService : IProjectService
     {
         if (_dirtyState == DirtyState.DirtyForceNewFile)
         {
-            // Most restrictive state wins – never downgrade.
             return;
         }
 
@@ -93,8 +133,7 @@ public class ProjectService : IProjectService
 
         if (forceNewFile)
         {
-            // The current file path is no longer valid after a structural model change.
-            _currentFilePath = null;
+            CurrentFilePath = null;
         }
 
         DirtyStateChanged?.Invoke(this, EventArgs.Empty);
@@ -103,27 +142,33 @@ public class ProjectService : IProjectService
     /// <inheritdoc />
     public void StartNewProject()
     {
-        _currentFilePath = null;
+        CurrentFilePath = null;
         _dirtyState = DirtyState.Dirty;
         DirtyStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ClearDirty(string filePath)
     {
-        _currentFilePath = filePath;
+        CurrentFilePath = filePath;
         _dirtyState = DirtyState.Saved;
         DirtyStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private string? ResolveSavePath(bool forceNewFile)
+    {
+        if (!forceNewFile && !string.IsNullOrEmpty(CurrentFilePath))
+        {
+            return CurrentFilePath;
+        }
+
+        var path = _ui.ShowSaveFileDialog("JSON files (*.json)|*.json", "Save Project");
+        return string.IsNullOrEmpty(path) ? null : path;
     }
 
     private enum DirtyState
     {
         Saved,
         Dirty,
-
-        /// <summary>
-        ///     The model was structurally changed (e.g. refactoring). The previous file path
-        ///     is invalid; a Save-As dialog must be shown on the next save.
-        /// </summary>
         DirtyForceNewFile
     }
 }
