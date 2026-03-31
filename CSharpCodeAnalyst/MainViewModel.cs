@@ -26,7 +26,6 @@ using CSharpCodeAnalyst.Features.Metrics;
 using CSharpCodeAnalyst.Features.Partitions;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
-using CSharpCodeAnalyst.Persistence.Json;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Resources;
@@ -41,12 +40,6 @@ using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst;
 
-internal enum DirtyState
-{
-    Saved,
-    Dirty,
-    DirtyForceNewFile
-}
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
@@ -57,7 +50,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
-    private readonly IProjectStorage _projectStorage;
+    private readonly IProjectService _projectService;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
@@ -69,7 +62,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private Table? _cycles;
 
-    private DirtyState _dirtyState = DirtyState.Saved;
     private Gallery? _gallery;
 
     private GraphViewModel? _graphViewModel;
@@ -84,7 +76,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private string _loadMessage;
     private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
-    private string _openProjectFilePath = string.Empty;
     private AdvancedSearchViewModel? _searchViewModel;
 
     private int _selectedLeftTabIndex;
@@ -93,7 +84,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private TreeViewModel? _treeViewModel;
 
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings, AnalyzerManager analyzerManager, RefactoringService refactoringService)
+    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings,
+        AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService)
     {
         // Initialize settings
         _applicationSettings = settings;
@@ -107,8 +99,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _importer = new Importer(_ui);
         _exporter = new Exporter(_ui);
         _importer.ImportStateChanged += OnUpdateProgress;
-        _projectStorage = new JsonProjectStorage(_ui);
-        _projectStorage.LoadingStateChanged += OnUpdateProgress;
+
+        _projectService = projectService;
+        _projectService.ProgressChanged += OnUpdateProgress;
+        _projectService.ProjectLoaded += OnProjectLoaded;
+        _projectService.ProjectSaved += OnProjectSaved;
+        _projectService.DirtyStateChanged += OnDirtyStateChanged;
 
 
         // Table data
@@ -169,22 +165,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public WpfCommand ExportPlainTextCommand { get; set; }
 
     public ObservableCollection<Mru> RecentFiles { get; } = [];
-
-    private string OpenProjectFilePath
-    {
-        get => _openProjectFilePath;
-        set
-        {
-            if (value == _openProjectFilePath)
-            {
-                return;
-            }
-
-            _openProjectFilePath = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(Title));
-        }
-    }
 
     private ICommand OpenRecentFileCommand { get; }
 
@@ -399,17 +379,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             var title = Strings.AppTitle;
 
-            if (_dirtyState == DirtyState.DirtyForceNewFile)
+            if (_projectService.RequiresNewFilePath)
             {
                 // Don't show filename when no longer valid
                 title = title + " - " + "Refactored (model changed)";
             }
-            else if (!string.IsNullOrEmpty(OpenProjectFilePath))
+            else if (!string.IsNullOrEmpty(_projectService.CurrentFilePath))
             {
-                title = title + " - " + OpenProjectFilePath;
+                title = title + " - " + _projectService.CurrentFilePath;
             }
 
-            if (IsDirty())
+            if (_projectService.IsDirty)
             {
                 title += " *";
             }
@@ -432,15 +412,28 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         if (_analyzerManager.IsDirty())
         {
-            SetDirty(false);
+            _projectService.MarkDirty(false);
         }
     }
 
-    private bool IsDirty()
+    private void OnProjectLoaded(object? sender, ProjectLoadedEventArgs e)
     {
-        return _dirtyState != DirtyState.Saved;
+        RestoreProjectData(e.Data);
+        RefreshMru();
+        LoadMessage = string.Empty;
+        IsCanvasHintsVisible = false;
+        IsLoading = false;
     }
 
+    private void OnProjectSaved(object? sender, string filePath)
+    {
+        RefreshMru();
+    }
+
+    private void OnDirtyStateChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(Title));
+    }
 
     private void RefreshMru()
     {
@@ -516,7 +509,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         void RemoveSession(GraphSession session)
         {
             _gallery.Sessions.Remove(session);
-            SetDirty(false);
+            _projectService.MarkDirty(false);
         }
 
         void PreviewSession(GraphSession session)
@@ -536,36 +529,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             var session = _graphViewModel.GetSession();
             session.Name = name;
             _gallery.AddSession(session);
-            SetDirty(false);
+            _projectService.MarkDirty(false);
             return session;
         }
-    }
-
-    private void SetDirty(bool forceNewFile)
-    {
-        if (_dirtyState == DirtyState.DirtyForceNewFile)
-        {
-            // We already have the most strict dirty form.
-            return;
-        }
-
-        if (forceNewFile)
-        {
-            _dirtyState = DirtyState.DirtyForceNewFile;
-        }
-        else
-        {
-            _dirtyState = DirtyState.Dirty;
-        }
-
-        OnPropertyChanged(nameof(Title));
-    }
-
-    private void ClearDirty(string projectFilePath)
-    {
-        OpenProjectFilePath = projectFilePath;
-        _dirtyState = DirtyState.Saved;
-        OnPropertyChanged(nameof(Title));
     }
 
     private void OnShowLegend()
@@ -848,8 +814,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         LoadDefaultSettings();
         LoadCodeGraph(graph);
         _gallery = new Gallery();
-        OpenProjectFilePath = string.Empty;
-        SetDirty(false);
+        _projectService.StartNewProject();
         IsCanvasHintsVisible = false;
     }
 
@@ -938,39 +903,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private async Task LoadProject(string? filePath)
     {
         AskUserToSaveProject();
-
-        Result<(string, ProjectData)> result;
-        if (filePath is null)
-        {
-            result = await _projectStorage.LoadAsync();
-        }
-        else
-        {
-            result = await _projectStorage.LoadFromFileAsync(filePath);
-        }
-
-        if (result.IsCanceled)
-        {
-            return;
-        }
-
-        if (result.IsSuccess)
-        {
-            var (fileName, projectData) = result.Data;
-            CompleteProjectLoaded(projectData, fileName);
-        }
-    }
-
-    private void CompleteProjectLoaded(ProjectData projectData, string fileName)
-    {
-        RestoreProjectData(projectData);
-        ClearDirty(fileName);
-        _userSettings.AddRecentFile(fileName);
-        RefreshMru();
-
-        LoadMessage = string.Empty;
-        IsCanvasHintsVisible = false;
-        IsLoading = false;
+        await _projectService.LoadAsync(filePath);
     }
 
 
@@ -1005,21 +938,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
-        var projectData = CollectProjectData();
-
-        // Current path is only provided if we do not force a new file
-        var currentPath = _dirtyState != DirtyState.DirtyForceNewFile
-            ? _openProjectFilePath
-            : null;
-
-        var result = _projectStorage.Save(projectData, currentPath);
-
-        if (result.IsSuccess)
-        {
-            ClearDirty(result.Data!);
-            _userSettings.AddRecentFile(result.Data!);
-            RefreshMru();
-        }
+        _projectService.Save(CollectProjectData(), _projectService.RequiresNewFilePath);
     }
 
     /// <summary>
@@ -1033,7 +952,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void AskUserToSaveProject()
     {
-        if (IsDirty() && _ui.AskYesNoQuestion(Strings.Save_Message, Strings.Save_Title))
+        if (_projectService.IsDirty && _ui.AskYesNoQuestion(Strings.Save_Message, Strings.Save_Title))
         {
             OnSaveProject();
         }
@@ -1106,7 +1025,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         UpdateMetrics(message.Graph);
 
         // Force new file
-        SetDirty(true);
+        _projectService.MarkDirty(true);
     }
 
 
@@ -1131,9 +1050,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         try
         {
-            // Create a snapshot by capturing the current state (similar to OnSaveProject)
-            var projectData = CollectProjectData();
-            _projectStorage.CreateSnapshot(projectData);
+            _projectService.CreateSnapshot(CollectProjectData());
         }
         catch (Exception ex)
         {
@@ -1146,7 +1063,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Note we do not touch the dirty flags when restoring.
         // If you refactored a new file to save is already requested.
         // If not, nothing you did with the application triggered the dirty flag.
-        _projectStorage.RestoreSnapshot(RestoreProjectData);
+        _projectService.RestoreSnapshot();
     }
 
     private void RestoreProjectData(ProjectData projectData)
