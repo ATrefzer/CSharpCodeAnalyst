@@ -55,9 +55,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
     private readonly IUserNotification _ui;
-    private UserSettings _userSettings;
+    private UserPreferences _userSettings;
     private Table? _analyzerResult;
-    private ApplicationSettings _applicationSettings;
+    private AppSettings _applicationSettings;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
 
     private Table? _cycles;
@@ -84,7 +84,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private TreeViewModel? _treeViewModel;
 
 
-    internal MainViewModel(MessageBus messaging, ApplicationSettings settings, UserSettings userSettings,
+    internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService)
     {
         // Initialize settings
@@ -565,7 +565,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (settingsDialog.ShowDialog() == true)
         {
             _applicationSettings = settingsDialog.AppSettings;
-            _userSettings = settingsDialog.UserSettings;
+            _userSettings = settingsDialog.UserPreferences;
             SaveSettings();
         }
     }

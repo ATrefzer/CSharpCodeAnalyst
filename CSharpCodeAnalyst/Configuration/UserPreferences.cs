@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -6,19 +6,19 @@ using System.Text.Json.Serialization;
 namespace CSharpCodeAnalyst.Configuration;
 
 /// <summary>
-///     Manages user-specific persistent settings (userSettings.json).
+///     Manages user-specific persistent preferences (userSettings.json in %LocalAppData%).
 /// </summary>
-public class UserSettings
+public class UserPreferences
 {
     private string _settingsPath;
 
     [JsonConstructor]
-    private UserSettings()
+    private UserPreferences()
     {
         _settingsPath = string.Empty;
     }
 
-    private UserSettings(string settingsPath)
+    private UserPreferences(string settingsPath)
     {
         _settingsPath = settingsPath;
     }
@@ -32,9 +32,11 @@ public class UserSettings
 
     public string AiModel { get; set; } = DefaultAiModel;
 
-    public static UserSettings Instance { get; } = LoadOrCreate();
-
-    private static UserSettings LoadOrCreate()
+    /// <summary>
+    ///     Loads user preferences from disk, or creates a new default instance when no file exists.
+    ///     Call this once at startup and pass the result through dependency injection.
+    /// </summary>
+    public static UserPreferences LoadOrCreate()
     {
         var appDir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -48,7 +50,7 @@ public class UserSettings
             try
             {
                 var json = File.ReadAllText(settingsPath);
-                var loaded = JsonSerializer.Deserialize<UserSettings>(json);
+                var loaded = JsonSerializer.Deserialize<UserPreferences>(json);
                 if (loaded != null)
                 {
                     loaded._settingsPath = settingsPath;
@@ -57,12 +59,11 @@ public class UserSettings
             }
             catch (Exception ex)
             {
-                // No settings file
                 Trace.TraceError(ex.ToString());
             }
         }
 
-        return new UserSettings(settingsPath);
+        return new UserPreferences(settingsPath);
     }
 
     public void Save()
@@ -88,9 +89,9 @@ public class UserSettings
         Save();
     }
 
-    public UserSettings Clone()
+    public UserPreferences Clone()
     {
-        return new UserSettings
+        return new UserPreferences
         {
             RecentFiles = new List<string>(this.RecentFiles),
             AiEndpoint = this.AiEndpoint,

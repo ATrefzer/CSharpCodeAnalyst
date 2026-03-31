@@ -1,12 +1,11 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 
 namespace CSharpCodeAnalyst.Configuration;
 
-public class ApplicationSettings
+public class AppSettings
 {
     public int WarningCodeElementLimit { get; set; } = 300;
-
 
     public string DefaultProjectExcludeFilter
     {
@@ -33,15 +32,17 @@ public class ApplicationSettings
 
     public void Save(string appSettingsPath)
     {
+        // Keep "ApplicationSettings" as the JSON section key for backward compatibility
+        // with existing appsettings.json files.
         var root = new { ApplicationSettings = this };
         var options = new JsonSerializerOptions { WriteIndented = true };
         var json = JsonSerializer.Serialize(root, options);
         File.WriteAllText(appSettingsPath, json);
     }
 
-    public ApplicationSettings Clone()
+    public AppSettings Clone()
     {
-        return new ApplicationSettings
+        return new AppSettings
         {
             WarningCodeElementLimit = this.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,

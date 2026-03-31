@@ -15,12 +15,12 @@ public class ProjectService : IProjectService
 {
     private readonly IProjectStorage _storage;
     private readonly IUserNotification _ui;
-    private readonly UserSettings _userSettings;
+    private readonly UserPreferences _userSettings;
 
     private DirtyState _dirtyState = DirtyState.Saved;
     private string? _currentFilePath;
 
-    public ProjectService(IProjectStorage storage, IUserNotification ui, UserSettings userSettings)
+    public ProjectService(IProjectStorage storage, IUserNotification ui, UserPreferences userSettings)
     {
         _storage = storage;
         _ui = ui;

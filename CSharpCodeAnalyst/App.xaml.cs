@@ -85,14 +85,14 @@ public partial class App
             .AddJsonFile("appsettings.json", false, true);
 
         IConfiguration configuration = builder.Build();
-        var applicationSettings = configuration.GetSection("ApplicationSettings").Get<ApplicationSettings>();
+        var applicationSettings = configuration.GetSection("ApplicationSettings").Get<AppSettings>();
 
         if (applicationSettings is null)
         {
-            applicationSettings = new ApplicationSettings();
+            applicationSettings = new AppSettings();
         }
 
-        var userSettings = UserSettings.Instance;
+        var userSettings = UserPreferences.LoadOrCreate();
 
         var uiNotification = new WindowsUserNotification();
         var messaging = new MessageBus();
