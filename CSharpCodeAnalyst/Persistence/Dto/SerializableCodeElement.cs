@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
+using CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Features.Project;
+namespace CSharpCodeAnalyst.Persistence.Dto;
 
 [Serializable]
 public class SerializableCodeElement(

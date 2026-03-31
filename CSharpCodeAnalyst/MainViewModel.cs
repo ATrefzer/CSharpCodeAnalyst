@@ -24,7 +24,9 @@ using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
 using CSharpCodeAnalyst.Features.Metrics;
 using CSharpCodeAnalyst.Features.Partitions;
-using CSharpCodeAnalyst.Features.Project;
+using CSharpCodeAnalyst.Persistence.Contracts;
+using CSharpCodeAnalyst.Persistence.Dto;
+using CSharpCodeAnalyst.Persistence.Json;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Resources;
@@ -55,7 +57,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
-    private readonly Project _project;
+    private readonly IProjectStorage _projectStorage;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
@@ -105,8 +107,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _importer = new Importer(_ui);
         _exporter = new Exporter(_ui);
         _importer.ImportStateChanged += OnUpdateProgress;
-        _project = new Project(_ui);
-        _project.LoadingStateChanged += OnUpdateProgress;
+        _projectStorage = new JsonProjectStorage(_ui);
+        _projectStorage.LoadingStateChanged += OnUpdateProgress;
 
 
         // Table data
@@ -940,11 +942,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Result<(string, ProjectData)> result;
         if (filePath is null)
         {
-            result = await _project.LoadProjectAsync();
+            result = await _projectStorage.LoadAsync();
         }
         else
         {
-            result = await _project.LoadProjectFromFileAsync(filePath);
+            result = await _projectStorage.LoadFromFileAsync(filePath);
         }
 
         if (result.IsCanceled)
@@ -1020,7 +1022,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             ? _openProjectFilePath
             : null;
 
-        var result = _project.SaveProject(projectData, currentPath);
+        var result = _projectStorage.Save(projectData, currentPath);
 
         if (result.IsSuccess)
         {
@@ -1141,7 +1143,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             // Create a snapshot by capturing the current state (similar to OnSaveProject)
             var projectData = CollectProjectData();
-            _project.CreateSnapshot(projectData);
+            _projectStorage.CreateSnapshot(projectData);
         }
         catch (Exception ex)
         {
@@ -1154,7 +1156,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Note we do not touch the dirty flags when restoring.
         // If you refactored a new file to save is already requested.
         // If not, nothing you did with the application triggered the dirty flag.
-        _project.RestoreSnapshot(RestoreProjectData);
+        _projectStorage.RestoreSnapshot(RestoreProjectData);
     }
 
     private void RestoreProjectData(ProjectData projectData)
