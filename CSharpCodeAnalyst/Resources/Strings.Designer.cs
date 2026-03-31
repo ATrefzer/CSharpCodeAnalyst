@@ -2413,7 +2413,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Project Filters.
+        ///   Looks up a localized string similar to Default Project Filters.
         /// </summary>
         public static string Settings_ProjectFilters {
             get {
@@ -2490,6 +2490,42 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_Settings_AddContainingType_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application Settings.
+        /// </summary>
+        public static string Settings_Tab_Application {
+            get {
+                return ResourceManager.GetString("Settings_Tab_Application", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stored in appsettings.json — applies to all users of this installation..
+        /// </summary>
+        public static string Settings_Tab_Application_Hint {
+            get {
+                return ResourceManager.GetString("Settings_Tab_Application_Hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Preferences.
+        /// </summary>
+        public static string Settings_Tab_User {
+            get {
+                return ResourceManager.GetString("Settings_Tab_User", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stored per user in %LocalAppData% — applies only to you..
+        /// </summary>
+        public static string Settings_Tab_User_Hint {
+            get {
+                return ResourceManager.GetString("Settings_Tab_User_Hint", resourceCulture);
             }
         }
         
