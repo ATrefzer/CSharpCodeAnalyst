@@ -143,7 +143,7 @@ public partial class TreeControl : UserControl
         };
 
         // Command binding has issues with null parameters
-        createMenuItem.Click += (s, args) =>
+        createMenuItem.Click += (_, _) =>
         {
             treeViewModel.RefactoringCreateCodeElementAtRoot();
         };

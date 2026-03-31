@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              xmlns:dd="urn:gong-wpf-dragdrop"
+             xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance local:AdvancedSearchViewModel}"
+             d:DataContext="{d:DesignInstance advancedSearch:AdvancedSearchViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <ResourceDictionary>

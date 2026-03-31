@@ -15,7 +15,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     private readonly ParserConfig _config;
 
     private readonly ExternalCodeElementCache _externalCodeElementCache = new();
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly Progress _progress;
     private Artifacts? _artifacts;
     private CodeGraph.Graph.CodeGraph? _codeGraph;

@@ -3,7 +3,6 @@ using System.Text;
 
 namespace ApprovalTestTool;
 
-/// <summary>
 public static class Hash
 {
     public static string ComputeHash(string input)

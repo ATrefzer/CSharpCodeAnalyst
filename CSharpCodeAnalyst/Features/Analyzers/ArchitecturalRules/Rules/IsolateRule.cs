@@ -17,7 +17,7 @@ public class IsolateRule : RuleBase
 
         foreach (var relationship in allRelationships)
         {
-            // ISOLATE violation: source uses anything outside of itself
+            // ISOLATE violation: source uses anything outside itself
             if (sourceIds.Contains(relationship.SourceId) && !sourceIds.Contains(relationship.TargetId))
             {
                 violations.Add(relationship);

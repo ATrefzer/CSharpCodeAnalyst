@@ -134,7 +134,7 @@ public static class CodeGraphSerializer
     public static Graph.CodeGraph Deserialize(string content)
     {
         var graph = new Graph.CodeGraph();
-        var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.TrimEnd()).ToArray();
+        var lines = content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).Select(l => l.TrimEnd()).ToArray();
 
         var currentLine = 0;
         var parentIds = new Dictionary<string, string>(); // childId -> parentId
@@ -201,8 +201,8 @@ public static class CodeGraphSerializer
     ///     Determines if a line represents an Element or Relationship.
     ///     Strategy:
     ///     1. Check if it's a relationship: existing sourceId + valid RelationshipType + ANY targetId → Relationship
-    ///     2. Otherwise try to parse first token as ElementType (case-insensitive) → Element
-    ///     3. Otherwise → Error
+    ///     2. Otherwise, try to parse first token as ElementType (case-insensitive) → Element
+    ///     3. Otherwise, → Error
     /// 
     ///     This order is critical: Relationships have priority to avoid ambiguity when an element ID
     ///     matches an ElementType name (e.g., element with ID="Class").

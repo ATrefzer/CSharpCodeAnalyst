@@ -30,7 +30,6 @@ public class CodeGraphSerializerTests
         cls.Attributes.Add("Serializable");
         method.SourceLocations.Add(new SourceLocation("file1.cs", 10, 5));
         method.SourceLocations.Add(new SourceLocation("file1.cs", 12, 15));
-        field.IsExternal.Equals(false); // just keep reference
 
         // relationships
         var rel1 = new Relationship(method.Id, field.Id, RelationshipType.Uses, RelationshipAttribute.IsInstanceCall | RelationshipAttribute.IsMethodGroup);

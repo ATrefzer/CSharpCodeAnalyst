@@ -6,6 +6,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
         xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:gallery="clr-namespace:CSharpCodeAnalyst.Features.Gallery"
         mc:Ignorable="d"
         MinWidth="380"
         MinHeight="400"
@@ -93,7 +94,7 @@
                                 Command="{Binding DataContext.RemoveItemCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                 CommandParameter="{Binding}"
                                 Margin="10,0,0,0">
-                            <Image Source="../Resources/clear_32.png" Width="16" Height="16" />
+                            <Image Source="/Resources/clear_32.png" Width="16" Height="16" />
                         </Button>
                     </Grid>
                 </DataTemplate>

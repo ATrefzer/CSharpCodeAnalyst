@@ -77,7 +77,7 @@ internal class CycleGroupsViewModel : Table
         return _cycleGroups;
     }
 
-    public override DataTemplate? GetRowDetailsTemplate()
+    public override DataTemplate GetRowDetailsTemplate()
     {
         var uri = new Uri(
             "/CSharpCodeAnalyst;component/Shared/UI/CodeElementLineTemplate.xaml",

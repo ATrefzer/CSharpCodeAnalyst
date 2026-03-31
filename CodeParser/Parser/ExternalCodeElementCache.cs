@@ -16,7 +16,7 @@ internal class ExternalCodeElementCache
     /// </summary>
     private readonly Dictionary<string, CodeElement> _externalElementCache = new();
 
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
 
     public IEnumerable<CodeElement> GetCodeElements()
     {

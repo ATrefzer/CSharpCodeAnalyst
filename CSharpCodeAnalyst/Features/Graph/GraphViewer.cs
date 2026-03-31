@@ -646,7 +646,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
             return true;
         }
 
-        // If the id is rendered as a expanded subgraph. Both derive from Node.
+        // If the id is rendered as an expanded subgraph. Both derive from Node.
         if (_msaglViewer.Graph.SubgraphMap.TryGetValue(id, out var subGraph))
         {
             node = subGraph;

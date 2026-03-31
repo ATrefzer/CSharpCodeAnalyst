@@ -170,7 +170,7 @@ public class RefactoringService
             return;
         }
 
-        // Augment infos about delete elemets
+        // Augment infos about delete elements
         var element = FindCodeElement(elementId);
         var parentId = element?.Parent?.Id;
         var deletedIds = _graph.DeleteCodeElementAndAllChildren(elementId);

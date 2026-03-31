@@ -31,7 +31,7 @@ public class CodeGraphExplorerTests
     {
         var a = _graph.CreateClass("A");
         var b = _graph.CreateMethod("B", a);
-        var list = _explorer.GetElements(new List<string> { "A", "B", "C" });
+        var list = _explorer.GetElements(["A", "B", "C"]);
         Assert.That(list, Is.EquivalentTo([a, b]));
     }
 
@@ -41,7 +41,7 @@ public class CodeGraphExplorerTests
         var cls = _graph.CreateClass("Cls");
         var m1 = _graph.CreateMethod("M1", cls);
         var m2 = _graph.CreateMethod("M2", cls);
-        var result = _explorer.FindParents(new List<string> { m1.Id, m2.Id });
+        var result = _explorer.FindParents([m1.Id, m2.Id]);
         Assert.That(result.Elements, Is.EquivalentTo([cls]));
         Assert.That(result.Relationships, Is.Empty);
     }
@@ -67,7 +67,7 @@ public class CodeGraphExplorerTests
         var m = _graph.CreateMethod("M", cls);
         var known = new HashSet<string> { asm.Id, m.Id }; // gap: Ns, Cls missing
         var result = _explorer.FindGapsInHierarchy(known);
-        Assert.That(result.Elements.Select(e => e.Id).ToHashSet().SetEquals(new[] { ns.Id, cls.Id }));
+        Assert.That(result.Elements.Select(e => e.Id).ToHashSet().SetEquals([ns.Id, cls.Id]));
     }
 
     [Test]

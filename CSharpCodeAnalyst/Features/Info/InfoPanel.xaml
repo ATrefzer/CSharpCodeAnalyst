@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:CSharpCodeAnalyst.Shared.Converters"
+             xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignInstance infoArea:InfoPanelViewModel}"
+             d:DataContext="{d:DesignInstance info:InfoPanelViewModel}"
              d:DesignHeight="450" d:DesignWidth="300">
 
     <UserControl.Resources>

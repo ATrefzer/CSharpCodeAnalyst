@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using CodeGraph.Algorithms.Cycles;
+using CodeGraph.Contracts;
 using CodeGraph.Graph;
-using CSharpCodeAnalyst.Exploration;
 
 namespace CodeGraph.Exploration;
 

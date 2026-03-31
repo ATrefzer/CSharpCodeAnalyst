@@ -5,19 +5,18 @@ namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 public abstract class TableRow : INotifyPropertyChanged
 {
-    private bool _isExpanded;
 
     public bool IsExpanded
     {
-        get => _isExpanded;
+        get;
         set
         {
-            if (value == _isExpanded)
+            if (value == field)
             {
                 return;
             }
 
-            _isExpanded = value;
+            field = value;
             OnPropertyChanged();
         }
     }

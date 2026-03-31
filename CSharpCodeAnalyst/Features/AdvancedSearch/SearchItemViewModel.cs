@@ -9,8 +9,6 @@ namespace CSharpCodeAnalyst.Features.AdvancedSearch;
 [DebuggerDisplay("{Type} {Name} - {FullPath}")]
 public sealed class SearchItemViewModel : INotifyPropertyChanged
 {
-    private bool _isSelected;
-
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string FullPath { get; set; } = string.Empty;
@@ -18,12 +16,12 @@ public sealed class SearchItemViewModel : INotifyPropertyChanged
 
     public bool IsSelected
     {
-        get => _isSelected;
+        get;
         set
         {
-            if (_isSelected != value)
+            if (field != value)
             {
-                _isSelected = value;
+                field = value;
                 OnPropertyChanged(nameof(IsSelected));
             }
         }

@@ -34,7 +34,7 @@ internal class EventImbalancesViewModel : Table
         return _imbalances;
     }
 
-    public override DataTemplate? GetRowDetailsTemplate()
+    public override DataTemplate GetRowDetailsTemplate()
     {
         var uri = new Uri(
             "/CSharpCodeAnalyst;component/Features/Analyzers/EventRegistration/Presentation/SourceLocationTemplate.xaml",

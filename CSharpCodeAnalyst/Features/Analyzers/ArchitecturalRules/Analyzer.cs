@@ -60,7 +60,7 @@ public class Analyzer : IAnalyzer
         _openDialog.OnValidateRequested = OnValidateRules;
 
         // Handle dialog closing
-        _openDialog.Closed += (sender, args) =>
+        _openDialog.Closed += (_, _) =>
         {
             _openDialog = null;
             _currentGraph = null;

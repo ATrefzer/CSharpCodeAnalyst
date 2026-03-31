@@ -33,7 +33,7 @@ public class PartitionsViewModel : Table
         return _partitions;
     }
 
-    public override DataTemplate? GetRowDetailsTemplate()
+    public override DataTemplate GetRowDetailsTemplate()
     {
         var uri = new Uri(
             "/CSharpCodeAnalyst;component/Shared/UI/CodeElementLineTemplate.xaml",

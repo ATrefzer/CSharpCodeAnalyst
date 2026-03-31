@@ -2,8 +2,6 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
-using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Notifications;
 
 namespace CSharpCodeAnalyst.Persistence.Json;
 
@@ -14,18 +12,16 @@ namespace CSharpCodeAnalyst.Persistence.Json;
 public class ProjectService : IProjectService
 {
     private readonly IProjectStorage _storage;
-    private readonly IUserNotification _ui;
     private readonly UserPreferences _userSettings;
 
     private DirtyState _dirtyState = DirtyState.Saved;
     private string? _currentFilePath;
 
-    public ProjectService(IProjectStorage storage, IUserNotification ui, UserPreferences userSettings)
+    public ProjectService(IProjectStorage storage, UserPreferences userSettings)
     {
         _storage = storage;
-        _ui = ui;
         _userSettings = userSettings;
-        _storage.LoadingStateChanged += (s, e) => ProgressChanged?.Invoke(this, e);
+        _storage.LoadingStateChanged += (_, e) => ProgressChanged?.Invoke(this, e);
     }
 
     public event EventHandler<ProjectLoadedEventArgs>? ProjectLoaded;

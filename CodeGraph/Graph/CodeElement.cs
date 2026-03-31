@@ -68,8 +68,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         bool IsGlobalNamespace(CodeElement codeElement)
         {
             return codeElement.Parent?.ElementType == CodeElementType.Assembly
-                   && codeElement.ElementType == CodeElementType.Namespace
-                   && codeElement.Name == "global";
+                   && codeElement is { ElementType: CodeElementType.Namespace, Name: "global" };
         }
     }
 

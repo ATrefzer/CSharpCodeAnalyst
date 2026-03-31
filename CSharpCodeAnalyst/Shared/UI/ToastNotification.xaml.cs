@@ -40,7 +40,7 @@ public partial class ToastNotification
         // Auto-close after duration
         _closeTimer = new DispatcherTimer();
         _closeTimer.Interval = TimeSpan.FromMilliseconds(durationMs);
-        _closeTimer.Tick += (s, e) =>
+        _closeTimer.Tick += (_, _) =>
         {
             _closeTimer.Stop();
 

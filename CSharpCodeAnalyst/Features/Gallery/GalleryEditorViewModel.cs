@@ -13,10 +13,6 @@ public sealed class GalleryEditorViewModel : INotifyPropertyChanged
     private readonly Action<GraphSession> _removeAction;
     private readonly Action<GraphSession> _previewAction;
 
-    private string _newItemName = string.Empty;
-
-    private GraphSession? _selectedItem;
-
     public GalleryEditorViewModel(Gallery gallery, Action<GraphSession> previewAction,
         Func<string, GraphSession> addAction, Action<GraphSession> removeAction,
         Action<GraphSession> loadAction)
@@ -36,10 +32,10 @@ public sealed class GalleryEditorViewModel : INotifyPropertyChanged
 
     public GraphSession? SelectedItem
     {
-        get => _selectedItem;
+        get;
         set
         {
-            _selectedItem = value!;
+            field = value!;
             WpfCommand.RaiseCanExecuteChanged();
         }
     }
@@ -54,14 +50,14 @@ public sealed class GalleryEditorViewModel : INotifyPropertyChanged
 
     public string NewItemName
     {
-        get => _newItemName;
+        get;
         set
         {
-            _newItemName = value;
+            field = value;
             WpfCommand.RaiseCanExecuteChanged();
             OnPropertyChanged(nameof(NewItemName));
         }
-    }
+    } = string.Empty;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

@@ -16,8 +16,6 @@ internal sealed class InfoPanelViewModel : INotifyPropertyChanged
 {
     private bool _hide;
 
-    private List<QuickInfo> _quickInfo = QuickInfoFactory.NoInfoProviderRegistered;
-
     public InfoPanelViewModel()
     {
         OpenSourceLocationCommand = new WpfCommand<SourceLocation>(OpenSourceLocation);
@@ -29,18 +27,18 @@ internal sealed class InfoPanelViewModel : INotifyPropertyChanged
 
     public List<QuickInfo> QuickInfo
     {
-        get => _quickInfo;
+        get;
         private set
         {
-            if (Equals(value, _quickInfo))
+            if (Equals(value, field))
             {
                 return;
             }
 
-            _quickInfo = value;
+            field = value;
             OnPropertyChanged();
         }
-    }
+    } = QuickInfoFactory.NoInfoProviderRegistered;
 
 
     public event PropertyChangedEventHandler? PropertyChanged;

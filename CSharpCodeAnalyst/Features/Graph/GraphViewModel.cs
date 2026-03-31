@@ -3,9 +3,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using CodeGraph.Contracts;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Exploration;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 using CSharpCodeAnalyst.Features.Help;
@@ -33,8 +33,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
-    private bool _showDataFlow;
-    private bool _showFlatGraph;
 
     internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
         AppSettings settings, RefactoringService refactoringService)
@@ -226,15 +224,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public bool ShowFlatGraph
     {
-        get => _showFlatGraph;
+        get;
         set
         {
-            if (value == _showFlatGraph)
+            if (value == field)
             {
                 return;
             }
 
-            _showFlatGraph = value;
+            field = value;
             _viewer.ShowFlatGraph(value);
             OnPropertyChanged(nameof(ShowFlatGraph));
         }
@@ -243,15 +241,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public bool ShowDataFlow
     {
-        get => _showDataFlow;
+        get;
         set
         {
-            if (value == _showDataFlow)
+            if (value == field)
             {
                 return;
             }
 
-            _showDataFlow = value;
+            field = value;
             _viewer.ShowInformationFlow(value);
             OnPropertyChanged(nameof(ShowDataFlow));
         }

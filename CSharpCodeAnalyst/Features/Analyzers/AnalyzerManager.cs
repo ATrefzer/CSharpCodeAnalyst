@@ -63,11 +63,11 @@ internal class AnalyzerManager : IAnalyzerManager
         _analyzers.Clear();
 
         IAnalyzer analyzer = new Analyzer(messaging);
-        analyzer.DataChanged += (sender, args) => RaiseAnalyzerDataChanged();
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 
         analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
-        analyzer.DataChanged += (sender, args) => RaiseAnalyzerDataChanged();
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
     }
 

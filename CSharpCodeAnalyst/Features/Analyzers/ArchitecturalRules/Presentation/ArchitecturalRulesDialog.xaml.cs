@@ -8,7 +8,6 @@ namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 
 public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 {
-    private string _rulesText = string.Empty;
 
     public ArchitecturalRulesDialog()
     {
@@ -18,15 +17,15 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 
     public string RulesText
     {
-        get => _rulesText;
+        get;
         set
         {
-            if (_rulesText == value) { return; }
+            if (field == value) { return; }
 
-            _rulesText = value;
+            field = value;
             OnPropertyChanged();
         }
-    }
+    } = string.Empty;
 
     /// <summary>
     /// Callback invoked when the Validate button is clicked

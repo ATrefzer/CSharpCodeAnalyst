@@ -11,7 +11,7 @@ public enum ToastType
 
 public static class ToastManager
 {
-    private static readonly List<ToastNotification> ActiveToasts = new();
+    private static readonly List<ToastNotification> ActiveToasts = [];
     private static readonly double ToastSpacing = 10; // Spacing between stacked toasts
     private static readonly double RightMargin = 20;
     private static readonly double TopMargin = 100;
@@ -42,7 +42,7 @@ public static class ToastManager
 
             // Position at top-right of screen
             // We'll adjust after the window loads, and we know its actual size
-            toast.Loaded += (s, e) =>
+            toast.Loaded += (_, _) =>
             {
                 PositionToast(toast, workingArea);
             };
@@ -51,7 +51,7 @@ public static class ToastManager
             ActiveToasts.Add(toast);
 
             // Remove from tracking when closed
-            toast.Closed += (s, e) =>
+            toast.Closed += (_, _) =>
             {
                 ActiveToasts.Remove(toast);
                 RepositionToasts(workingArea);

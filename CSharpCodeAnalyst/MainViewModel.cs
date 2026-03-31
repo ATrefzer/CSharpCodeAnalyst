@@ -67,19 +67,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private GraphViewModel? _graphViewModel;
     private InfoPanelViewModel? _infoPanelViewModel;
 
-    private bool _isCanvasHintsVisible = true;
-
-    private bool _isGraphToolPanelVisible = true;
-    private bool _isLeftPanelExpanded = true;
-    private bool _isLoading;
-
     private string _loadMessage;
-    private ObservableCollection<IMetric> _metrics = [];
     private LegendDialog? _openedLegendDialog;
     private AdvancedSearchViewModel? _searchViewModel;
-
-    private int _selectedLeftTabIndex;
-    private int _selectedRightTabIndex;
 
     private TreeViewModel? _treeViewModel;
 
@@ -218,25 +208,25 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public bool IsLeftPanelExpanded
     {
-        get => _isLeftPanelExpanded;
+        get;
         set
         {
-            if (_isLeftPanelExpanded == value)
+            if (field == value)
             {
                 return;
             }
 
-            _isLeftPanelExpanded = value;
+            field = value;
             OnPropertyChanged();
         }
-    }
+    } = true;
 
     public bool IsLoading
     {
-        get => _isLoading;
+        get;
         set
         {
-            _isLoading = value;
+            field = value;
             OnPropertyChanged();
         }
     }
@@ -294,33 +284,33 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public int SelectedRightTabIndex
     {
-        get => _selectedRightTabIndex;
+        get;
         set
         {
-            if (value == _selectedRightTabIndex)
+            if (value == field)
             {
                 return;
             }
 
-            _selectedRightTabIndex = value;
+            field = value;
             OnPropertyChanged();
         }
     }
 
     public bool IsCanvasHintsVisible
     {
-        get => _isCanvasHintsVisible;
+        get;
         set
         {
-            if (_isCanvasHintsVisible == value)
+            if (field == value)
             {
                 return;
             }
 
-            _isCanvasHintsVisible = value;
+            field = value;
             OnPropertyChanged();
         }
-    }
+    } = true;
 
     public ICommand OpenFilterDialogCommand { get; }
     public ICommand OpenSettingsDialogCommand { get; }
@@ -329,23 +319,23 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         set
         {
-            _metrics = value;
+            field = value;
             OnPropertyChanged();
         }
-        get => _metrics;
-    }
+        get;
+    } = [];
 
     public int SelectedLeftTabIndex
     {
-        get => _selectedLeftTabIndex;
+        get;
         set
         {
-            if (value == _selectedLeftTabIndex)
+            if (value == field)
             {
                 return;
             }
 
-            _selectedLeftTabIndex = value;
+            field = value;
             InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
             OnPropertyChanged();
         }
@@ -360,18 +350,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public bool IsGraphToolPanelVisible
     {
-        get => _isGraphToolPanelVisible;
+        get;
         set
         {
-            if (value == _isGraphToolPanelVisible)
+            if (value == field)
             {
                 return;
             }
 
-            _isGraphToolPanelVisible = value;
+            field = value;
             OnPropertyChanged();
         }
-    }
+    } = true;
 
     public string Title
     {

@@ -110,7 +110,7 @@ public partial class App
         mainWindow.SetViewer(explorationGraphViewer, messaging);
 
         var projectStorage = new JsonProjectStorage(uiNotification);
-        var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
+        var projectService = new ProjectService(projectStorage, userSettings);
 
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
         var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);

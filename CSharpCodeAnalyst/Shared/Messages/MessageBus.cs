@@ -4,7 +4,7 @@ namespace CSharpCodeAnalyst.Shared.Messages;
 
 public class MessageBus : ISubscriber, IPublisher
 {
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private readonly Dictionary<Type, List<Delegate>> _typeToSubscribersMap = new();
 
     public void Publish<TMessage>(TMessage message) where TMessage : class
@@ -22,7 +22,7 @@ public class MessageBus : ISubscriber, IPublisher
         {
             if (_typeToSubscribersMap.TryGetValue(messageType, out var subscribers))
             {
-                handlers = [..subscribers];
+                handlers = subscribers.ToList();
             }
             else
             {

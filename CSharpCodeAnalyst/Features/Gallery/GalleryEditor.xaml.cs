@@ -22,7 +22,7 @@ public partial class GalleryEditor
     private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // Single-click preview: when selection changes, trigger preview
-        if (DataContext is GalleryEditorViewModel viewModel && viewModel.SelectedItem != null)
+        if (DataContext is GalleryEditorViewModel { SelectedItem: not null } viewModel)
         {
             viewModel.PreviewSelectedItemCommand.Execute(viewModel.SelectedItem);
         }

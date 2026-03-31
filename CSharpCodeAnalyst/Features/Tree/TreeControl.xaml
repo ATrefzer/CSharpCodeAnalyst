@@ -6,7 +6,8 @@
              xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              xmlns:dd="urn:gong-wpf-dragdrop"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-             d:DataContext="{d:DesignInstance local:TreeViewModel}"
+             xmlns:tree="clr-namespace:CSharpCodeAnalyst.Features.Tree"
+             d:DataContext="{d:DesignInstance tree:TreeViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
 

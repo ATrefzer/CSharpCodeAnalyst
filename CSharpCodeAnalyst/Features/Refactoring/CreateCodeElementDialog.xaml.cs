@@ -11,7 +11,7 @@ public partial class CreateCodeElementDialog : Window
         ViewModel = viewModel;
 
         // Focus the name textbox for immediate editing
-        Loaded += (s, e) =>
+        Loaded += (_, _) =>
         {
             ElementNameTextBox.Focus();
             ElementNameTextBox.SelectAll();
