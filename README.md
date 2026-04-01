@@ -91,6 +91,8 @@ To use this feature, open **Settings** and enter your API endpoint and key. The 
 
 That said, the feature can be genuinely useful for getting a first set of ideas when you are staring at a complex cycle and don't know where to begin. The AI often recognises structural patterns — such as hidden abstractions, circular service dependencies, or missing interfaces — that are worth considering. The advice can be saved as a Markdown file for later reference.
 
+![](Documentation/Images/ai-advise.png)
+
 ## Simulated refactoring
 
 The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.
