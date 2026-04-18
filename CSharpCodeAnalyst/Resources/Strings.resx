@@ -680,7 +680,7 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
 
     <data name="Copy_BitmapClipboard_Label" xml:space="preserve">
-    <value>Copy to image to clipboard</value>
+    <value>Copy image to clipboard</value>
   </data>
     <data name="Copy_BitmapClipboard_Tooltip" xml:space="preserve">
     <value>Copy current Code Explorer graph as image to clipboard.</value>
@@ -689,7 +689,7 @@ Search with resharper style = Use at least one uppercase character in a search t
     <value>Export plain text ...</value>
   </data>
     <data name="ExportPlainText_Tooltip" xml:space="preserve">
-    <value>CExport Code Explorer (expanded) graph to plain text.</value>
+    <value>Export Code Explorer (expanded) graph to plain text.</value>
   </data>
     <data name="ExportSvg_Tooltip" xml:space="preserve">
     <value>Export Code Explorer (expanded) graph to SVG. NOTE: Sub-graphs are not implemented!</value>
@@ -893,6 +893,12 @@ ISOLATE: MyApp.Domain.**</value>
     <data name="Import_Label" xml:space="preserve">
     <value>Import</value>
   </data>
+    <data name="Export_Label" xml:space="preserve">
+    <value>Export</value>
+  </data>
+    <data name="Helpers_Header" xml:space="preserve">
+    <value>Helpers</value>
+  </data>
     <data name="Settings_Header_Tooltip" xml:space="preserve">
     <value>Open application settings dialog</value>
   </data>
@@ -1007,7 +1013,7 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Your API key. It is encrypted with Windows DPAPI and stored locally — only the current Windows user can read it.</value>
   </data>
     <data name="AiAdvise_Label" xml:space="preserve">
-    <value>AI Advise</value>
+    <value>AI Advisor</value>
   </data>
     <data name="AiAdvise_Tooltip" xml:space="preserve">
     <value>Ask AI for suggestions on how to resolve the cycle in the current graph</value>

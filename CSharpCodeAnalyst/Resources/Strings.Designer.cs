@@ -108,7 +108,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AI Advise.
+        ///   Looks up a localized string similar to AI Advisor.
         /// </summary>
         public static string AiAdvise_Label {
             get {
@@ -585,7 +585,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy to image to clipboard.
+        ///   Looks up a localized string similar to Copy image to clipboard.
         /// </summary>
         public static string Copy_BitmapClipboard_Label {
             get {
@@ -774,6 +774,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Export.
+        /// </summary>
+        public static string Export_Label {
+            get {
+                return ResourceManager.GetString("Export_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Export DGML ....
         /// </summary>
         public static string ExportDgml_Label {
@@ -819,7 +828,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CExport Code Explorer (expanded) graph to plain text..
+        ///   Looks up a localized string similar to Export Code Explorer (expanded) graph to plain text..
         /// </summary>
         public static string ExportPlainText_Tooltip {
             get {
@@ -1130,6 +1139,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Help_Header {
             get {
                 return ResourceManager.GetString("Help_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Helpers.
+        /// </summary>
+        public static string Helpers_Header {
+            get {
+                return ResourceManager.GetString("Helpers_Header", resourceCulture);
             }
         }
         

@@ -1,7 +1,5 @@
 # C# Code Analyst
 
-[TOC]
-
 This application helps you to explore, understand, and maintain C# code.
 
 Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
@@ -81,9 +79,9 @@ Remember, the goal isn't to eliminate every cycle but to be aware of your code's
 
 **In general, it's a good guideline to keep your software system free of cycles at the namespace level.**
 
-### AI Advise
+### AI Advisor
 
-Once you have loaded a cycle group into the Code Explorer, the **AI Advise** button in the toolbar sends the cycle to a configured LLM and asks it for ideas on how to resolve or break down the dependency cycle.
+Once you have loaded a cycle group into the Code Explorer, the **AI Advisor** button in the toolbar sends the cycle to a configured LLM and asks it for ideas on how to resolve or break down the dependency cycle.
 
 To use this feature, open **Settings** and enter your API endpoint and key. The tool supports any OpenAI-compatible endpoint, including local models (e.g. Ollama) and Anthropic's API.
 
@@ -188,15 +186,11 @@ Select "Copy to PlantUml class diagram" from the Export menu.
 
 
 
-The PlantUml syntax is copied to the clipboard. You can use any online online editor to render it.
+The PlantUml syntax is copied to the clipboard. You can use any online editor to render it.
 
 
 
 ![](Documentation/Images/example-uml.png)
-
-## Performance Tips
-
-When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
 
 ## Other languages
 
