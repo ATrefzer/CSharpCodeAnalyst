@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:CSharpCodeAnalyst.Shared.Converters"
              xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
+             xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance info:InfoPanelViewModel}"
              d:DesignHeight="450" d:DesignWidth="300">
@@ -60,7 +61,7 @@
                         <!-- Another list for the source code -->
                         <StackPanel Orientation="Vertical"
                                     Visibility="{Binding SourceLocations.Count, Converter={StaticResource NumberToVisibilityConverter}}">
-                            <TextBlock Text="Locations" FontWeight="Bold" Margin="0 10 0 0" />
+                            <TextBlock Text="{x:Static resources:Strings.Locations_Label}" FontWeight="Bold" Margin="0 10 0 0" />
                             <ItemsControl ItemsSource="{Binding SourceLocations}"
                                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                           ScrollViewer.VerticalScrollBarVisibility="Disabled"
