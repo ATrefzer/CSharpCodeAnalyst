@@ -6,6 +6,50 @@ Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY)
 
 **Note:** You must install MSBuild on your computer for the application to function correctly.
 
+## Key Concepts
+
+**Model** — The complete code graph built from your imported solution. It contains all
+assemblies, namespaces, classes, methods, and their relationships.
+
+**Code Explorer (Canvas)** — Your interactive working area. You pick elements from the
+model and add them here to build a focused view. Think of it as a whiteboard where you
+place only what you currently need.
+
+**Tree View** — A hierarchical browser for the model. Use it to find individual elements
+and add them to the canvas.
+
+## Quick Start
+
+Both main workflows start the same way: **import your solution** via
+*Home → Import → Import Visual Studio solution*.
+
+### Use Case 1: Find Dependency Cycles
+
+You don't need anything on the canvas for this — just import and search.
+
+1. Click **Cycles** in the ribbon
+2. The *Cycle Groups* tab lists all detected cycles with the involved elements
+3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph
+4. Optionally click **AI Advisor** to get ideas on how to break the cycle
+
+> **Where to start?** Cycles at the **namespace level** have the highest impact.
+
+### Use Case 2: Explore Your Codebase
+
+Use this to understand how specific parts of your code relate to each other.
+
+1. In the **Tree View** (left panel), find a code element and right-click →
+   *Add to Code Explorer* — the element appears on the canvas
+2. **Right-click** the element on the canvas to explore relationships, for example:
+   - *Find incoming calls* — who calls this method?
+   - *Find inheritance tree* — what does this class extend?
+   - *All outgoing relationships* — what does this element depend on?
+3. Keep following relationships that interest you — the graph grows step by step
+
+> **Tip:** Use **Advanced Search** to find and add multiple related elements at once.
+> It supports `type:class`, `type:method`, `source:intern` and ReSharper-style
+> camel-case search (e.g. `SC` finds `ShoppingCart`).
+
 ## Exploring your codebase
 
 While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.

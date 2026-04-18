@@ -42,6 +42,7 @@ public class TreeViewModel : INotifyPropertyChanged
 
         SetMovementTargetCommand = new WpfCommand<TreeItemViewModel>(RefactoringSetMovementTarget, RefactoringCanSetMovementTarget);
         MoveCommand = new WpfCommand<TreeItemViewModel>(RefactoringMoveCodeElement, RefactoringCanMoveCodeElement);
+        ClearMovementTargetCommand = new WpfCommand(ClearMovementTarget);
         SelectedItemChangedCommand = new WpfCommand<TreeItemViewModel>(OnSelectedItemChanged);
 
         _treeItems = [];
@@ -82,6 +83,10 @@ public class TreeViewModel : INotifyPropertyChanged
 
     public ICommand SetMovementTargetCommand { get; private set; }
     public ICommand MoveCommand { get; private set; }
+    public ICommand ClearMovementTargetCommand { get; private set; }
+
+    public bool HasMovementTarget => _refactoringService.GetMovementTarget() != null;
+    public string MovementTargetName => _refactoringService.GetMovementTarget()?.Name ?? string.Empty;
 
     public ICommand SelectedItemChangedCommand { get; }
 
@@ -110,6 +115,7 @@ public class TreeViewModel : INotifyPropertyChanged
         }
 
         _refactoringService.MoveCodeElements([id]);
+        NotifyMovementTargetChanged();
     }
 
     private bool RefactoringCanSetMovementTarget(TreeItemViewModel tvm)
@@ -120,6 +126,19 @@ public class TreeViewModel : INotifyPropertyChanged
     private void RefactoringSetMovementTarget(TreeItemViewModel tvm)
     {
         _refactoringService.SetMovementTarget(tvm.CodeElement?.Id);
+        NotifyMovementTargetChanged();
+    }
+
+    private void ClearMovementTarget()
+    {
+        _refactoringService.ClearMovementTarget();
+        NotifyMovementTargetChanged();
+    }
+
+    private void NotifyMovementTargetChanged()
+    {
+        OnPropertyChanged(nameof(HasMovementTarget));
+        OnPropertyChanged(nameof(MovementTargetName));
     }
 
     private static void OnCopyToClipboard(TreeItemViewModel vm)

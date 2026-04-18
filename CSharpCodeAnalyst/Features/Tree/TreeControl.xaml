@@ -25,6 +25,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <DockPanel Margin="5" Grid.Row="0" HorizontalAlignment="Stretch">
@@ -58,7 +59,30 @@
             </Grid>
 
         </DockPanel>
-        <TreeView Grid.Row="1"
+        <!-- Movement parent indicator -->
+        <Border Grid.Row="1"
+                Background="#FFF3CD"
+                BorderBrush="#FFCA2C"
+                BorderThickness="0,1,0,1"
+                Padding="5,3"
+                Visibility="{Binding HasMovementTarget, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Command="{Binding ClearMovementTargetCommand}"
+                        ToolTip="{x:Static resources:Strings.MovementParent_Clear_Tooltip}"
+                        Width="16" Height="16"
+                        Padding="0"
+                        Margin="4,0,0,0">
+                    <Image Source="/Resources/clear_32.png" Width="12" Height="12" />
+                </Button>
+                <TextBlock VerticalAlignment="Center" FontSize="11" TextTrimming="CharacterEllipsis">
+                    <Run Text="{x:Static resources:Strings.MovementParent_Label}" FontWeight="Bold" />
+                    <Run Text="{Binding MovementTargetName}" />
+                </TextBlock>
+            </DockPanel>
+        </Border>
+
+        <TreeView Grid.Row="2"
                   x:Name="CodeTree"
                   ContextMenuOpening="TreeView_ContextMenuOpening"
                   ItemsSource="{Binding TreeItems}"

@@ -852,6 +852,12 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="Refactoring_SetAsMovementParent" xml:space="preserve">
     <value>_Set as movement parent</value>
   </data>
+    <data name="MovementParent_Label" xml:space="preserve">
+    <value>Movement parent: </value>
+  </data>
+    <data name="MovementParent_Clear_Tooltip" xml:space="preserve">
+    <value>Clear movement parent</value>
+  </data>
     <data name="ArchitectureRules_Info" xml:space="preserve">
     <value>Three rules are supported:
 

@@ -315,6 +315,11 @@ public class RefactoringService
         return _target;
     }
 
+    public void ClearMovementTarget()
+    {
+        _target = null;
+    }
+
     public void DeleteRelationships(List<Relationship> relationships)
     {
         if (_graph is null || !relationships.Any())
