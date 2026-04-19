@@ -6,16 +6,18 @@ Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY)
 
 **Note:** You must install MSBuild on your computer for the application to function correctly.
 
-## Key Concepts
+## Terminology
+
+I use the following terms throughout this documentation:
 
 **Model** — The complete code graph built from your imported solution. It contains all
 assemblies, namespaces, classes, methods, and their relationships.
 
-**Code Explorer (Canvas)** — Your interactive working area. You pick elements from the
-model and add them here to build a focused view. Think of it as a whiteboard where you
-place only what you currently need.
+**Code Explorer (Canvas)** — My interactive working area. I pick elements from the
+model and add them here to build a focused view. Think of it as a whiteboard where I
+place only what I currently need.
 
-**Tree View** — A hierarchical browser for the model. Use it to find individual elements
+**Tree View** — A hierarchical browser for the model. I use it to find individual elements
 and add them to the canvas.
 
 ## Quick Start
@@ -49,40 +51,6 @@ Use this to understand how specific parts of your code relate to each other.
 > **Tip:** Use **Advanced Search** to find and add multiple related elements at once.
 > It supports `type:class`, `type:method`, `source:intern` and ReSharper-style
 > camel-case search (e.g. `SC` finds `ShoppingCart`).
-
-## Exploring your codebase
-
-While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
-
-### General
-
-![image-20240731123233438](Documentation/Images/code-explorer.png)
-
-- Import a C# solution (*.sln). 
-
-- Use the **Tree View** tab to add a single code element to the canvas.
-
-- Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas.
-
-- Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
-
-- To perform operations on multiple selected elements, use the tool buttons in the Code Explorer. 
-
-- Note: You can export graphs to DGML format for further analysis in Visual Studio. Also, PlantUML class diagrams are supported.
-
-
-### Examples
-
-Here are some general examples of how to use the application to explore a code base.
-
--  [Essential concepts](Documentation/example-general-concepts.md)
--  [Find the call origins of a method](Documentation/example-find-call-origin.md)
--  [Understand how you could split a large class](Documentation/example-partition-class.md)
-
-### Performance Tips
-
-When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
-
 
 ## Find and visualize cycles in your codebase
 
@@ -164,6 +132,55 @@ Additionally in the Code Explorer
 
 - **Delete edge from model** – Deletes the relationships between two code elements. If the edge is bundled, multiple relationships get deleted.
 
+## Exploring your codebase
+
+While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
+
+### General
+
+![image-20240731123233438](Documentation/Images/code-explorer.png)
+
+- Import a C# solution (*.sln). 
+
+- Use the **Tree View** tab to add a single code element to the canvas.
+
+- Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas.
+
+- Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
+
+- To perform operations on multiple selected elements, use the tool buttons in the Code Explorer. 
+
+- Note: You can export graphs to DGML format for further analysis in Visual Studio. Also, PlantUML class diagrams are supported.
+
+
+### Examples
+
+Here are some general examples of how to use the application to explore a code base.
+
+-  [Essential concepts](Documentation/example-general-concepts.md)
+-  [Find the call origins of a method](Documentation/example-find-call-origin.md)
+-  [Understand how you could split a large class](Documentation/example-partition-class.md)
+
+### Performance Tips
+
+When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+
+## Generate UML class diagrams
+
+When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even if they are collapsed and are not visible at this time.
+
+Select "Copy to PlantUml class diagram" from the Export menu.
+
+![](Documentation/Images/export-uml-class-diagram.png)
+
+
+
+The PlantUml syntax is copied to the clipboard. You can use any online editor to render it.
+
+
+
+![](Documentation/Images/example-uml.png)
+
 ## Validate your architectural rules
 
 You can define architectural rules and check if they are violated.
@@ -219,22 +236,6 @@ The result of the analysis is shown in the table output for analyzers.
 To integrate the tool into a build pipeline, you can call it without a user interface. You can find the syntax of the command-line here:
 
 [Command-line arguments](Documentation/command-line-arguments.md)
-
-## Generate UML class diagrams
-
-When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even if they are collapsed and are not visible at this time.
-
-Select "Copy to PlantUml class diagram" from the Export menu.
-
-![](Documentation/Images/export-uml-class-diagram.png)
-
-
-
-The PlantUml syntax is copied to the clipboard. You can use any online editor to render it.
-
-
-
-![](Documentation/Images/example-uml.png)
 
 ## Other languages
 
