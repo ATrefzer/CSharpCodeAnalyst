@@ -837,7 +837,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy PlantUml class diagram.
+        ///   Looks up a localized string similar to Copy PlantUML class diagram.
         /// </summary>
         public static string ExportPlantUml_Label {
             get {
@@ -846,7 +846,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PlantUml class diagram syntax has been copied to clipboard..
+        ///   Looks up a localized string similar to PlantUML class diagram syntax has been copied to clipboard..
         /// </summary>
         public static string ExportPlantUml_Success {
             get {
@@ -855,7 +855,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Copy the Code Explorer (expanded) graph as PlantUml class diagram syntax to the clipboard..
+        ///   Looks up a localized string similar to Copy the Code Explorer (expanded) graph as PlantUML class diagram syntax to the clipboard..
         /// </summary>
         public static string ExportPlantUml_Tooltip {
             get {
