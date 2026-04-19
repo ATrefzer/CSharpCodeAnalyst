@@ -4,64 +4,64 @@
 
 This application helps you to explore, understand, and maintain C# code.
 
+![](Documentation/Images/quick-start.png)
+
 Here is a [YouTube presentation](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
 
-**Note:** You must install MSBuild on your computer for the application to function correctly.
+## Requirements
 
-## Terminology
+- **Windows** (x64)
+- **.NET 10 Runtime** — required to run the application
+- **.NET SDK or Visual Studio** — provides MSBuild, which is used to load your C# solution
 
-I use the following terms throughout this documentation:
+## Download
 
-**Model** — The complete code graph built from your imported C# solution. It contains all assemblies, namespaces, classes, methods, and their relationships.
-
-**Code Explorer (Canvas)** — Interactive working area. Pick elements from the model and add them here to build a focused view. Think of it as a whiteboard where you can place only what you need right now.
-
-**Tree View** — A hierarchical browser for the model. Use it to find individual elements and add them to the canvas.
+Grab the latest build from the [Releases page](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest). Extract the zip and run `CSharpCodeAnalyst.exe`.
 
 ## Quick Start
 
-All workflows start the same way: **import your C# solution file** via
-*Home → Import → Import Visual Studio solution*.
+All workflows start the same way: **Import your C# solution file** via *Home → Import → Import Visual Studio solution*.
+
+This builds the **model** — the complete code graph of your solution, containing all assemblies, namespaces, classes, methods, and their relationships.
+
+> **Good to know:** The tool analyzes the code graph, not the filesystem — the source directory structure is ignored. External assemblies are excluded by default (opt in via settings). See [Limitations](#limitations) for the full list.
 
 Here is what you can do with this app:
 
-### Find and break Dependency Cycles
+### Find and break dependency cycles
 
 The cycle search always runs on the complete model.
 
 1. Click **Cycles** in the ribbon
 2. The *Cycle Groups* tab lists all detected cycles with the involved elements
-3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph
+3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph. The **Code Explorer** (or canvas) is your interactive working area — a whiteboard where you place only the elements you need right now.
 4. Optionally, click **AI Advisor** to get ideas on how to break the cycle
 
-> **Where to start?** Cycles at the **namespace level** have the highest impact.
+See [Find and break dependency cycles](#find-and-break-dependency-cycles-2) for details.
 
-See [Find and Break Dependency Cycles](#find-and-break-dependency-cycles-1) for details.
+### Explore your codebase
 
-### Explore your Codebase
-
-1. In the **Tree View** (left panel), find a code element and right-click →
-*Add to Code Explorer* — the element appears on the canvas
+1. In the **Tree View** (left panel) — a hierarchical browser of the model — find a code element and right-click → *Add to Code Explorer*. The element appears on the canvas.
 2. **Right-click** the element on the canvas to explore relationships, for example:
 - *Find incoming calls* — who calls this method?
 - *Find inheritance tree* — what does this class extend?
 3. Keep following relationships that interest you — the graph grows step by step
 
-See [Explore Your Codebase](#export-your-graph-1) for details, including Advanced Search and performance tips.
+See [Explore your codebase](#explore-your-codebase-2) for details, including Advanced Search and performance tips.
 
 ### Export your graph
 
 Once you have a graph you want to share, export it for example as a **PlantUML class diagram** or
-**DGML** file. See [Document Your Findings](#document-your-findings-1).
+**DGML** file. See [Export your graph](#export-your-graph-2) for details.
 
 ### Validate architectural rules
 
 Define DENY, RESTRICT, or ISOLATE rules and check them against your codebase.
-See [Validate Architectural Rules](#validate-architectural-rules-1).
+See [Validate architectural rules](#validate-architectural-rules-2).
 
 ---
 
-## Find and Break Dependency Cycles
+## Find and break dependency cycles
 
 **Note:** This function finds strongly connected components in the code graph, not the elementary cycles.
 
@@ -72,31 +72,6 @@ A strongly connected component is a sub-graph where a path exists between any tw
 Use the context menu to copy the related code elements to the explorer graph for further investigation.
 
 ![](Documentation/Images/cycle-graph.png)
-
-### Why look for cycles?
-
-More than 40 years ago, in his often-cited paper ["Designing software for ease of extension and contraction"](https://courses.cs.washington.edu/courses/cse503/08wi/parnas-1979.pdf) David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
-
-This idea of having cycle-free modules is quite intuitive. Let's look at an example outside the software world: Imagine a project plan with two tasks, A and B, that depend on each other, forming a cycle. How would you tackle these tasks? You'd have to do them together as a whole. It's similar in software. If there are cycles in the area you want to change, you might end up reading and understanding all the classes involved in the cycle. Changes can have unexpected side effects. Consequently, a software system with circular dependencies is more challenging to maintain.
-
-The preference for hierarchical structures in software isn't arbitrary. It's deeply rooted in how our brains process information:
-
-1. Research in cognitive psychology has consistently shown that the human brain understands and processes hierarchical structures more easily than non-hierarchical or cyclic ones.
-2. We naturally organize our knowledge hierarchically, which makes hierarchical code structures more intuitive to understand and remember.
-
-Therefore, this advice is a timeless principle. While studies on how we learn and understand things may be old, they will never be outdated. The primary tool we use to write software, our brain, will be the same tomorrow.
-
-There are other attributes associated with hierarchical and cycle-free systems, such as testability and maintainability. To me, understanding the system is the most important aspect. I doubt that you can have maintainability in a hard-to-understand codebase.
-
-**C# Code Analyst** helps you identify cycles in your code, offering a higher-level perspective on your code structure. By using this tool, you can:
-
-- Gain insights into your code's organization that might not be apparent when working at the detailed level.
-- Identify opportunities to refactor and improve the structure of your code.
-- Enhance the overall readability and maintainability of your codebase to improve its quality.
-
-Remember, the goal isn't to eliminate every cycle but to be aware of your code's structure and make informed decisions about its organization. Some cycles may be intentional, and even some design patterns utilize them. By focusing on readability, you're investing in code that's not just functional, but also easier to understand, maintain, and evolve.
-
-**In general, it's a good guideline to keep your software system free of cycles at the namespace level.**
 
 ### AI Advisor
 
@@ -110,7 +85,7 @@ That said, the feature can be genuinely useful for getting a first set of ideas 
 
 ![](Documentation/Images/ai-advise.png)
 
-### Simulated Refactoring
+### Simulated refactoring
 
 The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.
 
@@ -139,11 +114,36 @@ Additionally in the Code Explorer:
 
 - **Delete edge from model** – Deletes the relationships between two code elements. If the edge is bundled, multiple relationships get deleted.
 
+### Why look for cycles?
+
+More than 40 years ago, in his often-cited paper ["Designing software for ease of extension and contraction"](https://courses.cs.washington.edu/courses/cse503/08wi/parnas-1979.pdf) David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
+
+This idea of having cycle-free modules is quite intuitive. Let's look at an example outside the software world: Imagine a project plan with two tasks, A and B, that depend on each other, forming a cycle. How would you tackle these tasks? You'd have to do them together as a whole. It's similar in software. If there are cycles in the area you want to change, you might end up reading and understanding all the classes involved in the cycle. Changes can have unexpected side effects. Consequently, a software system with circular dependencies is more challenging to maintain.
+
+The preference for hierarchical structures in software isn't arbitrary. It's deeply rooted in how our brains process information:
+
+1. Research in cognitive psychology has consistently shown that the human brain understands and processes hierarchical structures more easily than non-hierarchical or cyclic ones.
+2. We naturally organize our knowledge hierarchically, which makes hierarchical code structures more intuitive to understand and remember.
+
+Therefore, this advice is a timeless principle. While studies on how we learn and understand things may be old, they will never be outdated. The primary tool we use to write software, our brain, will be the same tomorrow.
+
+There are other attributes associated with hierarchical and cycle-free systems, such as testability and maintainability. To me, understanding the system is the most important aspect. I doubt that you can have maintainability in a hard-to-understand codebase.
+
+**C# Code Analyst** helps you identify cycles in your code, offering a higher-level perspective on your code structure. By using this tool, you can:
+
+- Gain insights into your code's organization that might not be apparent when working at the detailed level.
+- Identify opportunities to refactor and improve the structure of your code.
+- Enhance the overall readability and maintainability of your codebase to improve its quality.
+
+Remember, the goal isn't to eliminate every cycle but to be aware of your code's structure and make informed decisions about its organization. Some cycles may be intentional, and even some design patterns utilize them. By focusing on readability, you're investing in code that's not just functional, but also easier to understand, maintain, and evolve.
+
+**In general, it's a good guideline to keep your software system free of cycles at the namespace level.**
+
 ---
 
-## Explore your Codebase
+## Explore your codebase
 
-While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
+Beyond cycle analysis, **C# Code Analyst** doubles as a navigator for unfamiliar codebases — trace calls, expand inheritance trees, and follow relationships step by step.
 
 ### How it works
 
@@ -162,7 +162,7 @@ Here are some general examples of how to use the application to explore a code b
 -  [Find the call origins of a method](Documentation/example-find-call-origin.md)
 -  [Understand how you could split a large class](Documentation/example-partition-class.md)
 
-### Performance Tips
+### Performance tips
 
 When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
 
@@ -238,7 +238,7 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 ---
 
-## Other Languages
+## Other languages
 
 The tool is written for C#, but you can also import jdeps output for basic visualization of Java code.
 
