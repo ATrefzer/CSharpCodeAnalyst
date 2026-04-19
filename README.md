@@ -195,7 +195,7 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 ## Validate architectural rules
 
 You can define architectural rules and check if they are violated.
-In the ribbon, go to Analyzers and there click "Architectural rules". If a project is loaded, this opens a dialog where you can define the rules.
+In the ribbon, go to Analyzers and then click "Architectural rules". If a project is loaded, this opens a dialog where you can define the rules.
 
 ![](Documentation/Images/rule-configuration.png)
 
@@ -206,6 +206,14 @@ There are three rules supported.
 **RESTRICT**: Allows only specified dependencies
 
 **ISOLATE**: Completely isolates the source from external dependencies
+
+You describe the source or target side of a rule with the following pattern.
+
+MyApp.Business → exact match
+
+MyApp.Business.* → element + direct children
+
+MyApp.Business.** → element + all descendants
 
 ### Examples
 
@@ -225,14 +233,6 @@ ISOLATE: MyApp.Domain.**
 // Specific class restrictions
 DENY: MyApp.Models.User -> MyApp.Data.Database
 ```
-
-You describe the source or target side of a rule with the following pattern.
-
-MyApp.Business → exact match
-
-MyApp.Business.* → element + direct children
-
-MyApp.Business.** → element + all descendants
 
 The result of the analysis is shown in the table output for analyzers.
 
