@@ -1,50 +1,69 @@
 # C# Code Analyst
 
+[TOC]
+
 This application helps you to explore, understand, and maintain C# code.
 
-Here is a [presentation on YouTube](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
+Here is a [YouTube presentation](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
 
 **Note:** You must install MSBuild on your computer for the application to function correctly.
 
-## Exploring your codebase
+## Terminology
 
-While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
+I use the following terms throughout this documentation:
 
-### General
+**Model** — The complete code graph built from your imported C# solution. It contains all assemblies, namespaces, classes, methods, and their relationships.
 
-![image-20240731123233438](Documentation/Images/code-explorer.png)
+**Code Explorer (Canvas)** — Interactive working area. Pick elements from the model and add them here to build a focused view. Think of it as a whiteboard where you can place only what you need right now.
 
-- Import a C# solution (*.sln). 
+**Tree View** — A hierarchical browser for the model. Use it to find individual elements and add them to the canvas.
 
-- Use the **Tree View** tab to add a single code element to the canvas.
+## Quick Start
 
-- Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas.
+All workflows start the same way: **import your C# solution file** via
+*Home → Import → Import Visual Studio solution*.
 
-- Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
+Here is what you can do with this app:
 
-- To perform operations on multiple selected elements, use the tool buttons in the Code Explorer. 
+### Find and break Dependency Cycles
 
-- Note: You can export graphs to DGML format for further analysis in Visual Studio. Also, PlantUML class diagrams are supported.
+The cycle search always runs on the complete model.
 
+1. Click **Cycles** in the ribbon
+2. The *Cycle Groups* tab lists all detected cycles with the involved elements
+3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph
+4. Optionally, click **AI Advisor** to get ideas on how to break the cycle
 
-### Examples
+> **Where to start?** Cycles at the **namespace level** have the highest impact.
 
-Here are some general examples of how to use the application to explore a code base.
+See [Find and Break Dependency Cycles](#find-and-break-dependency-cycles-1) for details.
 
--  [Essential concepts](Documentation/example-general-concepts.md)
--  [Find the call origins of a method](Documentation/example-find-call-origin.md)
--  [Understand how you could split a large class](Documentation/example-partition-class.md)
+### Explore your Codebase
 
-### Performance Tips
+1. In the **Tree View** (left panel), find a code element and right-click →
+*Add to Code Explorer* — the element appears on the canvas
+2. **Right-click** the element on the canvas to explore relationships, for example:
+- *Find incoming calls* — who calls this method?
+- *Find inheritance tree* — what does this class extend?
+3. Keep following relationships that interest you — the graph grows step by step
 
-When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+See [Explore Your Codebase](#export-your-graph-1) for details, including Advanced Search and performance tips.
 
+### Export your graph
 
-## Find and visualize cycles in your codebase
+Once you have a graph you want to share, export it for example as a **PlantUML class diagram** or
+**DGML** file. See [Document Your Findings](#document-your-findings-1).
 
-**Note:  This function finds strongly connected components in the code graph, not the elementary cycles. **
+### Validate architectural rules
 
+Define DENY, RESTRICT, or ISOLATE rules and check them against your codebase.
+See [Validate Architectural Rules](#validate-architectural-rules-1).
 
+---
+
+## Find and Break Dependency Cycles
+
+**Note:** This function finds strongly connected components in the code graph, not the elementary cycles.
 
 ![](Documentation/Images/cycle-summary.png)
 
@@ -54,7 +73,7 @@ Use the context menu to copy the related code elements to the explorer graph for
 
 ![](Documentation/Images/cycle-graph.png)
 
-### Why Look for Cycles?
+### Why look for cycles?
 
 More than 40 years ago, in his often-cited paper ["Designing software for ease of extension and contraction"](https://courses.cs.washington.edu/courses/cse503/08wi/parnas-1979.pdf) David Parnas suggested organizing software hierarchically, keeping the modules "loop-free." Similarly, Robert C. Martin's Acyclic Dependency Principle pushes in the same direction.
 
@@ -85,13 +104,13 @@ Once you have loaded a cycle group into the Code Explorer, the **AI Advisor** bu
 
 To use this feature, open **Settings** and enter your API endpoint and key. The tool supports any OpenAI-compatible endpoint, including local models (e.g. Ollama) and Anthropic's API.
 
-> **Use with care.** The AI suggestions are generated without any knowledge of your actual business domain, team conventions, or broader system constraints. They may be technically incorrect, impractical, or simply not applicable to your situation. 
+> **Use with care.** The AI suggestions are generated without any knowledge of your actual business domain, team conventions, or broader system constraints. They may be technically incorrect, impractical, or simply not applicable to your situation.
 
-That said, the feature can be genuinely useful for getting a first set of ideas when you are staring at a complex cycle and don't know where to begin. The AI often recognises structural patterns — such as hidden abstractions, circular service dependencies, or missing interfaces — that are worth considering. The advice can be saved as a Markdown file for later reference.
+That said, the feature can be genuinely useful for getting a first set of ideas when you are staring at a complex cycle and don't know where to begin. The AI often recognizes structural patterns — such as hidden abstractions, circular service dependencies, or missing interfaces — that are worth considering. The advice can be saved as a Markdown file for later reference.
 
 ![](Documentation/Images/ai-advise.png)
 
-## Simulated refactoring
+### Simulated Refactoring
 
 The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.
 
@@ -116,16 +135,59 @@ Context Menu Options:
 - **Set as movement parent** – Sets the current element as the parent for subsequent move operations.
 - **Move** – Once a movement parent is set, this option moves the selected element and all its children to the chosen parent.
 
-Additionally in the Code Explorer
+Additionally in the Code Explorer:
 
 - **Delete edge from model** – Deletes the relationships between two code elements. If the edge is bundled, multiple relationships get deleted.
 
-## Validate your architectural rules
+---
+
+## Explore your Codebase
+
+While this application was written to analyze cyclic code structures, it also offers functions to explore and understand the source code.
+
+### How it works
+
+![image-20240731123233438](Documentation/Images/code-explorer.png)
+
+- Use the **Tree View** tab to add a single code element to the canvas.
+- Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas. It supports `type:class`, `type:method`, `source:intern` and ReSharper-style camel-case search (e.g. `SC` finds `ShoppingCart`).
+- Explore the relationships between code elements using the context menu. For instance, you can track all incoming method calls or expand the inheritance tree.
+- To perform operations on multiple selected elements, use the tool buttons in the Code Explorer.
+
+### Examples
+
+Here are some general examples of how to use the application to explore a code base.
+
+-  [Essential concepts](Documentation/example-general-concepts.md)
+-  [Find the call origins of a method](Documentation/example-find-call-origin.md)
+-  [Understand how you could split a large class](Documentation/example-partition-class.md)
+
+### Performance Tips
+
+When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+
+---
+
+## Export your graph
+
+You can export your code graph (canvas) in various formats like **DGML** for further analysis in Visual Studio or as **PNG** image.
+
+When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even when collapsed and not visible.
+
+Select "Copy to PlantUml class diagram" from the Export menu.
+
+![](Documentation/Images/export-uml-class-diagram.png)
+
+The PlantUml syntax is copied to the clipboard. You can use any online editor to render it.
+
+![](Documentation/Images/example-uml.png)
+
+---
+
+## Validate architectural rules
 
 You can define architectural rules and check if they are violated.
 In the ribbon, go to Analyzers and there click "Architectural rules". If a project is loaded, this opens a dialog where you can define the rules.
-
-
 
 ![](Documentation/Images/rule-configuration.png)
 
@@ -168,33 +230,17 @@ The result of the analysis is shown in the table output for analyzers.
 
 ![](Documentation/Images/rule-result.png)
 
-
-
 ### Command-line
 
 To integrate the tool into a build pipeline, you can call it without a user interface. You can find the syntax of the command-line here:
 
 [Command-line arguments](Documentation/command-line-arguments.md)
 
-## Generate UML class diagrams
+---
 
-When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even if they are collapsed and are not visible at this time.
+## Other Languages
 
-Select "Copy to PlantUml class diagram" from the Export menu.
-
-![](Documentation/Images/export-uml-class-diagram.png)
-
-
-
-The PlantUml syntax is copied to the clipboard. You can use any online editor to render it.
-
-
-
-![](Documentation/Images/example-uml.png)
-
-## Other languages
-
-The tool is written for  C#, but you can also import jdeps output for basic visualization of Java code.
+The tool is written for C#, but you can also import jdeps output for basic visualization of Java code.
 
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
@@ -213,16 +259,16 @@ Please take note of the following issues:
 ## Thank you
 
 - The beautiful **images** in the user interface are <a href="https://de.freepik.com/search">Images from juicy_fish on Freepik</a>.
-  You can find the direct link to the collection here: [Icon-Portfolio des Autors Juicy_fish | Freepik](https://de.freepik.com/autor/juicy-fish/icons)
-- The dependency graphs are created using the **"Automatic Graph Layout" package"**. 
-  MSAGL was developed in Microsoft by Lev Nachmanson, Sergey Pupyrev, Tim Dwyer, Ted Hart, and Roman Prutkin:
-  https://github.com/microsoft/automatic-graph-layout
+You can find the direct link to the collection here: [Icon-Portfolio des Autors Juicy_fish | Freepik](https://de.freepik.com/autor/juicy-fish/icons)
+- The dependency graphs are created using the **"Automatic Graph Layout" package"**.
+MSAGL was developed in Microsoft by Lev Nachmanson, Sergey Pupyrev, Tim Dwyer, Ted Hart, and Roman Prutkin:
+https://github.com/microsoft/automatic-graph-layout
 - Drag and drop functionality is provided by the **gong-wpf-dragdrop** library.
-  Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
-  https://github.com/punker76/gong-wpf-dragdrop
+Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
+https://github.com/punker76/gong-wpf-dragdrop
 - Markdown rendering in the AI Advisor window is powered by **Markdig.Wpf** and **Markdig**.
-  Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
-  https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
+Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
+https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
 
 For complete third-party license information, see the [ThirdPartyNotices](ThirdPartyNotices/) folder.
 
@@ -236,7 +282,7 @@ This project is licensed under the GPL-3.0 License.
 
 **Note:** Versions prior to v0.9.0 were released under the MIT License.
 
-### What this means for you:
+### What this means for you
 
 - ✅ Use it freely in your projects (even commercial)
 - ✅ Modify and improve it
