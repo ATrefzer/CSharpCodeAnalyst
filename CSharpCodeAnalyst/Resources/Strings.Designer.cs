@@ -1611,6 +1611,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear movement parent.
+        /// </summary>
+        public static string MovementParent_Clear_Tooltip {
+            get {
+                return ResourceManager.GetString("MovementParent_Clear_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Movement parent: .
+        /// </summary>
+        public static string MovementParent_Label {
+            get {
+                return ResourceManager.GetString("MovementParent_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name.
         /// </summary>
         public static string Name_Label {

@@ -170,9 +170,9 @@ When the graph contains more than ~200 code elements, performance slows down. Ho
 
 ## Export your graph
 
-You can export your code graph (canvas) in various formats like **DGML** format for further analysis in Visual Studio or as **PNG** image.
+You can export your code graph (canvas) in various formats like **DGML** for further analysis in Visual Studio or as **PNG** image.
 
-When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even if they are collapsed and not visible.
+When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even when collapsed and not visible.
 
 Select "Copy to PlantUml class diagram" from the Export menu.
 
