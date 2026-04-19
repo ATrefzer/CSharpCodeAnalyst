@@ -37,7 +37,7 @@ The cycle search always runs on the complete model.
 3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph. The **Code Explorer** (or canvas) is your interactive working area — a whiteboard where you place only the elements you need right now.
 4. Optionally, click **AI Advisor** to get ideas on how to break the cycle
 
-See [Find and break dependency cycles](#find-and-break-dependency-cycles-2) for details.
+See [Find and break dependency cycles](#find-and-break-dependency-cycles-1) for details.
 
 ### Explore your codebase
 
@@ -47,17 +47,17 @@ See [Find and break dependency cycles](#find-and-break-dependency-cycles-2) for 
 - *Find inheritance tree* — what does this class extend?
 3. Keep following relationships that interest you — the graph grows step by step
 
-See [Explore your codebase](#explore-your-codebase-2) for details, including Advanced Search and performance tips.
+See [Explore your codebase](#explore-your-codebase-1) for details, including Advanced Search and performance tips.
 
 ### Export your graph
 
 Once you have a graph you want to share, export it for example as a **PlantUML class diagram** or
-**DGML** file. See [Export your graph](#export-your-graph-2) for details.
+**DGML** file. See [Export your graph](#export-your-graph-1) for details.
 
 ### Validate architectural rules
 
 Define DENY, RESTRICT, or ISOLATE rules and check them against your codebase.
-See [Validate architectural rules](#validate-architectural-rules-2).
+See [Validate architectural rules](#validate-architectural-rules-1).
 
 ---
 
