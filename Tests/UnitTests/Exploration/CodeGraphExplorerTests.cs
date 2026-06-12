@@ -238,6 +238,187 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FollowIncomingCallsHeuristically_ExcludesThisCallFromSideHierarchy()
+    {
+        // this.M() in a side hierarchy dispatches to the runtime type of "this",
+        // which is always inside that side hierarchy. It can never reach S1_M.
+        var baseCls = _graph.CreateClass("Base");
+        var s1 = _graph.CreateClass("S1");
+        var s2 = _graph.CreateClass("S2");
+        Rel(s1, baseCls, RelationshipType.Inherits);
+        Rel(s2, baseCls, RelationshipType.Inherits);
+
+        var baseM = _graph.CreateMethod("Base_M", baseCls);
+        var mStart = _graph.CreateMethod("S1_M", s1);
+        Rel(mStart, baseM, RelationshipType.Overrides);
+
+        var thisCaller = _graph.CreateMethod("S2_ThisCaller", s2);
+        Rel(thisCaller, baseM, RelationshipType.Calls, RelationshipAttribute.IsThisCall);
+
+        var baseCaller = _graph.CreateMethod("Base_Caller", baseCls);
+        Rel(baseCaller, baseM, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(mStart.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(baseCaller.Id), Is.True, "Implicit call within own hierarchy must stay");
+        Assert.That(ids.Contains(thisCaller.Id), Is.False, "this-call from side hierarchy cannot dispatch to S1_M");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_KeepsHierarchyRestrictionAfterStaticCall()
+    {
+        // Target is reached via a static call from the virtual method WorkerA_Work.
+        // Implicit calls to WorkerBase_Work from the sibling WorkerB can never
+        // dispatch to WorkerA_Work and must be excluded.
+        var util = _graph.CreateClass("Util");
+        var target = _graph.CreateMethod("Util_Log", util);
+
+        var workerBase = _graph.CreateClass("WorkerBase");
+        var workerA = _graph.CreateClass("WorkerA");
+        var workerB = _graph.CreateClass("WorkerB");
+        Rel(workerA, workerBase, RelationshipType.Inherits);
+        Rel(workerB, workerBase, RelationshipType.Inherits);
+
+        var baseWork = _graph.CreateMethod("WorkerBase_Work", workerBase);
+        var aWork = _graph.CreateMethod("WorkerA_Work", workerA);
+        Rel(aWork, baseWork, RelationshipType.Overrides);
+        Rel(aWork, target, RelationshipType.Calls, RelationshipAttribute.IsStaticCall);
+
+        var drive = _graph.CreateMethod("WorkerBase_Drive", workerBase);
+        Rel(drive, baseWork, RelationshipType.Calls);
+
+        var bOther = _graph.CreateMethod("WorkerB_Other", workerB);
+        Rel(bOther, baseWork, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(target.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(drive.Id), Is.True, "Implicit call within own hierarchy must stay");
+        Assert.That(ids.Contains(bOther.Id), Is.False, "Implicit call from sibling cannot dispatch to WorkerA_Work");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_FollowsChainThroughProperty()
+    {
+        var repo = _graph.CreateClass("Repo");
+        var compute = _graph.CreateMethod("Repo_Compute", repo);
+
+        var facade = _graph.CreateClass("Facade");
+        var valueProp = _graph.CreateProperty("Facade_Value", facade);
+        Rel(valueProp, compute, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var client = _graph.CreateClass("Client");
+        var consume = _graph.CreateMethod("Client_Consume", client);
+        Rel(consume, valueProp, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(compute.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(valueProp.Id), Is.True);
+        Assert.That(ids.Contains(consume.Id), Is.True, "Chain must continue through the property getter");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_PublisherSideIsNotFilteredBySubscriberHierarchy()
+    {
+        // Subscriber and Publisher share a base class, so the start context forbids Publisher.
+        // Raising an event dispatches via delegate; the implicit call Trigger -> Raise on the
+        // publisher side is a real origin and must not be filtered.
+        var baseCls = _graph.CreateClass("Base");
+        var sub = _graph.CreateClass("Subscriber");
+        var pub = _graph.CreateClass("Publisher");
+        Rel(sub, baseCls, RelationshipType.Inherits);
+        Rel(pub, baseCls, RelationshipType.Inherits);
+
+        var onChanged = _graph.CreateMethod("Subscriber_OnChanged", sub);
+        var changed = _graph.CreateEvent("Publisher_Changed", pub);
+        Rel(onChanged, changed, RelationshipType.Handles);
+
+        var raise = _graph.CreateMethod("Publisher_Raise", pub);
+        Rel(raise, changed, RelationshipType.Invokes);
+
+        var trigger = _graph.CreateMethod("Publisher_Trigger", pub);
+        Rel(trigger, raise, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(onChanged.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(raise.Id), Is.True);
+        Assert.That(ids.Contains(trigger.Id), Is.True,
+            "The implicit call on the publisher side must not be filtered by the subscriber's hierarchy");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_DefaultInterfaceMethodCallerIsNotFiltered()
+    {
+        // IBase is implemented by Base and therefore part of the expanded hierarchy.
+        // An implicit call from a default interface method can dispatch to any implementing
+        // class, including S1, and must not be filtered.
+        var iface = _graph.CreateInterface("IBase");
+        var baseCls = _graph.CreateClass("Base");
+        var s1 = _graph.CreateClass("S1");
+        var s2 = _graph.CreateClass("S2");
+        Rel(baseCls, iface, RelationshipType.Implements);
+        Rel(s1, baseCls, RelationshipType.Inherits);
+        Rel(s2, baseCls, RelationshipType.Inherits);
+
+        var baseM = _graph.CreateMethod("Base_M", baseCls);
+        var mStart = _graph.CreateMethod("S1_M", s1);
+        Rel(mStart, baseM, RelationshipType.Overrides);
+
+        var dimCaller = _graph.CreateMethod("IBase_DefaultMethod", iface);
+        Rel(dimCaller, baseM, RelationshipType.Calls);
+
+        var sideCaller = _graph.CreateMethod("S2_Caller", s2);
+        Rel(sideCaller, baseM, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(mStart.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(sideCaller.Id), Is.False, "Implicit call from sibling class is still filtered");
+        Assert.That(ids.Contains(dimCaller.Id), Is.True,
+            "A default interface method may execute on any implementer, including S1");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_ReprocessesElementWithLessRestrictiveContext()
+    {
+        // Base_Helper is reached twice with different contexts:
+        //   1. Via the abstraction walk: start -> Overrides -> Base_Target -> caller Base_Helper.
+        //      This context forbids the sibling class Right, so Right_X is blocked.
+        //   2. Via the event invoker path: start -> caller Base_OnRaised (instance call resets
+        //      the context) -> Handles -> Base_Raised -> Invokes -> Base_Helper.
+        //      This context has no restrictions.
+        // The priorities guarantee that the restrictive path arrives first. Right_X is a real
+        // origin (X -> Helper -> raises event -> handler calls the start) and must be found
+        // regardless of the processing order (union over all paths).
+        var baseCls = _graph.CreateClass("Base");
+        var left = _graph.CreateClass("Left");
+        var right = _graph.CreateClass("Right");
+        Rel(left, baseCls, RelationshipType.Inherits);
+        Rel(right, baseCls, RelationshipType.Inherits);
+
+        var baseTarget = _graph.CreateMethod("Base_Target", baseCls);
+        var startTarget = _graph.CreateMethod("Left_Target", left);
+        Rel(startTarget, baseTarget, RelationshipType.Overrides);
+
+        var helper = _graph.CreateMethod("Base_Helper", baseCls);
+        Rel(helper, baseTarget, RelationshipType.Calls);
+
+        var raised = _graph.CreateEvent("Base_Raised", baseCls);
+        Rel(helper, raised, RelationshipType.Invokes);
+
+        var onRaised = _graph.CreateMethod("Base_OnRaised", baseCls);
+        Rel(onRaised, raised, RelationshipType.Handles);
+        Rel(onRaised, startTarget, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var x = _graph.CreateMethod("Right_X", right);
+        Rel(x, helper, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(startTarget.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(helper.Id), Is.True);
+        Assert.That(ids.Contains(x.Id), Is.True,
+            "Right_X is a real origin via the event path and must survive the context race");
+    }
+
+    [Test]
     public void FollowIncomingCallsHeuristically_HandlesEvents()
     {
         var cls = _graph.CreateClass("Cls");
