@@ -8,7 +8,11 @@ public enum RelationshipAttribute : uint
     // Call specific attributes
     IsBaseCall = 1,
     IsStaticCall = 2,
+
+    // Explicit this.Foo()
     IsThisCall = 4,
+
+    // obj.Foo();
     IsInstanceCall = 8,
     IsExtensionMethodCall = 16,
     IsMethodGroup = 32,

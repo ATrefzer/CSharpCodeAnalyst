@@ -238,6 +238,85 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FollowIncomingCallsHeuristically_ExcludesThisCallFromSideHierarchy()
+    {
+        // this.M() in a side hierarchy dispatches to the runtime type of "this",
+        // which is always inside that side hierarchy. It can never reach S1_M.
+        var baseCls = _graph.CreateClass("Base");
+        var s1 = _graph.CreateClass("S1");
+        var s2 = _graph.CreateClass("S2");
+        Rel(s1, baseCls, RelationshipType.Inherits);
+        Rel(s2, baseCls, RelationshipType.Inherits);
+
+        var baseM = _graph.CreateMethod("Base_M", baseCls);
+        var mStart = _graph.CreateMethod("S1_M", s1);
+        Rel(mStart, baseM, RelationshipType.Overrides);
+
+        var thisCaller = _graph.CreateMethod("S2_ThisCaller", s2);
+        Rel(thisCaller, baseM, RelationshipType.Calls, RelationshipAttribute.IsThisCall);
+
+        var baseCaller = _graph.CreateMethod("Base_Caller", baseCls);
+        Rel(baseCaller, baseM, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(mStart.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(baseCaller.Id), Is.True, "Implicit call within own hierarchy must stay");
+        Assert.That(ids.Contains(thisCaller.Id), Is.False, "this-call from side hierarchy cannot dispatch to S1_M");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_KeepsHierarchyRestrictionAfterStaticCall()
+    {
+        // Target is reached via a static call from the virtual method WorkerA_Work.
+        // Implicit calls to WorkerBase_Work from the sibling WorkerB can never
+        // dispatch to WorkerA_Work and must be excluded.
+        var util = _graph.CreateClass("Util");
+        var target = _graph.CreateMethod("Util_Log", util);
+
+        var workerBase = _graph.CreateClass("WorkerBase");
+        var workerA = _graph.CreateClass("WorkerA");
+        var workerB = _graph.CreateClass("WorkerB");
+        Rel(workerA, workerBase, RelationshipType.Inherits);
+        Rel(workerB, workerBase, RelationshipType.Inherits);
+
+        var baseWork = _graph.CreateMethod("WorkerBase_Work", workerBase);
+        var aWork = _graph.CreateMethod("WorkerA_Work", workerA);
+        Rel(aWork, baseWork, RelationshipType.Overrides);
+        Rel(aWork, target, RelationshipType.Calls, RelationshipAttribute.IsStaticCall);
+
+        var drive = _graph.CreateMethod("WorkerBase_Drive", workerBase);
+        Rel(drive, baseWork, RelationshipType.Calls);
+
+        var bOther = _graph.CreateMethod("WorkerB_Other", workerB);
+        Rel(bOther, baseWork, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(target.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(drive.Id), Is.True, "Implicit call within own hierarchy must stay");
+        Assert.That(ids.Contains(bOther.Id), Is.False, "Implicit call from sibling cannot dispatch to WorkerA_Work");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_FollowsChainThroughProperty()
+    {
+        var repo = _graph.CreateClass("Repo");
+        var compute = _graph.CreateMethod("Repo_Compute", repo);
+
+        var facade = _graph.CreateClass("Facade");
+        var valueProp = _graph.CreateProperty("Facade_Value", facade);
+        Rel(valueProp, compute, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var client = _graph.CreateClass("Client");
+        var consume = _graph.CreateMethod("Client_Consume", client);
+        Rel(consume, valueProp, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(compute.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(valueProp.Id), Is.True);
+        Assert.That(ids.Contains(consume.Id), Is.True, "Chain must continue through the property getter");
+    }
+
+    [Test]
     public void FollowIncomingCallsHeuristically_HandlesEvents()
     {
         var cls = _graph.CreateClass("Cls");

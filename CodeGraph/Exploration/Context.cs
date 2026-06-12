@@ -13,8 +13,11 @@ internal class Context(Graph.CodeGraph codeGraph)
             return true; // No restrictions, all calls are allowed
         }
 
-        // For normal calls (not instance calls), check hierarchy restrictions
-        if (call.Attributes == RelationshipAttribute.None || call.HasAttribute(RelationshipAttribute.IsBaseCall))
+        // Implicit calls, "this" calls and "base" calls dispatch on the runtime type of "this",
+        // which is always within the caller's own hierarchy. Check hierarchy restrictions.
+        if (call.Attributes == RelationshipAttribute.None ||
+            call.HasAttribute(RelationshipAttribute.IsBaseCall) ||
+            call.HasAttribute(RelationshipAttribute.IsThisCall))
         {
             var sourceMethod = codeGraph.Nodes[call.SourceId];
             var sourceClass = CodeGraphExplorer.GetMethodContainer(sourceMethod);
@@ -25,7 +28,7 @@ internal class Context(Graph.CodeGraph codeGraph)
             }
         }
 
-        // For instance calls, static calls, extension method calls, and this calls,
+        // For instance calls, static calls and extension method calls,
         // allow them regardless of hierarchy restrictions
         return true;
     }

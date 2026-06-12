@@ -269,7 +269,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             }
 
 
-            if (element.ElementType == CodeElementType.Method)
+            // Properties take part in call chains like methods do:
+            // accessor bodies are call sources and property accesses are modeled as calls.
+            if (element.ElementType is CodeElementType.Method or CodeElementType.Property)
             {
                 // Calls
                 var calls = allCalls.Where(call => call.TargetId == element.Id && currentContext.IsCallAllowed(call))
@@ -284,19 +286,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                     var callSource = _codeGraph.Nodes[call.SourceId];
                     foundElements.Add(callSource);
 
+                    // The attribute describes how the current element was called.
                     if (call.HasAttribute(RelationshipAttribute.IsStaticCall) ||
-                        call.HasAttribute(RelationshipAttribute.IsExtensionMethodCall))
-
+                        call.HasAttribute(RelationshipAttribute.IsExtensionMethodCall) ||
+                        call.HasAttribute(RelationshipAttribute.IsInstanceCall))
                     {
-                        // Starting on a new instance or static method we reset the context.
-                        newContext = new Context(_codeGraph);
-                    }
-
-                    if (call.HasAttribute(RelationshipAttribute.IsInstanceCall))
-                    {
-                        // The new instance restricts the search.
-                        newContext = new Context(_codeGraph);
-                        newContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
+                        // The call breaks the dispatch chain of the current "this" instance.
+                        // Continue as if the search started at the caller, restricted to its hierarchy.
+                        newContext = InitializeContextFromMethod(callSource);
                     }
 
                     if (call.HasAttribute(RelationshipAttribute.IsBaseCall))
