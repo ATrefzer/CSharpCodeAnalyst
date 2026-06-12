@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using CodeGraph.Algorithms.Cycles;
+﻿using CodeGraph.Algorithms.Cycles;
 using CodeGraph.Contracts;
 using CodeGraph.Graph;
+using System.Diagnostics;
 
 namespace CodeGraph.Exploration;
 
@@ -270,8 +270,10 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 var specializedEvents = Collect(allImplementsAndOverrides.Where(d => d.TargetId == element.Id), d => d.SourceId);
                 AddToProcessingQueue(specializedEvents, context);
 
-                // Raising an event dispatches via delegate. The publisher side is unrelated to
+                // The publisher side is unrelated to
                 // the subscriber's hierarchy, so continue as if the search started at the invoker.
+                // Raising the event does not use virtual dispatch on "this": the handlers were
+                // bound at registration time and are reached through the delegate's invocation list.
                 var invokers = Collect(allInvokes.Where(d => d.TargetId == element.Id), d => d.SourceId);
                 foreach (var invoker in invokers)
                 {
