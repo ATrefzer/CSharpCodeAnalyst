@@ -52,7 +52,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var existing = knownIds.ToArray();
         for (var i = 0; i < existing.Length; i++)
         {
-            // We hit each pair twice so we walk only one direction here.
             var possibleChild = _codeGraph.Nodes[existing[i]];
 
             while (possibleChild.Parent is not null &&
@@ -265,7 +264,13 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(invokes);
                 var invokeSources = invokes.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(invokeSources);
-                AddToProcessingQueue(invokeSources, currentContext, 2);
+
+                // Raising an event dispatches via delegate. The publisher side is unrelated to
+                // the subscriber's hierarchy, so continue as if the search started at the invoker.
+                foreach (var invokeSource in invokeSources)
+                {
+                    AddToProcessingQueue([invokeSource], InitializeContextFromMethod(invokeSource), 2);
+                }
             }
 
 
@@ -584,7 +589,13 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             expandedBaseClasses.UnionWith(FindFullInheritanceTree(baseClass.Id).Elements);
         }
 
-        var forbiddenHierarchy = expandedBaseClasses.Except(allowedHierarchy).ToHashSet();
+        // The inheritance tree also contains the interfaces of the base classes.
+        // They must not be forbidden: an implicit call from a default interface method
+        // can dispatch to any implementing class, including the followed hierarchy branch.
+        var forbiddenHierarchy = expandedBaseClasses
+            .Where(e => e.ElementType is CodeElementType.Class or CodeElementType.Struct or CodeElementType.Record)
+            .Except(allowedHierarchy)
+            .ToHashSet();
         return forbiddenHierarchy;
     }
 

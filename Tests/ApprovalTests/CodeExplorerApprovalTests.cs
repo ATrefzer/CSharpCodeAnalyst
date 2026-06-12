@@ -157,6 +157,32 @@ public class CodeExplorerApprovalTests : ApprovalTestBase
         Assert.That(result.Elements.Select(m => m.FullName).ToList(), Is.EquivalentTo(expectedElements));
     }
 
+    [Test]
+    public void CodeExplorer_FollowIncomingCalls_PublisherSideIsNotFilteredBySubscriberHierarchy()
+    {
+        // Subscriber and Publisher share a base class, so the start context forbids Publisher.
+        // Raising an event dispatches via delegate; the chain Trigger -> Raise -> Changed ->
+        // OnChanged is a real origin and must not be filtered.
+        var result = FollowIncomingCalls("EventContext.Subscriber.OnChanged");
+
+        var expectedRelationships = new List<string>
+        {
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Subscriber.OnChanged -(Handles)-> FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Changed",
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Raise -(Invokes)-> FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Changed",
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Trigger -(Calls)-> FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Raise"
+        };
+        Assert.That(FormatRelationships(result), Is.EquivalentTo(expectedRelationships));
+
+        var expectedElements = new List<string>
+        {
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Subscriber.OnChanged",
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Changed",
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Raise",
+            "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Trigger"
+        };
+        Assert.That(result.Elements.Select(m => m.FullName).ToList(), Is.EquivalentTo(expectedElements));
+    }
+
     private SearchResult FollowIncomingCalls(string originFullNamePart)
     {
         var explorer = new CodeGraphExplorer();

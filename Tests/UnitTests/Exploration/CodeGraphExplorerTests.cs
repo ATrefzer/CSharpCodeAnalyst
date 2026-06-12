@@ -317,6 +317,66 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FollowIncomingCallsHeuristically_PublisherSideIsNotFilteredBySubscriberHierarchy()
+    {
+        // Subscriber and Publisher share a base class, so the start context forbids Publisher.
+        // Raising an event dispatches via delegate; the implicit call Trigger -> Raise on the
+        // publisher side is a real origin and must not be filtered.
+        var baseCls = _graph.CreateClass("Base");
+        var sub = _graph.CreateClass("Subscriber");
+        var pub = _graph.CreateClass("Publisher");
+        Rel(sub, baseCls, RelationshipType.Inherits);
+        Rel(pub, baseCls, RelationshipType.Inherits);
+
+        var onChanged = _graph.CreateMethod("Subscriber_OnChanged", sub);
+        var changed = _graph.CreateEvent("Publisher_Changed", pub);
+        Rel(onChanged, changed, RelationshipType.Handles);
+
+        var raise = _graph.CreateMethod("Publisher_Raise", pub);
+        Rel(raise, changed, RelationshipType.Invokes);
+
+        var trigger = _graph.CreateMethod("Publisher_Trigger", pub);
+        Rel(trigger, raise, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(onChanged.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(raise.Id), Is.True);
+        Assert.That(ids.Contains(trigger.Id), Is.True,
+            "The implicit call on the publisher side must not be filtered by the subscriber's hierarchy");
+    }
+
+    [Test]
+    public void FollowIncomingCallsHeuristically_DefaultInterfaceMethodCallerIsNotFiltered()
+    {
+        // IBase is implemented by Base and therefore part of the expanded hierarchy.
+        // An implicit call from a default interface method can dispatch to any implementing
+        // class, including S1, and must not be filtered.
+        var iface = _graph.CreateInterface("IBase");
+        var baseCls = _graph.CreateClass("Base");
+        var s1 = _graph.CreateClass("S1");
+        var s2 = _graph.CreateClass("S2");
+        Rel(baseCls, iface, RelationshipType.Implements);
+        Rel(s1, baseCls, RelationshipType.Inherits);
+        Rel(s2, baseCls, RelationshipType.Inherits);
+
+        var baseM = _graph.CreateMethod("Base_M", baseCls);
+        var mStart = _graph.CreateMethod("S1_M", s1);
+        Rel(mStart, baseM, RelationshipType.Overrides);
+
+        var dimCaller = _graph.CreateMethod("IBase_DefaultMethod", iface);
+        Rel(dimCaller, baseM, RelationshipType.Calls);
+
+        var sideCaller = _graph.CreateMethod("S2_Caller", s2);
+        Rel(sideCaller, baseM, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(mStart.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(sideCaller.Id), Is.False, "Implicit call from sibling class is still filtered");
+        Assert.That(ids.Contains(dimCaller.Id), Is.True,
+            "A default interface method may execute on any implementer, including S1");
+    }
+
+    [Test]
     public void FollowIncomingCallsHeuristically_HandlesEvents()
     {
         var cls = _graph.CreateClass("Cls");
