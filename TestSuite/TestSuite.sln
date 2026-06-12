@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModuleLevel2", "ModuleLevel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Old.CSharpLanguage", "Old.CSharpLanguage\Old.CSharpLanguage.csproj", "{900B9098-058E-5A0C-DC51-9E5D2DFFABDB}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParserGaps", "ParserGaps\ParserGaps.csproj", "{7F4C9A21-3E58-4D2B-9C16-A8B5E0D47F31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +94,10 @@ Global
 		{900B9098-058E-5A0C-DC51-9E5D2DFFABDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{900B9098-058E-5A0C-DC51-9E5D2DFFABDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{900B9098-058E-5A0C-DC51-9E5D2DFFABDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F4C9A21-3E58-4D2B-9C16-A8B5E0D47F31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F4C9A21-3E58-4D2B-9C16-A8B5E0D47F31}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F4C9A21-3E58-4D2B-9C16-A8B5E0D47F31}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F4C9A21-3E58-4D2B-9C16-A8B5E0D47F31}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

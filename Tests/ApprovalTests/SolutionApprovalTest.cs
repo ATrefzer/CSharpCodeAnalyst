@@ -27,7 +27,8 @@ public class SolutionApprovalTests : ApprovalTestBase
             "ModuleLevel0",
             "ModuleLevel1",
             "ModuleLevel2",
-            "Old.CSharpLanguage"
+            "Old.CSharpLanguage",
+            "ParserGaps"
         };
         Assert.That(assemblies, Is.EquivalentTo(expected));
     }
