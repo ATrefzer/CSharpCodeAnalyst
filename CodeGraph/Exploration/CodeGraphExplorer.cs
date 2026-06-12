@@ -208,6 +208,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     /// <summary>
     ///     This gives a heuristic only.
     ///     The graph model does not contain the information for analyzing dynamic behavior.
+    ///     The result is the union over all paths: a caller is included if there is at least
+    ///     one path under which it can reach the start method. The result does not depend on
+    ///     the processing order.
     /// </summary>
     public SearchResult FollowIncomingCallsHeuristically(string id)
     {
@@ -227,9 +230,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var method = _codeGraph.Nodes[id];
 
-        var processingQueue = new PriorityQueue<(CodeElement, Context), int>();
+        var processingQueue = new Queue<(CodeElement, Context)>();
         var initialContext = InitializeContextFromMethod(method);
-        processingQueue.Enqueue((method, initialContext), 0); // Start with the initial method, priority 0
+        processingQueue.Enqueue((method, initialContext));
 
         var foundRelationships = new HashSet<Relationship>();
         var foundElements = new HashSet<CodeElement>
@@ -238,12 +241,27 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             _codeGraph.Nodes[id]
         };
 
-        var processed = new HashSet<string>();
+        // An element can be reached over several paths with different contexts. The context
+        // (the forbidden call sources) is path dependent: implicit, "this" and "base" calls
+        // and the abstraction walk pass the current context on, while instance, static and
+        // extension calls and event invocations reset it. The desired semantics is
+        // "is there ANY path?", so the element must contribute the callers allowed under
+        // each arriving context.
+        //
+        // Therefore, we remember per element all forbidden sets it has been processed with.
+        // A new context is skipped only if a previous pass was at least as permissive, i.e.
+        // its forbidden set was a subset of the new one - that pass has already found
+        // everything the new context could find. Otherwise, the element is processed again;
+        // the found sets de-duplicate any overlap.
+        //
+        // Termination: forbidden sets are unions of finitely many hierarchy restrictions, so
+        // per element only finitely many distinct sets exist, and each reprocessing registers
+        // a set that no earlier registered set was a subset of.
+        var processed = new Dictionary<string, List<HashSet<CodeElement>>>();
         while (processingQueue.Count > 0)
         {
-            // 0 = highest priority
             var (element, context) = processingQueue.Dequeue();
-            if (!processed.Add(element.Id))
+            if (!MarkProcessed(element, context))
             {
                 continue;
             }
@@ -257,7 +275,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(specializations);
                 var specializedSources = specializations.Select(d => _codeGraph.Nodes[d.SourceId]).ToHashSet();
                 foundElements.UnionWith(specializedSources);
-                AddToProcessingQueue(specializedSources, currentContext, 0);
+                AddToProcessingQueue(specializedSources, currentContext);
 
                 // Add all methods that invoke the event
                 var invokes = allInvokes.Where(call => call.TargetId == element.Id).ToArray();
@@ -269,7 +287,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 // the subscriber's hierarchy, so continue as if the search started at the invoker.
                 foreach (var invokeSource in invokeSources)
                 {
-                    AddToProcessingQueue([invokeSource], InitializeContextFromMethod(invokeSource), 2);
+                    AddToProcessingQueue([invokeSource], InitializeContextFromMethod(invokeSource));
                 }
             }
 
@@ -308,7 +326,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                         newContext.ForbiddenCallSourcesInHierarchy.UnionWith(RestrictHierarchyCallSources(callSource));
                     }
 
-                    AddToProcessingQueue([callSource], newContext, 0);
+                    AddToProcessingQueue([callSource], newContext);
                 }
 
 
@@ -318,7 +336,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(abstractions);
                 var abstractionTargets = abstractions.Select(d => _codeGraph.Nodes[d.TargetId]).ToHashSet();
                 foundElements.UnionWith(abstractionTargets);
-                AddToProcessingQueue(abstractionTargets, currentContext, 1);
+                AddToProcessingQueue(abstractionTargets, currentContext);
 
 
                 // Add Events that are handled by this method
@@ -326,19 +344,45 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 foundRelationships.UnionWith(handles);
                 var events = handles.Select(h => _codeGraph.Nodes[h.TargetId]).ToHashSet();
                 foundElements.UnionWith(events);
-                AddToProcessingQueue(events, currentContext, 2);
+                AddToProcessingQueue(events, currentContext);
             }
         }
 
         return new SearchResult(foundElements, foundRelationships);
 
 
-        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context, int priority)
+        void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context)
         {
             foreach (var elementToExplore in elementsToExplore)
             {
-                processingQueue.Enqueue((elementToExplore, context), priority);
+                processingQueue.Enqueue((elementToExplore, context));
             }
+        }
+
+        // Returns true if the element has to be processed with the given context.
+        // See the comment at the declaration of "processed" for the semantics.
+        bool MarkProcessed(CodeElement element, Context context)
+        {
+            var forbidden = context.ForbiddenCallSourcesInHierarchy;
+
+            if (!processed.TryGetValue(element.Id, out var seenForbiddenSets))
+            {
+                seenForbiddenSets = [];
+                processed[element.Id] = seenForbiddenSets;
+            }
+
+            if (seenForbiddenSets.Any(seen => seen.IsSubsetOf(forbidden)))
+            {
+                // A previous pass was at least as permissive. Nothing new to find.
+                return false;
+            }
+
+            // Earlier, more restrictive sets are covered by the new pass and obsolete now.
+            seenForbiddenSets.RemoveAll(seen => forbidden.IsSubsetOf(seen));
+
+            // Keep a snapshot so later context mutations cannot corrupt the bookkeeping.
+            seenForbiddenSets.Add(forbidden.ToHashSet());
+            return true;
         }
     }
 

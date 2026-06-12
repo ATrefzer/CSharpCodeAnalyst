@@ -7,7 +7,15 @@ public class CodeExplorerApprovalTests : ApprovalTestBase
     [Test]
     public void CodeExplorer_FollowIncomingCalls_1()
     {
-        // Scenario where base class calls base method of another instance.
+        // Scenario where base class calls base method of another instance (_base field).
+        //
+        // Note: ViewModelAdapter2 is part of the result. The instance call _base.AddToSlave()
+        // resets the context (the field may hold any instance, including a ViewModelAdapter1),
+        // so Base.AddToSlave is processed a second time without hierarchy restrictions and the
+        // base call from ViewModelAdapter2 becomes a possible origin:
+        // ViewModelAdapter2.AddToSlave -> base.AddToSlave() -> _base.AddToSlave() -> start.
+        // Compare with Regression_FollowIncomingCalls2 (no _base field): there the adapter 2
+        // is correctly excluded.
         var codeElements = Graph.Nodes.Values;
 
         var explorer = new CodeGraphExplorer();
@@ -30,8 +38,11 @@ public class CodeExplorerApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             /* ----- */
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
-            /* ----- */ /* ----- */
-            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build"
+            /* ----- */
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
+            /* Reachable via the _base instance call, see note above. */
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -(Calls)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave -(Overrides)-> Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave"
         };
         Assert.That(actual, Is.EquivalentTo(expected));
 
@@ -43,7 +54,8 @@ public class CodeExplorerApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter1.AddToSlave",
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.AddToSlave",
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Base.Build",
-            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor"
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.Driver..ctor",
+            "Old.CSharpLanguage.global.CSharpLanguage.Regression_FollowIncomingCalls1.ViewModelAdapter2.AddToSlave"
         };
         Assert.That(actualElements, Is.EquivalentTo(expectedElements));
     }
@@ -179,6 +191,38 @@ public class CodeExplorerApprovalTests : ApprovalTestBase
             "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Changed",
             "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Raise",
             "FollowHeuristic.global.FollowHeuristic.EventContext.Publisher.Trigger"
+        };
+        Assert.That(result.Elements.Select(m => m.FullName).ToList(), Is.EquivalentTo(expectedElements));
+    }
+
+    [Test]
+    public void CodeExplorer_FollowIncomingCalls_ElementIsReprocessedWithLessRestrictiveContext()
+    {
+        // Base.Helper is reached twice: via the abstraction walk (context forbids Right) and
+        // via the event invoker path (context reset by the instance call in OnRaised).
+        // Right.X is a real origin (X -> Helper -> Raised -> OnRaised -> left.Target()) and is
+        // only visible under the second context. The result must be the union over all paths.
+        var result = FollowIncomingCalls("ContextRace.Left.Target");
+
+        var expectedRelationships = new List<string>
+        {
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.OnRaised -(Calls)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Left.Target",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Left.Target -(Overrides)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Target",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Helper -(Calls)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Target",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.OnRaised -(Handles)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Raised",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Helper -(Invokes)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Raised",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Right.X -(Calls)-> FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Helper"
+        };
+        Assert.That(FormatRelationships(result), Is.EquivalentTo(expectedRelationships));
+
+        var expectedElements = new List<string>
+        {
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Left.Target",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.OnRaised",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Target",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Helper",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Base.Raised",
+            "FollowHeuristic.global.FollowHeuristic.ContextRace.Right.X"
         };
         Assert.That(result.Elements.Select(m => m.FullName).ToList(), Is.EquivalentTo(expectedElements));
     }

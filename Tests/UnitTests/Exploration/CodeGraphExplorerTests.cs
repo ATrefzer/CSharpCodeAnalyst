@@ -377,6 +377,48 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FollowIncomingCallsHeuristically_ReprocessesElementWithLessRestrictiveContext()
+    {
+        // Base_Helper is reached twice with different contexts:
+        //   1. Via the abstraction walk: start -> Overrides -> Base_Target -> caller Base_Helper.
+        //      This context forbids the sibling class Right, so Right_X is blocked.
+        //   2. Via the event invoker path: start -> caller Base_OnRaised (instance call resets
+        //      the context) -> Handles -> Base_Raised -> Invokes -> Base_Helper.
+        //      This context has no restrictions.
+        // The priorities guarantee that the restrictive path arrives first. Right_X is a real
+        // origin (X -> Helper -> raises event -> handler calls the start) and must be found
+        // regardless of the processing order (union over all paths).
+        var baseCls = _graph.CreateClass("Base");
+        var left = _graph.CreateClass("Left");
+        var right = _graph.CreateClass("Right");
+        Rel(left, baseCls, RelationshipType.Inherits);
+        Rel(right, baseCls, RelationshipType.Inherits);
+
+        var baseTarget = _graph.CreateMethod("Base_Target", baseCls);
+        var startTarget = _graph.CreateMethod("Left_Target", left);
+        Rel(startTarget, baseTarget, RelationshipType.Overrides);
+
+        var helper = _graph.CreateMethod("Base_Helper", baseCls);
+        Rel(helper, baseTarget, RelationshipType.Calls);
+
+        var raised = _graph.CreateEvent("Base_Raised", baseCls);
+        Rel(helper, raised, RelationshipType.Invokes);
+
+        var onRaised = _graph.CreateMethod("Base_OnRaised", baseCls);
+        Rel(onRaised, raised, RelationshipType.Handles);
+        Rel(onRaised, startTarget, RelationshipType.Calls, RelationshipAttribute.IsInstanceCall);
+
+        var x = _graph.CreateMethod("Right_X", right);
+        Rel(x, helper, RelationshipType.Calls);
+
+        var result = _explorer.FollowIncomingCallsHeuristically(startTarget.Id);
+        var ids = result.Elements.Select(e => e.Id).ToHashSet();
+        Assert.That(ids.Contains(helper.Id), Is.True);
+        Assert.That(ids.Contains(x.Id), Is.True,
+            "Right_X is a real origin via the event path and must survive the context race");
+    }
+
+    [Test]
     public void FollowIncomingCallsHeuristically_HandlesEvents()
     {
         var cls = _graph.CreateClass("Cls");
