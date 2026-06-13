@@ -177,6 +177,17 @@ public class HierarchyAnalyzer
                 elementType = CodeElementType.Method; // or you could create a separate Constructor type
                 break;
 
+            case OperatorDeclarationSyntax:
+            case ConversionOperatorDeclarationSyntax:
+            case DestructorDeclarationSyntax:
+
+                // User-defined operators (operator +), conversions (implicit/explicit operator)
+                // and finalizers (~Foo). All map to an IMethodSymbol; phase 2 walks their bodies
+                // through DeclaringSyntaxReferences just like ordinary methods.
+                symbol = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+                elementType = CodeElementType.Method;
+                break;
+
             case FieldDeclarationSyntax fieldDeclaration:
                 foreach (var variable in fieldDeclaration.Declaration.Variables)
                 {

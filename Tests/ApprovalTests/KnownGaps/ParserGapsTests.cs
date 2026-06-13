@@ -34,9 +34,10 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Indexers, operators, conversion operators, finalizers -------------------------------
-    // HierarchyAnalyzer.ProcessNodeForHierarchy now handles IndexerDeclarationSyntax (A1).
-    // OperatorDeclarationSyntax, ConversionOperatorDeclarationSyntax and DestructorDeclarationSyntax
-    // are still not code elements and their bodies are never analyzed in phase 2.
+    // HierarchyAnalyzer.ProcessNodeForHierarchy now handles IndexerDeclarationSyntax (A1) as well
+    // as OperatorDeclarationSyntax, ConversionOperatorDeclarationSyntax and
+    // DestructorDeclarationSyntax (A2). All become code elements and their bodies are walked in
+    // phase 2. The symbol names are "this[]", "op_Addition", "op_Implicit" and "Finalize".
 
     [Test]
     public void Detected_IndexerIsACodeElement()
@@ -62,33 +63,34 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_OperatorBodyIsInvisible()
+    public void Detected_OperatorBodyIsVisible()
     {
         var graph = GetTestGraph();
         var calls = GetRelationshipsOfType(graph, RelationshipType.Calls);
         var creates = GetRelationshipsOfType(graph, RelationshipType.Creates);
 
-        // Absorb is only called from operator +, the Catalog instance is only created there.
-        Assert.That(calls.Where(c => c.EndsWith($"-> {Ns}IndexersAndOperators.Catalog.Absorb")), Is.Empty);
-        Assert.That(creates.Where(c => c.EndsWith($"-> {Ns}IndexersAndOperators.Catalog")), Is.Empty);
+        // operator + is found as the method "op_Addition". Absorb is only called from there,
+        // and the Catalog instance is only created there.
+        Assert.That(calls, Does.Contain($"{Ns}IndexersAndOperators.Catalog.op_Addition -> {Ns}IndexersAndOperators.Catalog.Absorb"));
+        Assert.That(creates, Does.Contain($"{Ns}IndexersAndOperators.Catalog.op_Addition -> {Ns}IndexersAndOperators.Catalog"));
     }
 
     [Test]
-    public void Gap_ConversionOperatorBodyIsInvisible()
+    public void Detected_ConversionOperatorBodyIsVisible()
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
-        // ComputeTotal is only called from the implicit conversion operator.
-        Assert.That(calls.Where(c => c.EndsWith($"-> {Ns}IndexersAndOperators.Catalog.ComputeTotal")), Is.Empty);
+        // The implicit conversion operator is found as "op_Implicit". ComputeTotal is only called from there.
+        Assert.That(calls, Does.Contain($"{Ns}IndexersAndOperators.Catalog.op_Implicit -> {Ns}IndexersAndOperators.Catalog.ComputeTotal"));
     }
 
     [Test]
-    public void Gap_FinalizerBodyIsInvisible()
+    public void Detected_FinalizerBodyIsVisible()
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
-        // Cleanup is only called from the finalizer.
-        Assert.That(calls.Where(c => c.EndsWith($"-> {Ns}IndexersAndOperators.Catalog.Cleanup")), Is.Empty);
+        // The finalizer is found as the method "Finalize". Cleanup is only called from there.
+        Assert.That(calls, Does.Contain($"{Ns}IndexersAndOperators.Catalog.Finalize -> {Ns}IndexersAndOperators.Catalog.Cleanup"));
     }
 
     [Test]
