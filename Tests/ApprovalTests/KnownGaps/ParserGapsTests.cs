@@ -233,8 +233,9 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Type names in special contexts ----------------------------------------------------------
-    // catch declarations, foreach variable types, using statement declarations and array creation
-    // all end up as plain type identifiers, which AnalyzeIdentifier drops.
+    // A7: catch declarations, foreach variable types and using-statement declarations now record
+    // their type as Uses (VisitCatchDeclaration / VisitForEachStatement / VisitUsingStatement).
+    // Array creation element types are still dropped (see A8).
 
     [Test]
     public void Detected_ThrowStatementObjectCreation()
@@ -245,19 +246,19 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_CatchClauseTypeIsNotCaptured()
+    public void Detected_CatchClauseTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}TypeContexts.TypeContextUser.CatchClause -> {Ns}TypeContexts.ParsingFailedException"));
+        Assert.That(uses, Does.Contain($"{Ns}TypeContexts.TypeContextUser.CatchClause -> {Ns}TypeContexts.ParsingFailedException"));
     }
 
     [Test]
-    public void Gap_ForEachVariableTypeIsNotCaptured()
+    public void Detected_ForEachVariableTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}TypeContexts.TypeContextUser.ForEachLoop -> {Ns}TypeContexts.InventoryItem"));
+        Assert.That(uses, Does.Contain($"{Ns}TypeContexts.TypeContextUser.ForEachLoop -> {Ns}TypeContexts.InventoryItem"));
     }
 
     [Test]
@@ -269,17 +270,17 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_UsingStatementDeclarationTypeIsNotCaptured()
+    public void Detected_UsingStatementDeclarationTypeIsCaptured()
     {
         var graph = GetTestGraph();
         var calls = GetRelationshipsOfType(graph, RelationshipType.Calls);
-        var all = GetAllRelationships(graph);
+        var uses = GetRelationshipsOfType(graph, RelationshipType.Uses);
 
         // The factory call inside the using statement is found ...
         Assert.That(calls, Does.Contain($"{Ns}TypeContexts.TypeContextUser.UsingStatement -> {Ns}TypeContexts.TypeContextUser.CreateResource"));
 
-        // ... but the declared variable type is not.
-        Assert.That(all, Does.Not.Contain($"{Ns}TypeContexts.TypeContextUser.UsingStatement -> {Ns}TypeContexts.PooledResource"));
+        // ... and now the declared variable type is too.
+        Assert.That(uses, Does.Contain($"{Ns}TypeContexts.TypeContextUser.UsingStatement -> {Ns}TypeContexts.PooledResource"));
     }
 
     // --- Method groups outside of argument lists -------------------------------------------------

@@ -146,4 +146,36 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
         base.VisitRecursivePattern(node);
     }
+
+    /// <summary>
+    ///     catch (Foo ex) — the caught exception type. The identifier is optional.
+    /// </summary>
+    public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitCatchDeclaration(node);
+    }
+
+    /// <summary>
+    ///     foreach (Foo item in ...) — the iteration variable type.
+    /// </summary>
+    public override void VisitForEachStatement(ForEachStatementSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitForEachStatement(node);
+    }
+
+    /// <summary>
+    ///     using (Foo x = ...) statement form. The "using var x = ..." declaration form is a
+    ///     LocalDeclarationStatementSyntax and is already handled by AnalyzeLocalDeclaration.
+    /// </summary>
+    public override void VisitUsingStatement(UsingStatementSyntax node)
+    {
+        if (node.Declaration != null)
+        {
+            Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Declaration.Type);
+        }
+
+        base.VisitUsingStatement(node);
+    }
 }
