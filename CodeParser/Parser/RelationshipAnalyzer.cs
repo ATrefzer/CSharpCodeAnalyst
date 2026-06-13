@@ -1258,6 +1258,15 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                             }
                         }
                     }
+
+                    // Property initializer: public Foo Bar { get; } = new Foo();
+                    // An auto-property can have both an accessor list and an initializer, so this is
+                    // independent of the branch above. Treated like a field initializer: the containing
+                    // type "creates" the object, the property "uses" it. Indexers cannot have one.
+                    if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
+                    {
+                        AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer.Value, semanticModel, true);
+                    }
                 }
             }
         }

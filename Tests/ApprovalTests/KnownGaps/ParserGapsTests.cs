@@ -209,8 +209,8 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Property initializers -------------------------------------------------------------------
-    // AnalyzePropertyBody only handles the expression body and the accessor list,
-    // not PropertyDeclarationSyntax.Initializer.
+    // AnalyzePropertyBody now also handles PropertyDeclarationSyntax.Initializer (A5), treated like
+    // a field initializer: the containing type "creates" the object, the property "uses" it.
 
     [Test]
     public void Detected_FieldInitializerCreates()
@@ -221,11 +221,13 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_PropertyInitializerCreatesNoRelationship()
+    public void Detected_PropertyInitializerCreatesRelationship()
     {
         var creates = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Creates);
 
-        Assert.That(creates, Does.Not.Contain($"{Ns}Initializers.CarWithPropertyInitializer -> {Ns}Initializers.Engine"));
+        // The containing class creates the object, exactly like a field initializer.
+        Assert.That(creates, Does.Contain($"{Ns}Initializers.CarWithPropertyInitializer -> {Ns}Initializers.Engine"));
+        // The property itself only "uses" the type (via its type), it never "creates" it.
         Assert.That(creates, Does.Not.Contain($"{Ns}Initializers.CarWithPropertyInitializer.Engine -> {Ns}Initializers.Engine"));
     }
 
