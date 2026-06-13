@@ -102,4 +102,48 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
 
         base.VisitBinaryExpression(node);
     }
+
+    /// <summary>
+    ///     Declaration pattern: obj is Foo f / case Foo f:
+    /// </summary>
+    public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitDeclarationPattern(node);
+    }
+
+    /// <summary>
+    ///     Type pattern: nested patterns like "is Foo or Bar".
+    ///     (The classic top-level "obj is Foo" stays a BinaryExpression, handled above.)
+    /// </summary>
+    public override void VisitTypePattern(TypePatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitTypePattern(node);
+    }
+
+    /// <summary>
+    ///     A bare type name used as a switch arm ("Square => ..") parses as a constant pattern, not a
+    ///     type pattern. We record it only when the expression actually resolves to a type, so real
+    ///     constants and enum members (is 5, is Color.Red) are left to normal traversal.
+    /// </summary>
+    public override void VisitConstantPattern(ConstantPatternSyntax node)
+    {
+        if (SemanticModel.GetSymbolInfo(node.Expression).Symbol is ITypeSymbol &&
+            node.Expression is TypeSyntax typeSyntax)
+        {
+            Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, typeSyntax);
+        }
+
+        base.VisitConstantPattern(node);
+    }
+
+    /// <summary>
+    ///     Recursive pattern: obj is Foo { Prop: ... }. The leading type is optional.
+    /// </summary>
+    public override void VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitRecursivePattern(node);
+    }
 }

@@ -144,8 +144,9 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Pattern matching ----------------------------------------------------------------------
-    // "shape is Circle circle" is an IsPatternExpressionSyntax (not the handled BinaryExpression),
-    // and type identifiers inside patterns resolve to INamedTypeSymbol, which AnalyzeIdentifier drops.
+    // A6: declaration patterns ("shape is Circle circle"), type patterns (switch arms "Square => ..")
+    // and recursive patterns ("is Foo { .. }") now record their type as a Uses relationship via the
+    // VisitDeclarationPattern / VisitTypePattern / VisitRecursivePattern overrides in SyntaxWalkerBase.
 
     [Test]
     public void Detected_ParameterTypeOfPatternMethod()
@@ -156,28 +157,28 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_DeclarationPatternTypeIsNotCaptured()
+    public void Detected_DeclarationPatternTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}PatternMatching.PatternUser.DeclarationPattern -> {Ns}PatternMatching.Circle"));
+        Assert.That(uses, Does.Contain($"{Ns}PatternMatching.PatternUser.DeclarationPattern -> {Ns}PatternMatching.Circle"));
     }
 
     [Test]
-    public void Gap_SwitchExpressionTypePatternsAreNotCaptured()
+    public void Detected_SwitchExpressionTypePatternsAreCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}PatternMatching.PatternUser.SwitchExpression -> {Ns}PatternMatching.Square"));
-        Assert.That(all, Does.Not.Contain($"{Ns}PatternMatching.PatternUser.SwitchExpression -> {Ns}PatternMatching.Triangle"));
+        Assert.That(uses, Does.Contain($"{Ns}PatternMatching.PatternUser.SwitchExpression -> {Ns}PatternMatching.Square"));
+        Assert.That(uses, Does.Contain($"{Ns}PatternMatching.PatternUser.SwitchExpression -> {Ns}PatternMatching.Triangle"));
     }
 
     [Test]
-    public void Gap_CasePatternTypeIsNotCaptured()
+    public void Detected_CasePatternTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}PatternMatching.PatternUser.CaseStatement -> {Ns}PatternMatching.Rectangle"));
+        Assert.That(uses, Does.Contain($"{Ns}PatternMatching.PatternUser.CaseStatement -> {Ns}PatternMatching.Rectangle"));
     }
 
     // --- Constructor chaining --------------------------------------------------------------------
