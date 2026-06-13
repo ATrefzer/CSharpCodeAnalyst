@@ -100,48 +100,6 @@ public class ParserGapsTests : ApprovalTestBase
         Assert.That(creates, Does.Contain($"{Ns}IndexersAndOperators.Catalog -> {Ns}IndexersAndOperators.DataStore"));
     }
 
-    // --- Primary constructors and positional records ------------------------------------------
-    // Phase 1 only collects ConstructorDeclarationSyntax, so primary constructors and the generated
-    // positional properties have no method element. A3 adds the parameter types of the primary
-    // constructor as Uses relationships directly on the type element.
-
-    [Test]
-    public void Detected_RecordsAreCodeElements()
-    {
-        var records = GetAllNodesOfType(GetTestGraph(), CodeElementType.Record);
-
-        Assert.That(records, Does.Contain($"{Ns}PrimaryConstructors.Order"));
-        Assert.That(records, Does.Contain($"{Ns}PrimaryConstructors.OrderId"));
-    }
-
-    [Test]
-    public void Detected_PositionalRecordParameterTypesCreateRelationship()
-    {
-        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
-
-        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.OrderId"));
-        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.Customer"));
-    }
-
-    [Test]
-    public void Detected_ClassPrimaryConstructorParameterTypeCreatesRelationship()
-    {
-        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
-
-        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Inventory -> {Ns}PrimaryConstructors.Warehouse"));
-    }
-
-    [Test]
-    public void Detected_RecordHasNoSelfReferenceFromGeneratedIEquatable()
-    {
-        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
-
-        // Records implement the synthesized IEquatable<Self>; the type argument must not create a
-        // self-reference (A3b). The real parameter-type dependency stays as a sanity check.
-        Assert.That(uses, Does.Not.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.Order"));
-        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.OrderId"));
-    }
-
     // --- Pattern matching ----------------------------------------------------------------------
     // A6: declaration patterns ("shape is Circle circle"), type patterns (switch arms "Square => ..")
     // and recursive patterns ("is Foo { .. }") now record their type as a Uses relationship via the

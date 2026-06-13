@@ -7,6 +7,15 @@ public record RecordA(string Name, RecordB RecordB);
 
 public record RecordB(int Value, RecordA RecordA);
 
+// Non-record class with a primary constructor. The parameter type is captured as Uses.
+public class Warehouse
+{
+}
+
+public class Inventory(Warehouse warehouse)
+{
+}
+
 public struct StructWithInterface : IComparable<StructWithInterface>
 {
     public int Value { get; init; }

@@ -19,10 +19,29 @@ public class RecordsAndStructsTest : ApprovalTestBase
         {
             "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.ExtendedType",
             "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.Extensions",
-            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.PartialClient"
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.PartialClient",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.Warehouse",
+            "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs.Inventory"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
+    }
+
+    [Test]
+    public void PrimaryConstructorParameterTypes_should_be_detected()
+    {
+        const string ns = "Regression.SpecificBugs.global.Regression.SpecificBugs.RecordsAndStructs";
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
+
+        // Positional record parameter types and class primary-constructor parameter types are
+        // recorded as Uses on the type element.
+        Assert.That(uses, Does.Contain($"{ns}.RecordA -> {ns}.RecordB"));
+        Assert.That(uses, Does.Contain($"{ns}.RecordB -> {ns}.RecordA"));
+        Assert.That(uses, Does.Contain($"{ns}.Inventory -> {ns}.Warehouse"));
+
+        // The synthesized IEquatable<Self> of a record must not create a self-reference.
+        Assert.That(uses, Does.Not.Contain($"{ns}.RecordA -> {ns}.RecordA"));
+        Assert.That(uses, Does.Not.Contain($"{ns}.RecordB -> {ns}.RecordB"));
     }
 
     [Test]
