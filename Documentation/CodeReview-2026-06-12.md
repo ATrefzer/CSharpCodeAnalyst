@@ -56,10 +56,6 @@ Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus a
 
 
 
-
-
-
-
 ## Die priorisierte Liste
 
 **Block A — fehlende Abhängigkeiten (höchster Nutzen, je 1 Commit):**
@@ -67,14 +63,15 @@ Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus a
 1. **A1** Indexer aufnehmen + Bodies analysieren ← *fangen wir hier an*
 2. **A2** Operatoren, Konversionsoperatoren, Finalizer
 3. **A3** Primary-Constructor-/Record-Parametertypen
-4. **A4** Konstruktor-Verkettung `base(...)`/`this(...)`
-5. **A5** Property-Initialisierer
-6. **A6** Pattern-Matching-Typen (`is Foo f`, switch, case)
-7. **A7** Typen in catch/foreach/using/for/out-var
-8. **A8** Array-Erzeugung `new Foo[n]`
-9. **A9** Methodengruppen in Zuweisung/Return/Feld
-10. **A10** Alte Delegate-Registrierung `+= new EventHandler(H)`
-11. **A11** Generic Constraints `where T : IFoo`
+4. A3b Selbstreferenz für Records entfernen
+5. **A4** Konstruktor-Verkettung `base(...)`/`this(...)`
+6. **A5** Property-Initialisierer
+7. **A6** Pattern-Matching-Typen (`is Foo f`, switch, case)
+8. **A7** Typen in catch/foreach/using/for/out-var
+9. **A8** Array-Erzeugung `new Foo[n]`
+10. **A9** Methodengruppen in Zuweisung/Return/Feld
+11. **A10** Alte Delegate-Registrierung `+= new EventHandler(H)`
+12. **A11** Generic Constraints `where T : IFoo`
 
 **Block B — Korrektheit:** B1 Key() ref/out/Indexer · B2 Multi-Targeting · B3 VB/F#-Filter · B4 Lock/Dummy-Name
 
@@ -134,3 +131,119 @@ Ich würde A3 **so lassen** (Typ-Ebene, minimal, erfüllt den Analyse-Kern) und 
 Zwei konkrete Vorschläge, über die du entscheidest:
 
 **Nebenbefund (unabhängig von alldem):** Ich bin beim Debuggen auf vorbestehendes Rauschen gestoßen — jeder Record bekommt eine **Selbst-Kante `Order → Order`**, weil `IEquatable<Order>` implementiert wird und die generische Typargument-Behandlung das Argument `Order` als `Uses` einträgt. Das ist nicht durch A3 entstanden, aber es ist Müll im Graphen.
+
+
+
+# Erkenntnisse aus dem Review
+
+## A3b
+
+```
+// A type parameterized with itself (records implement IEquatable<Self>; CRTP like
+// class Foo : IComparable<Foo>) would otherwise gain a meaningless self-reference.
+if (typeArg is INamedTypeSymbol namedTypeArg &&
+         ReferenceEquals(FindInternalCodeElement(namedTypeArg.NormalizeToOriginalDefinition()), sourceElement))
+{
+      continue;
+}
+```
+
+Warum NormalizedToOriginalDefinition. Welche Bedeutung hast das? Und zweitens: Ich weiß, dass das schon funktioniert: Foo<Foo<Self>> würde erkannt. Wo passiert das nochmal?
+
+Beides hängt an derselben Mechanik. Hier die Antworten mit den genauen Stellen.
+
+### 1. Warum `NormalizeToOriginalDefinition`?
+
+Der Grund liegt darin, **wie `FindInternalCodeElement` nachschlägt**: über `symbol.Key()` im `SymbolKeyToElementMap`. Und dieses Map enthält aus Phase 1 **nur Original-Definitionen** — konstruierte generische Typen wie `List<int>` stehen dort *nicht*, sondern nur `List<T>`. Der `Key()` einer Konstruktion unterscheidet sich vom `Key()` der Definition.
+
+Konsequenz: Wäre das Typargument ein **konstruierter** Generic, würde `FindInternalCodeElement(typeArg)` ohne Normalisierung schlicht `null` liefern (kein Treffer) — und meine Selbst-Prüfung würde stillschweigend versagen, die Selbstkante also *nicht* erkannt. Das `NormalizeToOriginalDefinition()` führt den konstruierten Typ auf seine Definition zurück, sodass der Lookup zuverlässig das in Phase 1 angelegte Element trifft. Genau dasselbe macht `AddNamedTypeRelationship` ein paar Zeilen darüber selbst (`var normalizedSymbol = namedTypeSymbol.NormalizeToOriginalDefinition()`) und auch `TryFindInternalElementWithNormalization` — ich bin damit konsistent zum Rest der Datei.
+
+**Ehrliche Einordnung:** Im konkreten `IEquatable<Order>`-Fall ist die Normalisierung ein **No-op**, weil `Order` nicht generisch ist und damit bereits seine eigene Definition. Sie greift erst, wenn das Typargument eine echte Konstruktion ist — z. B. `class Foo<T> : Bar<Foo<int>>`: dort wird `Foo<int>` erst durch Normalisierung auf das `Foo<T>`-Element (= Quelle) zurückgeführt und so als Selbstreferenz erkannt. Ich habe sie also aus Robustheit und Konsistenz drin, nicht weil der Record-Fall sie bräuchte.
+
+### 2. Wo wird `Foo<Foo<Self>>` erkannt?
+
+Mein Guard prüft nur die **direkten** Typargumente von `namedTypeSymbol`. Bei einer Verschachtelung ist das direkte Argument `Foo<Self>` — *nicht* `Self`. Dass die innere Selbstreferenz trotzdem gefangen wird, liegt an der **wechselseitigen Rekursion** zwischen den beiden Methoden:
+
+- [RelationshipAnalyzer.cs:1008](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs) — in `AddNamedTypeRelationship` läuft die `if (namedTypeSymbol.IsGenericType)`-Schleife über die Typargumente und ruft für jedes `AddTypeRelationship(...)` auf. **Hier sitzt mein Guard.**
+- [RelationshipAnalyzer.cs:907](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs) — `AddTypeRelationship` dispatcht den `case INamedTypeSymbol` *zurück* nach `AddNamedTypeRelationship`.
+
+Das ist der Kreis: `AddNamedTypeRelationship` (Typarg-Schleife) → `AddTypeRelationship` → `AddNamedTypeRelationship` → … Auf jeder Ebene wird die Schleife — und damit der Guard — neu durchlaufen.
+
+Für `IRgendwas<Foo<Foo<Self>>>` heißt das konkret:
+
+| Ebene | Aufruf              | direktes Typarg  | Guard greift?                            |
+| ----- | ------------------- | ---------------- | ---------------------------------------- |
+| 0     | `…<Foo<Foo<Self>>>` | `Foo<Foo<Self>>` | nur falls == Quelle                      |
+| 1     | `Foo<Foo<Self>>`    | `Foo<Self>`      | nur falls == Quelle                      |
+| 2     | `Foo<Self>`         | `Self`           | **ja**, wenn Quelle == Self → `continue` |
+
+Die Selbstreferenz wird also genau auf der Rekursionsebene gefangen, auf der `Self` als *direktes* Typargument auftaucht. Der Guard muss deshalb gar nicht selbst absteigen — das Absteigen erledigt die ohnehin vorhandene Rekursion, und mein `continue` verhindert nur den einen self-`Uses`-Eintrag, ohne die Rekursion in die anderen Geschwister-Argumente zu stoppen.
+
+Ein Detail am Rande, das daraus folgt: Arrays und Pointer hängen über dieselbe Rekursion mit drin ([Zeile 902](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:902) und [912](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:912)), d. h. `IEquatable<Self[]>` würde *nicht* gefiltert — das Argument `Self[]` ist ein `IArrayTypeSymbol`, kein `INamedTypeSymbol`, und mein `is INamedTypeSymbol`-Check greift dort nicht. Das ist ein so seltener Fall, dass ich ihn bewusst nicht abgedeckt habe; falls gewünscht, könnten wir den Guard stattdessen in `AddRelationship` als generelles „kein self-`Uses`" formulieren — das würde aber legitime Selbstkomposition (`record Node(Node Next)`) mitnehmen, weshalb ich die gezielte Variante vorgezogen habe.
+
+
+
+# Methodengruppen
+
+## Wie der Walker überhaupt läuft
+
+Ein `CSharpSyntaxWalker` besucht **jeden Knoten im Syntaxbaum**, von oben nach unten. Für jeden Knotentyp gibt es ein `VisitXxx`. Die Standard-Implementierung von `VisitXxx` **steigt automatisch in alle Kindknoten ab**. Ein Override kann diesen Abstieg fortsetzen (`base.VisitXxx(node)`) oder gezielt steuern.
+
+Entscheidend: Ein Methodenname wie `_worker.DoParallelWork` ist **nicht ein einzelner Knoten**, sondern taucht im Baum an mehreren Stellen auf, die *verschiedene* `Visit`-Methoden auslösen.
+
+## Der konkrete Baum von `Run(_worker.DoParallelWork)`
+
+```
+InvocationExpression                         "Run(_worker.DoParallelWork)"
+├─ Expression: IdentifierName "Run"
+└─ ArgumentList
+   └─ Argument                               ← VisitArgument  → AnalyzeArgument
+      └─ MemberAccessExpression              ← VisitMemberAccessExpression → AnalyzeMemberAccess
+         "_worker.DoParallelWork"
+         ├─ Expression: IdentifierName "_worker"   ← VisitIdentifierName → AnalyzeIdentifier (Feld)
+         └─ Name: IdentifierName "DoParallelWork"
+```
+
+Der Punkt: Der **`Argument`-Knoten** und der **`MemberAccessExpression`-Knoten** sind zwei verschiedene Knoten, aber sie beschreiben dieselbe Methodengruppe `_worker.DoParallelWork`. Der Walker besucht beide.
+
+## Trace — vorher vs. nachher
+
+**Vor A9:**
+
+1. `VisitArgument` → `AnalyzeArgument`: Argumentausdruck ist `_worker.DoParallelWork` (MemberAccess, kein `()`) → `IMethodSymbol` → fügt `Uses+IsMethodGroup` hinzu. ✅
+2. Abstieg → `VisitMemberAccessExpression` → `AnalyzeMemberAccess`: prüfte nur Property/Field/Event, **ignorierte Methoden** → nichts.
+
+→ Nur `AnalyzeArgument` fing es. **Genau dafür wurde es eingeführt** — es war der *einzige* Ort, an dem Methodengruppen erfasst wurden.
+
+**Nach A9:**
+
+1. `VisitArgument` → `AnalyzeArgument`: → `Uses+IsMethodGroup`. ✅ *(1. Mal)*
+2. Abstieg → `VisitMemberAccessExpression` → `AnalyzeMemberAccess`: neuer `IMethodSymbol`-Zweig. Guard fragt: „Ist `_worker.DoParallelWork` das *Aufrufziel* einer Invocation?" Der Parent ist `Argument`, keine `InvocationExpression` → **nein** → es ist eine Methodengruppe → `Uses+IsMethodGroup`. ✅ *(2. Mal)*
+
+Beide schreiben dieselbe Kante. `AddRelationship` dedupliziert (gleiche Quelle, gleiches Ziel, Typ `Uses`) → im Graphen landet **eine** Kante. Deshalb bleiben die Tests grün, *obwohl* doppelt erfasst wird.
+
+## Warum der Guard Aufruf von Gruppe trennt
+
+Das ist der ganze Trick von A9. Für `_worker.DoWork()` **mit** Klammern:
+
+- Die `MemberAccessExpression _worker.DoWork` ist die `Expression` der umschließenden `InvocationExpression`.
+- Guard: „Bin ich das Aufrufziel?" → **ja** → überspringen. Den Aufruf erledigt `AnalyzeInvocation` (als `Calls`).
+
+Für `_worker.DoWork` **ohne** Klammern (Zuweisung/Argument/Return):
+
+- Keine umschließende Invocation, deren Expression ich bin.
+- Guard → **nein** → Methodengruppe.
+
+`AnalyzeArgument` machte dieselbe Unterscheidung, aber **nur** über die Syntaxform „steht als Argument da" — also nur für *eine* Position. A9s Guard macht es allgemein für *jede* Position außer dem Aufrufziel. **Die allgemeine Regel schließt den Argument-Sonderfall mit ein.**
+
+## Fazit
+
+`AnalyzeArgument` behandelte ausschließlich die zwei Formen `Identifier` und `MemberAccess` in Argumentposition. Beide werden vom Walker ohnehin besucht und landen seit A9 in `AnalyzeIdentifier`/`AnalyzeMemberAccess` — dort als Methodengruppe erkannt, weil sie kein Aufrufziel sind. Damit ist `AnalyzeArgument` vollständig subsumiert. Der No-op-Lauf (197/197 grün) bestätigt es empirisch.
+
+Entfernen würde heißen:
+
+1. `AnalyzeArgument` aus `RelationshipAnalyzer` löschen,
+2. `AnalyzeArgument` aus dem `ISyntaxNodeHandler`-Interface löschen,
+3. den `VisitArgument`-Override in `SyntaxWalkerBase` löschen — der Standard-Walker steigt von selbst in das Argument ab, der Abstieg bleibt also erhalten.
+
+=> Also kurz und knapp: AnalyzeArgument kann komplett entfernt werden. 
