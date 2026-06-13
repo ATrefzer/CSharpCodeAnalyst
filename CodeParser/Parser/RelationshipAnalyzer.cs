@@ -1129,6 +1129,12 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // Analyze the property type
         AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses, propertyLocation);
 
+        // Indexer parameter types. Empty for normal properties.
+        foreach (var parameter in propertySymbol.Parameters)
+        {
+            AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
+        }
+
         if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
             FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
@@ -1154,20 +1160,29 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
         {
             var syntax = syntaxReference.GetSyntax();
-            if (syntax is PropertyDeclarationSyntax propertyDeclaration)
+
+            // BasePropertyDeclarationSyntax covers both properties and indexers.
+            if (syntax is BasePropertyDeclarationSyntax basePropertyDeclaration)
             {
                 var document = solution.GetDocument(syntax.SyntaxTree);
                 var semanticModel = document?.GetSemanticModelAsync().Result;
                 if (semanticModel != null)
                 {
-                    if (propertyDeclaration.ExpressionBody != null)
+                    // The expression body lives on the concrete declaration type, not on the base.
+                    var expressionBody = syntax switch
                     {
-                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression,
-                            semanticModel);
+                        PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.ExpressionBody,
+                        IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ExpressionBody,
+                        _ => null
+                    };
+
+                    if (expressionBody != null)
+                    {
+                        AnalyzeMethodBody(propertyElement, expressionBody.Expression, semanticModel);
                     }
-                    else if (propertyDeclaration.AccessorList != null)
+                    else if (basePropertyDeclaration.AccessorList != null)
                     {
-                        foreach (var accessor in propertyDeclaration.AccessorList.Accessors)
+                        foreach (var accessor in basePropertyDeclaration.AccessorList.Accessors)
                         {
                             if (accessor.ExpressionBody != null)
                             {

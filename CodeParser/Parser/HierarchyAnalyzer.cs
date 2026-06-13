@@ -193,6 +193,12 @@ public class HierarchyAnalyzer
                 symbol = semanticModel.GetDeclaredSymbol(node) as IPropertySymbol;
                 elementType = CodeElementType.Property;
                 break;
+            case IndexerDeclarationSyntax:
+
+                // An indexer is a property with parameters. Its symbol name is "this[]".
+                symbol = semanticModel.GetDeclaredSymbol(node) as IPropertySymbol;
+                elementType = CodeElementType.Property;
+                break;
             case DelegateDeclarationSyntax:
                 symbol = semanticModel.GetDeclaredSymbol(node) as INamedTypeSymbol;
                 elementType = CodeElementType.Delegate;

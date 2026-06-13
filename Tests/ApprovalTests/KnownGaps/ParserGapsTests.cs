@@ -34,27 +34,31 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Indexers, operators, conversion operators, finalizers -------------------------------
-    // HierarchyAnalyzer.ProcessNodeForHierarchy does not handle IndexerDeclarationSyntax,
-    // OperatorDeclarationSyntax, ConversionOperatorDeclarationSyntax and DestructorDeclarationSyntax.
-    // These members are not code elements and their bodies are never analyzed in phase 2.
+    // HierarchyAnalyzer.ProcessNodeForHierarchy now handles IndexerDeclarationSyntax (A1).
+    // OperatorDeclarationSyntax, ConversionOperatorDeclarationSyntax and DestructorDeclarationSyntax
+    // are still not code elements and their bodies are never analyzed in phase 2.
 
     [Test]
-    public void Gap_IndexerIsNotACodeElement()
+    public void Detected_IndexerIsACodeElement()
     {
         var catalogProperties = GetAllProperties(GetTestGraph())
             .Where(p => p.StartsWith($"{Ns}IndexersAndOperators.Catalog."));
 
-        // Only Count is found. The indexer is missing entirely.
-        Assert.That(catalogProperties, Is.EquivalentTo(new[] { $"{Ns}IndexersAndOperators.Catalog.Count" }));
+        // The indexer is now found as a property named "this[]".
+        Assert.That(catalogProperties, Is.EquivalentTo(new[]
+        {
+            $"{Ns}IndexersAndOperators.Catalog.Count",
+            $"{Ns}IndexersAndOperators.Catalog.this[]"
+        }));
     }
 
     [Test]
-    public void Gap_CallsInsideIndexerBodyAreInvisible()
+    public void Detected_CallsInsideIndexerBodyAreVisible()
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
         // DataStore.Compute is only called from the indexer body.
-        Assert.That(calls.Where(c => c.EndsWith($"-> {Ns}IndexersAndOperators.DataStore.Compute")), Is.Empty);
+        Assert.That(calls, Does.Contain($"{Ns}IndexersAndOperators.Catalog.this[] -> {Ns}IndexersAndOperators.DataStore.Compute"));
     }
 
     [Test]
