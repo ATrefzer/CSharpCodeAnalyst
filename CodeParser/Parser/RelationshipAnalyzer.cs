@@ -649,6 +649,9 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddTypeRelationship(methodElement, parameter.Type, RelationshipType.Uses, methodLocation);
         }
 
+        // Analyze generic type-parameter constraints (where T : Foo)
+        AnalyzeTypeParameterConstraints(methodElement, methodSymbol.TypeParameters, methodLocation);
+
         // Analyze return type
         if (!methodSymbol.ReturnsVoid)
         {
@@ -882,7 +885,28 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddTypeRelationship(element, @interface, RelationshipType.Implements, typeLocation);
         }
 
+        // Analyze generic type-parameter constraints (where T : Foo)
+        AnalyzeTypeParameterConstraints(element, typeSymbol.TypeParameters, typeLocation);
+
         AnalyzePrimaryConstructorParameters(element, typeSymbol);
+    }
+
+    /// <summary>
+    ///     Records "Uses" relationships for the type constraints of generic type parameters
+    ///     (where T : IFoo / where T : BaseClass). Special constraints (class, struct, new(),
+    ///     notnull) carry no type and a constraint to another type parameter (where T : U) resolves
+    ///     to no internal element, so both are naturally ignored.
+    /// </summary>
+    private void AnalyzeTypeParameterConstraints(CodeElement element,
+        IEnumerable<ITypeParameterSymbol> typeParameters, SourceLocation? location)
+    {
+        foreach (var typeParameter in typeParameters)
+        {
+            foreach (var constraintType in typeParameter.ConstraintTypes)
+            {
+                AddTypeRelationship(element, constraintType, RelationshipType.Uses, location);
+            }
+        }
     }
 
     /// <summary>

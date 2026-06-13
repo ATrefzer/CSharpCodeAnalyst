@@ -338,9 +338,9 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Generic type-parameter constraints ------------------------------------------------------
-    // where T : IFoo / where T : BaseClass. AnalyzeInheritanceRelationships looks only at a type's
-    // own base/interfaces, AnalyzeMethodRelationships only at parameter/return types - the
-    // ITypeParameterSymbol.ConstraintTypes are never read.
+    // A11: where T : IFoo / where T : BaseClass now record the constraint type as Uses, both for
+    // class type parameters (AnalyzeInheritanceRelationships) and method type parameters
+    // (AnalyzeMethodRelationships), via ITypeParameterSymbol.ConstraintTypes.
 
     [Test]
     public void Sanity_GenericConstraintTypesAreParsed()
@@ -349,7 +349,6 @@ public class ParserGapsTests : ApprovalTestBase
         var classes = GetAllClasses(graph);
         var interfaces = GetAllNodesOfType(graph, CodeElementType.Interface);
 
-        // Guards against the Gap_* assertions below passing trivially due to a wrong name.
         Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstrainedRepository"));
         Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstraintUser"));
         Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.EntityBase"));
@@ -357,18 +356,18 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_ClassConstraintTypeIsNotCaptured()
+    public void Detected_ClassConstraintTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}GenericConstraints.ConstrainedRepository -> {Ns}GenericConstraints.IRepository"));
+        Assert.That(uses, Does.Contain($"{Ns}GenericConstraints.ConstrainedRepository -> {Ns}GenericConstraints.IRepository"));
     }
 
     [Test]
-    public void Gap_MethodConstraintTypeIsNotCaptured()
+    public void Detected_MethodConstraintTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}GenericConstraints.ConstraintUser.Process -> {Ns}GenericConstraints.EntityBase"));
+        Assert.That(uses, Does.Contain($"{Ns}GenericConstraints.ConstraintUser.Process -> {Ns}GenericConstraints.EntityBase"));
     }
 }
