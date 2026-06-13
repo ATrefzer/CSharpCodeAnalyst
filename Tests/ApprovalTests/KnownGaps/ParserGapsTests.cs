@@ -337,37 +337,4 @@ public class ParserGapsTests : ApprovalTestBase
         Assert.That(handles, Does.Contain($"{Ns}MethodGroups.Worker.OnTick -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
     }
 
-    // --- Generic type-parameter constraints ------------------------------------------------------
-    // A11: where T : IFoo / where T : BaseClass now record the constraint type as Uses, both for
-    // class type parameters (AnalyzeInheritanceRelationships) and method type parameters
-    // (AnalyzeMethodRelationships), via ITypeParameterSymbol.ConstraintTypes.
-
-    [Test]
-    public void Sanity_GenericConstraintTypesAreParsed()
-    {
-        var graph = GetTestGraph();
-        var classes = GetAllClasses(graph);
-        var interfaces = GetAllNodesOfType(graph, CodeElementType.Interface);
-
-        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstrainedRepository"));
-        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstraintUser"));
-        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.EntityBase"));
-        Assert.That(interfaces, Does.Contain($"{Ns}GenericConstraints.IRepository"));
-    }
-
-    [Test]
-    public void Detected_ClassConstraintTypeIsCaptured()
-    {
-        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
-
-        Assert.That(uses, Does.Contain($"{Ns}GenericConstraints.ConstrainedRepository -> {Ns}GenericConstraints.IRepository"));
-    }
-
-    [Test]
-    public void Detected_MethodConstraintTypeIsCaptured()
-    {
-        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
-
-        Assert.That(uses, Does.Contain($"{Ns}GenericConstraints.ConstraintUser.Process -> {Ns}GenericConstraints.EntityBase"));
-    }
 }

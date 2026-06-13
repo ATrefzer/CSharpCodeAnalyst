@@ -61,6 +61,30 @@ public class GenericsApprovalTests : ApprovalTestBase
     }
 
     [Test]
+    public void GenericConstraintTypes_ShouldBeDetected()
+    {
+        // "where T : Foo" records the constraint type as a Uses relationship, both for class type
+        // parameters and for method type parameters. (IComparable here is the internal
+        // Core.Generics.IComparable<T>, not System.IComparable.)
+        var uses = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Uses);
+
+        var expected = new[]
+        {
+            // Class type-parameter constraints
+            "Core.Generics.global.Core.Generics.GenericManager -> Core.Generics.global.Core.Generics.IProcessor",
+            "Core.Generics.global.Core.Generics.GenericSorter -> Core.Generics.global.Core.Generics.IComparable",
+            "Core.Generics.global.Core.Generics.EntityManager -> Core.Generics.global.Core.Generics.BaseEntity",
+
+            // Method type-parameter constraints
+            "Core.Generics.global.Core.Generics.GenericMethodsClass.ProcessItems -> Core.Generics.global.Core.Generics.IProcessor",
+            "Core.Generics.global.Core.Generics.GenericMethodsClass.SaveEntities -> Core.Generics.global.Core.Generics.BaseEntity",
+            "Core.Generics.global.Core.Generics.GenericService.ProcessWithValidator -> Core.Generics.global.Core.Generics.IValidator"
+        };
+
+        Assert.That(uses, Is.SupersetOf(expected));
+    }
+
+    [Test]
     public void MethodCalls_ShouldBeDetected()
     {
         var callRelationships = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
