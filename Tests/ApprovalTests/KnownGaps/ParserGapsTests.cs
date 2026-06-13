@@ -102,8 +102,9 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Primary constructors and positional records ------------------------------------------
-    // Phase 1 only collects ConstructorDeclarationSyntax. Primary constructors and the generated
-    // positional properties are not collected, so their parameter types create no relationship.
+    // Phase 1 only collects ConstructorDeclarationSyntax, so primary constructors and the generated
+    // positional properties have no method element. A3 adds the parameter types of the primary
+    // constructor as Uses relationships directly on the type element.
 
     [Test]
     public void Detected_RecordsAreCodeElements()
@@ -115,20 +116,20 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_PositionalRecordParameterTypesCreateNoRelationship()
+    public void Detected_PositionalRecordParameterTypesCreateRelationship()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.OrderId"));
-        Assert.That(all, Does.Not.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.Customer"));
+        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.OrderId"));
+        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.Customer"));
     }
 
     [Test]
-    public void Gap_ClassPrimaryConstructorParameterTypeCreatesNoRelationship()
+    public void Detected_ClassPrimaryConstructorParameterTypeCreatesRelationship()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}PrimaryConstructors.Inventory -> {Ns}PrimaryConstructors.Warehouse"));
+        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Inventory -> {Ns}PrimaryConstructors.Warehouse"));
     }
 
     // --- Pattern matching ----------------------------------------------------------------------

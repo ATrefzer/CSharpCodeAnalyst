@@ -855,6 +855,42 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             AddTypeRelationship(element, @interface, RelationshipType.Implements, typeLocation);
         }
+
+        AnalyzePrimaryConstructorParameters(element, typeSymbol);
+    }
+
+    /// <summary>
+    ///     Phase 1 only collects ConstructorDeclarationSyntax, so primary constructors (including the
+    ///     positional parameters of records) have no method element and the parameter types would
+    ///     otherwise create no relationship. A primary constructor is recognized by its declaring
+    ///     syntax being the TypeDeclarationSyntax itself (same detection as IsExplicitConstructor).
+    /// </summary>
+    private void AnalyzePrimaryConstructorParameters(CodeElement element, INamedTypeSymbol typeSymbol)
+    {
+        foreach (var constructor in typeSymbol.InstanceConstructors)
+        {
+            // Synthesized constructors (the record copy constructor, default constructors) are
+            // implicitly declared and carry no user-written parameter types we care about.
+            if (constructor.IsImplicitlyDeclared)
+            {
+                continue;
+            }
+
+            // A primary constructor has no ConstructorDeclarationSyntax of its own; its declaring
+            // syntax is the type declaration itself (same detection as IsExplicitConstructor).
+            var isPrimary = constructor.DeclaringSyntaxReferences
+                .Any(r => r.GetSyntax() is TypeDeclarationSyntax);
+            if (!isPrimary)
+            {
+                continue;
+            }
+
+            foreach (var parameter in constructor.Parameters)
+            {
+                var location = parameter.GetSymbolLocations().FirstOrDefault();
+                AddTypeRelationship(element, parameter.Type, RelationshipType.Uses, location);
+            }
+        }
     }
 
     private void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol,
