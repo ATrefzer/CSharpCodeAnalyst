@@ -222,28 +222,4 @@ Der Punkt: Der **`Argument`-Knoten** und der **`MemberAccessExpression`-Knoten**
 
 Beide schreiben dieselbe Kante. `AddRelationship` dedupliziert (gleiche Quelle, gleiches Ziel, Typ `Uses`) → im Graphen landet **eine** Kante. Deshalb bleiben die Tests grün, *obwohl* doppelt erfasst wird.
 
-## Warum der Guard Aufruf von Gruppe trennt
-
-Das ist der ganze Trick von A9. Für `_worker.DoWork()` **mit** Klammern:
-
-- Die `MemberAccessExpression _worker.DoWork` ist die `Expression` der umschließenden `InvocationExpression`.
-- Guard: „Bin ich das Aufrufziel?" → **ja** → überspringen. Den Aufruf erledigt `AnalyzeInvocation` (als `Calls`).
-
-Für `_worker.DoWork` **ohne** Klammern (Zuweisung/Argument/Return):
-
-- Keine umschließende Invocation, deren Expression ich bin.
-- Guard → **nein** → Methodengruppe.
-
-`AnalyzeArgument` machte dieselbe Unterscheidung, aber **nur** über die Syntaxform „steht als Argument da" — also nur für *eine* Position. A9s Guard macht es allgemein für *jede* Position außer dem Aufrufziel. **Die allgemeine Regel schließt den Argument-Sonderfall mit ein.**
-
-## Fazit
-
-`AnalyzeArgument` behandelte ausschließlich die zwei Formen `Identifier` und `MemberAccess` in Argumentposition. Beide werden vom Walker ohnehin besucht und landen seit A9 in `AnalyzeIdentifier`/`AnalyzeMemberAccess` — dort als Methodengruppe erkannt, weil sie kein Aufrufziel sind. Damit ist `AnalyzeArgument` vollständig subsumiert. Der No-op-Lauf (197/197 grün) bestätigt es empirisch.
-
-Entfernen würde heißen:
-
-1. `AnalyzeArgument` aus `RelationshipAnalyzer` löschen,
-2. `AnalyzeArgument` aus dem `ISyntaxNodeHandler`-Interface löschen,
-3. den `VisitArgument`-Override in `SyntaxWalkerBase` löschen — der Standard-Walker steigt von selbst in das Argument ab, der Abstieg bleibt also erhalten.
-
 => Also kurz und knapp: AnalyzeArgument kann komplett entfernt werden. 

@@ -123,6 +123,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                 var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
                 AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
 
+                //                                                                   =>  Extract single argument from the list.
                 if (assignmentExpression.Right is BaseObjectCreationExpressionSyntax { ArgumentList.Arguments: [var handlerArgument] })
                 {
                     // Old style: event += new SomeDelegate(Handler). GetSymbolInfo on a delegate

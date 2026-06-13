@@ -336,4 +336,39 @@ public class ParserGapsTests : ApprovalTestBase
         // event += new EventHandler(handler): the handler is taken from the delegate ctor argument.
         Assert.That(handles, Does.Contain($"{Ns}MethodGroups.Worker.OnTick -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
     }
+
+    // --- Generic type-parameter constraints ------------------------------------------------------
+    // where T : IFoo / where T : BaseClass. AnalyzeInheritanceRelationships looks only at a type's
+    // own base/interfaces, AnalyzeMethodRelationships only at parameter/return types - the
+    // ITypeParameterSymbol.ConstraintTypes are never read.
+
+    [Test]
+    public void Sanity_GenericConstraintTypesAreParsed()
+    {
+        var graph = GetTestGraph();
+        var classes = GetAllClasses(graph);
+        var interfaces = GetAllNodesOfType(graph, CodeElementType.Interface);
+
+        // Guards against the Gap_* assertions below passing trivially due to a wrong name.
+        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstrainedRepository"));
+        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.ConstraintUser"));
+        Assert.That(classes, Does.Contain($"{Ns}GenericConstraints.EntityBase"));
+        Assert.That(interfaces, Does.Contain($"{Ns}GenericConstraints.IRepository"));
+    }
+
+    [Test]
+    public void Gap_ClassConstraintTypeIsNotCaptured()
+    {
+        var all = GetAllRelationships(GetTestGraph());
+
+        Assert.That(all, Does.Not.Contain($"{Ns}GenericConstraints.ConstrainedRepository -> {Ns}GenericConstraints.IRepository"));
+    }
+
+    [Test]
+    public void Gap_MethodConstraintTypeIsNotCaptured()
+    {
+        var all = GetAllRelationships(GetTestGraph());
+
+        Assert.That(all, Does.Not.Contain($"{Ns}GenericConstraints.ConstraintUser.Process -> {Ns}GenericConstraints.EntityBase"));
+    }
 }
