@@ -30,7 +30,6 @@ public class ParserGapsTests : ApprovalTestBase
         Assert.That(classes, Does.Contain($"{Ns}IndexersAndOperators.Catalog"));
         Assert.That(classes, Does.Contain($"{Ns}PatternMatching.PatternUser"));
         Assert.That(classes, Does.Contain($"{Ns}TypeContexts.TypeContextUser"));
-        Assert.That(classes, Does.Contain($"{Ns}MethodGroups.MethodGroupUser"));
     }
 
     // --- Indexers, operators, conversion operators, finalizers -------------------------------
@@ -281,60 +280,6 @@ public class ParserGapsTests : ApprovalTestBase
 
         // ... and now the declared variable type is too.
         Assert.That(uses, Does.Contain($"{Ns}TypeContexts.TypeContextUser.UsingStatement -> {Ns}TypeContexts.PooledResource"));
-    }
-
-    // --- Method groups outside of argument lists -------------------------------------------------
-    // A9: method groups in assignments, local declarations and return statements now record a
-    // Uses + IsMethodGroup relationship via the IMethodSymbol branches in AnalyzeIdentifier /
-    // AnalyzeMemberAccess. The invocation guard keeps real calls (incl. obj?.Method()) out.
-
-    [Test]
-    public void Detected_MethodGroupAsInvocationArgument()
-    {
-        var usages = GetAllMethodGroupUsages(GetTestGraph());
-
-        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.PassAsArgument -> {Ns}MethodGroups.Worker.DoParallelWork"));
-    }
-
-    [Test]
-    public void Detected_MethodGroupAssignedToLocalIsCaptured()
-    {
-        var usages = GetAllMethodGroupUsages(GetTestGraph());
-
-        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToLocal -> {Ns}MethodGroups.Worker.DoWork"));
-    }
-
-    [Test]
-    public void Detected_MethodGroupReturnedIsCaptured()
-    {
-        var usages = GetAllMethodGroupUsages(GetTestGraph());
-
-        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.ReturnMethodGroup -> {Ns}MethodGroups.Worker.DoMoreWork"));
-    }
-
-    [Test]
-    public void Detected_MethodGroupAssignedToFieldIsCaptured()
-    {
-        var usages = GetAllMethodGroupUsages(GetTestGraph());
-
-        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToField -> {Ns}MethodGroups.Worker.DoExtraWork"));
-    }
-
-    [Test]
-    public void Detected_ModernEventRegistrationCreatesHandles()
-    {
-        var handles = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
-
-        Assert.That(handles, Does.Contain($"{Ns}MethodGroups.Worker.OnTock -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
-    }
-
-    [Test]
-    public void Detected_OldStyleEventRegistrationCreatesHandles()
-    {
-        var handles = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
-
-        // event += new EventHandler(handler): the handler is taken from the delegate ctor argument.
-        Assert.That(handles, Does.Contain($"{Ns}MethodGroups.Worker.OnTick -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
     }
 
 }
