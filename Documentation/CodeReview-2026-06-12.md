@@ -53,3 +53,84 @@ Ein struktureller Hinweis dazu: Viele der Lücken 3–6 ließen sich **mit einer
 Korrekt umgesetzt ist das, was abgedeckt ist — ich habe in den behandelten Pfaden keinen Fall gefunden, der *falsche* Kanten erzeugt; die Fehler sind fast alle Auslassungen. Die Prioritätenliste aus meiner Sicht: (1) Indexer/Operatoren in Phase 1 aufnehmen, weil dort ganze Methodenrümpfe unsichtbar sind, (2) Primary-Constructor-/Record-Parameter, weil allgegenwärtig, (3) `INamedTypeSymbol` im Identifier-Pfad zulassen, was Pattern Matching, catch, foreach und Array-Erzeugung in einem Schritt erledigt, (4) `: base(...)`-Verkettung und Property-Initialisierer. Die Doku `uncovered-csharp-syntax.md` würde ich danach von „might be missed"-Vermutungen auf den tatsächlich verifizierten Stand bringen — etwa die Hälfte der dort gelisteten Punkte ist nämlich entgegen der Liste abgedeckt (Expression-bodied Members, async/await, Top-Level-Statements, Default Interface Methods funktionieren alle).
 
 Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus ausgeführten Tests. Bei den als „bestätigt" markierten Lücken (Indexer, Records, Pattern, ctor-Initializer, Property-Initializer) bin ich mir sehr sicher; wenn du magst, schreibe ich dir als Nächstes gezielte TestSuite-Fälle + Approval-Tests, die jede dieser Lücken nachweisen — das wäre auch die saubere Grundlage, um sie dann einzeln zu schließen.
+
+
+
+
+
+
+
+## Die priorisierte Liste
+
+**Block A — fehlende Abhängigkeiten (höchster Nutzen, je 1 Commit):**
+
+1. **A1** Indexer aufnehmen + Bodies analysieren ← *fangen wir hier an*
+2. **A2** Operatoren, Konversionsoperatoren, Finalizer
+3. **A3** Primary-Constructor-/Record-Parametertypen
+4. **A4** Konstruktor-Verkettung `base(...)`/`this(...)`
+5. **A5** Property-Initialisierer
+6. **A6** Pattern-Matching-Typen (`is Foo f`, switch, case)
+7. **A7** Typen in catch/foreach/using/for/out-var
+8. **A8** Array-Erzeugung `new Foo[n]`
+9. **A9** Methodengruppen in Zuweisung/Return/Feld
+10. **A10** Alte Delegate-Registrierung `+= new EventHandler(H)`
+11. **A11** Generic Constraints `where T : IFoo`
+
+**Block B — Korrektheit:** B1 Key() ref/out/Indexer · B2 Multi-Targeting · B3 VB/F#-Filter · B4 Lock/Dummy-Name
+
+**Block C — Vereinfachung/Doku:** C1 Single/Multi-Threaded zusammenführen · C2 Walker zusammenführen · C3 Interface-Map · C4 Doku aktualisieren
+
+
+
+
+
+# Bei der Umsetzung weitere Punkte aufgefallen
+
+Bei A3 Primary Konstruktoren erkennen kam die Frage auf ob die Argumente des Primary Konstruktor auch als Property in der Hierarchie aufgenommen werden. Die Antwort ist nein. Das ist allerdings ein aufwändiger Teil, da er Phase 1 des Parsers betrifft und nicht die Beziehungsanalyse.
+
+Ich stelle diesen Punkt hinten an.
+
+## Haben wir die Referenzen?
+
+**Teilweise.** Konkret für `record Order(OrderId Id, Customer Customer)`:
+
+- ✅ **Typ-Ebene** (durch A3): `Order → OrderId` und `Order → Customer` als `Uses`. Die *Abhängigkeit* ist erfasst.
+- ❌ **Member-Ebene**: Die generierten Properties `Id` und `Customer` sind **keine** Graph-Elemente. `Order.Children` ist leer.
+
+Das hat drei Konsequenzen:
+
+1. **Strukturansicht ist irreführend.** Im Baum/Graph erscheint `Order` als *leerer* Typ — obwohl der Record real zwei öffentliche Properties und einen Konstruktor hat. Das ist über die reine Abhängigkeitsfrage hinaus ein Darstellungsproblem.
+
+1. **Inkonsistenz zur Langform.** Dieselbe Klasse ausgeschrieben
+
+   ```
+   record Order { public OrderId Id { get; init; } public Customer Customer { get; init; } }
+   ```
+
+   erzeugt
+
+   ```
+   Order.Id → OrderId
+   ```
+
+    (Member-Ebene) plus die navigierbaren Property-Elemente. Die Positional-Form und ihre Langform liefern also
+
+    unterschiedliche Graphen.
+
+1. **Verwendungen anderswo werden vergröbert.** Schreibt fremder Code `someOrder.Id`, fällt das mangels Element `Order.Id` auf den Typ `Order` zurück (`X uses Order` statt `X uses Order.Id`). Die Typ-Abhängigkeit bleibt, die Granularität geht verloren.
+
+## Brauchen wir sie?
+
+Das hängt vom Zweck ab — und hier ist meine Einschätzung:
+
+**Für reine Typ-Abhängigkeitsanalyse** (Zyklen, Schichten, Partitionierung — der Kern laut README): **Nein, A3 reicht.** Die `Order → OrderId`-Kante ist genau das, was Zyklenerkennung & Co. brauchen.
+
+**Für die Struktur-/Navigationsansicht und Konsistenz: Ja, es wäre wertvoll.** Das stärkste Argument ist Punkt 1 — ein Record als leerer Typ dargestellt ist schlicht falsch.
+
+## Empfehlung (Opus)
+
+Ich würde A3 **so lassen** (Typ-Ebene, minimal, erfüllt den Analyse-Kern) und das Erfassen der generierten Member als **eigene, größere Aufgabe** behandeln — denn das gehört in **Phase 1** (Property-Elemente — und ggf. ein Primary-Ctor-Methoden-Element — aus den Positional-Parametern synthetisieren), nicht in die Relationship-Phase. Wenn wir das machen, würde A3s Typ-Kante sogar redundant und könnte zugunsten der Member-Kanten entfallen (= exakt wie die Langform).
+
+Zwei konkrete Vorschläge, über die du entscheidest:
+
+**Nebenbefund (unabhängig von alldem):** Ich bin beim Debuggen auf vorbestehendes Rauschen gestoßen — jeder Record bekommt eine **Selbst-Kante `Order → Order`**, weil `IEquatable<Order>` implementiert wird und die generische Typargument-Behandlung das Argument `Order` als `Uses` einträgt. Das ist nicht durch A3 entstanden, aber es ist Müll im Graphen.
