@@ -40,6 +40,16 @@ internal class MethodBodyWalker : SyntaxWalkerBase
         base.VisitAssignmentExpression(node);
     }
 
+    /// <summary>
+    ///     Constructor chaining: ": base(...)" and ": this(...)".
+    /// </summary>
+    public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
+    {
+        Analyzer.AnalyzeConstructorInitializer(SourceElement, node, SemanticModel);
+        // Still visit the argument list so method groups / nested expressions are captured.
+        base.VisitConstructorInitializer(node);
+    }
+
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
         Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel);

@@ -193,19 +193,19 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_BaseConstructorChainingIsNotCaptured()
+    public void Detected_BaseConstructorChainingIsCaptured()
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
-        Assert.That(calls, Does.Not.Contain($"{Ns}ConstructorChaining.DerivedService..ctor -> {Ns}ConstructorChaining.BaseService..ctor"));
+        Assert.That(calls, Does.Contain($"{Ns}ConstructorChaining.DerivedService..ctor -> {Ns}ConstructorChaining.BaseService..ctor"));
     }
 
     [Test]
-    public void Gap_ThisConstructorChainingIsNotCaptured()
+    public void Detected_ThisConstructorChainingIsCaptured()
     {
         var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
 
-        Assert.That(calls, Does.Not.Contain($"{Ns}ConstructorChaining.SelfChaining..ctor -> {Ns}ConstructorChaining.SelfChaining..ctor"));
+        Assert.That(calls, Does.Contain($"{Ns}ConstructorChaining.SelfChaining..ctor -> {Ns}ConstructorChaining.SelfChaining..ctor"));
     }
 
     // --- Property initializers -------------------------------------------------------------------

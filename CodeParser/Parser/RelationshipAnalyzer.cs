@@ -134,6 +134,26 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
     }
 
+    public void AnalyzeConstructorInitializer(CodeElement sourceElement, ConstructorInitializerSyntax initializerSyntax,
+        SemanticModel semanticModel)
+    {
+        // ": base(...)" / ": this(...)". The arguments are visited separately by the walker.
+        // We mirror the constructor handling in AnalyzeObjectCreation: only link explicit, internal
+        // constructors. Implicit base constructors and external ones are left to the Inherits edge.
+        if (semanticModel.GetSymbolInfo(initializerSyntax).Symbol is
+            IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+        {
+            var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
+            if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+            {
+                var attribute = initializerSyntax.IsKind(SyntaxKind.BaseConstructorInitializer)
+                    ? RelationshipAttribute.IsBaseCall
+                    : RelationshipAttribute.IsThisCall;
+                AddCallsRelationship(sourceElement, normalizedConstructor, initializerSyntax.GetSyntaxLocation(), attribute);
+            }
+        }
+    }
+
     /// <summary>
     ///     Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
     /// </summary>
