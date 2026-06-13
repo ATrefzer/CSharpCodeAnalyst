@@ -123,10 +123,21 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                 var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
                 AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
 
-                // If the right side is a method, add a Handles relationship
-                if (rightSymbol is IMethodSymbol methodSymbol)
+                if (assignmentExpression.Right is BaseObjectCreationExpressionSyntax { ArgumentList.Arguments: [var handlerArgument] })
                 {
-                    // The handles relationship carries both locations for registering 
+                    // Old style: event += new SomeDelegate(Handler). GetSymbolInfo on a delegate
+                    // creation yields no symbol, so we recognize it by syntax and take the handler
+                    // from the single constructor argument. (A non-method argument, e.g. an existing
+                    // delegate instance, simply yields no Handles relationship.)
+                    if (semanticModel.GetSymbolInfo(handlerArgument.Expression).Symbol is IMethodSymbol handlerFromCtor)
+                    {
+                        AddEventHandlerRelationship(handlerFromCtor, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
+                    }
+                }
+                else if (rightSymbol is IMethodSymbol methodSymbol)
+                {
+                    // Modern style: event += Handler. The right side is the method itself.
+                    // The handles relationship carries both locations for registering
                     // and unregistering the event handler. We have the same with the "uses" relationship.
                     // But separately for registering and unregistering.
                     AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);

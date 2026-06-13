@@ -329,10 +329,11 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_OldStyleEventRegistrationCreatesNoHandles()
+    public void Detected_OldStyleEventRegistrationCreatesHandles()
     {
         var handles = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Handles);
 
-        Assert.That(handles, Does.Not.Contain($"{Ns}MethodGroups.Worker.OnTick -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
+        // event += new EventHandler(handler): the handler is taken from the delegate ctor argument.
+        Assert.That(handles, Does.Contain($"{Ns}MethodGroups.Worker.OnTick -> {Ns}MethodGroups.MethodGroupUser.Ticked"));
     }
 }
