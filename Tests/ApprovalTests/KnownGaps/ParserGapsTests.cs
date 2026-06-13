@@ -138,34 +138,6 @@ public class ParserGapsTests : ApprovalTestBase
         Assert.That(uses, Does.Contain($"{Ns}PatternMatching.PatternUser.CaseStatement -> {Ns}PatternMatching.Rectangle"));
     }
 
-    // --- Constructor chaining --------------------------------------------------------------------
-    // ConstructorInitializerSyntax (": base(...)" / ": this(...)") is not an InvocationExpression
-    // and is not handled anywhere.
-
-    [Test]
-    public void Detected_InheritanceOfChainedConstructors()
-    {
-        var inherits = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Inherits);
-
-        Assert.That(inherits, Does.Contain($"{Ns}ConstructorChaining.DerivedService -> {Ns}ConstructorChaining.BaseService"));
-    }
-
-    [Test]
-    public void Detected_BaseConstructorChainingIsCaptured()
-    {
-        var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
-
-        Assert.That(calls, Does.Contain($"{Ns}ConstructorChaining.DerivedService..ctor -> {Ns}ConstructorChaining.BaseService..ctor"));
-    }
-
-    [Test]
-    public void Detected_ThisConstructorChainingIsCaptured()
-    {
-        var calls = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Calls);
-
-        Assert.That(calls, Does.Contain($"{Ns}ConstructorChaining.SelfChaining..ctor -> {Ns}ConstructorChaining.SelfChaining..ctor"));
-    }
-
     // --- Property initializers -------------------------------------------------------------------
     // AnalyzePropertyBody now also handles PropertyDeclarationSyntax.Initializer (A5), treated like
     // a field initializer: the containing type "creates" the object, the property "uses" it.

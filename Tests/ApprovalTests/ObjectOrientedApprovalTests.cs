@@ -34,10 +34,21 @@ public class ObjectOrientedApprovalTests : ApprovalTestBase
             "Core.ObjectOriented.global.Core.ObjectOriented.Car",
             "Core.ObjectOriented.global.Core.ObjectOriented.Cat",
             "Core.ObjectOriented.global.Core.ObjectOriented.Motorcycle",
-            "Core.ObjectOriented.global.Core.ObjectOriented.Vehicle"
+            "Core.ObjectOriented.global.Core.ObjectOriented.Vehicle",
+            "Core.ObjectOriented.global.Core.ObjectOriented.Square"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
+    }
+
+    [Test]
+    public void ConstructorChaining_ShouldBeDetected()
+    {
+        var calls = GetRelationshipsOfType(GetTestAssemblyGraph(), RelationshipType.Calls);
+
+        // ": base(...)" links to the base constructor; ": this(...)" links to the peer constructor.
+        Assert.That(calls, Does.Contain("Core.ObjectOriented.global.Core.ObjectOriented.ColoredRectangle..ctor -> Core.ObjectOriented.global.Core.ObjectOriented.Rectangle..ctor"));
+        Assert.That(calls, Does.Contain("Core.ObjectOriented.global.Core.ObjectOriented.Square..ctor -> Core.ObjectOriented.global.Core.ObjectOriented.Square..ctor"));
     }
 
     [Test]
