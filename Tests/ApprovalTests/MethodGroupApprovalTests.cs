@@ -84,7 +84,20 @@ public class MethodGroupApprovalTests : ApprovalTestBase
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TransformString",
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsValidString",
             "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.DoubleNumber",
-            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsPositive"
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestLinqWithMethodGroups -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsPositive",
+
+            // A9: method groups assigned to delegate fields/locals and registered as event handlers
+            // (right side of +=) are now detected too, not only those passed as arguments.
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands..ctor -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.HandleString",
+            "Core.MethodGroups.global.Core.MethodGroups.DelegateCommands..ctor -> Core.MethodGroups.global.Core.MethodGroups.DelegateCommands.ValidateNumber",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.SetupEventHandlers -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.HandleStringEvent",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.SetupEventHandlers -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.StaticStringHandler",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.SetupEventHandlers -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidatePositive",
+            "Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.SetupEventHandlers -> Core.MethodGroups.global.Core.MethodGroups.EventMethodGroups.ValidateEven",
+            "Core.MethodGroups.global.Core.MethodGroups.EventConsumer..ctor -> Core.MethodGroups.global.Core.MethodGroups.EventConsumer.HandleMessage",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestDelegateAssignments -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.IsEven",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestDelegateAssignments -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TransformString",
+            "Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.TestDelegateAssignments -> Core.MethodGroups.global.Core.MethodGroups.LinqMethodGroups.LogString"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));

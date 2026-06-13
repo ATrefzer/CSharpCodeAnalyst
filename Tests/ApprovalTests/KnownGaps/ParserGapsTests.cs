@@ -284,8 +284,9 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     // --- Method groups outside of argument lists -------------------------------------------------
-    // Method groups are only captured by AnalyzeArgument. In assignments, local declarations and
-    // return statements the IMethodSymbol is dropped.
+    // A9: method groups in assignments, local declarations and return statements now record a
+    // Uses + IsMethodGroup relationship via the IMethodSymbol branches in AnalyzeIdentifier /
+    // AnalyzeMemberAccess. The invocation guard keeps real calls (incl. obj?.Method()) out.
 
     [Test]
     public void Detected_MethodGroupAsInvocationArgument()
@@ -296,27 +297,27 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_MethodGroupAssignedToLocalIsNotCaptured()
+    public void Detected_MethodGroupAssignedToLocalIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var usages = GetAllMethodGroupUsages(GetTestGraph());
 
-        Assert.That(all, Does.Not.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToLocal -> {Ns}MethodGroups.Worker.DoWork"));
+        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToLocal -> {Ns}MethodGroups.Worker.DoWork"));
     }
 
     [Test]
-    public void Gap_MethodGroupReturnedIsNotCaptured()
+    public void Detected_MethodGroupReturnedIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var usages = GetAllMethodGroupUsages(GetTestGraph());
 
-        Assert.That(all, Does.Not.Contain($"{Ns}MethodGroups.MethodGroupUser.ReturnMethodGroup -> {Ns}MethodGroups.Worker.DoMoreWork"));
+        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.ReturnMethodGroup -> {Ns}MethodGroups.Worker.DoMoreWork"));
     }
 
     [Test]
-    public void Gap_MethodGroupAssignedToFieldIsNotCaptured()
+    public void Detected_MethodGroupAssignedToFieldIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var usages = GetAllMethodGroupUsages(GetTestGraph());
 
-        Assert.That(all, Does.Not.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToField -> {Ns}MethodGroups.Worker.DoExtraWork"));
+        Assert.That(usages, Does.Contain($"{Ns}MethodGroups.MethodGroupUser.AssignToField -> {Ns}MethodGroups.Worker.DoExtraWork"));
     }
 
     [Test]

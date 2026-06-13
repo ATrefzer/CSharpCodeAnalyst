@@ -211,6 +211,10 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
             "Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent1 -> Old.CSharpLanguage.global.CSharpLanguage.MyDelegate",
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent1",
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent.MyEvent2",
+            // A9: the handlers on the right side of += are method groups (Uses + IsMethodGroup).
+            "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.MyEventHandler",
+            "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.MyEventHandler2",
+            "Old.CSharpLanguage.global.CSharpLanguage.EventSink..ctor -> Old.CSharpLanguage.global.CSharpLanguage.EventSink.Handler",
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.MyEventHandler -> Old.CSharpLanguage.global.CSharpLanguage.MyEventArgs",
             "Old.CSharpLanguage.global.CSharpLanguage.ProjectFile -> Old.CSharpLanguage.global.CSharpLanguage.Project",
             "Old.CSharpLanguage.global.CSharpLanguage.CreatorOfGenericTypes._file -> Old.CSharpLanguage.global.CSharpLanguage.ProjectFile",

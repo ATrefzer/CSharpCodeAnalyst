@@ -221,6 +221,37 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             var location = identifierSyntax.GetSyntaxLocation();
             AddEventUsageRelationship(sourceElement, eventSymbol, location);
         }
+        else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(identifierSyntax, methodSymbol))
+        {
+            // Foo passed/assigned/returned as a delegate (method group), not invoked.
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+        }
+    }
+
+    /// <summary>
+    ///     A method name is a method group reference (Action a = Foo; return Foo; _field = Foo)
+    ///     unless it is the expression being invoked (Foo()) - that is a call handled by
+    ///     AnalyzeInvocation.
+    ///     Local functions are never part of the graph. Constructors are never method groups: an
+    ///     attribute usage ([Foo]) binds its name to the attribute constructor, and the walker also
+    ///     visits the attribute lists of a declaration - we must not turn that into a Uses edge.
+    /// </summary>
+    private static bool IsMethodGroupReference(ExpressionSyntax node, IMethodSymbol methodSymbol)
+    {
+        if (methodSymbol.MethodKind is MethodKind.LocalFunction or MethodKind.Constructor)
+        {
+            return false;
+        }
+
+        // Determine the expression that would be the invocation target if this were a call:
+        //   Method() / obj.Method()  -> the node itself
+        //   obj?.Method()            -> the enclosing member-binding expression (the identifier's
+        //                               direct parent is the MemberBindingExpression, not the call)
+        var callTarget = node.Parent is MemberBindingExpressionSyntax binding ? (ExpressionSyntax)binding : node;
+
+        return callTarget.Parent is not InvocationExpressionSyntax invocation ||
+               !ReferenceEquals(invocation.Expression, callTarget);
     }
 
     /// <summary>
@@ -247,6 +278,12 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             // This handles cases where the event is accessed but not necessarily invoked
             AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
+        }
+        else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(memberAccessSyntax, methodSymbol))
+        {
+            // obj.Foo passed/assigned/returned as a delegate (method group), not invoked.
+            var location = memberAccessSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
         }
 
         // Note: We don't recursively handle the Expression here.
