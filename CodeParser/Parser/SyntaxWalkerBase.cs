@@ -178,4 +178,20 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
 
         base.VisitUsingStatement(node);
     }
+
+    /// <summary>
+    ///     new Foo[n] — the array element type. ArrayCreationExpressionSyntax is not a
+    ///     BaseObjectCreationExpressionSyntax, so the object-creation handling never sees it.
+    ///     AddTypeRelationship resolves the IArrayTypeSymbol down to its element type as Uses.
+    /// </summary>
+    public override void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
+    {
+        var typeInfo = SemanticModel.GetTypeInfo(node);
+        if (typeInfo.Type != null)
+        {
+            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+        }
+
+        base.VisitArrayCreationExpression(node);
+    }
 }

@@ -235,7 +235,7 @@ public class ParserGapsTests : ApprovalTestBase
     // --- Type names in special contexts ----------------------------------------------------------
     // A7: catch declarations, foreach variable types and using-statement declarations now record
     // their type as Uses (VisitCatchDeclaration / VisitForEachStatement / VisitUsingStatement).
-    // Array creation element types are still dropped (see A8).
+    // A8: array creation element types (new Foo[n]) via VisitArrayCreationExpression.
 
     [Test]
     public void Detected_ThrowStatementObjectCreation()
@@ -262,11 +262,11 @@ public class ParserGapsTests : ApprovalTestBase
     }
 
     [Test]
-    public void Gap_ArrayCreationElementTypeIsNotCaptured()
+    public void Detected_ArrayCreationElementTypeIsCaptured()
     {
-        var all = GetAllRelationships(GetTestGraph());
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
 
-        Assert.That(all, Does.Not.Contain($"{Ns}TypeContexts.TypeContextUser.ArrayCreation -> {Ns}TypeContexts.InventoryItem"));
+        Assert.That(uses, Does.Contain($"{Ns}TypeContexts.TypeContextUser.ArrayCreation -> {Ns}TypeContexts.InventoryItem"));
     }
 
     [Test]
