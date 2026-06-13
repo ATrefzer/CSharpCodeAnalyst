@@ -49,8 +49,6 @@ public interface ISyntaxNodeHandler
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
 
-    void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel);
-
     void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel);
 

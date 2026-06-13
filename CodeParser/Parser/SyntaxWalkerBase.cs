@@ -23,15 +23,6 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         IsFieldInitializer = isFieldInitializer;
     }
 
-    /// <summary>
-    ///     We need this also for lambdas to capture:  x => Foo(SomeMethod)
-    /// </summary>
-    public override void VisitArgument(ArgumentSyntax node)
-    {
-        Analyzer.AnalyzeArgument(SourceElement, node, SemanticModel);
-        base.VisitArgument(node);
-    }
-
     // Note: VisitIdentifierName is NOT overridden here because concrete walkers need to specify
     // their relationship type (Calls for MethodBodyWalker, Uses for LambdaBodyWalker).
     // Each walker overrides VisitIdentifierName with the appropriate RelationshipType parameter.

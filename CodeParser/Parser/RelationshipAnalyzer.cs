@@ -91,7 +91,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             }
         }
 
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
+        // Note: Arguments (including method groups passed as arguments) are handled by the walker's
+        // normal traversal into the argument expressions (AnalyzeIdentifier / AnalyzeMemberAccess).
 
         // Handle direct event invocations (if any)
         var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
@@ -290,51 +291,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // The walker's Visit(node.Expression) call handles nested member access automatically.
     }
 
-    public void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
-    {
-        var expression = argumentSyntax.Expression;
-
-        // Handle method groups passed as arguments
-        if (expression is IdentifierNameSyntax identifierSyntax)
-        {
-            // Foo(MethodGroup)
-            var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference
-                var location = identifierSyntax.GetSyntaxLocation();
-
-                //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
-        else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
-        {
-            // obj.MethodGroup
-            var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference like obj.Method
-                var location = memberAccessSyntax.GetSyntaxLocation();
-
-                // AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
-    }
-
     public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel)
     {
@@ -396,7 +352,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             }
         }
 
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
+        // Note: Arguments (including method groups passed as arguments) are handled by the walker's
+        // normal traversal into the argument expressions (AnalyzeIdentifier / AnalyzeMemberAccess).
     }
 
     /// <summary>
