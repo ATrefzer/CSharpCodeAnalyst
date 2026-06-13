@@ -1009,6 +1009,14 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             foreach (var typeArg in namedTypeSymbol.TypeArguments)
             {
+                // A type parameterized with itself (records implement IEquatable<Self>; CRTP like
+                // class Foo : IComparable<Foo>) would otherwise gain a meaningless self-reference.
+                if (typeArg is INamedTypeSymbol namedTypeArg &&
+                    ReferenceEquals(FindInternalCodeElement(namedTypeArg.NormalizeToOriginalDefinition()), sourceElement))
+                {
+                    continue;
+                }
+
                 AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
             }
         }

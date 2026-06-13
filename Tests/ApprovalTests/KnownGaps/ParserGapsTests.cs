@@ -132,6 +132,17 @@ public class ParserGapsTests : ApprovalTestBase
         Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Inventory -> {Ns}PrimaryConstructors.Warehouse"));
     }
 
+    [Test]
+    public void Detected_RecordHasNoSelfReferenceFromGeneratedIEquatable()
+    {
+        var uses = GetRelationshipsOfType(GetTestGraph(), RelationshipType.Uses);
+
+        // Records implement the synthesized IEquatable<Self>; the type argument must not create a
+        // self-reference (A3b). The real parameter-type dependency stays as a sanity check.
+        Assert.That(uses, Does.Not.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.Order"));
+        Assert.That(uses, Does.Contain($"{Ns}PrimaryConstructors.Order -> {Ns}PrimaryConstructors.OrderId"));
+    }
+
     // --- Pattern matching ----------------------------------------------------------------------
     // "shape is Circle circle" is an IsPatternExpressionSyntax (not the handled BinaryExpression),
     // and type identifiers inside patterns resolve to INamedTypeSymbol, which AnalyzeIdentifier drops.
