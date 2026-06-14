@@ -20,9 +20,9 @@ internal class ExternalCodeElementCache
 
     public IEnumerable<CodeElement> GetCodeElements()
     {
-        lock (_externalElementCache)
+        lock (_lock)
         {
-            return _externalElementCache.Values;
+            return _externalElementCache.Values.ToList();
         }
     }
 

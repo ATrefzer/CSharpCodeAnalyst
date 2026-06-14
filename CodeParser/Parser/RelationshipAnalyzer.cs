@@ -546,7 +546,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             // Create a dummy method to contain global statements
             var dummyMethodId = Guid.NewGuid().ToString();
             const string dummyMethodName = "Execute";
-            var dummyMethodFullName = $"{dummyClassName}.{dummyMethodName}";
+            var dummyMethodFullName = $"{dummyClassFullName}.{dummyMethodName}";
             var dummyMethod = new CodeElement(dummyMethodId, CodeElementType.Method, dummyMethodName,
                 dummyMethodFullName, dummyClass);
 
