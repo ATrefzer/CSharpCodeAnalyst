@@ -36,7 +36,16 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser",
+
+            // Overloads differing only by parameter ref-kind, and overloaded indexers (Key() correctness).
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByValueResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByRefResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByOutResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.IntStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.TextStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
@@ -84,7 +93,16 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithFieldInitializer -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.Throwing -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.Throwing -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException",
+
+            // All three Compute overloads (int / ref int / out int) are walked: each creates its own type.
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByValueResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByRefResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByOutResult",
+
+            // Both indexer field initializers (attributed to the type) survive.
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.IntStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.TextStore"
         };
 
         Assert.That(methodCalls.ToArray(), Is.EquivalentTo(expected));
@@ -149,7 +167,20 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.ForEachLoop -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser._items",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.ArrayCreation -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.UsingStatement -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
+
+            // Overloads: object creations (Creates + Uses) from each ref-kind overload ...
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByValueResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByRefResult",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Calculator.Compute -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.ByOutResult",
+
+            // ... field types, indexer return types and indexer body field reads from both indexers.
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository._byIndex -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.IntStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository._byKey -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.TextStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.IntStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.TextStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository._byIndex",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository._byKey"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
@@ -213,7 +244,10 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Count",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.this[]",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer.Engine"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer.Engine",
+
+            // Overloaded indexers share the FullName this[]; they are distinct elements via Key().
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Overloads.Repository.this[]"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
