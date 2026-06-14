@@ -14,12 +14,13 @@ public class HierarchyAnalyzer
     private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = [];
     private readonly CodeGraph.Graph.CodeGraph _codeGraph = new();
     private readonly ParserConfig _config;
+
+    private readonly ParserDiagnostics _diagnostics;
     private readonly Dictionary<string, ISymbol> _elementIdToSymbolMap = new();
 
     private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
         new(SymbolEqualityComparer.Default);
 
-    private readonly ParserDiagnostics _diagnostics;
     private readonly Progress _progress;
     private readonly HashSet<string> _projectFilePaths = [];
     private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
@@ -75,8 +76,7 @@ public class HierarchyAnalyzer
         var candidates = new List<ProjectCandidate>();
         foreach (var project in solution.Projects)
         {
-            // Regular expression patterns.
-            if (!_config.IsProjectIncluded(project.Name))
+            if (!ShouldAnalyzeProject(project))
             {
                 continue;
             }
@@ -106,6 +106,24 @@ public class HierarchyAnalyzer
         }
 
         return selection.Selected.Select(candidate => candidateToProject[candidate]).ToList();
+    }
+
+    private bool ShouldAnalyzeProject(Project project)
+    {
+        // Non-C# projects (.vbproj, .fsproj, ...) still yield a compilation; without this filter they
+        // would add an empty assembly node and leak their types into AllNamedTypesInSolution.
+        if (IsUnrecognizedProject(project.FilePath))
+        {
+            return false;
+        }
+
+        // Regular expression patterns.
+        if (!_config.IsProjectIncluded(project.Name))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void BuildHierarchy(Compilation compilation)
@@ -202,8 +220,7 @@ public class HierarchyAnalyzer
                     if (semanticModel.GetDeclaredSymbol(variable) is IFieldSymbol fieldSymbol)
                     {
                         var fieldLocation = variable.GetSyntaxLocation();
-                        var fieldElement =
-                            GetOrCreateCodeElement(fieldSymbol, CodeElementType.Field, parent, fieldLocation);
+                        var _ = GetOrCreateCodeElement(fieldSymbol, CodeElementType.Field, parent, fieldLocation);
                     }
                 }
 
@@ -231,8 +248,7 @@ public class HierarchyAnalyzer
                     if (semanticModel.GetDeclaredSymbol(variable) is IEventSymbol eventSymbol)
                     {
                         var eventLocation = variable.GetSyntaxLocation();
-                        var eventElement =
-                            GetOrCreateCodeElement(eventSymbol, CodeElementType.Event, parent, eventLocation);
+                        var _ = GetOrCreateCodeElement(eventSymbol, CodeElementType.Event, parent, eventLocation);
                     }
                 }
 
@@ -400,12 +416,7 @@ public class HierarchyAnalyzer
     {
         foreach (var project in solution.Projects)
         {
-            if (IsUnrecognizedProject(project.FilePath))
-            {
-                continue;
-            }
-
-            if (!_config.IsProjectIncluded(project.Name))
+            if (!ShouldAnalyzeProject(project))
             {
                 continue;
             }
