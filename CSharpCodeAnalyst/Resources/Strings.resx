@@ -927,7 +927,7 @@ ISOLATE: MyApp.Domain.**</value>
     <value>Define the architectural rules for your solution:</value>
   </data>
   <data name="Import_FileFilter" xml:space="preserve">
-    <value>Solution files (*.sln)|*.sln|C# project (*.csproj)|*.csproj</value>
+    <value>Solution files (*.sln)|*.sln|Solution files (*.slnx)|*.slnx|C# project (*.csproj)|*.csproj</value>
   </data>
   <data name="Import_DialogTitle" xml:space="preserve">
     <value>Select a solution or project file</value>

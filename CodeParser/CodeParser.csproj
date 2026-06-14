@@ -24,6 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1" />
     </ItemGroup>
 

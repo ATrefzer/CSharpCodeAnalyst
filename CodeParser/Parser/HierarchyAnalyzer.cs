@@ -19,14 +19,16 @@ public class HierarchyAnalyzer
     private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
         new(SymbolEqualityComparer.Default);
 
+    private readonly ParserDiagnostics _diagnostics;
     private readonly Progress _progress;
     private readonly HashSet<string> _projectFilePaths = [];
     private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
 
-    public HierarchyAnalyzer(Progress progress, ParserConfig config)
+    internal HierarchyAnalyzer(Progress progress, ParserConfig config, ParserDiagnostics diagnostics)
     {
         _progress = progress;
         _config = config;
+        _diagnostics = diagnostics;
     }
 
     public async Task<(CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)> BuildHierarchy(Solution solution)
@@ -65,11 +67,12 @@ public class HierarchyAnalyzer
     /// </summary>
     private async Task<List<Project>> GetValidProjects(Solution solution)
     {
-        // At the moment I cannot handle more than one project with the same assembly name
-        // So I remove them.
+        // We can only keep one project per assembly name (the symbol key is built from the assembly name).
+        // The two reasons for duplicates - multi-targeting vs. a real name collision - are distinguished
+        // and reported in ProjectSelector; here we only map to/from the Roslyn Project type.
 
-        var assemblyNameToProject = new Dictionary<string, Project>();
-        var duplicates = new HashSet<string>();
+        var candidateToProject = new Dictionary<ProjectCandidate, Project>();
+        var candidates = new List<ProjectCandidate>();
         foreach (var project in solution.Projects)
         {
             // Regular expression patterns.
@@ -81,23 +84,28 @@ public class HierarchyAnalyzer
             var compilation = await project.GetCompilationAsync();
             if (compilation != null)
             {
-                var assemblyName = compilation.Assembly.Name;
-                if (assemblyNameToProject.ContainsKey(assemblyName))
-                {
-                    duplicates.Add(assemblyName);
-                }
-
-                assemblyNameToProject[assemblyName] = project;
+                // Project name contains the target (net10)
+                var candidate = new ProjectCandidate(compilation.Assembly.Name, project.FilePath, project.Name);
+                candidates.Add(candidate);
+                candidateToProject[candidate] = project;
             }
         }
 
-        foreach (var name in duplicates)
+        var selection = ProjectSelector.SelectProjectsPerAssembly(candidates);
+
+        foreach (var warning in selection.Warnings)
         {
-            assemblyNameToProject.Remove(name);
-            Trace.WriteLine($"Removed assembly with duplicate name in solution: {name}");
+            _diagnostics.AddWarning(warning);
+            Trace.WriteLine(warning);
         }
 
-        return assemblyNameToProject.Values.ToList();
+        foreach (var failure in selection.Failures)
+        {
+            _diagnostics.AddFailure(failure);
+            Trace.WriteLine(failure);
+        }
+
+        return selection.Selected.Select(candidate => candidateToProject[candidate]).ToList();
     }
 
     private void BuildHierarchy(Compilation compilation)
