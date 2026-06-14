@@ -1,9 +1,7 @@
-namespace ParserGaps.IndexersAndOperators;
+namespace Core.BasicLanguageFeatures.IndexersAndOperators;
 
-// KNOWN GAP: IndexerDeclarationSyntax, OperatorDeclarationSyntax, ConversionOperatorDeclarationSyntax
-// and DestructorDeclarationSyntax are not handled in HierarchyAnalyzer.ProcessNodeForHierarchy.
-// These members are not created as code elements and - more importantly - their bodies are never
-// analyzed in phase 2. All dependencies inside them are invisible.
+// Indexers, user-defined operators, conversion operators and finalizers: they are code elements
+// and their bodies are walked in phase 2 (symbol names this[], op_Addition, op_Implicit, Finalize).
 
 public class DataStore
 {

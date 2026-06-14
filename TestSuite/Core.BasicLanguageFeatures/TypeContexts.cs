@@ -1,12 +1,7 @@
-namespace ParserGaps.TypeContexts;
+namespace Core.BasicLanguageFeatures.TypeContexts;
 
-// KNOWN GAP: Type names in several syntax contexts are dropped because AnalyzeIdentifier
-// ignores INamedTypeSymbol and there is no dedicated handler for these contexts:
-// - catch declarations (CatchDeclarationSyntax)
-// - foreach variable types (ForEachStatementSyntax)
-// - using statement declarations (VariableDeclarationSyntax inside UsingStatementSyntax,
-//   which is not the handled LocalDeclarationStatementSyntax)
-// - array creation (ArrayCreationExpressionSyntax)
+// Type names in catch declarations, foreach variable types, using-statement declarations and
+// array creation are captured as Uses.
 
 public class ParsingFailedException : System.Exception
 {

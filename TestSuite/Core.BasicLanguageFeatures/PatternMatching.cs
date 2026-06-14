@@ -1,9 +1,6 @@
-namespace ParserGaps.PatternMatching;
+namespace Core.BasicLanguageFeatures.PatternMatching;
 
-// KNOWN GAP: Type references in patterns are not captured.
-// "shape is Circle circle" is an IsPatternExpressionSyntax, not the BinaryExpressionSyntax
-// handled in SyntaxWalkerBase.VisitBinaryExpression. The type identifier resolves to an
-// INamedTypeSymbol, which AnalyzeIdentifier ignores.
+// Type references inside patterns (declaration / type / recursive patterns) are captured as Uses.
 
 public abstract class Shape
 {

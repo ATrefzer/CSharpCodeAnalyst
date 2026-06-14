@@ -19,7 +19,24 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeOf",
+
+            // Indexers/operators/finalizers, pattern matching, initializers and special type contexts.
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.DataStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithFieldInitializer",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Shape",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Circle",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Square",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Triangle",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Rectangle",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
@@ -59,7 +76,15 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.FieldInitializers -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
 
             // Local function
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.HasLocalFunction -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.CreatableClass",
+
+            // Field/property initializers and object creation inside operator / methods
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.DataStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.op_Addition -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithFieldInitializer -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.Throwing -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException"
         };
 
         Assert.That(methodCalls.ToArray(), Is.EquivalentTo(expected));
@@ -95,7 +120,36 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
 
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Foo",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Method"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Start -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Lambdas.Method",
+
+            // Indexers/operators: field and parameter/local types
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog._store -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.DataStore",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Absorb -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.op_Addition -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.op_Implicit -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog._store",
+
+            // Initializers: field/property types
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithFieldInitializer._engine -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer.Engine -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.Engine",
+
+            // Pattern matching: parameter types and pattern types
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.DeclarationPattern -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Shape",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.DeclarationPattern -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Circle",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.SwitchExpression -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Shape",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.SwitchExpression -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Square",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.SwitchExpression -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Triangle",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.CaseStatement -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Shape",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.PatternUser.CaseStatement -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.PatternMatching.Rectangle",
+
+            // Type contexts: catch / foreach / using / array creation / field
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser._items -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CatchClause -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.ParsingFailedException",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.ForEachLoop -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.ForEachLoop -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser._items",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.ArrayCreation -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.InventoryItem",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.UsingStatement -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.PooledResource"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
@@ -132,7 +186,17 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.ProcessData",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.TestMethodCalls -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
             "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.GetMessage -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.GetMessage",
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.BaseMethod"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.DerivedClass.TestBaseAccess -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BaseClass.BaseMethod",
+
+            // Calls from inside indexer / operator / conversion / finalizer bodies and special contexts
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Absorb -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Count",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.ComputeTotal -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Count",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Finalize -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Cleanup",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.op_Addition -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Absorb",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.op_Implicit -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.ComputeTotal",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.this[] -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.DataStore.Compute",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CatchClause -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.Work",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.UsingStatement -> Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.TypeContexts.TypeContextUser.CreateResource"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));
@@ -146,7 +210,10 @@ public class BasicLanguageFeaturesApprovalTests : ApprovalTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty"
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.BasicCalls.PublicProperty",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.Count",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.IndexersAndOperators.Catalog.this[]",
+            "Core.BasicLanguageFeatures.global.Core.BasicLanguageFeatures.Initializers.CarWithPropertyInitializer.Engine"
         };
 
         Assert.That(actual, Is.EquivalentTo(expected));

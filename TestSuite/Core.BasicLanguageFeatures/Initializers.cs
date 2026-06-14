@@ -1,8 +1,6 @@
-namespace ParserGaps.Initializers;
+namespace Core.BasicLanguageFeatures.Initializers;
 
-// KNOWN GAP: AnalyzePropertyBody only looks at the expression body and the accessor list.
-// The property initializer (PropertyDeclarationSyntax.Initializer) is never analyzed,
-// so the object creation is invisible. Field initializers in contrast are handled.
+// Property and field initializers: the containing type "creates" the object, the member "uses" it.
 
 public class Engine
 {
