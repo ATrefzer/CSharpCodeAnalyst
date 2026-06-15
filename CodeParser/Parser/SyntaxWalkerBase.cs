@@ -6,7 +6,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace CodeParser.Parser;
 
 /// <summary>
+///     <code>
 ///     Handling here does not distinguish between method or lambda bodies.
+///     | Visit                    | Method                                         | Lambda                                  |
+///     |--------------------------|------------------------------------------------|-----------------------------------------|
+///     | `IdentifierName`         | `AnalyzeIdentifier` (Calls)                    | `AnalyzeIdentifier` (**Uses**)          |
+///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | inline Uses, ** kein** Event-Invoke     |
+///     | `ObjectCreation`         | `AnalyzeObjectCreation` (** Creates**)         | `TrackObjectCreationAsUses` (** Uses**) |
+///     | nested Lambdas           | spawns `LambdaBodyWalker`                      | skipped(!)                              |
+///     | `ConstructorInitializer` | yes                                            | no (Lambdas have none)                  |
+/// </code>
 /// </summary>
 internal class SyntaxWalkerBase : CSharpSyntaxWalker
 {
@@ -26,6 +35,18 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
     // Note: VisitIdentifierName is NOT overridden here because concrete walkers need to specify
     // their relationship type (Calls for MethodBodyWalker, Uses for LambdaBodyWalker).
     // Each walker overrides VisitIdentifierName with the appropriate RelationshipType parameter.
+
+    /// <summary>
+    ///     Event registration/unregistration (event += / -= handler). Identical for method and lambda
+    ///     bodies: the registration itself is the same edge
+    ///     Property/field access on either side is covered by the normal identifier/member-access traversal
+    ///     ("Uses" relationships for lambdas (see VisitIdentifierName and VisitMemberAccessExpression))
+    /// </summary>
+    public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
+    {
+        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
+        base.VisitAssignmentExpression(node);
+    }
 
     public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
