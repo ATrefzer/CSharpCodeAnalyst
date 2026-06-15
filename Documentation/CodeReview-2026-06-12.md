@@ -81,13 +81,17 @@ Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus a
 
 
 
-# Bei der Umsetzung weitere Punkte aufgefallen
+# Weitere Punkte bei der Umsetzung aufgefallen
 
-Bei A3 Primary Konstruktoren erkennen kam die Frage auf ob die Argumente des Primary Konstruktor auch als Property in der Hierarchie aufgenommen werden. Die Antwort ist nein. Das ist allerdings ein aufwändiger Teil, da er Phase 1 des Parsers betrifft und nicht die Beziehungsanalyse.
+## Properties bei primary Constructur nicht aufgenommen
 
-Ich stelle diesen Punkt hinten an.
+Zusammenfassung
 
-## Haben wir die Referenzen?
+Bei "A3 Primary Konstruktoren erkennen" kam die Frage auf ob, die Argumente des Primary Konstruktor auch als Property in der Hierarchie aufgenommen werden. **Die Antwort ist nein.** Das ist allerdings ein aufwändiger Teil, da er Phase 1 des Parsers betrifft und nicht die Beziehungsanalyse.
+
+**Ich stelle diesen Punkt hinten an.** Es gibt immer noch den Fallback auf den Typen. Trotzdem unschön.
+
+### Werden record properties aus dem primary ctro erfasst?
 
 **Teilweise.** Konkret für `record Order(OrderId Id, Customer Customer)`:
 
@@ -116,7 +120,7 @@ Das hat drei Konsequenzen:
 
 1. **Verwendungen anderswo werden vergröbert.** Schreibt fremder Code `someOrder.Id`, fällt das mangels Element `Order.Id` auf den Typ `Order` zurück (`X uses Order` statt `X uses Order.Id`). Die Typ-Abhängigkeit bleibt, die Granularität geht verloren.
 
-## Brauchen wir sie?
+### Brauchen wir sie?
 
 Das hängt vom Zweck ab — und hier ist meine Einschätzung:
 
@@ -124,19 +128,13 @@ Das hängt vom Zweck ab — und hier ist meine Einschätzung:
 
 **Für die Struktur-/Navigationsansicht und Konsistenz: Ja, es wäre wertvoll.** Das stärkste Argument ist Punkt 1 — ein Record als leerer Typ dargestellt ist schlicht falsch.
 
-## Empfehlung (Opus)
+### Empfehlung
 
 Ich würde A3 **so lassen** (Typ-Ebene, minimal, erfüllt den Analyse-Kern) und das Erfassen der generierten Member als **eigene, größere Aufgabe** behandeln — denn das gehört in **Phase 1** (Property-Elemente — und ggf. ein Primary-Ctor-Methoden-Element — aus den Positional-Parametern synthetisieren), nicht in die Relationship-Phase. Wenn wir das machen, würde A3s Typ-Kante sogar redundant und könnte zugunsten der Member-Kanten entfallen (= exakt wie die Langform).
 
-Zwei konkrete Vorschläge, über die du entscheidest:
+## Selbstkante auf sich selbst bei Records A3b
 
 **Nebenbefund (unabhängig von alldem):** Ich bin beim Debuggen auf vorbestehendes Rauschen gestoßen — jeder Record bekommt eine **Selbst-Kante `Order → Order`**, weil `IEquatable<Order>` implementiert wird und die generische Typargument-Behandlung das Argument `Order` als `Uses` einträgt. Das ist nicht durch A3 entstanden, aber es ist Müll im Graphen.
-
-
-
-# Erkenntnisse aus dem Review
-
-## A3b
 
 ```
 // A type parameterized with itself (records implement IEquatable<Self>; CRTP like
@@ -181,17 +179,17 @@ Die Selbstreferenz wird also genau auf der Rekursionsebene gefangen, auf der `Se
 
 Ein Detail am Rande, das daraus folgt: Arrays und Pointer hängen über dieselbe Rekursion mit drin ([Zeile 902](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:902) und [912](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:912)), d. h. `IEquatable<Self[]>` würde *nicht* gefiltert — das Argument `Self[]` ist ein `IArrayTypeSymbol`, kein `INamedTypeSymbol`, und mein `is INamedTypeSymbol`-Check greift dort nicht. Das ist ein so seltener Fall, dass ich ihn bewusst nicht abgedeckt habe; falls gewünscht, könnten wir den Guard stattdessen in `AddRelationship` als generelles „kein self-`Uses`" formulieren — das würde aber legitime Selbstkomposition (`record Node(Node Next)`) mitnehmen, weshalb ich die gezielte Variante vorgezogen habe.
 
+## Methodengruppen vereinfachen
 
+Beim Vervollständigen der Methodengruppen ist aufgefallen, dass der bisherige AnalyzeArgument Teil wegfallen kann, der er ebenso von dem neuen Code behandelt wird.
 
-# Methodengruppen
-
-## Wie der Walker überhaupt läuft
+### Wie der Walker läuft
 
 Ein `CSharpSyntaxWalker` besucht **jeden Knoten im Syntaxbaum**, von oben nach unten. Für jeden Knotentyp gibt es ein `VisitXxx`. Die Standard-Implementierung von `VisitXxx` **steigt automatisch in alle Kindknoten ab**. Ein Override kann diesen Abstieg fortsetzen (`base.VisitXxx(node)`) oder gezielt steuern.
 
 Entscheidend: Ein Methodenname wie `_worker.DoParallelWork` ist **nicht ein einzelner Knoten**, sondern taucht im Baum an mehreren Stellen auf, die *verschiedene* `Visit`-Methoden auslösen.
 
-## Der konkrete Baum von `Run(_worker.DoParallelWork)`
+### Der konkrete Baum von `Run(_worker.DoParallelWork)`
 
 ```
 InvocationExpression                         "Run(_worker.DoParallelWork)"
@@ -206,7 +204,7 @@ InvocationExpression                         "Run(_worker.DoParallelWork)"
 
 Der Punkt: Der **`Argument`-Knoten** und der **`MemberAccessExpression`-Knoten** sind zwei verschiedene Knoten, aber sie beschreiben dieselbe Methodengruppe `_worker.DoParallelWork`. Der Walker besucht beide.
 
-## Trace — vorher vs. nachher
+### Trace — vorher vs. nachher
 
 **Vor A9:**
 
@@ -222,4 +220,63 @@ Der Punkt: Der **`Argument`-Knoten** und der **`MemberAccessExpression`-Knoten**
 
 Beide schreiben dieselbe Kante. `AddRelationship` dedupliziert (gleiche Quelle, gleiches Ziel, Typ `Uses`) → im Graphen landet **eine** Kante. Deshalb bleiben die Tests grün, *obwohl* doppelt erfasst wird.
 
-=> Also kurz und knapp: AnalyzeArgument kann komplett entfernt werden. 
+
+
+## Aufbau eines MemberAccess-Knotens
+
+Hier wurden nur nur doppelt erfasste Kanten entfernt.
+
+`obj.Property` ist ein `MemberAccessExpressionSyntax` mit **zwei** Kindern:
+
+```
+MemberAccessExpression        "obj.Property"
+├─ Expression: obj            (linke Seite)
+└─ Name: Property             (rechte Seite, ein IdentifierNameSyntax)
+```
+
+Der Handler `AnalyzeMemberAccess` **besitzt die rechte Seite** (`.Name`): Er löst `Property` semantisch auf und legt die Beziehung `SourceElement → Property` an. Das ist seine Aufgabe.
+
+## Was `base.VisitMemberAccessExpression(node)` tut
+
+Die Default-Implementierung von `CSharpSyntaxWalker` steigt in **alle** Kinder ab — also in `Expression` **und** in `Name`. Und `Name` ist ein `IdentifierNameSyntax` → das löst `VisitIdentifierName(Property)` aus → ruft `AnalyzeIdentifier(Property)`.
+
+Damit wird der Member `Property` **zweimal** verarbeitet:
+
+1. von `AnalyzeMemberAccess` (gewollt) → Kante zu `Property`
+2. von `AnalyzeIdentifier` über den Abstieg in `.Name` (ungewollt) → **dieselbe** Kante zu `Property`
+
+Beide erzeugen dieselbe `Uses`-Kante. `AddRelationship` dedupliziert → im Graphen landet **eine** Kante. **Deshalb sind die Tests grün, obwohl doppelt gearbeitet wird.**
+
+`MethodBodyWalker` macht es richtig: nach `AnalyzeMemberAccess` nur `Visit(node.Expression)` — also nur die linke Seite. Der `.Name` wird nie noch einmal angefasst.
+
+## Warum das bei Ketten eskaliert
+
+Bei `a.b.c` (mit `base`, also alte Lambda-Variante):
+
+```
+a.b.c  → AnalyzeMemberAccess(.c)   +  base steigt ab in:
+          ├─ Name c     → VisitIdentifierName → AnalyzeIdentifier(c)   ← Dublette von .c
+          └─ Expr a.b   → AnalyzeMemberAccess(.b)  + base steigt ab in:
+                           ├─ Name b → VisitIdentifierName → AnalyzeIdentifier(b)  ← Dublette von .b
+                           └─ Expr a → VisitIdentifierName → AnalyzeIdentifier(a)
+```
+
+Jeder Member der Kette wird **doppelt** verarbeitet (einmal MemberAccess, einmal Identifier). Mit `Visit(node.Expression)`:
+
+```
+a.b.c  → AnalyzeMemberAccess(.c)  + Visit(a.b)
+          a.b → AnalyzeMemberAccess(.b)  + Visit(a)
+                a → AnalyzeIdentifier(a)
+```
+
+`.c` und `.b` genau einmal (MemberAccess), `a` genau einmal (Identifier). Sauber.
+
+## Was genau „das Problem" ist
+
+Wichtig zur Einordnung: Es war **kein Bug in der Ausgabe** — der Graph war dank Dedup korrekt (Tests bestätigen identische Kanten vor/nach dem Fix). Das Problem ist dreifach:
+
+1. **Redundante Arbeit:** Pro Member-Zugriff ein zusätzlicher `GetSymbolInfo`/`AnalyzeIdentifier`/`AddRelationship`-Durchlauf, in Ketten multiplikativ. Unnötige Semantic-Model-Abfragen sind in Phase 2 nicht billig.
+2. **Korrektheit hing am Glück der Dedup, nicht am Design.** Die Doppelverarbeitung wurde nur dadurch „gerettet", dass `AddRelationship` identische Kanten verschluckt. Würden die beiden Pfade (`AnalyzeMemberAccess` vs. `AnalyzeIdentifier`) den Member je leicht unterschiedlich auflösen — anderes Ziel, anderes Attribut — bekäme man eine Doppel- oder Falschkante. Die Invariante war implizit und fragil.
+3. **Inkonsistenz zwischen zwei Walkern, die dasselbe tun sollen.** `MethodBodyWalker` sauber, `LambdaBodyWalker` nicht — eine klassische Wartungsfalle: Wer den einen anfasst, übersieht den anderen. Genau das war der Punkt im Review.
+
+Der Fix stellt Lambda auf dieselbe „MemberAccess besitzt `.Name`, der Walker nur `.Expression`"-Ownership um wie Method — gleiche Ausgabe, weniger Arbeit, keine Abhängigkeit von der Dedup mehr.

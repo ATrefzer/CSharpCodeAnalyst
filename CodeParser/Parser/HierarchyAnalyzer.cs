@@ -59,8 +59,37 @@ public class HierarchyAnalyzer
             _allNamedTypesInSolution.AsReadOnly(),
             _elementIdToSymbolMap.AsReadOnly(),
             _globalStatementsByAssembly.AsReadOnly(),
-            _symbolKeyToElementMap.AsReadOnly());
+            _symbolKeyToElementMap.AsReadOnly(),
+            BuildInterfaceImplementations(_allNamedTypesInSolution).AsReadOnly());
         return (_codeGraph, result);
+    }
+
+    /// <summary>
+    ///     Builds the interface-key -> implementing-types lookup once, so phase 2 does not rebuild a Key()
+    ///     string per type per interface for every interface member. Each (type, interface) pair contributes
+    ///     once, mirroring the previous per-lookup scan over AllInterfaces.
+    /// </summary>
+    private static Dictionary<string, List<INamedTypeSymbol>> BuildInterfaceImplementations(
+        IEnumerable<INamedTypeSymbol> allNamedTypes)
+    {
+        var map = new Dictionary<string, List<INamedTypeSymbol>>();
+        foreach (var type in allNamedTypes)
+        {
+            // AllInterfaces also includes interfaces implemented in a base type - same as the old scan.
+            foreach (var interfaceSymbol in type.AllInterfaces)
+            {
+                var interfaceKey = interfaceSymbol.Key();
+                if (!map.TryGetValue(interfaceKey, out var implementingTypes))
+                {
+                    implementingTypes = [];
+                    map[interfaceKey] = implementingTypes;
+                }
+
+                implementingTypes.Add(type);
+            }
+        }
+
+        return map;
     }
 
     /// <summary>

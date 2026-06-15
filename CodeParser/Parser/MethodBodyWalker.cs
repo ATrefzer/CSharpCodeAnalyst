@@ -34,12 +34,6 @@ internal class MethodBodyWalker : SyntaxWalkerBase
         base.VisitInvocationExpression(node);
     }
 
-    public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
-    {
-        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
-        base.VisitAssignmentExpression(node);
-    }
-
     /// <summary>
     ///     Constructor chaining: ": base(...)" and ": this(...)".
     /// </summary>

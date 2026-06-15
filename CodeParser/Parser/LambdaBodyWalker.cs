@@ -85,15 +85,6 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitInvocationExpression(node);
     }
 
-    public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
-    {
-        // Track event registration/unregistration (handled by AnalyzeAssignment)
-        // Property/field access on both sides is handled by the walker's normal traversal,
-        // which correctly uses "Uses" relationships for lambdas (see VisitIdentifierName and VisitMemberAccessExpression)
-        Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
-        base.VisitAssignmentExpression(node);
-    }
-
     /// <summary>
     ///     Visit standalone identifiers (properties, fields, etc.).
     ///     Uses "Uses" relationship for lambda bodies (we don't know when/if lambda executes).
@@ -107,13 +98,13 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
 
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
-        // Delegate to AnalyzeMemberAccess with "Uses" relationship type for lambdas
-        // Same rationale as VisitAssignmentExpression - we don't know when/if the lambda executes
+        // Delegate to AnalyzeMemberAccess with "Uses" relationship type for lambdas.
         Analyzer.AnalyzeMemberAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
 
-        // Now safe to call base traversal since VisitIdentifierName is overridden in this class
-        // and will use RelationshipType.Uses (not the default Calls)
-        base.VisitMemberAccessExpression(node);
+        // Visit only the Expression (left side: obj in obj.Member). AnalyzeMemberAccess already owns the
+        // .Name, so - like MethodBodyWalker - we must not descend into it via base (that would re-run
+        // VisitIdentifierName on the member name and only AddRelationship dedup would hide the double work).
+        Visit(node.Expression);
     }
 
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
