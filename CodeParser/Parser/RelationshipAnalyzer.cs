@@ -369,10 +369,12 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
-    ///     Entry for relationship analysis.
-    ///     The code graph is updated in place.
+    ///     Builds all relationships (phase 2). The code graph is updated, the artifacts are read only.
+    ///     Pass <paramref name="maxDegreeOfParallelism" /> = 1 for a deterministic single-threaded run
+    ///     (useful when debugging); the default (-1) lets the scheduler use all available cores.
     /// </summary>
-    public Task AnalyzeRelationshipsMultiThreaded(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)
+    public Task AnalyzeRelationships(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts,
+        int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(solution, nameof(solution));
         ArgumentNullException.ThrowIfNull(codeGraph, nameof(codeGraph));
@@ -385,10 +387,11 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         var numberOfCodeElements = _codeGraph.Nodes.Count;
         _processedCodeElements = 0;
 
-        // Take a snapshot of internal elements to avoid collection modification during parallel iteration
+        // Take a snapshot of internal elements to avoid collection modification during iteration
         var internalElements = _codeGraph.Nodes.Values.ToList();
 
-        Parallel.ForEach(internalElements, AnalyzeRelationshipsLocal);
+        var options = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
+        Parallel.ForEach(internalElements, options, AnalyzeRelationshipsLocal);
 
         // After parallel processing, add all external elements to the graph
         AddExternalElementsToGraph();
@@ -431,43 +434,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             _codeGraph!.Nodes[externalElement.Id] = externalElement;
         }
-    }
-
-    /// <summary>
-    ///     The code graph is updated, the artifacts are read only.
-    /// </summary>
-    public Task AnalyzeRelationshipsSingleThreaded(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)
-    {
-        _codeGraph = codeGraph;
-        _artifacts = artifacts;
-
-        var numberOfCodeElements = _codeGraph.Nodes.Count;
-        var loop = 0;
-
-        // Take a snapshot to avoid collection modification during iteration
-        var internalElements = _codeGraph.Nodes.Values.ToList();
-
-        foreach (var element in internalElements)
-        {
-            loop++;
-
-            if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
-            {
-                // INamespaceSymbol
-                continue;
-            }
-
-            AnalyzeRelationships(solution, element, symbol);
-            SendParserPhase2Progress(loop, numberOfCodeElements);
-        }
-
-        // Add external elements to the graph
-        AddExternalElementsToGraph();
-
-        // Analyze global statements for each assembly
-        AnalyzeGlobalStatementsForAssembly(solution);
-
-        return Task.CompletedTask;
     }
 
     private void SendParserPhase2Progress(int processed, int total)

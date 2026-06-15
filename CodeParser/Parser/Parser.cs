@@ -109,7 +109,7 @@ public class Parser(ParserConfig config)
 
         // Second Pass: Build Relationships
         var phase2 = new RelationshipAnalyzer(_progress, config);
-        await phase2.AnalyzeRelationshipsMultiThreaded(solution, codeGraph, artifacts);
+        await phase2.AnalyzeRelationships(solution, codeGraph, artifacts);
 
         sw.Stop();
         Trace.TraceInformation("Analyzing relationships: " + sw.Elapsed);
