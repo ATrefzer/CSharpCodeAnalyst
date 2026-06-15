@@ -763,10 +763,10 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// </summary>
     private IEnumerable<INamedTypeSymbol> FindTypesImplementingInterface(INamedTypeSymbol interfaceSymbol)
     {
-        // Note: AllInterfaces returns all interfaces found at this type, regardless if it is implemented in a base class or not.
+        // The interface-key -> implementing-types map is precomputed in phase 1 (see Artifacts). It already
+        // accounts for interfaces implemented in a base type, since it is built from AllInterfaces.
         var interfaceKey = interfaceSymbol.Key();
-        return _artifacts!.AllNamedTypesInSolution
-            .Where(type => type.AllInterfaces.Any(i => i.Key() == interfaceKey));
+        return _artifacts!.InterfaceImplementations.GetValueOrDefault(interfaceKey) ?? [];
     }
 
     /// <summary>
