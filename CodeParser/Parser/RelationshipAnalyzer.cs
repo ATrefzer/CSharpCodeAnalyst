@@ -91,7 +91,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             }
         }
 
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
+        // Note: Arguments (including method groups passed as arguments) are handled by the walker's
+        // normal traversal into the argument expressions (AnalyzeIdentifier / AnalyzeMemberAccess).
 
         // Handle direct event invocations (if any)
         var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
@@ -122,14 +123,46 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                 var attribute = isRegistration ? RelationshipAttribute.EventRegistration : RelationshipAttribute.EventUnregistration;
                 AddEventUsageRelationship(sourceElement, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
 
-                // If the right side is a method, add a Handles relationship
-                if (rightSymbol is IMethodSymbol methodSymbol)
+                //                                                                   =>  Extract single argument from the list.
+                if (assignmentExpression.Right is BaseObjectCreationExpressionSyntax { ArgumentList.Arguments: [var handlerArgument] })
                 {
-                    // The handles relationship carries both locations for registering 
+                    // Old style: event += new SomeDelegate(Handler). GetSymbolInfo on a delegate
+                    // creation yields no symbol, so we recognize it by syntax and take the handler
+                    // from the single constructor argument. (A non-method argument, e.g. an existing
+                    // delegate instance, simply yields no Handles relationship.)
+                    if (semanticModel.GetSymbolInfo(handlerArgument.Expression).Symbol is IMethodSymbol handlerFromCtor)
+                    {
+                        AddEventHandlerRelationship(handlerFromCtor, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
+                    }
+                }
+                else if (rightSymbol is IMethodSymbol methodSymbol)
+                {
+                    // Modern style: event += Handler. The right side is the method itself.
+                    // The handles relationship carries both locations for registering
                     // and unregistering the event handler. We have the same with the "uses" relationship.
                     // But separately for registering and unregistering.
                     AddEventHandlerRelationship(methodSymbol, eventSymbol, assignmentExpression.GetSyntaxLocation(), attribute);
                 }
+            }
+        }
+    }
+
+    public void AnalyzeConstructorInitializer(CodeElement sourceElement, ConstructorInitializerSyntax initializerSyntax,
+        SemanticModel semanticModel)
+    {
+        // ": base(...)" / ": this(...)". The arguments are visited separately by the walker.
+        // We mirror the constructor handling in AnalyzeObjectCreation: only link explicit, internal
+        // constructors. Implicit base constructors and external ones are left to the Inherits edge.
+        if (semanticModel.GetSymbolInfo(initializerSyntax).Symbol is
+            IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+        {
+            var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
+            if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+            {
+                var attribute = initializerSyntax.IsKind(SyntaxKind.BaseConstructorInitializer)
+                    ? RelationshipAttribute.IsBaseCall
+                    : RelationshipAttribute.IsThisCall;
+                AddCallsRelationship(sourceElement, normalizedConstructor, initializerSyntax.GetSyntaxLocation(), attribute);
             }
         }
     }
@@ -201,6 +234,37 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             var location = identifierSyntax.GetSyntaxLocation();
             AddEventUsageRelationship(sourceElement, eventSymbol, location);
         }
+        else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(identifierSyntax, methodSymbol))
+        {
+            // Foo passed/assigned/returned as a delegate (method group), not invoked.
+            var location = identifierSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+        }
+    }
+
+    /// <summary>
+    ///     A method name is a method group reference (Action a = Foo; return Foo; _field = Foo)
+    ///     unless it is the expression being invoked (Foo()) - that is a call handled by
+    ///     AnalyzeInvocation.
+    ///     Local functions are never part of the graph. Constructors are never method groups: an
+    ///     attribute usage ([Foo]) binds its name to the attribute constructor, and the walker also
+    ///     visits the attribute lists of a declaration - we must not turn that into a Uses edge.
+    /// </summary>
+    private static bool IsMethodGroupReference(ExpressionSyntax node, IMethodSymbol methodSymbol)
+    {
+        if (methodSymbol.MethodKind is MethodKind.LocalFunction or MethodKind.Constructor)
+        {
+            return false;
+        }
+
+        // Determine the expression that would be the invocation target if this were a call:
+        //   Method() / obj.Method()  -> the node itself
+        //   obj?.Method()            -> the enclosing member-binding expression (the identifier's
+        //                               direct parent is the MemberBindingExpression, not the call)
+        var callTarget = node.Parent is MemberBindingExpressionSyntax binding ? (ExpressionSyntax)binding : node;
+
+        return callTarget.Parent is not InvocationExpressionSyntax invocation ||
+               !ReferenceEquals(invocation.Expression, callTarget);
     }
 
     /// <summary>
@@ -228,54 +292,15 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             // This handles cases where the event is accessed but not necessarily invoked
             AddEventUsageRelationship(sourceElement, eventSymbol, memberAccessSyntax.GetSyntaxLocation());
         }
+        else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(memberAccessSyntax, methodSymbol))
+        {
+            // obj.Foo passed/assigned/returned as a delegate (method group), not invoked.
+            var location = memberAccessSyntax.GetSyntaxLocation();
+            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+        }
 
         // Note: We don't recursively handle the Expression here.
         // The walker's Visit(node.Expression) call handles nested member access automatically.
-    }
-
-    public void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel)
-    {
-        var expression = argumentSyntax.Expression;
-
-        // Handle method groups passed as arguments
-        if (expression is IdentifierNameSyntax identifierSyntax)
-        {
-            // Foo(MethodGroup)
-            var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference
-                var location = identifierSyntax.GetSyntaxLocation();
-
-                //AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
-        else if (expression is MemberAccessExpressionSyntax memberAccessSyntax)
-        {
-            // obj.MethodGroup
-            var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Skip local functions - they should not be part of the dependency graph
-                if (methodSymbol.MethodKind == MethodKind.LocalFunction)
-                {
-                    return;
-                }
-
-                // This is a method group reference like obj.Method
-                var location = memberAccessSyntax.GetSyntaxLocation();
-
-                // AddCallsRelationship(sourceElement, methodSymbol, location, RelationshipAttribute.IsMethodGroup);
-                AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
-            }
-        }
     }
 
     public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
@@ -339,7 +364,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             }
         }
 
-        // Note: Arguments are now handled by the MethodBodyWalker.VisitArgument
+        // Note: Arguments (including method groups passed as arguments) are handled by the walker's
+        // normal traversal into the argument expressions (AnalyzeIdentifier / AnalyzeMemberAccess).
     }
 
     /// <summary>
@@ -520,7 +546,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             // Create a dummy method to contain global statements
             var dummyMethodId = Guid.NewGuid().ToString();
             const string dummyMethodName = "Execute";
-            var dummyMethodFullName = $"{dummyClassName}.{dummyMethodName}";
+            var dummyMethodFullName = $"{dummyClassFullName}.{dummyMethodName}";
             var dummyMethod = new CodeElement(dummyMethodId, CodeElementType.Method, dummyMethodName,
                 dummyMethodFullName, dummyClass);
 
@@ -622,6 +648,9 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             AddTypeRelationship(methodElement, parameter.Type, RelationshipType.Uses, methodLocation);
         }
+
+        // Analyze generic type-parameter constraints (where T : Foo)
+        AnalyzeTypeParameterConstraints(methodElement, methodSymbol.TypeParameters, methodLocation);
 
         // Analyze return type
         if (!methodSymbol.ReturnsVoid)
@@ -855,6 +884,63 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             AddTypeRelationship(element, @interface, RelationshipType.Implements, typeLocation);
         }
+
+        // Analyze generic type-parameter constraints (where T : Foo)
+        AnalyzeTypeParameterConstraints(element, typeSymbol.TypeParameters, typeLocation);
+
+        AnalyzePrimaryConstructorParameters(element, typeSymbol);
+    }
+
+    /// <summary>
+    ///     Records "Uses" relationships for the type constraints of generic type parameters
+    ///     (where T : IFoo / where T : BaseClass). Special constraints (class, struct, new(),
+    ///     notnull) carry no type and a constraint to another type parameter (where T : U) resolves
+    ///     to no internal element, so both are naturally ignored.
+    /// </summary>
+    private void AnalyzeTypeParameterConstraints(CodeElement element,
+        IEnumerable<ITypeParameterSymbol> typeParameters, SourceLocation? location)
+    {
+        foreach (var typeParameter in typeParameters)
+        {
+            foreach (var constraintType in typeParameter.ConstraintTypes)
+            {
+                AddTypeRelationship(element, constraintType, RelationshipType.Uses, location);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Phase 1 only collects ConstructorDeclarationSyntax, so primary constructors (including the
+    ///     positional parameters of records) have no method element and the parameter types would
+    ///     otherwise create no relationship. A primary constructor is recognized by its declaring
+    ///     syntax being the TypeDeclarationSyntax itself (same detection as IsExplicitConstructor).
+    /// </summary>
+    private void AnalyzePrimaryConstructorParameters(CodeElement element, INamedTypeSymbol typeSymbol)
+    {
+        foreach (var constructor in typeSymbol.InstanceConstructors)
+        {
+            // Synthesized constructors (the record copy constructor, default constructors) are
+            // implicitly declared and carry no user-written parameter types we care about.
+            if (constructor.IsImplicitlyDeclared)
+            {
+                continue;
+            }
+
+            // A primary constructor has no ConstructorDeclarationSyntax of its own; its declaring
+            // syntax is the type declaration itself (same detection as IsExplicitConstructor).
+            var isPrimary = constructor.DeclaringSyntaxReferences
+                .Any(r => r.GetSyntax() is TypeDeclarationSyntax);
+            if (!isPrimary)
+            {
+                continue;
+            }
+
+            foreach (var parameter in constructor.Parameters)
+            {
+                var location = parameter.GetSymbolLocations().FirstOrDefault();
+                AddTypeRelationship(element, parameter.Type, RelationshipType.Uses, location);
+            }
+        }
     }
 
     private void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol,
@@ -973,6 +1059,14 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         {
             foreach (var typeArg in namedTypeSymbol.TypeArguments)
             {
+                // A type parameterized with itself (records implement IEquatable<Self>; CRTP like
+                // class Foo : IComparable<Foo>) would otherwise gain a meaningless self-reference.
+                if (typeArg is INamedTypeSymbol namedTypeArg &&
+                    ReferenceEquals(FindInternalCodeElement(namedTypeArg.NormalizeToOriginalDefinition()), sourceElement))
+                {
+                    continue;
+                }
+
                 AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
             }
         }
@@ -1129,6 +1223,12 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // Analyze the property type
         AddTypeRelationship(propertyElement, propertySymbol.Type, RelationshipType.Uses, propertyLocation);
 
+        // Indexer parameter types. Empty for normal properties.
+        foreach (var parameter in propertySymbol.Parameters)
+        {
+            AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
+        }
+
         if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
             FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
@@ -1154,20 +1254,29 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
         {
             var syntax = syntaxReference.GetSyntax();
-            if (syntax is PropertyDeclarationSyntax propertyDeclaration)
+
+            // BasePropertyDeclarationSyntax covers both properties and indexers.
+            if (syntax is BasePropertyDeclarationSyntax basePropertyDeclaration)
             {
                 var document = solution.GetDocument(syntax.SyntaxTree);
                 var semanticModel = document?.GetSemanticModelAsync().Result;
                 if (semanticModel != null)
                 {
-                    if (propertyDeclaration.ExpressionBody != null)
+                    // The expression body lives on the concrete declaration type, not on the base.
+                    var expressionBody = syntax switch
                     {
-                        AnalyzeMethodBody(propertyElement, propertyDeclaration.ExpressionBody.Expression,
-                            semanticModel);
+                        PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.ExpressionBody,
+                        IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.ExpressionBody,
+                        _ => null
+                    };
+
+                    if (expressionBody != null)
+                    {
+                        AnalyzeMethodBody(propertyElement, expressionBody.Expression, semanticModel);
                     }
-                    else if (propertyDeclaration.AccessorList != null)
+                    else if (basePropertyDeclaration.AccessorList != null)
                     {
-                        foreach (var accessor in propertyDeclaration.AccessorList.Accessors)
+                        foreach (var accessor in basePropertyDeclaration.AccessorList.Accessors)
                         {
                             if (accessor.ExpressionBody != null)
                             {
@@ -1178,6 +1287,15 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                                 AnalyzeMethodBody(propertyElement, accessor.Body, semanticModel);
                             }
                         }
+                    }
+
+                    // Property initializer: public Foo Bar { get; } = new Foo();
+                    // An auto-property can have both an accessor list and an initializer, so this is
+                    // independent of the branch above. Treated like a field initializer: the containing
+                    // type "creates" the object, the property "uses" it. Indexers cannot have one.
+                    if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
+                    {
+                        AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer.Value, semanticModel, true);
                     }
                 }
             }

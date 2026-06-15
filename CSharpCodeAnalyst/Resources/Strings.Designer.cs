@@ -1278,7 +1278,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Solution files (*.sln)|*.sln|C# project (*.csproj)|*.csproj.
+        ///   Looks up a localized string similar to Solution files (*.sln)|*.sln|Solution files (*.slnx)|*.slnx|C# project (*.csproj)|*.csproj.
         /// </summary>
         public static string Import_FileFilter {
             get {

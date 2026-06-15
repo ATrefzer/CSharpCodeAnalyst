@@ -1,44 +1,68 @@
-﻿using CodeGraph.Contracts;
+using CodeGraph.Contracts;
 using Microsoft.CodeAnalysis;
 
 namespace CodeParser.Parser;
 
 internal class ParserDiagnostics : IParserDiagnostics
 {
-    private List<WorkspaceDiagnostic> Diagnostics { get; } = [];
+    private readonly List<string> _failures = [];
+    private readonly List<string> _warnings = [];
 
     public bool HasDiagnostics
     {
-        get => Failures.Any() || Warnings.Any();
-    }
-
-    public string FormatFailures()
-    {
-        return string.Join(Environment.NewLine, Failures);
-    }
-
-    public string FormatWarnings()
-    {
-        return string.Join(Environment.NewLine, Failures);
+        get => _failures.Any() || _warnings.Any();
     }
 
     public List<string> Failures
     {
-        get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message).ToList();
+        get => _failures;
     }
 
     public List<string> Warnings
     {
-        get => Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Warning).Select(d => d.Message).ToList();
+        get => _warnings;
     }
 
+    public string FormatFailures()
+    {
+        return string.Join(Environment.NewLine, _failures);
+    }
+
+    public string FormatWarnings()
+    {
+        return string.Join(Environment.NewLine, _warnings);
+    }
+
+    /// <summary>
+    ///     Roslyn workspace diagnostic. The kind is collapsed to the matching bucket here so that our own
+    ///     diagnostics (see <see cref="AddWarning" /> / <see cref="AddFailure" />) can share the same lists
+    ///     without depending on the non-constructible <see cref="WorkspaceDiagnostic" /> type.
+    /// </summary>
     public void Add(WorkspaceDiagnostic diagnostic)
     {
-        Diagnostics.Add(diagnostic);
+        if (diagnostic.Kind == WorkspaceDiagnosticKind.Failure)
+        {
+            _failures.Add(diagnostic.Message);
+        }
+        else
+        {
+            _warnings.Add(diagnostic.Message);
+        }
+    }
+
+    public void AddWarning(string message)
+    {
+        _warnings.Add(message);
+    }
+
+    public void AddFailure(string message)
+    {
+        _failures.Add(message);
     }
 
     public void Clear()
     {
-        Diagnostics.Clear();
+        _failures.Clear();
+        _warnings.Clear();
     }
 }

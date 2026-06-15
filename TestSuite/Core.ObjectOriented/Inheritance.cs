@@ -91,3 +91,18 @@ public class ColoredRectangle : Rectangle
         Console.WriteLine($"Color: {Color}");
     }
 }
+
+// Constructor chaining to another constructor of the same class (": this(...)").
+public class Square
+{
+    private readonly double _side;
+
+    public Square() : this(1.0)
+    {
+    }
+
+    public Square(double side)
+    {
+        _side = side;
+    }
+}

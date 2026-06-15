@@ -33,6 +33,12 @@ public class DelegateCommands
         ExecuteAction(other.InstanceMethod);
     }
 
+    // Method group returned from a method - should create a Uses relationship
+    public Action<string> GetCommand()
+    {
+        return HandleString;
+    }
+
     private void HandleString(string input)
     {
         Console.WriteLine($"Handled: {input}");

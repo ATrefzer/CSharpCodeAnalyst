@@ -120,11 +120,29 @@ public static class SymbolExtensions
 
         if (symbol is IMethodSymbol methodSymbol)
         {
-            var parameters = string.Join("_", methodSymbol.Parameters.Select(p => p.Type.ToDisplayString()));
+            var parameters = string.Join("_", methodSymbol.Parameters.Select(GetParameterKey));
+            return $"{name}{genericPart}_{parameters}_{kind}";
+        }
+
+        // Indexers are overloadable on their parameter list (this[int] vs this[string]); without the
+        // parameters both overloads share a key and one element is silently dropped in phase 1.
+        if (symbol is IPropertySymbol { IsIndexer: true } indexerSymbol)
+        {
+            var parameters = string.Join("_", indexerSymbol.Parameters.Select(GetParameterKey));
             return $"{name}{genericPart}_{parameters}_{kind}";
         }
 
         return $"{name}{genericPart}_{kind}";
+    }
+
+    /// <summary>
+    ///     Encodes a parameter for the symbol key. The ref-kind (ref/out/in/ref readonly) is part of the
+    ///     signature: M(int) and M(ref int) are legal overloads and must not collapse to the same key.
+    /// </summary>
+    private static string GetParameterKey(IParameterSymbol parameter)
+    {
+        var refKind = parameter.RefKind == RefKind.None ? string.Empty : parameter.RefKind + " ";
+        return $"{refKind}{parameter.Type.ToDisplayString()}";
     }
 
     private static string GetGenericPart(ISymbol symbol)

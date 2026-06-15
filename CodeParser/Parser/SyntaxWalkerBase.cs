@@ -23,15 +23,6 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         IsFieldInitializer = isFieldInitializer;
     }
 
-    /// <summary>
-    ///     We need this also for lambdas to capture:  x => Foo(SomeMethod)
-    /// </summary>
-    public override void VisitArgument(ArgumentSyntax node)
-    {
-        Analyzer.AnalyzeArgument(SourceElement, node, SemanticModel);
-        base.VisitArgument(node);
-    }
-
     // Note: VisitIdentifierName is NOT overridden here because concrete walkers need to specify
     // their relationship type (Calls for MethodBodyWalker, Uses for LambdaBodyWalker).
     // Each walker overrides VisitIdentifierName with the appropriate RelationshipType parameter.
@@ -101,5 +92,97 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         }
 
         base.VisitBinaryExpression(node);
+    }
+
+    /// <summary>
+    ///     Declaration pattern: obj is Foo f / case Foo f:
+    /// </summary>
+    public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitDeclarationPattern(node);
+    }
+
+    /// <summary>
+    ///     Type pattern: nested patterns like "is Foo or Bar".
+    ///     (The classic top-level "obj is Foo" stays a BinaryExpression, handled above.)
+    /// </summary>
+    public override void VisitTypePattern(TypePatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitTypePattern(node);
+    }
+
+    /// <summary>
+    ///     A bare type name used as a switch arm ("Square => ..") parses as a constant pattern, not a
+    ///     type pattern. We record it only when the expression actually resolves to a type, so real
+    ///     constants and enum members (is 5, is Color.Red) are left to normal traversal.
+    /// </summary>
+    public override void VisitConstantPattern(ConstantPatternSyntax node)
+    {
+        if (SemanticModel.GetSymbolInfo(node.Expression).Symbol is ITypeSymbol &&
+            node.Expression is TypeSyntax typeSyntax)
+        {
+            Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, typeSyntax);
+        }
+
+        base.VisitConstantPattern(node);
+    }
+
+    /// <summary>
+    ///     Recursive pattern: obj is Foo { Prop: ... }. The leading type is optional.
+    /// </summary>
+    public override void VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitRecursivePattern(node);
+    }
+
+    /// <summary>
+    ///     catch (Foo ex) — the caught exception type. The identifier is optional.
+    /// </summary>
+    public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitCatchDeclaration(node);
+    }
+
+    /// <summary>
+    ///     foreach (Foo item in ...) — the iteration variable type.
+    /// </summary>
+    public override void VisitForEachStatement(ForEachStatementSyntax node)
+    {
+        Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        base.VisitForEachStatement(node);
+    }
+
+    /// <summary>
+    ///     using (Foo x = ...) statement form. The "using var x = ..." declaration form is a
+    ///     LocalDeclarationStatementSyntax and is already handled by AnalyzeLocalDeclaration.
+    /// </summary>
+    public override void VisitUsingStatement(UsingStatementSyntax node)
+    {
+        if (node.Declaration != null)
+        {
+            Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Declaration.Type);
+        }
+
+        base.VisitUsingStatement(node);
+    }
+
+    /// <summary>
+    ///     new Foo[n] — the array element type. ArrayCreationExpressionSyntax is not a
+    ///     BaseObjectCreationExpressionSyntax, so the object-creation handling never sees it.
+    ///     AddTypeRelationship resolves the IArrayTypeSymbol down to its element type as Uses.
+    /// </summary>
+    public override void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
+    {
+        var typeInfo = SemanticModel.GetTypeInfo(node);
+        if (typeInfo.Type != null)
+        {
+            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+        }
+
+        base.VisitArrayCreationExpression(node);
     }
 }

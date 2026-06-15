@@ -37,9 +37,9 @@ public class Parser(ParserConfig config)
 
         return extension switch
         {
-            ".sln" => await ParseSolution(path),
+            ".sln" or ".slnx" => await ParseSolution(path),
             ".csproj" => await ParseProject(path),
-            _ => throw new ArgumentException($"Unsupported file type: {extension}. Expected .sln or .csproj")
+            _ => throw new ArgumentException($"Unsupported file type: {extension}. Expected .sln, .slnx, or .csproj")
         };
     }
 
@@ -100,7 +100,7 @@ public class Parser(ParserConfig config)
         var sw = Stopwatch.StartNew();
 
         // First Pass: Build Hierarchy
-        var phase1 = new HierarchyAnalyzer(_progress, config);
+        var phase1 = new HierarchyAnalyzer(_progress, config, _diagnostics);
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
         sw.Stop();

@@ -14,6 +14,8 @@ public class HierarchyAnalyzer
     private readonly List<INamedTypeSymbol> _allNamedTypesInSolution = [];
     private readonly CodeGraph.Graph.CodeGraph _codeGraph = new();
     private readonly ParserConfig _config;
+
+    private readonly ParserDiagnostics _diagnostics;
     private readonly Dictionary<string, ISymbol> _elementIdToSymbolMap = new();
 
     private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
@@ -23,10 +25,11 @@ public class HierarchyAnalyzer
     private readonly HashSet<string> _projectFilePaths = [];
     private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
 
-    public HierarchyAnalyzer(Progress progress, ParserConfig config)
+    internal HierarchyAnalyzer(Progress progress, ParserConfig config, ParserDiagnostics diagnostics)
     {
         _progress = progress;
         _config = config;
+        _diagnostics = diagnostics;
     }
 
     public async Task<(CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts)> BuildHierarchy(Solution solution)
@@ -65,15 +68,15 @@ public class HierarchyAnalyzer
     /// </summary>
     private async Task<List<Project>> GetValidProjects(Solution solution)
     {
-        // At the moment I cannot handle more than one project with the same assembly name
-        // So I remove them.
+        // We can only keep one project per assembly name (the symbol key is built from the assembly name).
+        // The two reasons for duplicates - multi-targeting vs. a real name collision - are distinguished
+        // and reported in ProjectSelector; here we only map to/from the Roslyn Project type.
 
-        var assemblyNameToProject = new Dictionary<string, Project>();
-        var duplicates = new HashSet<string>();
+        var candidateToProject = new Dictionary<ProjectCandidate, Project>();
+        var candidates = new List<ProjectCandidate>();
         foreach (var project in solution.Projects)
         {
-            // Regular expression patterns.
-            if (!_config.IsProjectIncluded(project.Name))
+            if (!ShouldAnalyzeProject(project))
             {
                 continue;
             }
@@ -81,23 +84,46 @@ public class HierarchyAnalyzer
             var compilation = await project.GetCompilationAsync();
             if (compilation != null)
             {
-                var assemblyName = compilation.Assembly.Name;
-                if (assemblyNameToProject.ContainsKey(assemblyName))
-                {
-                    duplicates.Add(assemblyName);
-                }
-
-                assemblyNameToProject[assemblyName] = project;
+                // Project name contains the target (net10)
+                var candidate = new ProjectCandidate(compilation.Assembly.Name, project.FilePath, project.Name);
+                candidates.Add(candidate);
+                candidateToProject[candidate] = project;
             }
         }
 
-        foreach (var name in duplicates)
+        var selection = ProjectSelector.SelectProjectsPerAssembly(candidates);
+
+        foreach (var warning in selection.Warnings)
         {
-            assemblyNameToProject.Remove(name);
-            Trace.WriteLine($"Removed assembly with duplicate name in solution: {name}");
+            _diagnostics.AddWarning(warning);
+            Trace.WriteLine(warning);
         }
 
-        return assemblyNameToProject.Values.ToList();
+        foreach (var failure in selection.Failures)
+        {
+            _diagnostics.AddFailure(failure);
+            Trace.WriteLine(failure);
+        }
+
+        return selection.Selected.Select(candidate => candidateToProject[candidate]).ToList();
+    }
+
+    private bool ShouldAnalyzeProject(Project project)
+    {
+        // Non-C# projects (.vbproj, .fsproj, ...) still yield a compilation; without this filter they
+        // would add an empty assembly node and leak their types into AllNamedTypesInSolution.
+        if (IsUnrecognizedProject(project.FilePath))
+        {
+            return false;
+        }
+
+        // Regular expression patterns.
+        if (!_config.IsProjectIncluded(project.Name))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void BuildHierarchy(Compilation compilation)
@@ -177,19 +203,35 @@ public class HierarchyAnalyzer
                 elementType = CodeElementType.Method; // or you could create a separate Constructor type
                 break;
 
+            case OperatorDeclarationSyntax:
+            case ConversionOperatorDeclarationSyntax:
+            case DestructorDeclarationSyntax:
+
+                // User-defined operators (operator +), conversions (implicit/explicit operator)
+                // and finalizers (~Foo). All map to an IMethodSymbol; phase 2 walks their bodies
+                // through DeclaringSyntaxReferences just like ordinary methods.
+                symbol = semanticModel.GetDeclaredSymbol(node) as IMethodSymbol;
+                elementType = CodeElementType.Method;
+                break;
+
             case FieldDeclarationSyntax fieldDeclaration:
                 foreach (var variable in fieldDeclaration.Declaration.Variables)
                 {
                     if (semanticModel.GetDeclaredSymbol(variable) is IFieldSymbol fieldSymbol)
                     {
                         var fieldLocation = variable.GetSyntaxLocation();
-                        var fieldElement =
-                            GetOrCreateCodeElement(fieldSymbol, CodeElementType.Field, parent, fieldLocation);
+                        var _ = GetOrCreateCodeElement(fieldSymbol, CodeElementType.Field, parent, fieldLocation);
                     }
                 }
 
                 return; // We've handled the fields, so we can return
             case PropertyDeclarationSyntax:
+                symbol = semanticModel.GetDeclaredSymbol(node) as IPropertySymbol;
+                elementType = CodeElementType.Property;
+                break;
+            case IndexerDeclarationSyntax:
+
+                // An indexer is a property with parameters. Its symbol name is "this[]".
                 symbol = semanticModel.GetDeclaredSymbol(node) as IPropertySymbol;
                 elementType = CodeElementType.Property;
                 break;
@@ -206,8 +248,7 @@ public class HierarchyAnalyzer
                     if (semanticModel.GetDeclaredSymbol(variable) is IEventSymbol eventSymbol)
                     {
                         var eventLocation = variable.GetSyntaxLocation();
-                        var eventElement =
-                            GetOrCreateCodeElement(eventSymbol, CodeElementType.Event, parent, eventLocation);
+                        var _ = GetOrCreateCodeElement(eventSymbol, CodeElementType.Event, parent, eventLocation);
                     }
                 }
 
@@ -375,12 +416,7 @@ public class HierarchyAnalyzer
     {
         foreach (var project in solution.Projects)
         {
-            if (IsUnrecognizedProject(project.FilePath))
-            {
-                continue;
-            }
-
-            if (!_config.IsProjectIncluded(project.Name))
+            if (!ShouldAnalyzeProject(project))
             {
                 continue;
             }

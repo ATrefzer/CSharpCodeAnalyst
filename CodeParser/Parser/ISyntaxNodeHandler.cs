@@ -20,6 +20,14 @@ public interface ISyntaxNodeHandler
         SemanticModel semanticModel);
 
     /// <summary>
+    ///     Analyzes constructor chaining (": base(...)" and ": this(...)").
+    ///     A ConstructorInitializerSyntax is not an InvocationExpressionSyntax, so it needs its own
+    ///     handler to create the "Calls" relationship to the chained constructor.
+    /// </summary>
+    void AnalyzeConstructorInitializer(CodeElement sourceElement, ConstructorInitializerSyntax initializerSyntax,
+        SemanticModel semanticModel);
+
+    /// <summary>
     ///     Analyzes standalone identifier references (fields, properties, etc.).
     ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
     ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
@@ -40,8 +48,6 @@ public interface ISyntaxNodeHandler
     /// </summary>
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
-
-    void AnalyzeArgument(CodeElement sourceElement, ArgumentSyntax argumentSyntax, SemanticModel semanticModel);
 
     void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel);

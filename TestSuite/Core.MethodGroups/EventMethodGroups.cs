@@ -7,6 +7,7 @@ public class EventMethodGroups
 {
     public event Action<string>? StringEvent;
     public event Func<int, bool>? ValidationEvent;
+    public event EventHandler? LegacyEvent;
 
     public void SetupEventHandlers()
     {
@@ -20,6 +21,18 @@ public class EventMethodGroups
         // Multiple handlers
         ValidationEvent += ValidatePositive;
         ValidationEvent += ValidateEven;
+    }
+
+    // Old-style registration via explicit delegate creation - should still create a Handles
+    // relationship from the handler to the event.
+    public void SetupLegacyHandler()
+    {
+        LegacyEvent += new EventHandler(OnLegacy);
+    }
+
+    private void OnLegacy(object? sender, EventArgs e)
+    {
+        Console.WriteLine("Legacy event handled");
     }
 
     public void TestEventInvocation()
