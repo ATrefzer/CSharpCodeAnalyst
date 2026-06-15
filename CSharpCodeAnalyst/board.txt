@@ -1,33 +1,22 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Replace Guid with symbol key. Does it have an impact on memory or performance?
-  Having the symbol key would allow synchronization with a project in the future.
-
-- Consider adding the access modifiers. We could get rid of all private members.
-
-
-- Virtual Refactorings: TreeView Update may be slow
 - Property has not much contrast to method
-- Namespace icon differs from others
-- Jump to Code from context menu?
-- Focus on flagged.
-
-
-- Collapsed nodes should be recognized
+- Jump to Code from context menu
 
 
 
 UNHANDLED CASES
 ---------------------
 
-- Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
-  => Not useful enough to implement.
-  
-- Two projects with the same name (discard one, breaks the symbol key mechanics)
+- (!) Primary constructors of records do not create the properties in the Navigation tree
 
 - Properties may show a cycle because get and set are combined into one property element.
   This may lead to a false positive cycle but is as intended.
+
+- Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
+  => Not useful enough to implement.
+
 
 BUGS 
 ---------------------
@@ -38,8 +27,3 @@ BUGS
 MISSING TEST CASES
 ---------------------
 
-
-CLARIFY
----------------------
-
-- Export to png or clipboard with high DPI
