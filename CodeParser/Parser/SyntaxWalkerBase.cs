@@ -11,7 +11,7 @@ namespace CodeParser.Parser;
 ///     | Visit                    | Method                                         | Lambda                                  |
 ///     |--------------------------|------------------------------------------------|-----------------------------------------|
 ///     | `IdentifierName`         | `AnalyzeIdentifier` (Calls)                    | `AnalyzeIdentifier` (**Uses**)          |
-///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | inline Uses, ** kein** Event-Invoke     |
+///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | inline Uses, **no** Event-Invoke     |
 ///     | `ObjectCreation`         | `AnalyzeObjectCreation` (** Creates**)         | `TrackObjectCreationAsUses` (** Uses**) |
 ///     | nested Lambdas           | spawns `LambdaBodyWalker`                      | skipped(!)                              |
 ///     | `ConstructorInitializer` | yes                                            | no (Lambdas have none)                  |
