@@ -100,6 +100,9 @@ public partial class MainWindow
     public void SetViewer(GraphViewer explorationGraphViewer, IPublisher publisher)
     {
         ExplorationControl.SetViewer(explorationGraphViewer, publisher);
+
+        // The web view mirrors the Code Explorer: same viewer, same content.
+        WebGraphView.SetViewer(explorationGraphViewer);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

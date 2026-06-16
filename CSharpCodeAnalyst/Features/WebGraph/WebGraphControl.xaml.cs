@@ -2,14 +2,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
+using CSharpCodeAnalyst.Features.Graph;
 using Microsoft.Web.WebView2.Core;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
-///     Phase 0 spike: hosts a WebView2 that renders the graph with Cytoscape.js.
+///     Phase 1: hosts a WebView2 that renders the code graph with Cytoscape.js.
+///     The data source is a mirror of the Code Explorer: it listens to the same
+///     <see cref="IGraphViewer.GraphChanged" /> and serializes <see cref="IGraphViewer.GetGraph" />.
 ///     Assets are served strictly offline from the output directory via a virtual host.
-///     The C# &lt;-&gt; JS bridge is wired but only logs for now.
 /// </summary>
 public partial class WebGraphControl : UserControl
 {
@@ -18,10 +21,80 @@ public partial class WebGraphControl : UserControl
 
     private bool _initialized;
 
+    // True once the JS side reported {type:"ready"} and can accept renderGraph() calls.
+    private bool _isWebReady;
+
+    // A graph change arrived while the tab was hidden; render when it becomes visible.
+    private bool _pendingRender;
+
+    // Coalesces bursts of GraphChanged events into a single (expensive) re-layout.
+    private readonly DispatcherTimer _renderDebounce;
+
+    private IGraphViewer? _viewer;
+
     public WebGraphControl()
     {
         InitializeComponent();
         Loaded += OnLoaded;
+
+        // Cytoscape needs a correctly sized container. While the tab is hidden the
+        // WebView has no size, so we defer rendering and re-fit once it is shown again.
+        IsVisibleChanged += OnIsVisibleChanged;
+
+        _renderDebounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+        _renderDebounce.Tick += (_, _) =>
+        {
+            _renderDebounce.Stop();
+            RenderCurrentGraph();
+        };
+    }
+
+    /// <summary>
+    ///     Wires the web view to the same graph viewer the Code Explorer uses, so it
+    ///     mirrors its content. Called once during application start-up.
+    /// </summary>
+    public void SetViewer(IGraphViewer viewer)
+    {
+        _viewer = viewer;
+        _viewer.GraphChanged += OnViewerGraphChanged;
+    }
+
+    private void OnViewerGraphChanged(CodeGraph.Graph.CodeGraph graph)
+    {
+        // GraphChanged is raised on the UI thread, but marshal defensively.
+        Dispatcher.Invoke(() =>
+        {
+            if (IsVisible)
+            {
+                // Restart the debounce: many events in a row collapse into one render.
+                _renderDebounce.Stop();
+                _renderDebounce.Start();
+            }
+            else
+            {
+                // Don't lay out into a zero-size container; do it when shown.
+                _pendingRender = true;
+            }
+        });
+    }
+
+    private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (!IsVisible || !_isWebReady)
+        {
+            return;
+        }
+
+        if (_pendingRender)
+        {
+            // A change happened while hidden -> render it now with a correct size.
+            RenderCurrentGraph();
+        }
+        else
+        {
+            // Nothing changed, but the viewport may be stale -> just resize and re-fit.
+            _ = WebView.CoreWebView2?.ExecuteScriptAsync("refitGraph();");
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -40,7 +113,7 @@ public partial class WebGraphControl : UserControl
         }
         catch (Exception ex)
         {
-            // Keep the spike from taking the whole app down if WebView2 runtime is missing.
+            // Keep a missing WebView2 runtime from taking the whole app down.
             Debug.WriteLine($"[WebGraph] WebView2 init failed: {ex}");
             MessageBox.Show($"WebView2 initialization failed:\n{ex.Message}", "Web Graph View",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -61,6 +134,10 @@ public partial class WebGraphControl : UserControl
 
         var core = WebView.CoreWebView2;
 
+        // Development: never serve cached HTML/JS so edited assets always take effect.
+        await core.CallDevToolsProtocolMethodAsync(
+            "Network.setCacheDisabled", "{\"cacheDisabled\":true}");
+
         // Serve the local Web folder (copied next to the exe) under the virtual host.
         var webRoot = Path.Combine(AppContext.BaseDirectory, "Features", "WebGraph", "Web");
         core.SetVirtualHostNameToFolderMapping(
@@ -68,7 +145,6 @@ public partial class WebGraphControl : UserControl
 
         core.WebMessageReceived += OnWebMessageReceived;
 
-        // Lock the spike down a bit: no devtools menu, no default context menu.
         core.Settings.AreDefaultContextMenusEnabled = false;
         core.Settings.AreDevToolsEnabled = true; // helpful during development
 
@@ -77,9 +153,34 @@ public partial class WebGraphControl : UserControl
 
     private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
-        // Phase 0: just observe that the JS -> C# bridge works.
-        // Phase 2 translates these into MessageBus messages (QuickInfoUpdateRequest, ...).
         var json = e.WebMessageAsJson;
         Debug.WriteLine($"[WebGraph] message from JS: {json}");
+
+        // We only need a coarse check here; a full message model comes in Phase 2.
+        if (json.Contains("\"ready\""))
+        {
+            _isWebReady = true;
+            RenderCurrentGraph();
+        }
+    }
+
+    private void RenderCurrentGraph()
+    {
+        if (!_isWebReady || _viewer is null)
+        {
+            return;
+        }
+
+        var core = WebView.CoreWebView2;
+        if (core is null)
+        {
+            return;
+        }
+
+        _renderDebounce.Stop();
+        _pendingRender = false;
+
+        var json = WebGraphBuilder.BuildJson(_viewer.GetGraph(), _viewer.IsCollapsed);
+        _ = core.ExecuteScriptAsync($"renderGraph({json});");
     }
 }

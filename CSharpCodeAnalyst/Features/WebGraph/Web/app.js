@@ -1,6 +1,5 @@
-// Web Graph View - Phase 0 spike.
-// Renders a hardcoded example graph and wires the C# <-> JS bridge skeleton.
-// In Phase 1 the hardcoded elements are replaced by data pushed from C# via renderGraph().
+// Web Graph View - renders the code graph with Cytoscape.js.
+// Data is pushed from C# via renderGraph(); user events go back via postToHost().
 
 "use strict";
 
@@ -15,13 +14,28 @@ function postToHost(message) {
     }
 }
 
+// ---- Layout -----------------------------------------------------------------
+// fcose = fast Compound Spring Embedder. Unlike the built-in "cose" it understands
+// nested (compound) nodes, so class containers don't blow up and overlap.
+const LAYOUT = {
+    name: "fcose",
+    quality: "default",
+    randomize: true,
+    animate: false,
+    nodeDimensionsIncludeLabels: true,
+    nodeSeparation: 75,
+    packComponents: true,
+    padding: 30,
+    fit: true,
+};
+
 // ---- Styling ----------------------------------------------------------------
-// Colors loosely mirror the WPF/MSAGL scheme. Final colors come from C# later.
+// Fallback colors for standalone testing; in the app the exact color comes from C#.
 const KIND_COLOR = {
-    Class: "#f5d76e",      // yellow
-    Method: "#7fb3e8",     // blue
-    Interface: "#b5e7a0",  // green
-    Namespace: "#e0e0e0",  // light gray container
+    Class: "#f5d76e",
+    Method: "#7fb3e8",
+    Interface: "#b5e7a0",
+    Namespace: "#e0e0e0",
 };
 
 const cytoscapeStyle = [
@@ -32,13 +46,15 @@ const cytoscapeStyle = [
             "font-size": 11,
             "text-valign": "center",
             "text-halign": "center",
-            "background-color": ele => KIND_COLOR[ele.data("kind")] || "#cccccc",
+            "background-color": ele => ele.data("color") || KIND_COLOR[ele.data("kind")] || "#cccccc",
             "border-width": 1,
             "border-color": "#888888",
             "shape": "round-rectangle",
-            "width": "label",
-            "height": 24,
-            "padding": "8px",
+            // Explicit pixel size derived from the label. The deprecated "width: label"
+            // left nodes ~0-wide, so the layout had no size to separate them and stacked
+            // them on one spot (which made the connecting edges zero-length / invisible).
+            "width": ele => Math.max(50, (ele.data("label") || "").length * 7 + 16),
+            "height": 26,
         },
     },
     {
@@ -59,22 +75,29 @@ const cytoscapeStyle = [
         selector: "node:selected",
         style: { "border-width": 3, "border-color": "#ff7f0e" },
     },
-    // Edge styles per relationship kind.
+    // Default edges are a quiet gray so they recede; only call-like edges are blue,
+    // which keeps "blue arrow = a call" instantly readable.
     {
         selector: "edge",
         style: {
             "width": 1.5,
-            "line-color": "#7fb3e8",
-            "target-arrow-color": "#7fb3e8",
+            "line-color": "#999999",
+            "target-arrow-color": "#999999",
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
         },
     },
     {
+        selector: "edge[kind = 'Calls'], edge[kind = 'Invokes']",
+        style: {
+            "line-color": "#2b7fd6",
+            "target-arrow-color": "#2b7fd6",
+        },
+    },
+    {
+        // Structural edges recede: dashed / open arrow.
         selector: "edge[kind = 'Inherits']",
         style: {
-            "line-color": "#999999",
-            "target-arrow-color": "#999999",
             "line-style": "dashed",
             "target-arrow-shape": "triangle-backcurve",
         },
@@ -82,44 +105,35 @@ const cytoscapeStyle = [
     {
         selector: "edge[kind = 'Implements']",
         style: {
-            "line-color": "#999999",
-            "target-arrow-color": "#999999",
             "line-style": "dotted",
         },
     },
 ];
 
-// ---- Hardcoded example graph (Phase 0) --------------------------------------
-// Demonstrates compound nodes (class contains methods) and typed edges.
+// Small example so the page also renders something when opened standalone in a
+// browser. In the app this is immediately replaced by renderGraph().
 const exampleElements = [
-    // Containers
     { data: { id: "BaseDevice", label: "BaseDevice", kind: "Class" } },
     { data: { id: "Printer", label: "Printer", kind: "Class" } },
-
-    // Methods inside BaseDevice
     { data: { id: "BaseDevice.Init", label: "Init()", kind: "Method", parent: "BaseDevice" } },
-    { data: { id: "BaseDevice.Reset", label: "Reset()", kind: "Method", parent: "BaseDevice" } },
-
-    // Methods inside Printer
     { data: { id: "Printer.Print", label: "Print()", kind: "Method", parent: "Printer" } },
-
-    // Edges
     { data: { id: "e1", source: "Printer", target: "BaseDevice", kind: "Inherits" } },
     { data: { id: "e2", source: "Printer.Print", target: "BaseDevice.Init", kind: "Calls" } },
-    { data: { id: "e3", source: "Printer.Print", target: "BaseDevice.Reset", kind: "Calls" } },
 ];
+
+// Tracks the in-flight layout so a new render can cancel it (avoids racing fcose runs).
+let currentLayout = null;
 
 // ---- Cytoscape instance -----------------------------------------------------
 const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: exampleElements,
     style: cytoscapeStyle,
-    layout: { name: "cose", padding: 20, nodeDimensionsIncludeLabels: true },
-    wheelSensitivity: 0.2,
+    layout: LAYOUT,
 });
 
 // ---- Bridge: C# -> JS -------------------------------------------------------
-// Phase 1 entry point. C# calls this via ExecuteScriptAsync with {nodes, edges}.
+// C# calls this via ExecuteScriptAsync with { nodes, edges }.
 window.renderGraph = function (graph) {
     const elements = [];
     for (const n of graph.nodes) {
@@ -131,9 +145,24 @@ window.renderGraph = function (graph) {
     for (const e of graph.edges) {
         elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind } });
     }
+
     cy.elements().remove();
     cy.add(elements);
-    cy.layout({ name: "cose", padding: 20, nodeDimensionsIncludeLabels: true }).run();
+    cy.resize();
+
+    // Cancel a still-running layout before starting a new one.
+    if (currentLayout) {
+        currentLayout.stop();
+    }
+    currentLayout = cy.layout(LAYOUT);
+    currentLayout.run();
+};
+
+// Recompute size and re-frame without re-running the layout. C# calls this when the
+// Web View tab becomes visible again, so positions the user dragged are preserved.
+window.refitGraph = function () {
+    cy.resize();
+    cy.fit(undefined, 30);
 };
 
 // ---- User interaction -> host ----------------------------------------------

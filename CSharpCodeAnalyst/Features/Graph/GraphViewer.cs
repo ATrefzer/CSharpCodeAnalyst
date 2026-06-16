@@ -284,6 +284,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         }
 
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public void RemoveFromGraph(HashSet<string> idsToRemove)
@@ -302,18 +303,24 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         _presentationState.RemoveStates(idsToRemove);
 
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public void Collapse(string id)
     {
         _presentationState.SetCollapsedState(id, true);
         RefreshGraph();
+
+        // Collapsing changes the visible graph; notify observers (e.g. the web view)
+        // so they mirror the same expanded/collapsed state.
+        OnGraphChanged();
     }
 
     public void Expand(string id)
     {
         _presentationState.SetCollapsedState(id, false);
         RefreshGraph();
+        OnGraphChanged();
     }
 
     public bool IsCollapsed(string id)
