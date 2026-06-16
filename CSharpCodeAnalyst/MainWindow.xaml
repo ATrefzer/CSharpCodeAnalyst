@@ -12,6 +12,7 @@
                      xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
                      xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
                      xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
+                     xmlns:webGraph="clr-namespace:CSharpCodeAnalyst.Features.WebGraph"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -404,6 +405,10 @@
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
+                </TabItem>
+
+                <TabItem Header="Web View">
+                    <webGraph:WebGraphControl x:Name="WebGraphControl" />
                 </TabItem>
             </TabControl>
         </Grid>

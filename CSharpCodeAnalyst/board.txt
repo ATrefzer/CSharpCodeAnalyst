@@ -17,6 +17,11 @@ UNHANDLED CASES
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.
 
+- Improve heuristic call tracking with instance calls.
+
+- Jump to code from everywhere
+
+
 
 BUGS 
 ---------------------
