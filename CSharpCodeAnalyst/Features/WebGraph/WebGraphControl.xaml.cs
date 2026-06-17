@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
@@ -70,6 +71,20 @@ public partial class WebGraphControl : UserControl
         _viewer = viewer;
         _publisher = publisher;
         _viewer.GraphChanged += OnViewerGraphChanged;
+
+        // The hover-highlight mode is chosen in the ribbon; forward changes to JS,
+        // which does the actual (local, per-hover) highlighting.
+        _viewer.HighlightModeChanged += OnHighlightModeChanged;
+    }
+
+    private void OnHighlightModeChanged(HighlightMode mode)
+    {
+        Dispatcher.Invoke(() => PushHighlightMode(mode));
+    }
+
+    private void PushHighlightMode(HighlightMode mode)
+    {
+        _ = WebView.CoreWebView2?.ExecuteScriptAsync($"setHighlightMode('{mode}');");
     }
 
     private void OnViewerGraphChanged(CodeGraph.Graph.CodeGraph graph)
@@ -187,6 +202,11 @@ public partial class WebGraphControl : UserControl
             case "ready":
                 _isWebReady = true;
                 RenderCurrentGraph();
+                if (_viewer is not null)
+                {
+                    PushHighlightMode(_viewer.GetHighlightMode());
+                }
+
                 break;
 
             case "nodeClicked":

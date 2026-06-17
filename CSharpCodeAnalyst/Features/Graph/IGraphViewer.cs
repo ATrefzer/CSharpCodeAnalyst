@@ -41,6 +41,17 @@ public interface IGraphViewer
     void UpdateRenderOption(RenderOption renderOption);
     void SaveToSvg(FileStream stream);
     void SetHighlightMode(HighlightMode valueMode);
+
+    /// <summary>
+    ///     The currently selected hover-highlight mode (chosen in the ribbon).
+    ///     Lets a secondary view (the web graph) sync its local highlighting.
+    /// </summary>
+    HighlightMode GetHighlightMode();
+
+    /// <summary>
+    ///     Raised when the hover-highlight mode changes, so other views can follow.
+    /// </summary>
+    event Action<HighlightMode>? HighlightModeChanged;
     void ShowGlobalContextMenu();
 
     /// <summary>

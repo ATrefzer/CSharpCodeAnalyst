@@ -35,6 +35,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     private readonly IPublisher _publisher;
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
+    private HighlightMode _highlightMode = HighlightMode.EdgeHovered;
 
     private ClickController? _clickController;
 
@@ -179,8 +180,16 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         writer.Write();
     }
 
+    public HighlightMode GetHighlightMode()
+    {
+        return _highlightMode;
+    }
+
+    public event Action<HighlightMode>? HighlightModeChanged;
+
     public void SetHighlightMode(HighlightMode valueMode)
     {
+        _highlightMode = valueMode;
         ClearAllEdgeHighlighting();
 
         switch (valueMode)
@@ -198,6 +207,8 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
                 _activeHighlighting = new EdgeHoveredHighlighting();
                 break;
         }
+
+        HighlightModeChanged?.Invoke(valueMode);
     }
 
     public void SetQuickInfoFactory(IQuickInfoFactory factory)

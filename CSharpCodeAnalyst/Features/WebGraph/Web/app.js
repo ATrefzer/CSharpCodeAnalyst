@@ -110,6 +110,20 @@ const cytoscapeStyle = [
         selector: "edge[kind = 'Implements']",
         style: { "line-style": "dotted" },
     },
+    // Hover highlighting: emphasize the relevant set (no fading of the rest for now).
+    {
+        selector: "node.highlighted",
+        style: { "border-color": "#ff7f0e", "border-width": 3 },
+    },
+    {
+        selector: "edge.highlighted",
+        style: {
+            "line-color": "#ff7f0e",
+            "target-arrow-color": "#ff7f0e",
+            "width": 3,
+            "z-index": 20,
+        },
+    },
 ];
 
 // Small example so the page also renders something when opened standalone in a
@@ -166,6 +180,45 @@ window.refitGraph = function () {
     cy.resize();
     cy.fit(undefined, 30);
 };
+
+// ---- Hover highlighting (local; mode comes from the ribbon via C#) ----------
+// Mirrors the MSAGL highlight strategies, computed on Cytoscape's own (already
+// bundled / collapsed) topology. C# only tells us which mode is active.
+// Note: we only emphasize the relevant set; fading the rest is deferred until we
+// have a precise spec (fading compound nodes made inner-node labels unreadable).
+let highlightMode = "EdgeHovered";
+
+window.setHighlightMode = function (mode) {
+    highlightMode = mode;
+    clearHighlight();
+};
+
+function clearHighlight() {
+    cy.elements().removeClass("highlighted");
+}
+
+function applyHighlight(target) {
+    let hl = cy.collection();
+
+    if (highlightMode === "EdgeHovered") {
+        if (target.isEdge()) {
+            hl = target.union(target.connectedNodes());
+        }
+    } else if (highlightMode === "OutgoingEdgesChildrenAndSelf") {
+        if (target.isNode()) {
+            // The node plus its (visible) nested children, and their outgoing edges.
+            const sources = target.descendants().union(target);
+            const edges = sources.connectedEdges("edge").filter(e => sources.contains(e.source()));
+            hl = edges.union(edges.connectedNodes());
+        }
+    }
+
+    clearHighlight();
+    hl.addClass("highlighted");
+}
+
+cy.on("mouseover", "node, edge", evt => applyHighlight(evt.target));
+cy.on("mouseout", "node, edge", clearHighlight);
 
 // ---- User interaction -> host ----------------------------------------------
 cy.on("tap", "node", evt => {
