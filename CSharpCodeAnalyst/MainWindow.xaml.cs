@@ -102,7 +102,7 @@ public partial class MainWindow
         ExplorationControl.SetViewer(explorationGraphViewer, publisher);
 
         // The web view mirrors the Code Explorer: same viewer, same content.
-        WebGraphView.SetViewer(explorationGraphViewer);
+        WebGraphView.SetViewer(explorationGraphViewer, publisher);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

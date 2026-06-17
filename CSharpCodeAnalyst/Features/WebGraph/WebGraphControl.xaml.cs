@@ -1,21 +1,32 @@
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Features.Graph;
+using CSharpCodeAnalyst.Shared;
+using CSharpCodeAnalyst.Shared.Contracts;
+using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Web.WebView2.Core;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
-///     Phase 1: hosts a WebView2 that renders the code graph with Cytoscape.js.
+///     Hosts a WebView2 that renders the code graph with Cytoscape.js.
 ///     The data source is a mirror of the Code Explorer: it listens to the same
 ///     <see cref="IGraphViewer.GraphChanged" /> and serializes <see cref="IGraphViewer.GetGraph" />.
+///     User interactions in the web view are translated back into existing MessageBus
+///     messages (e.g. a node click fills the Info panel), so no new UI is needed.
 ///     Assets are served strictly offline from the output directory via a virtual host.
 /// </summary>
 public partial class WebGraphControl : UserControl
 {
+    private static readonly JsonSerializerOptions MessageJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     // Virtual host. The page is reachable under https://csharp-code-analyst.local/index.html
     private const string VirtualHost = "csharp-code-analyst.local";
 
@@ -31,6 +42,7 @@ public partial class WebGraphControl : UserControl
     private readonly DispatcherTimer _renderDebounce;
 
     private IGraphViewer? _viewer;
+    private IPublisher? _publisher;
 
     public WebGraphControl()
     {
@@ -53,9 +65,10 @@ public partial class WebGraphControl : UserControl
     ///     Wires the web view to the same graph viewer the Code Explorer uses, so it
     ///     mirrors its content. Called once during application start-up.
     /// </summary>
-    public void SetViewer(IGraphViewer viewer)
+    public void SetViewer(IGraphViewer viewer, IPublisher publisher)
     {
         _viewer = viewer;
+        _publisher = publisher;
         _viewer.GraphChanged += OnViewerGraphChanged;
     }
 
@@ -153,15 +166,72 @@ public partial class WebGraphControl : UserControl
 
     private void OnWebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
-        var json = e.WebMessageAsJson;
-        Debug.WriteLine($"[WebGraph] message from JS: {json}");
-
-        // We only need a coarse check here; a full message model comes in Phase 2.
-        if (json.Contains("\"ready\""))
+        HostMessage? message;
+        try
         {
-            _isWebReady = true;
-            RenderCurrentGraph();
+            message = JsonSerializer.Deserialize<HostMessage>(e.WebMessageAsJson, MessageJsonOptions);
         }
+        catch (JsonException ex)
+        {
+            Debug.WriteLine($"[WebGraph] could not parse message '{e.WebMessageAsJson}': {ex.Message}");
+            return;
+        }
+
+        if (message?.Type is null)
+        {
+            return;
+        }
+
+        switch (message.Type)
+        {
+            case "ready":
+                _isWebReady = true;
+                RenderCurrentGraph();
+                break;
+
+            case "nodeClicked":
+                PublishQuickInfo(message.Id);
+                break;
+
+            // "nodeDblClicked" -> expand/collapse comes in Phase 3.
+        }
+    }
+
+    /// <summary>
+    ///     Translates a web-side node click into the existing Info panel update, so the
+    ///     web view reuses the same panel as the MSAGL view without any new UI.
+    /// </summary>
+    private void PublishQuickInfo(string? id)
+    {
+        if (id is null || _viewer is null || _publisher is null)
+        {
+            return;
+        }
+
+        var element = _viewer.GetGraph().TryGetCodeElement(id);
+        if (element is null)
+        {
+            return;
+        }
+
+        var quickInfo = new QuickInfo
+        {
+            Title = element.ElementType.ToString(),
+            Lines =
+            [
+                new ContextInfoLine { Label = "Name:", Value = element.Name },
+                new ContextInfoLine { Label = "Full name:", Value = element.FullName }
+            ],
+            SourceLocations = element.SourceLocations
+        };
+
+        _publisher.Publish(new QuickInfoUpdateRequest([quickInfo]));
+    }
+
+    private sealed class HostMessage
+    {
+        public string? Type { get; set; }
+        public string? Id { get; set; }
     }
 
     private void RenderCurrentGraph()
