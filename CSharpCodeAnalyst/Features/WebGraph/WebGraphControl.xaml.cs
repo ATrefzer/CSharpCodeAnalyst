@@ -45,6 +45,10 @@ public partial class WebGraphControl : UserControl
     private IGraphViewer? _viewer;
     private IPublisher? _publisher;
 
+    // Canonical selection of the web view, fed by the JS side. Consumed later by the
+    // context menu's global commands and (at cutover) the toolbar buttons.
+    private readonly HashSet<string> _selectedIds = [];
+
     public WebGraphControl()
     {
         InitializeComponent();
@@ -225,6 +229,10 @@ public partial class WebGraphControl : UserControl
                 // Clicking empty canvas clears the Info panel (same as the MSAGL view).
                 _publisher?.Publish(new ClearQuickInfoRequest());
                 break;
+
+            case "selectionChanged":
+                UpdateSelection(message.Ids);
+                break;
         }
     }
 
@@ -300,12 +308,24 @@ public partial class WebGraphControl : UserControl
         _publisher.Publish(new QuickInfoUpdateRequest(factory.CreateForRelationships(relationships)));
     }
 
+    private void UpdateSelection(List<string>? ids)
+    {
+        _selectedIds.Clear();
+        if (ids is not null)
+        {
+            _selectedIds.UnionWith(ids);
+        }
+
+        Debug.WriteLine($"[WebGraph] selection: {_selectedIds.Count} node(s)");
+    }
+
     private sealed class HostMessage
     {
         public string? Type { get; set; }
         public string? Id { get; set; }
         public string? Source { get; set; }
         public string? Target { get; set; }
+        public List<string>? Ids { get; set; }
     }
 
     private void RenderCurrentGraph()
@@ -323,6 +343,9 @@ public partial class WebGraphControl : UserControl
 
         _renderDebounce.Stop();
         _pendingRender = false;
+
+        // A re-render rebuilds all elements, so any selection in the web view is gone.
+        _selectedIds.Clear();
 
         var json = WebGraphBuilder.BuildJson(_viewer.GetGraph(), _viewer.IsCollapsed);
         _ = core.ExecuteScriptAsync($"renderGraph({json});");

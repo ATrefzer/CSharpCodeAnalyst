@@ -275,5 +275,22 @@ cy.on("tap", evt => {
     }
 });
 
+// ---- Selection -> host ------------------------------------------------------
+// Native Cytoscape multi-selection (click selects one, box-drag selects many).
+// We report the full selected node set; C# keeps it as the canonical selection,
+// which the context menu (and later the toolbar buttons) will consume.
+let selectionTimer = null;
+
+function reportSelection() {
+    // Coalesce the burst of per-element events from a box selection into one message.
+    clearTimeout(selectionTimer);
+    selectionTimer = setTimeout(() => {
+        const ids = cy.$("node:selected").map(n => n.id());
+        postToHost({ type: "selectionChanged", ids: ids });
+    }, 0);
+}
+
+cy.on("select unselect", "node", reportSelection);
+
 // Tell the host we are ready to receive renderGraph() calls.
 postToHost({ type: "ready" });
