@@ -141,6 +141,21 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         _globalCommands.Add(command);
     }
 
+    public IReadOnlyList<ICodeElementContextCommand> GetNodeContextCommands()
+    {
+        return _nodeCommands;
+    }
+
+    public IReadOnlyList<IRelationshipContextCommand> GetEdgeContextCommands()
+    {
+        return _edgeCommands;
+    }
+
+    public IReadOnlyList<IGlobalCommand> GetGlobalContextCommands()
+    {
+        return _globalCommands;
+    }
+
     public void Layout()
     {
         //_msaglViewer?.SetInitialTransform();

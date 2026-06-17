@@ -19,6 +19,16 @@ public interface IGraphViewer
     void AddGlobalCommand(IGlobalCommand command);
 
     /// <summary>
+    ///     The registered context commands. Exposed so a secondary view (the web graph)
+    ///     can build the same context menus from the same command objects.
+    /// </summary>
+    IReadOnlyList<ICodeElementContextCommand> GetNodeContextCommands();
+
+    IReadOnlyList<IRelationshipContextCommand> GetEdgeContextCommands();
+
+    IReadOnlyList<IGlobalCommand> GetGlobalContextCommands();
+
+    /// <summary>
     ///     Clear the internal code graph. The graph is empty after this.
     /// </summary>
     void Clear();

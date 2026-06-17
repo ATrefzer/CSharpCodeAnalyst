@@ -275,6 +275,22 @@ cy.on("tap", evt => {
     }
 });
 
+// ---- Context menu (right-click) -> host -------------------------------------
+// C# builds the actual WPF menu at the cursor from the existing command objects.
+cy.on("cxttap", "node", evt => {
+    postToHost({ type: "contextMenu", kind: "node", id: evt.target.id() });
+});
+
+cy.on("cxttap", "edge", evt => {
+    postToHost({ type: "contextMenu", kind: "edge", source: evt.target.data("source"), target: evt.target.data("target") });
+});
+
+cy.on("cxttap", evt => {
+    if (evt.target === cy) {
+        postToHost({ type: "contextMenu", kind: "background" });
+    }
+});
+
 // ---- Selection -> host ------------------------------------------------------
 // Native Cytoscape multi-selection (click selects one, box-drag selects many).
 // We report the full selected node set; C# keeps it as the canonical selection,

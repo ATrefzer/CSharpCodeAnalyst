@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
@@ -233,6 +234,10 @@ public partial class WebGraphControl : UserControl
             case "selectionChanged":
                 UpdateSelection(message.Ids);
                 break;
+
+            case "contextMenu":
+                ShowContextMenu(message);
+                break;
         }
     }
 
@@ -315,13 +320,74 @@ public partial class WebGraphControl : UserControl
         {
             _selectedIds.UnionWith(ids);
         }
+    }
 
-        Debug.WriteLine($"[WebGraph] selection: {_selectedIds.Count} node(s)");
+    /// <summary>
+    ///     Builds the matching WPF context menu (reusing the existing command objects)
+    ///     and opens it at the cursor. The commands act on the shared graph, so any change
+    ///     flows back via GraphChanged and re-renders both views.
+    /// </summary>
+    private void ShowContextMenu(HostMessage message)
+    {
+        if (_viewer is null)
+        {
+            return;
+        }
+
+        var graph = _viewer.GetGraph();
+
+        var menu = message.Kind switch
+        {
+            "node" => BuildNodeMenu(graph, message.Id),
+            "edge" => BuildEdgeMenu(graph, message.Source, message.Target),
+            "background" => WebContextMenuFactory.BuildForGlobal(
+                _viewer.GetGlobalContextCommands(), GetSelectedElements(graph)),
+            _ => null
+        };
+
+        if (menu is null || menu.Items.Count == 0)
+        {
+            return;
+        }
+
+        menu.PlacementTarget = WebView;
+        menu.Placement = PlacementMode.MousePoint;
+        menu.IsOpen = true;
+    }
+
+    private ContextMenu? BuildNodeMenu(CodeGraph.Graph.CodeGraph graph, string? id)
+    {
+        var element = id is null ? null : graph.TryGetCodeElement(id);
+        return element is null
+            ? null
+            : WebContextMenuFactory.BuildForNode(_viewer!.GetNodeContextCommands(), element);
+    }
+
+    private ContextMenu? BuildEdgeMenu(CodeGraph.Graph.CodeGraph graph, string? sourceId, string? targetId)
+    {
+        if (sourceId is null || targetId is null)
+        {
+            return null;
+        }
+
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _viewer!.IsCollapsed, sourceId, targetId);
+        return relationships.Count == 0
+            ? null
+            : WebContextMenuFactory.BuildForEdge(_viewer.GetEdgeContextCommands(), sourceId, targetId, relationships);
+    }
+
+    private List<CodeGraph.Graph.CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph)
+    {
+        return _selectedIds
+            .Select(graph.TryGetCodeElement)
+            .OfType<CodeGraph.Graph.CodeElement>()
+            .ToList();
     }
 
     private sealed class HostMessage
     {
         public string? Type { get; set; }
+        public string? Kind { get; set; }
         public string? Id { get; set; }
         public string? Source { get; set; }
         public string? Target { get; set; }
