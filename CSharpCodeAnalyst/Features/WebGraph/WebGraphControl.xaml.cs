@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Features.Graph;
-using CSharpCodeAnalyst.Shared;
+using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Web.WebView2.Core;
@@ -190,7 +190,16 @@ public partial class WebGraphControl : UserControl
                 break;
 
             case "nodeClicked":
-                PublishQuickInfo(message.Id);
+                PublishNodeInfo(message.Id);
+                break;
+
+            case "edgeClicked":
+                PublishEdgeInfo(message.Source, message.Target);
+                break;
+
+            case "backgroundClicked":
+                // Clicking empty canvas clears the Info panel (same as the MSAGL view).
+                _publisher?.Publish(new ClearQuickInfoRequest());
                 break;
 
             // "nodeDblClicked" -> expand/collapse comes in Phase 3.
@@ -201,37 +210,52 @@ public partial class WebGraphControl : UserControl
     ///     Translates a web-side node click into the existing Info panel update, so the
     ///     web view reuses the same panel as the MSAGL view without any new UI.
     /// </summary>
-    private void PublishQuickInfo(string? id)
+    private void PublishNodeInfo(string? id)
     {
         if (id is null || _viewer is null || _publisher is null)
         {
             return;
         }
 
-        var element = _viewer.GetGraph().TryGetCodeElement(id);
+        var graph = _viewer.GetGraph();
+        var element = graph.TryGetCodeElement(id);
         if (element is null)
         {
             return;
         }
 
-        var quickInfo = new QuickInfo
-        {
-            Title = element.ElementType.ToString(),
-            Lines =
-            [
-                new ContextInfoLine { Label = "Name:", Value = element.Name },
-                new ContextInfoLine { Label = "Full name:", Value = element.FullName }
-            ],
-            SourceLocations = element.SourceLocations
-        };
+        var factory = new QuickInfoFactory(graph);
+        _publisher.Publish(new QuickInfoUpdateRequest([factory.CreateForCodeElement(element)]));
+    }
 
-        _publisher.Publish(new QuickInfoUpdateRequest([quickInfo]));
+    /// <summary>
+    ///     A bundled edge stands for all relationships between the two nodes; clicking it
+    ///     shows the full list in the Info panel.
+    /// </summary>
+    private void PublishEdgeInfo(string? sourceId, string? targetId)
+    {
+        if (sourceId is null || targetId is null || _viewer is null || _publisher is null)
+        {
+            return;
+        }
+
+        var graph = _viewer.GetGraph();
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _viewer.IsCollapsed, sourceId, targetId);
+        if (relationships.Count == 0)
+        {
+            return;
+        }
+
+        var factory = new QuickInfoFactory(graph);
+        _publisher.Publish(new QuickInfoUpdateRequest(factory.CreateForRelationships(relationships)));
     }
 
     private sealed class HostMessage
     {
         public string? Type { get; set; }
         public string? Id { get; set; }
+        public string? Source { get; set; }
+        public string? Target { get; set; }
     }
 
     private void RenderCurrentGraph()

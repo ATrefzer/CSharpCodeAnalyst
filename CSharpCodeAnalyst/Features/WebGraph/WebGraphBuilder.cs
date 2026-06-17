@@ -32,14 +32,44 @@ internal static class WebGraphBuilder
         return JsonSerializer.Serialize(dto, JsonOptions);
     }
 
+    /// <summary>
+    ///     Returns the original relationships behind the (possibly bundled) edge between
+    ///     two visible nodes, so a click on that edge can be explained in the Info panel.
+    /// </summary>
+    public static List<Relationship> GetBundledRelationships(CodeGraph.Graph.CodeGraph graph,
+        Func<string, bool> isCollapsed, string sourceId, string targetId)
+    {
+        var visible = ComputeVisibleSet(graph, isCollapsed);
+        var result = new List<Relationship>();
+
+        foreach (var relationship in graph.GetAllRelationships())
+        {
+            if (relationship.Type == RelationshipType.Containment)
+            {
+                continue;
+            }
+
+            if (!graph.Nodes.ContainsKey(relationship.SourceId) ||
+                !graph.Nodes.ContainsKey(relationship.TargetId))
+            {
+                continue;
+            }
+
+            var source = NearestVisibleOrSelf(relationship.SourceId, graph, visible);
+            var target = NearestVisibleOrSelf(relationship.TargetId, graph, visible);
+            if (source == sourceId && target == targetId)
+            {
+                result.Add(relationship);
+            }
+        }
+
+        return result;
+    }
+
     private static WebGraphDto Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed)
     {
         // 1. Visible node set: walk from the roots, stop descending at collapsed nodes.
-        var visible = new HashSet<string>();
-        foreach (var root in graph.Nodes.Values.Where(n => n.Parent is null))
-        {
-            CollectVisible(root, isCollapsed, visible);
-        }
+        var visible = ComputeVisibleSet(graph, isCollapsed);
 
         var dto = new WebGraphDto();
         foreach (var id in visible)
@@ -112,6 +142,18 @@ internal static class WebGraphBuilder
         }
 
         return dto;
+    }
+
+    private static HashSet<string> ComputeVisibleSet(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed)
+    {
+        // Walk from the roots, stop descending at collapsed nodes.
+        var visible = new HashSet<string>();
+        foreach (var root in graph.Nodes.Values.Where(n => n.Parent is null))
+        {
+            CollectVisible(root, isCollapsed, visible);
+        }
+
+        return visible;
     }
 
     private static void CollectVisible(CodeElement node, Func<string, bool> isCollapsed, HashSet<string> visible)

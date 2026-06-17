@@ -75,27 +75,26 @@ const cytoscapeStyle = [
         selector: "node:selected",
         style: { "border-width": 3, "border-color": "#ff7f0e" },
     },
-    // Default edges are a quiet gray so they recede; only call-like edges are blue,
-    // which keeps "blue arrow = a call" instantly readable.
+    // Edges are plain black. A bundled edge (count > 1) shows the number of underlying
+    // relationships as a label, mirroring how the WPF/MSAGL view marks edge strength.
     {
         selector: "edge",
         style: {
             "width": 1.5,
-            "line-color": "#999999",
-            "target-arrow-color": "#999999",
+            "line-color": "#000000",
+            "target-arrow-color": "#000000",
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
+            "label": ele => ele.data("count") > 1 ? ele.data("count") : "",
+            "font-size": 10,
+            "color": "#000000",
+            "text-background-color": "#ffffff",
+            "text-background-opacity": 1,
+            "text-background-padding": 2,
         },
     },
     {
-        selector: "edge[kind = 'Calls'], edge[kind = 'Invokes']",
-        style: {
-            "line-color": "#2b7fd6",
-            "target-arrow-color": "#2b7fd6",
-        },
-    },
-    {
-        // Structural edges recede: dashed / open arrow.
+        // Structure still recedes via line style (color stays black).
         selector: "edge[kind = 'Inherits']",
         style: {
             "line-style": "dashed",
@@ -104,9 +103,7 @@ const cytoscapeStyle = [
     },
     {
         selector: "edge[kind = 'Implements']",
-        style: {
-            "line-style": "dotted",
-        },
+        style: { "line-style": "dotted" },
     },
 ];
 
@@ -143,7 +140,7 @@ window.renderGraph = function (graph) {
         });
     }
     for (const e of graph.edges) {
-        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind } });
+        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count } });
     }
 
     cy.elements().remove();
@@ -170,8 +167,19 @@ cy.on("tap", "node", evt => {
     postToHost({ type: "nodeClicked", id: evt.target.id() });
 });
 
+cy.on("tap", "edge", evt => {
+    postToHost({ type: "edgeClicked", source: evt.target.data("source"), target: evt.target.data("target") });
+});
+
 cy.on("dbltap", "node", evt => {
     postToHost({ type: "nodeDblClicked", id: evt.target.id() });
+});
+
+// A tap on empty canvas (target is the core, not a node/edge) clears the Info panel.
+cy.on("tap", evt => {
+    if (evt.target === cy) {
+        postToHost({ type: "backgroundClicked" });
+    }
 });
 
 // Tell the host we are ready to receive renderGraph() calls.

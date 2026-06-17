@@ -47,6 +47,24 @@ internal class QuickInfoFactory(CodeGraph.Graph.CodeGraph graph) : IQuickInfoFac
         return DefaultInfo;
     }
 
+    /// <summary>
+    ///     Builds quick info straight from a code element (used by the web view, which
+    ///     has an element id rather than an MSAGL viewer object).
+    /// </summary>
+    public QuickInfo CreateForCodeElement(CodeElement codeElement)
+    {
+        return CreateNodeQuickInfo(codeElement);
+    }
+
+    /// <summary>
+    ///     Builds quick info for one or more relationships (a single edge, or the list
+    ///     of relationships behind a bundled edge).
+    /// </summary>
+    public List<QuickInfo> CreateForRelationships(List<Relationship> relationships)
+    {
+        return CreateEdgeQuickInfos(relationships);
+    }
+
     private QuickInfo CreateNodeQuickInfo(CodeElement codeElement)
     {
         var contextInfo = new QuickInfo
