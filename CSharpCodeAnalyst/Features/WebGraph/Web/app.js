@@ -72,6 +72,11 @@ const cytoscapeStyle = [
         style: { "background-color": "#9e9e9e" },
     },
     {
+        // Collapsed container drawn as a leaf: bold + thicker border signals "expandable".
+        selector: "node[?collapsed]",
+        style: { "font-weight": "bold", "border-width": 2, "border-color": "#555555" },
+    },
+    {
         selector: "node:selected",
         style: { "border-width": 3, "border-color": "#ff7f0e" },
     },
@@ -135,7 +140,7 @@ window.renderGraph = function (graph) {
     const elements = [];
     for (const n of graph.nodes) {
         elements.push({
-            data: { id: n.id, label: n.label, kind: n.kind, parent: n.parent || undefined },
+            data: { id: n.id, label: n.label, kind: n.kind, parent: n.parent || undefined, collapsed: n.collapsed },
             classes: n.external ? "external" : "",
         });
     }

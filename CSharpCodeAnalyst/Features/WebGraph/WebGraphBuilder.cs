@@ -89,7 +89,10 @@ internal static class WebGraphBuilder
                 Kind = element.ElementType.ToString(),
                 Parent = parentId,
                 External = element.IsExternal,
-                Color = ToHexColor(element)
+                Color = ToHexColor(element),
+                // A collapsed container is drawn as a leaf here; flag it so the UI can
+                // mark it as expandable (like the bold label in the MSAGL view).
+                Collapsed = element.Children.Count > 0 && isCollapsed(element.Id)
             });
         }
 
@@ -208,6 +211,7 @@ internal static class WebGraphBuilder
         public string? Parent { get; init; }
         public bool External { get; init; }
         public required string Color { get; init; }
+        public bool Collapsed { get; init; }
     }
 
     private sealed class WebEdgeDto

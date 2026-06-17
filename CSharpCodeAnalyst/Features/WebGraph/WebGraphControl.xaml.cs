@@ -197,12 +197,42 @@ public partial class WebGraphControl : UserControl
                 PublishEdgeInfo(message.Source, message.Target);
                 break;
 
+            case "nodeDblClicked":
+                ToggleCollapse(message.Id);
+                break;
+
             case "backgroundClicked":
                 // Clicking empty canvas clears the Info panel (same as the MSAGL view).
                 _publisher?.Publish(new ClearQuickInfoRequest());
                 break;
+        }
+    }
 
-            // "nodeDblClicked" -> expand/collapse comes in Phase 3.
+    /// <summary>
+    ///     Double-click expands or collapses a container. We don't own the state: we ask
+    ///     the shared viewer to toggle, it raises GraphChanged, and both views re-render.
+    /// </summary>
+    private void ToggleCollapse(string? id)
+    {
+        if (id is null || _viewer is null)
+        {
+            return;
+        }
+
+        var element = _viewer.GetGraph().TryGetCodeElement(id);
+        if (element is null || element.Children.Count == 0)
+        {
+            // Leaf nodes have nothing to expand or collapse.
+            return;
+        }
+
+        if (_viewer.IsCollapsed(id))
+        {
+            _viewer.Expand(id);
+        }
+        else
+        {
+            _viewer.Collapse(id);
         }
     }
 
