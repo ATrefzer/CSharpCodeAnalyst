@@ -211,10 +211,45 @@ function applyHighlight(target) {
             const edges = sources.connectedEdges("edge").filter(e => sources.contains(e.source()));
             hl = edges.union(edges.connectedNodes());
         }
+    } else if (highlightMode === "ShortestNonSelfCircuit") {
+        if (target.isNode()) {
+            hl = shortestNonSelfCircuit(target);
+        }
     }
 
     clearHighlight();
     hl.addClass("highlighted");
+}
+
+// Shortest cycle through `node` back to itself: leave via one outgoing edge, then take
+// the shortest directed path from that neighbor back to the node; pick the smallest over
+// all outgoing edges. Mirrors the MSAGL HighlightShortestNonSelfCircuit strategy.
+function shortestNonSelfCircuit(node) {
+    let best = cy.collection();
+    let bestLength = Infinity;
+
+    node.outgoers("edge").forEach(startEdge => {
+        const neighbor = startEdge.target();
+        if (neighbor.same(node)) {
+            return; // ignore self edges; we want a real circuit
+        }
+
+        // dijkstra with default weight 1 == BFS shortest path (in edge count).
+        const search = cy.elements().dijkstra({ root: neighbor, directed: true });
+        const backDistance = search.distanceTo(node);
+        if (backDistance === Infinity) {
+            return; // no way back through this neighbor
+        }
+
+        const totalLength = backDistance + 1; // + the start edge
+        if (totalLength < bestLength) {
+            bestLength = totalLength;
+            // pathTo returns the nodes and edges of the way back; add the start edge.
+            best = search.pathTo(node).union(startEdge);
+        }
+    });
+
+    return best;
 }
 
 cy.on("mouseover", "node, edge", evt => applyHighlight(evt.target));
