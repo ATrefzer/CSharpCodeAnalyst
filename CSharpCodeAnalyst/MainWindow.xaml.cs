@@ -97,12 +97,12 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer, IPublisher publisher)
+    public void SetViewer(GraphViewer explorationGraphViewer, GraphViewState graphViewState, IPublisher publisher)
     {
         ExplorationControl.SetViewer(explorationGraphViewer, publisher);
 
-        // The web view mirrors the Code Explorer: same viewer, same content.
-        WebGraphView.SetViewer(explorationGraphViewer, publisher);
+        // The web view observes the same shared model directly (no MSAGL dependency).
+        WebGraphView.SetViewer(graphViewState, publisher);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)

@@ -103,11 +103,13 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit);
+        // The shared, render-agnostic model. Both views (MSAGL and web) observe and drive it.
+        var graphViewState = new GraphViewState();
+        var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit, graphViewState);
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer, messaging);
+        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);

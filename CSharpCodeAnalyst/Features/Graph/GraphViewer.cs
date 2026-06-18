@@ -36,7 +36,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     ///     state operations are delegated to <see cref="_state" />, and the private members
     ///     below are read-only forwarders so the existing rendering code keeps working.
     /// </summary>
-    private readonly GraphViewState _state = new();
+    private readonly GraphViewState _state;
 
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
 
@@ -68,10 +68,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     ///     Relationships of the same type (i.e a method Calls another multiple times) are handled
     ///     in the parser. In this case the relationship holds all source references.
     /// </summary>
-    public GraphViewer(IPublisher publisher, int settings)
+    public GraphViewer(IPublisher publisher, int settings, GraphViewState state)
     {
         _publisher = publisher;
         _maxElementWarningLimit = settings;
+        _state = state;
 
         // GraphViewer renders and reacts to the shared model.
         _state.Changed += OnStateChanged;

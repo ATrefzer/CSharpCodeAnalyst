@@ -16,10 +16,10 @@ namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
 ///     Hosts a WebView2 that renders the code graph with Cytoscape.js.
-///     The data source is a mirror of the Code Explorer: it listens to the same
-///     <see cref="IGraphViewer.GraphChanged" /> and serializes <see cref="IGraphViewer.GetGraph" />.
-///     User interactions in the web view are translated back into existing MessageBus
-///     messages (e.g. a node click fills the Info panel), so no new UI is needed.
+///     It is a render adapter over the shared <see cref="GraphViewState" />: it observes
+///     <see cref="GraphViewState.Changed" />, serializes the model's graph, and drives the
+///     model back (expand/collapse, …). User interactions are translated into existing
+///     MessageBus messages (e.g. a node click fills the Info panel), so no new UI is needed.
 ///     Assets are served strictly offline from the output directory via a virtual host.
 /// </summary>
 public partial class WebGraphControl : UserControl
@@ -43,7 +43,7 @@ public partial class WebGraphControl : UserControl
     // Coalesces bursts of GraphChanged events into a single (expensive) re-layout.
     private readonly DispatcherTimer _renderDebounce;
 
-    private IGraphViewer? _viewer;
+    private GraphViewState? _state;
     private IPublisher? _publisher;
 
     // Canonical selection of the web view, fed by the JS side. Consumed later by the
@@ -68,18 +68,17 @@ public partial class WebGraphControl : UserControl
     }
 
     /// <summary>
-    ///     Wires the web view to the same graph viewer the Code Explorer uses, so it
-    ///     mirrors its content. Called once during application start-up.
+    ///     Wires the web view to the shared model both views use. Called once at start-up.
     /// </summary>
-    public void SetViewer(IGraphViewer viewer, IPublisher publisher)
+    public void SetViewer(GraphViewState state, IPublisher publisher)
     {
-        _viewer = viewer;
+        _state = state;
         _publisher = publisher;
-        _viewer.GraphChanged += OnViewerGraphChanged;
+        _state.Changed += OnStateChanged;
 
         // The hover-highlight mode is chosen in the ribbon; forward changes to JS,
         // which does the actual (local, per-hover) highlighting.
-        _viewer.HighlightModeChanged += OnHighlightModeChanged;
+        _state.HighlightModeChanged += OnHighlightModeChanged;
     }
 
     private void OnHighlightModeChanged(HighlightMode mode)
@@ -92,9 +91,9 @@ public partial class WebGraphControl : UserControl
         _ = WebView.CoreWebView2?.ExecuteScriptAsync($"setHighlightMode('{mode}');");
     }
 
-    private void OnViewerGraphChanged(CodeGraph.Graph.CodeGraph graph)
+    private void OnStateChanged()
     {
-        // GraphChanged is raised on the UI thread, but marshal defensively.
+        // Changed is raised on the UI thread, but marshal defensively.
         Dispatcher.Invoke(() =>
         {
             if (IsVisible)
@@ -207,9 +206,9 @@ public partial class WebGraphControl : UserControl
             case "ready":
                 _isWebReady = true;
                 RenderCurrentGraph();
-                if (_viewer is not null)
+                if (_state is not null)
                 {
-                    PushHighlightMode(_viewer.GetHighlightMode());
+                    PushHighlightMode(_state.HighlightMode);
                 }
 
                 break;
@@ -243,29 +242,29 @@ public partial class WebGraphControl : UserControl
 
     /// <summary>
     ///     Double-click expands or collapses a container. We don't own the state: we ask
-    ///     the shared viewer to toggle, it raises GraphChanged, and both views re-render.
+    ///     the shared model to toggle, it raises Changed, and both views re-render.
     /// </summary>
     private void ToggleCollapse(string? id)
     {
-        if (id is null || _viewer is null)
+        if (id is null || _state is null)
         {
             return;
         }
 
-        var element = _viewer.GetGraph().TryGetCodeElement(id);
+        var element = _state.CodeGraph.TryGetCodeElement(id);
         if (element is null || element.Children.Count == 0)
         {
             // Leaf nodes have nothing to expand or collapse.
             return;
         }
 
-        if (_viewer.IsCollapsed(id))
+        if (_state.IsCollapsed(id))
         {
-            _viewer.Expand(id);
+            _state.Expand(id);
         }
         else
         {
-            _viewer.Collapse(id);
+            _state.Collapse(id);
         }
     }
 
@@ -275,12 +274,12 @@ public partial class WebGraphControl : UserControl
     /// </summary>
     private void PublishNodeInfo(string? id)
     {
-        if (id is null || _viewer is null || _publisher is null)
+        if (id is null || _state is null || _publisher is null)
         {
             return;
         }
 
-        var graph = _viewer.GetGraph();
+        var graph = _state.CodeGraph;
         var element = graph.TryGetCodeElement(id);
         if (element is null)
         {
@@ -297,13 +296,13 @@ public partial class WebGraphControl : UserControl
     /// </summary>
     private void PublishEdgeInfo(string? sourceId, string? targetId)
     {
-        if (sourceId is null || targetId is null || _viewer is null || _publisher is null)
+        if (sourceId is null || targetId is null || _state is null || _publisher is null)
         {
             return;
         }
 
-        var graph = _viewer.GetGraph();
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _viewer.IsCollapsed, sourceId, targetId);
+        var graph = _state.CodeGraph;
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state.IsCollapsed, sourceId, targetId);
         if (relationships.Count == 0)
         {
             return;
@@ -329,19 +328,19 @@ public partial class WebGraphControl : UserControl
     /// </summary>
     private void ShowContextMenu(HostMessage message)
     {
-        if (_viewer is null)
+        if (_state is null)
         {
             return;
         }
 
-        var graph = _viewer.GetGraph();
+        var graph = _state.CodeGraph;
 
         var menu = message.Kind switch
         {
             "node" => BuildNodeMenu(graph, message.Id),
             "edge" => BuildEdgeMenu(graph, message.Source, message.Target),
             "background" => WebContextMenuFactory.BuildForGlobal(
-                _viewer.GetGlobalContextCommands(), GetSelectedElements(graph)),
+                _state.GlobalCommands, GetSelectedElements(graph)),
             _ => null
         };
 
@@ -360,7 +359,7 @@ public partial class WebGraphControl : UserControl
         var element = id is null ? null : graph.TryGetCodeElement(id);
         return element is null
             ? null
-            : WebContextMenuFactory.BuildForNode(_viewer!.GetNodeContextCommands(), element);
+            : WebContextMenuFactory.BuildForNode(_state!.NodeCommands, element);
     }
 
     private ContextMenu? BuildEdgeMenu(CodeGraph.Graph.CodeGraph graph, string? sourceId, string? targetId)
@@ -370,10 +369,10 @@ public partial class WebGraphControl : UserControl
             return null;
         }
 
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _viewer!.IsCollapsed, sourceId, targetId);
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state!.IsCollapsed, sourceId, targetId);
         return relationships.Count == 0
             ? null
-            : WebContextMenuFactory.BuildForEdge(_viewer.GetEdgeContextCommands(), sourceId, targetId, relationships);
+            : WebContextMenuFactory.BuildForEdge(_state.EdgeCommands, sourceId, targetId, relationships);
     }
 
     private List<CodeGraph.Graph.CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph)
@@ -396,7 +395,7 @@ public partial class WebGraphControl : UserControl
 
     private void RenderCurrentGraph()
     {
-        if (!_isWebReady || _viewer is null)
+        if (!_isWebReady || _state is null)
         {
             return;
         }
@@ -413,7 +412,7 @@ public partial class WebGraphControl : UserControl
         // A re-render rebuilds all elements, so any selection in the web view is gone.
         _selectedIds.Clear();
 
-        var json = WebGraphBuilder.BuildJson(_viewer.GetGraph(), _viewer.IsCollapsed);
+        var json = WebGraphBuilder.BuildJson(_state.CodeGraph, _state.IsCollapsed);
         _ = core.ExecuteScriptAsync($"renderGraph({json});");
     }
 }
