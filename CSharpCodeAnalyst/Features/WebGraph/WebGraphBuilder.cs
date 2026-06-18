@@ -22,9 +22,9 @@ internal static class WebGraphBuilder
     ///     Children of a collapsed element are not emitted, and edges into them are
     ///     rerouted to the collapsed container (same idea as MsaglHierarchicalBuilder).
     /// </param>
-    public static string BuildJson(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed)
+    public static string BuildJson(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow)
     {
-        var dto = Build(graph, isCollapsed);
+        var dto = Build(graph, isCollapsed, showInformationFlow);
 
         // System.Text.Json's default encoder already escapes characters that would be
         // unsafe inside a <script> / JS string literal (e.g. U+2028, U+2029, <, >, &),
@@ -37,7 +37,7 @@ internal static class WebGraphBuilder
     ///     two visible nodes, so a click on that edge can be explained in the Info panel.
     /// </summary>
     public static List<Relationship> GetBundledRelationships(CodeGraph.Graph.CodeGraph graph,
-        Func<string, bool> isCollapsed, string sourceId, string targetId)
+        Func<string, bool> isCollapsed, bool showInformationFlow, string sourceId, string targetId)
     {
         var visible = ComputeVisibleSet(graph, isCollapsed);
         var result = new List<Relationship>();
@@ -49,14 +49,7 @@ internal static class WebGraphBuilder
                 continue;
             }
 
-            if (!graph.Nodes.ContainsKey(relationship.SourceId) ||
-                !graph.Nodes.ContainsKey(relationship.TargetId))
-            {
-                continue;
-            }
-
-            var source = NearestVisibleOrSelf(relationship.SourceId, graph, visible);
-            var target = NearestVisibleOrSelf(relationship.TargetId, graph, visible);
+            var (source, target) = ResolveEdge(relationship, graph, visible, showInformationFlow);
             if (source == sourceId && target == targetId)
             {
                 result.Add(relationship);
@@ -66,7 +59,7 @@ internal static class WebGraphBuilder
         return result;
     }
 
-    private static WebGraphDto Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed)
+    private static WebGraphDto Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow)
     {
         // 1. Visible node set: walk from the roots, stop descending at collapsed nodes.
         var visible = ComputeVisibleSet(graph, isCollapsed);
@@ -109,15 +102,8 @@ internal static class WebGraphBuilder
                 continue;
             }
 
-            if (!graph.Nodes.ContainsKey(relationship.SourceId) ||
-                !graph.Nodes.ContainsKey(relationship.TargetId))
-            {
-                continue;
-            }
-
-            var sourceId = NearestVisibleOrSelf(relationship.SourceId, graph, visible);
-            var targetId = NearestVisibleOrSelf(relationship.TargetId, graph, visible);
-            if (sourceId is null || targetId is null || sourceId == targetId)
+            var (sourceId, targetId) = ResolveEdge(relationship, graph, visible, showInformationFlow);
+            if (sourceId is null || targetId is null)
             {
                 continue;
             }
@@ -184,6 +170,51 @@ internal static class WebGraphBuilder
         }
 
         return current?.Id;
+    }
+
+    /// <summary>
+    ///     Resolves a relationship to the (source, target) of the edge actually drawn:
+    ///     endpoints rerouted to their nearest visible ancestor, then reversed for certain
+    ///     structural kinds when information-flow mode is on. Returns (null, null) when the
+    ///     edge should not be drawn (endpoint missing or a collapsed-internal self-loop).
+    /// </summary>
+    private static (string? Source, string? Target) ResolveEdge(Relationship relationship,
+        CodeGraph.Graph.CodeGraph graph, HashSet<string> visible, bool showInformationFlow)
+    {
+        if (!graph.Nodes.ContainsKey(relationship.SourceId) ||
+            !graph.Nodes.ContainsKey(relationship.TargetId))
+        {
+            return (null, null);
+        }
+
+        var source = NearestVisibleOrSelf(relationship.SourceId, graph, visible);
+        var target = NearestVisibleOrSelf(relationship.TargetId, graph, visible);
+        if (source is null || target is null || source == target)
+        {
+            return (null, null);
+        }
+
+        if (showInformationFlow && ShouldReverseInFlowMode(graph, source, relationship.Type))
+        {
+            (source, target) = (target, source);
+        }
+
+        return (source, target);
+    }
+
+    /// <summary>
+    ///     Mirrors MsaglBuilderBase: in flow mode, structural edges point "downstream"
+    ///     (interface -> implementation, base -> override, event -> handler).
+    /// </summary>
+    private static bool ShouldReverseInFlowMode(CodeGraph.Graph.CodeGraph graph, string sourceId, RelationshipType type)
+    {
+        // An event implementing an interface member keeps its natural direction.
+        if (type == RelationshipType.Implements && graph.Nodes[sourceId].ElementType == CodeElementType.Event)
+        {
+            return false;
+        }
+
+        return type is RelationshipType.Handles or RelationshipType.Implements or RelationshipType.Overrides;
     }
 
     private static string ToHexColor(CodeElement element)

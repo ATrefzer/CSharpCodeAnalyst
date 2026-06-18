@@ -115,7 +115,7 @@ public partial class App
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
+        var graphViewModel = new GraphViewModel(explorationGraphViewer, graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);
         var infoPanelViewModel = new InfoPanelViewModel();

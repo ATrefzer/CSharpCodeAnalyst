@@ -30,15 +30,17 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly AppSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
     private readonly IGraphViewer _viewer;
+    private readonly GraphViewState _state;
 
     private HighlightOption _selectedHighlightOption;
     private RenderOption _selectedRenderOption;
 
-    internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
+    internal GraphViewModel(IGraphViewer viewer, GraphViewState state, ICodeGraphExplorer explorer, IPublisher publisher,
         AppSettings settings, RefactoringService refactoringService)
     {
         _undoStack = [];
         _viewer = viewer;
+        _state = state;
         _explorer = explorer;
         _publisher = publisher;
         _settings = settings;
@@ -67,18 +69,18 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var flag = IconLoader.LoadIcon("Resources/flag.png");
         var removeWithoutChildren = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
         // Edge commands
-        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
-        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
+        _state.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
 
 
         // Static commands
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
+        _state.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
         {
             IsDoubleClickable = true,
             IsVisible = false
         });
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
+        _state.AddCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
         {
             IsDoubleClickable = true,
             IsVisible = false
@@ -89,12 +91,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var removeWithChildren = IconLoader.LoadIcon("Resources/remove_with_children_16.png");
         var findInTree = IconLoader.LoadIcon("Resources/find_in_tree_16.png");
         var addParent = IconLoader.LoadIcon("Resources/add_parent_16.png");
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
-        _viewer.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
+        _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
+        _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
+        _state.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
+        _state.AddCommand(new SeparatorCommand());
 
 
         // Methods and properties
@@ -106,15 +108,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
                 FindOutgoingCalls, outgoingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
                 FindIncomingCalls, incomingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
                 FollowIncomingCallsRecursive, followIncomingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations, findSpecializations));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions, findAbstractions));
         }
 
@@ -123,36 +125,36 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         elementTypes = [CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
                 FindInheritanceTree, findInheritanceTree));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations, findSpecializations));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions, findAbstractions));
         }
 
         // Events
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
             FindSpecializations, findSpecializations));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
             FindAbstractions, findAbstractions));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
             FollowIncomingCallsRecursive, followIncomingCalls));
 
 
         // Everyone gets the in/out relationships
-        _viewer.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new SeparatorCommand());
         var incomingRelationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
         var outgoingRelationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
 
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships, icon: incomingRelationships));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships, icon: outgoingRelationships));
 
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
             FindAllIncomingRelationshipsDeep));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
             FindAllOutgoingRelationshipsDeep));
 
 
@@ -164,8 +166,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             PartitionClass));
         */
         var copyFqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
-        _viewer.AddCommand(new SeparatorCommand());
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
+        _state.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
             OnCopyToClipboard, icon: copyFqn));
 
 
@@ -183,12 +185,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         AddParentsCommand = new WpfCommand(OnAddParents);
 
         // Global commands, moved to toolbar
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, Focus, CanHandleIfSelectedElements));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
-        //_viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, Focus, CanHandleIfSelectedElements));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
+        //_state.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
     }
 
     public ICommand CompleteToContainingTypesCommand { get; set; }
@@ -233,7 +235,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            _viewer.ShowFlatGraph(value);
+            _state.SetShowFlat(value);
             OnPropertyChanged(nameof(ShowFlatGraph));
         }
     }
@@ -250,7 +252,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            _viewer.ShowInformationFlow(value);
+            _state.SetShowInformationFlow(value);
             OnPropertyChanged(nameof(ShowDataFlow));
         }
     }
@@ -266,7 +268,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             _selectedHighlightOption = value;
-            _viewer.SetHighlightMode(value.Mode);
+            _state.SetHighlightMode(value.Mode);
             OnPropertyChanged(nameof(SelectedHighlightOption));
         }
     }
