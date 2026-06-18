@@ -28,14 +28,17 @@ namespace CSharpCodeAnalyst.Features.Graph;
 /// </summary>
 public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, IGraphViewerHighlighting
 {
-    private readonly List<IRelationshipContextCommand> _edgeCommands = [];
-    private readonly List<IGlobalCommand> _globalCommands = [];
     private readonly int _maxElementWarningLimit;
-    private readonly List<ICodeElementContextCommand> _nodeCommands = [];
     private readonly IPublisher _publisher;
 
+    /// <summary>
+    ///     The render-agnostic model. GraphViewer is now the MSAGL render adapter over it:
+    ///     state operations are delegated to <see cref="_state" />, and the private members
+    ///     below are read-only forwarders so the existing rendering code keeps working.
+    /// </summary>
+    private readonly GraphViewState _state = new();
+
     private IHighlighting _activeHighlighting = new EdgeHoveredHighlighting();
-    private HighlightMode _highlightMode = HighlightMode.EdgeHovered;
 
     private ClickController? _clickController;
 
@@ -44,15 +47,20 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     /// </summary>
     private IViewerObject? _clickedObject;
 
-    private CodeGraph.Graph.CodeGraph _clonedCodeGraph = new();
     private IQuickInfoFactory? _factory;
-    private bool _flow;
-
-    private GraphHideFilter _hideFilter = new();
     private Microsoft.Msagl.WpfGraphControl.GraphViewer? _msaglViewer;
-    private PresentationState _presentationState = new();
     private RenderOption _renderOption = new DefaultRenderOptions();
-    private bool _showFlatGraph;
+
+    // Forwarders to the model so existing read sites stay unchanged.
+    private CodeGraph.Graph.CodeGraph _clonedCodeGraph => _state.CodeGraph;
+    private PresentationState _presentationState => _state.PresentationState;
+    private GraphHideFilter _hideFilter => _state.HideFilter;
+    private bool _flow => _state.ShowInformationFlow;
+    private bool _showFlatGraph => _state.ShowFlat;
+    private HighlightMode _highlightMode => _state.HighlightMode;
+    private IReadOnlyList<ICodeElementContextCommand> _nodeCommands => _state.NodeCommands;
+    private IReadOnlyList<IRelationshipContextCommand> _edgeCommands => _state.EdgeCommands;
+    private IReadOnlyList<IGlobalCommand> _globalCommands => _state.GlobalCommands;
 
     /// <summary>
     ///     Note:
@@ -63,8 +71,34 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     public GraphViewer(IPublisher publisher, int settings)
     {
         _publisher = publisher;
-        SetHighlightMode(HighlightMode.EdgeHovered);
         _maxElementWarningLimit = settings;
+
+        // GraphViewer renders and reacts to the shared model.
+        _state.Changed += OnStateChanged;
+        _state.HighlightModeChanged += OnStateHighlightModeChanged;
+        _state.SetHighlightMode(HighlightMode.EdgeHovered);
+    }
+
+    private void OnStateChanged()
+    {
+        // A structural change in the model: re-render and notify other observers.
+        RefreshGraph();
+        OnGraphChanged();
+    }
+
+    private void OnStateHighlightModeChanged(HighlightMode mode)
+    {
+        ClearAllEdgeHighlighting();
+        _activeHighlighting = mode switch
+        {
+            HighlightMode.EdgeHovered => new EdgeHoveredHighlighting(),
+            HighlightMode.OutgoingEdgesChildrenAndSelf => new OutgoingEdgesOfChildrenAndSelfHighlighting(),
+            HighlightMode.ShortestNonSelfCircuit => new HighlightShortestNonSelfCircuit(),
+            _ => new EdgeHoveredHighlighting()
+        };
+
+        // Forward to IGraphViewer subscribers (e.g. the web view).
+        HighlightModeChanged?.Invoke(mode);
     }
 
     public void Bind(Panel graphPanel)
@@ -84,14 +118,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public void ShowFlatGraph(bool value)
     {
-        _showFlatGraph = value;
-        RefreshGraph();
+        _state.SetShowFlat(value);
     }
 
     public void ShowInformationFlow(bool value)
     {
-        _flow = value;
-        RefreshGraph();
+        _state.SetShowInformationFlow(value);
     }
 
     /// <summary>
@@ -101,44 +133,22 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     /// </summary>
     public void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> newRelationships, bool addCollapsed)
     {
-        if (!IsBoundToPanel())
-        {
-            return;
-        }
-
-        var original = originalCodeElements.ToList();
-
-        // Actually I could iterate over the elements that w
-        //var previousElementIds = _clonedCodeGraph.Nodes.Values.Select(n => n.Id).ToHashSet();
-        //var newElementIds = original.Select(n => n.Id).Except(previousElementIds);
-
-        var integrated = AddToGraphInternal(original, newRelationships);
-
-        if (addCollapsed)
-        {
-            foreach (var codeElement in integrated.Where(c => c.Children.Any()))
-            {
-                _presentationState.SetCollapsedState(codeElement.Id, true);
-            }
-        }
-
-        RefreshGraph();
-        OnGraphChanged();
+        _state.AddToGraph(originalCodeElements, newRelationships, addCollapsed);
     }
 
     public void AddCommand(ICodeElementContextCommand command)
     {
-        _nodeCommands.Add(command);
+        _state.AddCommand(command);
     }
 
     public void AddCommand(IRelationshipContextCommand command)
     {
-        _edgeCommands.Add(command);
+        _state.AddCommand(command);
     }
 
     public void AddGlobalCommand(IGlobalCommand command)
     {
-        _globalCommands.Add(command);
+        _state.AddGlobalCommand(command);
     }
 
     public IReadOnlyList<ICodeElementContextCommand> GetNodeContextCommands()
@@ -175,8 +185,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public void SetHideFilter(GraphHideFilter filter)
     {
-        _hideFilter = filter;
-        RefreshGraph();
+        _state.SetHideFilter(filter);
     }
 
     public GraphHideFilter GetHideFilter()
@@ -204,26 +213,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public void SetHighlightMode(HighlightMode valueMode)
     {
-        _highlightMode = valueMode;
-        ClearAllEdgeHighlighting();
-
-        switch (valueMode)
-        {
-            case HighlightMode.EdgeHovered:
-                _activeHighlighting = new EdgeHoveredHighlighting();
-                break;
-            case HighlightMode.OutgoingEdgesChildrenAndSelf:
-                _activeHighlighting = new OutgoingEdgesOfChildrenAndSelfHighlighting();
-                break;
-            case HighlightMode.ShortestNonSelfCircuit:
-                _activeHighlighting = new HighlightShortestNonSelfCircuit();
-                break;
-            default:
-                _activeHighlighting = new EdgeHoveredHighlighting();
-                break;
-        }
-
-        HighlightModeChanged?.Invoke(valueMode);
+        _state.SetHighlightMode(valueMode);
     }
 
     public void SetQuickInfoFactory(IQuickInfoFactory factory)
@@ -278,75 +268,33 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public GraphSession GetSession()
     {
-        return GraphSession.Create("", _clonedCodeGraph, _presentationState);
+        return _state.GetSession();
     }
 
 
     public void Clear()
     {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        _clonedCodeGraph = new CodeGraph.Graph.CodeGraph();
-
-        // Nothing collapsed by default
-        _presentationState = new PresentationState();
-        RefreshGraph();
-        OnGraphChanged();
+        _state.Clear();
     }
 
     public void RemoveFromGraph(List<Relationship> relationships)
     {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        foreach (var relationship in relationships)
-        {
-            _clonedCodeGraph.Nodes[relationship.SourceId].Relationships.Remove(relationship);
-        }
-
-        RefreshGraph();
-        OnGraphChanged();
+        _state.RemoveRelationships(relationships);
     }
 
     public void RemoveFromGraph(HashSet<string> idsToRemove)
     {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        if (!idsToRemove.Any())
-        {
-            return;
-        }
-
-        _clonedCodeGraph.RemoveCodeElements(idsToRemove);
-        _presentationState.RemoveStates(idsToRemove);
-
-        RefreshGraph();
-        OnGraphChanged();
+        _state.RemoveElements(idsToRemove);
     }
 
     public void Collapse(string id)
     {
-        _presentationState.SetCollapsedState(id, true);
-        RefreshGraph();
-
-        // Collapsing changes the visible graph; notify observers (e.g. the web view)
-        // so they mirror the same expanded/collapsed state.
-        OnGraphChanged();
+        _state.Collapse(id);
     }
 
     public void Expand(string id)
     {
-        _presentationState.SetCollapsedState(id, false);
-        RefreshGraph();
-        OnGraphChanged();
+        _state.Expand(id);
     }
 
     public bool IsCollapsed(string id)
@@ -413,30 +361,12 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public void LoadSession(List<CodeElement> codeElements, List<Relationship> relationships, PresentationState state)
     {
-        if (_msaglViewer is null)
-        {
-            return;
-        }
-
-        Clear();
-        AddToGraphInternal(codeElements, relationships);
-        _presentationState = state;
-
-        RefreshGraph();
-        OnGraphChanged();
+        _state.LoadSession(codeElements, relationships, state);
     }
 
     public void LoadSession(CodeGraph.Graph.CodeGraph newGraph, PresentationState? presentationState)
     {
-        if (presentationState is null)
-        {
-            presentationState = new PresentationState();
-        }
-
-        _presentationState = presentationState;
-        _clonedCodeGraph = newGraph;
-        RefreshGraph();
-        OnGraphChanged();
+        _state.LoadSession(newGraph, presentationState);
     }
 
     public event Action<CodeGraph.Graph.CodeGraph>? GraphChanged;
@@ -688,52 +618,6 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
         // This happens when the highlighting finds matches that are not currently visible.
         return false;
-    }
-
-    private bool IsBoundToPanel()
-    {
-        return _msaglViewer is not null;
-    }
-
-    private List<CodeElement> AddToGraphInternal(IEnumerable<CodeElement> originalCodeElements,
-        IEnumerable<Relationship> newRelationships)
-    {
-        if (_msaglViewer is null)
-        {
-            return [];
-        }
-
-        var integrated = IntegrateNewFromOriginal(originalCodeElements);
-
-        // Add relationships we explicitly requested.
-        foreach (var newRelationship in newRelationships)
-        {
-            var sourceElement = _clonedCodeGraph.Nodes[newRelationship.SourceId];
-            sourceElement.Relationships.Add(newRelationship);
-        }
-
-        return integrated;
-    }
-
-    /// <summary>
-    ///     Adds the new nodes, integrating hierarchical relationships from
-    ///     original master nodes. Parent / child connections not present in this graph are discarded.
-    ///     We may add them later when adding new elements.
-    ///     The original elements get cloned.
-    /// </summary>
-    private List<CodeElement> IntegrateNewFromOriginal(IEnumerable<CodeElement> originalCodeElements)
-    {
-        var integrated = new List<CodeElement>();
-        foreach (var originalElement in originalCodeElements)
-        {
-            var result = _clonedCodeGraph.IntegrateCodeElementFromOriginal(originalElement);
-            if (result.IsAdded)
-            {
-                integrated.Add(result.CodeElement);
-            }
-        }
-
-        return integrated;
     }
 
     private bool ShouldProceedWithLargeGraph(int numberOfElements)
