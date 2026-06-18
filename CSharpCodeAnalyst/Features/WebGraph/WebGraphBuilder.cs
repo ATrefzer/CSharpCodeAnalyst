@@ -22,9 +22,12 @@ internal static class WebGraphBuilder
     ///     Children of a collapsed element are not emitted, and edges into them are
     ///     rerouted to the collapsed container (same idea as MsaglHierarchicalBuilder).
     /// </param>
-    public static string BuildJson(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow)
+    public static string BuildJson(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
+        bool showFlat, bool showInformationFlow)
     {
-        var dto = Build(graph, isCollapsed, showInformationFlow);
+        var dto = showFlat
+            ? BuildFlat(graph, showInformationFlow)
+            : Build(graph, isCollapsed, showInformationFlow);
 
         // System.Text.Json's default encoder already escapes characters that would be
         // unsafe inside a <script> / JS string literal (e.g. U+2028, U+2029, <, >, &),
@@ -33,13 +36,86 @@ internal static class WebGraphBuilder
     }
 
     /// <summary>
+    ///     Flat view (mirrors MsaglFlatBuilder): every element is a top-level node — no
+    ///     compound nesting and no collapse. Each relationship is its own direct edge
+    ///     (no rerouting, no bundling), and containment is drawn as explicit gray edges.
+    /// </summary>
+    private static WebGraphDto BuildFlat(CodeGraph.Graph.CodeGraph graph, bool showInformationFlow)
+    {
+        var dto = new WebGraphDto();
+
+        foreach (var element in graph.Nodes.Values)
+        {
+            dto.Nodes.Add(new WebNodeDto
+            {
+                Id = element.Id,
+                Label = element.Name,
+                Kind = element.ElementType.ToString(),
+                Parent = null,
+                External = element.IsExternal,
+                Color = ToHexColor(element),
+                Collapsed = false
+            });
+        }
+
+        var seenEdgeIds = new HashSet<string>();
+        foreach (var relationship in graph.GetAllRelationships())
+        {
+            if (relationship.Type == RelationshipType.Containment)
+            {
+                continue;
+            }
+
+            var source = relationship.SourceId;
+            var target = relationship.TargetId;
+            if (showInformationFlow && ShouldReverseInFlowMode(graph, source, relationship.Type))
+            {
+                (source, target) = (target, source);
+            }
+
+            var id = $"{source}|{relationship.Type}|{target}";
+            if (seenEdgeIds.Add(id))
+            {
+                dto.Edges.Add(new WebEdgeDto
+                {
+                    Id = id,
+                    Source = source,
+                    Target = target,
+                    Kind = relationship.Type.ToString(),
+                    Count = 1
+                });
+            }
+        }
+
+        // Containment as explicit edges, since there is no nesting in flat mode.
+        foreach (var element in graph.Nodes.Values)
+        {
+            if (element.Parent is null)
+            {
+                continue;
+            }
+
+            dto.Edges.Add(new WebEdgeDto
+            {
+                Id = $"containment|{element.Parent.Id}|{element.Id}",
+                Source = element.Parent.Id,
+                Target = element.Id,
+                Kind = "Containment",
+                Count = 1
+            });
+        }
+
+        return dto;
+    }
+
+    /// <summary>
     ///     Returns the original relationships behind the (possibly bundled) edge between
     ///     two visible nodes, so a click on that edge can be explained in the Info panel.
     /// </summary>
     public static List<Relationship> GetBundledRelationships(CodeGraph.Graph.CodeGraph graph,
-        Func<string, bool> isCollapsed, bool showInformationFlow, string sourceId, string targetId)
+        Func<string, bool> isCollapsed, bool showFlat, bool showInformationFlow, string sourceId, string targetId)
     {
-        var visible = ComputeVisibleSet(graph, isCollapsed);
+        var visible = showFlat ? null : ComputeVisibleSet(graph, isCollapsed);
         var result = new List<Relationship>();
 
         foreach (var relationship in graph.GetAllRelationships())
@@ -49,7 +125,11 @@ internal static class WebGraphBuilder
                 continue;
             }
 
-            var (source, target) = ResolveEdge(relationship, graph, visible, showInformationFlow);
+            // Flat: match direct endpoints; hierarchical: match rerouted endpoints.
+            var (source, target) = visible is null
+                ? FlatEdge(relationship, graph, showInformationFlow)
+                : ResolveEdge(relationship, graph, visible, showInformationFlow);
+
             if (source == sourceId && target == targetId)
             {
                 result.Add(relationship);
@@ -57,6 +137,19 @@ internal static class WebGraphBuilder
         }
 
         return result;
+    }
+
+    private static (string Source, string Target) FlatEdge(Relationship relationship,
+        CodeGraph.Graph.CodeGraph graph, bool showInformationFlow)
+    {
+        var source = relationship.SourceId;
+        var target = relationship.TargetId;
+        if (showInformationFlow && ShouldReverseInFlowMode(graph, source, relationship.Type))
+        {
+            (source, target) = (target, source);
+        }
+
+        return (source, target);
     }
 
     private static WebGraphDto Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow)
@@ -125,7 +218,7 @@ internal static class WebGraphBuilder
                 Id = $"{sourceId}|{targetId}",
                 Source = sourceId,
                 Target = targetId,
-                Kind = bundle.DominantKind(),
+                Kind = bundle.Kind(),
                 Count = bundle.Count
             });
         }
@@ -256,41 +349,28 @@ internal static class WebGraphBuilder
 
     /// <summary>
     ///     Aggregates all relationships between one (source, target) pair into a single
-    ///     visual edge and decides which kind should drive its styling.
+    ///     visual edge. A single relationship keeps its own type; a real bundle (more than
+    ///     one) becomes <see cref="RelationshipType.Bundled" /> — same convention as
+    ///     MsaglHierarchicalBuilder, where Bundled is itself an edge type.
     /// </summary>
     private sealed class EdgeBundle
     {
-        private readonly HashSet<RelationshipType> _types = [];
+        private RelationshipType _firstType;
         public int Count { get; private set; }
 
         public void Add(RelationshipType type)
         {
-            _types.Add(type);
+            if (Count == 0)
+            {
+                _firstType = type;
+            }
+
             Count++;
         }
 
-        /// <summary>
-        ///     Call-like edges win (keep "blue arrow = a call" readable), then the
-        ///     structural kinds, otherwise a generic "Uses".
-        /// </summary>
-        public string DominantKind()
+        public string Kind()
         {
-            if (_types.Contains(RelationshipType.Calls) || _types.Contains(RelationshipType.Invokes))
-            {
-                return "Calls";
-            }
-
-            if (_types.Contains(RelationshipType.Inherits))
-            {
-                return "Inherits";
-            }
-
-            if (_types.Contains(RelationshipType.Implements))
-            {
-                return "Implements";
-            }
-
-            return "Uses";
+            return Count == 1 ? _firstType.ToString() : RelationshipType.Bundled.ToString();
         }
     }
 }

@@ -110,6 +110,15 @@ const cytoscapeStyle = [
         selector: "edge[kind = 'Implements']",
         style: { "line-style": "dotted" },
     },
+    {
+        // Flat view only: containment shown as a quiet gray edge with no arrowhead.
+        selector: "edge[kind = 'Containment']",
+        style: {
+            "line-color": "#cfcfcf",
+            "width": 1,
+            "target-arrow-shape": "none",
+        },
+    },
     // Hover highlighting: emphasize the relevant set (no fading of the rest for now).
     {
         selector: "node.highlighted",

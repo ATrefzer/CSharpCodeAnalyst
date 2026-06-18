@@ -302,7 +302,7 @@ public partial class WebGraphControl : UserControl
         }
 
         var graph = _state.CodeGraph;
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state.IsCollapsed, _state.ShowInformationFlow, sourceId, targetId);
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, sourceId, targetId);
         if (relationships.Count == 0)
         {
             return;
@@ -369,7 +369,7 @@ public partial class WebGraphControl : UserControl
             return null;
         }
 
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state!.IsCollapsed, _state!.ShowInformationFlow, sourceId, targetId);
+        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state!.IsCollapsed, _state!.ShowFlat, _state!.ShowInformationFlow, sourceId, targetId);
         return relationships.Count == 0
             ? null
             : WebContextMenuFactory.BuildForEdge(_state.EdgeCommands, sourceId, targetId, relationships);
@@ -412,7 +412,7 @@ public partial class WebGraphControl : UserControl
         // A re-render rebuilds all elements, so any selection in the web view is gone.
         _selectedIds.Clear();
 
-        var json = WebGraphBuilder.BuildJson(_state.CodeGraph, _state.IsCollapsed, _state.ShowInformationFlow);
+        var json = WebGraphBuilder.BuildJson(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow);
         _ = core.ExecuteScriptAsync($"renderGraph({json});");
     }
 }
