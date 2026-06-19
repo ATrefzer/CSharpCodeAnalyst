@@ -6,7 +6,6 @@ namespace CSharpCodeAnalyst.Features.Graph;
 
 public partial class CodeExplorerControl
 {
-    private GraphSearchViewModel? _searchViewModel;
     private IPublisher? _publisher;
 
     public CodeExplorerControl()
@@ -14,17 +13,13 @@ public partial class CodeExplorerControl
         InitializeComponent();
     }
 
-    public void SetViewer(IGraphBinding graphViewer, IPublisher publisher)
+    public void SetViewer(IGraphBinding graphViewer, IPublisher publisher, GraphSearchViewModel searchViewModel)
     {
         _publisher = publisher;
         graphViewer.Bind(GraphPanel);
 
-        // Initialize search functionality if the viewer implements IGraphViewer
-        if (graphViewer is IGraphViewer viewer)
-        {
-            _searchViewModel = new GraphSearchViewModel(viewer);
-            SearchControl.DataContext = _searchViewModel;
-        }
+        // The graph search is shared with the web view (it acts on the same GraphViewState).
+        SearchControl.DataContext = searchViewModel;
     }
 
     private void OnMouseButtonDown(object sender, MouseButtonEventArgs e)

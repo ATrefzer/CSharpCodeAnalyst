@@ -77,7 +77,23 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         // GraphViewer renders and reacts to the shared model.
         _state.Changed += OnStateChanged;
         _state.HighlightModeChanged += OnStateHighlightModeChanged;
+
+        // Decorations (flags / search highlights) can change from another view (e.g. the
+        // shared search box writes them straight to the state), so refresh on the event
+        // rather than only inside our own ToggleFlag / SetSearchHighlights methods.
+        _state.DecorationsChanged += OnStateDecorationsChanged;
         _state.SetHighlightMode(HighlightMode.EdgeHovered);
+    }
+
+    private void OnStateDecorationsChanged()
+    {
+        // Re-apply node decorations from the (shared) presentation state without re-layout.
+        if (_msaglViewer?.Graph is null)
+        {
+            return;
+        }
+
+        RefreshNodeDecorationWithoutLayout(_clonedCodeGraph.Nodes.Keys.ToList());
     }
 
     private void OnStateChanged()

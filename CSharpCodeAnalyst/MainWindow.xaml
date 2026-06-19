@@ -403,15 +403,16 @@
                      (a non-selected WPF tab is not in the visual tree, so it could not init). -->
                 <TabItem Header="{x:Static resources:Strings.WebView_TabHeader}">
                     <DockPanel>
-                        <!-- Global graph tools, docked above the web canvas (a floating WPF
-                             overlay over the WebView2 is impossible due to airspace). Reuses the
-                             same GraphToolbarControl as the MSAGL view; commands act on the shared
-                             GraphViewState (graph / current selection). -->
-                        <Border DockPanel.Dock="Top"
-                                HorizontalAlignment="Left" Margin="4 4 4 0"
-                                Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <graph:GraphToolbarControl DataContext="{Binding GraphViewModel}" />
-                        </Border>
+                        <!-- Global graph tools + search, docked above the web canvas (a floating
+                             WPF overlay over the WebView2 is impossible due to airspace). Reuses
+                             the same GraphToolbarControl / GraphSearchControl as the MSAGL view;
+                             both act on the shared GraphViewState (graph / selection / highlights). -->
+                        <Grid DockPanel.Dock="Top" Margin="4 4 4 0"
+                              Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <graph:GraphToolbarControl HorizontalAlignment="Left"
+                                                       DataContext="{Binding GraphViewModel}" />
+                            <graph:GraphSearchControl x:Name="WebGraphSearch" HorizontalAlignment="Right" />
+                        </Grid>
                         <webGraph:WebGraphControl x:Name="WebGraphView" />
                     </DockPanel>
                 </TabItem>

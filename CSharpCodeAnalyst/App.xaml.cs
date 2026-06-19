@@ -107,9 +107,13 @@ public partial class App
         var graphViewState = new GraphViewState();
         var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit, graphViewState);
 
+        // One graph search, shared by both views: it reads/writes the shared GraphViewState
+        // (search highlights live in PresentationState, which both adapters render).
+        var graphSearchViewModel = new GraphSearchViewModel(graphViewState);
+
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging, messaging);
+        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging, messaging, graphSearchViewModel);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);

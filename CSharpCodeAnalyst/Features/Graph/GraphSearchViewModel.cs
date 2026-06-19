@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.Features.Graph;
 
 public sealed class GraphSearchViewModel : INotifyPropertyChanged
 {
-    private readonly IGraphViewer _graphViewer;
+    private readonly GraphViewState _state;
     private readonly DispatcherTimer _searchTimer;
 
 
@@ -15,14 +15,14 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
 
     private string _searchText;
 
-    public GraphSearchViewModel(IGraphViewer graphViewer)
+    public GraphSearchViewModel(GraphViewState state)
     {
-        _graphViewer = graphViewer;
+        _state = state;
         _searchText = string.Empty;
         _isSearchVisible = false;
 
-        // Subscribe to graph changes
-        _graphViewer.GraphChanged += OnGraphChanged;
+        // Re-run the search when the graph changes (render-agnostic; shared by both views).
+        _state.Changed += OnStateChanged;
 
         // Initialize debounce timer for search
         _searchTimer = new DispatcherTimer
@@ -75,14 +75,9 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnGraphChanged(CodeGraph.Graph.CodeGraph newGraph)
+    private void OnStateChanged()
     {
-        UpdateGraph(newGraph);
-    }
-
-    private void UpdateGraph(CodeGraph.Graph.CodeGraph graph)
-    {
-        // Re-execute search with new graph if we have search text
+        // Re-execute search against the new graph if we have search text.
         if (!string.IsNullOrWhiteSpace(_searchText))
         {
             ExecuteSearchInternal();
@@ -97,21 +92,21 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
     public void ClearSearch()
     {
         SearchText = string.Empty;
-        _graphViewer.ClearSearchHighlights();
+        _state.ClearSearchHighlights();
     }
 
     private void ExecuteSearchInternal()
     {
         if (string.IsNullOrWhiteSpace(SearchText))
         {
-            _graphViewer.ClearSearchHighlights();
+            _state.ClearSearchHighlights();
             return;
         }
 
         var root = SearchExpressionFactory.CreateSearchExpression(SearchText);
         var matchingNodeIds = new List<string>();
 
-        var nodes = _graphViewer.GetGraph().Nodes;
+        var nodes = _state.CodeGraph.Nodes;
         foreach (var node in nodes.Values)
         {
             if (root.Evaluate(node))
@@ -120,7 +115,7 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
             }
         }
 
-        _graphViewer.SetSearchHighlights(matchingNodeIds);
+        _state.SetSearchHighlights(matchingNodeIds);
     }
 
     private void OnPropertyChanged(string propertyName)
