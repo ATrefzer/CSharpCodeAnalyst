@@ -11,6 +11,7 @@ using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Web.WebView2.Core;
+using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
@@ -88,6 +89,113 @@ public partial class WebGraphControl : UserControl
         // unchanged, so these come over the bus rather than through GraphViewState.Changed.
         subscriber.Subscribe<RelayoutGraphRequest>(_ => Dispatcher.Invoke(Relayout));
         subscriber.Subscribe<RefitGraphRequest>(_ => Dispatcher.Invoke(Refit));
+
+        // Image export: the web canvas can't be captured as a WPF element, so we produce it
+        // in JS (cy.png) and save it here.
+        subscriber.Subscribe<ExportWebGraphRequest>(msg => Dispatcher.Invoke(() => OnExportRequested(msg)));
+    }
+
+    private void OnExportRequested(ExportWebGraphRequest request)
+    {
+        switch (request.Format)
+        {
+            case WebGraphExportFormat.Png:
+                _ = ExportPngAsync();
+                break;
+            case WebGraphExportFormat.Svg:
+                _ = ExportSvgAsync();
+                break;
+        }
+    }
+
+    /// <summary>
+    ///     Asks Cytoscape for a PNG of the whole graph (base64), then saves it to a file.
+    ///     <c>cy.png({ output: 'base64' })</c> returns the raw base64 (no data: prefix).
+    /// </summary>
+    private async Task ExportPngAsync()
+    {
+        var core = WebView.CoreWebView2;
+        if (!_isWebReady || core is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var resultJson = await core.ExecuteScriptAsync("exportPngBase64()");
+
+            // ExecuteScriptAsync returns the result JSON-encoded (a quoted string here).
+            var base64 = JsonSerializer.Deserialize<string>(resultJson);
+            if (string.IsNullOrEmpty(base64))
+            {
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Filter = "PNG files (*.png)|*.png",
+                Title = "Export to PNG",
+                DefaultExt = ".png"
+            };
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            await File.WriteAllBytesAsync(dialog.FileName, Convert.FromBase64String(base64));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[WebGraph] PNG export failed: {ex}");
+            MessageBox.Show($"PNG export failed:\n{ex.Message}", "Web Graph View",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    /// <summary>
+    ///     Asks Cytoscape for an SVG of the whole graph (via the cytoscape-svg extension),
+    ///     then saves it to a file. Returns an empty string if the extension is missing.
+    /// </summary>
+    private async Task ExportSvgAsync()
+    {
+        var core = WebView.CoreWebView2;
+        if (!_isWebReady || core is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var resultJson = await core.ExecuteScriptAsync("exportSvg()");
+
+            // ExecuteScriptAsync returns the result JSON-encoded (a quoted string here).
+            var svg = JsonSerializer.Deserialize<string>(resultJson);
+            if (string.IsNullOrEmpty(svg))
+            {
+                MessageBox.Show("SVG export is unavailable (the cytoscape-svg extension did not load).",
+                    "Web Graph View", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Filter = "SVG files (*.svg)|*.svg",
+                Title = "Export to SVG",
+                DefaultExt = ".svg"
+            };
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            await File.WriteAllTextAsync(dialog.FileName, svg);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[WebGraph] SVG export failed: {ex}");
+            MessageBox.Show($"SVG export failed:\n{ex.Message}", "Web Graph View",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void OnDecorationsChanged()

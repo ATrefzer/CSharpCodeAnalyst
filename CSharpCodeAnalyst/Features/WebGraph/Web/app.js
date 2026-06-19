@@ -265,6 +265,20 @@ window.relayoutGraph = function () {
     currentLayout.run();
 };
 
+// ---- Image export (C# reads the return value via ExecuteScriptAsync) ---------
+// Whole graph on a white background. PNG is built in; SVG needs the cytoscape-svg extension.
+window.exportPngBase64 = function () {
+    // Raw base64, no "data:image/png;base64," prefix.
+    return cy.png({ output: "base64", full: true, bg: "#ffffff" });
+};
+
+window.exportSvg = function () {
+    if (typeof cy.svg !== "function") {
+        return "";   // extension missing -> C# reports it could not export
+    }
+    return cy.svg({ full: true, bg: "#ffffff" });
+};
+
 // ---- Hover highlighting (local; mode comes from the ribbon via C#) ----------
 // Mirrors the MSAGL highlight strategies, computed on Cytoscape's own (already
 // bundled / collapsed) topology. C# only tells us which mode is active.

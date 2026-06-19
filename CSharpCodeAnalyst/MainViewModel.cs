@@ -853,16 +853,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnExportToPng(FrameworkElement? canvas)
     {
-        try
-        {
-            // Get rid of the magnifier icon
-            IsGraphToolPanelVisible = false;
-            _exporter.ToPng(canvas);
-        }
-        finally
-        {
-            IsGraphToolPanelVisible = true;
-        }
+        // The graph lives in the web view; its canvas can't be captured as a WPF element,
+        // so the web adapter produces the PNG via cy.png and saves it.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.Png));
     }
 
     private void OnExportPlainText()
@@ -870,17 +863,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _exporter.ToPlainText(_graphViewModel?.ExportGraph());
     }
 
-    /// <summary>
-    ///     Not usable at the moment. It does not render subgraphs.
-    /// </summary>
     private void OnExportToSvg()
     {
-        if (_graphViewModel is null)
-        {
-            return;
-        }
-
-        _exporter.ToSvg(_graphViewModel.SaveToSvg);
+        // SVG is produced by the web adapter via the cytoscape-svg extension and saved there.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.Svg));
     }
 
     private async void OnOpenRecentFile(string filePath)
