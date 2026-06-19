@@ -14,6 +14,21 @@
 </head>
 <body>
     <div id="cy"></div>
+
+    <!-- Empty-state guide. Shown until the first graph is rendered, then hidden for the
+         rest of the session by app.js. Non-interactive (pointer-events: none). -->
+    <div id="hint">
+        <h2>Code graph view</h2>
+        <p>Empty until code elements are added &mdash; load a project, or add elements from the tree or search.</p>
+        <ul>
+            <li><b>Double-click</b> a node &mdash; expand / collapse</li>
+            <li><b>Click</b> a node or edge &mdash; show details in the Info tab</li>
+            <li><b>Right-click</b> &mdash; context menu with commands</li>
+            <li><b>Drag</b> the background to pan, <b>mouse wheel</b> to zoom</li>
+            <li><b>Shift + drag</b> &mdash; select multiple nodes</li>
+        </ul>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>

@@ -67,10 +67,8 @@ const cytoscapeStyle = [
             "padding": "12px",
         },
     },
-    {
-        selector: "node.external",
-        style: { "background-color": "#9e9e9e" },
-    },
+    // External nodes are not styled here: C# already gives them their gray color via
+    // data("color"). The "external" class is still tagged on them for future styling.
     {
         // Collapsed container drawn as a leaf: bold + thicker border signals "expandable".
         selector: "node[?collapsed]",
@@ -86,8 +84,9 @@ const cytoscapeStyle = [
         selector: "edge",
         style: {
             "width": 1.5,
-            "line-color": "#000000",
-            "target-arrow-color": "#000000",
+            // Per-edge tint from C# (e.g. Calls = blue); default black when none.
+            "line-color": ele => ele.data("color") || "#000000",
+            "target-arrow-color": ele => ele.data("color") || "#000000",
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
             "label": ele => ele.data("count") > 1 ? ele.data("count") : "",
@@ -116,7 +115,7 @@ const cytoscapeStyle = [
         style: {
             "line-color": "#cfcfcf",
             "width": 1,
-            "target-arrow-shape": "none",
+            "target-arrow-shape": "triangle-backcurve",
         },
     },
     // Hover highlighting: emphasize the relevant set (no fading of the rest for now).
@@ -150,25 +149,48 @@ const exampleElements = [
 let currentLayout = null;
 
 // ---- Cytoscape instance -----------------------------------------------------
+// In the app we start empty so the empty-state hint shows; the example graph is only
+// for standalone preview in a plain browser (no WebView2 host).
+const inHost = !!(window.chrome && window.chrome.webview);
+
 const cy = cytoscape({
     container: document.getElementById("cy"),
-    elements: exampleElements,
+    elements: inHost ? [] : exampleElements,
     style: cytoscapeStyle,
     layout: LAYOUT,
 });
 
+// ---- Empty-state hint -------------------------------------------------------
+// Shown until the first non-empty graph is rendered, then hidden for the rest of the
+// session (mirrors the WPF canvas hint, which also never reappears once a graph existed).
+let hintDismissed = false;
+
+function dismissHintIfGraph(graph) {
+    if (hintDismissed || !graph.nodes || graph.nodes.length === 0) {
+        return;
+    }
+
+    hintDismissed = true;
+    document.getElementById("hint")?.classList.add("hidden");
+}
+
 // ---- Bridge: C# -> JS -------------------------------------------------------
 // C# calls this via ExecuteScriptAsync with { nodes, edges }.
 window.renderGraph = function (graph) {
+    dismissHintIfGraph(graph);
+
     const elements = [];
     for (const n of graph.nodes) {
         elements.push({
-            data: { id: n.id, label: n.label, kind: n.kind, parent: n.parent || undefined, collapsed: n.collapsed },
+            // color is the exact per-type color computed by C# (ColorDefinitions); the
+            // node style reads data("color") and only falls back to KIND_COLOR when absent.
+            data: { id: n.id, label: n.label, kind: n.kind, color: n.color, parent: n.parent || undefined, collapsed: n.collapsed },
             classes: n.external ? "external" : "",
         });
     }
     for (const e of graph.edges) {
-        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count } });
+        // color is optional (null = default black); set per relationship type by C#.
+        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count, color: e.color } });
     }
 
     cy.elements().remove();
@@ -188,6 +210,18 @@ window.renderGraph = function (graph) {
 window.refitGraph = function () {
     cy.resize();
     cy.fit(undefined, 30);
+};
+
+// Re-run the layout on the current elements (full reposition). The ribbon "Layout"
+// button calls this; unlike renderGraph it keeps the element set (and thus the
+// selection) and just recomputes positions.
+window.relayoutGraph = function () {
+    if (currentLayout) {
+        currentLayout.stop();
+    }
+    cy.resize();
+    currentLayout = cy.layout(LAYOUT);
+    currentLayout.run();
 };
 
 // ---- Hover highlighting (local; mode comes from the ribbon via C#) ----------
@@ -270,7 +304,8 @@ cy.on("tap", "node", evt => {
 });
 
 cy.on("tap", "edge", evt => {
-    postToHost({ type: "edgeClicked", source: evt.target.data("source"), target: evt.target.data("target") });
+    // The edge id is enough: C# has the relationships behind it keyed by id.
+    postToHost({ type: "edgeClicked", id: evt.target.id() });
 });
 
 cy.on("dbltap", "node", evt => {
@@ -291,7 +326,7 @@ cy.on("cxttap", "node", evt => {
 });
 
 cy.on("cxttap", "edge", evt => {
-    postToHost({ type: "contextMenu", kind: "edge", source: evt.target.data("source"), target: evt.target.data("target") });
+    postToHost({ type: "contextMenu", kind: "edge", id: evt.target.id() });
 });
 
 cy.on("cxttap", evt => {
