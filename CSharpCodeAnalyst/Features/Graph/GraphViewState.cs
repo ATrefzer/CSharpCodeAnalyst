@@ -8,17 +8,16 @@ namespace CSharpCodeAnalyst.Features.Graph;
 ///     Render-agnostic model of the graph view: the working graph, presentation state
 ///     (collapsed / flags / search highlights), hide filter, display toggles, highlight
 ///     mode, the context-command registry and session handling.
-///
-///     This is the single source of truth that both render adapters (the MSAGL
-///     <see cref="GraphViewer" /> and the web graph control) observe via <see cref="Changed" />
-///     and drive via the operations below. It contains no UI / MSAGL / WebView code, so it
-///     is unit-testable.
+///     This is the single source of truth. The renderers observe structural changes via <see cref="Changed" />
+///     and drive via the operations below. It contains no UI so it is unit-testable.
 /// </summary>
 public class GraphViewState
 {
     private readonly List<IRelationshipContextCommand> _edgeCommands = [];
     private readonly List<IGlobalCommand> _globalCommands = [];
     private readonly List<ICodeElementContextCommand> _nodeCommands = [];
+
+    private readonly HashSet<string> _selectedIds = [];
 
     public CodeGraph.Graph.CodeGraph CodeGraph { get; private set; } = new();
     public PresentationState PresentationState { get; private set; } = new();
@@ -28,12 +27,9 @@ public class GraphViewState
     public bool ShowInformationFlow { get; private set; }
     public HighlightMode HighlightMode { get; private set; } = HighlightMode.EdgeHovered;
 
-    private readonly HashSet<string> _selectedIds = [];
-
     /// <summary>
-    ///     The canonical selection, fed by whichever render adapter the user interacts with
-    ///     (the web view pushes it on selection change; the MSAGL view on mouse-up). Commands
-    ///     that act on "the selected elements" read this instead of an adapter-specific source.
+    ///     The currently selected ids.
+    ///     The web view pushes it on selection change. Commands that act on "the selected elements" read this.
     /// </summary>
     public IReadOnlyCollection<string> SelectedIds => _selectedIds;
 
@@ -97,13 +93,12 @@ public class GraphViewState
         RaiseChanged();
     }
 
-    // ---- Selection ----------------------------------------------------------
     public void SetSelection(IEnumerable<string> ids)
     {
         var incoming = ids.ToList();
         if (_selectedIds.SetEquals(incoming))
         {
-            // No actual change — don't churn observers (e.g. MSAGL mouse-up that didn't select).
+            // No actual change
             return;
         }
 

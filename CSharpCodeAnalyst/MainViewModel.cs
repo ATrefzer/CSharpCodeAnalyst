@@ -137,10 +137,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExportToDgmlCommand = new WpfCommand(OnExportToDgml);
         ExportToPlantUmlCommand = new WpfCommand(OnExportToPlantUml);
         ExportToSvgCommand = new WpfCommand(OnExportToSvg);
-        ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
+        ExportToPngCommand = new WpfCommand(OnExportToPng);
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
         ExportPlainTextCommand = new WpfCommand(OnExportPlainText);
-        CopyBitmapToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
+        CopyBitmapToClipboardCommand = new WpfCommand(OnCopyCanvasToClipboard);
         OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
         SnapshotCommand = new WpfCommand(OnSnapshot);
         RestoreCommand = new WpfCommand(OnRestore);
@@ -439,18 +439,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnCopyCanvasToClipboard(FrameworkElement canvas)
+    private void OnCopyCanvasToClipboard()
     {
-        try
-        {
-            // Get rid of the magnifier icon
-            IsGraphToolPanelVisible = false;
-            _exporter.ToBitmapClipboard(canvas);
-        }
-        finally
-        {
-            IsGraphToolPanelVisible = true;
-        }
+        // The graph lives in the web view; it produces a PNG (cy.png) and copies it.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.ClipboardPng));
     }
 
 
@@ -735,16 +727,13 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnGraphLayout()
     {
-        // Full relayout: MSAGL rebuilds via the view model; the web adapter re-runs its
-        // layout through the bus (it is not driven by the view model).
-        _graphViewModel?.Layout();
+        // Full relayout: the web adapter re-runs its layout through the bus.
         _messaging.Publish(new RelayoutGraphRequest());
     }
 
     private void OnGraphRefit()
     {
         // Recompute size and fit the view without re-running the layout. Web-only for now
-        // (MSAGL has no separate "refit" step exposed).
         _messaging.Publish(new RefitGraphRequest());
     }
 
@@ -851,7 +840,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _exporter.ToDgml(_graphViewModel?.ExportGraph());
     }
 
-    private void OnExportToPng(FrameworkElement? canvas)
+    private void OnExportToPng()
     {
         // The graph lives in the web view; its canvas can't be captured as a WPF element,
         // so the web adapter produces the PNG via cy.png and saves it.
@@ -948,7 +937,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void HandleShowCycleGroupRequest(ShowCycleGroupRequest request)
     {
         GraphViewModel?.ImportCycleGroup(request.CycleGroup.CodeGraph.Clone());
-        SelectedRightTabIndex = TabIndices.Right.CodeExplorer;
+        SelectedRightTabIndex = TabIndices.Right.WebView; // show the imported cycle in the graph
     }
 
     public void HandleCycleCalculationComplete(CycleCalculationComplete request)
@@ -1066,6 +1055,5 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void ClearQuickInfo()
     {
         _infoPanelViewModel?.ClearQuickInfo();
-        _graphViewModel?.ClearQuickInfo();
     }
 }

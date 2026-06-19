@@ -188,8 +188,7 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.SavePng_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.SavePng_Tooltip}"
-                                        Command="{Binding ExportToPngCommand}"
-                                        CommandParameter="{Binding ElementName=ExplorationControl}" />
+                                        Command="{Binding ExportToPngCommand}" />
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportSvg_Label}"
                                         ImageSource="/Resources/svg-file_32.png"
@@ -216,8 +215,7 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.Copy_BitmapClipboard_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.Copy_BitmapClipboard_Tooltip}"
-                                        Command="{Binding CopyBitmapToClipboardCommand}"
-                                        CommandParameter="{Binding ElementName=ExplorationControl}" />
+                                        Command="{Binding CopyBitmapToClipboardCommand}" />
                         
                     </RibbonSplitButton>
 
@@ -280,19 +278,11 @@
 
                         <TextBlock VerticalAlignment="Center"
                                    Grid.Row="0" Grid.Column="2"
-                                   Text="{x:Static resources:Strings.Rendering_Label}" />
-                        <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
-                                  VerticalContentAlignment="Center"
-                                  Grid.Row="0" Grid.Column="3"
-                                  ItemsSource="{Binding GraphViewModel.RenderOptions}"
-                                  SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
-                        <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="1" Grid.Column="2"
                                    Text="{x:Static resources:Strings.Highlighting_Label}" />
                         <ComboBox VerticalAlignment="Center"
                                   Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="1" Grid.Column="3"
+                                  Grid.Row="0" Grid.Column="3"
                                   ItemsSource="{Binding GraphViewModel.HighlightOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
                     </Grid>
@@ -415,10 +405,6 @@
                         </Grid>
                         <webGraph:WebGraphControl x:Name="WebGraphView" />
                     </DockPanel>
-                </TabItem>
-
-                <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
-                    <graph:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">

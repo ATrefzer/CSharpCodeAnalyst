@@ -21,6 +21,13 @@ UNHANDLED CASES
 
 - Jump to code from everywhere
 
+- Exception message when application is tracked. (from web process?)
+- Try different Render algorithms
+- Layout is not stable when re-layouted
+- Flickering when right clicking before context menu is opened.
+- Load overlay no longer working (HWND inside)
+
+
 
 
 BUGS 

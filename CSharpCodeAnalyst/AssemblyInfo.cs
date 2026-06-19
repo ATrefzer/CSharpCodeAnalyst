@@ -10,5 +10,5 @@ using System.Runtime.CompilerServices;
     // app, or any theme specific resource dictionaries)
 )]
 
-// Allow test project to access internal types for unit testing (e.g., MsaglHierarchicalBuilder)
+// Allow test project to access internal types for unit testing
 [assembly: InternalsVisibleTo("Tests")]

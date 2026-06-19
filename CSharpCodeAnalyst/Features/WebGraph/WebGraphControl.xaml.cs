@@ -1,10 +1,13 @@
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 using CSharpCodeAnalyst.Features.Help;
@@ -25,13 +28,21 @@ namespace CSharpCodeAnalyst.Features.WebGraph;
 /// </summary>
 public partial class WebGraphControl : UserControl
 {
+
+    // Virtual host. The page is reachable under https://csharp-code-analyst.local/index.html
+    private const string VirtualHost = "csharp-code-analyst.local";
+
     private static readonly JsonSerializerOptions MessageJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    // Virtual host. The page is reachable under https://csharp-code-analyst.local/index.html
-    private const string VirtualHost = "csharp-code-analyst.local";
+    // Coalesces bursts of GraphChanged events into a single (expensive) re-layout.
+    private readonly DispatcherTimer _renderDebounce;
+
+    // Relationships behind each drawn edge, keyed by edge id, captured at render time
+    // A click/right-click on an edge looks it up here.
+    private IReadOnlyDictionary<string, WebEdgeInfo> _edgeInfos = new Dictionary<string, WebEdgeInfo>();
 
     private bool _initialized;
 
@@ -40,17 +51,9 @@ public partial class WebGraphControl : UserControl
 
     // A graph change arrived while the tab was hidden; render when it becomes visible.
     private bool _pendingRender;
-
-    // Coalesces bursts of GraphChanged events into a single (expensive) re-layout.
-    private readonly DispatcherTimer _renderDebounce;
-
-    private GraphViewState? _state;
     private IPublisher? _publisher;
 
-    // Relationships behind each drawn edge, keyed by edge id, captured at render time
-    // (the web equivalent of MSAGL's edge.UserData). A click/right-click on an edge looks
-    // it up here instead of reconstructing it from the topology.
-    private IReadOnlyDictionary<string, WebEdgeInfo> _edgeInfos = new Dictionary<string, WebEdgeInfo>();
+    private GraphViewState? _state;
 
     public WebGraphControl()
     {
@@ -104,6 +107,9 @@ public partial class WebGraphControl : UserControl
                 break;
             case WebGraphExportFormat.Svg:
                 _ = ExportSvgAsync();
+                break;
+            case WebGraphExportFormat.ClipboardPng:
+                _ = CopyPngToClipboardAsync();
                 break;
         }
     }
@@ -194,6 +200,42 @@ public partial class WebGraphControl : UserControl
         {
             Debug.WriteLine($"[WebGraph] SVG export failed: {ex}");
             MessageBox.Show($"SVG export failed:\n{ex.Message}", "Web Graph View",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    /// <summary>Copies a PNG of the whole graph to the clipboard (no file dialog).</summary>
+    private async Task CopyPngToClipboardAsync()
+    {
+        var core = WebView.CoreWebView2;
+        if (!_isWebReady || core is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var resultJson = await core.ExecuteScriptAsync("exportPngBase64()");
+            var base64 = JsonSerializer.Deserialize<string>(resultJson);
+            if (string.IsNullOrEmpty(base64))
+            {
+                return;
+            }
+
+            using var stream = new MemoryStream(Convert.FromBase64String(base64));
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad; // decode now so the stream can close
+            bitmap.StreamSource = stream;
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            Clipboard.SetImage(bitmap);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[WebGraph] copy to clipboard failed: {ex}");
+            MessageBox.Show($"Copy to clipboard failed:\n{ex.Message}", "Web Graph View",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
@@ -338,7 +380,7 @@ public partial class WebGraphControl : UserControl
 
         // Transparent default background: until the page paints (during the cold start) the
         // WPF LoadingOverlay behind the WebView shows through instead of a white flash.
-        WebView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+        WebView.DefaultBackgroundColor = Color.Transparent;
 
         var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
         await WebView.EnsureCoreWebView2Async(environment);
@@ -409,7 +451,7 @@ public partial class WebGraphControl : UserControl
                 break;
 
             case "backgroundClicked":
-                // Clicking empty canvas clears the Info panel (same as the MSAGL view).
+                // Clicking empty canvas clears the Info panel 
                 _publisher?.Publish(new ClearQuickInfoRequest());
                 break;
 
@@ -452,8 +494,7 @@ public partial class WebGraphControl : UserControl
     }
 
     /// <summary>
-    ///     Translates a web-side node click into the existing Info panel update, so the
-    ///     web view reuses the same panel as the MSAGL view without any new UI.
+    ///     Translates a web-side node click into the existing Info panel update
     /// </summary>
     private void PublishNodeInfo(string? id)
     {
@@ -549,27 +590,15 @@ public partial class WebGraphControl : UserControl
             return null;
         }
 
-        // The drawn (rerouted) endpoints are what the relationship commands expect, mirroring
-        // MSAGL's edge.Source / edge.Target.
         return WebContextMenuFactory.BuildForEdge(_state!.EdgeCommands, edge.SourceId, edge.TargetId, edge.Relationships);
     }
 
-    private List<CodeGraph.Graph.CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph)
+    private List<CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph)
     {
         return _state!.SelectedIds
             .Select(graph.TryGetCodeElement)
-            .OfType<CodeGraph.Graph.CodeElement>()
+            .OfType<CodeElement>()
             .ToList();
-    }
-
-    private sealed class HostMessage
-    {
-        public string? Type { get; set; }
-        public string? Kind { get; set; }
-
-        // Node id, or — for edge messages — the edge id (source|target or source|type|target).
-        public string? Id { get; set; }
-        public List<string>? Ids { get; set; }
     }
 
     private void RenderCurrentGraph()
@@ -594,5 +623,15 @@ public partial class WebGraphControl : UserControl
         var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter, _state.PresentationState);
         _edgeInfos = data.Edges;
         _ = core.ExecuteScriptAsync($"renderGraph({data.Json});");
+    }
+
+    private sealed class HostMessage
+    {
+        public string? Type { get; set; }
+        public string? Kind { get; set; }
+
+        // Node id, or — for edge messages — the edge id (source|target or source|type|target).
+        public string? Id { get; set; }
+        public List<string>? Ids { get; set; }
     }
 }

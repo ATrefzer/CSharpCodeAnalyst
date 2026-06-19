@@ -1,55 +1,16 @@
 ﻿using CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
-using Microsoft.Msagl.Drawing;
 
 namespace CSharpCodeAnalyst.Features.Help;
 
-public interface IQuickInfoFactory
-{
-    List<QuickInfo> CrateQuickInfo(object? obj);
-}
-
-internal class QuickInfoFactory(CodeGraph.Graph.CodeGraph graph) : IQuickInfoFactory
+internal class QuickInfoFactory(CodeGraph.Graph.CodeGraph graph)
 {
     internal static readonly List<QuickInfo> DefaultInfo = [new("No object selected")];
     internal static readonly List<QuickInfo> NoInfoProviderRegistered = [new("No info provider registered")];
 
-    public List<QuickInfo> CrateQuickInfo(object? obj)
-    {
-        if (obj is null)
-        {
-            return DefaultInfo;
-        }
-
-        if (obj is IViewerNode viewerNode)
-        {
-            var node = viewerNode.Node;
-            if (node.UserData is CodeElement codeElement)
-            {
-                return [CreateNodeQuickInfo(codeElement)];
-            }
-        }
-        else if (obj is IViewerEdge viewerEdge)
-        {
-            var edge = viewerEdge.Edge;
-            if (edge.UserData is Relationship relationship)
-            {
-                return CreateEdgeQuickInfos([relationship]);
-            }
-
-            if (edge.UserData is List<Relationship> relationships)
-            {
-                return CreateEdgeQuickInfos(relationships);
-            }
-        }
-
-        return DefaultInfo;
-    }
-
     /// <summary>
-    ///     Builds quick info straight from a code element (used by the web view, which
-    ///     has an element id rather than an MSAGL viewer object).
+    ///     Builds quick info straight from a code element (the web view has an element id).
     /// </summary>
     public QuickInfo CreateForCodeElement(CodeElement codeElement)
     {

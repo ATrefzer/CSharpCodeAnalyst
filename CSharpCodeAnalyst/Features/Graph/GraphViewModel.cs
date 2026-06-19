@@ -29,31 +29,20 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly RefactoringService _refactoringService;
     private readonly AppSettings _settings;
     private readonly LinkedList<GraphSession> _undoStack;
-    private readonly IGraphViewer _viewer;
     private readonly GraphViewState _state;
 
     private HighlightOption _selectedHighlightOption;
-    private RenderOption _selectedRenderOption;
 
-    internal GraphViewModel(IGraphViewer viewer, GraphViewState state, ICodeGraphExplorer explorer, IPublisher publisher,
+    internal GraphViewModel(GraphViewState state, ICodeGraphExplorer explorer, IPublisher publisher,
         AppSettings settings, RefactoringService refactoringService)
     {
         _undoStack = [];
-        _viewer = viewer;
         _state = state;
         _explorer = explorer;
         _publisher = publisher;
         _settings = settings;
         _refactoringService = refactoringService;
         DropHandler = new GraphDropHandler(publisher);
-
-        // Initialize RenderOptions
-        RenderOptions =
-        [
-            new DefaultRenderOptions(),
-            new LeftToRightRenderOptions(),
-            new BottomToTopRenderOptions()
-        ];
 
         HighlightOptions =
         [
@@ -63,7 +52,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         ];
 
         // Set defaults
-        _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
 
         var flag = IconLoader.LoadIcon("Resources/flag.png");
@@ -206,23 +194,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
 
-    public ObservableCollection<RenderOption> RenderOptions { get; }
-
-    public RenderOption SelectedRenderOption
-    {
-        get => _selectedRenderOption;
-        set
-        {
-            if (_selectedRenderOption != value)
-            {
-                _selectedRenderOption = value;
-                OnPropertyChanged(nameof(SelectedRenderOption));
-                UpdateGraphRenderOption();
-            }
-        }
-    }
-
-
 
     public bool ShowFlatGraph
     {
@@ -360,7 +331,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnClearAllFlags()
     {
-        _viewer.ClearAllFlags();
+        _state.ClearAllFlags();
     }
 
     private void OnCompleteRelationships()
@@ -383,7 +354,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void ToggleNodeFlag(CodeElement codeElement)
     {
-        _viewer.ToggleFlag(codeElement.Id);
+        _state.ToggleFlag(codeElement.Id);
     }
 
     private void ToggleEdgeFlag(string sourceId, string targetId, List<Relationship> relationships)
@@ -393,7 +364,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        _viewer.ToggleFlag(sourceId, targetId, relationships);
+        _state.ToggleFlag(sourceId, targetId);
     }
 
     private static void OnCopyToClipboard(CodeElement element)
@@ -539,11 +510,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.LoadSession(elements, state.Relationships, state.PresentationState);
     }
 
-    private void UpdateGraphRenderOption()
-    {
-        _viewer.UpdateRenderOption(SelectedRenderOption);
-    }
-
     private void FindAllOutgoingRelationships(CodeElement element)
     {
         var result = _explorer.FindOutgoingRelationships(element.Id);
@@ -616,9 +582,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _explorer.LoadCodeGraph(codeGraph);
         Clear();
         _undoStack.Clear();
-
-        // Only update after we change the code graph.
-        _viewer.SetQuickInfoFactory(new QuickInfoFactory(codeGraph));
     }
 
 
@@ -632,11 +595,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         PushUndo();
         //_undoStack.Clear();
         _state.Clear();
-    }
-
-    internal void Layout()
-    {
-        _viewer.Layout();
     }
 
     private void FindIncomingCalls(CodeElement method)
@@ -715,16 +673,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     public CodeGraph.Graph.CodeGraph ExportGraph()
     {
         return _state.CodeGraph;
-    }
-
-    public void SaveToSvg(FileStream stream)
-    {
-        _viewer.SaveToSvg(stream);
-    }
-
-    public void ShowGlobalContextMenu()
-    {
-        _viewer.ShowGlobalContextMenu();
     }
 
     public void ImportCycleGroup(CodeGraph.Graph.CodeGraph graph)
@@ -873,8 +821,4 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // Added elements are for sure not in this graph yet.
     }
 
-    public void ClearQuickInfo()
-    {
-        _viewer.ClearQuickInfo();
-    }
 }

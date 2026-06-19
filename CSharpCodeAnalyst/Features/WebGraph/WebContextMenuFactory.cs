@@ -1,14 +1,13 @@
 using System.Windows.Controls;
+using System.Windows.Media;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Graph;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
-///     Builds WPF context menus for the web graph view, reusing the same command objects
-///     the MSAGL view uses. Mirrors the menu-building logic in GraphViewer (node menu with
-///     separators, edge menu with sub-menu groups, global menu over the selection) so both
-///     views behave identically. The MSAGL menu code is left untouched (it is transitional).
+///     Builds WPF context menus shown on top of the web view, based on the registered commands
+///     and the current context (right-clicked element(s) and selection).
 /// </summary>
 internal static class WebContextMenuFactory
 {
@@ -105,7 +104,7 @@ internal static class WebContextMenuFactory
         return menu;
     }
 
-    private static Image? CreateIcon(System.Windows.Media.ImageSource? source)
+    private static Image? CreateIcon(ImageSource? source)
     {
         if (source is null)
         {

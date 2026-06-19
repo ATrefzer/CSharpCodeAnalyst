@@ -12,7 +12,6 @@ libraries used in this project.
 
 https://github.com/dotnet/runtime
 https://github.com/dotnet/roslyn
-https://github.com/microsoft/automatic-graph-layout
 https://github.com/microsoft/XamlBehaviorsWpf
 
 The following Microsoft packages are used in this project:
@@ -29,9 +28,6 @@ Production Dependencies:
 - Microsoft.CodeAnalysis.CSharp.Workspaces
 - Microsoft.CodeAnalysis.Workspaces.Common
 - Microsoft.CodeAnalysis.Workspaces.MSBuild
-- Microsoft.Msagl (Automatic Graph Layout)
-- Microsoft.Msagl.Drawing
-- Microsoft.Msagl.WpfGraphControl
 
 Test Dependencies:
 - Microsoft.NET.Test.Sdk
@@ -49,6 +45,22 @@ LibGit2Sharp is a .NET wrapper for libgit2, used in the ApprovalTestTool
 (internal testing tool, not distributed with the application).
 
 Copyright (c) LibGit2Sharp contributors
+
+
+3. CYTOSCAPE.JS (web graph view)
+================================================================================
+
+The web graph view renders with Cytoscape.js and its layout extensions, bundled
+locally under CSharpCodeAnalyst/Features/WebGraph/Web/lib:
+
+- cytoscape.js         https://github.com/cytoscape/cytoscape.js
+                       Copyright (c) The Cytoscape Consortium
+- cytoscape.js-fcose   https://github.com/iVis-at-Bilkent/cytoscape.js-fcose
+- cose-base            https://github.com/iVis-at-Bilkent/cose-base
+- layout-base          https://github.com/iVis-at-Bilkent/layout-base
+                       Copyright (c) i-Vis Research Lab, Bilkent University
+
+(The SVG export extension cytoscape-svg is GPL-3.0; see GPL-3.0-LICENSED-LIBRARIES.txt.)
 
 
 ================================================================================

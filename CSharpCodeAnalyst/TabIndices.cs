@@ -19,9 +19,8 @@ internal static class TabIndices
     internal static class Right
     {
         public const int WebView = 0;
-        public const int CodeExplorer = 1;
-        public const int Cycles = 2;
-        public const int Analyzer = 3;
-        public const int Metrics = 4;
+        public const int Cycles = 1;
+        public const int Analyzer = 2;
+        public const int Metrics = 3;
     }
 }

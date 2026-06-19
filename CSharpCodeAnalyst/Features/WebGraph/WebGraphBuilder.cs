@@ -9,14 +9,10 @@ namespace CSharpCodeAnalyst.Features.WebGraph;
 /// <summary>
 ///     Transforms a <see cref="CodeGraph.Graph.CodeGraph" /> into the JSON shape that
 ///     the Cytoscape front-end (app.js / renderGraph) expects: { nodes: [...], edges: [...] }.
-///     This is the web pendant to <c>MsaglBuilderBase</c>. It honours the presentation
-///     state (collapse/expand) and the <see cref="GraphHideFilter" /> (hidden element and
-///     relationship types), mirroring MsaglHierarchicalBuilder / MsaglFlatBuilder.
-///
-///     Besides the JSON it returns the <see cref="WebEdgeInfo" /> behind every drawn edge,
-///     keyed by edge id. This is the web equivalent of MSAGL's <c>edge.UserData</c>: the
-///     relationships an edge stands for are attached at build time instead of being
-///     reconstructed from the topology on every click.
+///     It honours the presentation state (collapse/expand) and the <see cref="GraphHideFilter" /> (hidden element and
+///     relationship types).
+///     Besides the JSON it returns the <see cref="WebEdgeInfo" />. This is a lookup table
+///     edge id -> relationship (a bundled edge has a list of relationships). So we don't attach it as edge data.
 /// </summary>
 internal static class WebGraphBuilder
 {
@@ -25,11 +21,6 @@ internal static class WebGraphBuilder
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    /// <param name="isCollapsed">
-    ///     Mirrors the Code Explorer: returns true for elements whose children are hidden.
-    ///     Children of a collapsed element are not emitted, and edges into them are
-    ///     rerouted to the collapsed container (same idea as MsaglHierarchicalBuilder).
-    /// </param>
     public static WebGraphData Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
         bool showFlat, bool showInformationFlow, GraphHideFilter hideFilter, PresentationState presentationState)
     {
@@ -45,7 +36,7 @@ internal static class WebGraphBuilder
     }
 
     /// <summary>
-    ///     Flat view (mirrors MsaglFlatBuilder): every element is a top-level node — no
+    ///     Flat view: every element is a top-level node — no
     ///     compound nesting and no collapse. Each relationship type between a pair is its own
     ///     direct edge (no rerouting, no cross-type bundling), and containment is drawn as
     ///     explicit gray edges.
@@ -188,7 +179,7 @@ internal static class WebGraphBuilder
                 External = element.IsExternal,
                 Color = ToHexColor(element),
                 // A collapsed container is drawn as a leaf here; flag it so the UI can
-                // mark it as expandable (like the bold label in the MSAGL view).
+                // mark it as expandable.
                 Collapsed = element.Children.Count > 0 && isCollapsed(element.Id),
                 Flagged = presentationState.IsFlagged(element.Id),
                 SearchHighlighted = presentationState.IsSearchHighlighted(element.Id)
@@ -209,8 +200,7 @@ internal static class WebGraphBuilder
             }
 
             // Hidden relationship types never appear. Hidden endpoints are already gone
-            // from the visible set, so ResolveEdge reroutes them to a visible ancestor
-            // (matching MsaglHierarchicalBuilder).
+            // from the visible set, so ResolveEdge reroutes them to a visible ancestor.
             if (hideFilter.ShouldHideRelationship(relationship))
             {
                 continue;
@@ -268,8 +258,6 @@ internal static class WebGraphBuilder
     private static void CollectVisible(CodeElement node, Func<string, bool> isCollapsed, GraphHideFilter hideFilter,
         HashSet<string> visible)
     {
-        // A hidden element drops itself and its whole subtree (mirrors
-        // MsaglHierarchicalBuilder.CollectVisibleNodes).
         if (hideFilter.ShouldHideElement(node))
         {
             return;
@@ -330,7 +318,7 @@ internal static class WebGraphBuilder
 
         // Drop a self-loop only when BOTH endpoints were rerouted up to the same container
         // (an internal edge of a collapsed node). A real self-reference — where an original
-        // endpoint already IS that node — is drawn. Mirrors MsaglHierarchicalBuilder.
+        // endpoint already IS that node — is drawn.
         if (source == target &&
             relationship.SourceId != source && relationship.TargetId != target)
         {
@@ -341,7 +329,7 @@ internal static class WebGraphBuilder
     }
 
     /// <summary>
-    ///     Mirrors MsaglBuilderBase: in flow mode, structural edges point "downstream"
+    ///     In flow mode, structural edges point "downstream"
     ///     (interface -> implementation, base -> override, event -> handler).
     /// </summary>
     private static bool ShouldReverseInFlowMode(CodeGraph.Graph.CodeGraph graph, string sourceId, RelationshipType type)
@@ -392,7 +380,7 @@ internal static class WebGraphBuilder
         public required string Color { get; init; }
         public bool Collapsed { get; init; }
 
-        // PresentationState decorations (rendered as red borders, like MSAGL).
+        // Presentation decorations (rendered as red borders).
         public bool Flagged { get; init; }
         public bool SearchHighlighted { get; init; }
     }
@@ -415,8 +403,7 @@ internal static class WebGraphBuilder
     /// <summary>
     ///     Collects the relationships a single drawn edge stands for, together with the
     ///     drawn (rerouted) endpoints. A single relationship keeps its own type; a real
-    ///     bundle (more than one) becomes <see cref="RelationshipType.Bundled" /> — same
-    ///     convention as MsaglHierarchicalBuilder, where Bundled is itself an edge type.
+    ///     bundle (more than one) becomes <see cref="RelationshipType.Bundled" />
     /// </summary>
     private sealed class EdgeAccumulator(string sourceId, string targetId)
     {
@@ -451,9 +438,7 @@ internal static class WebGraphBuilder
 internal sealed record WebGraphData(string Json, IReadOnlyDictionary<string, WebEdgeInfo> Edges);
 
 /// <summary>
-///     Metadata for one drawn edge: its drawn (rerouted) endpoints and the underlying
-///     relationships it represents. The web equivalent of MSAGL's <c>edge.UserData</c>.
-///     The list is the live collection passed straight to the existing relationship
-///     commands (<c>IRelationshipContextCommand</c>), which expect a List.
+///     Metadata (relationships)for each drawn edge.
+///     Bundled edges have multiple relationships of different types; unbundled edges have exactly one relationship.
 /// </summary>
 internal sealed record WebEdgeInfo(string SourceId, string TargetId, List<Relationship> Relationships);

@@ -103,23 +103,22 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        // The shared, render-agnostic model. Both views (MSAGL and web) observe and drive it.
+        // The shared, render-agnostic model the web view observes and drives.
         var graphViewState = new GraphViewState();
-        var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit, graphViewState);
 
-        // One graph search, shared by both views: it reads/writes the shared GraphViewState
-        // (search highlights live in PresentationState, which both adapters render).
+        // Graph search reads/writes the shared GraphViewState (search highlights live in
+        // PresentationState, which the web view renders).
         var graphSearchViewModel = new GraphSearchViewModel(graphViewState);
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging, messaging, graphSearchViewModel);
+        mainWindow.SetViewer(graphViewState, messaging, messaging, graphSearchViewModel);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, graphViewState, explorer, messaging, applicationSettings, refactoringService);
+        var graphViewModel = new GraphViewModel(graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);
         var infoPanelViewModel = new InfoPanelViewModel();

@@ -6,9 +6,10 @@ namespace CSharpCodeAnalyst.Shared.Messages;
 public enum WebGraphExportFormat
 {
     Png,
+    Svg,
 
-    // SVG needs the cytoscape-svg extension (not bundled yet) — reserved for later.
-    Svg
+    // Copy a PNG of the graph to the clipboard instead of saving to a file.
+    ClipboardPng
 }
 
 /// <summary>

@@ -20,8 +20,7 @@ public class Exporter
     }
 
     /// <summary>
-    ///     Svg export is special because it is a feature of the
-    ///     Msagl graph library.
+    ///     Old Svg export is with customizable export function.
     /// </summary>
     public void ToSvg(Action<FileStream>? svgExport)
     {

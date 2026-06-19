@@ -97,24 +97,22 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer, GraphViewState graphViewState, IPublisher publisher,
+    public void SetViewer(GraphViewState graphViewState, IPublisher publisher,
         ISubscriber subscriber, GraphSearchViewModel graphSearchViewModel)
     {
-        ExplorationControl.SetViewer(explorationGraphViewer, publisher, graphSearchViewModel);
-
-        // The web view observes the same shared model directly (no MSAGL dependency) and
-        // listens on the bus for render-only commands (Layout / Refit).
+        // The web view observes the shared model directly and listens on the bus for
+        // render-only commands (Layout / Refit / Export).
         WebGraphView.SetViewer(graphViewState, publisher, subscriber);
 
-        // Both views host the same shared graph search (acts on the shared GraphViewState).
+        // The graph search acts on the shared GraphViewState; its box lives in the web tab.
         WebGraphSearch.DataContext = graphSearchViewModel;
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (WorkingArea.SelectedIndex == TabIndices.Right.CodeExplorer)
+        if (WorkingArea.SelectedIndex == TabIndices.Right.WebView)
         {
-            var mainVm = ExplorationControl.DataContext as MainViewModel;
+            var mainVm = DataContext as MainViewModel;
             var graphVm = mainVm?.GraphViewModel;
             if (graphVm != null && graphVm.TryHandleKeyDown(e))
             {
