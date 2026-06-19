@@ -1191,7 +1191,7 @@ Dieselbe Logik gilt für die Ribbon-Befehle: `Relayout` bei verborgenem Tab setz
 
 ---
 
-## H. Zusammenfassung in fünf Sätzen
+## Zusammenfassung in fünf Sätzen
 
 Das Web-Tab ist das **erste** Tab, damit der WebView2 schon beim App-Start (statt erst
 beim ersten Öffnen) **asynchron** initialisiert. Während dieses Kaltstarts überbrückt ein
@@ -1204,3 +1204,46 @@ ist, zeigt eine **HTML-Hilfe** die Bedienung; sie verschwindet einmalig und für
 restliche Sitzung, sobald der erste Graph mit Knoten gerendert wurde. Alle weiteren Renders
 folgen aus `GraphViewState.Changed` (entprellt, sichtbarkeitsbewusst), Layout/Refit dagegen
 aus Ribbon-Befehlen über den MessageBus.
+
+# Airspace
+
+„Airspace" ist ein bekannter Begriff aus der WPF-/Win32-Welt. Er beschreibt eine Einschränkung beim Mischen von zwei unterschiedlichen Rendering-Technologien im **selben Fenster**.
+
+## Die Grundregel
+
+Ein Stück Bildschirmfläche („airspace") kann immer nur von **einer** Rendering-Technologie bespielt werden. Sie können sich nicht überlappen oder vermischen.
+
+WPF zeichnet seine Steuerelemente (Buttons, TextBlocks, Grids …) alle zusammen auf **eine einzige** DirectX-Fläche — das gesamte WPF-Fenster ist im Grunde *ein* Win32-Fenster (HWND), in das WPF alles selbst hineinmalt.
+
+Manche Controls sind aber **kein** WPF-Rendering, sondern haben ein **eigenes, echtes Win32-Fenster (HWND)** dahinter. Solche „HWND-Inseln" nennt man *airspace-Controls*. Klassische Beispiele:
+
+- `WebView2` (eingebetteter Chromium-Browser),
+- der alte `WindowsFormsHost`,
+- `DirectX`/Video-Overlays.
+
+## Warum das ein Problem ist
+
+Das HWND eines solchen Controls wird vom **Betriebssystem** gezeichnet, **nachdem** WPF sein Fenster gemalt hat — und es liegt immer **obenauf**. WPF kann nicht „darüber" malen, weil das fremde HWND die Fläche selbst kontrolliert.
+
+```
+WPF-Fenster (ein HWND)
+ ├─ WPF-Inhalt (Buttons, Text, Overlays …)   ← alles auf EINER WPF-Fläche
+ └─ WebView2 (eigenes HWND)                   ← liegt darüber, OS-gezeichnet
+        ▲
+        └── WPF-Element, das ich hier drüberlegen will → unsichtbar (Airspace!)
+```
+
+In unserem konkreten Fall:
+
+- Wollte ich einen WPF-Ladehinweis **über** die WebView legen → ginge nicht, das HWND der WebView verdeckt ihn.
+- Deshalb der Trick: WebView-Hintergrund **transparent** + Platzhalter **dahinter** (in derselben WPF-Fläche, die durchscheint).
+
+## Die Ausnahme: Popup-Fenster
+
+Das Kontextmenü funktioniert trotzdem über der WebView — weil ein WPF-`ContextMenu`/`Popup` ein **eigenes, separates** Top-Level-HWND ist. Es liegt im Z-Order *über* dem WebView2-HWND (Geschwister-Fenster, nicht „im selben airspace"). Airspace betrifft nur WPF-Inhalt, der mit der HWND-Insel **dieselbe** Fläche im **selben** Fenster teilt.
+
+## Kurz gesagt
+
+> **Airspace** = die Regel, dass eine WPF-„Insel" mit eigenem Win32-Fenster (wie WebView2) eine Bildschirmfläche exklusiv belegt; normaler WPF-Inhalt im selben Fenster kann sich nicht damit überlappen (weder darüber liegen noch durchscheinen). Nur separate Popup-Fenster umgehen das.
+
+Randnotiz: Bei *neueren* WebView2-Versionen gibt es auch einen „Composition"-Hosting-Modus (`CoreWebView2CompositionController` bzw. die `WebView2CompositionControl`), der die WebView in die WPF-Komposition einbindet und das Airspace-Problem ganz vermeidet — den nutzen wir hier aber nicht; wir lösen es über den transparenten Hintergrund.

@@ -310,30 +310,27 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public bool IsFlagged(string id)
     {
-        return _presentationState.IsFlagged(id);
+        return _state.IsFlagged(id);
     }
 
+    // The data mutation goes through the shared state (which raises DecorationsChanged so the
+    // web view restyles too); the MSAGL-specific no-layout refresh stays here.
     public void ToggleFlag(string id)
     {
-        var currentState = _presentationState.IsFlagged(id);
-        var newState = !currentState;
-        _presentationState.SetFlaggedState(id, newState);
+        _state.ToggleFlag(id);
         RefreshNodeDecorationWithoutLayout([id]);
     }
 
     public void ToggleFlag(string sourceId, string targetId, List<Relationship> relationships)
     {
-        var key = (sourceId, targetId);
-        var currentState = _presentationState.IsFlagged(key);
-        var newState = !currentState;
-        _presentationState.SetFlaggedState(key, newState);
-        RefreshEdgeDecorationWithoutLayout([key]);
+        _state.ToggleFlag(sourceId, targetId);
+        RefreshEdgeDecorationWithoutLayout([(sourceId, targetId)]);
     }
 
     public void ClearAllFlags()
     {
         var affectedIds = _presentationState.NodeIdToFlagged.Keys.ToList();
-        _presentationState.ClearAllFlags();
+        _state.ClearAllFlags();
         RefreshNodeDecorationWithoutLayout(affectedIds);
 
         // After the highlighting is removed the state appears.
@@ -342,18 +339,10 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
 
     public void SetSearchHighlights(List<string> nodeIds)
     {
-        // Clear previous search highlights
         var previousIds = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
+        _state.SetSearchHighlights(nodeIds);
 
-        _presentationState.ClearAllSearchHighlights();
-
-        // Set new search highlights
-        foreach (var nodeId in nodeIds)
-        {
-            _presentationState.SetSearchHighlightedState(nodeId, true);
-        }
-
-        // Refresh all affected nodes
+        // Refresh the union of previously and newly highlighted nodes.
         var allAffectedIds = previousIds.Union(nodeIds).ToList();
         RefreshNodeDecorationWithoutLayout(allAffectedIds);
     }
@@ -361,7 +350,7 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
     public void ClearSearchHighlights()
     {
         var ids = _presentationState.NodeIdToSearchHighlighted.Keys.ToList();
-        _presentationState.ClearAllSearchHighlights();
+        _state.ClearSearchHighlights();
         RefreshNodeDecorationWithoutLayout(ids);
     }
 

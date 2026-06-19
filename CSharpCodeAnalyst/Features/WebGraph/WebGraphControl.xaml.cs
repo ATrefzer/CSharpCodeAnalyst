@@ -81,10 +81,41 @@ public partial class WebGraphControl : UserControl
         // which does the actual (local, per-hover) highlighting.
         _state.HighlightModeChanged += OnHighlightModeChanged;
 
+        // Flags / search highlights restyle existing elements without a re-layout.
+        _state.DecorationsChanged += OnDecorationsChanged;
+
         // The ribbon's Layout split button drives render-only operations. The model is
         // unchanged, so these come over the bus rather than through GraphViewState.Changed.
         subscriber.Subscribe<RelayoutGraphRequest>(_ => Dispatcher.Invoke(Relayout));
         subscriber.Subscribe<RefitGraphRequest>(_ => Dispatcher.Invoke(Refit));
+    }
+
+    private void OnDecorationsChanged()
+    {
+        Dispatcher.Invoke(PushDecorations);
+    }
+
+    /// <summary>
+    ///     Restyles the existing elements for flags / search highlights — no re-layout. The
+    ///     elements survive from the last render, so this works even while the tab is hidden.
+    /// </summary>
+    private void PushDecorations()
+    {
+        if (!_isWebReady || _state is null)
+        {
+            return;
+        }
+
+        var ps = _state.PresentationState;
+        var flaggedNodes = _state.CodeGraph.Nodes.Keys.Where(ps.IsFlagged).ToList();
+        var searchNodes = _state.CodeGraph.Nodes.Keys.Where(ps.IsSearchHighlighted).ToList();
+        var flaggedEdges = _edgeInfos
+            .Where(kv => ps.IsFlagged((kv.Value.SourceId, kv.Value.TargetId)))
+            .Select(kv => kv.Key)
+            .ToList();
+
+        var payload = JsonSerializer.Serialize(new { flaggedNodes, searchNodes, flaggedEdges });
+        _ = WebView.CoreWebView2?.ExecuteScriptAsync($"setDecorations({payload});");
     }
 
     /// <summary>
@@ -452,7 +483,7 @@ public partial class WebGraphControl : UserControl
         // A re-render rebuilds all elements, so any selection in the web view is gone.
         _state.SetSelection([]);
 
-        var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter);
+        var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter, _state.PresentationState);
         _edgeInfos = data.Edges;
         _ = core.ExecuteScriptAsync($"renderGraph({data.Json});");
     }

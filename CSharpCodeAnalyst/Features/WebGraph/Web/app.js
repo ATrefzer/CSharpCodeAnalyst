@@ -74,6 +74,16 @@ const cytoscapeStyle = [
         selector: "node[?collapsed]",
         style: { "font-weight": "bold", "border-width": 2, "border-color": "#555555" },
     },
+    // Persistent decorations from C# PresentationState. Both red like MSAGL; the flag is
+    // thicker and wins over search (it is defined last among the two equal-specificity rules).
+    {
+        selector: "node[?searchHighlighted]",
+        style: { "border-color": "#ff0000", "border-width": 2 },
+    },
+    {
+        selector: "node[?flagged]",
+        style: { "border-color": "#ff0000", "border-width": 3 },
+    },
     {
         selector: "node:selected",
         style: { "border-width": 3, "border-color": "#ff7f0e" },
@@ -116,6 +126,15 @@ const cytoscapeStyle = [
             "line-color": "#cfcfcf",
             "width": 1,
             "target-arrow-shape": "triangle-backcurve",
+        },
+    },
+    {
+        // Flagged edge (PresentationState): red + thicker, like MSAGL.
+        selector: "edge[?flagged]",
+        style: {
+            "line-color": "#ff0000",
+            "target-arrow-color": "#ff0000",
+            "width": 3,
         },
     },
     // Hover highlighting: emphasize the relevant set (no fading of the rest for now).
@@ -184,13 +203,14 @@ window.renderGraph = function (graph) {
         elements.push({
             // color is the exact per-type color computed by C# (ColorDefinitions); the
             // node style reads data("color") and only falls back to KIND_COLOR when absent.
-            data: { id: n.id, label: n.label, kind: n.kind, color: n.color, parent: n.parent || undefined, collapsed: n.collapsed },
+            // flagged / searchHighlighted are PresentationState decorations (red borders).
+            data: { id: n.id, label: n.label, kind: n.kind, color: n.color, parent: n.parent || undefined, collapsed: n.collapsed, flagged: n.flagged, searchHighlighted: n.searchHighlighted },
             classes: n.external ? "external" : "",
         });
     }
     for (const e of graph.edges) {
         // color is optional (null = default black); set per relationship type by C#.
-        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count, color: e.color } });
+        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count, color: e.color, flagged: e.flagged } });
     }
 
     cy.elements().remove();
@@ -203,6 +223,27 @@ window.renderGraph = function (graph) {
     }
     currentLayout = cy.layout(LAYOUT);
     currentLayout.run();
+};
+
+// Update flag / search decorations on the EXISTING elements (no re-layout). C# pushes this
+// whenever the PresentationState decorations change; styling reacts to the data flags.
+window.setDecorations = function (dec) {
+    const flaggedNodes = dec.flaggedNodes || [];
+    const searchNodes = dec.searchNodes || [];
+    const flaggedEdges = dec.flaggedEdges || [];
+
+    cy.batch(() => {
+        cy.nodes().forEach(n => {
+            n.data("flagged", false);
+            n.data("searchHighlighted", false);
+        });
+        cy.edges().forEach(e => e.data("flagged", false));
+
+        // getElementById on a missing id yields an empty collection -> .data() is a no-op.
+        flaggedNodes.forEach(id => cy.getElementById(id).data("flagged", true));
+        searchNodes.forEach(id => cy.getElementById(id).data("searchHighlighted", true));
+        flaggedEdges.forEach(id => cy.getElementById(id).data("flagged", true));
+    });
 };
 
 // Recompute size and re-frame without re-running the layout. C# calls this when the

@@ -50,6 +50,12 @@ public class GraphViewState
     /// <summary>The selection changed (not a structural change; no re-layout needed).</summary>
     public event Action? SelectionChanged;
 
+    /// <summary>
+    ///     A decoration changed (flags / search highlights). These are PresentationState
+    ///     overlays that only restyle existing elements — observers must NOT re-layout.
+    /// </summary>
+    public event Action? DecorationsChanged;
+
     // ---- Command registry ---------------------------------------------------
     public void AddCommand(ICodeElementContextCommand command)
     {
@@ -104,6 +110,50 @@ public class GraphViewState
         _selectedIds.Clear();
         _selectedIds.UnionWith(incoming);
         SelectionChanged?.Invoke();
+    }
+
+    // ---- Decorations (flags / search highlights) ----------------------------
+    // The data lives in PresentationState; these ops mutate it and raise DecorationsChanged
+    // so every adapter restyles WITHOUT a re-layout.
+    public bool IsFlagged(string id)
+    {
+        return PresentationState.IsFlagged(id);
+    }
+
+    public void ToggleFlag(string id)
+    {
+        PresentationState.SetFlaggedState(id, !PresentationState.IsFlagged(id));
+        DecorationsChanged?.Invoke();
+    }
+
+    public void ToggleFlag(string sourceId, string targetId)
+    {
+        var key = (sourceId, targetId);
+        PresentationState.SetFlaggedState(key, !PresentationState.IsFlagged(key));
+        DecorationsChanged?.Invoke();
+    }
+
+    public void ClearAllFlags()
+    {
+        PresentationState.ClearAllFlags();
+        DecorationsChanged?.Invoke();
+    }
+
+    public void SetSearchHighlights(IEnumerable<string> nodeIds)
+    {
+        PresentationState.ClearAllSearchHighlights();
+        foreach (var id in nodeIds)
+        {
+            PresentationState.SetSearchHighlightedState(id, true);
+        }
+
+        DecorationsChanged?.Invoke();
+    }
+
+    public void ClearSearchHighlights()
+    {
+        PresentationState.ClearAllSearchHighlights();
+        DecorationsChanged?.Invoke();
     }
 
     // ---- Collapse / expand --------------------------------------------------

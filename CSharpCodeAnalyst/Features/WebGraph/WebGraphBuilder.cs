@@ -1,6 +1,7 @@
 using System.Text.Json;
 using CodeGraph.Colors;
 using CodeGraph.Graph;
+using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
@@ -30,11 +31,11 @@ internal static class WebGraphBuilder
     ///     rerouted to the collapsed container (same idea as MsaglHierarchicalBuilder).
     /// </param>
     public static WebGraphData Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
-        bool showFlat, bool showInformationFlow, GraphHideFilter hideFilter)
+        bool showFlat, bool showInformationFlow, GraphHideFilter hideFilter, PresentationState presentationState)
     {
         var (dto, edges) = showFlat
-            ? BuildFlat(graph, showInformationFlow, hideFilter)
-            : BuildHierarchical(graph, isCollapsed, showInformationFlow, hideFilter);
+            ? BuildFlat(graph, showInformationFlow, hideFilter, presentationState)
+            : BuildHierarchical(graph, isCollapsed, showInformationFlow, hideFilter, presentationState);
 
         // System.Text.Json's default encoder already escapes characters that would be
         // unsafe inside a <script> / JS string literal (e.g. U+2028, U+2029, <, >, &),
@@ -50,7 +51,8 @@ internal static class WebGraphBuilder
     ///     explicit gray edges.
     /// </summary>
     private static (WebGraphDto Dto, Dictionary<string, WebEdgeInfo> Edges) BuildFlat(
-        CodeGraph.Graph.CodeGraph graph, bool showInformationFlow, GraphHideFilter hideFilter)
+        CodeGraph.Graph.CodeGraph graph, bool showInformationFlow, GraphHideFilter hideFilter,
+        PresentationState presentationState)
     {
         var dto = new WebGraphDto();
         var edges = new Dictionary<string, WebEdgeInfo>();
@@ -71,7 +73,9 @@ internal static class WebGraphBuilder
                 Parent = null,
                 External = element.IsExternal,
                 Color = ToHexColor(element),
-                Collapsed = false
+                Collapsed = false,
+                Flagged = presentationState.IsFlagged(element.Id),
+                SearchHighlighted = presentationState.IsSearchHighlighted(element.Id)
             });
         }
 
@@ -123,7 +127,8 @@ internal static class WebGraphBuilder
                 Target = accumulator.TargetId,
                 Kind = type.ToString(),
                 Count = accumulator.Relationships.Count,
-                Color = EdgeColor(type)
+                Color = EdgeColor(type),
+                Flagged = presentationState.IsFlagged((accumulator.SourceId, accumulator.TargetId))
             });
             edges[id] = accumulator.ToEdgeInfo();
         }
@@ -156,7 +161,8 @@ internal static class WebGraphBuilder
     }
 
     private static (WebGraphDto Dto, Dictionary<string, WebEdgeInfo> Edges) BuildHierarchical(
-        CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow, GraphHideFilter hideFilter)
+        CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow, GraphHideFilter hideFilter,
+        PresentationState presentationState)
     {
         // 1. Visible node set: walk from the roots, stop descending at collapsed nodes
         //    and prune hidden subtrees.
@@ -183,7 +189,9 @@ internal static class WebGraphBuilder
                 Color = ToHexColor(element),
                 // A collapsed container is drawn as a leaf here; flag it so the UI can
                 // mark it as expandable (like the bold label in the MSAGL view).
-                Collapsed = element.Children.Count > 0 && isCollapsed(element.Id)
+                Collapsed = element.Children.Count > 0 && isCollapsed(element.Id),
+                Flagged = presentationState.IsFlagged(element.Id),
+                SearchHighlighted = presentationState.IsSearchHighlighted(element.Id)
             });
         }
 
@@ -235,7 +243,8 @@ internal static class WebGraphBuilder
                 Target = targetId,
                 Kind = accumulator.Kind(),
                 Count = accumulator.Relationships.Count,
-                Color = EdgeColor(accumulator.EffectiveType)
+                Color = EdgeColor(accumulator.EffectiveType),
+                Flagged = presentationState.IsFlagged((sourceId, targetId))
             });
             edges[id] = accumulator.ToEdgeInfo();
         }
@@ -382,6 +391,10 @@ internal static class WebGraphBuilder
         public bool External { get; init; }
         public required string Color { get; init; }
         public bool Collapsed { get; init; }
+
+        // PresentationState decorations (rendered as red borders, like MSAGL).
+        public bool Flagged { get; init; }
+        public bool SearchHighlighted { get; init; }
     }
 
     private sealed class WebEdgeDto
@@ -394,6 +407,9 @@ internal static class WebGraphBuilder
 
         // Optional per-edge line color (hex). Null means "use the default edge color".
         public string? Color { get; init; }
+
+        // Edge flag decoration (the (source, target) pair was flagged by the user).
+        public bool Flagged { get; init; }
     }
 
     /// <summary>
