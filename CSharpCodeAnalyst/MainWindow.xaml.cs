@@ -85,7 +85,7 @@ public partial class MainWindow
 
     public void HandleLocateInTreeRequest(LocateInTreeRequest request)
     {
-        CodeStructureTab.SelectedIndex = 0;
+        CodeStructureTab.SelectedIndex = TabIndices.Left.TreeView;
         TreeControl.HandleLocateInTreeRequest(request);
     }
 
@@ -97,19 +97,19 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer, GraphViewState graphViewState, IPublisher publisher)
+    public void SetViewer(GraphViewer explorationGraphViewer, GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber)
     {
         ExplorationControl.SetViewer(explorationGraphViewer, publisher);
 
-        // The web view observes the same shared model directly (no MSAGL dependency).
-        WebGraphView.SetViewer(graphViewState, publisher);
+        // The web view observes the same shared model directly (no MSAGL dependency) and
+        // listens on the bus for render-only commands (Layout / Refit).
+        WebGraphView.SetViewer(graphViewState, publisher, subscriber);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (WorkingArea.SelectedIndex == 0)
+        if (WorkingArea.SelectedIndex == TabIndices.Right.CodeExplorer)
         {
-            // Code explorer
             var mainVm = ExplorationControl.DataContext as MainViewModel;
             var graphVm = mainVm?.GraphViewModel;
             if (graphVm != null && graphVm.TryHandleKeyDown(e))

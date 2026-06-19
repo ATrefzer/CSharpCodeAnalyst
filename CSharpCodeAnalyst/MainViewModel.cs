@@ -43,7 +43,6 @@ namespace CSharpCodeAnalyst;
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
-    private const int InfoPanelTabIndex = 2;
     private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
     private readonly Exporter _exporter;
@@ -126,6 +125,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         SaveProjectCommand = new WpfCommand(OnSaveProject);
         GraphClearCommand = new WpfCommand(OnGraphClear);
         GraphLayoutCommand = new WpfCommand(OnGraphLayout);
+        GraphRefitCommand = new WpfCommand(OnGraphRefit);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
         AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
@@ -247,6 +247,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
+    public ICommand GraphRefitCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
@@ -295,7 +296,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             field = value;
             OnPropertyChanged();
         }
-    }
+    } = TabIndices.Right.WebView; // Web View is the start-up tab (so its WebView2 inits eagerly)
 
     public bool IsCanvasHintsVisible
     {
@@ -336,7 +337,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
+            InfoPanelViewModel?.Hide(value != TabIndices.Left.InfoPanel);
             OnPropertyChanged();
         }
     }
@@ -605,7 +606,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
         AnalyzerResult = tabularDataRequest.Table;
-        SelectedRightTabIndex = 2;
+        SelectedRightTabIndex = TabIndices.Right.Analyzer;
     }
 
     private async void OnFindCycles()
@@ -653,7 +654,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (cycleGroups != null)
         {
             _messaging.Publish(new CycleCalculationComplete(cycleGroups));
-            SelectedRightTabIndex = 1;
+            SelectedRightTabIndex = TabIndices.Right.Cycles;
         }
     }
 
@@ -734,7 +735,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnGraphLayout()
     {
+        // Full relayout: MSAGL rebuilds via the view model; the web adapter re-runs its
+        // layout through the bus (it is not driven by the view model).
         _graphViewModel?.Layout();
+        _messaging.Publish(new RelayoutGraphRequest());
+    }
+
+    private void OnGraphRefit()
+    {
+        // Recompute size and fit the view without re-running the layout. Web-only for now
+        // (MSAGL has no separate "refit" step exposed).
+        _messaging.Publish(new RefitGraphRequest());
     }
 
     private void OnGraphClear()
@@ -951,7 +962,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void HandleShowCycleGroupRequest(ShowCycleGroupRequest request)
     {
         GraphViewModel?.ImportCycleGroup(request.CycleGroup.CodeGraph.Clone());
-        SelectedRightTabIndex = 0;
+        SelectedRightTabIndex = TabIndices.Right.CodeExplorer;
     }
 
     public void HandleCycleCalculationComplete(CycleCalculationComplete request)
@@ -959,7 +970,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         var cycleGroups = request.CycleGroups;
 
         Cycles = new CycleGroupsViewModel(cycleGroups, _messaging);
-        SelectedRightTabIndex = 1;
+        SelectedRightTabIndex = TabIndices.Right.Cycles;
     }
 
 

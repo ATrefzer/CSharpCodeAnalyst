@@ -1377,7 +1377,34 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resets zoom level and fits to screen.
+        ///   Looks up a localized string similar to Recompute size.
+        /// </summary>
+        public static string Layout_Refit_Label {
+            get {
+                return ResourceManager.GetString("Layout_Refit_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recompute size and fit to view, keeping the current node positions.
+        /// </summary>
+        public static string Layout_Refit_Tooltip {
+            get {
+                return ResourceManager.GetString("Layout_Refit_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New layout.
+        /// </summary>
+        public static string Layout_Relayout_Label {
+            get {
+                return ResourceManager.GetString("Layout_Relayout_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recompute the graph layout from scratch.
         /// </summary>
         public static string Layout_Tooltip {
             get {
@@ -2753,6 +2780,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Warning_Title {
             get {
                 return ResourceManager.GetString("Warning_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing graph view….
+        /// </summary>
+        public static string WebView_Initializing {
+            get {
+                return ResourceManager.GetString("WebView_Initializing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Web View.
+        /// </summary>
+        public static string WebView_TabHeader {
+            get {
+                return ResourceManager.GetString("WebView_TabHeader", resourceCulture);
             }
         }
     }

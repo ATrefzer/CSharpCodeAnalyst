@@ -159,13 +159,21 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="{x:Static resources:Strings.Layout_Label}"
-                                  LargeImageSource="/Resources/four-arrows_32.png"
-                                  Command="{Binding GraphLayoutCommand}" KeyTip="LA">
-                        <RibbonButton.ToolTip>
+                    <RibbonSplitButton Label="{x:Static resources:Strings.Layout_Label}"
+                                       LargeImageSource="/Resources/four-arrows_32.png"
+                                       Command="{Binding GraphLayoutCommand}" KeyTip="LA">
+                        <RibbonSplitButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Layout_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
+                        </RibbonSplitButton.ToolTip>
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Layout_Relayout_Label}"
+                                        ImageSource="/Resources/four-arrows_32.png"
+                                        ToolTip="{x:Static resources:Strings.Layout_Tooltip}"
+                                        Command="{Binding GraphLayoutCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Layout_Refit_Label}"
+                                        ImageSource="/Resources/four-arrows_32.png"
+                                        ToolTip="{x:Static resources:Strings.Layout_Refit_Tooltip}"
+                                        Command="{Binding GraphRefitCommand}" />
+                    </RibbonSplitButton>
 
 
                     <RibbonSplitButton Label="{x:Static resources:Strings.Export_Label}"
@@ -391,6 +399,12 @@
 
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}" x:Name="WorkingArea">
+                <!-- Web View is the first tab so its WebView2 initializes eagerly at start-up
+                     (a non-selected WPF tab is not in the visual tree, so it could not init). -->
+                <TabItem Header="{x:Static resources:Strings.WebView_TabHeader}">
+                    <webGraph:WebGraphControl x:Name="WebGraphView" />
+                </TabItem>
+
                 <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
                     <graph:CodeExplorerControl x:Name="ExplorationControl" />
                 </TabItem>
@@ -405,10 +419,6 @@
 
                 <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
-                </TabItem>
-
-                <TabItem Header="Web View">
-                    <webGraph:WebGraphControl x:Name="WebGraphView" />
                 </TabItem>
             </TabControl>
         </Grid>

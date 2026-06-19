@@ -204,7 +204,22 @@ If no code element is selected the parent for all code elements is added.</value
 Adds all missing relationships between code elements in the Code Explorer</value>
   </data>
   <data name="Layout_Tooltip" xml:space="preserve">
-    <value>Resets zoom level and fits to screen</value>
+    <value>Recompute the graph layout from scratch</value>
+  </data>
+  <data name="Layout_Relayout_Label" xml:space="preserve">
+    <value>New layout</value>
+  </data>
+  <data name="Layout_Refit_Label" xml:space="preserve">
+    <value>Recompute size</value>
+  </data>
+  <data name="Layout_Refit_Tooltip" xml:space="preserve">
+    <value>Recompute size and fit to view, keeping the current node positions</value>
+  </data>
+  <data name="WebView_TabHeader" xml:space="preserve">
+    <value>Web View</value>
+  </data>
+  <data name="WebView_Initializing" xml:space="preserve">
+    <value>Initializing graph view…</value>
   </data>
   <data name="CompleteToTypes" xml:space="preserve">
     <value>Complete to containing types.

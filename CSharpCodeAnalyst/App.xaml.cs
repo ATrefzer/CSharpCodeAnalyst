@@ -109,7 +109,7 @@ public partial class App
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging);
+        mainWindow.SetViewer(explorationGraphViewer, graphViewState, messaging, messaging);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);

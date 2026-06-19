@@ -46,9 +46,10 @@ public partial class WebGraphControl : UserControl
     private GraphViewState? _state;
     private IPublisher? _publisher;
 
-    // Canonical selection of the web view, fed by the JS side. Consumed later by the
-    // context menu's global commands and (at cutover) the toolbar buttons.
-    private readonly HashSet<string> _selectedIds = [];
+    // Relationships behind each drawn edge, keyed by edge id, captured at render time
+    // (the web equivalent of MSAGL's edge.UserData). A click/right-click on an edge looks
+    // it up here instead of reconstructing it from the topology.
+    private IReadOnlyDictionary<string, WebEdgeInfo> _edgeInfos = new Dictionary<string, WebEdgeInfo>();
 
     public WebGraphControl()
     {
@@ -70,7 +71,7 @@ public partial class WebGraphControl : UserControl
     /// <summary>
     ///     Wires the web view to the shared model both views use. Called once at start-up.
     /// </summary>
-    public void SetViewer(GraphViewState state, IPublisher publisher)
+    public void SetViewer(GraphViewState state, IPublisher publisher, ISubscriber subscriber)
     {
         _state = state;
         _publisher = publisher;
@@ -79,6 +80,41 @@ public partial class WebGraphControl : UserControl
         // The hover-highlight mode is chosen in the ribbon; forward changes to JS,
         // which does the actual (local, per-hover) highlighting.
         _state.HighlightModeChanged += OnHighlightModeChanged;
+
+        // The ribbon's Layout split button drives render-only operations. The model is
+        // unchanged, so these come over the bus rather than through GraphViewState.Changed.
+        subscriber.Subscribe<RelayoutGraphRequest>(_ => Dispatcher.Invoke(Relayout));
+        subscriber.Subscribe<RefitGraphRequest>(_ => Dispatcher.Invoke(Refit));
+    }
+
+    /// <summary>
+    ///     Re-runs the layout on the current elements (full reposition). When hidden we defer
+    ///     to a full re-render on becoming visible, since fcose needs a sized container.
+    /// </summary>
+    private void Relayout()
+    {
+        if (!_isWebReady)
+        {
+            return;
+        }
+
+        if (IsVisible)
+        {
+            _ = WebView.CoreWebView2?.ExecuteScriptAsync("relayoutGraph();");
+        }
+        else
+        {
+            _pendingRender = true;
+        }
+    }
+
+    /// <summary>Recomputes size and fits the view without re-running the layout.</summary>
+    private void Refit()
+    {
+        if (_isWebReady && IsVisible)
+        {
+            _ = WebView.CoreWebView2?.ExecuteScriptAsync("refitGraph();");
+        }
     }
 
     private void OnHighlightModeChanged(HighlightMode mode)
@@ -161,6 +197,10 @@ public partial class WebGraphControl : UserControl
             "CSharpCodeAnalyst", "WebView2");
         Directory.CreateDirectory(userDataFolder);
 
+        // Transparent default background: until the page paints (during the cold start) the
+        // WPF LoadingOverlay behind the WebView shows through instead of a white flash.
+        WebView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+
         var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
         await WebView.EnsureCoreWebView2Async(environment);
 
@@ -205,6 +245,10 @@ public partial class WebGraphControl : UserControl
         {
             case "ready":
                 _isWebReady = true;
+
+                // The page has painted; drop the cold-start placeholder for good.
+                LoadingOverlay.Visibility = Visibility.Collapsed;
+
                 RenderCurrentGraph();
                 if (_state is not null)
                 {
@@ -218,7 +262,7 @@ public partial class WebGraphControl : UserControl
                 break;
 
             case "edgeClicked":
-                PublishEdgeInfo(message.Source, message.Target);
+                PublishEdgeInfo(message.Id);
                 break;
 
             case "nodeDblClicked":
@@ -291,34 +335,31 @@ public partial class WebGraphControl : UserControl
     }
 
     /// <summary>
-    ///     A bundled edge stands for all relationships between the two nodes; clicking it
-    ///     shows the full list in the Info panel.
+    ///     A drawn edge stands for one or more relationships (a bundle when several);
+    ///     clicking it shows the full list in the Info panel. The relationships were
+    ///     captured at render time (<see cref="_edgeInfos" />), so we just look them up.
     /// </summary>
-    private void PublishEdgeInfo(string? sourceId, string? targetId)
+    private void PublishEdgeInfo(string? edgeId)
     {
-        if (sourceId is null || targetId is null || _state is null || _publisher is null)
+        if (edgeId is null || _state is null || _publisher is null)
         {
             return;
         }
 
-        var graph = _state.CodeGraph;
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, sourceId, targetId);
-        if (relationships.Count == 0)
+        if (!_edgeInfos.TryGetValue(edgeId, out var edge) || edge.Relationships.Count == 0)
         {
             return;
         }
 
-        var factory = new QuickInfoFactory(graph);
-        _publisher.Publish(new QuickInfoUpdateRequest(factory.CreateForRelationships(relationships)));
+        var factory = new QuickInfoFactory(_state.CodeGraph);
+        _publisher.Publish(new QuickInfoUpdateRequest(factory.CreateForRelationships(edge.Relationships)));
     }
 
     private void UpdateSelection(List<string>? ids)
     {
-        _selectedIds.Clear();
-        if (ids is not null)
-        {
-            _selectedIds.UnionWith(ids);
-        }
+        // The web selection is now canonical in the shared model; feed it there so the
+        // toolbar / global commands (in the view model) act on it.
+        _state?.SetSelection(ids ?? []);
     }
 
     /// <summary>
@@ -338,7 +379,7 @@ public partial class WebGraphControl : UserControl
         var menu = message.Kind switch
         {
             "node" => BuildNodeMenu(graph, message.Id),
-            "edge" => BuildEdgeMenu(graph, message.Source, message.Target),
+            "edge" => BuildEdgeMenu(message.Id),
             "background" => WebContextMenuFactory.BuildForGlobal(
                 _state.GlobalCommands, GetSelectedElements(graph)),
             _ => null
@@ -362,22 +403,21 @@ public partial class WebGraphControl : UserControl
             : WebContextMenuFactory.BuildForNode(_state!.NodeCommands, element);
     }
 
-    private ContextMenu? BuildEdgeMenu(CodeGraph.Graph.CodeGraph graph, string? sourceId, string? targetId)
+    private ContextMenu? BuildEdgeMenu(string? edgeId)
     {
-        if (sourceId is null || targetId is null)
+        if (edgeId is null || !_edgeInfos.TryGetValue(edgeId, out var edge) || edge.Relationships.Count == 0)
         {
             return null;
         }
 
-        var relationships = WebGraphBuilder.GetBundledRelationships(graph, _state!.IsCollapsed, _state!.ShowFlat, _state!.ShowInformationFlow, sourceId, targetId);
-        return relationships.Count == 0
-            ? null
-            : WebContextMenuFactory.BuildForEdge(_state.EdgeCommands, sourceId, targetId, relationships);
+        // The drawn (rerouted) endpoints are what the relationship commands expect, mirroring
+        // MSAGL's edge.Source / edge.Target.
+        return WebContextMenuFactory.BuildForEdge(_state!.EdgeCommands, edge.SourceId, edge.TargetId, edge.Relationships);
     }
 
     private List<CodeGraph.Graph.CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph)
     {
-        return _selectedIds
+        return _state!.SelectedIds
             .Select(graph.TryGetCodeElement)
             .OfType<CodeGraph.Graph.CodeElement>()
             .ToList();
@@ -387,9 +427,9 @@ public partial class WebGraphControl : UserControl
     {
         public string? Type { get; set; }
         public string? Kind { get; set; }
+
+        // Node id, or — for edge messages — the edge id (source|target or source|type|target).
         public string? Id { get; set; }
-        public string? Source { get; set; }
-        public string? Target { get; set; }
         public List<string>? Ids { get; set; }
     }
 
@@ -410,9 +450,10 @@ public partial class WebGraphControl : UserControl
         _pendingRender = false;
 
         // A re-render rebuilds all elements, so any selection in the web view is gone.
-        _selectedIds.Clear();
+        _state.SetSelection([]);
 
-        var json = WebGraphBuilder.BuildJson(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow);
-        _ = core.ExecuteScriptAsync($"renderGraph({json});");
+        var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter);
+        _edgeInfos = data.Edges;
+        _ = core.ExecuteScriptAsync($"renderGraph({data.Json});");
     }
 }

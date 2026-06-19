@@ -28,6 +28,15 @@ public class GraphViewState
     public bool ShowInformationFlow { get; private set; }
     public HighlightMode HighlightMode { get; private set; } = HighlightMode.EdgeHovered;
 
+    private readonly HashSet<string> _selectedIds = [];
+
+    /// <summary>
+    ///     The canonical selection, fed by whichever render adapter the user interacts with
+    ///     (the web view pushes it on selection change; the MSAGL view on mouse-up). Commands
+    ///     that act on "the selected elements" read this instead of an adapter-specific source.
+    /// </summary>
+    public IReadOnlyCollection<string> SelectedIds => _selectedIds;
+
     public IReadOnlyList<ICodeElementContextCommand> NodeCommands => _nodeCommands;
     public IReadOnlyList<IRelationshipContextCommand> EdgeCommands => _edgeCommands;
     public IReadOnlyList<IGlobalCommand> GlobalCommands => _globalCommands;
@@ -37,6 +46,9 @@ public class GraphViewState
 
     /// <summary>The hover-highlight mode changed (a view concern, not a structural change).</summary>
     public event Action<HighlightMode>? HighlightModeChanged;
+
+    /// <summary>The selection changed (not a structural change; no re-layout needed).</summary>
+    public event Action? SelectionChanged;
 
     // ---- Command registry ---------------------------------------------------
     public void AddCommand(ICodeElementContextCommand command)
@@ -77,6 +89,21 @@ public class GraphViewState
     {
         HideFilter = filter;
         RaiseChanged();
+    }
+
+    // ---- Selection ----------------------------------------------------------
+    public void SetSelection(IEnumerable<string> ids)
+    {
+        var incoming = ids.ToList();
+        if (_selectedIds.SetEquals(incoming))
+        {
+            // No actual change — don't churn observers (e.g. MSAGL mouse-up that didn't select).
+            return;
+        }
+
+        _selectedIds.Clear();
+        _selectedIds.UnionWith(incoming);
+        SelectionChanged?.Invoke();
     }
 
     // ---- Collapse / expand --------------------------------------------------

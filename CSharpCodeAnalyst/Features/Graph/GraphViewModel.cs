@@ -323,7 +323,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnFocusOnSelected()
     {
-        var selectedElementIds = _viewer.GetSelectedElementIds();
+        var selectedElementIds = _state.SelectedIds;
         if (!selectedElementIds.Any())
         {
             return;
@@ -413,7 +413,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnRemoveSelectedWithChildren()
     {
-        var selectedElementIds = _viewer.GetSelectedElementIds();
+        var selectedElementIds = _state.SelectedIds;
         if (!selectedElementIds.Any())
         {
             return;
@@ -466,7 +466,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnAddParents()
     {
-        var elementIds = _viewer.GetSelectedElementIds().ToList();
+        var elementIds = _state.SelectedIds.ToList();
 
         if (!elementIds.Any())
         {
@@ -483,7 +483,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         // We do not know the original graph.
         var result = _explorer.FindParents(ids);
-        AddToGraph(result.Elements, []);
+
+        // Avoid flickering if parent is already part of the canvas.
+        var newParents = result.Elements.Where(e => !_state.CodeGraph.Nodes.ContainsKey(e.Id));
+        AddToGraph(newParents, []);
     }
 
     private void FindInTreeRequest(CodeElement codeElement)

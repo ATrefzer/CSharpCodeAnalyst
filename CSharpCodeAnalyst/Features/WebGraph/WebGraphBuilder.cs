@@ -1,14 +1,21 @@
 using System.Text.Json;
 using CodeGraph.Colors;
 using CodeGraph.Graph;
+using CSharpCodeAnalyst.Features.Graph.Filtering;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
 ///     Transforms a <see cref="CodeGraph.Graph.CodeGraph" /> into the JSON shape that
 ///     the Cytoscape front-end (app.js / renderGraph) expects: { nodes: [...], edges: [...] }.
-///     This is the web pendant to <c>MsaglBuilderBase</c>.
-///     Phase 1: renders the whole graph (expanded). Collapse/hide handling comes later.
+///     This is the web pendant to <c>MsaglBuilderBase</c>. It honours the presentation
+///     state (collapse/expand) and the <see cref="GraphHideFilter" /> (hidden element and
+///     relationship types), mirroring MsaglHierarchicalBuilder / MsaglFlatBuilder.
+///
+///     Besides the JSON it returns the <see cref="WebEdgeInfo" /> behind every drawn edge,
+///     keyed by edge id. This is the web equivalent of MSAGL's <c>edge.UserData</c>: the
+///     relationships an edge stands for are attached at build time instead of being
+///     reconstructed from the topology on every click.
 /// </summary>
 internal static class WebGraphBuilder
 {
@@ -22,30 +29,40 @@ internal static class WebGraphBuilder
     ///     Children of a collapsed element are not emitted, and edges into them are
     ///     rerouted to the collapsed container (same idea as MsaglHierarchicalBuilder).
     /// </param>
-    public static string BuildJson(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
-        bool showFlat, bool showInformationFlow)
+    public static WebGraphData Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
+        bool showFlat, bool showInformationFlow, GraphHideFilter hideFilter)
     {
-        var dto = showFlat
-            ? BuildFlat(graph, showInformationFlow)
-            : Build(graph, isCollapsed, showInformationFlow);
+        var (dto, edges) = showFlat
+            ? BuildFlat(graph, showInformationFlow, hideFilter)
+            : BuildHierarchical(graph, isCollapsed, showInformationFlow, hideFilter);
 
         // System.Text.Json's default encoder already escapes characters that would be
         // unsafe inside a <script> / JS string literal (e.g. U+2028, U+2029, <, >, &),
         // so the result can be embedded directly via ExecuteScriptAsync.
-        return JsonSerializer.Serialize(dto, JsonOptions);
+        var json = JsonSerializer.Serialize(dto, JsonOptions);
+        return new WebGraphData(json, edges);
     }
 
     /// <summary>
     ///     Flat view (mirrors MsaglFlatBuilder): every element is a top-level node — no
-    ///     compound nesting and no collapse. Each relationship is its own direct edge
-    ///     (no rerouting, no bundling), and containment is drawn as explicit gray edges.
+    ///     compound nesting and no collapse. Each relationship type between a pair is its own
+    ///     direct edge (no rerouting, no cross-type bundling), and containment is drawn as
+    ///     explicit gray edges.
     /// </summary>
-    private static WebGraphDto BuildFlat(CodeGraph.Graph.CodeGraph graph, bool showInformationFlow)
+    private static (WebGraphDto Dto, Dictionary<string, WebEdgeInfo> Edges) BuildFlat(
+        CodeGraph.Graph.CodeGraph graph, bool showInformationFlow, GraphHideFilter hideFilter)
     {
         var dto = new WebGraphDto();
+        var edges = new Dictionary<string, WebEdgeInfo>();
 
         foreach (var element in graph.Nodes.Values)
         {
+            // The hide filter removes whole element types from the view.
+            if (hideFilter.ShouldHideElement(element))
+            {
+                continue;
+            }
+
             dto.Nodes.Add(new WebNodeDto
             {
                 Id = element.Id,
@@ -58,10 +75,21 @@ internal static class WebGraphBuilder
             });
         }
 
-        var seenEdgeIds = new HashSet<string>();
+        // One drawn edge per (source, type, target). Relationships of the same type between
+        // the same pair (e.g. two distinct Calls) collapse onto that edge and are kept as
+        // its metadata, so a click reports all of them.
+        var accumulators = new Dictionary<string, EdgeAccumulator>();
         foreach (var relationship in graph.GetAllRelationships())
         {
             if (relationship.Type == RelationshipType.Containment)
+            {
+                continue;
+            }
+
+            // Skip hidden relationship types and edges touching a hidden element.
+            if (hideFilter.ShouldHideRelationship(relationship) ||
+                hideFilter.ShouldHideElement(graph.Nodes[relationship.SourceId]) ||
+                hideFilter.ShouldHideElement(graph.Nodes[relationship.TargetId]))
             {
                 continue;
             }
@@ -74,23 +102,42 @@ internal static class WebGraphBuilder
             }
 
             var id = $"{source}|{relationship.Type}|{target}";
-            if (seenEdgeIds.Add(id))
+            if (!accumulators.TryGetValue(id, out var accumulator))
             {
-                dto.Edges.Add(new WebEdgeDto
-                {
-                    Id = id,
-                    Source = source,
-                    Target = target,
-                    Kind = relationship.Type.ToString(),
-                    Count = 1
-                });
+                accumulator = new EdgeAccumulator(source, target);
+                accumulators[id] = accumulator;
             }
+
+            accumulator.Add(relationship);
+        }
+
+        foreach (var (id, accumulator) in accumulators)
+        {
+            // In flat mode an edge is always a single relationship type (the id carries it),
+            // so color and kind come straight from that type — never "Bundled".
+            var type = accumulator.Relationships[0].Type;
+            dto.Edges.Add(new WebEdgeDto
+            {
+                Id = id,
+                Source = accumulator.SourceId,
+                Target = accumulator.TargetId,
+                Kind = type.ToString(),
+                Count = accumulator.Relationships.Count,
+                Color = EdgeColor(type)
+            });
+            edges[id] = accumulator.ToEdgeInfo();
         }
 
         // Containment as explicit edges, since there is no nesting in flat mode.
         foreach (var element in graph.Nodes.Values)
         {
             if (element.Parent is null)
+            {
+                continue;
+            }
+
+            // Don't draw containment into or out of a hidden element.
+            if (hideFilter.ShouldHideElement(element) || hideFilter.ShouldHideElement(element.Parent))
             {
                 continue;
             }
@@ -105,57 +152,15 @@ internal static class WebGraphBuilder
             });
         }
 
-        return dto;
+        return (dto, edges);
     }
 
-    /// <summary>
-    ///     Returns the original relationships behind the (possibly bundled) edge between
-    ///     two visible nodes, so a click on that edge can be explained in the Info panel.
-    /// </summary>
-    public static List<Relationship> GetBundledRelationships(CodeGraph.Graph.CodeGraph graph,
-        Func<string, bool> isCollapsed, bool showFlat, bool showInformationFlow, string sourceId, string targetId)
+    private static (WebGraphDto Dto, Dictionary<string, WebEdgeInfo> Edges) BuildHierarchical(
+        CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow, GraphHideFilter hideFilter)
     {
-        var visible = showFlat ? null : ComputeVisibleSet(graph, isCollapsed);
-        var result = new List<Relationship>();
-
-        foreach (var relationship in graph.GetAllRelationships())
-        {
-            if (relationship.Type == RelationshipType.Containment)
-            {
-                continue;
-            }
-
-            // Flat: match direct endpoints; hierarchical: match rerouted endpoints.
-            var (source, target) = visible is null
-                ? FlatEdge(relationship, graph, showInformationFlow)
-                : ResolveEdge(relationship, graph, visible, showInformationFlow);
-
-            if (source == sourceId && target == targetId)
-            {
-                result.Add(relationship);
-            }
-        }
-
-        return result;
-    }
-
-    private static (string Source, string Target) FlatEdge(Relationship relationship,
-        CodeGraph.Graph.CodeGraph graph, bool showInformationFlow)
-    {
-        var source = relationship.SourceId;
-        var target = relationship.TargetId;
-        if (showInformationFlow && ShouldReverseInFlowMode(graph, source, relationship.Type))
-        {
-            (source, target) = (target, source);
-        }
-
-        return (source, target);
-    }
-
-    private static WebGraphDto Build(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed, bool showInformationFlow)
-    {
-        // 1. Visible node set: walk from the roots, stop descending at collapsed nodes.
-        var visible = ComputeVisibleSet(graph, isCollapsed);
+        // 1. Visible node set: walk from the roots, stop descending at collapsed nodes
+        //    and prune hidden subtrees.
+        var visible = ComputeVisibleSet(graph, isCollapsed, hideFilter);
 
         var dto = new WebGraphDto();
         foreach (var id in visible)
@@ -186,11 +191,19 @@ internal static class WebGraphBuilder
         //    all relationships between the same (source, target) pair into a single edge.
         //    Without bundling, many parallel edges between few nodes pile up on the same
         //    path and pull the nodes on top of each other in the layout.
-        var bundles = new Dictionary<(string Source, string Target), EdgeBundle>();
+        var accumulators = new Dictionary<(string Source, string Target), EdgeAccumulator>();
         foreach (var relationship in graph.GetAllRelationships())
         {
             // Containment is expressed through node nesting (parent), not as an edge.
             if (relationship.Type == RelationshipType.Containment)
+            {
+                continue;
+            }
+
+            // Hidden relationship types never appear. Hidden endpoints are already gone
+            // from the visible set, so ResolveEdge reroutes them to a visible ancestor
+            // (matching MsaglHierarchicalBuilder).
+            if (hideFilter.ShouldHideRelationship(relationship))
             {
                 continue;
             }
@@ -202,44 +215,57 @@ internal static class WebGraphBuilder
             }
 
             var key = (sourceId, targetId);
-            if (!bundles.TryGetValue(key, out var bundle))
+            if (!accumulators.TryGetValue(key, out var accumulator))
             {
-                bundle = new EdgeBundle();
-                bundles[key] = bundle;
+                accumulator = new EdgeAccumulator(sourceId, targetId);
+                accumulators[key] = accumulator;
             }
 
-            bundle.Add(relationship.Type);
+            accumulator.Add(relationship);
         }
 
-        foreach (var ((sourceId, targetId), bundle) in bundles)
+        var edges = new Dictionary<string, WebEdgeInfo>();
+        foreach (var ((sourceId, targetId), accumulator) in accumulators)
         {
+            var id = $"{sourceId}|{targetId}";
             dto.Edges.Add(new WebEdgeDto
             {
-                Id = $"{sourceId}|{targetId}",
+                Id = id,
                 Source = sourceId,
                 Target = targetId,
-                Kind = bundle.Kind(),
-                Count = bundle.Count
+                Kind = accumulator.Kind(),
+                Count = accumulator.Relationships.Count,
+                Color = EdgeColor(accumulator.EffectiveType)
             });
+            edges[id] = accumulator.ToEdgeInfo();
         }
 
-        return dto;
+        return (dto, edges);
     }
 
-    private static HashSet<string> ComputeVisibleSet(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed)
+    private static HashSet<string> ComputeVisibleSet(CodeGraph.Graph.CodeGraph graph, Func<string, bool> isCollapsed,
+        GraphHideFilter hideFilter)
     {
         // Walk from the roots, stop descending at collapsed nodes.
         var visible = new HashSet<string>();
         foreach (var root in graph.Nodes.Values.Where(n => n.Parent is null))
         {
-            CollectVisible(root, isCollapsed, visible);
+            CollectVisible(root, isCollapsed, hideFilter, visible);
         }
 
         return visible;
     }
 
-    private static void CollectVisible(CodeElement node, Func<string, bool> isCollapsed, HashSet<string> visible)
+    private static void CollectVisible(CodeElement node, Func<string, bool> isCollapsed, GraphHideFilter hideFilter,
+        HashSet<string> visible)
     {
+        // A hidden element drops itself and its whole subtree (mirrors
+        // MsaglHierarchicalBuilder.CollectVisibleNodes).
+        if (hideFilter.ShouldHideElement(node))
+        {
+            return;
+        }
+
         visible.Add(node.Id);
 
         // A collapsed node is visible itself, but its children are hidden.
@@ -250,7 +276,7 @@ internal static class WebGraphBuilder
 
         foreach (var child in node.Children)
         {
-            CollectVisible(child, isCollapsed, visible);
+            CollectVisible(child, isCollapsed, hideFilter, visible);
         }
     }
 
@@ -269,7 +295,8 @@ internal static class WebGraphBuilder
     ///     Resolves a relationship to the (source, target) of the edge actually drawn:
     ///     endpoints rerouted to their nearest visible ancestor, then reversed for certain
     ///     structural kinds when information-flow mode is on. Returns (null, null) when the
-    ///     edge should not be drawn (endpoint missing or a collapsed-internal self-loop).
+    ///     edge should not be drawn (endpoint missing, or a self-loop that is merely an
+    ///     artifact of collapsing — a *genuine* self-reference such as recursion is kept).
     /// </summary>
     private static (string? Source, string? Target) ResolveEdge(Relationship relationship,
         CodeGraph.Graph.CodeGraph graph, HashSet<string> visible, bool showInformationFlow)
@@ -282,7 +309,7 @@ internal static class WebGraphBuilder
 
         var source = NearestVisibleOrSelf(relationship.SourceId, graph, visible);
         var target = NearestVisibleOrSelf(relationship.TargetId, graph, visible);
-        if (source is null || target is null || source == target)
+        if (source is null || target is null)
         {
             return (null, null);
         }
@@ -290,6 +317,15 @@ internal static class WebGraphBuilder
         if (showInformationFlow && ShouldReverseInFlowMode(graph, source, relationship.Type))
         {
             (source, target) = (target, source);
+        }
+
+        // Drop a self-loop only when BOTH endpoints were rerouted up to the same container
+        // (an internal edge of a collapsed node). A real self-reference — where an original
+        // endpoint already IS that node — is drawn. Mirrors MsaglHierarchicalBuilder.
+        if (source == target &&
+            relationship.SourceId != source && relationship.TargetId != target)
+        {
+            return (null, null);
         }
 
         return (source, target);
@@ -321,6 +357,16 @@ internal static class WebGraphBuilder
         return $"#{rgb:X6}";
     }
 
+    /// <summary>
+    ///     Optional per-edge color by relationship type. Returns null for "default" (black),
+    ///     so app.js only overrides the line color where we actually want a tint.
+    ///     Experimental: Call edges are tinted blue (related to the blue Method nodes).
+    /// </summary>
+    private static string? EdgeColor(RelationshipType type)
+    {
+        return type == RelationshipType.Calls ? "#1976D2" : null;
+    }
+
     private sealed class WebGraphDto
     {
         public List<WebNodeDto> Nodes { get; } = [];
@@ -345,32 +391,53 @@ internal static class WebGraphBuilder
         public required string Target { get; init; }
         public required string Kind { get; init; }
         public int Count { get; init; }
+
+        // Optional per-edge line color (hex). Null means "use the default edge color".
+        public string? Color { get; init; }
     }
 
     /// <summary>
-    ///     Aggregates all relationships between one (source, target) pair into a single
-    ///     visual edge. A single relationship keeps its own type; a real bundle (more than
-    ///     one) becomes <see cref="RelationshipType.Bundled" /> — same convention as
-    ///     MsaglHierarchicalBuilder, where Bundled is itself an edge type.
+    ///     Collects the relationships a single drawn edge stands for, together with the
+    ///     drawn (rerouted) endpoints. A single relationship keeps its own type; a real
+    ///     bundle (more than one) becomes <see cref="RelationshipType.Bundled" /> — same
+    ///     convention as MsaglHierarchicalBuilder, where Bundled is itself an edge type.
     /// </summary>
-    private sealed class EdgeBundle
+    private sealed class EdgeAccumulator(string sourceId, string targetId)
     {
-        private RelationshipType _firstType;
-        public int Count { get; private set; }
+        public string SourceId { get; } = sourceId;
+        public string TargetId { get; } = targetId;
+        public List<Relationship> Relationships { get; } = [];
 
-        public void Add(RelationshipType type)
+        // A single relationship keeps its own type; a real bundle is RelationshipType.Bundled.
+        public RelationshipType EffectiveType => Relationships.Count == 1 ? Relationships[0].Type : RelationshipType.Bundled;
+
+        public void Add(Relationship relationship)
         {
-            if (Count == 0)
-            {
-                _firstType = type;
-            }
-
-            Count++;
+            Relationships.Add(relationship);
         }
 
         public string Kind()
         {
-            return Count == 1 ? _firstType.ToString() : RelationshipType.Bundled.ToString();
+            return EffectiveType.ToString();
+        }
+
+        public WebEdgeInfo ToEdgeInfo()
+        {
+            return new WebEdgeInfo(SourceId, TargetId, Relationships);
         }
     }
 }
+
+/// <summary>
+///     The result of <see cref="WebGraphBuilder.Build" />: the Cytoscape JSON plus the
+///     relationships behind every drawn edge, keyed by edge id.
+/// </summary>
+internal sealed record WebGraphData(string Json, IReadOnlyDictionary<string, WebEdgeInfo> Edges);
+
+/// <summary>
+///     Metadata for one drawn edge: its drawn (rerouted) endpoints and the underlying
+///     relationships it represents. The web equivalent of MSAGL's <c>edge.UserData</c>.
+///     The list is the live collection passed straight to the existing relationship
+///     commands (<c>IRelationshipContextCommand</c>), which expect a List.
+/// </summary>
+internal sealed record WebEdgeInfo(string SourceId, string TargetId, List<Relationship> Relationships);

@@ -114,6 +114,11 @@ public class GraphViewer : IGraphViewer, IGraphBinding, INotifyPropertyChanged, 
         _clickController.LeftDoubleClick += OnLeftDoubleClick;
         _clickController.LeftSingleClick += OnLeftSingleClick;
         _clickController.OpenContextMenu += OnOpenContextMenu;
+
+        // Feed MSAGL's selection (marquee / click, settled by mouse-up) into the shared
+        // model so selection-based commands read one canonical source. The state ignores
+        // no-op updates, so panning / right-click that don't change selection are cheap.
+        _msaglViewer.MouseUp += (_, _) => _state.SetSelection(GetSelectedElementIds());
     }
 
 
