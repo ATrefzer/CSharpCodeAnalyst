@@ -402,7 +402,18 @@
                 <!-- Web View is the first tab so its WebView2 initializes eagerly at start-up
                      (a non-selected WPF tab is not in the visual tree, so it could not init). -->
                 <TabItem Header="{x:Static resources:Strings.WebView_TabHeader}">
-                    <webGraph:WebGraphControl x:Name="WebGraphView" />
+                    <DockPanel>
+                        <!-- Global graph tools, docked above the web canvas (a floating WPF
+                             overlay over the WebView2 is impossible due to airspace). Reuses the
+                             same GraphToolbarControl as the MSAGL view; commands act on the shared
+                             GraphViewState (graph / current selection). -->
+                        <Border DockPanel.Dock="Top"
+                                HorizontalAlignment="Left" Margin="4 4 4 0"
+                                Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <graph:GraphToolbarControl DataContext="{Binding GraphViewModel}" />
+                        </Border>
+                        <webGraph:WebGraphControl x:Name="WebGraphView" />
+                    </DockPanel>
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
