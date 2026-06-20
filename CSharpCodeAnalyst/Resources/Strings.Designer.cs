@@ -1197,6 +1197,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Force, clustered (fCoSE).
+        /// </summary>
+        public static string Layout_ForceClustered_Label {
+            get {
+                return ResourceManager.GetString("Layout_ForceClustered_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Layered ↓ (Dagre).
         /// </summary>
         public static string Layout_DagreTopBottom_Label {
@@ -1231,6 +1240,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Layout_ElkRight_Label", resourceCulture);
             }
         }
+
         
         /// <summary>
         ///   Looks up a localized string similar to Outgoing edges.

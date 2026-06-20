@@ -56,6 +56,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         LayoutOptions =
         [
             LayoutOption.Default,
+            new LayoutOption("fcose-clustered", Strings.Layout_ForceClustered_Label),
             new LayoutOption("dagre-tb", Strings.Layout_DagreTopBottom_Label),
             new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label),
             new LayoutOption("elk-down", Strings.Layout_ElkDown_Label),

@@ -47,6 +47,23 @@ const LAYOUTS = {
         padding: 30,
         fit: true,
     },
+    // Same fcose engine, but cluster-aware: assignClusters() tags each leaf node with a
+    // community id (Markov clustering) before the run, and the per-edge length/elasticity
+    // functions make intra-cluster edges short + stiff and inter-cluster edges long + loose.
+    // Related nodes contract into readable groups (NDepend-style), without circles or a new lib.
+    "fcose-clustered": {
+        name: "fcose",
+        quality: "default",
+        randomize: true,
+        animate: false,
+        nodeDimensionsIncludeLabels: true,
+        nodeSeparation: 75,
+        packComponents: true,
+        padding: 30,
+        fit: true,
+        idealEdgeLength: edge => sameCluster(edge) ? 35 : 180,
+        edgeElasticity: edge => sameCluster(edge) ? 0.5 : 0.05,
+    },
     "dagre-tb": {
         name: "dagre",
         rankDir: "TB",
@@ -113,6 +130,42 @@ function getLayout() {
     return LAYOUTS[currentLayoutName] || LAYOUTS["fcose"];
 }
 
+// True if both endpoints of `edge` are in the same detected cluster. Used by the
+// clustered fcose config to shorten intra-cluster edges. Nodes without a cluster id
+// (e.g. compound parents, or before assignClusters ran) are treated as "different".
+function sameCluster(edge) {
+    const a = edge.source().data("__cluster");
+    const b = edge.target().data("__cluster");
+    return a !== undefined && a === b;
+}
+
+// Detects communities with Markov clustering (built into cytoscape.js, no extra lib) and
+// tags each leaf node with a "__cluster" id. Runs only on the real (leaf) nodes and the
+// edges between them; compound parent containers are skipped. Called before the clustered
+// layout so its per-edge length functions can pull same-cluster nodes together.
+function assignClusters() {
+    cy.nodes().forEach(n => n.removeData("__cluster"));
+
+    const leaves = cy.nodes().filter(n => n.children().empty());
+    if (leaves.length === 0) {
+        return;
+    }
+
+    const eles = leaves.union(leaves.edgesWith(leaves));
+
+    let clusters = [];
+    try {
+        // Uniform edge weights (1) -> cluster purely on topology. inflateFactor controls
+        // granularity: higher = more, smaller clusters.
+        clusters = eles.markovClustering({ attributes: [() => 1], inflateFactor: 2.2 });
+    } catch (err) {
+        console.warn("[WebGraph] markovClustering failed:", err);
+        return;
+    }
+
+    clusters.forEach((cluster, i) => cluster.forEach(n => n.data("__cluster", i)));
+}
+
 // Starts the active layout, cancelling any in-flight run first. If the chosen layout
 // extension is not registered (its offline lib was not bundled), Cytoscape throws when
 // the layout name is unknown — we catch that and fall back to fcose so rendering never
@@ -120,6 +173,11 @@ function getLayout() {
 function runLayout() {
     if (currentLayout) {
         currentLayout.stop();
+    }
+
+    // The clustered layout needs fresh cluster tags on the current elements first.
+    if (currentLayoutName === "fcose-clustered") {
+        assignClusters();
     }
 
     try {

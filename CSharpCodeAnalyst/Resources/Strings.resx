@@ -345,6 +345,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Layout_Force_Label" xml:space="preserve">
     <value>Force (fCoSE)</value>
   </data>
+  <data name="Layout_ForceClustered_Label" xml:space="preserve">
+    <value>Force, clustered (fCoSE)</value>
+  </data>
   <data name="Layout_DagreTopBottom_Label" xml:space="preserve">
     <value>Layered ↓ (Dagre)</value>
   </data>
