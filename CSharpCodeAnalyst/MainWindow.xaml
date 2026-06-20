@@ -13,6 +13,7 @@
                      xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
                      xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
                      xmlns:webGraph="clr-namespace:CSharpCodeAnalyst.Features.WebGraph"
+                     xmlns:dd="urn:gong-wpf-dragdrop"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -108,7 +109,8 @@
 
                 </RibbonGroup>
 
-                <RibbonGroup Header="{x:Static resources:Strings.Tools_Header}" LargeImageSource="/Resources/cycle_32.png">
+                <RibbonGroup Header="{x:Static resources:Strings.Tools_Header}"
+                             LargeImageSource="/Resources/cycle_32.png">
                     <RibbonButton Label="{x:Static resources:Strings.Find_Cycles_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" KeyTip="CY" />
@@ -199,7 +201,7 @@
                                         ImageSource="/Resources/spreadsheet_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
                                         Command="{Binding ExportToDsiCommand}" />
-                        
+
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlainText_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportPlainText_Tooltip}"
@@ -216,7 +218,7 @@
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.Copy_BitmapClipboard_Tooltip}"
                                         Command="{Binding CopyBitmapToClipboardCommand}" />
-                        
+
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"
@@ -397,39 +399,46 @@
                              overlay over the WebView2 is impossible due to airspace). The search
                              box appears to the right of the magnifier toggle and fills the rest of
                              the row; it is collapsed (no space) while search is off. -->
-                        <DockPanel DockPanel.Dock="Top" Margin="4 4 4 0"
-                                   Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
-                            <graph:GraphToolbarControl DockPanel.Dock="Left"
-                                                       DataContext="{Binding GraphViewModel}" />
+                        <Border DockPanel.Dock="Top" dd:DragDrop.IsDropTarget="True"
+                                dd:DragDrop.DropHandler="{Binding GraphViewModel.DropHandler}" BorderThickness="0">
+                            <DockPanel Margin="4 4 4 0"
+                                       Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
 
-                            <ToggleButton DockPanel.Dock="Left"
-                                          Style="{StaticResource ToolbarToggleButtonStyle}"
-                                          ToolTip="Toggle Search"
-                                          IsChecked="{Binding GraphSearchViewModel.IsSearchVisible, Mode=TwoWay}">
-                                <Image Source="/Resources/search_32.png" Width="20" Height="20" />
-                            </ToggleButton>
 
-                            <!-- Search input: fills the remaining row width, collapsed when off. -->
-                            <DockPanel DataContext="{Binding GraphSearchViewModel}"
-                                       Visibility="{Binding IsSearchVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                       Margin="6 0 0 0" VerticalAlignment="Center">
-                                <Button DockPanel.Dock="Right"
-                                        Style="{StaticResource ToolbarButtonStyle}"
-                                        Command="{Binding ClearSearchCommand}"
-                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}">
-                                    <Image Source="/Resources/clear_32.png" Width="16" Height="16" />
-                                </Button>
-                                <TextBox x:Name="WebSearchBox"
-                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                         Background="LightYellow"
-                                         BorderThickness="1" BorderBrush="LightGray"
-                                         Height="24" VerticalContentAlignment="Center"
-                                         ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}"
-                                         IsVisibleChanged="WebSearchBox_IsVisibleChanged"
-                                         PreviewKeyDown="WebSearchBox_PreviewKeyDown" />
+                                <graph:GraphToolbarControl DockPanel.Dock="Left" dd:DragDrop.IsDropTarget="True"
+
+                                                           DataContext="{Binding GraphViewModel}" />
+
+                                <ToggleButton DockPanel.Dock="Left"
+                                              Style="{StaticResource ToolbarToggleButtonStyle}"
+                                              ToolTip="Toggle Search"
+                                              IsChecked="{Binding GraphSearchViewModel.IsSearchVisible, Mode=TwoWay}">
+                                    <Image Source="/Resources/search_32.png" Width="20" Height="20" />
+                                </ToggleButton>
+
+                                <!-- Search input: fills the remaining row width, collapsed when off. -->
+                                <DockPanel DataContext="{Binding GraphSearchViewModel}"
+                                           Visibility="{Binding IsSearchVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                           Margin="6 0 0 0" VerticalAlignment="Center">
+                                    <Button DockPanel.Dock="Right"
+                                            Style="{StaticResource ToolbarButtonStyle}"
+                                            Command="{Binding ClearSearchCommand}"
+                                            ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}">
+                                        <Image Source="/Resources/clear_32.png" Width="16" Height="16" />
+                                    </Button>
+                                    <TextBox x:Name="WebSearchBox"
+                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                             Background="LightYellow"
+                                             BorderThickness="1" BorderBrush="LightGray"
+                                             Height="24" VerticalContentAlignment="Center"
+                                             ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}"
+                                             IsVisibleChanged="WebSearchBox_IsVisibleChanged"
+                                             PreviewKeyDown="WebSearchBox_PreviewKeyDown" />
+                                </DockPanel>
+
                             </DockPanel>
-                        </DockPanel>
+                        </Border>
 
                         <webGraph:WebGraphControl x:Name="WebGraphView">
                             <webGraph:WebGraphControl.Style>
