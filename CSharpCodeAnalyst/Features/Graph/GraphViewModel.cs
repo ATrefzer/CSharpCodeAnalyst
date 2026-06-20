@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using CodeGraph.Contracts;
@@ -8,7 +7,6 @@ using CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
-using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -29,8 +27,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly IPublisher _publisher;
     private readonly RefactoringService _refactoringService;
     private readonly AppSettings _settings;
-    private readonly LinkedList<GraphSession> _undoStack;
     private readonly GraphViewState _state;
+    private readonly LinkedList<GraphSession> _undoStack;
 
     private HighlightOption _selectedHighlightOption;
     private LayoutOption _selectedLayoutOption;
@@ -56,7 +54,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         LayoutOptions =
         [
             LayoutOption.Default,
-            new LayoutOption("fcose-clustered", Strings.Layout_ForceClustered_Label),
             new LayoutOption("dagre-tb", Strings.Layout_DagreTopBottom_Label),
             new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label),
             new LayoutOption("elk-down", Strings.Layout_ElkDown_Label),
@@ -879,5 +876,4 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         // Added elements are for sure not in this graph yet.
     }
-
 }

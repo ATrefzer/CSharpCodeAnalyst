@@ -32,7 +32,7 @@ internal static class WebGraphBuilder
         // unsafe inside a <script> / JS string literal (e.g. U+2028, U+2029, <, >, &),
         // so the result can be embedded directly via ExecuteScriptAsync.
         var json = JsonSerializer.Serialize(dto, JsonOptions);
-        return new WebGraphData(json, edges);
+        return new WebGraphData(json, edges, dto.Nodes.Count);
     }
 
     /// <summary>
@@ -433,9 +433,10 @@ internal static class WebGraphBuilder
 
 /// <summary>
 ///     The result of <see cref="WebGraphBuilder.Build" />: the Cytoscape JSON plus the
-///     relationships behind every drawn edge, keyed by edge id.
+///     relationships behind every drawn edge, keyed by edge id. <see cref="NodeCount" /> is
+///     the number of nodes that will be drawn (used for the large-graph warning).
 /// </summary>
-internal sealed record WebGraphData(string Json, IReadOnlyDictionary<string, WebEdgeInfo> Edges);
+internal sealed record WebGraphData(string Json, IReadOnlyDictionary<string, WebEdgeInfo> Edges, int NodeCount);
 
 /// <summary>
 ///     Metadata (relationships)for each drawn edge.

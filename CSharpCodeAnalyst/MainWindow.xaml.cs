@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
@@ -97,12 +98,12 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber)
+    public void SetViewer(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber, AppSettings settings)
     {
         // The web view observes the shared model directly and listens on the bus for
         // render-only commands (Layout / Refit / Export). The graph search box (bound to
         // MainViewModel.GraphSearchViewModel) lives in the web tab's tool bar.
-        WebGraphView.SetViewer(graphViewState, publisher, subscriber);
+        WebGraphView.SetViewer(graphViewState, publisher, subscriber, settings);
     }
 
     protected override void OnClosing(CancelEventArgs e)

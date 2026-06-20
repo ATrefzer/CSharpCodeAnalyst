@@ -1234,3 +1234,7 @@ Wichtig: meine `LAYOUTS`-**Map-Keys** (`"dagre-tb"`, `"dagre-lr"`) sind **meine 
 ```
 
 Beide nutzen dieselbe registrierte Extension `"dagre"`, unterscheiden sich nur per `rankDir`. Der String hinter `name:` muss also **exakt** dem entsprechen, was die Lib registriert (`"dagre"`, `"fcose"`, `"elk"`, `"cola"` …) — sonst Registry-Miss.
+
+
+
+Den NDepend-Link hab ich verstanden — die gruppieren nach **Konnektivität** (zusammenhängende Bereiche), unabhängig von Compound-Knoten. Das ist tatsächlich ein eigenes, größeres Thema (Community-Detection + ein darauf abgestimmtes Layout/Boxing) — für später vorgemerkt.

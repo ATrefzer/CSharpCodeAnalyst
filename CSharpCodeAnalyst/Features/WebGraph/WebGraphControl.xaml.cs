@@ -8,9 +8,11 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CodeGraph.Graph;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 using CSharpCodeAnalyst.Features.Help;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Web.WebView2.Core;
@@ -53,6 +55,9 @@ public partial class WebGraphControl : UserControl
     private bool _pendingRender;
     private IPublisher? _publisher;
 
+    // Used for the large-graph warning limit (read live so Settings changes take effect).
+    private AppSettings? _settings;
+
     private GraphViewState? _state;
 
     public WebGraphControl()
@@ -75,10 +80,11 @@ public partial class WebGraphControl : UserControl
     /// <summary>
     ///     Wires the web view to the shared model both views use. Called once at start-up.
     /// </summary>
-    public void SetViewer(GraphViewState state, IPublisher publisher, ISubscriber subscriber)
+    public void SetViewer(GraphViewState state, IPublisher publisher, ISubscriber subscriber, AppSettings settings)
     {
         _state = state;
         _publisher = publisher;
+        _settings = settings;
         _state.Changed += OnStateChanged;
 
         // The hover-highlight mode is chosen in the ribbon; forward changes to JS,
@@ -653,8 +659,32 @@ public partial class WebGraphControl : UserControl
         _state.SetSelection([]);
 
         var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter, _state.PresentationState);
+
+        // Large-graph guard (restored from the old MSAGL GraphViewer): if too many nodes
+        // would be drawn, ask first. On "No" we draw nothing and leave the model untouched,
+        // so the user can still collapse / clear and try again.
+        if (_settings is not null && data.NodeCount > _settings.WarningCodeElementLimit
+            && !ConfirmLargeGraph(data.NodeCount))
+        {
+            _edgeInfos = new Dictionary<string, WebEdgeInfo>();
+            _ = core.ExecuteScriptAsync("renderGraph({\"nodes\":[],\"edges\":[]});");
+            return;
+        }
+
         _edgeInfos = data.Edges;
         _ = core.ExecuteScriptAsync($"renderGraph({data.Json});");
+    }
+
+    /// <summary>
+    ///     Asks the user whether to render a graph that exceeds the warning limit.
+    ///     Returns true to proceed, false to skip drawing.
+    /// </summary>
+    private static bool ConfirmLargeGraph(int nodeCount)
+    {
+        var msg = string.Format(Strings.TooMuchElementsMessage, nodeCount);
+        var result = MessageBox.Show(msg, Strings.TooMuchElementsTitle,
+            MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        return result == MessageBoxResult.Yes;
     }
 
     private sealed class HostMessage
