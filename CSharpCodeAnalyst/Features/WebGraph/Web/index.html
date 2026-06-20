@@ -15,6 +15,11 @@
          registers the "dagre" layout on `cytoscape`. Order: cytoscape -> dagre -> cytoscape-dagre. -->
     <script src="lib/dagre.js"></script>
     <script src="lib/cytoscape-dagre.js"></script>
+    <!-- ELK layered layout (compound-aware): elk.bundled.js exposes the global `ELK`
+         (worker inlined), then cytoscape-elk captures it at load and registers the "elk"
+         layout. Order: cytoscape -> elk.bundled -> cytoscape-elk. -->
+    <script src="lib/elk.bundled.js"></script>
+    <script src="lib/cytoscape-elk.js"></script>
     <!-- SVG export; like fcose it auto-registers on the global `cytoscape` as cy.svg(). -->
     <script src="lib/cytoscape-svg.js"></script>
 </head>

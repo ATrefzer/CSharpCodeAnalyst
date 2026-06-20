@@ -57,7 +57,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         [
             LayoutOption.Default,
             new LayoutOption("dagre-tb", Strings.Layout_DagreTopBottom_Label),
-            new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label)
+            new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label),
+            new LayoutOption("elk-down", Strings.Layout_ElkDown_Label),
+            new LayoutOption("elk-right", Strings.Layout_ElkRight_Label)
         ];
 
         // Set defaults

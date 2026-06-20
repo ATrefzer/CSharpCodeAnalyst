@@ -1213,6 +1213,24 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Layout_DagreLeftRight_Label", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkDown_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkDown_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkRight_Label", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Outgoing edges.

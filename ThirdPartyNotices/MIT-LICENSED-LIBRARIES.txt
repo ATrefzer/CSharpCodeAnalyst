@@ -59,7 +59,14 @@ locally under CSharpCodeAnalyst/Features/WebGraph/Web/lib:
 - cose-base            https://github.com/iVis-at-Bilkent/cose-base
 - layout-base          https://github.com/iVis-at-Bilkent/layout-base
                        Copyright (c) i-Vis Research Lab, Bilkent University
+- dagre                https://github.com/dagrejs/dagre
+                       Copyright (c) Chris Pettitt
+- cytoscape.js-dagre   https://github.com/cytoscape/cytoscape.js-dagre
+                       Copyright (c) The Cytoscape Consortium
+- cytoscape.js-elk     https://github.com/cytoscape/cytoscape.js-elk
+                       Copyright (c) The Cytoscape Consortium
 
+(The layered layout engine elkjs is EPL-2.0; see EPL-2.0-LICENSED-LIBRARIES.txt.)
 (The SVG export extension cytoscape-svg is GPL-3.0; see GPL-3.0-LICENSED-LIBRARIES.txt.)
 
 

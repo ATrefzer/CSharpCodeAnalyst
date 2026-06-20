@@ -3,6 +3,17 @@
 
 "use strict";
 
+// ---- Diagnostics ------------------------------------------------------------
+// Some layout extensions (notably ELK) run asynchronously, so a failure surfaces
+// as an unhandled promise rejection AFTER the synchronous run() returned — invisible
+// without this. Tag such errors clearly so they are easy to spot in DevTools (F12).
+window.addEventListener("unhandledrejection", evt => {
+    console.error("[WebGraph] unhandled promise rejection (async layout?):", evt.reason);
+});
+window.addEventListener("error", evt => {
+    console.error("[WebGraph] error:", evt.message, evt.error);
+});
+
 // ---- Bridge: JS -> C# -------------------------------------------------------
 // window.chrome.webview is injected by WebView2. Guard it so the page also works
 // when opened in a plain browser (e.g. for quick CSS tweaks).
@@ -57,6 +68,39 @@ const LAYOUTS = {
         animate: false,
         padding: 30,
         fit: true,
+    },
+    // ELK layered: like dagre's hierarchical flow but genuinely compound-aware, so our
+    // nested namespace/class/method containers keep their nesting. ELK-specific options
+    // go under the `elk` key; 'elk.direction' DOWN mirrors dagre TB.
+    "elk-down": {
+        name: "elk",
+        nodeDimensionsIncludeLabels: true,
+        fit: true,
+        padding: 30,
+        elk: {
+            algorithm: "layered",
+            "elk.direction": "DOWN",
+            // Lay out the whole compound hierarchy as ONE layered run so the direction
+            // threads through nested nodes. Without it cytoscape-elk's top-level edges
+            // (whose endpoints are nested children) don't drive the layout and DOWN/RIGHT
+            // come out identical.
+            "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+            "elk.spacing.nodeNode": 50,
+            "elk.layered.spacing.nodeNodeBetweenLayers": 60,
+        },
+    },
+    "elk-right": {
+        name: "elk",
+        nodeDimensionsIncludeLabels: true,
+        fit: true,
+        padding: 30,
+        elk: {
+            algorithm: "layered",
+            "elk.direction": "RIGHT",
+            "elk.hierarchyHandling": "INCLUDE_CHILDREN",
+            "elk.spacing.nodeNode": 50,
+            "elk.layered.spacing.nodeNodeBetweenLayers": 60,
+        },
     },
 };
 

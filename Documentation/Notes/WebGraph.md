@@ -1157,3 +1157,80 @@ Das Kontextmenü funktioniert trotzdem über der WebView — weil ein WPF-`Conte
 > **Airspace** = die Regel, dass eine WPF-„Insel" mit eigenem Win32-Fenster (wie WebView2) eine Bildschirmfläche exklusiv belegt; normaler WPF-Inhalt im selben Fenster kann sich nicht damit überlappen (weder darüber liegen noch durchscheinen). Nur separate Popup-Fenster umgehen das.
 
 Randnotiz: Bei *neueren* WebView2-Versionen gibt es auch einen „Composition"-Hosting-Modus (`CoreWebView2CompositionController` bzw. die `WebView2CompositionControl`), der die WebView in die WPF-Komposition einbindet und das Airspace-Problem ganz vermeidet — den nutzen wir hier aber nicht; wir lösen es über den transparenten Hintergrund.
+
+
+
+
+
+# Algorithmen
+
+**dagre = ein Algorithmus**, nicht eine Sammlung.
+
+Es ist genau *ein* Layout-Verfahren: das **Sugiyama-Style layered (hierarchische) Graph-Drawing** — Knoten werden in Ebenen (Ranks) angeordnet, gerichtete Kanten zeigen möglichst alle in eine Richtung. Klassisch für DAGs/Abhängigkeits- und Call-Graphen.
+
+Intern hat dieser eine Algorithmus zwar mehrere Phasen (Rang-Zuweisung → Reihenfolge/Kreuzungsminimierung → Koordinaten), und ein paar davon sind konfigurierbar:
+
+- `rankdir`: `TB` / `BT` / `LR` / `RL` (Richtung der Ebenen)
+- `ranker`: `network-simplex` / `tight-tree` / `longest-path` (Strategie der Rang-Zuweisung)
+- `nodeSep`, `rankSep`, `edgeSep` (Abstände)
+
+Aber das bleibt *ein* Verfahren mit Parametern — nicht mehrere austauschbare Layouts.
+
+Zum Vergleich, damit die Auswahl später klar ist:
+
+- **dagre** → 1 Algorithmus (layered)
+- **cola** → 1 Algorithmus (constraint-basiert / stress majorization, animiert, compound-fähig)
+- **elk** → *Sammlung* (layered, force, stress, mrtree, radial …) — eine Lib, mehrere Algorithmen auswählbar
+
+Für unsere ComboBox heißt das: dagre liefert **einen** Eintrag (ggf. später mehrere, wenn wir `rankdir`-Varianten wie „dagre TB"/„dagre LR" als separate Optionen anbieten wollen). Soll ich dagre vorerst als **einen** Eintrag verdrahten, oder gleich `rankdir`-Varianten als Default mitdenken?
+
+Gute Frage — und nein, der `name` allein „findet" keine Lib. Er ist nur ein **Registry-Schlüssel**, kein Dateipfad.
+
+## Wie Cytoscape ein Layout auflöst
+
+Cytoscape hat intern eine **Registry** registrierter Layout-Erweiterungen. Der Ablauf ist zweistufig:
+
+**1. Registrierung — passiert über die `<script>`-Tags in `index.html`:** Wenn `lib/cytoscape-dagre.js` beim Laden ausgeführt wird, ruft es selbst sowas auf:
+
+```js
+cytoscape('layout', 'dagre', DagreLayout);   // tut die Lib intern
+```
+
+Das trägt die Klasse unter dem Schlüssel `"dagre"` in die globale Cytoscape-Registry ein. (Und cytoscape-dagre braucht dafür das globale `dagre` aus `dagre.js` — deshalb beide Scripts, in der Reihenfolge.)
+
+**2. Auflösung — in `app.js`:**
+
+```js
+cy.layout({ name: "dagre", ... })
+```
+
+Cytoscape schlägt `"dagre"` **in der Registry** nach und instanziiert die dort registrierte Klasse. Der `name` ist reines Lookup — **keine** Datei wird hier geladen, kein Pfad aufgelöst.
+
+Ein `<script src="...">` lädt die Datei **und führt ihren Top-Level-Code sofort aus** — synchron in Dokumentreihenfolge (sofern kein `defer`/`async`/`type="module"`). Das ist kein bloßes „Einbinden/Verfügbarmachen", sondern echtes Ausführen.
+
+Das ist genau der Mechanismus, auf dem unsere Lib-Registrierung beruht:
+
+- **`elk.bundled.js`**: Top-Level läuft die UMD-Wrapper-Funktion und macht `window.ELK = f()` — legt also beim Laden das globale `ELK` an.
+- **`cytoscape-dagre.js` / `cytoscape-elk.js` / `cytoscape-fcose.js`**: deren Top-Level ruft beim Laden `cytoscape('layout', 'dagre'|'elk'|'fcose', …)` auf und **trägt sich in die Cytoscape-Registry ein**. Deshalb genügt später in app.js der bloße `name` — die Extension hat sich beim Script-Laden selbst registriert.
+- Bei `cytoscape-elk.js` ist es sogar zeitkritisch: dessen Top-Level macht `factory(root["ELK"])` und **fängt den Wert von `window.ELK` im Moment des Ladens ein**. Ist `ELK` da noch nicht definiert (Bundle noch nicht geladen), bekommt die Extension `undefined`. Darum **muss** in der index.html `elk.bundled.js` *vor* `cytoscape-elk.js` stehen.
+
+Was *nicht* automatisch passiert: app.js wird zwar auch sofort ausgeführt (legt `cy` an, definiert `window.renderGraph`, `setLayout` usw.), aber die *Funktionen* laufen erst, wenn C# sie via `ExecuteScriptAsync` aufruft. Top-Level-Code (Variablen, `cytoscape({...})`, Event-Handler-Registrierung) läuft beim Laden; Funktionskörper erst beim Aufruf.
+
+Kurz zum Stand unseres ELK-Problems (nur zur Einordnung, kein Themenwechsel): Ich hatte gerade verifiziert, dass `elk.bundled.js` korrekt `window.ELK` setzt und der Bundle bei fehlendem Worker eine „fake worker"-Variante hat („*Falling back to non-web worker version*"). Der Verdacht bleibt, dass ELK im WebView2 asynchron am Worker scheitert. Sag Bescheid, wenn ich da weitermachen soll — am schnellsten käme ich mit einem Blick in die DevTools-Konsole (F12 im Web-Tab) weiter.
+
+## Daraus folgt
+
+- **Bestimmt wird die Lib in der `index.html`** (welche `<script>` geladen wird), nicht in `app.js`. `app.js` *wählt* nur einen bereits registrierten Eintrag aus.
+- Fehlt der `<script>`-Tag (oder die Datei), ist `"dagre"` **nicht** in der Registry → `cy.layout({name:"dagre"})` wirft „No such layout `dagre` found". Genau das fängt mein `runLayout()` ab und fällt auf fcose zurück.
+- **Built-ins** (`grid`, `circle`, `breadthfirst`, `concentric`, `cose`, `random`, `preset`) sind schon *in* `cytoscape.min.js` vorregistriert — die brauchen deshalb keinen Extra-Script, nur den `name`. fcose/dagre/elk/cola sind externe Extensions → eigener Script nötig.
+
+## Eine Feinheit zu unseren Keys
+
+Wichtig: meine `LAYOUTS`-**Map-Keys** (`"dagre-tb"`, `"dagre-lr"`) sind **meine eigenen** Auswahl-Bezeichner — die sieht Cytoscape nie. Der echte Registry-Name steht *im* Config-Objekt:
+
+```js
+"dagre-tb": { name: "dagre", rankDir: "TB", ... },   // name MUSS "dagre" sein
+"dagre-lr": { name: "dagre", rankDir: "LR", ... },
+```
+
+Beide nutzen dieselbe registrierte Extension `"dagre"`, unterscheiden sich nur per `rankDir`. Der String hinter `name:` muss also **exakt** dem entsprechen, was die Lib registriert (`"dagre"`, `"fcose"`, `"elk"`, `"cola"` …) — sonst Registry-Miss.
