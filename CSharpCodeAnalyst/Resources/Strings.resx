@@ -342,6 +342,15 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Highlighting_Label" xml:space="preserve">
     <value>Highlighting</value>
   </data>
+  <data name="Layout_Force_Label" xml:space="preserve">
+    <value>Force (fCoSE)</value>
+  </data>
+  <data name="Layout_DagreTopBottom_Label" xml:space="preserve">
+    <value>Layered ↓ (Dagre)</value>
+  </data>
+  <data name="Layout_DagreLeftRight_Label" xml:space="preserve">
+    <value>Layered → (Dagre)</value>
+  </data>
   <data name="CodeStructure_Header" xml:space="preserve">
     <value>Code Structure</value>
   </data>

@@ -33,6 +33,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly GraphViewState _state;
 
     private HighlightOption _selectedHighlightOption;
+    private LayoutOption _selectedLayoutOption;
 
     internal GraphViewModel(GraphViewState state, ICodeGraphExplorer explorer, IPublisher publisher,
         AppSettings settings, RefactoringService refactoringService)
@@ -52,8 +53,16 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             new HighlightOption(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
         ];
 
+        LayoutOptions =
+        [
+            LayoutOption.Default,
+            new LayoutOption("dagre-tb", Strings.Layout_DagreTopBottom_Label),
+            new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label)
+        ];
+
         // Set defaults
         _selectedHighlightOption = HighlightOptions[0];
+        _selectedLayoutOption = LayoutOptions[0];
 
         var flag = IconLoader.LoadIcon("Resources/flag.png");
         var removeWithoutChildren = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
@@ -200,6 +209,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
+    public ObservableCollection<LayoutOption> LayoutOptions { get; }
+
 
 
     public bool ShowFlatGraph
@@ -248,6 +259,22 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             _selectedHighlightOption = value;
             _state.SetHighlightMode(value.Mode);
             OnPropertyChanged(nameof(SelectedHighlightOption));
+        }
+    }
+
+    public LayoutOption SelectedLayoutOption
+    {
+        get => _selectedLayoutOption;
+        set
+        {
+            if (_selectedLayoutOption == value)
+            {
+                return;
+            }
+
+            _selectedLayoutOption = value;
+            _state.SetLayout(value.Name);
+            OnPropertyChanged(nameof(SelectedLayoutOption));
         }
     }
 

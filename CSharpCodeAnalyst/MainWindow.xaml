@@ -287,6 +287,16 @@
                                   Grid.Row="0" Grid.Column="3"
                                   ItemsSource="{Binding GraphViewModel.HighlightOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
+
+                        <TextBlock VerticalAlignment="Center"
+                                   Grid.Row="1" Grid.Column="2"
+                                   Text="{x:Static resources:Strings.Layout_Label}" />
+                        <ComboBox VerticalAlignment="Center"
+                                  Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
+                                  VerticalContentAlignment="Center"
+                                  Grid.Row="1" Grid.Column="3"
+                                  ItemsSource="{Binding GraphViewModel.LayoutOptions}"
+                                  SelectedItem="{Binding GraphViewModel.SelectedLayoutOption}" />
                     </Grid>
                 </RibbonGroup>
 

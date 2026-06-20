@@ -28,6 +28,12 @@ public class GraphViewState
     public HighlightMode HighlightMode { get; private set; } = HighlightMode.EdgeHovered;
 
     /// <summary>
+    ///     The active graph layout key (e.g. "fcose", "dagre-tb"). Cytoscape stays the
+    ///     renderer; only the layout extension that computes positions changes.
+    /// </summary>
+    public string LayoutName { get; private set; } = "fcose";
+
+    /// <summary>
     ///     The currently selected ids.
     ///     The web view pushes it on selection change. Commands that act on "the selected elements" read this.
     /// </summary>
@@ -42,6 +48,9 @@ public class GraphViewState
 
     /// <summary>The hover-highlight mode changed (a view concern, not a structural change).</summary>
     public event Action<HighlightMode>? HighlightModeChanged;
+
+    /// <summary>The layout algorithm changed (render-only: re-layout, no rebuild).</summary>
+    public event Action<string>? LayoutChanged;
 
     /// <summary>The selection changed (not a structural change; no re-layout needed).</summary>
     public event Action? SelectionChanged;
@@ -85,6 +94,12 @@ public class GraphViewState
     {
         HighlightMode = mode;
         HighlightModeChanged?.Invoke(mode);
+    }
+
+    public void SetLayout(string name)
+    {
+        LayoutName = name;
+        LayoutChanged?.Invoke(name);
     }
 
     public void SetHideFilter(GraphHideFilter filter)

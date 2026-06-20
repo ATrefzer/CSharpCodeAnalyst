@@ -11,6 +11,10 @@
     <script src="lib/layout-base.js"></script>
     <script src="lib/cose-base.js"></script>
     <script src="lib/cytoscape-fcose.js"></script>
+    <!-- dagre layered layout: dagre.js provides the global `dagre`, then cytoscape-dagre
+         registers the "dagre" layout on `cytoscape`. Order: cytoscape -> dagre -> cytoscape-dagre. -->
+    <script src="lib/dagre.js"></script>
+    <script src="lib/cytoscape-dagre.js"></script>
     <!-- SVG export; like fcose it auto-registers on the global `cytoscape` as cy.svg(). -->
     <script src="lib/cytoscape-svg.js"></script>
 </head>

@@ -15,19 +15,81 @@ function postToHost(message) {
 }
 
 // ---- Layout -----------------------------------------------------------------
+// Cytoscape stays the renderer; each entry here is just a layout extension that
+// computes node positions. The active key is chosen in the ribbon and pushed from
+// C# via setLayout(); getLayout() resolves it to the config object below.
+//
 // fcose = fast Compound Spring Embedder. Unlike the built-in "cose" it understands
 // nested (compound) nodes, so class containers don't blow up and overlap.
-const LAYOUT = {
-    name: "fcose",
-    quality: "default",
-    randomize: true,
-    animate: false,
-    nodeDimensionsIncludeLabels: true,
-    nodeSeparation: 75,
-    packComponents: true,
-    padding: 30,
-    fit: true,
+// dagre = Sugiyama-style layered (hierarchical) layout, good for directed graphs;
+// rankDir picks the flow direction (top->bottom vs. left->right). Note: dagre has
+// only limited compound support, so nesting is best preserved by fcose.
+const LAYOUTS = {
+    "fcose": {
+        name: "fcose",
+        quality: "default",
+        randomize: true,
+        animate: false,
+        nodeDimensionsIncludeLabels: true,
+        nodeSeparation: 75,
+        packComponents: true,
+        padding: 30,
+        fit: true,
+    },
+    "dagre-tb": {
+        name: "dagre",
+        rankDir: "TB",
+        nodeDimensionsIncludeLabels: true,
+        nodeSep: 50,
+        rankSep: 60,
+        edgeSep: 10,
+        animate: false,
+        padding: 30,
+        fit: true,
+    },
+    "dagre-lr": {
+        name: "dagre",
+        rankDir: "LR",
+        nodeDimensionsIncludeLabels: true,
+        nodeSep: 50,
+        rankSep: 60,
+        edgeSep: 10,
+        animate: false,
+        padding: 30,
+        fit: true,
+    },
 };
+
+// The currently selected layout key; C# overrides it via setLayout() at startup.
+let currentLayoutName = "fcose";
+
+// Resolves the active layout config, falling back to fcose if the key is unknown
+// (e.g. an extension whose offline lib was not bundled).
+function getLayout() {
+    return LAYOUTS[currentLayoutName] || LAYOUTS["fcose"];
+}
+
+// Starts the active layout, cancelling any in-flight run first. If the chosen layout
+// extension is not registered (its offline lib was not bundled), Cytoscape throws when
+// the layout name is unknown — we catch that and fall back to fcose so rendering never
+// breaks. Returns the running layout (or null if even fcose somehow failed).
+function runLayout() {
+    if (currentLayout) {
+        currentLayout.stop();
+    }
+
+    try {
+        currentLayout = cy.layout(getLayout());
+        currentLayout.run();
+    } catch (err) {
+        console.warn("Layout '" + currentLayoutName + "' failed, falling back to fcose:", err);
+        currentLayoutName = "fcose";
+        currentLayout = cy.layout(LAYOUTS["fcose"]);
+        currentLayout.run();
+    }
+
+    return currentLayout;
+}
 
 // ---- Styling ----------------------------------------------------------------
 // Fallback colors for standalone testing; in the app the exact color comes from C#.
@@ -183,7 +245,7 @@ const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: inHost ? [] : exampleElements,
     style: cytoscapeStyle,
-    layout: LAYOUT,
+    layout: getLayout(),
 });
 
 // ---- Empty-state hint -------------------------------------------------------
@@ -224,12 +286,8 @@ window.renderGraph = function (graph) {
     cy.add(elements);
     cy.resize();
 
-    // Cancel a still-running layout before starting a new one.
-    if (currentLayout) {
-        currentLayout.stop();
-    }
-    currentLayout = cy.layout(LAYOUT);
-    currentLayout.run();
+    // Cancel a still-running layout before starting a new one (with safe fallback).
+    runLayout();
 };
 
 // Update flag / search decorations on the EXISTING elements (no re-layout). C# pushes this
@@ -264,12 +322,16 @@ window.refitGraph = function () {
 // button calls this; unlike renderGraph it keeps the element set (and thus the
 // selection) and just recomputes positions.
 window.relayoutGraph = function () {
-    if (currentLayout) {
-        currentLayout.stop();
-    }
     cy.resize();
-    currentLayout = cy.layout(LAYOUT);
-    currentLayout.run();
+    runLayout();
+};
+
+// Switch the layout algorithm and re-run it on the current elements. C# pushes the
+// key (e.g. "dagre-tb") from the ribbon ComboBox and at startup. Unknown keys fall
+// back to fcose (see getLayout), so a missing offline lib never breaks rendering.
+window.setLayout = function (name) {
+    currentLayoutName = name;
+    relayoutGraph();
 };
 
 // ---- Image export (C# reads the return value via ExecuteScriptAsync) ---------

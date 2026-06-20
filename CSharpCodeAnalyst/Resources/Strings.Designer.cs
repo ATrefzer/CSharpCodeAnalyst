@@ -1186,6 +1186,33 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Highlighting_Label", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Force (fCoSE).
+        /// </summary>
+        public static string Layout_Force_Label {
+            get {
+                return ResourceManager.GetString("Layout_Force_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (Dagre).
+        /// </summary>
+        public static string Layout_DagreTopBottom_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreTopBottom_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (Dagre).
+        /// </summary>
+        public static string Layout_DagreLeftRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreLeftRight_Label", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Outgoing edges.

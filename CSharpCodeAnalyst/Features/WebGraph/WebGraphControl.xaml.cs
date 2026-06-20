@@ -85,6 +85,10 @@ public partial class WebGraphControl : UserControl
         // which does the actual (local, per-hover) highlighting.
         _state.HighlightModeChanged += OnHighlightModeChanged;
 
+        // The layout algorithm is chosen in the ribbon; forward changes to JS, which
+        // re-runs the matching Cytoscape layout extension on the current elements.
+        _state.LayoutChanged += OnLayoutChanged;
+
         // Flags / search highlights restyle existing elements without a re-layout.
         _state.DecorationsChanged += OnDecorationsChanged;
 
@@ -308,6 +312,16 @@ public partial class WebGraphControl : UserControl
         _ = WebView.CoreWebView2?.ExecuteScriptAsync($"setHighlightMode('{mode}');");
     }
 
+    private void OnLayoutChanged(string name)
+    {
+        Dispatcher.Invoke(() => PushLayout(name));
+    }
+
+    private void PushLayout(string name)
+    {
+        _ = WebView.CoreWebView2?.ExecuteScriptAsync($"setLayout('{name}');");
+    }
+
     private void OnStateChanged()
     {
         // Changed is raised on the UI thread, but marshal defensively.
@@ -441,6 +455,12 @@ public partial class WebGraphControl : UserControl
 
                 // The page has painted; drop the cold-start placeholder for good.
                 LoadingOverlay.Visibility = Visibility.Collapsed;
+
+                // Push the selected layout first so the initial render uses it.
+                if (_state is not null)
+                {
+                    PushLayout(_state.LayoutName);
+                }
 
                 RenderCurrentGraph();
                 if (_state is not null)
