@@ -97,15 +97,12 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewState graphViewState, IPublisher publisher,
-        ISubscriber subscriber, GraphSearchViewModel graphSearchViewModel)
+    public void SetViewer(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber)
     {
         // The web view observes the shared model directly and listens on the bus for
-        // render-only commands (Layout / Refit / Export).
+        // render-only commands (Layout / Refit / Export). The graph search box (bound to
+        // MainViewModel.GraphSearchViewModel) lives in the web tab's tool bar.
         WebGraphView.SetViewer(graphViewState, publisher, subscriber);
-
-        // The graph search acts on the shared GraphViewState; its box lives in the web tab.
-        WebGraphSearch.DataContext = graphSearchViewModel;
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -126,6 +123,29 @@ public partial class MainWindow
             {
                 e.Handled = true;
             }
+        }
+    }
+
+    private void WebSearchBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        // Focus the box (and select its text) when the search row slides open.
+        if (sender is TextBox { IsVisible: true } box)
+        {
+            box.Dispatcher.BeginInvoke(() =>
+            {
+                box.Focus();
+                box.SelectAll();
+            });
+        }
+    }
+
+    private void WebSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Esc closes the search row (the view model clears the search on hide).
+        if (e.Key == Key.Escape && sender is FrameworkElement { DataContext: GraphSearchViewModel vm })
+        {
+            vm.IsSearchVisible = false;
+            e.Handled = true;
         }
     }
 }

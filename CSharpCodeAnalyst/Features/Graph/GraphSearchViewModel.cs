@@ -1,6 +1,8 @@
 using System.ComponentModel;
+using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Graph;
 
@@ -20,6 +22,7 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
         _state = state;
         _searchText = string.Empty;
         _isSearchVisible = false;
+        ClearSearchCommand = new WpfCommand(ClearSearch);
 
         // Re-run the search when the graph changes (render-agnostic; shared by both views).
         _state.Changed += OnStateChanged;
@@ -53,6 +56,8 @@ public sealed class GraphSearchViewModel : INotifyPropertyChanged
             }
         }
     }
+
+    public ICommand ClearSearchCommand { get; }
 
     public bool IsSearchVisible
     {

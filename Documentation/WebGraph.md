@@ -137,45 +137,10 @@ beide Ansichten konsistent aussehen.
 
 ## 6. Offene Punkte / Risiken
 
-- **Theming:** Farben aus `ColorDefinitions` an JS durchreichen, damit Light/Dark
-  und ElementType-Farben konsistent bleiben.
 - **Performance:** Bei großen Graphen JSON-Größe und Layout-Zeit beobachten; dagre
   ist schnell, ELK gründlicher aber langsamer.
 - **`WebView2` im Output:** Native Loader-DLLs (`WebView2Loader.dll`) müssen ins
   `bin/` — das NuGet-Paket regelt das normalerweise automatisch.
-
----
-
-## 7. Basisklassen, Containment & Performance (Designentscheidungen)
-
-### Containment vs. Vererbung = zwei orthogonale Achsen
-- **Containment** (Parent/Children) → Compound-Verschachtelung. Mehrstufig:
-  Namespace > Klasse > innere Klasse > Methode. **Verschachtelte Klassen werden
-  geparst** (`HierarchyAnalyzer.ProcessNodeForHierarchy` rekursiert über
-  `node.ChildNodes()`), tauchen also als Kinder auf.
-- **Vererbung** (`RelationshipType.Inherits`) → Kante. Eine Basisklasse ist nie
-  Containment-Parent ihrer Ableitung. Deshalb **keine Kollision** zwischen
-  Containment-Verschachtelung und Basisklassen-Darstellung.
-
-### Basisklassen-Methoden: NICHT duplizieren (für v1)
-Entscheidung: Basisklasse bleibt eine eigene Box, Aufrufe gehen als Kante dorthin.
-Begründung:
-- **Performance:** Duplizieren erhöht die Knotenzahl (Basisklasse × Ableitungen)
-  — genau falsch bei 500+ Knoten.
-- **Cytoscape erlaubt nur einen Parent pro Knoten** — eine Methode kann nicht Kind
-  zweier Ableitungen sein. Duplizieren erzwingt synthetische IDs
-  (`methodId@derivedId`) und verkompliziert die Brücke (Rückmapping auf echtes
-  `CodeElement`).
-- Compound Nodes machen die Basisklasse ohnehin zur klar beschrifteten eigenen Box.
-
-Stattdessen gegen „Pfeil führt in die Basisklasse" (billig, ohne neue Knoten):
-- **Edge-Styling nach Typ** (Vererbung gestrichelt/grau, Calls kräftig/farbig).
-- **Toggle „Strukturkanten ausblenden"**.
-- **Call-Path-Highlight** (nur `Calls`-Nachbarschaft).
-
-Basisklasse **nicht** in die Ableitung verschachteln — stattdessen geschichtetes
-Layout, das Vererbungskanten in eine Richtung laufen lässt. Duplizieren bleibt ein
-mögliches Phase-4-Experiment, falls danach noch nötig.
 
 ### Performance / mögliche MSAGL-Ablösung (Zukunft)
 - Cytoscape rendert auf **Canvas** → flüssige Interaktion bei einigen Tausend
@@ -191,15 +156,9 @@ mögliches Phase-4-Experiment, falls danach noch nötig.
 - **Validierung:** In Phase 1 mit realistischem ~500-Knoten-Graphen testen, bevor
   über MSAGL-Ablösung entschieden wird.
 
-## 8. Nächster Schritt
-
-Phase 0 (Spike): WebView2-Paket + Tab + statischer Cytoscape-Graph offline.
-```
-```
-
-## Phase 0
-
 Das ist der Kern, den man einmal verstanden haben muss. Ich erkläre es von oben nach unten.
+
+# Umsetzung
 
 ## Die Grundidee: WebView2 ist ein Browser ohne Fensterrahmen
 

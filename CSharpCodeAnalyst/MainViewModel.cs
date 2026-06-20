@@ -282,6 +282,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>The in-graph search (its box lives in the web tab tool bar).</summary>
+    public GraphSearchViewModel? GraphSearchViewModel
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     public int SelectedRightTabIndex
     {

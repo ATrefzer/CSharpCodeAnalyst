@@ -393,17 +393,58 @@
                      (a non-selected WPF tab is not in the visual tree, so it could not init). -->
                 <TabItem Header="{x:Static resources:Strings.WebView_TabHeader}">
                     <DockPanel>
-                        <!-- Global graph tools + search, docked above the web canvas (a floating
-                             WPF overlay over the WebView2 is impossible due to airspace). Reuses
-                             the same GraphToolbarControl / GraphSearchControl as the MSAGL view;
-                             both act on the shared GraphViewState (graph / selection / highlights). -->
-                        <Grid DockPanel.Dock="Top" Margin="4 4 4 0"
-                              Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <graph:GraphToolbarControl HorizontalAlignment="Left"
+                        <!-- Single compact tool bar docked above the web canvas (a floating WPF
+                             overlay over the WebView2 is impossible due to airspace). The search
+                             box appears to the right of the magnifier toggle and fills the rest of
+                             the row; it is collapsed (no space) while search is off. -->
+                        <DockPanel DockPanel.Dock="Top" Margin="4 4 4 0"
+                                   Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                            <graph:GraphToolbarControl DockPanel.Dock="Left"
                                                        DataContext="{Binding GraphViewModel}" />
-                            <graph:GraphSearchControl x:Name="WebGraphSearch" HorizontalAlignment="Right" />
-                        </Grid>
-                        <webGraph:WebGraphControl x:Name="WebGraphView" />
+
+                            <ToggleButton DockPanel.Dock="Left"
+                                          Style="{StaticResource ToolbarToggleButtonStyle}"
+                                          ToolTip="Toggle Search"
+                                          IsChecked="{Binding GraphSearchViewModel.IsSearchVisible, Mode=TwoWay}">
+                                <Image Source="/Resources/search_32.png" Width="20" Height="20" />
+                            </ToggleButton>
+
+                            <!-- Search input: fills the remaining row width, collapsed when off. -->
+                            <DockPanel DataContext="{Binding GraphSearchViewModel}"
+                                       Visibility="{Binding IsSearchVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       Margin="6 0 0 0" VerticalAlignment="Center">
+                                <Button DockPanel.Dock="Right"
+                                        Style="{StaticResource ToolbarButtonStyle}"
+                                        Command="{Binding ClearSearchCommand}"
+                                        ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}">
+                                    <Image Source="/Resources/clear_32.png" Width="16" Height="16" />
+                                </Button>
+                                <TextBox x:Name="WebSearchBox"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         Background="LightYellow"
+                                         BorderThickness="1" BorderBrush="LightGray"
+                                         Height="24" VerticalContentAlignment="Center"
+                                         ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}"
+                                         IsVisibleChanged="WebSearchBox_IsVisibleChanged"
+                                         PreviewKeyDown="WebSearchBox_PreviewKeyDown" />
+                            </DockPanel>
+                        </DockPanel>
+
+                        <webGraph:WebGraphControl x:Name="WebGraphView">
+                            <webGraph:WebGraphControl.Style>
+                                <Style TargetType="webGraph:WebGraphControl">
+                                    <Style.Triggers>
+                                        <!-- Hide the WebView2 while loading so the WPF loading
+                                             overlay covers the graph area too (a WPF overlay can't
+                                             paint over the WebView2's own HWND - "airspace"). -->
+                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                            <Setter Property="Visibility" Value="Hidden" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </webGraph:WebGraphControl.Style>
+                        </webGraph:WebGraphControl>
                     </DockPanel>
                 </TabItem>
 

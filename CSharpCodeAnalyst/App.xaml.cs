@@ -112,7 +112,7 @@ public partial class App
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(graphViewState, messaging, messaging, graphSearchViewModel);
+        mainWindow.SetViewer(graphViewState, messaging, messaging);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
@@ -127,6 +127,7 @@ public partial class App
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
+        viewModel.GraphSearchViewModel = graphSearchViewModel;
 
         // Setup messaging
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
