@@ -43,7 +43,25 @@ public static class SearchGraphBuilder
                 }
             }
 
-            var (source, target) = GetHighestElementsInvolvedInDependency(codeGraph, dependency);
+            var highest = GetHighestElementsInvolvedInDependency(codeGraph, dependency);
+            if (highest is null)
+            {
+                // Partial graph (e.g. a "find relationships" result or a restored session):
+                // the dependency cannot be lifted to a common container level within the
+                // visible hierarchy, so it cannot form a cycle here -> skip it.
+                continue;
+            }
+
+            var (source, target) = highest.Value;
+
+            // In a partial graph the lifted endpoints are not guaranteed to be nodes of this
+            // graph; skip such a dependency instead of failing.
+            if (!searchNodes.TryGetValue(source.Id, out var searchSource) ||
+                !searchNodes.TryGetValue(target.Id, out var searchTarget))
+            {
+                continue;
+            }
+
             if (source.Id == target.Id && !IsMethod(codeGraph, source.Id))
             {
                 // Skip all self references. They are irrelevant for cycle analysis
@@ -52,8 +70,6 @@ public static class SearchGraphBuilder
                 continue;
             }
 
-            var searchSource = GetSearchNode(source, searchNodes);
-            var searchTarget = GetSearchNode(target, searchNodes);
             searchSource.Dependencies.Add(searchTarget);
         }
 
@@ -65,13 +81,15 @@ public static class SearchGraphBuilder
         return codeGraph.Nodes[id].ElementType == CodeElementType.Method;
     }
 
-    private static SearchNode GetSearchNode(CodeElement element, Dictionary<string, SearchNode> searchNodes)
-    {
-        return searchNodes[element.Id];
-    }
-
-    private static (CodeElement, CodeElement) GetHighestElementsInvolvedInDependency(Graph.CodeGraph codeGraph,
-        Relationship relationship)
+    /// <summary>
+    ///     Lifts a relationship to the highest common container level (e.g. a method→method
+    ///     call to the enclosing class/namespace) so cycles are detected at that level.
+    ///     Returns <c>null</c> when the graph does not contain the ancestor chain required to
+    ///     reach a common level — that happens for partial working graphs (find relationships,
+    ///     restored sessions) and means the dependency is not cycle-relevant within the graph.
+    /// </summary>
+    private static (CodeElement Source, CodeElement Target)? GetHighestElementsInvolvedInDependency(
+        Graph.CodeGraph codeGraph, Relationship relationship)
     {
         var source = codeGraph.Nodes[relationship.SourceId];
         var target = codeGraph.Nodes[relationship.TargetId];
@@ -121,19 +139,18 @@ public static class SearchGraphBuilder
                 highestTarget = highestTarget.Parent;
             }
 
-            CheckLogicErrors(highestSource, highestTarget);
-            sourceLevel = CodeElementClassifier.GetContainerLevel(highestSource!.ElementType);
-            targetLevel = CodeElementClassifier.GetContainerLevel(highestTarget!.ElementType);
+            if (highestSource is null || highestTarget is null)
+            {
+                // Climbed above the part of the hierarchy contained in this graph: the
+                // dependency cannot be lifted to a common level here (partial graph). The
+                // caller skips it. On the complete (parsed) graph this never happens.
+                return null;
+            }
+
+            sourceLevel = CodeElementClassifier.GetContainerLevel(highestSource.ElementType);
+            targetLevel = CodeElementClassifier.GetContainerLevel(highestTarget.ElementType);
         }
 
         return (highestSource, highestTarget);
-    }
-
-    private static void CheckLogicErrors(CodeElement? highestSource, CodeElement? highestTarget)
-    {
-        if (highestSource is null || highestTarget is null)
-        {
-            throw new IncompleteLogicException("Source or target code element in search graph is null");
-        }
     }
 }

@@ -1385,6 +1385,3 @@ GraphViewState.Changed
 
 So wird teures Rendern **(1)** zeitlich gebündelt und **(2)** nur ausgeführt, wenn die Ansicht sichtbar und korrekt dimensioniert ist.
 
-------
-
-Soll ich das (wie die Stop-Beschreibung) auch irgendwo unter `Documentation/` ablegen?
