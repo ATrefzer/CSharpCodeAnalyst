@@ -17,14 +17,9 @@ UNHANDLED CASES
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.
 
-
-
 - Try different Render algorithms
 - Layout is not stable when re-layouted
-- Flickering when right clicking before context menu is opened.
 - Load overlay no longer working (HWND inside)
-
-
 
 
 BUGS 

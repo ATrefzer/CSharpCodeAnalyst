@@ -58,6 +58,12 @@ const cytoscapeStyle = [
         },
     },
     {
+        // While a right-click (context menu) is in progress we hide Cytoscape's gray
+        // "active" press overlay — it lingers behind the opening menu and looks broken.
+        selector: ".suppress-overlay",
+        style: { "overlay-opacity": 0 },
+    },
+    {
         // Compound parent (a node that contains children) renders as a container.
         selector: ":parent",
         style: {
@@ -376,6 +382,13 @@ cy.on("tap", evt => {
 
 // ---- Context menu (right-click) -> host -------------------------------------
 // C# builds the actual WPF menu at the cursor from the existing command objects.
+
+// Suppress the gray "active" press overlay for the duration of a right-click only
+// (left-click keeps its normal feedback). cxttapstart fires on right mouse-down,
+// cxttapend on release; after release there is no active state anyway.
+cy.on("cxttapstart", "node, edge", evt => evt.target.addClass("suppress-overlay"));
+cy.on("cxttapend", "node, edge", evt => evt.target.removeClass("suppress-overlay"));
+
 cy.on("cxttap", "node", evt => {
     postToHost({ type: "contextMenu", kind: "node", id: evt.target.id() });
 });

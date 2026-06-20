@@ -5,26 +5,13 @@
 Lernprojekt: ein zusätzliches Tab, das den Code-Graphen mit Web-Technologie
 rendert — als zweite, unabhängige Sicht **neben** der bestehenden MSAGL-Ansicht.
 
-Status: Planung. Noch kein Code geschrieben.
-
 ---
 
-## 1. Ziel und Abgrenzung
+## 1. Ziel
 
-- **Ziel:** Schöneres, interaktiveres Layout als MSAGL, vor allem echte
-  *Compound Nodes* (Klasse als Container, Methoden als Kinder) und Edge-Styling
-  pro Beziehungstyp. Gleichzeitig Lernvehikel für WebView2 + JS-Graph-Libs.
-- **Was es NICHT ist:** Kein Ersatz der MSAGL-Ansicht. Die bleibt unangetastet.
-  Das Web-Tab implementiert bewusst **nicht** `IGraphViewer`, damit der Lerncode
-  isoliert bleibt und nichts an der bestehenden Seite bricht.
-
-### Getroffene Entscheidungen
-
-| Frage       | Entscheidung                                                 |
-| ----------- | ------------------------------------------------------------ |
-| Datenquelle | **Spiegel des CodeExplorers** — das Web-Tab zeigt denselben Ausschnitt wie die MSAGL-Ansicht (`GraphViewer.GetGraph()`). Eigenständige Sicht ggf. später. |
-| Offline     | **Strikt offline** — alle JS-Libs lokal gebündelt, keine CDN-Zugriffe. |
-| Reihenfolge | Erst diese Doku, dann Phase 0 (Spike).                       |
+**Ziel:** Schöneres, interaktiveres Layout als MSAGL, vor allem echte
+*Compound Nodes* (Klasse als Container, Methoden als Kinder) und Edge-Styling
+pro Beziehungstyp. Gleichzeitig Lernvehikel für WebView2 + JS-Graph-Libs.
 
 ---
 
@@ -145,62 +132,15 @@ beide Ansichten konsistent aussehen.
   `https://app/index.html`.
 - **Keine CDN-URLs** — Cytoscape, Layout-Extension und expand-collapse als lokale
   `.min.js` ablegen.
-- Lernvorteil: HTML/JS editieren und WebView neu laden, ohne C# neu zu bauen.
-
----
-
-## 5. Phasenplan
-
-Jede Phase ist für sich lauffähig und liefert ein sichtbares Ergebnis.
-
-### Phase 0 — Spike (Plumbing beweisen)
-- `Microsoft.Web.WebView2` NuGet hinzufügen.
-- Neues `WebGraphControl` (UserControl mit `<wv2:WebView2>`), neues TabItem
-  „Web View" in `MainWindow.xaml`.
-- `EnsureCoreWebView2Async`, Virtual-Host-Mapping, statische `index.html` mit
-  **hartkodiertem** Cytoscape-Beispielgraph (3–4 Knoten), Libs lokal.
-- **Ziel:** WebView2 startet, Libs laden offline, Graph erscheint.
-- *Akzeptanz:* Tab zeigt einen Cytoscape-Beispielgraphen.
-
-### Phase 1 — Echten Graph rendern (read-only)
-- `WebGraphBuilder`: `CodeGraph` → JSON (Schema oben). Compound Nodes über
-  `parent`, Farben nach `ElementType`, Kantenstil nach `RelationshipType`.
-- Datenquelle = Spiegel: bei `GraphChanged` / nach Layout den aktuellen
-  `GraphViewer.GetGraph()` serialisieren und via `setGraph` an JS schicken.
-- Layout dagre/klay wählen.
-- *Akzeptanz:* Web-Tab zeigt denselben Graphen wie das MSAGL-Tab, mit
-  Containern und typ-abhängigen Kanten.
-
-### Phase 2 — JS → C# (eine Richtung)
-- Klick auf Node → `postMessage({type:"nodeClicked"})` →
-  `WebMessageReceived` → `MessageBus.Publish(new QuickInfoUpdateRequest(...))`.
-- *Akzeptanz:* Klick im Web-Tab füllt das bestehende Info-Panel — ohne neuen
-  Info-Code.
-
-### Phase 3 — Zwei Richtungen / echte Interaktion
-- Doppelklick → Expand/Collapse (expand-collapse Extension, gespiegelt auf
-  `PresentationState`).
-- Call-Path-Highlight: Node anklicken → transitive `Calls`-Nachbarschaft
-  hervorheben, Rest ausgrauen (`highlight`-Message).
-- Kontextmenü (zunächst WPF-Popup, gespeist aus `contextMenu`-Message).
-
-### Phase 4 — Politur
-- ELK-Layout statt dagre/klay.
-- Edge-Bundling, sanfte Animationen, Whitespace-Tuning.
 
 ---
 
 ## 6. Offene Punkte / Risiken
 
-- **WebView2-Init ist asynchron:** Vor dem ersten `ExecuteScriptAsync` muss
-  `EnsureCoreWebView2Async()` abgeschlossen und die JS-Seite `ready` gemeldet
-  haben. Reihenfolge sauber behandeln (Queue für frühe `setGraph`-Aufrufe).
 - **Theming:** Farben aus `ColorDefinitions` an JS durchreichen, damit Light/Dark
   und ElementType-Farben konsistent bleiben.
 - **Performance:** Bei großen Graphen JSON-Größe und Layout-Zeit beobachten; dagre
   ist schnell, ELK gründlicher aber langsamer.
-- **Lizenz/Offline:** Lib-Versionen + Lizenzen in `ThirdPartyNotices` ergänzen
-  (das Projekt pflegt das bereits).
 - **`WebView2` im Output:** Native Loader-DLLs (`WebView2Loader.dll`) müssen ins
   `bin/` — das NuGet-Paket regelt das normalerweise automatisch.
 
@@ -419,6 +359,15 @@ Zwei Schreibweisen für Werte im Style-Block, die man auseinanderhalten muss:
 - **(B) Pfeilfunktion** `ele => ...`: für jeden Knoten wird diese Funktion aufgerufen, bekommt das Element `ele`, liest dessen `kind` und schlägt die Farbe in `KIND_COLOR` nach. `ele => x` ist nur eine kurze Funktion (`function(ele){ return x; }`). Brauchst du, wenn der Wert *berechnet* werden muss statt nur 1:1 aus einem Feld zu kommen.
 
 Bei `:parent` (Container) setze ich `text-valign: top` (Beschriftung oben) und `background-opacity: 0.25` (durchscheinend), damit man die Kinder *im* Container sieht. Genau das ist der „Compound Node"-Look.
+
+Ein paar Punkte zur Einordnung:
+
+- **Es sieht nur aus wie CSS.** Cytoscape nennt es „style" und nutzt eine CSS-ähnliche Syntax (Selektoren + Property/Value), aber es stylt **Graph-Elemente** (Knoten/Kanten), nicht DOM-Elemente. Es wird von der Cytoscape-Engine interpretiert und auf das `<canvas>` gezeichnet — der Browser/CSS sieht davon nichts.
+- **Eigene Properties.** `overlay-opacity` (sowie `overlay-color`, `overlay-padding`, `background-color` bei Knoten, `line-color`, `target-arrow-shape` bei Kanten …) sind **Cytoscape-Properties**, kein echtes CSS. Echtes CSS kennt `overlay-opacity` nicht.
+- **Eigene Selektoren.** `.suppress-overlay` ist hier ein **Cytoscape-Klassenselektor** — er matcht Elemente, denen wir per `element.addClass("suppress-overlay")` (Cytoscape-API) die Klasse gegeben haben. Das ist **nicht** dieselbe „class" wie ein HTML/CSS-`class`-Attribut. Genauso sind `node`, `edge`, `:selected`, `[?flagged]`, `[kind = 'Calls']` Cytoscape-Selektoren, die auf den Graph-Daten/-Zuständen arbeiten.
+- **Wo „echtes" CSS bei uns lebt:** nur in `style.css` — das stylt die HTML-Seite drumherum (`#cy`-Container, `#hint`-Overlay). Alles, was Knoten/Kanten betrifft, ist Cytoscape-Style in `app.js`.
+
+Kurz: HTML/`#cy`/`#hint` → echtes CSS (style.css). Knoten/Kanten → Cytoscape-Style-System (app.js), das nur CSS-Syntax *nachahmt*.
 
 ## 3. Die Daten — Knoten und Kanten
 
@@ -1237,6 +1186,8 @@ In unserem konkreten Fall:
 
 - Wollte ich einen WPF-Ladehinweis **über** die WebView legen → ginge nicht, das HWND der WebView verdeckt ihn.
 - Deshalb der Trick: WebView-Hintergrund **transparent** + Platzhalter **dahinter** (in derselben WPF-Fläche, die durchscheint).
+
+
 
 ## Die Ausnahme: Popup-Fenster
 
