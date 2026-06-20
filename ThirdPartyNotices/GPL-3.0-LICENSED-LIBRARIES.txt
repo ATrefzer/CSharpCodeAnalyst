@@ -1,0 +1,19 @@
+GPL-3.0-Licensed Libraries
+================================================================================
+
+This file lists the GPL-3.0-licensed third-party libraries used in this project.
+
+
+1. CYTOSCAPE-SVG
+================================================================================
+
+https://github.com/kinimesi/cytoscape-svg
+
+SVG export extension for Cytoscape.js, used by the web graph view to export the
+graph as an SVG file. Bundled locally under
+CSharpCodeAnalyst/Features/WebGraph/Web/lib/cytoscape-svg.js.
+
+Licensed under the GNU General Public License v3.0.
+
+This project itself is licensed under the GNU General Public License v3.0; the
+full license text is in the LICENSE file at the repository root.

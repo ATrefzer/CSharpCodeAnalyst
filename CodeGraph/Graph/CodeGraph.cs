@@ -101,8 +101,11 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
         if (originalElement.Parent != null &&
             Nodes.TryGetValue(originalElement.Parent.Id, out var parent))
         {
-            // Grab the parent reference. The parent is already in the graph.
-            newElement.Parent = originalElement.Parent;
+            // Link to the parent that is already in THIS graph (the integrated clone), not
+            // the original master element — otherwise the working graph's parent chain points
+            // at foreign objects and is not self-contained (breaks cycle analysis, which walks
+            // GetPathToRoot expecting every ancestor to be a node of this graph).
+            newElement.Parent = parent;
             parent.Children.Add(newElement);
         }
 

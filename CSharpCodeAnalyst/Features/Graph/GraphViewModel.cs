@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using CodeGraph.Contracts;
@@ -8,11 +7,11 @@ using CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
-using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
 
@@ -28,30 +27,22 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private readonly IPublisher _publisher;
     private readonly RefactoringService _refactoringService;
     private readonly AppSettings _settings;
+    private readonly GraphViewState _state;
     private readonly LinkedList<GraphSession> _undoStack;
-    private readonly IGraphViewer _viewer;
 
     private HighlightOption _selectedHighlightOption;
-    private RenderOption _selectedRenderOption;
+    private LayoutOption _selectedLayoutOption;
 
-    internal GraphViewModel(IGraphViewer viewer, ICodeGraphExplorer explorer, IPublisher publisher,
+    internal GraphViewModel(GraphViewState state, ICodeGraphExplorer explorer, IPublisher publisher,
         AppSettings settings, RefactoringService refactoringService)
     {
         _undoStack = [];
-        _viewer = viewer;
+        _state = state;
         _explorer = explorer;
         _publisher = publisher;
         _settings = settings;
         _refactoringService = refactoringService;
         DropHandler = new GraphDropHandler(publisher);
-
-        // Initialize RenderOptions
-        RenderOptions =
-        [
-            new DefaultRenderOptions(),
-            new LeftToRightRenderOptions(),
-            new BottomToTopRenderOptions()
-        ];
 
         HighlightOptions =
         [
@@ -60,25 +51,36 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             new HighlightOption(HighlightMode.ShortestNonSelfCircuit, Strings.HighlightSelfCircuit)
         ];
 
+        LayoutOptions =
+        [
+            LayoutOption.Default,
+            new LayoutOption("dagre-tb", Strings.Layout_DagreTopBottom_Label),
+            new LayoutOption("dagre-lr", Strings.Layout_DagreLeftRight_Label),
+            new LayoutOption("elk-down", Strings.Layout_ElkDown_Label),
+            new LayoutOption("elk-right", Strings.Layout_ElkRight_Label)
+        ];
+
         // Set defaults
-        _selectedRenderOption = RenderOptions[0];
         _selectedHighlightOption = HighlightOptions[0];
+        _selectedLayoutOption = LayoutOptions[0];
 
         var flag = IconLoader.LoadIcon("Resources/flag.png");
         var removeWithoutChildren = IconLoader.LoadIcon("Resources/remove_without_children_16.png");
         // Edge commands
-        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
-        _viewer.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
-        _viewer.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
+        _state.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
+        // Last: jump to code (always shown, grayed out unless the edge is a single relationship with a single source location).
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.JumpToCode, JumpToCodeEdge, canEnable: CanJumpToCodeEdge));
 
 
         // Static commands
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
+        _state.AddCommand(new CodeElementContextCommand(Strings.Expand, Expand, CanExpand)
         {
             IsDoubleClickable = true,
             IsVisible = false
         });
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
+        _state.AddCommand(new CodeElementContextCommand(Strings.Collapse, Collapse, CanCollapse)
         {
             IsDoubleClickable = true,
             IsVisible = false
@@ -89,12 +91,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var removeWithChildren = IconLoader.LoadIcon("Resources/remove_with_children_16.png");
         var findInTree = IconLoader.LoadIcon("Resources/find_in_tree_16.png");
         var addParent = IconLoader.LoadIcon("Resources/add_parent_16.png");
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
-        _viewer.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
+        _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
+        _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
+        _state.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
+        _state.AddCommand(new SeparatorCommand());
 
 
         // Methods and properties
@@ -106,15 +108,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
                 FindOutgoingCalls, outgoingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindIncomingCalls, elementType,
                 FindIncomingCalls, incomingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, elementType,
                 FollowIncomingCallsRecursive, followIncomingCalls));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations, findSpecializations));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions, findAbstractions));
         }
 
@@ -123,36 +125,36 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         elementTypes = [CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct];
         foreach (var elementType in elementTypes)
         {
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindInheritanceTree, elementType,
                 FindInheritanceTree, findInheritanceTree));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, elementType,
                 FindSpecializations, findSpecializations));
-            _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
+            _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, elementType,
                 FindAbstractions, findAbstractions));
         }
 
         // Events
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindSpecializations, CodeElementType.Event,
             FindSpecializations, findSpecializations));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindAbstractions, CodeElementType.Event,
             FindAbstractions, findAbstractions));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
+        _state.AddCommand(new CodeElementContextCommand(Strings.FollowIncomingCalls, CodeElementType.Event,
             FollowIncomingCallsRecursive, followIncomingCalls));
 
 
         // Everyone gets the in/out relationships
-        _viewer.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new SeparatorCommand());
         var incomingRelationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
         var outgoingRelationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
 
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships, icon: incomingRelationships));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
             FindAllOutgoingRelationships, icon: outgoingRelationships));
 
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationshipsDeep,
             FindAllIncomingRelationshipsDeep));
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
+        _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
             FindAllOutgoingRelationshipsDeep));
 
 
@@ -164,9 +166,13 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             PartitionClass));
         */
         var copyFqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
-        _viewer.AddCommand(new SeparatorCommand());
-        _viewer.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
+        _state.AddCommand(new SeparatorCommand());
+        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
             OnCopyToClipboard, icon: copyFqn));
+
+        // Last entry, consistent across all menus: jump to code (always shown, grayed out
+        // unless the element has exactly one source location).
+        _state.AddCommand(new CodeElementContextCommand(Strings.JumpToCode, JumpToCode, canEnable: CanJumpToCode));
 
 
         UndoCommand = new WpfCommand(Undo);
@@ -183,12 +189,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         AddParentsCommand = new WpfCommand(OnAddParents);
 
         // Global commands, moved to toolbar
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, Focus, CanHandleIfSelectedElements));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
-        // _viewer.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
-        //_viewer.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.CompleteToTypes, CompleteToTypes));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.SelectedFocus, Focus, CanHandleIfSelectedElements));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.ClearAllFlags, ClearAllFlags));
+        // _state.AddGlobalCommand(new GlobalCommand(Strings.ExpandEverything, ExpandEverything));
+        //_state.AddGlobalCommand(new GlobalCommand(Strings.SelectedRemoveWithChildren, OnRemoveSelectedWithChildren, CanHandleIfSelectedElements, null, Key.Delete));
     }
 
     public ICommand CompleteToContainingTypesCommand { get; set; }
@@ -203,22 +209,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public ObservableCollection<HighlightOption> HighlightOptions { get; }
 
-
-    public ObservableCollection<RenderOption> RenderOptions { get; }
-
-    public RenderOption SelectedRenderOption
-    {
-        get => _selectedRenderOption;
-        set
-        {
-            if (_selectedRenderOption != value)
-            {
-                _selectedRenderOption = value;
-                OnPropertyChanged(nameof(SelectedRenderOption));
-                UpdateGraphRenderOption();
-            }
-        }
-    }
+    public ObservableCollection<LayoutOption> LayoutOptions { get; }
 
 
 
@@ -233,7 +224,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            _viewer.ShowFlatGraph(value);
+            _state.SetShowFlat(value);
             OnPropertyChanged(nameof(ShowFlatGraph));
         }
     }
@@ -250,7 +241,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            _viewer.ShowInformationFlow(value);
+            _state.SetShowInformationFlow(value);
             OnPropertyChanged(nameof(ShowDataFlow));
         }
     }
@@ -266,8 +257,24 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
 
             _selectedHighlightOption = value;
-            _viewer.SetHighlightMode(value.Mode);
+            _state.SetHighlightMode(value.Mode);
             OnPropertyChanged(nameof(SelectedHighlightOption));
+        }
+    }
+
+    public LayoutOption SelectedLayoutOption
+    {
+        get => _selectedLayoutOption;
+        set
+        {
+            if (_selectedLayoutOption == value)
+            {
+                return;
+            }
+
+            _selectedLayoutOption = value;
+            _state.SetLayout(value.Name);
+            OnPropertyChanged(nameof(SelectedLayoutOption));
         }
     }
 
@@ -288,22 +295,22 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         PushUndo();
 
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
+        var session = _state.GetSession();
+        var graph = _state.CodeGraph;
         var state = session.PresentationState;
 
         // Create a new presentation state with no collapsed nodes
         state.NodeIdToCollapsed.Clear();
 
-        _viewer.LoadSession(graph, state);
+        _state.LoadSession(graph, state);
     }
 
     private void OnCollapseEverything()
     {
         PushUndo();
 
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
+        var session = _state.GetSession();
+        var graph = _state.CodeGraph;
         var state = session.PresentationState;
 
         // Create a new presentation state with all collapsed nodes
@@ -316,12 +323,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             }
         }
 
-        _viewer.LoadSession(graph, state);
+        _state.LoadSession(graph, state);
     }
 
     private void OnFocusOnSelected()
     {
-        var selectedElementIds = _viewer.GetSelectedElementIds();
+        var selectedElementIds = _state.SelectedIds;
         if (!selectedElementIds.Any())
         {
             return;
@@ -332,8 +339,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         PushUndo();
 
-        var session = _viewer.GetSession();
-        var graph = _viewer.GetGraph();
+        var session = _state.GetSession();
+        var graph = _state.CodeGraph;
 
         var idsToKeep = new HashSet<string>();
 
@@ -353,18 +360,18 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var presentationState = session.PresentationState.Clone();
         presentationState.RemoveStates(idsToRemove);
 
-        _viewer.LoadSession(newGraph, presentationState);
+        _state.LoadSession(newGraph, presentationState);
     }
 
     private void OnClearAllFlags()
     {
-        _viewer.ClearAllFlags();
+        _state.ClearAllFlags();
     }
 
     private void OnCompleteRelationships()
     {
         // Not interested in the selected elements!
-        var viewerGraph = _viewer.GetGraph();
+        var viewerGraph = _state.CodeGraph;
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
         var relationships = _explorer.FindAllRelationships(ids);
 
@@ -373,7 +380,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnCompleteToContainingTypes()
     {
-        var viewerGraph = _viewer.GetGraph();
+        var viewerGraph = _state.CodeGraph;
         var ids = viewerGraph.Nodes.Keys.ToHashSet();
         var result = _explorer.FindMissingTypesForLonelyTypeMembers(ids);
         AddToGraph(result.Elements, []);
@@ -381,7 +388,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void ToggleNodeFlag(CodeElement codeElement)
     {
-        _viewer.ToggleFlag(codeElement.Id);
+        _state.ToggleFlag(codeElement.Id);
     }
 
     private void ToggleEdgeFlag(string sourceId, string targetId, List<Relationship> relationships)
@@ -391,7 +398,29 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        _viewer.ToggleFlag(sourceId, targetId, relationships);
+        _state.ToggleFlag(sourceId, targetId);
+    }
+
+    // Jump to code: only offered when there is exactly one source location (so it is hidden
+    // on namespaces, multi-location elements and bundled edges).
+    private static bool CanJumpToCode(CodeElement element)
+    {
+        return SourceLocationNavigator.CanJump(element);
+    }
+
+    private static void JumpToCode(CodeElement element)
+    {
+        SourceLocationNavigator.JumpTo(element);
+    }
+
+    private static bool CanJumpToCodeEdge(List<Relationship> relationships)
+    {
+        return SourceLocationNavigator.CanJump(relationships);
+    }
+
+    private static void JumpToCodeEdge(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        SourceLocationNavigator.JumpTo(relationships);
     }
 
     private static void OnCopyToClipboard(CodeElement element)
@@ -406,12 +435,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void RemoveEdges(string sourceId, string targetId, List<Relationship> relationships)
     {
         PushUndo();
-        _viewer.RemoveFromGraph(relationships);
+        _state.RemoveRelationships(relationships);
     }
 
     private void OnRemoveSelectedWithChildren()
     {
-        var selectedElementIds = _viewer.GetSelectedElementIds();
+        var selectedElementIds = _state.SelectedIds;
         if (!selectedElementIds.Any())
         {
             return;
@@ -420,7 +449,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         PushUndo();
 
 
-        var graph = _viewer.GetGraph();
+        var graph = _state.CodeGraph;
         var idsToRemove = new HashSet<string>();
 
         // Include children      
@@ -430,31 +459,31 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             idsToRemove.UnionWith(children);
         }
 
-        _viewer.RemoveFromGraph(idsToRemove);
+        _state.RemoveElements(idsToRemove);
     }
 
     private bool CanCollapse(CodeElement codeElement)
     {
-        return !_viewer.IsCollapsed(codeElement.Id) &&
+        return !_state.IsCollapsed(codeElement.Id) &&
                codeElement.Children.Any();
     }
 
     private void Collapse(CodeElement codeElement)
     {
         PushUndo();
-        _viewer.Collapse(codeElement.Id);
+        _state.Collapse(codeElement.Id);
     }
 
     private bool CanExpand(CodeElement codeElement)
     {
-        return _viewer.IsCollapsed(codeElement.Id) &&
+        return _state.IsCollapsed(codeElement.Id) &&
                codeElement.Children.Any();
     }
 
     private void Expand(CodeElement codeElement)
     {
         PushUndo();
-        _viewer.Expand(codeElement.Id);
+        _state.Expand(codeElement.Id);
     }
 
     private void OnAddParent(CodeElement codeElement)
@@ -464,11 +493,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnAddParents()
     {
-        var elementIds = _viewer.GetSelectedElementIds().ToList();
+        var elementIds = _state.SelectedIds.ToList();
 
         if (!elementIds.Any())
         {
-            elementIds = _viewer.GetGraph().GetRoots().Select(r => r.Id).ToList();
+            elementIds = _state.CodeGraph.GetRoots().Select(r => r.Id).ToList();
         }
 
         if (elementIds.Any())
@@ -481,7 +510,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         // We do not know the original graph.
         var result = _explorer.FindParents(ids);
-        AddToGraph(result.Elements, []);
+
+        // Avoid flickering if parent is already part of the canvas.
+        var newParents = result.Elements.Where(e => !_state.CodeGraph.Nodes.ContainsKey(e.Id));
+        AddToGraph(newParents, []);
     }
 
     private void FindInTreeRequest(CodeElement codeElement)
@@ -492,15 +524,15 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void RemoveWithoutChildren(CodeElement element)
     {
         PushUndo();
-        _viewer.RemoveFromGraph([element.Id]);
+        _state.RemoveElements([element.Id]);
     }
 
     private void RemoveWithChildren(CodeElement element)
     {
         PushUndo();
-        var graph = _viewer.GetGraph();
+        var graph = _state.CodeGraph;
         var idsToRemove = graph.Nodes[element.Id].GetChildrenIncludingSelf();
-        _viewer.RemoveFromGraph(idsToRemove);
+        _state.RemoveElements(idsToRemove);
     }
 
     private void PushUndo()
@@ -511,7 +543,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             _undoStack.RemoveLast();
         }
 
-        var session = _viewer.GetSession();
+        var session = _state.GetSession();
         _undoStack.AddFirst(session);
     }
 
@@ -531,12 +563,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var elements = _explorer.GetElements(state.CodeElementIds);
 
         // No undo stack operations while restoring the session.      
-        _viewer.LoadSession(elements, state.Relationships, state.PresentationState);
-    }
-
-    private void UpdateGraphRenderOption()
-    {
-        _viewer.UpdateRenderOption(SelectedRenderOption);
+        _state.LoadSession(elements, state.Relationships, state.PresentationState);
     }
 
     private void FindAllOutgoingRelationships(CodeElement element)
@@ -596,14 +623,14 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             // Merge with existing ones so that we can fill container gaps directly
             var elementIds = elementsToAdd
                 .Select(e => e.Id)
-                .Union(_viewer.GetGraph().Nodes.Keys).ToHashSet();
+                .Union(_state.CodeGraph.Nodes.Keys).ToHashSet();
 
             var result = _explorer.FindMissingTypesForLonelyTypeMembers(elementIds);
             elementsToAdd.AddRange(result.Elements);
             relationshipsToAdd.AddRange(result.Relationships);
         }
 
-        _viewer.AddToGraph(elementsToAdd, relationshipsToAdd, addCollapsed);
+        _state.AddToGraph(elementsToAdd, relationshipsToAdd, addCollapsed);
     }
 
     public void LoadCodeGraph(CodeGraph.Graph.CodeGraph codeGraph)
@@ -611,9 +638,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _explorer.LoadCodeGraph(codeGraph);
         Clear();
         _undoStack.Clear();
-
-        // Only update after we change the code graph.
-        _viewer.SetQuickInfoFactory(new QuickInfoFactory(codeGraph));
     }
 
 
@@ -626,12 +650,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         PushUndo();
         //_undoStack.Clear();
-        _viewer.Clear();
-    }
-
-    internal void Layout()
-    {
-        _viewer.Layout();
+        _state.Clear();
     }
 
     private void FindIncomingCalls(CodeElement method)
@@ -709,23 +728,13 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     /// </summary>
     public CodeGraph.Graph.CodeGraph ExportGraph()
     {
-        return _viewer.GetGraph();
-    }
-
-    public void SaveToSvg(FileStream stream)
-    {
-        _viewer.SaveToSvg(stream);
-    }
-
-    public void ShowGlobalContextMenu()
-    {
-        _viewer.ShowGlobalContextMenu();
+        return _state.CodeGraph;
     }
 
     public void ImportCycleGroup(CodeGraph.Graph.CodeGraph graph)
     {
         PushUndo();
-        _viewer.Clear();
+        _state.Clear();
 
         // Everything is collapsed by default. This allows to import large graphs.
         var defaultState = graph.Nodes.Values.Where(c => c.Children.Any()).ToDictionary(c => c.Id, _ => true);
@@ -738,19 +747,19 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             presentationState.SetCollapsedState(roots[0].Id, false);
         }
 
-        _viewer.LoadSession(graph, presentationState);
+        _state.LoadSession(graph, presentationState);
         WarnIfFiltersActive();
     }
 
 
     public GraphSession GetSession()
     {
-        return _viewer.GetSession();
+        return _state.GetSession();
     }
 
     public CodeGraph.Graph.CodeGraph GetGraph()
     {
-        return _viewer.GetGraph();
+        return _state.CodeGraph;
     }
 
     public void LoadSession(GraphSession session, bool withUndo)
@@ -761,7 +770,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var elements = _explorer.GetElements(session.CodeElementIds);
-        _viewer.LoadSession(elements, session.Relationships, session.PresentationState);
+        _state.LoadSession(elements, session.Relationships, session.PresentationState);
 
         WarnIfFiltersActive();
     }
@@ -770,7 +779,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         if (_settings.WarnIfFiltersActive)
         {
-            var hideFilter = _viewer.GetHideFilter();
+            var hideFilter = _state.HideFilter;
             if (hideFilter.IsActive())
             {
                 // var hiddenCount = hideFilter.HiddenElementTypes.Count + hideFilter.HiddenRelationshipTypes.Count;
@@ -792,7 +801,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OpenGraphHideDialog()
     {
-        var currentFilter = _viewer.GetHideFilter();
+        var currentFilter = _state.HideFilter;
         var viewModel = new GraphHideDialogViewModel(currentFilter);
         var dialog = new GraphHideDialog(viewModel)
         {
@@ -803,7 +812,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         if (result == true)
         {
             // Apply the filter from the dialog
-            _viewer.SetHideFilter(viewModel.Filter);
+            _state.SetHideFilter(viewModel.Filter);
         }
     }
 
@@ -811,8 +820,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         // No  undo because the old model does not exist anymore.
 
-        var session = _viewer.GetSession();
-        var canvasGraph = _viewer.GetGraph();
+        var session = _state.GetSession();
+        var canvasGraph = _state.CodeGraph;
 
         if (message is CodeElementsDeleted deleted)
         {
@@ -825,7 +834,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             var presentationState = session.PresentationState.Clone();
             presentationState.RemoveStates(deleted.DeletedIds);
 
-            _viewer.LoadSession(newGraph, presentationState);
+            _state.LoadSession(newGraph, presentationState);
         }
         else if (message is CodeElementsMoved moved)
         {
@@ -857,19 +866,14 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             // I use the old presentation state. Except the new parent node I should not see any different nodes.
             // However, the parent / child relationships have changed.
             var nodes = ids.Select(id => originalGraph.Nodes[id]).ToList();
-            _viewer.LoadSession(nodes, relationships, session.PresentationState);
+            _state.LoadSession(nodes, relationships, session.PresentationState);
         }
         else if (message is RelationshipsDeleted relationshipsDeleted)
         {
             // Get rid of relationships in the canvas graph.
-            _viewer.RemoveFromGraph(relationshipsDeleted.Deleted);
+            _state.RemoveRelationships(relationshipsDeleted.Deleted);
         }
 
         // Added elements are for sure not in this graph yet.
-    }
-
-    public void ClearQuickInfo()
-    {
-        _viewer.ClearQuickInfo();
     }
 }

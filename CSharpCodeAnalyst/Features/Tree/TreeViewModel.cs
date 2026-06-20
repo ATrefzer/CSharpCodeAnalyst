@@ -7,6 +7,7 @@ using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Tree;
@@ -35,6 +36,7 @@ public class TreeViewModel : INotifyPropertyChanged
         PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
         PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
+        JumpToCodeCommand = new WpfCommand<TreeItemViewModel>(JumpToCode, CanJumpToCode);
 
         // Refactoring
         DeleteFromModelCommand = new WpfCommand<TreeItemViewModel>(RefactoringDeleteCodeElement);
@@ -79,6 +81,7 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand PartitionTreeCommand { get; private set; }
     public ICommand PartitionWithBaseTreeCommand { get; private set; }
     public ICommand CopyToClipboardCommand { get; private set; }
+    public ICommand JumpToCodeCommand { get; }
     public ICommand CreateCodeElementCommand { get; private set; }
 
     public ICommand SetMovementTargetCommand { get; private set; }
@@ -150,6 +153,19 @@ public class TreeViewModel : INotifyPropertyChanged
         }
 
         Clipboard.SetText(text);
+    }
+
+    private static bool CanJumpToCode(TreeItemViewModel? vm)
+    {
+        return SourceLocationNavigator.CanJump(vm?.CodeElement);
+    }
+
+    private static void JumpToCode(TreeItemViewModel? vm)
+    {
+        if (vm?.CodeElement is { } element)
+        {
+            SourceLocationNavigator.JumpTo(element);
+        }
     }
 
     private void PartitionWithBase(TreeItemViewModel vm)

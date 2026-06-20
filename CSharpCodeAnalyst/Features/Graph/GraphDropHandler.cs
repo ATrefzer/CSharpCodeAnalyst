@@ -25,17 +25,17 @@ internal sealed class GraphDropHandler : IDropTarget
         if (dropInfo.Data is TreeItemViewModel { CodeElement: not null })
         {
             dropInfo.Effects = DragDropEffects.Copy;
-            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            // dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
         }
         else if (dropInfo.Data is SearchItemViewModel { CodeElement: not null })
         {
             dropInfo.Effects = DragDropEffects.Copy;
-            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            // dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
         }
         else if (dropInfo.Data is List<object> list && list.OfType<SearchItemViewModel>().Any())
         {
             dropInfo.Effects = DragDropEffects.Copy;
-            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            // dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
         }
         else
         {
@@ -62,7 +62,7 @@ internal sealed class GraphDropHandler : IDropTarget
                 .Where(s => s.CodeElement != null)
                 .Select(s => s.CodeElement)
                 .ToList();
-            
+
             if (elements.Any())
             {
                 _publisher.Publish(new AddNodeToGraphRequest(elements!, false));

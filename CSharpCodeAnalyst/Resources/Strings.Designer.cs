@@ -970,7 +970,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("FindInTree", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Jump to code.
+        /// </summary>
+        public static string JumpToCode {
+            get {
+                return ResourceManager.GetString("JumpToCode", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Find outgoing Calls.
         /// </summary>
@@ -1177,6 +1186,52 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Highlighting_Label", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Force (fCoSE).
+        /// </summary>
+        public static string Layout_Force_Label {
+            get {
+                return ResourceManager.GetString("Layout_Force_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (Dagre).
+        /// </summary>
+        public static string Layout_DagreTopBottom_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreTopBottom_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (Dagre).
+        /// </summary>
+        public static string Layout_DagreLeftRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreLeftRight_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkDown_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkDown_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkRight_Label", resourceCulture);
+            }
+        }
+
         
         /// <summary>
         ///   Looks up a localized string similar to Outgoing edges.
@@ -1377,7 +1432,34 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resets zoom level and fits to screen.
+        ///   Looks up a localized string similar to Recompute size.
+        /// </summary>
+        public static string Layout_Refit_Label {
+            get {
+                return ResourceManager.GetString("Layout_Refit_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recompute size and fit to view, keeping the current node positions.
+        /// </summary>
+        public static string Layout_Refit_Tooltip {
+            get {
+                return ResourceManager.GetString("Layout_Refit_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New layout.
+        /// </summary>
+        public static string Layout_Relayout_Label {
+            get {
+                return ResourceManager.GetString("Layout_Relayout_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recompute the graph layout from scratch.
         /// </summary>
         public static string Layout_Tooltip {
             get {
@@ -2694,7 +2776,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("TooMuchElementsTitle", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Stop.
+        /// </summary>
+        public static string StopRendering_Label {
+            get {
+                return ResourceManager.GetString("StopRendering_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw.
+        /// </summary>
+        public static string StopRendering_Tooltip {
+            get {
+                return ResourceManager.GetString("StopRendering_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Search in code element name. ENTER to start search.
         ///&apos;!&apos; Clears the search but keeps highlighting
@@ -2753,6 +2853,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Warning_Title {
             get {
                 return ResourceManager.GetString("Warning_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing graph view….
+        /// </summary>
+        public static string WebView_Initializing {
+            get {
+                return ResourceManager.GetString("WebView_Initializing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Web View.
+        /// </summary>
+        public static string WebView_TabHeader {
+            get {
+                return ResourceManager.GetString("WebView_TabHeader", resourceCulture);
             }
         }
     }

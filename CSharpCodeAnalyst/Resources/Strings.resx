@@ -165,6 +165,9 @@
   <data name="FindInTree" xml:space="preserve">
     <value>Find in _tree</value>
   </data>
+  <data name="JumpToCode" xml:space="preserve">
+    <value>Jump to code</value>
+  </data>
   <data name="FindOutgoingCalls" xml:space="preserve">
     <value>Find outgoing Calls</value>
   </data>
@@ -204,7 +207,22 @@ If no code element is selected the parent for all code elements is added.</value
 Adds all missing relationships between code elements in the Code Explorer</value>
   </data>
   <data name="Layout_Tooltip" xml:space="preserve">
-    <value>Resets zoom level and fits to screen</value>
+    <value>Recompute the graph layout from scratch</value>
+  </data>
+  <data name="Layout_Relayout_Label" xml:space="preserve">
+    <value>New layout</value>
+  </data>
+  <data name="Layout_Refit_Label" xml:space="preserve">
+    <value>Recompute size</value>
+  </data>
+  <data name="Layout_Refit_Tooltip" xml:space="preserve">
+    <value>Recompute size and fit to view, keeping the current node positions</value>
+  </data>
+  <data name="WebView_TabHeader" xml:space="preserve">
+    <value>Web View</value>
+  </data>
+  <data name="WebView_Initializing" xml:space="preserve">
+    <value>Initializing graph view…</value>
   </data>
   <data name="CompleteToTypes" xml:space="preserve">
     <value>Complete to containing types.
@@ -221,6 +239,12 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   </data>
   <data name="TooMuchElementsTitle" xml:space="preserve">
     <value>Proceed?</value>
+  </data>
+  <data name="StopRendering_Label" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="StopRendering_Tooltip" xml:space="preserve">
+    <value>Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw.</value>
   </data>
   <data name="Exit_Header" xml:space="preserve">
     <value>Exit</value>
@@ -323,6 +347,21 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   </data>
   <data name="Highlighting_Label" xml:space="preserve">
     <value>Highlighting</value>
+  </data>
+  <data name="Layout_Force_Label" xml:space="preserve">
+    <value>Force (fCoSE)</value>
+  </data>
+  <data name="Layout_DagreTopBottom_Label" xml:space="preserve">
+    <value>Layered ↓ (Dagre)</value>
+  </data>
+  <data name="Layout_DagreLeftRight_Label" xml:space="preserve">
+    <value>Layered → (Dagre)</value>
+  </data>
+  <data name="Layout_ElkDown_Label" xml:space="preserve">
+    <value>Layered ↓ (ELK, nested)</value>
+  </data>
+  <data name="Layout_ElkRight_Label" xml:space="preserve">
+    <value>Layered → (ELK, nested)</value>
   </data>
   <data name="CodeStructure_Header" xml:space="preserve">
     <value>Code Structure</value>

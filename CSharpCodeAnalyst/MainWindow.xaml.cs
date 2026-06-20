@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
@@ -85,7 +86,7 @@ public partial class MainWindow
 
     public void HandleLocateInTreeRequest(LocateInTreeRequest request)
     {
-        CodeStructureTab.SelectedIndex = 0;
+        CodeStructureTab.SelectedIndex = TabIndices.Left.TreeView;
         TreeControl.HandleLocateInTreeRequest(request);
     }
 
@@ -97,22 +98,55 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewer explorationGraphViewer, IPublisher publisher)
+    public void SetViewer(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber, AppSettings settings)
     {
-        ExplorationControl.SetViewer(explorationGraphViewer, publisher);
+        // The web view observes the shared model directly and listens on the bus for
+        // render-only commands (Layout / Refit / Export). The graph search box (bound to
+        // MainViewModel.GraphSearchViewModel) lives in the web tab's tool bar.
+        WebGraphView.SetViewer(graphViewState, publisher, subscriber, settings);
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        // Tear down the WebView2 (and its browser processes) cleanly on shutdown.
+        // Dispose() stops it internally and is null-safe via ?. .
+        WebGraphView?.WebView?.Dispose();
+        base.OnClosing(e);
     }
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
-        if (WorkingArea.SelectedIndex == 0)
+        if (WorkingArea.SelectedIndex == TabIndices.Right.WebView)
         {
-            // Code explorer
-            var mainVm = ExplorationControl.DataContext as MainViewModel;
+            var mainVm = DataContext as MainViewModel;
             var graphVm = mainVm?.GraphViewModel;
             if (graphVm != null && graphVm.TryHandleKeyDown(e))
             {
                 e.Handled = true;
             }
+        }
+    }
+
+    private void WebSearchBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        // Focus the box (and select its text) when the search row slides open.
+        if (sender is TextBox { IsVisible: true } box)
+        {
+            box.Dispatcher.BeginInvoke(() =>
+            {
+                box.Focus();
+                box.SelectAll();
+            });
+        }
+    }
+
+    private void WebSearchBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        // Esc closes the search row (the view model clears the search on hide).
+        if (e.Key == Key.Escape && sender is FrameworkElement { DataContext: GraphSearchViewModel vm })
+        {
+            vm.IsSearchVisible = false;
+            e.Handled = true;
         }
     }
 }

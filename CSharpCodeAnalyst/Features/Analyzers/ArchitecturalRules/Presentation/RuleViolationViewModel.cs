@@ -107,8 +107,7 @@ public class RuleViolationViewModel : TableRow
 
         try
         {
-            var fileOpener = new FileOpener();
-            fileOpener.TryOpenFile(detailViewModel.SourceLocation.File,
+            SourceLocationNavigator.Open(detailViewModel.SourceLocation.File,
                 detailViewModel.SourceLocation.Line,
                 detailViewModel.SourceLocation.Column);
         }

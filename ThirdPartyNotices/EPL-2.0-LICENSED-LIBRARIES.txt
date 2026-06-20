@@ -1,0 +1,38 @@
+EPL-2.0-Licensed Libraries
+================================================================================
+
+This file lists the Eclipse Public License 2.0 (EPL-2.0) third-party libraries
+used in this project.
+
+
+1. ELKJS (elk.bundled.js)
+================================================================================
+
+https://github.com/kieler/elkjs
+
+elkjs is a JavaScript port of the Eclipse Layout Kernel (ELK). It computes the
+node positions for the "layered" graph layouts offered by the web graph view.
+Bundled locally under
+CSharpCodeAnalyst/Features/WebGraph/Web/lib/elk.bundled.js.
+
+Copyright (c) Kiel University and others.
+Licensed under the Eclipse Public License 2.0.
+
+The Cytoscape adapter cytoscape.js-elk that drives elkjs is MIT-licensed and is
+listed in MIT-LICENSED-LIBRARIES.txt.
+
+The full EPL-2.0 license text is available at:
+https://www.eclipse.org/legal/epl-2.0/
+
+--------------------------------------------------------------------------------
+Note on combining EPL-2.0 with this GPL-3.0 project
+--------------------------------------------------------------------------------
+
+This project is licensed under the GPL-3.0 (see the LICENSE file at the
+repository root). elkjs is bundled as an independent, unmodified JavaScript
+component that is loaded at runtime by the embedded browser engine and
+communicates only through Cytoscape's public layout interface. It is therefore
+distributed as a separate work ("mere aggregation"), not linked into or merged
+with the GPL-3.0 source code, and retains its own EPL-2.0 license. The EPL-2.0
+terms apply only to the elkjs file itself; the GPL-3.0 governs this project's
+own code.

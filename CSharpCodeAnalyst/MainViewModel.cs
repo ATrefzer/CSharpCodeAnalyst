@@ -43,7 +43,6 @@ namespace CSharpCodeAnalyst;
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
-    private const int InfoPanelTabIndex = 2;
     private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
     private readonly Exporter _exporter;
@@ -126,6 +125,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         SaveProjectCommand = new WpfCommand(OnSaveProject);
         GraphClearCommand = new WpfCommand(OnGraphClear);
         GraphLayoutCommand = new WpfCommand(OnGraphLayout);
+        GraphRefitCommand = new WpfCommand(OnGraphRefit);
+        StopRenderingCommand = new WpfCommand(OnStopRendering);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
         AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
@@ -137,10 +138,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExportToDgmlCommand = new WpfCommand(OnExportToDgml);
         ExportToPlantUmlCommand = new WpfCommand(OnExportToPlantUml);
         ExportToSvgCommand = new WpfCommand(OnExportToSvg);
-        ExportToPngCommand = new WpfCommand<FrameworkElement>(OnExportToPng);
+        ExportToPngCommand = new WpfCommand(OnExportToPng);
         ExportToDsiCommand = new WpfCommand(OnExportToDsi);
         ExportPlainTextCommand = new WpfCommand(OnExportPlainText);
-        CopyBitmapToClipboardCommand = new WpfCommand<FrameworkElement>(OnCopyCanvasToClipboard);
+        CopyBitmapToClipboardCommand = new WpfCommand(OnCopyCanvasToClipboard);
         OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
         SnapshotCommand = new WpfCommand(OnSnapshot);
         RestoreCommand = new WpfCommand(OnRestore);
@@ -247,6 +248,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
+    public ICommand GraphRefitCommand { get; }
+    public ICommand StopRenderingCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
@@ -281,6 +284,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>The in-graph search (its box lives in the web tab tool bar).</summary>
+    public GraphSearchViewModel? GraphSearchViewModel
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     public int SelectedRightTabIndex
     {
@@ -295,7 +309,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             field = value;
             OnPropertyChanged();
         }
-    }
+    } = TabIndices.Right.WebView; // Web View is the start-up tab (so its WebView2 inits eagerly)
 
     public bool IsCanvasHintsVisible
     {
@@ -336,7 +350,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             }
 
             field = value;
-            InfoPanelViewModel?.Hide(value != InfoPanelTabIndex);
+            InfoPanelViewModel?.Hide(value != TabIndices.Left.InfoPanel);
             OnPropertyChanged();
         }
     }
@@ -438,18 +452,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnCopyCanvasToClipboard(FrameworkElement canvas)
+    private void OnCopyCanvasToClipboard()
     {
-        try
-        {
-            // Get rid of the magnifier icon
-            IsGraphToolPanelVisible = false;
-            _exporter.ToBitmapClipboard(canvas);
-        }
-        finally
-        {
-            IsGraphToolPanelVisible = true;
-        }
+        // The graph lives in the web view; it produces a PNG (cy.png) and copies it.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.ClipboardPng));
     }
 
 
@@ -605,7 +611,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
         AnalyzerResult = tabularDataRequest.Table;
-        SelectedRightTabIndex = 2;
+        SelectedRightTabIndex = TabIndices.Right.Analyzer;
     }
 
     private async void OnFindCycles()
@@ -653,7 +659,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (cycleGroups != null)
         {
             _messaging.Publish(new CycleCalculationComplete(cycleGroups));
-            SelectedRightTabIndex = 1;
+            SelectedRightTabIndex = TabIndices.Right.Cycles;
         }
     }
 
@@ -734,7 +740,20 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private void OnGraphLayout()
     {
-        _graphViewModel?.Layout();
+        // Full relayout: the web adapter re-runs its layout through the bus.
+        _messaging.Publish(new RelayoutGraphRequest());
+    }
+
+    private void OnGraphRefit()
+    {
+        // Recompute size and fit the view without re-running the layout. Web-only for now
+        _messaging.Publish(new RefitGraphRequest());
+    }
+
+    private void OnStopRendering()
+    {
+        // Abort a runaway render: the web adapter terminates its render process and reloads.
+        _messaging.Publish(new CancelWebRenderRequest());
     }
 
     private void OnGraphClear()
@@ -840,18 +859,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _exporter.ToDgml(_graphViewModel?.ExportGraph());
     }
 
-    private void OnExportToPng(FrameworkElement? canvas)
+    private void OnExportToPng()
     {
-        try
-        {
-            // Get rid of the magnifier icon
-            IsGraphToolPanelVisible = false;
-            _exporter.ToPng(canvas);
-        }
-        finally
-        {
-            IsGraphToolPanelVisible = true;
-        }
+        // The graph lives in the web view; its canvas can't be captured as a WPF element,
+        // so the web adapter produces the PNG via cy.png and saves it.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.Png));
     }
 
     private void OnExportPlainText()
@@ -859,17 +871,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _exporter.ToPlainText(_graphViewModel?.ExportGraph());
     }
 
-    /// <summary>
-    ///     Not usable at the moment. It does not render subgraphs.
-    /// </summary>
     private void OnExportToSvg()
     {
-        if (_graphViewModel is null)
-        {
-            return;
-        }
-
-        _exporter.ToSvg(_graphViewModel.SaveToSvg);
+        // SVG is produced by the web adapter via the cytoscape-svg extension and saved there.
+        _messaging.Publish(new ExportWebGraphRequest(WebGraphExportFormat.Svg));
     }
 
     private async void OnOpenRecentFile(string filePath)
@@ -951,7 +956,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void HandleShowCycleGroupRequest(ShowCycleGroupRequest request)
     {
         GraphViewModel?.ImportCycleGroup(request.CycleGroup.CodeGraph.Clone());
-        SelectedRightTabIndex = 0;
+        SelectedRightTabIndex = TabIndices.Right.WebView; // show the imported cycle in the graph
     }
 
     public void HandleCycleCalculationComplete(CycleCalculationComplete request)
@@ -959,7 +964,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         var cycleGroups = request.CycleGroups;
 
         Cycles = new CycleGroupsViewModel(cycleGroups, _messaging);
-        SelectedRightTabIndex = 1;
+        SelectedRightTabIndex = TabIndices.Right.Cycles;
     }
 
 
@@ -1069,6 +1074,5 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public void ClearQuickInfo()
     {
         _infoPanelViewModel?.ClearQuickInfo();
-        _graphViewModel?.ClearQuickInfo();
     }
 }

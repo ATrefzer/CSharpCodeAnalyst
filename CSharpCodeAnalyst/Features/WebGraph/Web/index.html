@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Graph View</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Local, offline. No CDN. Order matters: fcose needs cose-base needs layout-base,
+         and fcose auto-registers itself once the global `cytoscape` exists. -->
+    <script src="lib/cytoscape.min.js"></script>
+    <script src="lib/layout-base.js"></script>
+    <script src="lib/cose-base.js"></script>
+    <script src="lib/cytoscape-fcose.js"></script>
+    <!-- dagre layered layout: dagre.js provides the global `dagre`, then cytoscape-dagre
+         registers the "dagre" layout on `cytoscape`. Order: cytoscape -> dagre -> cytoscape-dagre. -->
+    <script src="lib/dagre.js"></script>
+    <script src="lib/cytoscape-dagre.js"></script>
+    <!-- ELK layered layout (compound-aware): elk.bundled.js exposes the global `ELK`
+         (worker inlined), then cytoscape-elk captures it at load and registers the "elk"
+         layout. Order: cytoscape -> elk.bundled -> cytoscape-elk. -->
+    <script src="lib/elk.bundled.js"></script>
+    <script src="lib/cytoscape-elk.js"></script>
+    <!-- SVG export; like fcose it auto-registers on the global `cytoscape` as cy.svg(). -->
+    <script src="lib/cytoscape-svg.js"></script>
+</head>
+<body>
+    <div id="cy"></div>
+
+    <!-- Empty-state guide. Shown until the first graph is rendered, then hidden for the
+         rest of the session by app.js. Non-interactive (pointer-events: none). -->
+    <div id="hint">
+        <h2>Code graph view</h2>
+        <p>Empty until code elements are added &mdash; load a project, or add elements from the tree or search.</p>
+        <ul>
+            <li><b>Double-click</b> a node &mdash; expand / collapse</li>
+            <li><b>Click</b> a node or edge &mdash; show details in the Info tab</li>
+            <li><b>Right-click</b> &mdash; context menu with commands</li>
+            <li><b>Drag</b> the background to pan, <b>mouse wheel</b> to zoom</li>
+            <li><b>Shift + drag</b> &mdash; select multiple nodes</li>
+        </ul>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

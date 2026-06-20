@@ -268,9 +268,15 @@ Please take note of the following issues:
 
 - The beautiful **images** in the user interface are <a href="https://de.freepik.com/search">Images from juicy_fish on Freepik</a>.
 You can find the direct link to the collection here: [Icon-Portfolio des Autors Juicy_fish | Freepik](https://de.freepik.com/autor/juicy-fish/icons)
-- The dependency graphs are created using the **"Automatic Graph Layout" package"**.
-MSAGL was developed in Microsoft by Lev Nachmanson, Sergey Pupyrev, Tim Dwyer, Ted Hart, and Roman Prutkin:
-https://github.com/microsoft/automatic-graph-layout
+- The dependency graphs are rendered with **Cytoscape.js**. The default layout is the **fcose**
+extension (built on **cose-base** / **layout-base**); additional layered layouts are available via
+**dagre** (with **cytoscape.js-dagre**) and **ELK** (**elkjs** with **cytoscape.js-elk**).
+Cytoscape.js, fcose, cose-base, layout-base, dagre, cytoscape.js-dagre and cytoscape.js-elk are
+MIT-licensed; **elkjs** is licensed under EPL-2.0.
+https://github.com/cytoscape/cytoscape.js / https://github.com/iVis-at-Bilkent/cytoscape.js-fcose /
+https://github.com/dagrejs/dagre / https://github.com/kieler/elkjs
+- SVG export uses the **cytoscape-svg** extension by kinimesi, licensed under GPL-3.0 (same as this project).
+https://github.com/kinimesi/cytoscape-svg
 - Drag and drop functionality is provided by the **gong-wpf-dragdrop** library.
 Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
 https://github.com/punker76/gong-wpf-dragdrop

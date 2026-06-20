@@ -12,6 +12,8 @@
                      xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
                      xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
                      xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
+                     xmlns:webGraph="clr-namespace:CSharpCodeAnalyst.Features.WebGraph"
+                     xmlns:dd="urn:gong-wpf-dragdrop"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -107,7 +109,8 @@
 
                 </RibbonGroup>
 
-                <RibbonGroup Header="{x:Static resources:Strings.Tools_Header}" LargeImageSource="/Resources/cycle_32.png">
+                <RibbonGroup Header="{x:Static resources:Strings.Tools_Header}"
+                             LargeImageSource="/Resources/cycle_32.png">
                     <RibbonButton Label="{x:Static resources:Strings.Find_Cycles_Label}"
                                   LargeImageSource="/Resources/cycle_32.png"
                                   Command="{Binding FindCyclesCommand}" KeyTip="CY" />
@@ -158,13 +161,25 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
-                    <RibbonButton Label="{x:Static resources:Strings.Layout_Label}"
-                                  LargeImageSource="/Resources/four-arrows_32.png"
-                                  Command="{Binding GraphLayoutCommand}" KeyTip="LA">
-                        <RibbonButton.ToolTip>
+                    <RibbonSplitButton Label="{x:Static resources:Strings.Layout_Label}"
+                                       LargeImageSource="/Resources/four-arrows_32.png"
+                                       Command="{Binding GraphLayoutCommand}" KeyTip="LA">
+                        <RibbonSplitButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Layout_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
+                        </RibbonSplitButton.ToolTip>
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Layout_Relayout_Label}"
+                                        ImageSource="/Resources/four-arrows_32.png"
+                                        ToolTip="{x:Static resources:Strings.Layout_Tooltip}"
+                                        Command="{Binding GraphLayoutCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.Layout_Refit_Label}"
+                                        ImageSource="/Resources/four-arrows_32.png"
+                                        ToolTip="{x:Static resources:Strings.Layout_Refit_Tooltip}"
+                                        Command="{Binding GraphRefitCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.StopRendering_Label}"
+                                        ImageSource="/Resources/clear_32.png"
+                                        ToolTip="{x:Static resources:Strings.StopRendering_Tooltip}"
+                                        Command="{Binding StopRenderingCommand}" />
+                    </RibbonSplitButton>
 
 
                     <RibbonSplitButton Label="{x:Static resources:Strings.Export_Label}"
@@ -179,8 +194,7 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.SavePng_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.SavePng_Tooltip}"
-                                        Command="{Binding ExportToPngCommand}"
-                                        CommandParameter="{Binding ElementName=ExplorationControl}" />
+                                        Command="{Binding ExportToPngCommand}" />
 
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportSvg_Label}"
                                         ImageSource="/Resources/svg-file_32.png"
@@ -191,7 +205,7 @@
                                         ImageSource="/Resources/spreadsheet_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportDsi_Tooltip}"
                                         Command="{Binding ExportToDsiCommand}" />
-                        
+
                         <RibbonMenuItem Header="{x:Static resources:Strings.ExportPlainText_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.ExportPlainText_Tooltip}"
@@ -207,9 +221,8 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.Copy_BitmapClipboard_Label}"
                                         ImageSource="/Resources/png-file_32.png"
                                         ToolTip="{x:Static resources:Strings.Copy_BitmapClipboard_Tooltip}"
-                                        Command="{Binding CopyBitmapToClipboardCommand}"
-                                        CommandParameter="{Binding ElementName=ExplorationControl}" />
-                        
+                                        Command="{Binding CopyBitmapToClipboardCommand}" />
+
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.Undo_Label}"
@@ -271,21 +284,23 @@
 
                         <TextBlock VerticalAlignment="Center"
                                    Grid.Row="0" Grid.Column="2"
-                                   Text="{x:Static resources:Strings.Rendering_Label}" />
-                        <ComboBox VerticalAlignment="Center" Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
-                                  VerticalContentAlignment="Center"
-                                  Grid.Row="0" Grid.Column="3"
-                                  ItemsSource="{Binding GraphViewModel.RenderOptions}"
-                                  SelectedItem="{Binding GraphViewModel.SelectedRenderOption}" />
-                        <TextBlock VerticalAlignment="Center"
-                                   Grid.Row="1" Grid.Column="2"
                                    Text="{x:Static resources:Strings.Highlighting_Label}" />
                         <ComboBox VerticalAlignment="Center"
                                   Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
                                   VerticalContentAlignment="Center"
-                                  Grid.Row="1" Grid.Column="3"
+                                  Grid.Row="0" Grid.Column="3"
                                   ItemsSource="{Binding GraphViewModel.HighlightOptions}"
                                   SelectedItem="{Binding GraphViewModel.SelectedHighlightOption}" />
+
+                        <TextBlock VerticalAlignment="Center"
+                                   Grid.Row="1" Grid.Column="2"
+                                   Text="{x:Static resources:Strings.Layout_Label}" />
+                        <ComboBox VerticalAlignment="Center"
+                                  Height="22" Margin="5,2,2,2" Padding="4,0,4,0"
+                                  VerticalContentAlignment="Center"
+                                  Grid.Row="1" Grid.Column="3"
+                                  ItemsSource="{Binding GraphViewModel.LayoutOptions}"
+                                  SelectedItem="{Binding GraphViewModel.SelectedLayoutOption}" />
                     </Grid>
                 </RibbonGroup>
 
@@ -390,8 +405,70 @@
 
             <!-- Without ClipToBounds we can draw the nodes over the tree and ribbon.-->
             <TabControl Grid.Column="2" SelectedIndex="{Binding SelectedRightTabIndex}" x:Name="WorkingArea">
-                <TabItem Header="{x:Static resources:Strings.CodeExplorer_TabHeader}">
-                    <graph:CodeExplorerControl x:Name="ExplorationControl" />
+                <!-- Web View is the first tab so its WebView2 initializes eagerly at start-up
+                     (a non-selected WPF tab is not in the visual tree, so it could not init). -->
+                <TabItem Header="{x:Static resources:Strings.WebView_TabHeader}">
+                    <DockPanel>
+                        <!-- Single compact tool bar docked above the web canvas (a floating WPF
+                             overlay over the WebView2 is impossible due to airspace). The search
+                             box appears to the right of the magnifier toggle and fills the rest of
+                             the row; it is collapsed (no space) while search is off. -->
+
+                        <Border DockPanel.Dock="Top" dd:DragDrop.IsDropTarget="True"
+                                dd:DragDrop.DropHandler="{Binding GraphViewModel.DropHandler}" BorderThickness="0">
+                            <DockPanel Margin="4 4 4 0"
+                                       Visibility="{Binding IsGraphToolPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+
+                                <graph:GraphToolbarControl DockPanel.Dock="Left" dd:DragDrop.IsDropTarget="True"
+
+                                                           DataContext="{Binding GraphViewModel}" />
+
+                                <ToggleButton DockPanel.Dock="Left"
+                                              Style="{StaticResource ToolbarToggleButtonStyle}"
+                                              ToolTip="Toggle Search"
+                                              IsChecked="{Binding GraphSearchViewModel.IsSearchVisible, Mode=TwoWay}">
+                                    <Image Source="/Resources/search_32.png" Width="20" Height="20" />
+                                </ToggleButton>
+
+                                <!-- Search input: fills the remaining row width, collapsed when off. -->
+                                <DockPanel DataContext="{Binding GraphSearchViewModel}"
+                                           Visibility="{Binding IsSearchVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                           Margin="6 0 0 0" VerticalAlignment="Center">
+                                    <Button DockPanel.Dock="Right"
+                                            Style="{StaticResource ToolbarButtonStyle}"
+                                            Command="{Binding ClearSearchCommand}"
+                                            ToolTip="{x:Static resources:Strings.ClearSearch_Tooltip}">
+                                        <Image Source="/Resources/clear_32.png" Width="16" Height="16" />
+                                    </Button>
+                                    <TextBox x:Name="WebSearchBox"
+                                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                             Background="LightYellow"
+                                             BorderThickness="1" BorderBrush="LightGray"
+                                             Height="24" VerticalContentAlignment="Center"
+                                             ToolTip="{x:Static resources:Strings.SearchPattern_Tooltip}"
+                                             IsVisibleChanged="WebSearchBox_IsVisibleChanged"
+                                             PreviewKeyDown="WebSearchBox_PreviewKeyDown" />
+                                </DockPanel>
+
+                            </DockPanel>
+                        </Border>
+
+                        <webGraph:WebGraphControl x:Name="WebGraphView">
+                            <webGraph:WebGraphControl.Style>
+                                <Style TargetType="webGraph:WebGraphControl">
+                                    <Style.Triggers>
+                                        <!-- Hide the WebView2 while loading so the WPF loading
+                                             overlay covers the graph area too (a WPF overlay can't
+                                             paint over the WebView2's own HWND - "airspace"). -->
+                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                            <Setter Property="Visibility" Value="Hidden" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </webGraph:WebGraphControl.Style>
+                        </webGraph:WebGraphControl>
+                    </DockPanel>
                 </TabItem>
 
                 <TabItem Header="{x:Static resources:Strings.Tab_Cycles}">

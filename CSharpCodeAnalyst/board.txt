@@ -4,7 +4,8 @@
 - Property has not much contrast to method
 - Jump to Code from context menu
 
-
+- Improve heuristic call tracking with instance calls.
+- Drag and Drop
 
 UNHANDLED CASES
 ---------------------
@@ -21,7 +22,6 @@ UNHANDLED CASES
 BUGS 
 ---------------------
 
-- Key down gets lost. Not even called on the MainWindow!?
 
 
 MISSING TEST CASES

@@ -45,22 +45,9 @@ internal sealed class InfoPanelViewModel : INotifyPropertyChanged
 
     private static void OpenSourceLocation(SourceLocation? location)
     {
-        if (location is null)
+        if (location is not null)
         {
-            return;
-        }
-
-        try
-        {
-            // Create a new instance to find newly open studio instance.
-            var fileOpener = new FileOpener();
-            fileOpener.TryOpenFile(location.File, location.Line, location.Column);
-        }
-        catch (Exception ex)
-        {
-            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
-            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            SourceLocationNavigator.Open(location);
         }
     }
 

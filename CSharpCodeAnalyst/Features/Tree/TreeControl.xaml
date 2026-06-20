@@ -143,6 +143,10 @@
                         </MenuItem.Icon>
                     </MenuItem>
 
+                    <MenuItem Header="{x:Static resources:Strings.JumpToCode}"
+                              Command="{Binding JumpToCodeCommand}"
+                              CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+
                     <!--<MenuItem Header="{x:Static resources:Strings.PartitionWithBase}"
                                                   Command="{Binding PartitionWithBaseTreeCommand}"
                                                   CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />-->

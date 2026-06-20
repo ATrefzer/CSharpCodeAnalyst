@@ -72,7 +72,7 @@ In the appsettings.json file, there is a setting **called AutomaticallyAddContai
 
 
 
-To see the kind of relationship, show the info Tab and hover over an edge. If you click the edge, the info panel keeps the last clicked element or dependency.
+To see the kind of relationship, show the info Tab and click an edge.
 
 ![](Images/example-info-tab.png)
 

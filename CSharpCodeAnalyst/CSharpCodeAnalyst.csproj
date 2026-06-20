@@ -142,6 +142,14 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.9" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+        <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4022.49" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Web Graph View assets, served offline by WebView2 from the output directory. -->
+        <Content Include="Features\WebGraph\Web\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -149,17 +157,6 @@
         <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="Microsoft.Msagl">
-            <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.dll</HintPath>
-        </Reference>
-        <Reference Include="Microsoft.Msagl.Drawing">
-            <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.Drawing.dll</HintPath>
-        </Reference>
-        <Reference Include="Microsoft.Msagl.WpfGraphControl">
-            <HintPath>..\ReferencedAssemblies\Microsoft.Msagl.WpfGraphControl.dll</HintPath>
-        </Reference>
-    </ItemGroup>
 
     <ItemGroup>
         <Compile Update="Resources\Strings.Designer.cs">

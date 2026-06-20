@@ -103,17 +103,22 @@ public partial class App
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
 
-        var explorationGraphViewer = new GraphViewer(messaging, applicationSettings.WarningCodeElementLimit);
+        // The shared, render-agnostic model the web view observes and drives.
+        var graphViewState = new GraphViewState();
+
+        // Graph search reads/writes the shared GraphViewState (search highlights live in
+        // PresentationState, which the web view renders).
+        var graphSearchViewModel = new GraphSearchViewModel(graphViewState);
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(explorationGraphViewer, messaging);
+        mainWindow.SetViewer(graphViewState, messaging, messaging, applicationSettings);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
         var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
-        var graphViewModel = new GraphViewModel(explorationGraphViewer, explorer, messaging, applicationSettings, refactoringService);
+        var graphViewModel = new GraphViewModel(graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);
         var infoPanelViewModel = new InfoPanelViewModel();
@@ -122,6 +127,7 @@ public partial class App
         viewModel.GraphViewModel = graphViewModel;
         viewModel.TreeViewModel = treeViewModel;
         viewModel.SearchViewModel = searchViewModel;
+        viewModel.GraphSearchViewModel = graphSearchViewModel;
 
         // Setup messaging
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);

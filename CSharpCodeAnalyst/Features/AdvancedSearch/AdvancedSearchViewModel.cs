@@ -7,6 +7,7 @@ using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.AdvancedSearch;
@@ -45,6 +46,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         AddSelectedToGraphCollapsedCommand = new WpfCommand(AddSelectedToGraphCollapsed);
         PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
         CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
+        JumpToCodeCommand = new WpfCommand<SearchItemViewModel>(JumpToCode, CanJumpToCode);
         SelectAllCommand = new WpfCommand(SelectAll);
         DeselectAllCommand = new WpfCommand(DeselectAll);
 
@@ -91,6 +93,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
     public ICommand PartitionCommand { get; }
     public ICommand CopyToClipboardCommand { get; }
+    public ICommand JumpToCodeCommand { get; }
     public ICommand SelectAllCommand { get; }
     public ICommand DeselectAllCommand { get; }
     public ICommand SetMovementTargetCommand { get; }
@@ -144,6 +147,19 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     private static bool CanPartition(SearchItemViewModel? vm)
     {
         return vm?.CodeElement is { ElementType: CodeElementType.Class };
+    }
+
+    private static bool CanJumpToCode(SearchItemViewModel? vm)
+    {
+        return SourceLocationNavigator.CanJump(vm?.CodeElement);
+    }
+
+    private static void JumpToCode(SearchItemViewModel? vm)
+    {
+        if (vm?.CodeElement is { } element)
+        {
+            SourceLocationNavigator.JumpTo(element);
+        }
     }
 
     private void OnPartition(SearchItemViewModel? vm)

@@ -1,0 +1,75 @@
+<UserControl x:Class="CSharpCodeAnalyst.Features.Graph.GraphToolbarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
+             mc:Ignorable="d"
+             d:DesignHeight="40" d:DesignWidth="300">
+    <!--
+        Global graph-tool buttons. Render-agnostic: every button binds to a GraphViewModel
+        command that operates on the shared GraphViewState (graph or current selection), so
+        this control is reused by BOTH the MSAGL view (floating overlay in CodeExplorerControl)
+        and the web view (docked bar). The DataContext is expected to be the GraphViewModel.
+    -->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+                <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Horizontal">
+
+        <Button Command="{Binding CompleteToContainingTypesCommand}"
+                ToolTip="{x:Static resources:Strings.CompleteToTypes}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/puzzle.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding CompleteRelationshipsCommand}"
+                ToolTip="{x:Static resources:Strings.CompleteRelationships}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/synchronize_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding ClearAllFlagsCommand}"
+                ToolTip="{x:Static resources:Strings.ClearAllFlags}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/flag-empty_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding FocusOnSelectedCommand}"
+                ToolTip="{x:Static resources:Strings.SelectedFocus}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/focus_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding ExpandEverythingCommand}"
+                ToolTip="{x:Static resources:Strings.ExpandEverything}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/expand-all_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding CollapseEverythingCommand}"
+                ToolTip="{x:Static resources:Strings.CollapseEverything}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/collapse-all_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding AddParentsCommand}"
+                ToolTip="{x:Static resources:Strings.AddParents_Tooltip}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/add-parent_32.png" Width="20" Height="20" />
+        </Button>
+
+        <Button Command="{Binding RemoveSelectedCommand}"
+                ToolTip="{x:Static resources:Strings.SelectedRemoveWithChildren}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/trash-can_32.png" Width="20" Height="20" />
+        </Button>
+
+    </StackPanel>
+</UserControl>

@@ -370,6 +370,27 @@ public partial class DynamicDataGrid
         return column;
     }
 
+    private void RowOnDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not DataGridRow row)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        row.IsSelected = true;
+
+        // Only Table may provide commands.
+        var command = TableData?.GetCommands().SingleOrDefault();
+        if (command == null)
+        {
+            e.Handled = true;
+            return;
+        }
+
+        Dispatcher.BeginInvoke(() => command.Command?.Execute(row.DataContext));
+    }
+
     private void RowOnContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
         // Dynamically fill context menu on data grid row.
@@ -499,5 +520,8 @@ public partial class DynamicDataGrid
         }
 
         e.Row.ContextMenuOpening += RowOnContextMenuOpening;
+        e.Row.MouseDoubleClick += RowOnDoubleClick;
     }
+
+  
 }
