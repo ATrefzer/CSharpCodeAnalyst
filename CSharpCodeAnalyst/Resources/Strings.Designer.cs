@@ -2776,7 +2776,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("TooMuchElementsTitle", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Stop.
+        /// </summary>
+        public static string StopRendering_Label {
+            get {
+                return ResourceManager.GetString("StopRendering_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw.
+        /// </summary>
+        public static string StopRendering_Tooltip {
+            get {
+                return ResourceManager.GetString("StopRendering_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Search in code element name. ENTER to start search.
         ///&apos;!&apos; Clears the search but keeps highlighting

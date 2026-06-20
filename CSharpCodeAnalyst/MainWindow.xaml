@@ -175,6 +175,10 @@
                                         ImageSource="/Resources/four-arrows_32.png"
                                         ToolTip="{x:Static resources:Strings.Layout_Refit_Tooltip}"
                                         Command="{Binding GraphRefitCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.StopRendering_Label}"
+                                        ImageSource="/Resources/clear_32.png"
+                                        ToolTip="{x:Static resources:Strings.StopRendering_Tooltip}"
+                                        Command="{Binding StopRenderingCommand}" />
                     </RibbonSplitButton>
 
 

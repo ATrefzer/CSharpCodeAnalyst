@@ -126,6 +126,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         GraphClearCommand = new WpfCommand(OnGraphClear);
         GraphLayoutCommand = new WpfCommand(OnGraphLayout);
         GraphRefitCommand = new WpfCommand(OnGraphRefit);
+        StopRenderingCommand = new WpfCommand(OnStopRendering);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
         AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
@@ -248,6 +249,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
     public ICommand GraphRefitCommand { get; }
+    public ICommand StopRenderingCommand { get; }
     public ICommand ExportToDgmlCommand { get; }
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
@@ -746,6 +748,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         // Recompute size and fit the view without re-running the layout. Web-only for now
         _messaging.Publish(new RefitGraphRequest());
+    }
+
+    private void OnStopRendering()
+    {
+        // Abort a runaway render: the web adapter terminates its render process and reloads.
+        _messaging.Publish(new CancelWebRenderRequest());
     }
 
     private void OnGraphClear()

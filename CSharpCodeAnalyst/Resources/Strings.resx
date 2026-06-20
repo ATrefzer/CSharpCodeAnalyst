@@ -240,6 +240,12 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="TooMuchElementsTitle" xml:space="preserve">
     <value>Proceed?</value>
   </data>
+  <data name="StopRendering_Label" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="StopRendering_Tooltip" xml:space="preserve">
+    <value>Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw.</value>
+  </data>
   <data name="Exit_Header" xml:space="preserve">
     <value>Exit</value>
   </data>

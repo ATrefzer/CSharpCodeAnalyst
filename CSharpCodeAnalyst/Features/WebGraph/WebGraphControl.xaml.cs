@@ -103,6 +103,9 @@ public partial class WebGraphControl : UserControl
         subscriber.Subscribe<RelayoutGraphRequest>(_ => Dispatcher.Invoke(Relayout));
         subscriber.Subscribe<RefitGraphRequest>(_ => Dispatcher.Invoke(Refit));
 
+        // Emergency stop for a runaway render: kill the render process and reload.
+        subscriber.Subscribe<CancelWebRenderRequest>(_ => Dispatcher.Invoke(CancelRender));
+
         // Image export: the web canvas can't be captured as a WPF element, so we produce it
         // in JS (cy.png) and save it here.
         subscriber.Subscribe<ExportWebGraphRequest>(msg => Dispatcher.Invoke(() => OnExportRequested(msg)));
@@ -308,6 +311,65 @@ public partial class WebGraphControl : UserControl
         }
     }
 
+    /// <summary>
+    ///     Aborts an in-progress render. The layout runs synchronously on the WebView2 render
+    ///     thread, so a blocked run cannot be stopped by messaging — we terminate the render
+    ///     process(es) outright, which ends the blocked JS immediately. The page is recovered
+    ///     in <see cref="OnProcessFailed" /> (Reload); afterwards the normal render path runs
+    ///     again, gated by the large-graph warning so the user can decline this time.
+    /// </summary>
+    private void CancelRender()
+    {
+        var core = WebView.CoreWebView2;
+        if (core is null)
+        {
+            return;
+        }
+
+        _isWebReady = false;
+
+        try
+        {
+            foreach (var info in core.Environment.GetProcessInfos())
+            {
+                if (info.Kind != CoreWebView2ProcessKind.Renderer)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    Process.GetProcessById(info.ProcessId).Kill();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[WebGraph] could not kill render process {info.ProcessId}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[WebGraph] cancel render failed: {ex}");
+        }
+    }
+
+    private void OnProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)
+    {
+        // A terminated/crashed render process leaves a blank page; reload to recover. The
+        // reloaded page reports "ready" again and the normal render path resumes.
+        if (e.ProcessFailedKind is not (CoreWebView2ProcessFailedKind.RenderProcessExited
+            or CoreWebView2ProcessFailedKind.RenderProcessUnresponsive))
+        {
+            return;
+        }
+
+        Dispatcher.Invoke(() =>
+        {
+            _isWebReady = false;
+            WebView.CoreWebView2?.Reload();
+        });
+    }
+
     private void OnHighlightModeChanged(HighlightMode mode)
     {
         Dispatcher.Invoke(() => PushHighlightMode(mode));
@@ -429,6 +491,9 @@ public partial class WebGraphControl : UserControl
             VirtualHost, webRoot, CoreWebView2HostResourceAccessKind.Allow);
 
         core.WebMessageReceived += OnWebMessageReceived;
+
+        // Recover the page after we terminate the render process (the "stop rendering" action).
+        core.ProcessFailed += OnProcessFailed;
 
         core.Settings.AreDefaultContextMenusEnabled = false;
         core.Settings.AreDevToolsEnabled = true; // helpful during development

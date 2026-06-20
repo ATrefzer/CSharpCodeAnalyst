@@ -1238,3 +1238,153 @@ Beide nutzen dieselbe registrierte Extension `"dagre"`, unterscheiden sich nur p
 
 
 Den NDepend-Link hab ich verstanden — die gruppieren nach **Konnektivität** (zusammenhängende Bereiche), unabhängig von Compound-Knoten. Das ist tatsächlich ein eigenes, größeres Thema (Community-Detection + ein darauf abgestimmtes Layout/Boxing) — für später vorgemerkt.
+
+
+
+Ich schaue kurz, wie deine Doku strukturiert ist, damit ich es passend formuliere (und ggf. ablege).
+
+Hier die Beschreibung für deine Doku (Markdown, an den echten Klassen/Methoden orientiert):
+
+------
+
+## Großen Graph rendern: Schutz & Abbruch
+
+Der Web-Graph (Cytoscape in WebView2) hat zwei unabhängige Sicherungen gegen versehentlich zu große Graphen: **Prävention** (Warnung vor dem Zeichnen) und **Abbruch** (laufendes Rendern stoppen).
+
+### 1. Prävention — die Limit-Warnung
+
+In `WebGraphControl.RenderCurrentGraph()` wird der Graph zunächst aufgebaut (`WebGraphBuilder.Build(...)`). Das Ergebnis `WebGraphData` enthält die Zahl der tatsächlich zu zeichnenden Knoten (`NodeCount`). Überschreitet sie `AppSettings.WarningCodeElementLimit` (Default 300), zeigt `ConfirmLargeGraph()` eine Yes/No-MessageBox (`Strings.TooMuchElementsMessage`/`Title`).
+
+- **Nein:** Es wird ein leerer Graph gezeichnet (`renderGraph({nodes:[],edges:[]})`), das Modell (`GraphViewState`) bleibt **unverändert** — der Nutzer kann per Undo/Collapse reduzieren.
+- **Ja:** Der Graph wird gezeichnet (`renderGraph(...)`), inkl. der teuren Layout-Berechnung.
+
+### 2. Warum ein laufendes Rendern nicht „normal" abbrechbar ist
+
+Das Layout (z. B. fcose) läuft **synchron im Render-Thread** des WebView2. Solange es rechnet, ist dieser Thread blockiert. Ein `ExecuteScript`/`postMessage` aus C# würde nur in die JS-Queue gelegt und erst **nach** Abschluss des Layouts abgearbeitet — es kann den laufenden Lauf also nicht unterbrechen. (Dass die C#↔JS-Kommunikation asynchron ist, hilft hier nicht: der JS-Thread selbst ist single-threaded und eingefroren.)
+
+### 3. Abbruch — den Render-Prozess terminieren
+
+Der einzige zuverlässige Hebel ist daher, den **Render-Prozess hart zu beenden**:
+
+1. **Ribbon → Layout-SplitButton → „Stop"** ruft `MainViewModel.StopRenderingCommand` auf.
+2. Dieser publiziert die Bus-Message `CancelWebRenderRequest`.
+3. `WebGraphControl` ist darauf abonniert und ruft `CancelRender()`:
+   - über `CoreWebView2.Environment.GetProcessInfos()` werden alle Prozesse mit `Kind == CoreWebView2ProcessKind.Renderer` ermittelt und per `Process.Kill()` beendet.
+   - Das stoppt die blockierte JS-Schleife **sofort**, unabhängig davon, was sie gerade tut.
+   - `_isWebReady` wird auf `false` gesetzt.
+   - Wichtig: Nur der **Render**-Prozess wird gekillt — der Browser-Prozess (und damit `CoreWebView2`, die Event-Handler und das virtuelle Host-Mapping) bleibt am Leben.
+
+### 4. Recovery — wie wir nach dem Terminieren wieder zur Limit-MessageBox kommen
+
+Das Beenden des Render-Prozesses löst im WebView2 das Event **`CoreWebView2.ProcessFailed`** aus (`ProcessFailedKind == RenderProcessExited`). `WebGraphControl.OnProcessFailed()` reagiert darauf mit **`CoreWebView2.Reload()`**:
+
+1. Die Seite (`index.html` + `app.js`) wird im Browser-Prozess **frisch** geladen — ein neuer Render-Prozess entsteht.
+2. Sobald die Seite bereit ist, meldet sie über die Bridge `{type:"ready"}`.
+3. Der `ready`-Handler ruft — wie bei jedem Start — `RenderCurrentGraph()` auf.
+4. Da das **Modell unverändert** ist (Abbruch berührt nur das Rendern, nicht den `GraphViewState`), baut `RenderCurrentGraph()` denselben großen Graphen wieder auf, ermittelt `NodeCount` und stößt — weil dieser weiterhin über dem Limit liegt — **erneut die Limit-Warnung** an (Schritt 1).
+
+Hier schließt sich der Kreis: Es gibt **kein** Sonderflag, das das Rendern nach dem Abbruch unterdrückt — wir nutzen bewusst dieselbe Limit-Warnung wieder. So bekommt der Nutzer genau jetzt die Chance, **„Nein"** zu wählen, womit ein leerer Canvas gezeichnet und das Modell beibehalten wird. (Wählt er erneut „Ja", rendert er bewusst neu und kann bei Bedarf wieder „Stop" drücken.)
+
+### Ablauf kompakt
+
+```
+[Stop]
+  → StopRenderingCommand → CancelWebRenderRequest
+  → WebGraphControl.CancelRender(): Renderer-Prozess(e) killen  ⟹ blockiertes Layout endet sofort
+  → CoreWebView2.ProcessFailed (RenderProcessExited)
+  → OnProcessFailed → CoreWebView2.Reload()
+  → Seite neu geladen → {type:"ready"}
+  → RenderCurrentGraph() → NodeCount > Limit?
+       → ja  → Limit-MessageBox  →  Nein = leerer Canvas / Ja = erneut rendern
+       → nein → normal zeichnen
+```
+
+### Hinweise / Nebenwirkungen
+
+- Bei einem **normalen (kleinen) Graphen** funktioniert „Stop" genauso: kurzer Kill + Reload, danach wird derselbe Graph ohne Warnung neu gezeichnet (kurzes Flackern, kein Datenverlust).
+- „Stop" liegt im Layout-SplitButton, weil sich der Abbruch konzeptionell auf das **Rendern/Layouten** bezieht.
+- Kein Esc-Shortcut gebunden (nur der Menüeintrag).
+- Voraussetzung: WebView2-SDK mit `GetProcessInfos()`/`ProcessInfo.Kind`/`ProcessFailed` (hier 1.0.4022.49).
+
+------
+
+Lass mich den aktuellen Stand der `_isWebReady`-Stellen kurz verifizieren, damit die Erklärung exakt stimmt.
+
+Alles bestätigt. Hier die beiden Erklärungen für deine Doku:
+
+------
+
+## Das `_isWebReady`-Flag
+
+**Deklaration:** `private bool _isWebReady;` (`WebGraphControl.xaml.cs:52`), Startwert `false`.
+
+Deine Erinnerung stimmt *fast*: Das Flag gehört zur Initialisierung — aber es wird **nicht** in der C#-Init-Methode (`InitializeWebViewAsync`) gesetzt, sondern erst durch einen **Handshake aus dem JavaScript**.
+
+**Gesetzt (true):** in `OnWebMessageReceived`, Fall `"ready"` (`WebGraphControl.xaml.cs:525`). Der Ablauf ist zweistufig:
+
+1. `InitializeWebViewAsync()` startet WebView2, mappt den virtuellen Host und navigiert zu `index.html`. Damit ist die C#-Seite fertig — aber die Seite ist noch **nicht** geladen/gemalt.
+2. Ganz am Ende von `app.js` meldet die Seite zurück: `postToHost({ type: "ready" })`. Erst beim Empfang dieser Nachricht setzt C# `_isWebReady = true` und ruft das erste `RenderCurrentGraph()` auf.
+
+Das Flag ist also der „die Seite kann jetzt `renderGraph()` empfangen"-Schalter — der WebView2 ist async hochgefahren, und C# darf erst nach diesem Signal Skripte einspielen.
+
+**Zurückgesetzt (false):**
+
+- `CancelRender()` (`:329`) — bevor wir den Render-Prozess killen.
+- `OnProcessFailed()` (`:368`) — bevor wir `Reload()` aufrufen.
+
+Grund: Nach Kill/Reload ist der alte JS-Kontext weg. Bis die **neu geladene** Seite wieder `"ready"` meldet (was `_isWebReady` über denselben `case "ready"` erneut auf `true` setzt), darf nichts in die tote/ladende Seite geschrieben werden.
+
+**Wozu die Mühe:** Jede Methode, die ins JS hineinruft, prüft zuerst `_isWebReady` (`RenderCurrentGraph`, `PushDecorations`, `Relayout`, `Refit`, die Export-Methoden, `PushHighlightMode` …). So gibt es nie ein `ExecuteScriptAsync` gegen eine Seite, die (noch) nicht bereit ist oder gerade neu lädt.
+
+------
+
+## Der Konstruktor-Code: `IsVisibleChanged` + `_renderDebounce`
+
+```csharp
+IsVisibleChanged += OnIsVisibleChanged;
+
+_renderDebounce = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(120) };
+_renderDebounce.Tick += (_, _) =>
+{
+    _renderDebounce.Stop();
+    RenderCurrentGraph();
+};
+```
+
+Beide Zeilen lösen je ein Timing-Problem rund ums Rendern.
+
+### a) `IsVisibleChanged` — Rendern nur in einen sichtbaren, korrekt dimensionierten Container
+
+Die Web-Ansicht liegt in einem WPF-`TabItem`. Ein **nicht gewähltes** Tab ist nicht im Visual Tree und hat **Größe 0**. Cytoscape/fcose braucht aber einen korrekt vermessenen Container — ein Layout in einen 0×0-Container liefert ein kaputtes/leeres Ergebnis.
+
+Deshalb wird je nach Sichtbarkeit unterschieden:
+
+- **Tab versteckt:** `OnStateChanged` rendert nicht, sondern merkt sich nur `_pendingRender = true`.
+- **Tab wird wieder sichtbar** (`OnIsVisibleChanged`):
+  - war `_pendingRender` gesetzt → jetzt mit korrekter Größe `RenderCurrentGraph()`;
+  - sonst nur `refitGraph()`, um einen evtl. veralteten Viewport neu einzupassen.
+
+Das ist die Mechanik hinter „der Graph hat sich geändert, während ich auf einem anderen Tab war".
+
+### b) `_renderDebounce` — Bursts von Änderungen zu **einem** Render zusammenfassen
+
+`GraphViewState.Changed` kann in schneller Folge mehrfach feuern — z. B. „Expand all" fügt viele Elemente hinzu, oder mehrere Operationen lösen je ein `Changed` aus. Jedes einzelne Rendern würde einen teuren Layout-Lauf bedeuten.
+
+Darum rendert `OnStateChanged` nicht sofort, sondern **(re)startet** den 120-ms-Timer (`Stop()` + `Start()`). Jedes weitere `Changed` setzt ihn zurück, sodass er erst auslöst, wenn **120 ms lang Ruhe** ist. Im `Tick` stoppt sich der Timer selbst und ruft **einmal** `RenderCurrentGraph()`. Ergebnis: Ein Schwung von N Änderungen führt zu *einem* Layout-Lauf statt N.
+
+`DispatcherTimer` läuft im UI-Thread, daher darf der Tick-Handler direkt auf den WebView/`ExecuteScriptAsync` zugreifen.
+
+### Zusammenspiel (in `OnStateChanged`)
+
+```
+GraphViewState.Changed
+  → OnStateChanged:
+       sichtbar?  → _renderDebounce neu starten (coalescing)   → Tick → RenderCurrentGraph()
+       versteckt? → _pendingRender = true                       → später bei OnIsVisibleChanged
+```
+
+So wird teures Rendern **(1)** zeitlich gebündelt und **(2)** nur ausgeführt, wenn die Ansicht sichtbar und korrekt dimensioniert ist.
+
+------
+
+Soll ich das (wie die Stop-Beschreibung) auch irgendwo unter `Documentation/` ablegen?
