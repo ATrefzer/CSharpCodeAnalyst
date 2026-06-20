@@ -35,8 +35,7 @@ public class EventImbalanceViewModel : TableRow
         try
         {
             // Create a new instance to find newly open studio instance.
-            var fileOpener = new FileOpener();
-            fileOpener.TryOpenFile(location.File, location.Line, location.Column);
+            SourceLocationNavigator.Open(location.File, location.Line, location.Column);
         }
         catch (Exception ex)
         {

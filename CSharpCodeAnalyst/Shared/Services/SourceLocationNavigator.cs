@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-
-// ReSharper disable IdentifierTypo
+using System.Windows;
+using CodeGraph.Graph;
+using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Shared.Services;
 
@@ -14,11 +15,14 @@ public enum EditorType
 }
 
 /// <summary>
-///     Tries to open a given text file and jumps (if possible) to line and column.
-///     Not every editor supports this.
+///     "Jump to code": opens the single source location of a code element or relationship in
+///     the editor. It only applies when there is <em>exactly one</em> location.
+///     A relationship (or bundled edge) can map to several locations; those are left to the
+///     Info panel, which lists all of them as links.
 /// </summary>
-public class FileOpener
+public static class SourceLocationNavigator
 {
+
     /// <summary>
     ///     Hierarchy of preferred editors to try
     /// </summary>
@@ -32,19 +36,56 @@ public class FileOpener
         (EditorType.Notepad, @"C:\Windows\notepad.exe")
     ];
 
-    private readonly EditorType _editor;
-
-    private readonly string _editorPath;
-
-    public FileOpener()
+    /// <summary>A code element can be jumped to if it is not a namespace and has one location.</summary>
+    public static bool CanJump(CodeElement? element)
     {
-        var editor = KnownEditors.First(h => File.Exists(h.Item2));
-        _editor = editor.Item1;
-        _editorPath = editor.Item2;
+        return element is { ElementType: not CodeElementType.Namespace and not CodeElementType.Assembly, SourceLocations.Count: 1 };
     }
 
-    public void TryOpenFile(string? filePath, int line, int column)
+    /// <summary>
+    ///     An edge can be jumped to only when it is a single relationship with a single location
+    ///     (so bundled edges, and relationships with several call sites, are excluded).
+    /// </summary>
+    public static bool CanJump(IReadOnlyList<Relationship> relationships)
     {
+        return relationships is [{ SourceLocations.Count: 1 }];
+    }
+
+    public static void JumpTo(CodeElement element)
+    {
+        if (CanJump(element))
+        {
+            Open(element.SourceLocations[0]);
+        }
+    }
+
+    public static void JumpTo(IReadOnlyList<Relationship> relationships)
+    {
+        if (CanJump(relationships))
+        {
+            Open(relationships[0].SourceLocations[0]);
+        }
+    }
+
+    public static void Open(SourceLocation location)
+    {
+        try
+        {
+            Open(location.File, location.Line, location.Column);
+        }
+        catch (Exception ex)
+        {
+            var message = string.Format(Strings.OperationFailed_Message, ex.Message);
+            MessageBox.Show(message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    public static void Open(string? filePath, int line, int column)
+    {
+        var editor = KnownEditors.First(h => File.Exists(h.Item2));
+        var _editor = editor.Item1;
+        var _editorPath = editor.Item2;
+
         if (string.IsNullOrWhiteSpace(filePath))
         {
             // Nothing to open

@@ -7,6 +7,7 @@ public class RelationshipContextCommand : IRelationshipContextCommand
 {
     private readonly Action<string, string, List<Relationship>> _action;
     private readonly Func<List<Relationship>, bool>? _canExecute;
+    private readonly Func<List<Relationship>, bool>? _canEnable;
     private readonly RelationshipType? _type;
 
     public RelationshipContextCommand(string label, RelationshipType type, Action<string, string, List<Relationship>> action, ImageSource? icon = null)
@@ -30,11 +31,12 @@ public class RelationshipContextCommand : IRelationshipContextCommand
     ///     Generic for all code elements
     /// </summary>
     public RelationshipContextCommand(string subMenuGroup, string label, Action<string, string, List<Relationship>> action,
-        Func<List<Relationship>, bool>? canExecute = null, ImageSource? icon = null)
+        Func<List<Relationship>, bool>? canExecute = null, ImageSource? icon = null, Func<List<Relationship>, bool>? canEnable = null)
     {
         _type = null;
         _action = action;
         _canExecute = canExecute;
+        _canEnable = canEnable;
         SubMenuGroup = subMenuGroup;
         Label = label;
         Icon = icon;
@@ -68,6 +70,11 @@ public class RelationshipContextCommand : IRelationshipContextCommand
         }
 
         return canHandle;
+    }
+
+    public bool CanExecute(List<Relationship> relationships)
+    {
+        return _canEnable?.Invoke(relationships) ?? true;
     }
 
 

@@ -11,5 +11,12 @@ public interface IRelationshipContextCommand
     string? SubMenuGroup { get; }
 
     bool CanHandle(List<Relationship> relationships);
+
+    /// <summary>
+    ///     Whether the (visible) command is enabled for these relationships. Lets a command
+    ///     always appear but render grayed-out when it does not apply (default: enabled).
+    /// </summary>
+    bool CanExecute(List<Relationship> relationships) => true;
+
     void Invoke(string sourceId, string targetId, List<Relationship> relationships);
 }

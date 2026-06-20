@@ -5,6 +5,7 @@
 - Jump to Code from context menu
 
 - Improve heuristic call tracking with instance calls.
+- Drag and Drop
 
 UNHANDLED CASES
 ---------------------

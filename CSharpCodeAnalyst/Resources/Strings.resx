@@ -165,6 +165,9 @@
   <data name="FindInTree" xml:space="preserve">
     <value>Find in _tree</value>
   </data>
+  <data name="JumpToCode" xml:space="preserve">
+    <value>Jump to code</value>
+  </data>
   <data name="FindOutgoingCalls" xml:space="preserve">
     <value>Find outgoing Calls</value>
   </data>

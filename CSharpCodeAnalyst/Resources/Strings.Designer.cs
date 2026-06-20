@@ -970,7 +970,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("FindInTree", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Jump to code.
+        /// </summary>
+        public static string JumpToCode {
+            get {
+                return ResourceManager.GetString("JumpToCode", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Find outgoing Calls.
         /// </summary>

@@ -35,7 +35,12 @@ internal static class WebContextMenuFactory
                 continue;
             }
 
-            var menuItem = new MenuItem { Header = cmd.Label, Icon = CreateIcon(cmd.Icon) };
+            var menuItem = new MenuItem
+            {
+                Header = cmd.Label,
+                Icon = CreateIcon(cmd.Icon),
+                IsEnabled = cmd.CanExecute(element)
+            };
             menuItem.Click += (_, _) => cmd.Invoke(element);
             menu.Items.Add(menuItem);
             lastItemIsSeparator = false;
@@ -62,7 +67,12 @@ internal static class WebContextMenuFactory
                 continue;
             }
 
-            var menuItem = new MenuItem { Header = cmd.Label, Icon = CreateIcon(cmd.Icon) };
+            var menuItem = new MenuItem
+            {
+                Header = cmd.Label,
+                Icon = CreateIcon(cmd.Icon),
+                IsEnabled = cmd.CanExecute(relationships)
+            };
             menuItem.Click += (_, _) => cmd.Invoke(sourceId, targetId, relationships);
 
             if (!string.IsNullOrEmpty(cmd.SubMenuGroup))

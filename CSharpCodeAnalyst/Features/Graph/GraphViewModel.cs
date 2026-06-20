@@ -13,6 +13,7 @@ using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
 
@@ -60,6 +61,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.ToggleFlag, ToggleEdgeFlag, icon: flag));
         _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.RemoveWithoutChildren, RemoveEdges, icon: removeWithoutChildren));
         _state.AddCommand(new RelationshipContextCommand(Strings.Refactor, Strings.Refactor_DeleteEdgeFromModel, DeleteEdgeFromModel));
+        // Last: jump to code (always shown, grayed out unless the edge is a single relationship with a single source location).
+        _state.AddCommand(new RelationshipContextCommand(string.Empty, Strings.JumpToCode, JumpToCodeEdge, canEnable: CanJumpToCodeEdge));
 
 
         // Static commands
@@ -157,6 +160,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new SeparatorCommand());
         _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
             OnCopyToClipboard, icon: copyFqn));
+
+        // Last entry, consistent across all menus: jump to code (always shown, grayed out
+        // unless the element has exactly one source location).
+        _state.AddCommand(new CodeElementContextCommand(Strings.JumpToCode, JumpToCode, canEnable: CanJumpToCode));
 
 
         UndoCommand = new WpfCommand(Undo);
@@ -365,6 +372,28 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         _state.ToggleFlag(sourceId, targetId);
+    }
+
+    // Jump to code: only offered when there is exactly one source location (so it is hidden
+    // on namespaces, multi-location elements and bundled edges).
+    private static bool CanJumpToCode(CodeElement element)
+    {
+        return SourceLocationNavigator.CanJump(element);
+    }
+
+    private static void JumpToCode(CodeElement element)
+    {
+        SourceLocationNavigator.JumpTo(element);
+    }
+
+    private static bool CanJumpToCodeEdge(List<Relationship> relationships)
+    {
+        return SourceLocationNavigator.CanJump(relationships);
+    }
+
+    private static void JumpToCodeEdge(string sourceId, string targetId, List<Relationship> relationships)
+    {
+        SourceLocationNavigator.JumpTo(relationships);
     }
 
     private static void OnCopyToClipboard(CodeElement element)
