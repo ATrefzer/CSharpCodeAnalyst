@@ -127,7 +127,7 @@ internal static class WebGraphBuilder
         // Containment as explicit edges, since there is no nesting in flat mode.
         foreach (var element in graph.Nodes.Values)
         {
-            if (element.Parent is null)
+            if (element.Parent is null || hideFilter.HiddenRelationshipTypes.Contains(RelationshipType.Containment))
             {
                 continue;
             }

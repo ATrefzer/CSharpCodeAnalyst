@@ -37,7 +37,8 @@ public class GraphHideFilter
         RelationshipType.Overrides,
         RelationshipType.UsesAttribute,
         RelationshipType.Invokes,
-        RelationshipType.Handles
+        RelationshipType.Handles,
+        RelationshipType.Containment
     ];
 
     /// <summary>

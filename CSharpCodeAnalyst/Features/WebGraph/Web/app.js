@@ -132,6 +132,7 @@ const cytoscapeStyle = [
             "line-color": "#cfcfcf",
             "width": 1,
             "target-arrow-shape": "triangle-backcurve",
+            "target-arrow-color": "#cfcfcf",
         },
     },
     {
