@@ -348,6 +348,13 @@ public partial class WebGraphControl : UserControl
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // The XAML designer (WpfSurface.exe) also raises Loaded for this control. Never spin
+        // up WebView2 at design time — it fails there and pops our error dialog in the designer.
+        if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(this))
+        {
+            return;
+        }
+
         // Loaded can fire more than once (tab switches). Initialize the WebView only once.
         if (_initialized)
         {
@@ -386,6 +393,11 @@ public partial class WebGraphControl : UserControl
         await WebView.EnsureCoreWebView2Async(environment);
 
         var core = WebView.CoreWebView2;
+        if (core is null)
+        {
+            // The control was torn down during the async init (e.g. the app is closing).
+            return;
+        }
 
         // Development: never serve cached HTML/JS so edited assets always take effect.
         await core.CallDevToolsProtocolMethodAsync(

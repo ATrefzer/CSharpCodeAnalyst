@@ -108,6 +108,14 @@ public partial class MainWindow
         WebGraphSearch.DataContext = graphSearchViewModel;
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        // Tear down the WebView2 (and its browser processes) cleanly on shutdown.
+        // Dispose() stops it internally and is null-safe via ?. .
+        WebGraphView?.WebView?.Dispose();
+        base.OnClosing(e);
+    }
+
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
         if (WorkingArea.SelectedIndex == TabIndices.Right.WebView)

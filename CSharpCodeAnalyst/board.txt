@@ -4,7 +4,7 @@
 - Property has not much contrast to method
 - Jump to Code from context menu
 
-
+- Improve heuristic call tracking with instance calls.
 
 UNHANDLED CASES
 ---------------------
@@ -17,11 +17,8 @@ UNHANDLED CASES
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.
 
-- Improve heuristic call tracking with instance calls.
 
-- Jump to code from everywhere
 
-- Exception message when application is tracked. (from web process?)
 - Try different Render algorithms
 - Layout is not stable when re-layouted
 - Flickering when right clicking before context menu is opened.
@@ -33,7 +30,6 @@ UNHANDLED CASES
 BUGS 
 ---------------------
 
-- Key down gets lost. Not even called on the MainWindow!?
 
 
 MISSING TEST CASES
