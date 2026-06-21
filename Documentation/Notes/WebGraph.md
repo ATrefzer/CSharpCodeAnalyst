@@ -1160,8 +1160,6 @@ Randnotiz: Bei *neueren* WebView2-Versionen gibt es auch einen „Composition"-H
 
 
 
-
-
 # Algorithmen
 
 **dagre = ein Algorithmus**, nicht eine Sammlung.
@@ -1185,6 +1183,66 @@ Zum Vergleich, damit die Auswahl später klar ist:
 Für unsere ComboBox heißt das: dagre liefert **einen** Eintrag (ggf. später mehrere, wenn wir `rankdir`-Varianten wie „dagre TB"/„dagre LR" als separate Optionen anbieten wollen). Soll ich dagre vorerst als **einen** Eintrag verdrahten, oder gleich `rankdir`-Varianten als Default mitdenken?
 
 Gute Frage — und nein, der `name` allein „findet" keine Lib. Er ist nur ein **Registry-Schlüssel**, kein Dateipfad.
+
+Wir haben drei verschiedene Familien im Einsatz:
+
+------
+
+## 1. fCoSE — Force-directed (Standard)
+
+**Prinzip: Physikalische Simulation**
+
+Stell dir vor, jeder Knoten ist eine geladene Kugel, und jede Kante ist eine Feder:
+
+- Knoten **stoßen sich ab** (wie gleichnamige Magnete) → sie drängen auseinander
+- Kanten **ziehen zusammen** (wie Federn) → verbundene Knoten nähern sich an
+- Das System wird simuliert, bis es sich in einem **Energieminimum** einpendelt
+
+**Ergebnis:** Organisch wirkende, runde Layouts. Keine klare Richtung. Gut wenn die Struktur keine starke Hierarchie hat.
+
+**fCoSE** = "Fast **C**ompound **S**pring **E**mbedder" — die "Compound"-Variante versteht verschachtelte Knoten (Namespace → Klasse → Methode) und hält sie zusammen.
+
+------
+
+## 2. Dagre — Sugiyama-Layered
+
+**Prinzip: Schichten von oben nach unten (oder links nach rechts)**
+
+Das ist der klassische Algorithmus für gerichtete Graphen (DAGs). Er läuft in mehreren Phasen:
+
+1. **Cycle removal** — vorübergehend einige Kanten umdrehen, damit der Graph azyklisch wird
+2. **Layer assignment** — jeden Knoten einer Schicht zuweisen: Quellen oben, Abhängigkeiten darunter
+3. **Crossing minimization** — Knoten innerhalb einer Schicht so anordnen, dass sich Kanten möglichst wenig kreuzen
+4. **Coordinate assignment** — konkrete x/y-Positionen berechnen
+
+**Ergebnis:** Klare Hierarchie, Abhängigkeiten fließen in eine Richtung. Wie ein Organigramm oder ein Datenflusspfeil.
+
+**Schwäche:** Dagre versteht verschachtelte Knoten nur begrenzt — Compound-Knoten werden als schwarze Box behandelt.
+
+------
+
+## 3. ELK — Eclipse Layout Kernel (Layered)
+
+**Prinzip:** Derselbe Grundansatz wie Dagre (Sugiyama), aber deutlich mächtiger.
+
+ELK wurde von der Eclipse-Community entwickelt, ursprünglich für IDE-Diagramme (class diagrams, state machines). Es hat:
+
+- **Vollständige Compound-Unterstützung** — mit `elk.hierarchyHandling: INCLUDE_CHILDREN` werden Kanten zwischen verschachtelten Knoten korrekt in die Layered-Berechnung einbezogen. Das ist der entscheidende Unterschied zu Dagre
+- **Mehr Optimierungsstufen** — bessere Crossing-Minimization, Port-Zuweisung an Knoten-Kanten
+- **Größere Konfigurations­oberfläche** — viele Parameter für Abstände, Prioritäten, Richtungen
+
+**Warum war `elk.hierarchyHandling: INCLUDE_CHILDREN` nötig?**
+ Ohne diesen Flag legt cytoscape-elk alle Kanten auf der obersten ELK-Ebene ab, während die Knoten als Kinder verschachtelter Container registriert sind. ELK sieht dann keine Verbindung zwischen den Layered-Schichten → ignoriert die Richtung → DOWN und RIGHT sahen identisch aus.
+
+------
+
+## Wann welcher Algorithmus?
+
+| Situation                                                    | Empfehlung |
+| ------------------------------------------------------------ | ---------- |
+| Allgemeiner Überblick, keine starke Hierarchie               | fCoSE      |
+| Abhängigkeiten verfolgen, flacher Graph                      | Dagre      |
+| Tief verschachtelter Graph (Namespace/Klasse/Methode) mit Richtung | ELK        |
 
 ## Wie Cytoscape ein Layout auflöst
 
