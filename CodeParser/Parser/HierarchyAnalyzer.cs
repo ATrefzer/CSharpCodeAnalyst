@@ -46,13 +46,22 @@ public class HierarchyAnalyzer
                 continue;
             }
 
+            // Source-generated documents (e.g. CommunityToolkit.Mvvm [ObservableProperty]/[RelayCommand],
+            // [GeneratedRegex], ...) are not part of project.Documents and their syntax trees are not in
+            // the compilation, so they have to be requested explicitly.
+            IEnumerable<Document> generatedDocuments = [];
+            if (_config.IncludeGeneratedCode)
+            {
+                generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+            }
+
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve relationships
             // Constructed types are not contained in this list!
             var types = compilation.GetSymbolsWithName(_ => true, SymbolFilter.Type).OfType<INamedTypeSymbol>();
             _allNamedTypesInSolution.AddRange(types);
 
-            BuildHierarchy(compilation);
+            await BuildHierarchy(compilation, generatedDocuments);
         }
 
         var result = new Artifacts(
@@ -155,7 +164,7 @@ public class HierarchyAnalyzer
         return true;
     }
 
-    private void BuildHierarchy(Compilation compilation)
+    private async Task BuildHierarchy(Compilation compilation, IEnumerable<Document> generatedDocuments)
     {
         // Assembly has no source location.
         var assemblySymbol = compilation.Assembly;
@@ -172,6 +181,22 @@ public class HierarchyAnalyzer
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
             var root = syntaxTree.GetRoot();
 
+
+            ProcessNodeForHierarchy(root, semanticModel, assemblyElement);
+        }
+
+        // Process the source-generated documents (only present when IncludeGeneratedCode is enabled)
+        // through the same hierarchy walk. The generated members then get their own code element
+        // instead of being collapsed onto the containing type via the phase-2 fallback. Generated
+        // members extend existing partial types, so the named types are already collected above.
+        foreach (var generatedDocument in generatedDocuments)
+        {
+            var semanticModel = await generatedDocument.GetSemanticModelAsync();
+            var root = await generatedDocument.GetSyntaxRootAsync();
+            if (semanticModel == null || root == null)
+            {
+                continue;
+            }
 
             ProcessNodeForHierarchy(root, semanticModel, assemblyElement);
         }

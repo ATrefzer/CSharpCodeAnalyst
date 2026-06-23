@@ -41,6 +41,11 @@
                                           Margin="0,5"
                                           ToolTip="{x:Static resources:Strings.Settings_IncludeExternalCode_Tooltip}" />
 
+                                <CheckBox x:Name="IncludeGeneratedCodeCheckBox"
+                                          Content="{x:Static resources:Strings.Settings_IncludeGeneratedCode}"
+                                          Margin="0,5"
+                                          ToolTip="{x:Static resources:Strings.Settings_IncludeGeneratedCode_Tooltip}" />
+
                                 <CheckBox x:Name="WarnIfFiltersActiveCheckBox"
                                           Content="{x:Static resources:Strings.Settings_WarnIfFiltersActive}"
                                           Margin="0,5"

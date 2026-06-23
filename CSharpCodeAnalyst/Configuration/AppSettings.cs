@@ -17,6 +17,8 @@ public class AppSettings
 
     public bool IncludeExternalCode { get; set; }
 
+    public bool IncludeGeneratedCode { get; set; }
+
     public bool WarnIfFiltersActive { get; set; } = true;
 
     public static string CleanupProjectFilters(string filterText)
@@ -48,6 +50,7 @@ public class AppSettings
             DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,
             AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
             IncludeExternalCode = this.IncludeExternalCode,
+            IncludeGeneratedCode = this.IncludeGeneratedCode,
             WarnIfFiltersActive = this.WarnIfFiltersActive
         };
     }

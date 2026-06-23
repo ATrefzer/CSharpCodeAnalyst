@@ -816,6 +816,12 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Settings_IncludeExternalCode_Tooltip" xml:space="preserve">
     <value>Include external code when parsing the solution.</value>
   </data>
+  <data name="Settings_IncludeGeneratedCode" xml:space="preserve">
+    <value>Include _generated code</value>
+  </data>
+  <data name="Settings_IncludeGeneratedCode_Tooltip" xml:space="preserve">
+    <value>Include source-generated code (e.g. [ObservableProperty], [RelayCommand]) when parsing the solution. Without this, calls to generated members appear as a relationship to the containing type.</value>
+  </data>
   <data name="Message_OperationCompleted_Successful" xml:space="preserve">
     <value>Operation completed successfully!</value>
   </data>

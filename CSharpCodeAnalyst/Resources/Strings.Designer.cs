@@ -2520,7 +2520,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_IncludeExternalCode_Tooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Include _generated code.
+        /// </summary>
+        public static string Settings_IncludeGeneratedCode {
+            get {
+                return ResourceManager.GetString("Settings_IncludeGeneratedCode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Include source-generated code (e.g. [ObservableProperty], [RelayCommand]) when parsing the solution. Without this, calls to generated members appear as a relationship to the containing type..
+        /// </summary>
+        public static string Settings_IncludeGeneratedCode_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_IncludeGeneratedCode_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Performance Settings.
         /// </summary>
