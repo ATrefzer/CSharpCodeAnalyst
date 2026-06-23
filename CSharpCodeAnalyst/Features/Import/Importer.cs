@@ -27,7 +27,7 @@ public class Importer
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode)
+    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -37,7 +37,7 @@ public class Importer
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode));
+            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -87,9 +87,9 @@ public class Importer
     }
 
 
-    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode)
+    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode));
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
         parser.Progress.ParserProgress += OnParserProgress;
 
         try

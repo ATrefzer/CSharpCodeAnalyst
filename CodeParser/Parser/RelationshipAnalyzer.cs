@@ -1217,6 +1217,16 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
     private void AnalyzePropertyBody(Solution solution, CodeElement propertyElement, IPropertySymbol propertySymbol)
     {
+        // When splitting is enabled, accessor bodies are attributed to their own getter/setter element
+        // instead of the property container. The elements were created in phase 1; if (for whatever
+        // reason) one is missing we fall back to the property container.
+        var getElement = _config.SplitPropertyAccessors
+            ? FindInternalCodeElement(propertySymbol.GetMethod) ?? propertyElement
+            : propertyElement;
+        var setElement = _config.SplitPropertyAccessors
+            ? FindInternalCodeElement(propertySymbol.SetMethod) ?? propertyElement
+            : propertyElement;
+
         foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
         {
             var syntax = syntaxReference.GetSyntax();
@@ -1238,19 +1248,25 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
                     if (expressionBody != null)
                     {
-                        AnalyzeMethodBody(propertyElement, expressionBody.Expression, semanticModel);
+                        // An expression-bodied property/indexer is the getter.
+                        AnalyzeMethodBody(getElement, expressionBody.Expression, semanticModel);
                     }
                     else if (basePropertyDeclaration.AccessorList != null)
                     {
                         foreach (var accessor in basePropertyDeclaration.AccessorList.Accessors)
                         {
+                            // get -> getter element; set / init -> setter element.
+                            var accessorElement = accessor.Keyword.IsKind(SyntaxKind.GetKeyword)
+                                ? getElement
+                                : setElement;
+
                             if (accessor.ExpressionBody != null)
                             {
-                                AnalyzeMethodBody(propertyElement, accessor.ExpressionBody.Expression, semanticModel);
+                                AnalyzeMethodBody(accessorElement, accessor.ExpressionBody.Expression, semanticModel);
                             }
                             else if (accessor.Body != null)
                             {
-                                AnalyzeMethodBody(propertyElement, accessor.Body, semanticModel);
+                                AnalyzeMethodBody(accessorElement, accessor.Body, semanticModel);
                             }
                         }
                     }
@@ -1259,6 +1275,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                     // An auto-property can have both an accessor list and an initializer, so this is
                     // independent of the branch above. Treated like a field initializer: the containing
                     // type "creates" the object, the property "uses" it. Indexers cannot have one.
+                    // The initializer runs at construction, so it stays on the property container.
                     if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
                     {
                         AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer.Value, semanticModel, true);

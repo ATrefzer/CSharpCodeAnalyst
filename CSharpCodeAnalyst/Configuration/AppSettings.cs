@@ -19,6 +19,8 @@ public class AppSettings
 
     public bool IncludeGeneratedCode { get; set; }
 
+    public bool SplitPropertyAccessors { get; set; }
+
     public bool WarnIfFiltersActive { get; set; } = true;
 
     public static string CleanupProjectFilters(string filterText)
@@ -51,6 +53,7 @@ public class AppSettings
             AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
             IncludeExternalCode = this.IncludeExternalCode,
             IncludeGeneratedCode = this.IncludeGeneratedCode,
+            SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive
         };
     }

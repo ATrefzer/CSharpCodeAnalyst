@@ -46,6 +46,11 @@
                                           Margin="0,5"
                                           ToolTip="{x:Static resources:Strings.Settings_IncludeGeneratedCode_Tooltip}" />
 
+                                <CheckBox x:Name="SplitPropertyAccessorsCheckBox"
+                                          Content="{x:Static resources:Strings.Settings_SplitPropertyAccessors}"
+                                          Margin="0,5"
+                                          ToolTip="{x:Static resources:Strings.Settings_SplitPropertyAccessors_Tooltip}" />
+
                                 <CheckBox x:Name="WarnIfFiltersActiveCheckBox"
                                           Content="{x:Static resources:Strings.Settings_WarnIfFiltersActive}"
                                           Margin="0,5"
