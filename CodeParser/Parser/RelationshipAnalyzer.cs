@@ -222,7 +222,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, identifierSyntax, propertyAccessType, location);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -280,7 +280,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = memberAccessSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, memberAccessSyntax, propertyAccessType, location);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -1048,6 +1048,57 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
 
         return _externalCodeElementCache.TryGetOrCreateExternalCodeElement(symbol);
+    }
+
+    /// <summary>
+    ///     Routes a property access to the correct accessor element when splitting is enabled.
+    ///     A read access targets the getter, a write access the setter, and a read-modify-write access
+    ///     (<c>+=</c>, <c>++</c>, ...) both. If splitting is disabled, or the property is external (no
+    ///     accessor elements exist), the access falls back to a relationship to the property itself.
+    /// </summary>
+    private void AddPropertyAccessRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
+        ExpressionSyntax accessExpression, RelationshipType relationshipType, SourceLocation location)
+    {
+        if (_config.SplitPropertyAccessors)
+        {
+            var accessKind = PropertyAccessClassifier.Classify(accessExpression);
+
+            var addedGetter = accessKind is PropertyAccessKind.Read or PropertyAccessKind.ReadWrite &&
+                              TryAddAccessorRelationship(sourceElement, propertySymbol.GetMethod, relationshipType, location);
+            var addedSetter = accessKind is PropertyAccessKind.Write or PropertyAccessKind.ReadWrite &&
+                              TryAddAccessorRelationship(sourceElement, propertySymbol.SetMethod, relationshipType, location);
+
+            if (addedGetter || addedSetter)
+            {
+                return;
+            }
+
+            // No internal accessor element found (external property): fall through to the default below.
+        }
+
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, [location], RelationshipAttribute.None);
+    }
+
+    /// <summary>
+    ///     Adds a relationship to the internal code element of a property accessor. Returns false when the
+    ///     accessor does not exist (e.g. read-only property) or is external (not in our map).
+    /// </summary>
+    private bool TryAddAccessorRelationship(CodeElement sourceElement, IMethodSymbol? accessor,
+        RelationshipType relationshipType, SourceLocation location)
+    {
+        if (accessor is null)
+        {
+            return false;
+        }
+
+        var accessorElement = FindInternalCodeElement(accessor);
+        if (accessorElement is null)
+        {
+            return false;
+        }
+
+        AddRelationship(sourceElement, relationshipType, accessorElement, [location], RelationshipAttribute.None);
+        return true;
     }
 
     /// <summary>

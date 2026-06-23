@@ -83,6 +83,46 @@ public class SplitPropertyAccessorsTests
             "The property container should not carry the accessor's call any more.");
     }
 
+    [Test]
+    public void ReadAccess_TargetsGetter_NotPropertyContainer()
+    {
+        // Client.Consume contains "var unused = facade.Value;" - a read access.
+        var consume = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Client.Consume", CodeElementType.Method);
+        var property = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value", CodeElementType.Property);
+        var getter = property.Children.Single(c => c.Name == "get_Value");
+
+        Assert.That(HasRelationship(consume, getter, RelationshipType.Calls), Is.True,
+            "Reading the property should target the getter element.");
+        Assert.That(HasRelationship(consume, property, RelationshipType.Calls), Is.False,
+            "Reading the property should no longer target the property container.");
+    }
+
+    [Test]
+    public void ReadAndWriteOfSameProperty_AreRoutedToDistinctAccessors()
+    {
+        const string prefix = "ModuleLevel1.global.ModuleLevel1.Model.ModelA";
+        var property = FindNode($"{prefix}.ModelCPropertyOfModelA", CodeElementType.Property);
+        var getter = property.Children.Single(c => c.Name == "get_ModelCPropertyOfModelA");
+        var setter = property.Children.Single(c => c.Name == "set_ModelCPropertyOfModelA");
+
+        // AccessToPropertiesSetter: "ModelCPropertyOfModelA = new ModelC();" -> setter only.
+        var writer = FindNode($"{prefix}.AccessToPropertiesSetter", CodeElementType.Method);
+        // AccessToPropertiesGetter: "var modelC = ModelCPropertyOfModelA;" -> getter only.
+        var reader = FindNode($"{prefix}.AccessToPropertiesGetter", CodeElementType.Method);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(HasRelationship(writer, setter, RelationshipType.Calls), Is.True, "Write should target the setter.");
+            Assert.That(HasRelationship(writer, getter, RelationshipType.Calls), Is.False, "Write must not target the getter.");
+
+            Assert.That(HasRelationship(reader, getter, RelationshipType.Calls), Is.True, "Read should target the getter.");
+            Assert.That(HasRelationship(reader, setter, RelationshipType.Calls), Is.False, "Read must not target the setter.");
+
+            Assert.That(HasRelationship(writer, property, RelationshipType.Calls), Is.False, "Access must not target the property container.");
+            Assert.That(HasRelationship(reader, property, RelationshipType.Calls), Is.False, "Access must not target the property container.");
+        });
+    }
+
     private static bool HasRelationship(CodeElement source, CodeElement target, RelationshipType type)
     {
         return source.Relationships.Any(r => r.TargetId == target.Id && r.Type == type);

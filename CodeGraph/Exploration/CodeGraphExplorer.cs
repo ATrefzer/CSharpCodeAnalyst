@@ -283,7 +283,9 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
             // Properties take part in call chains like methods do:
             // accessor bodies are call sources and property accesses are modeled as calls.
-            if (element.ElementType is CodeElementType.Method or CodeElementType.Property)
+            // When property accessors are split, the get_/set_ elements carry those calls instead.
+            if (element.ElementType is CodeElementType.Method or CodeElementType.Property
+                or CodeElementType.PropertyAccessor)
             {
                 // Follow the callers whose calls can dispatch to this element under the
                 // current restrictions. Each caller gets the context for its kind of call.
