@@ -24,7 +24,7 @@ internal enum PropertyAccessKind
 ///     This is a purely syntactic decision - it does not need a semantic model.
 ///
 ///     The key simplification: C# does not allow a property to be passed by <c>ref</c>/<c>out</c>
-///     (CS0206). Therefore, the only contexts that invoke the setter are
+///     (CS0206).  Therefore, the only contexts that invoke the setter are
 ///     <list type="bullet">
 ///         <item>the target of a (simple or compound) assignment, and</item>
 ///         <item>the operand of an increment/decrement (<c>++</c>/<c>--</c>).</item>
@@ -32,6 +32,18 @@ internal enum PropertyAccessKind
 ///     Every other position is a pure getter access. A compound assignment (<c>+=</c>, <c>??=</c>, ...)
 ///     and increment/decrement read the current value before writing it back, so they are
 ///     <see cref="PropertyAccessKind.ReadWrite" />.
+///
+///     Note:
+///     The semantic information returns a property without distinguishing between getter and setter. So we have to additionally
+///     use the syntax tree to classify the access as a read, write or read/write.
+///
+///     obj.Prop = x
+///     │
+///     ├─ GetSymbolInfo  → IPropertySymbol(which Property?)
+///     └─ Classify(node) → Write(get or set?)
+///     │
+///     └─ Lookup propertySymbol.SetMethod.Key()  → Node "Prop.set"
+///
 /// </summary>
 internal static class PropertyAccessClassifier
 {

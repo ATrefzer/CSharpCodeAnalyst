@@ -23,7 +23,14 @@ public class PropertyAccessClassifierTests
     [Test]
     public void ReturnValue_IsRead()
     {
-        Assert.That(ClassifyProp("return Prop;"), Is.EqualTo(PropertyAccessKind.Read));
+        var code = """
+                   class C
+                   {
+                       int Prop { get; set; }
+                       int M() { return Prop; }
+                   }
+                   """;
+        Assert.That(ClassifyPropIn(code), Is.EqualTo(PropertyAccessKind.Read));
     }
 
     [Test]
@@ -47,7 +54,15 @@ public class PropertyAccessClassifierTests
     [Test]
     public void CoalesceAssignmentTarget_IsReadWrite()
     {
-        Assert.That(ClassifyProp("Prop ??= 1;"), Is.EqualTo(PropertyAccessKind.ReadWrite));
+        // ??= reads the current value and writes only if null. A nullable property keeps the snippet valid.
+        var code = """
+                   class C
+                   {
+                       int? Prop { get; set; }
+                       void M() { Prop ??= 1; }
+                   }
+                   """;
+        Assert.That(ClassifyPropIn(code), Is.EqualTo(PropertyAccessKind.ReadWrite));
     }
 
     [Test]
@@ -72,9 +87,18 @@ public class PropertyAccessClassifierTests
     [Test]
     public void ReadingMemberOfPropertyValue_IsRead()
     {
-        // "Prop.Field = 1": Prop (the receiver identifier) is read to get the object,
-        // only Field is written.
-        Assert.That(ClassifyProp("Prop.Field = 1;"), Is.EqualTo(PropertyAccessKind.Read));
+        // The property is the receiver of a further member access ("Prop.Inner = 1"): its value is
+        // read to reach Inner; only Inner is written. Uses a reference type with a real field so the
+        // snippet is valid C#.
+        var code = """
+                   class Box { public int Inner; }
+                   class C
+                   {
+                       Box Prop { get; set; }
+                       void M() { Prop.Inner = 1; }
+                   }
+                   """;
+        Assert.That(ClassifyPropIn(code), Is.EqualTo(PropertyAccessKind.Read));
     }
 
     [Test]
@@ -104,8 +128,19 @@ public class PropertyAccessClassifierTests
     }
 
     /// <summary>
+    ///     Parses a full compilation unit, finds the first identifier named "Prop" and classifies it.
+    ///     Used by cases that need a specific declaration context (a non-void method, a nullable property,
+    ///     a receiver type with a field) to stay valid C#.
+    /// </summary>
+    private static PropertyAccessKind ClassifyPropIn(string code)
+    {
+        var reference = FindFirstIdentifier(CSharpSyntaxTree.ParseText(code).GetRoot(), "Prop");
+        return PropertyAccessClassifier.Classify(reference);
+    }
+
+    /// <summary>
     ///     Parses a statement and classifies the member-access expression whose member name matches
-    ///     <paramref name="memberName" /> (e.g. the "this.Prop" / "Prop.Field" node, not the inner identifier).
+    ///     <paramref name="memberName" /> (e.g. the "this.Prop" node itself, not the inner identifier).
     /// </summary>
     private static PropertyAccessKind ClassifyMemberAccess(string statement, string memberName)
     {
@@ -123,13 +158,15 @@ public class PropertyAccessClassifierTests
             .First(id => id.Identifier.Text == name);
     }
 
+    // Shared context for the simple cases. Prop is an int and M is void so that reads, plain/compound
+    // assignments and ++/-- are all valid C#. Cases that would not compile here (return, ??=, member
+    // access on the value) bring their own compilation unit via ClassifyPropIn.
     private static SyntaxNode ParseStatement(string statement)
     {
         var code = $$"""
                      class C
                      {
                          int Prop { get; set; }
-                         int Field;
                          int other;
                          void M(int x) { {{statement}} }
                      }
