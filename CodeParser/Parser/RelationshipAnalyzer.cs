@@ -1219,7 +1219,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             return null;
         }
 
-        // If not called here I muss 3 calls why?
         _artifacts!.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
     }

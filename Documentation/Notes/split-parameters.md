@@ -390,3 +390,59 @@ Option im Dialog einschalten → Solution neu laden → im Baum erscheinen `get_
 
 Möchtest du den Stand erst in Rider begutachten, oder soll ich mit der Politur (Punkt 1–3) weitermachen? Mein Vorschlag: erst du validierst visuell, dann entscheiden wir, ob Punkt 1 (Accessor-Level Implements/Overrides) den Aufwand wert ist.
 
+
+
+# Klärung
+
+Gerne. Der Kommentar dreht sich um **zwei verschiedene Maps** aus Phase 1, die in Phase 2 völlig unterschiedliche Jobs haben. Der Accessor wird absichtlich nur in die eine eingetragen, nicht in die andere.
+
+## Die zwei Maps
+
+| Map                      | Schlüssel → Wert               | Job in Phase 2                                               |
+| ------------------------ | ------------------------------ | ------------------------------------------------------------ |
+| `_symbolKeyToElementMap` | `symbol.Key()` → `CodeElement` | **Ziel-Auflösung:** „Welches Element gehört zu diesem Symbol?" (für eingehende Kanten) |
+| `_elementIdToSymbolMap`  | `element.Id` → `ISymbol`       | **Arbeitsliste / Dispatch:** „Welche Elemente analysiere ich als *Quelle*, wessen Body laufe ich ab?" |
+
+Den Accessor trage ich in `_symbolKeyToElementMap` ein (brauche ich fürs Target-Routing: `FindInternalCodeElement(propertySymbol.GetMethod)` → `get_Prop`-Knoten). In `_elementIdToSymbolMap` trage ich ihn **nicht** ein — und genau darum geht der Kommentar.
+
+## Was `_elementIdToSymbolMap` antreibt
+
+Die Hauptschleife von Phase 2 iteriert über alle Knoten und fragt diese Map ([RelationshipAnalyzer.cs:408](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:408)):
+
+```csharp
+void AnalyzeRelationshipsLocal(CodeElement element)
+{
+    if (!_artifacts.ElementIdToSymbolMap.TryGetValue(element.Id, out var symbol))
+    {
+        return; // kein Symbol -> Element wird NICHT als Quelle analysiert (z. B. Namespaces)
+    }
+    AnalyzeRelationships(solution, element, symbol); // <- läuft den Body ab
+}
+```
+
+`AnalyzeRelationships` verzweigt nach Symboltyp:
+
+- `IPropertySymbol` → `AnalyzePropertyRelationships` → `AnalyzePropertyBody`
+- `IMethodSymbol` → `AnalyzeMethodRelationships` (läuft den Methoden-Body über `DeclaringSyntaxReferences` ab)
+
+Der **Property-Container** steht in dieser Map (gemappt auf das `IPropertySymbol`). Also dispatcht Phase 2 auf den Container → `AnalyzePropertyBody`. Und genau dort habe ich das Routing eingebaut: Der Getter-Body wird mit `get_Prop` als Quelle abgelaufen, der Setter-Body mit `set_Prop`. **Der Container ist der alleinige Eigentümer der Accessor-Bodies.**
+
+## Warum kein zweiter Eintrag
+
+Würde ich den Accessor *auch* in `_elementIdToSymbolMap` eintragen (`get_Prop.Id → getMethod`), dann würde die Hauptschleife den `get_Prop`-Knoten **zusätzlich** verarbeiten: `getMethod` ist ein `IMethodSymbol` → `AnalyzeMethodRelationships` → läuft den Getter-Body über `getMethod.DeclaringSyntaxReferences` **ein zweites Mal** ab.
+
+Der Getter-Body würde dann zweimal gewalkt:
+
+1. über `AnalyzePropertyBody` des Containers (Quelle `get_Prop`)
+2. über `AnalyzeMethodRelationships` des Accessors (Quelle ebenfalls `get_Prop`)
+
+## Wäre das falsch? Nein — aber verschwenderisch und fragil
+
+Beide Pfade hätten dieselbe Quelle (`get_Prop`) und dieselben Ziele, und `AddRelationship` dedupliziert identische Kanten ([RelationshipAnalyzer.cs:960](https://claude.ai/epitaxy/CodeParser/Parser/RelationshipAnalyzer.cs:960)). Das *Ergebnis* wäre also korrekt. Aber:
+
+- **Doppelte Arbeit:** Jeder Accessor-Body würde zweimal über das SemanticModel ausgewertet — und Semantic-Queries in Phase 2 sind nicht billig.
+- **Zwei Eigentümer für denselben Body:** Das ist genau die Art impliziter Invariante, die später bricht. `AnalyzeMethodRelationships` würde z. B. zusätzlich die Parameter-/Rückgabetypen des Accessors als „uses"-Kanten anlegen (Getter-Rückgabetyp, Setter-`value`-Parameter) — die der Container über `AnalyzePropertyRelationships` schon auf Property-Ebene erzeugt. Das wären dann *nicht* identische Kanten (anderes Ziel/anderer Kontext) und würden eben **nicht** dedupliziert → Zusatzkanten.
+
+Deshalb: **ein** Eigentümer (der Container, weil `AnalyzePropertyBody` ohnehin schon alle Body-Formen korrekt behandelt — Expression-Body, Accessor-Liste, Auto-Property, Initializer), und der Accessor bleibt aus der Arbeitsliste `_elementIdToSymbolMap` draußen. Er ist nur ein **Ziel** (in `_symbolKeyToElementMap`), kein eigenständiger **Quell-Knoten** im Dispatch.
+
+Kurz: Die eine Map sagt „so findest du den Accessor-Knoten", die andere sagt „diese Knoten arbeite ich ab" — und der Accessor soll gefunden, aber nicht (nochmal) abgearbeitet werden.

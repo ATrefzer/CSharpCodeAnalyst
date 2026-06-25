@@ -477,9 +477,11 @@ public class HierarchyAnalyzer
         _codeGraph.Nodes[id] = accessorElement;
         _symbolKeyToElementMap[symbolKey] = accessorElement;
 
-        // Intentionally NOT added to _elementIdToSymbolMap: phase 2 dispatches on the property container
-        // and routes each accessor body to its element. Adding the accessor symbol here would make phase 2
-        // walk the accessor bodies a second time.
+        // Intentionally NOT added to _elementIdToSymbolMap: phase 2 handles the bodies on the property container
+        // and routes each accessor body to its element. 
+        // Not harmful but we would walk the properties accessor twice in phase 2.
+        // 1. `AnalyzePropertyBody` of the Containers (Source `get_Prop`)
+        // 2. `AnalyzeMethodRelationships` of the Accessors (Source `get_Prop`)
     }
 
     private void WarnIfCodeElementHasMultipleSymbols(ISymbol symbol, CodeElement existingElement)
