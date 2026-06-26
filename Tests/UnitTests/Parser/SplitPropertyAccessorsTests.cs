@@ -1,3 +1,4 @@
+using CodeGraph.Exploration;
 using CodeGraph.Graph;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
@@ -121,6 +122,77 @@ public class SplitPropertyAccessorsTests
             Assert.That(HasRelationship(writer, property, RelationshipType.Calls), Is.False, "Access must not target the property container.");
             Assert.That(HasRelationship(reader, property, RelationshipType.Calls), Is.False, "Access must not target the property container.");
         });
+    }
+
+    [Test]
+    public void InterfaceImplementation_IsModeledAtAccessorLevel()
+    {
+        // ServiceBase.IfProperty { get; set; } implements IServiceC.IfProperty { get; set; }
+        const string baseProp = "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty";
+        const string ifaceProp = "ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty";
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(HasRelationship(Accessor(baseProp, "get_IfProperty"), Accessor(ifaceProp, "get_IfProperty"),
+                RelationshipType.Implements), Is.True, "Getter should implement the interface getter.");
+            Assert.That(HasRelationship(Accessor(baseProp, "set_IfProperty"), Accessor(ifaceProp, "set_IfProperty"),
+                RelationshipType.Implements), Is.True, "Setter should implement the interface setter.");
+
+            // The property containers must not carry the implements edge any more.
+            var baseContainer = FindNode(baseProp, CodeElementType.Property);
+            var ifaceContainer = FindNode(ifaceProp, CodeElementType.Property);
+            Assert.That(HasRelationship(baseContainer, ifaceContainer, RelationshipType.Implements), Is.False,
+                "The property container should not carry the implements edge when accessors are split.");
+        });
+    }
+
+    [Test]
+    public void PropertyOverride_IsModeledAtAccessorLevel()
+    {
+        // ServiceC.IfProperty overrides ServiceBase.IfProperty (both get; set;).
+        const string derivedProp = "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty";
+        const string baseProp = "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty";
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(HasRelationship(Accessor(derivedProp, "get_IfProperty"), Accessor(baseProp, "get_IfProperty"),
+                RelationshipType.Overrides), Is.True, "Getter should override the base getter.");
+            Assert.That(HasRelationship(Accessor(derivedProp, "set_IfProperty"), Accessor(baseProp, "set_IfProperty"),
+                RelationshipType.Overrides), Is.True, "Setter should override the base setter.");
+
+            var derivedContainer = FindNode(derivedProp, CodeElementType.Property);
+            var baseContainer = FindNode(baseProp, CodeElementType.Property);
+            Assert.That(HasRelationship(derivedContainer, baseContainer, RelationshipType.Overrides), Is.False,
+                "The property container should not carry the override edge when accessors are split.");
+        });
+    }
+
+    [Test]
+    public void FollowIncomingCalls_TraversesThroughAccessor()
+    {
+        // Repository.Compute is called from Facade.Value's getter body; Client.Consume reads Value.
+        // The heuristic must continue through the getter accessor and reach Client.Consume.
+        var explorer = new CodeGraphExplorer();
+        explorer.LoadCodeGraph(_graph);
+
+        var compute = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Repository.Compute", CodeElementType.Method);
+        var result = explorer.FollowIncomingCallsHeuristically(compute.Id);
+
+        var elementNames = result.Elements.Select(e => e.FullName).ToHashSet();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(elementNames, Does.Contain("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value.get_Value"),
+                "Traversal should pass through the getter accessor.");
+            Assert.That(elementNames, Does.Contain("FollowHeuristic.global.FollowHeuristic.PropertyChain.Client.Consume"),
+                "Traversal should reach the reader Client.Consume through the accessor.");
+        });
+    }
+
+    private CodeElement Accessor(string propertyFullName, string accessorName)
+    {
+        var property = FindNode(propertyFullName, CodeElementType.Property);
+        return property.Children.Single(c => c.Name == accessorName);
     }
 
     private static bool HasRelationship(CodeElement source, CodeElement target, RelationshipType type)

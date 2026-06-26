@@ -1245,24 +1245,69 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
         }
 
+        // Interface implementation and override relationships. When accessors are split these are
+        // modeled at the accessor level (get/set), otherwise on the property element.
+        AnalyzePropertyAbstractions(propertyElement, propertySymbol);
+
+        // Analyze the property body (including accessors)
+        AnalyzePropertyBody(solution, propertyElement, propertySymbol);
+    }
+
+    /// <summary>
+    ///     Creates the Implements (interface) and Overrides relationships for a property.
+    ///     When accessors are split, these are modeled at the accessor level (a getter implements/overrides
+    ///     a getter, a setter a setter), so the abstraction walk in the explorer and the cycle classifier
+    ///     treat them exactly like method implementations/overrides. Without splitting they stay on the
+    ///     property element.
+    /// </summary>
+    private void AnalyzePropertyAbstractions(CodeElement propertyElement, IPropertySymbol propertySymbol)
+    {
+        if (_config.SplitPropertyAccessors)
+        {
+            AnalyzeAccessorAbstractions(propertySymbol.GetMethod);
+            AnalyzeAccessorAbstractions(propertySymbol.SetMethod);
+            return;
+        }
+
         if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
             FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
         }
 
-        // Check for property override
-        if (propertySymbol.IsOverride)
+        if (propertySymbol.IsOverride && propertySymbol.OverriddenProperty is { } overriddenProperty)
         {
-            var overriddenProperty = propertySymbol.OverriddenProperty;
-            if (overriddenProperty != null)
-            {
-                var locations = propertySymbol.GetSymbolLocations();
-                AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
-            }
+            AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides,
+                propertySymbol.GetSymbolLocations());
+        }
+    }
+
+    /// <summary>
+    ///     Mirrors the method-level interface/override handling for a single property accessor. The accessor
+    ///     is an <see cref="IMethodSymbol" /> (get_Prop / set_Prop), so the existing method machinery applies
+    ///     directly: the implementing accessor and the overridden base accessor are both resolved by symbol key.
+    /// </summary>
+    private void AnalyzeAccessorAbstractions(IMethodSymbol? accessor)
+    {
+        if (accessor is null)
+        {
+            return;
         }
 
-        // Analyze the property body (including accessors)
-        AnalyzePropertyBody(solution, propertyElement, propertySymbol);
+        var accessorElement = FindInternalCodeElement(accessor);
+        if (accessorElement is null)
+        {
+            return;
+        }
+
+        if (accessor.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            FindImplementationsForInterfaceMember(accessorElement, accessor);
+        }
+
+        if (accessor.IsOverride && accessor.OverriddenMethod is { } overriddenAccessor)
+        {
+            AddMethodOverrideRelationship(accessorElement, overriddenAccessor, accessor.GetSymbolLocations());
+        }
     }
 
     private void AnalyzePropertyBody(Solution solution, CodeElement propertyElement, IPropertySymbol propertySymbol)

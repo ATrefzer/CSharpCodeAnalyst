@@ -28,6 +28,12 @@ public static class RelationshipClassifier
                                              && relationship.Type == RelationshipType.Overrides:
             case CodeElementType.Property when target.ElementType is CodeElementType.Property
                                                && relationship.Type == RelationshipType.Implements:
+            // Split property accessors are method-like: their interface/override edges are abstractions,
+            // not code dependencies, just like for methods.
+            case CodeElementType.PropertyAccessor when target.ElementType is CodeElementType.PropertyAccessor
+                                                       && relationship.Type == RelationshipType.Implements:
+            case CodeElementType.PropertyAccessor when target.ElementType is CodeElementType.PropertyAccessor
+                                                       && relationship.Type == RelationshipType.Overrides:
                 return false;
             default:
                 return true;
