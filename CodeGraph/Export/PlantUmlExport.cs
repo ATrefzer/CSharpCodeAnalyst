@@ -139,7 +139,7 @@ public class PlantUmlExport
     /// <summary>
     ///     Writes relationships in class diagram.
     ///     While inheritance and implements are defined between types the dependencies are
-    ///     calculated. <see cref="CalculateOutgoingTypeDependencies" />
+    ///     calculated.
     /// </summary>
     private static void WriteClassDiagramRelationships(StringBuilder builder, Graph.CodeGraph graph)
     {
@@ -217,9 +217,7 @@ public class PlantUmlExport
     /// <summary>
     ///     Aggregates the element-level relationships into one arrow per pair of class-diagram types,
     ///     keeping the strongest arrow (Inherits &gt; Implements &gt; Association &gt; weak dependency).
-    ///     Single pass over the relationships (plus an element-to-owning-types index) instead of the
-    ///     former O(types² · relationships · cluster²) pairwise scan, which did not scale once property
-    ///     accessors enlarged the clusters.
+    ///     Single pass over the relationships (plus an element-to-owning-types index) 
     /// </summary>
     private static List<Dependency> CalculateUmlArrows(Graph.CodeGraph graph, List<CodeElement> typeNodes, HashSet<Relationship> allRelationships)
     {
@@ -278,6 +276,7 @@ public class PlantUmlExport
         CodeElement targetType, bool sourceIsField)
     {
         // Type-level inheritance/implementation: the type nodes themselves are the endpoints.
+        // Note self was added to the ownerType list.
         if (relationship.SourceId == sourceType.Id && relationship.TargetId == targetType.Id)
         {
             if (relationship.Type == RelationshipType.Implements)
