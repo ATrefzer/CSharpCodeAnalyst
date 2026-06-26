@@ -257,7 +257,8 @@ public class RefactoringService
             CodeElementType.Method or
             CodeElementType.Other or
             CodeElementType.Enum or
-            CodeElementType.Property)
+            CodeElementType.Property or
+            CodeElementType.PropertyAccessor)
             return false;
 
         return true;

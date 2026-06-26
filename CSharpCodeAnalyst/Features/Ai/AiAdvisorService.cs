@@ -31,7 +31,8 @@ public class AiAdvisorService
             .Select(n => n.ElementType)
             .ToList();
 
-        if (types.Any(t => t is CodeElementType.Method or CodeElementType.Property or CodeElementType.Field))
+        if (types.Any(t => t is CodeElementType.Method or CodeElementType.Property
+                or CodeElementType.PropertyAccessor or CodeElementType.Field))
             return "method";
 
         if (types.Any(t => t is CodeElementType.Class or CodeElementType.Interface

@@ -214,84 +214,120 @@ public class PlantUmlExport
         }
     }
 
+    /// <summary>
+    ///     Aggregates the element-level relationships into one arrow per pair of class-diagram types,
+    ///     keeping the strongest arrow (Inherits &gt; Implements &gt; Association &gt; weak dependency).
+    ///     Single pass over the relationships (plus an element-to-owning-types index) instead of the
+    ///     former O(types² · relationships · cluster²) pairwise scan, which did not scale once property
+    ///     accessors enlarged the clusters.
+    /// </summary>
     private static List<Dependency> CalculateUmlArrows(Graph.CodeGraph graph, List<CodeElement> typeNodes, HashSet<Relationship> allRelationships)
     {
-        HashSet<Dependency> dependencies = [];
-        foreach (var sourceNode in typeNodes)
+        // Map every element to the class-diagram types that own it (itself and any enclosing types -
+        // this mirrors the old "cluster = type.GetChildrenIncludingSelf()". Usually exactly one entry,
+        // more only for nested types).
+        var ownerTypes = BuildOwnerTypeIndex(typeNodes);
+
+        // Strongest arrow per (sourceTypeId, targetTypeId) pair.
+        var best = new Dictionary<(string Source, string Target), Dependency>();
+
+        foreach (var relationship in allRelationships)
         {
-            dependencies.UnionWith(CalculateOutgoingTypeDependencies(graph, sourceNode, typeNodes, allRelationships));
+            if (relationship.Type is RelationshipType.Bundled or RelationshipType.Containment)
+            {
+                continue;
+            }
+
+            if (!ownerTypes.TryGetValue(relationship.SourceId, out var sourceOwners) ||
+                !ownerTypes.TryGetValue(relationship.TargetId, out var targetOwners))
+            {
+                continue;
+            }
+
+            var sourceIsField = graph.Nodes[relationship.SourceId].ElementType == CodeElementType.Field;
+
+            foreach (var sourceType in sourceOwners)
+            {
+                foreach (var targetType in targetOwners)
+                {
+                    var arrow = ClassifyArrow(relationship, sourceType, targetType, sourceIsField);
+                    if (arrow is null)
+                    {
+                        continue;
+                    }
+
+                    var key = (sourceType.Id, targetType.Id);
+                    if (!best.TryGetValue(key, out var existing) || arrow.Value > existing.Type)
+                    {
+                        best[key] = new Dependency(sourceType, targetType, arrow.Value);
+                    }
+                }
+            }
         }
 
         // First process the stronger relationships, then the weak ones
-        var orderedDependencies = dependencies.OrderByDescending(d => d.Type).ToList();
-        return orderedDependencies;
+        return best.Values.OrderByDescending(d => d.Type).ToList();
     }
 
-
-    private static HashSet<Dependency> CalculateOutgoingTypeDependencies(Graph.CodeGraph graph, CodeElement sourceType, List<CodeElement> typeNodes, HashSet<Relationship> relationships)
+    /// <summary>
+    ///     Classifies a single relationship into the UML arrow between two candidate owner types, or null
+    ///     if it does not contribute. Mirrors the original priority: type-level Inherits/Implements, then a
+    ///     field association to the target type, then a weak dependency for any other call/use.
+    /// </summary>
+    private static UmlArrowType? ClassifyArrow(Relationship relationship, CodeElement sourceType,
+        CodeElement targetType, bool sourceIsField)
     {
-        // Prefilter noise and already processed relationships
-        var allRelationships = relationships.Where(r =>
-            r.Type != RelationshipType.Bundled
-            && r.Type != RelationshipType.Containment).ToList();
-
-
-        var dependencies = new HashSet<Dependency>();
-
-        foreach (var targetType in typeNodes)
+        // Type-level inheritance/implementation: the type nodes themselves are the endpoints.
+        if (relationship.SourceId == sourceType.Id && relationship.TargetId == targetType.Id)
         {
-            if (allRelationships.Any(r =>
-                    r.Type == RelationshipType.Implements &&
-                    sourceType.Id == r.SourceId &&
-                    targetType.Id == r.TargetId))
+            if (relationship.Type == RelationshipType.Implements)
             {
-                dependencies.Add(new Dependency(sourceType, targetType, UmlArrowType.Implements));
-                continue;
+                return UmlArrowType.Implements;
             }
 
-            if (allRelationships.Any(r =>
-                    r.Type == RelationshipType.Inherits &&
-                    sourceType.Id == r.SourceId &&
-                    targetType.Id == r.TargetId))
+            if (relationship.Type == RelationshipType.Inherits)
             {
-                dependencies.Add(new Dependency(sourceType, targetType, UmlArrowType.Inherits));
-                continue;
-            }
-
-            var sourceCluster = sourceType.GetChildrenIncludingSelf().Select(t => graph.Nodes[t]).ToList();
-
-            // Association to target class by field member
-            if (allRelationships.Any(r =>
-                    sourceCluster.Any(s => s.Id == r.SourceId && s.ElementType == CodeElementType.Field) &&
-                    targetType.Id == r.TargetId))
-            {
-                dependencies.Add(new Dependency(sourceType, targetType, UmlArrowType.DirectedAssociation));
-                continue;
-            }
-
-            // Any other (weak) dependencies (calls etc.)
-            if (sourceType.Id == targetType.Id)
-            {
-                // No self edges for weak dependencies
-                continue;
-            }
-
-            var targetCluster = targetType.GetChildrenIncludingSelf();
-            var weakRelationships = allRelationships.Where(r =>
-                r.Type is RelationshipType.Calls or RelationshipType.Uses &&
-                sourceCluster.Any(s => s.Id == r.SourceId) &&
-                targetCluster.Any(t => t == r.TargetId)).ToList();
-
-            //var dbg = weakRelationships.Select(r => (graph.Nodes[r.SourceId], graph.Nodes[r.TargetId], r));
-
-            if (weakRelationships.Any())
-            {
-                // Compress edges
-                dependencies.Add(new Dependency(sourceType, targetType, UmlArrowType.WeakDependency));
+                return UmlArrowType.Inherits;
             }
         }
 
-        return dependencies;
+        // Association: a field points at the target type.
+        if (sourceIsField && relationship.TargetId == targetType.Id)
+        {
+            return UmlArrowType.DirectedAssociation;
+        }
+
+        // Any other call/use between members of two different types.
+        if (relationship.Type is RelationshipType.Calls or RelationshipType.Uses && sourceType.Id != targetType.Id)
+        {
+            return UmlArrowType.WeakDependency;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Builds the element-id -> owning class-diagram types index. A type owns itself and every element
+    ///     in its subtree (including the members of nested types), matching the former cluster definition.
+    /// </summary>
+    private static Dictionary<string, List<CodeElement>> BuildOwnerTypeIndex(List<CodeElement> typeNodes)
+    {
+        var index = new Dictionary<string, List<CodeElement>>();
+        foreach (var typeNode in typeNodes)
+        {
+            foreach (var memberId in typeNode.GetChildrenIncludingSelf())
+            {
+                if (!index.TryGetValue(memberId, out var owners))
+                {
+                    owners = [];
+                    index[memberId] = owners;
+                }
+
+                owners.Add(typeNode);
+            }
+        }
+
+        return index;
     }
 
 
