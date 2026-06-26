@@ -33,6 +33,7 @@ public static class ColorDefinitions
             // Property is a little bit darker. Both are treated as callable elements.
             CodeElementType.Method => 0x569CD6,
             CodeElementType.Property => 0x4677a2,
+            CodeElementType.PropertyAccessor => 0x4677a2,
 
             CodeElementType.Interface => 0xB8D7A3,
             CodeElementType.Class => 0xFFD700,

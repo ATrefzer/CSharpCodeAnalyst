@@ -26,6 +26,7 @@ public static class CodeElementIconMapper
         IconCache[CodeElementType.Struct] = LoadIcon("Struct_16.png");
         IconCache[CodeElementType.Method] = LoadIcon("Method_16.png");
         IconCache[CodeElementType.Property] = LoadIcon("Property_16.png");
+        IconCache[CodeElementType.PropertyAccessor] = LoadIcon("Property_16.png");
         IconCache[CodeElementType.Delegate] = LoadIcon("Delegate_16.png");
         IconCache[CodeElementType.Event] = LoadIcon("Event_16.png");
         IconCache[CodeElementType.Enum] = LoadIcon("Enum_16.png");

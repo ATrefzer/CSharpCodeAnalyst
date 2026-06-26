@@ -492,6 +492,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Legend_Property" xml:space="preserve">
     <value>Property</value>
   </data>
+  <data name="Legend_PropertyAccessor" xml:space="preserve">
+    <value>Property accessor (get/set)</value>
+  </data>
   <data name="Legend_Field" xml:space="preserve">
     <value>Field</value>
   </data>
@@ -821,6 +824,12 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Settings_IncludeGeneratedCode_Tooltip" xml:space="preserve">
     <value>Include source-generated code (e.g. [ObservableProperty], [RelayCommand]) when parsing the solution. Without this, calls to generated members appear as a relationship to the containing type.</value>
+  </data>
+  <data name="Settings_SplitPropertyAccessors" xml:space="preserve">
+    <value>Split property _getter/setter</value>
+  </data>
+  <data name="Settings_SplitPropertyAccessors_Tooltip" xml:space="preserve">
+    <value>Model the getter and setter of each property as separate elements (get_Prop / set_Prop). This distinguishes read from write access and avoids false cycles caused by merging both directions onto a single property node.</value>
   </data>
   <data name="Message_OperationCompleted_Successful" xml:space="preserve">
     <value>Operation completed successfully!</value>

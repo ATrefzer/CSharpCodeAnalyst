@@ -121,10 +121,14 @@ public static class SearchGraphBuilder
         }
 
         // Remove the common ancestors.
-        // However, if we end up having a proxy relationship between a namespace and a type, go up to the namespace.
         var highestSource = sourcePath[sourceIndex];
         var highestTarget = targetPath[targetIndex];
 
+        // Use 1 of GetContainerLevel (see Documentation/cycle-detection.md, "The role of GetContainerLevel"):
+        // After removing the common ancestors the two endpoints may sit at different hierarchy ranks
+        // (e.g. a type on one side, a namespace on the other). A cycle is only meaningful between peers,
+        // so we lift the lower-ranked endpoint up until both share the same rank. The result is that every
+        // proxy edge runs namespace<->namespace or type<->type, never diagonally.
         var sourceLevel = CodeElementClassifier.GetContainerLevel(highestSource.ElementType);
         var targetLevel = CodeElementClassifier.GetContainerLevel(highestTarget.ElementType);
         while (sourceLevel != targetLevel)

@@ -222,7 +222,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, identifierSyntax, propertyAccessType, location);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -280,7 +280,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = memberAccessSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, propertyAccessType, [location], RelationshipAttribute.None);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, memberAccessSyntax, propertyAccessType, location);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -584,7 +584,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
         if (eventSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(eventElement, eventSymbol);
+            AddImplementationsForInterfaceMember(eventElement, eventSymbol);
         }
 
 
@@ -634,7 +634,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // If this method is an interface method, find its implementations
         if (methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(methodElement, methodSymbol);
+            AddImplementationsForInterfaceMember(methodElement, methodSymbol);
         }
 
         // Check for method override
@@ -667,7 +667,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// <summary>
     ///     Adds "implements" relationships for interface members
     /// </summary>
-    private void FindImplementationsForInterfaceMember(CodeElement element, ISymbol symbol)
+    private void AddImplementationsForInterfaceMember(CodeElement element, ISymbol symbol)
     {
         var implementingTypes = new HashSet<INamedTypeSymbol>();
 
@@ -1051,6 +1051,57 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    ///     Routes a property access to the correct accessor element when splitting is enabled.
+    ///     A read access targets the getter, a write access the setter, and a read-modify-write access
+    ///     (<c>+=</c>, <c>++</c>, ...) both. If splitting is disabled, or the property is external (no
+    ///     accessor elements exist), the access falls back to a relationship to the property itself.
+    /// </summary>
+    private void AddPropertyAccessRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
+        ExpressionSyntax accessExpression, RelationshipType relationshipType, SourceLocation location)
+    {
+        if (_config.SplitPropertyAccessors)
+        {
+            var accessKind = PropertyAccessClassifier.Classify(accessExpression);
+
+            var addedGetter = accessKind is PropertyAccessKind.Read or PropertyAccessKind.ReadWrite &&
+                              TryAddAccessorRelationship(sourceElement, propertySymbol.GetMethod, relationshipType, location);
+            var addedSetter = accessKind is PropertyAccessKind.Write or PropertyAccessKind.ReadWrite &&
+                              TryAddAccessorRelationship(sourceElement, propertySymbol.SetMethod, relationshipType, location);
+
+            if (addedGetter || addedSetter)
+            {
+                return;
+            }
+
+            // No internal accessor element found (external property): fall through to the default below.
+        }
+
+        AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, [location], RelationshipAttribute.None);
+    }
+
+    /// <summary>
+    ///     Adds a relationship to the internal code element of a property accessor. Returns false when the
+    ///     accessor does not exist (e.g. read-only property) or is external (not in our map).
+    /// </summary>
+    private bool TryAddAccessorRelationship(CodeElement sourceElement, IMethodSymbol? accessor,
+        RelationshipType relationshipType, SourceLocation location)
+    {
+        if (accessor is null)
+        {
+            return false;
+        }
+
+        var accessorElement = FindInternalCodeElement(accessor);
+        if (accessorElement is null)
+        {
+            return false;
+        }
+
+        AddRelationship(sourceElement, relationshipType, accessorElement, [location], RelationshipAttribute.None);
+        return true;
+    }
+
+    /// <summary>
     ///     Adds a relationship to a symbol, with configurable fallback behavior for external symbols.
     ///     Tries in order: direct symbol → normalized symbol → containing type → external element
     ///     For external symbols, creates relationships to the CONTAINING TYPE only.
@@ -1168,7 +1219,6 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             return null;
         }
 
-        // If not called here I muss 3 calls why?
         _artifacts!.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
         return element;
     }
@@ -1195,28 +1245,83 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
         }
 
-        if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
-        {
-            FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
-        }
-
-        // Check for property override
-        if (propertySymbol.IsOverride)
-        {
-            var overriddenProperty = propertySymbol.OverriddenProperty;
-            if (overriddenProperty != null)
-            {
-                var locations = propertySymbol.GetSymbolLocations();
-                AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides, locations);
-            }
-        }
+        // Interface implementation and override relationships. When accessors are split these are
+        // modeled at the accessor level (get/set), otherwise on the property element.
+        AnalyzePropertyAbstractions(propertyElement, propertySymbol);
 
         // Analyze the property body (including accessors)
         AnalyzePropertyBody(solution, propertyElement, propertySymbol);
     }
 
+    /// <summary>
+    ///     Creates the Implements (interface) and Overrides relationships for a property.
+    ///     When accessors are split, these are modeled at the accessor level (a getter implements/overrides
+    ///     a getter, a setter a setter), so the abstraction walk in the explorer and the cycle classifier
+    ///     treat them exactly like method implementations/overrides. Without splitting they stay on the
+    ///     property element.
+    /// </summary>
+    private void AnalyzePropertyAbstractions(CodeElement propertyElement, IPropertySymbol propertySymbol)
+    {
+        if (_config.SplitPropertyAccessors)
+        {
+            AnalyzeAccessorAbstractions(propertySymbol.GetMethod);
+            AnalyzeAccessorAbstractions(propertySymbol.SetMethod);
+            return;
+        }
+
+        if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            AddImplementationsForInterfaceMember(propertyElement, propertySymbol);
+        }
+
+        if (propertySymbol.IsOverride && propertySymbol.OverriddenProperty is { } overriddenProperty)
+        {
+            AddPropertyRelationship(propertyElement, overriddenProperty, RelationshipType.Overrides,
+                propertySymbol.GetSymbolLocations());
+        }
+    }
+
+    /// <summary>
+    ///     Mirrors the method-level interface/override handling for a single property accessor. The accessor
+    ///     is an <see cref="IMethodSymbol" /> (get_Prop / set_Prop), so the existing method machinery applies
+    ///     directly: the implementing accessor and the overridden base accessor are both resolved by symbol key.
+    /// </summary>
+    private void AnalyzeAccessorAbstractions(IMethodSymbol? accessor)
+    {
+        if (accessor is null)
+        {
+            return;
+        }
+
+        var accessorElement = FindInternalCodeElement(accessor);
+        if (accessorElement is null)
+        {
+            return;
+        }
+
+        if (accessor.ContainingType.TypeKind == TypeKind.Interface)
+        {
+            AddImplementationsForInterfaceMember(accessorElement, accessor);
+        }
+
+        if (accessor.IsOverride && accessor.OverriddenMethod is { } overriddenAccessor)
+        {
+            AddMethodOverrideRelationship(accessorElement, overriddenAccessor, accessor.GetSymbolLocations());
+        }
+    }
+
     private void AnalyzePropertyBody(Solution solution, CodeElement propertyElement, IPropertySymbol propertySymbol)
     {
+        // When splitting is enabled, accessor bodies are attributed to their own getter/setter element
+        // instead of the property container. The elements were created in phase 1; if (for whatever
+        // reason) one is missing we fall back to the property container.
+        var getElement = _config.SplitPropertyAccessors
+            ? FindInternalCodeElement(propertySymbol.GetMethod) ?? propertyElement
+            : propertyElement;
+        var setElement = _config.SplitPropertyAccessors
+            ? FindInternalCodeElement(propertySymbol.SetMethod) ?? propertyElement
+            : propertyElement;
+
         foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
         {
             var syntax = syntaxReference.GetSyntax();
@@ -1238,19 +1343,25 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
                     if (expressionBody != null)
                     {
-                        AnalyzeMethodBody(propertyElement, expressionBody.Expression, semanticModel);
+                        // An expression-bodied property/indexer is the getter.
+                        AnalyzeMethodBody(getElement, expressionBody.Expression, semanticModel);
                     }
                     else if (basePropertyDeclaration.AccessorList != null)
                     {
                         foreach (var accessor in basePropertyDeclaration.AccessorList.Accessors)
                         {
+                            // get -> getter element; set / init -> setter element.
+                            var accessorElement = accessor.Keyword.IsKind(SyntaxKind.GetKeyword)
+                                ? getElement
+                                : setElement;
+
                             if (accessor.ExpressionBody != null)
                             {
-                                AnalyzeMethodBody(propertyElement, accessor.ExpressionBody.Expression, semanticModel);
+                                AnalyzeMethodBody(accessorElement, accessor.ExpressionBody.Expression, semanticModel);
                             }
                             else if (accessor.Body != null)
                             {
-                                AnalyzeMethodBody(propertyElement, accessor.Body, semanticModel);
+                                AnalyzeMethodBody(accessorElement, accessor.Body, semanticModel);
                             }
                         }
                     }
@@ -1259,6 +1370,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                     // An auto-property can have both an accessor list and an initializer, so this is
                     // independent of the branch above. Treated like a field initializer: the containing
                     // type "creates" the object, the property "uses" it. Indexers cannot have one.
+                    // The initializer runs at construction, so it stays on the property container.
                     if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
                     {
                         AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer.Value, semanticModel, true);

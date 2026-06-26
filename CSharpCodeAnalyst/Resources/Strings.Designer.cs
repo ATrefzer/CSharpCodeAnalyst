@@ -1574,7 +1574,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Legend_Property", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Property accessor (get/set).
+        /// </summary>
+        public static string Legend_PropertyAccessor {
+            get {
+                return ResourceManager.GetString("Legend_PropertyAccessor", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Record.
         /// </summary>
@@ -2536,6 +2545,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_IncludeGeneratedCode_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_IncludeGeneratedCode_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Split property _getter/setter.
+        /// </summary>
+        public static string Settings_SplitPropertyAccessors {
+            get {
+                return ResourceManager.GetString("Settings_SplitPropertyAccessors", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Model the getter and setter of each property as separate elements (get_Prop / set_Prop)....
+        /// </summary>
+        public static string Settings_SplitPropertyAccessors_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_SplitPropertyAccessors_Tooltip", resourceCulture);
             }
         }
 

@@ -29,6 +29,7 @@ public partial class SettingsDialog
         ProjectExcludeFilterTextBox.Text = AppSettings.DefaultProjectExcludeFilter.Replace(";", Environment.NewLine);
         IncludeExternalCodeCheckBox.IsChecked = AppSettings.IncludeExternalCode;
         IncludeGeneratedCodeCheckBox.IsChecked = AppSettings.IncludeGeneratedCode;
+        SplitPropertyAccessorsCheckBox.IsChecked = AppSettings.SplitPropertyAccessors;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
 
         AiEndpointTextBox.Text = UserPreferences.AiEndpoint;
@@ -48,6 +49,7 @@ public partial class SettingsDialog
         AppSettings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
         AppSettings.IncludeExternalCode = IncludeExternalCodeCheckBox.IsChecked ?? true;
         AppSettings.IncludeGeneratedCode = IncludeGeneratedCodeCheckBox.IsChecked ?? false;
+        AppSettings.SplitPropertyAccessors = SplitPropertyAccessorsCheckBox.IsChecked ?? false;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
 
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)

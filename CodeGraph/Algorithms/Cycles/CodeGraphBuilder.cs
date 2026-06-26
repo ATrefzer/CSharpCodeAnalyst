@@ -18,7 +18,11 @@ public static class CodeGraphBuilder
             var proxySource = searchGraphSource.OriginalElement;
             detailedGraph.IntegrateCodeElementFromOriginal(proxySource);
 
-            // All edges in the search graph are expanded with equivalent edges in the original graph
+            // All edges in the search graph are expanded with equivalent edges in the original graph.
+            // Note: a proxy edge stands for ALL concrete edges between its children, so an element that
+            // shares the proxy's container but is not itself on the loop (e.g. a property setter that
+            // writes the same backing field as its getter) is re-materialised too. This is intentional;
+            // see Documentation/cycle-detection.md, "Why non-cycle edges appear in the result".
             var allSources = proxySource.GetChildrenIncludingSelf();
 
             foreach (var searchGraphDependency in searchGraphSource.Dependencies)
@@ -30,12 +34,16 @@ public static class CodeGraphBuilder
                 // Handle cases where a code element is a child of another.
                 // We have to take care not to include unwanted dependencies.
                 // Only dependencies that cross the containers are valid.
+                // Use 2 of GetContainerLevel (see Documentation/cycle-detection.md, "The role of GetContainerLevel"):
+                // When a container points to one of its own nested containers, the parent's valid sources/targets
+                // are only its directly-contained content (members and types), NOT the sibling containers of equal
+                // rank that merely happen to be nested inside it. Restricting by container level cuts those off.
+                // Without it, dependencies of an unrelated nested namespace would be pulled into the cycle group.
+                // See Regression_NestedNamespaces for the concrete case (NS_Irrelevant must stay out).
                 if (proxySource.IsParentOf(proxyTarget))
                 {
                     sources = [proxySource.Id];
 
-                    // For an example why this line is needed: See Regression_NestedNamespaces
-                    // Sources are only those elements with a lower container level.
                     var parentLevel = CodeElementClassifier.GetContainerLevel(proxySource.ElementType);
                     var children = proxySource.Children.Where(c =>
                         CodeElementClassifier.GetContainerLevel(c.ElementType) < parentLevel);

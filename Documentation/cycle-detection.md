@@ -126,6 +126,79 @@ The resulting cycle looks like this:
 
 ![](Images/nested_classes_scc.png)
 
+## The role of `GetContainerLevel`
+
+`CodeElementClassifier.GetContainerLevel` assigns a **hierarchy rank** to a code element type, independent of its actual depth in the tree:
+
+| Rank | Element types |
+|------|---------------|
+| 30   | Assembly, Namespace |
+| 20   | Class, Interface, Struct, Enum, Record, Delegate (i.e. any *type*) |
+| 0    | Everything else (Method, Field, Property, Event, …) |
+
+The rank exists to answer one recurring question in the algorithm: *are two containers comparable, i.e. do they live at the same level of the hierarchy?* Tree depth alone cannot answer this, because a namespace nested three levels deep and a type nested two levels deep should still be treated as "namespace level" vs. "type level". The rank is used in two places.
+
+### Use 1 — lifting proxy endpoints to the same level (Step 2)
+
+When building the search graph, after the least common ancestor is removed, the two "highest involved" elements may end up at **different ranks** — for example a *class* on one side and a *namespace* on the other. Cycle detection only makes sense between peers, so `GetHighestElementsInvolvedInDependency` climbs the lower-ranked endpoint upward until both endpoints share the same rank (see [Handling containment when building the search graph](#handling-containment-when-building-the-search-graph-step-2)). The result: every proxy edge runs namespace↔namespace or type↔type, never diagonally. SCCs are therefore always reported between siblings of equal rank, which keeps the result conceptually clean.
+
+### Use 2 — restricting back-expansion across nested containers (Step 4)
+
+This is the subtle one. It only matters when a proxy edge runs between a container and one of its **own nested containers** (`proxySource.IsParentOf(proxyTarget)`), and it is the case the `Regression_NestedNamespaces` test guards.
+
+Consider this graph. The cycle is **NS_Parent ↔ NS_Child**, but `NS_Child` is *nested inside* `NS_Parent`:
+
+```
+NS_Parent
+├── ClassInParent
+│   └── _delegate1 ─────────────► DelegateInChild   (Uses)   // Parent reaches into Child
+├── NS_Child                                                 // nested in Parent!
+│   ├── ClassInChild
+│   │   └── Method ─────────────► ClassInParent      (Uses)   // Child reaches back to Parent
+│   └── DelegateInChild
+└── NS_Irrelevant                                            // NOT part of the cycle
+    └── ClassNsIrrelevant
+        └── _delegate2 ─────────► DelegateInChild   (Uses)   // only points *into* Child
+```
+
+When expanding the proxy edge `NS_Parent → NS_Child` back to concrete dependencies, we must decide which children of `NS_Parent` count as valid *sources*. The naive answer — all of `NS_Parent.GetChildrenIncludingSelf()` — is wrong: it would include the whole subtree, so `_delegate2 → DelegateInChild` (whose target sits inside `NS_Child`) would be picked up as a valid dependency. That would drag `NS_Irrelevant`, `ClassNsIrrelevant` and `_delegate2` into the cycle group, even though `NS_Irrelevant` only points *into* the cycle and never closes it. The test expects 7 nodes; without the guard it would see 10.
+
+`GetContainerLevel` is the guard:
+
+```csharp
+var parentLevel = GetContainerLevel(proxySource.ElementType);   // Namespace = 30
+var children = proxySource.Children.Where(c =>
+    GetContainerLevel(c.ElementType) < parentLevel);            // keep types (20), drop nested namespaces (30)
+```
+
+The rule it encodes: *the part of `NS_Parent` that genuinely **is** `NS_Parent` consists of its own directly-contained types and their members — not the namespaces that merely happen to be nested inside it.* Sibling containers of equal rank are cut off, so only `ClassInParent`/`_delegate1` become valid sources, `_delegate2` stays out, and the result is exactly the 7 expected nodes. This matches the `T = C / S` construction described in [Handling containment when transforming back](#handling-containment-when-transforming-back-step-4); `GetContainerLevel` is the concrete tool that draws the boundary.
+
+## Why non-cycle edges appear in the result
+
+Looking at a result graph you will sometimes find an element that is clearly *not* part of the cycle — most visibly a property **setter** that points into the cycle but has no edge coming back. This is not a bug; it is the direct consequence of how proxy edges are expanded, and removing it cleanly is harder than it looks.
+
+### Where it comes from
+
+A cycle is found at the granularity of the **proxy node**, but expanded at the granularity of **all of that node's children**. Take a property `TableData` whose getter reads a backing field that (transitively) calls back into the getter:
+
+* `get_TableData → field` is lifted to `TableData(property) → field`, so the **property** — not the getter — enters the SCC.
+* When `CodeGraphBuilder` expands that proxy edge, it considers `TableData.GetChildrenIncludingSelf() = { TableData, get_TableData, set_TableData }` as sources and re-materialises **every** original edge to the target field.
+* Both `get_TableData → field` (on the cycle) and `set_TableData → field` (not on the cycle) match. The single proxy edge stood for both, and the expansion cannot tell which concrete edge actually closes the loop — so the setter comes along, "guilty by containment".
+
+### Why it is not simply pruned away
+
+The tempting fix is to re-run SCC detection on the finished detailed graph at element granularity and drop everything not in a non-trivial SCC. That happens to work for the property example (a genuine member-level cycle), but it **breaks container-level cycles**, which are the whole point of the algorithm. Consider a class cycle **A ↔ B**:
+
+```
+A.M1 ──► B.M1
+B.M2 ──► A.M1
+A.M3 ──► B.M1      // a real A→B coupling, but NOT on any elementary loop
+```
+
+At the *class* level every cross-boundary edge contributes to the cycle, including `A.M3 → B.M1`. At the *method* level `A.M3` lies in no SCC (nothing in the loop calls it back). A blind member-level prune would delete `A.M3` and hide a legitimate contributor to the A↔B coupling.
+
+The setter edge and the `A.M3` edge are **indistinguishable** to the detailed graph: both are "a real edge behind a collapsed proxy that does not itself sit on an elementary loop". One we would like to drop, the other we must keep — and the criterion to separate them is not available at this stage. The non-cycle setter is therefore the accepted flip side of the feature that shows container-level cycles completely. If the extra noise ever needs to be addressed, the correct lever is to make properties *transparent* during proxy lifting (so the accessor stays the cycle unit), **not** a post-hoc SCC prune of the detailed graph.
+
 ## Conclusion
 
 While the current algorithm successfully detects cycles in code graphs, there is room for optimization in terms of simplicity. However, after using it for a while, I found that it is performant even with larger code bases.

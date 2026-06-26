@@ -94,7 +94,6 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new CodeElementContextCommand(Strings.ToggleFlag, ToggleNodeFlag, icon: flag));
         _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
         _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
-        _state.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
         _state.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
         _state.AddCommand(new SeparatorCommand());
 
@@ -105,7 +104,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var incomingCalls = IconLoader.LoadIcon("Resources/incoming_calls_16.png");
         var followIncomingCalls = IconLoader.LoadIcon("Resources/follow_incoming_calls_16.png");
         var outgoingCalls = IconLoader.LoadIcon("Resources/outgoing_calls_16.png");
-        HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
+        // Property accessors (get_/set_) are method-like: they carry the same calls and
+        // abstraction edges, so they get the same context menu entries as methods/properties.
+        HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property, CodeElementType.PropertyAccessor];
         foreach (var elementType in elementTypes)
         {
             _state.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
@@ -165,14 +166,20 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _viewer.AddContextMenuCommand(new CodeElementContextCommand(Strings.Partition, CodeElementType.Class,
             PartitionClass));
         */
-        var copyFqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
+
         _state.AddCommand(new SeparatorCommand());
-        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
-            OnCopyToClipboard, icon: copyFqn));
+        _state.AddCommand(new CodeElementContextCommand(Strings.FindInTree, FindInTreeRequest, icon: findInTree));
 
         // Last entry, consistent across all menus: jump to code (always shown, grayed out
         // unless the element has exactly one source location).
         _state.AddCommand(new CodeElementContextCommand(Strings.JumpToCode, JumpToCode, canEnable: CanJumpToCode));
+
+        var copyFqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
+       
+        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
+            OnCopyToClipboard, icon: copyFqn));
+
+     
 
 
         UndoCommand = new WpfCommand(Undo);
@@ -715,7 +722,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private static bool IsCallable(CodeElement? method)
     {
-        return method is { ElementType: CodeElementType.Method or CodeElementType.Property or CodeElementType.Event };
+        return method is { ElementType: CodeElementType.Method or CodeElementType.Property
+            or CodeElementType.PropertyAccessor or CodeElementType.Event };
     }
 
     private void OnPropertyChanged(string propertyName)

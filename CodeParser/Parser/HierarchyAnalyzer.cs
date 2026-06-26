@@ -324,6 +324,15 @@ public class HierarchyAnalyzer
         if (symbol != null)
         {
             var element = GetOrCreateCodeElementWithNamespaceHierarchy(symbol, elementType, parent, location);
+
+            // Split the property into get/set accessor children (when configured). Covers properties
+            // and indexers, including auto-properties and record positional properties, because the
+            // accessors are taken from the symbol, not the syntax.
+            if (_config.SplitPropertyAccessors && symbol is IPropertySymbol propertySymbol)
+            {
+                CreatePropertyAccessorElements(propertySymbol, element);
+            }
+
             foreach (var childNode in node.ChildNodes())
             {
                 ProcessNodeForHierarchy(childNode, semanticModel, element);
@@ -425,6 +434,54 @@ public class HierarchyAnalyzer
         SendParserPhase1Progress(_codeGraph.Nodes.Count);
 
         return element;
+    }
+
+    /// <summary>
+    ///     Creates the getter/setter child elements for a property (or indexer). The accessors are taken
+    ///     from the symbol (<see cref="IPropertySymbol.GetMethod" /> / <see cref="IPropertySymbol.SetMethod" />),
+    ///     so auto-properties and synthesized record accessors are covered as well.
+    /// </summary>
+    private void CreatePropertyAccessorElements(IPropertySymbol propertySymbol, CodeElement propertyElement)
+    {
+        CreatePropertyAccessorElement(propertySymbol.GetMethod, propertyElement);
+        CreatePropertyAccessorElement(propertySymbol.SetMethod, propertyElement);
+    }
+
+    private void CreatePropertyAccessorElement(IMethodSymbol? accessor, CodeElement propertyElement)
+    {
+        if (accessor is null)
+        {
+            return;
+        }
+
+        var symbolKey = accessor.Key();
+        if (_symbolKeyToElementMap.ContainsKey(symbolKey))
+        {
+            // Partial type declared in several files - the accessor was already created.
+            return;
+        }
+
+        // Roslyn names the accessors get_Prop / set_Prop. Keep that name so the node is self-describing
+        // in flat views; the full name stays consistent with the tree path under the property.
+        var name = accessor.Name;
+        var fullName = propertyElement.FullName + "." + name;
+        var id = Guid.NewGuid().ToString();
+        var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement);
+
+        foreach (var accessorLocation in accessor.GetSymbolLocations())
+        {
+            accessorElement.SourceLocations.Add(accessorLocation);
+        }
+
+        propertyElement.Children.Add(accessorElement);
+        _codeGraph.Nodes[id] = accessorElement;
+        _symbolKeyToElementMap[symbolKey] = accessorElement;
+
+        // Intentionally NOT added to _elementIdToSymbolMap: phase 2 handles the bodies on the property container
+        // and routes each accessor body to its element. 
+        // Not harmful but we would walk the properties accessor twice in phase 2.
+        // 1. `AnalyzePropertyBody` of the Containers (Source `get_Prop`)
+        // 2. `AnalyzeMethodRelationships` of the Accessors (Source `get_Prop`)
     }
 
     private void WarnIfCodeElementHasMultipleSymbols(ISymbol symbol, CodeElement existingElement)

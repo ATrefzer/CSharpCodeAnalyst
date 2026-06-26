@@ -17,6 +17,7 @@ public class GraphHideFilter
     [
         CodeElementType.Method,
         CodeElementType.Property,
+        CodeElementType.PropertyAccessor,
         CodeElementType.Field,
         CodeElementType.Event,
         CodeElementType.Enum,
