@@ -584,7 +584,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
         if (eventSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(eventElement, eventSymbol);
+            AddImplementationsForInterfaceMember(eventElement, eventSymbol);
         }
 
 
@@ -634,7 +634,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // If this method is an interface method, find its implementations
         if (methodSymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(methodElement, methodSymbol);
+            AddImplementationsForInterfaceMember(methodElement, methodSymbol);
         }
 
         // Check for method override
@@ -667,7 +667,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// <summary>
     ///     Adds "implements" relationships for interface members
     /// </summary>
-    private void FindImplementationsForInterfaceMember(CodeElement element, ISymbol symbol)
+    private void AddImplementationsForInterfaceMember(CodeElement element, ISymbol symbol)
     {
         var implementingTypes = new HashSet<INamedTypeSymbol>();
 
@@ -1271,7 +1271,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
         if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(propertyElement, propertySymbol);
+            AddImplementationsForInterfaceMember(propertyElement, propertySymbol);
         }
 
         if (propertySymbol.IsOverride && propertySymbol.OverriddenProperty is { } overriddenProperty)
@@ -1301,7 +1301,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
         if (accessor.ContainingType.TypeKind == TypeKind.Interface)
         {
-            FindImplementationsForInterfaceMember(accessorElement, accessor);
+            AddImplementationsForInterfaceMember(accessorElement, accessor);
         }
 
         if (accessor.IsOverride && accessor.OverriddenMethod is { } overriddenAccessor)
