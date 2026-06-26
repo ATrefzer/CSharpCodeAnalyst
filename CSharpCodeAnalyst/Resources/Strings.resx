@@ -492,6 +492,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Legend_Property" xml:space="preserve">
     <value>Property</value>
   </data>
+  <data name="Legend_PropertyAccessor" xml:space="preserve">
+    <value>Property accessor (get/set)</value>
+  </data>
   <data name="Legend_Field" xml:space="preserve">
     <value>Field</value>
   </data>

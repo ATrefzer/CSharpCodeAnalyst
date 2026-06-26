@@ -21,6 +21,7 @@ public partial class LegendDialog
     public Brush EnumColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Enum)));
     public Brush MethodColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Method)));
     public Brush PropertyColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Property)));
+    public Brush PropertyAccessorColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.PropertyAccessor)));
     public Brush FieldColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Field)));
     public Brush EventColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Event)));
     public Brush DelegateColor { get; } = new SolidColorBrush(GetColorFromRgb(ColorDefinitions.GetRbgOf(CodeElementType.Delegate)));

@@ -43,6 +43,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Rectangle Grid.Row="0" Grid.Column="0" Fill="{Binding AssemblyColor}"
@@ -100,9 +101,14 @@
         <TextBlock Grid.Row="10" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Property}"
                    Style="{StaticResource LegendTextStyle}" />
 
-        <Rectangle Grid.Row="11" Grid.Column="0" Fill="{Binding FieldColor}"
+        <Rectangle Grid.Row="11" Grid.Column="0" Fill="{Binding PropertyAccessorColor}"
                    Style="{StaticResource LegendRectangleStyle}" />
-        <TextBlock Grid.Row="11" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Field}"
+        <TextBlock Grid.Row="11" Grid.Column="1" Text="{x:Static resources:Strings.Legend_PropertyAccessor}"
+                   Style="{StaticResource LegendTextStyle}" />
+
+        <Rectangle Grid.Row="12" Grid.Column="0" Fill="{Binding FieldColor}"
+                   Style="{StaticResource LegendRectangleStyle}" />
+        <TextBlock Grid.Row="12" Grid.Column="1" Text="{x:Static resources:Strings.Legend_Field}"
                    Style="{StaticResource LegendTextStyle}" />
 
     </Grid>

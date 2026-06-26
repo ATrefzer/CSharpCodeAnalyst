@@ -1574,7 +1574,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Legend_Property", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Property accessor (get/set).
+        /// </summary>
+        public static string Legend_PropertyAccessor {
+            get {
+                return ResourceManager.GetString("Legend_PropertyAccessor", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Record.
         /// </summary>

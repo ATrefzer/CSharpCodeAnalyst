@@ -19,7 +19,7 @@ public class AppSettings
 
     public bool IncludeGeneratedCode { get; set; }
 
-    public bool SplitPropertyAccessors { get; set; }
+    public bool SplitPropertyAccessors { get; set; } = true;
 
     public bool WarnIfFiltersActive { get; set; } = true;
 

@@ -111,6 +111,7 @@ public sealed class TreeItemViewModel : INotifyPropertyChanged
             CodeElementType.Enum or
             CodeElementType.Field or
             CodeElementType.Property or
+            CodeElementType.PropertyAccessor or
             CodeElementType.Event or
             CodeElementType.Delegate;
     }

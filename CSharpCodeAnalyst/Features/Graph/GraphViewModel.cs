@@ -105,7 +105,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var incomingCalls = IconLoader.LoadIcon("Resources/incoming_calls_16.png");
         var followIncomingCalls = IconLoader.LoadIcon("Resources/follow_incoming_calls_16.png");
         var outgoingCalls = IconLoader.LoadIcon("Resources/outgoing_calls_16.png");
-        HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property];
+        // Property accessors (get_/set_) are method-like: they carry the same calls and
+        // abstraction edges, so they get the same context menu entries as methods/properties.
+        HashSet<CodeElementType> elementTypes = [CodeElementType.Method, CodeElementType.Property, CodeElementType.PropertyAccessor];
         foreach (var elementType in elementTypes)
         {
             _state.AddCommand(new CodeElementContextCommand(Strings.FindOutgoingCalls, elementType,
@@ -715,7 +717,8 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private static bool IsCallable(CodeElement? method)
     {
-        return method is { ElementType: CodeElementType.Method or CodeElementType.Property or CodeElementType.Event };
+        return method is { ElementType: CodeElementType.Method or CodeElementType.Property
+            or CodeElementType.PropertyAccessor or CodeElementType.Event };
     }
 
     private void OnPropertyChanged(string propertyName)
