@@ -277,6 +277,8 @@ https://github.com/cytoscape/cytoscape.js / https://github.com/iVis-at-Bilkent/c
 https://github.com/dagrejs/dagre / https://github.com/kieler/elkjs
 - SVG export uses the **cytoscape-svg** extension by kinimesi, licensed under GPL-3.0 (same as this project).
 https://github.com/kinimesi/cytoscape-svg
+- The minimap (bird's-eye overview) in the web graph view uses the **cytoscape.js-navigator** extension, licensed under MIT.
+https://github.com/cytoscape/cytoscape.js-navigator
 - Drag and drop functionality is provided by the **gong-wpf-dragdrop** library.
 Copyright (c) Jan Karger, Steven Kirk and Contributors. Licensed under BSD-3-Clause.
 https://github.com/punker76/gong-wpf-dragdrop

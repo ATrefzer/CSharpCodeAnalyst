@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Web Graph View</title>
+    <!-- Minimap (bird's-eye overview). Vendor CSS first; our #navigator overrides win by id. -->
+    <link rel="stylesheet" href="lib/cytoscape-navigator.css" />
     <link rel="stylesheet" href="style.css" />
     <!-- Local, offline. No CDN. Order matters: fcose needs cose-base needs layout-base,
          and fcose auto-registers itself once the global `cytoscape` exists. -->
@@ -22,28 +24,37 @@
     <script src="lib/cytoscape-elk.js"></script>
     <!-- SVG export; like fcose it auto-registers on the global `cytoscape` as cy.svg(). -->
     <script src="lib/cytoscape-svg.js"></script>
+    <!-- Minimap; auto-registers on the global `cytoscape` as cy.navigator(). No jQuery in 2.x. -->
+    <script src="lib/cytoscape-navigator.js"></script>
 </head>
 <body>
     <div id="cy"></div>
 
+    <!-- Minimap container. Carries the vendor class (so cytoscape-navigator's child
+         selectors style the thumbnail / view rect) AND an id we override for geometry.
+         Starts hidden; app.js shows it once the first non-empty graph is rendered. -->
+    <div id="navigator" class="cytoscape-navigator hidden"></div>
+
     <!-- Empty-state guide. Shown until the first graph is rendered, then hidden for the
          rest of the session by app.js. Non-interactive (pointer-events: none). -->
     <div id="hint">
-        <h2>Code graph view</h2>
-        <p>Empty until code elements are added &mdash; load a project, or add elements from the tree or search.</p>
-        <ul>
-            <li><b>Double-click</b> a node &mdash; expand / collapse</li>
-            <li><b>Click</b> a node or edge &mdash; show details in the Info tab</li>
-            <li><b>Right-click</b> &mdash; context menu with commands</li>
-            <li><b>Drag</b> the background to pan, <b>mouse wheel</b> to zoom</li>
-            <li><b>Shift + drag</b> &mdash; select multiple nodes</li>
-        </ul>
-        <p>Keyboard (acts on the selected nodes):</p>
-        <ul>
-            <li><b>&uarr; / &darr;</b> &mdash; follow all outgoing / incoming relationships</li>
-            <li><b>Page Up / Page Down</b> &mdash; follow outgoing / incoming relationships (deep)</li>
-            <li><b>Delete</b> &mdash; remove the selected nodes (with their children)</li>
-        </ul>
+        <div class="hint-content">
+            <h2>Code graph view</h2>
+            <p>Empty until code elements are added &mdash; load a project, or add elements from the tree or search.</p>
+            <ul>
+                <li><b>Double-click</b> a node &mdash; expand / collapse</li>
+                <li><b>Click</b> a node or edge &mdash; show details in the Info tab</li>
+                <li><b>Right-click</b> &mdash; context menu with commands</li>
+                <li><b>Drag</b> the background to pan, <b>mouse wheel</b> to zoom</li>
+                <li><b>Shift + drag</b> &mdash; select multiple nodes</li>
+            </ul>
+            <p>Keyboard (acts on the selected nodes):</p>
+            <ul>
+                <li><b>&uarr; / &darr;</b> &mdash; follow all outgoing / incoming relationships</li>
+                <li><b>Page Up / Page Down</b> &mdash; follow outgoing / incoming relationships (deep)</li>
+                <li><b>Delete</b> &mdash; remove the selected nodes (with their children)</li>
+            </ul>
+        </div>
     </div>
 
     <script src="app.js"></script>

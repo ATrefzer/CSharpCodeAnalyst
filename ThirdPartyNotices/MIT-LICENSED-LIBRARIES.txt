@@ -65,6 +65,8 @@ locally under CSharpCodeAnalyst/Features/WebGraph/Web/lib:
                        Copyright (c) The Cytoscape Consortium
 - cytoscape.js-elk     https://github.com/cytoscape/cytoscape.js-elk
                        Copyright (c) The Cytoscape Consortium
+- cytoscape.js-navigator https://github.com/cytoscape/cytoscape.js-navigator
+                       Copyright (c) The Cytoscape Consortium
 
 (The layered layout engine elkjs is EPL-2.0; see EPL-2.0-LICENSED-LIBRARIES.txt.)
 (The SVG export extension cytoscape-svg is GPL-3.0; see GPL-3.0-LICENSED-LIBRARIES.txt.)

@@ -39,6 +39,38 @@ html, body {
     display: none;
 }
 
+/* Minimap (cytoscape-navigator). The element also has the vendor class
+   `.cytoscape-navigator` so the extension's child selectors (thumbnail canvas, view
+   rectangle, overlay) keep working; these id rules win over the vendor geometry by
+   specificity, so we get a small, framed box in the bottom-right corner instead of the
+   vendor default 400x400. */
+#navigator {
+    width: 200px;
+    height: 150px;
+    bottom: 12px;
+    right: 12px;
+    border: 1px solid #c0c0c0;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    background: #fafafa;
+}
+
+#navigator.hidden {
+    display: none;
+}
+
+/* The text block. It carries its own scroll context so a small window (or a tall hint)
+   shows a scrollbar here instead of clipping the top: capped to the viewport height and
+   scrollable. pointer-events is re-enabled only on this block, so the wheel / scrollbar
+   work while the surrounding area keeps passing clicks through to the canvas.
+   min-height: 0 lets the flex item shrink below its content so overflow-y can take over. */
+#hint .hint-content {
+    max-height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    pointer-events: auto;
+}
+
 #hint h2 {
     margin: 0 0 8px;
     font-weight: 600;

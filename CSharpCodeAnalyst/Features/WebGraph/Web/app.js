@@ -306,6 +306,45 @@ function dismissHintIfGraph(graph) {
     document.getElementById("hint")?.classList.add("hidden");
 }
 
+// ---- Minimap (bird's-eye overview) -----------------------------------------
+// cytoscape-navigator draws a thumbnail of the whole graph with a draggable viewport
+// rectangle, so a graph panned/zoomed off-screen can be brought back. The canvas itself
+// never overflows (it is viewport-sized), so a real scrollbar is impossible — this is the
+// idiomatic alternative.
+//
+// Created lazily on the first non-empty graph (so the container already has its real size
+// when the navigator measures it), then shown / hidden in step with whether the graph has
+// nodes. Guarded by typeof so a missing offline lib never breaks rendering (like layouts).
+let navInstance = null;
+
+function updateNavigator() {
+    const navEl = document.getElementById("navigator");
+    if (!navEl) {
+        return;
+    }
+
+    if (cy.nodes().length === 0) {
+        navEl.classList.add("hidden");
+        return;
+    }
+
+    const wasHidden = navEl.classList.contains("hidden");
+    navEl.classList.remove("hidden");
+
+    if (!navInstance && typeof cy.navigator === "function") {
+        navInstance = cy.navigator({
+            container: "#navigator",
+            viewLiveFramerate: 0,         // pan the main graph instantly while dragging the box
+            dblClickDelay: 200,
+            rerenderDelay: 100,           // throttle thumbnail redraws
+            removeCustomContainer: false, // keep our #navigator div if ever destroyed
+        });
+    } else if (navInstance && wasHidden) {
+        // Was hidden while the graph was empty; recompute sizes and refresh the thumbnail.
+        navInstance.resize();
+    }
+}
+
 // ---- Bridge: C# -> JS -------------------------------------------------------
 // C# calls this via ExecuteScriptAsync with { nodes, edges }.
 window.renderGraph = function (graph) {
@@ -332,6 +371,9 @@ window.renderGraph = function (graph) {
 
     // Cancel a still-running layout before starting a new one (with safe fallback).
     runLayout();
+
+    // Show/lazily-create the minimap (or hide it when the graph is empty).
+    updateNavigator();
 };
 
 // Update flag / search decorations on the EXISTING elements (no re-layout). C# pushes this
