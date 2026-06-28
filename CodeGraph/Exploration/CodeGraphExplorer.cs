@@ -738,6 +738,48 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         };
     }
 
+    public IReadOnlyList<string> GetWithPropertyAccessors(string id)
+    {
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element)
+            || element.ElementType != CodeElementType.Property)
+        {
+            return [id];
+        }
+
+        var ids = new List<string> { id };
+        ids.AddRange(element.Children
+            .Where(c => c.ElementType == CodeElementType.PropertyAccessor)
+            .Select(c => c.Id));
+
+        return ids;
+    }
+
+    public SearchResult ExploreWithAccessors(string id, Func<string, SearchResult> explore)
+    {
+        var ids = GetWithPropertyAccessors(id);
+
+        var elements = new HashSet<CodeElement>();
+        var relationships = new HashSet<Relationship>();
+
+        // Always include the property and all its accessors as nodes so that
+        // any relationship touching them has a valid endpoint in the result.
+        foreach (var expandedId in ids)
+        {
+            if (_codeGraph?.Nodes.TryGetValue(expandedId, out var node) == true)
+            {
+                elements.Add(node);
+            }
+        }
+
+        foreach (var expandedId in ids)
+        {
+            var result = explore(expandedId);
+            elements.UnionWith(result.Elements);
+            relationships.UnionWith(result.Relationships);
+        }
+
+        return new SearchResult(elements, relationships);
+    }
 
     private List<Relationship> GetRelationships(Func<Relationship, bool> filter)
     {

@@ -49,4 +49,19 @@ public interface ICodeGraphExplorer
 
     SearchResult FindOutgoingRelationshipsDeep(string id);
     SearchResult FindIncomingRelationshipsDeep(string id);
+
+    /// <summary>
+    ///     Returns <paramref name="id"/> plus the ids of all PropertyAccessor children of
+    ///     the element, looked up in the full code graph.
+    ///     For any other element type the result contains only <paramref name="id"/> itself.
+    /// </summary>
+    IReadOnlyList<string> GetWithPropertyAccessors(string id);
+
+    /// <summary>
+    ///     Runs <paramref name="explore"/> for the given id. If the element is a Property,
+    ///     also runs it for each PropertyAccessor child (from the full code graph) and merges
+    ///     the results. For any other element type (including PropertyAccessor directly) only
+    ///     the element itself is used.
+    /// </summary>
+    SearchResult ExploreWithAccessors(string id, Func<string, SearchResult> explore);
 }

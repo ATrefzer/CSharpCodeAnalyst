@@ -80,6 +80,13 @@ public class TestCodeGraph : CodeGraph.Graph.CodeGraph
         return element;
     }
 
+    public CodeElement CreatePropertyAccessor(string id, CodeElement? parent = null)
+    {
+        var element = new CodeElement(id, CodeElementType.PropertyAccessor, id, id, parent);
+        Link(parent, element);
+        return element;
+    }
+
     public CodeElement CreateField(string id, CodeElement? parent = null)
     {
         var element = new CodeElement(id, CodeElementType.Field, id, id, parent);

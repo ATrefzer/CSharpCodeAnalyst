@@ -36,6 +36,80 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void ExploreWithAccessors_OnProperty_IncludesAccessorNodesAndTheirRelationships()
+    {
+        var cls = _graph.CreateClass("Cls");
+        var prop = _graph.CreateProperty("Prop", cls);
+        var getter = _graph.CreatePropertyAccessor("get_Prop", prop);
+        var setter = _graph.CreatePropertyAccessor("set_Prop", prop);
+        var caller = _graph.CreateMethod("Caller", cls);
+
+        // Caller calls the getter (the call lives on the accessor, not the property).
+        var call = Rel(caller, getter, RelationshipType.Calls);
+
+        var result = _explorer.ExploreWithAccessors(prop.Id, _explorer.FindIncomingCalls);
+
+        Assert.Multiple(() =>
+        {
+            // The property and BOTH accessors must be present so every relationship has valid endpoints.
+            Assert.That(result.Elements.Select(e => e.Id),
+                Is.SupersetOf([prop.Id, getter.Id, setter.Id, caller.Id]));
+            Assert.That(result.Relationships, Does.Contain(call));
+        });
+    }
+
+    [Test]
+    public void ExploreWithAccessors_OnAccessor_ActsOnlyOnThatNode()
+    {
+        var cls = _graph.CreateClass("Cls");
+        var prop = _graph.CreateProperty("Prop", cls);
+        var getter = _graph.CreatePropertyAccessor("get_Prop", prop);
+        var setter = _graph.CreatePropertyAccessor("set_Prop", prop);
+        var getCaller = _graph.CreateMethod("GetCaller", cls);
+        var setCaller = _graph.CreateMethod("SetCaller", cls);
+
+        var getCall = Rel(getCaller, getter, RelationshipType.Calls);
+        Rel(setCaller, setter, RelationshipType.Calls);
+
+        // Invoked directly on the getter: only the getter is the start, no expansion to
+        // the property or the sibling setter.
+        var result = _explorer.ExploreWithAccessors(getter.Id, _explorer.FindIncomingCalls);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([getter.Id, getCaller.Id]));
+            Assert.That(result.Relationships, Is.EquivalentTo([getCall]));
+        });
+    }
+
+    [Test]
+    public void GetWithPropertyAccessors_OnProperty_ReturnsPropertyAndAccessors()
+    {
+        var cls = _graph.CreateClass("Cls");
+        var prop = _graph.CreateProperty("Prop", cls);
+        var getter = _graph.CreatePropertyAccessor("get_Prop", prop);
+        var setter = _graph.CreatePropertyAccessor("set_Prop", prop);
+        // A nested non-accessor child must not be collected.
+        var field = _graph.CreateField("BackingField", prop);
+
+        var ids = _explorer.GetWithPropertyAccessors(prop.Id);
+
+        Assert.That(ids, Is.EquivalentTo([prop.Id, getter.Id, setter.Id]));
+        Assert.That(ids, Does.Not.Contain(field.Id));
+    }
+
+    [Test]
+    public void GetWithPropertyAccessors_OnNonProperty_ReturnsOnlyItself()
+    {
+        var cls = _graph.CreateClass("Cls");
+        var method = _graph.CreateMethod("M", cls);
+
+        var ids = _explorer.GetWithPropertyAccessors(method.Id);
+
+        Assert.That(ids, Is.EquivalentTo([method.Id]));
+    }
+
+    [Test]
     public void FindParents_ReturnsDistinctParents()
     {
         var cls = _graph.CreateClass("Cls");

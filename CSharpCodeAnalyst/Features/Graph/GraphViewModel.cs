@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using CodeGraph.Contracts;
+using CodeGraph.Exploration;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
@@ -575,38 +576,37 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void FindAllOutgoingRelationships(CodeElement element)
     {
-        var result = _explorer.FindOutgoingRelationships(element.Id);
+        var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationships);
         AddToGraph(result.Elements, result.Relationships);
     }
 
     private void FindAllIncomingRelationships(CodeElement element)
     {
-        var result = _explorer.FindIncomingRelationships(element.Id);
+        var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindIncomingRelationships);
         AddToGraph(result.Elements, result.Relationships);
     }
 
     private void FindAllOutgoingRelationshipsDeep(CodeElement element)
     {
-        var result = _explorer.FindOutgoingRelationshipsDeep(element.Id);
+        var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationshipsDeep);
         AddToGraph(result.Elements, result.Relationships, true);
     }
 
     private void FindAllIncomingRelationshipsDeep(CodeElement element)
     {
-        var result = _explorer.FindIncomingRelationshipsDeep(element.Id);
-        // Everything that is not yet in graph should be collapsed
+        var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindIncomingRelationshipsDeep);
         AddToGraph(result.Elements, result.Relationships, true);
     }
 
     private void FindSpecializations(CodeElement method)
     {
-        var result = _explorer.FindSpecializations(method.Id);
+        var result = _explorer.ExploreWithAccessors(method.Id, _explorer.FindSpecializations);
         AddToGraph(result.Elements, result.Relationships);
     }
 
     private void FindAbstractions(CodeElement method)
     {
-        var result = _explorer.FindAbstractions(method.Id);
+        var result = _explorer.ExploreWithAccessors(method.Id, _explorer.FindAbstractions);
         AddToGraph(result.Elements, result.Relationships);
     }
 
@@ -667,8 +667,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        // Use the node from the original graph
-        var callee = _explorer.FindIncomingCalls(method.Id);
+        var callee = _explorer.ExploreWithAccessors(method.Id, _explorer.FindIncomingCalls);
         AddToGraph(callee.Elements, callee.Relationships);
     }
 
@@ -679,8 +678,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        var callers =
-            _explorer.FindIncomingCallsRecursive(method.Id);
+        var callers = _explorer.ExploreWithAccessors(method.Id, _explorer.FindIncomingCallsRecursive);
         AddToGraph(callers.Elements, callers.Relationships);
     }
 
@@ -692,8 +690,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        var result = _explorer.FollowIncomingCallsHeuristically(element.Id);
-
+        var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FollowIncomingCallsHeuristically);
         AddToGraph(result.Elements, result.Relationships);
     }
 
@@ -716,7 +713,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
             return;
         }
 
-        var callers = _explorer.FindOutgoingCalls(method.Id);
+        var callers = _explorer.ExploreWithAccessors(method.Id, _explorer.FindOutgoingCalls);
         AddToGraph(callers.Elements, callers.Relationships);
     }
 
@@ -725,6 +722,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         return method is { ElementType: CodeElementType.Method or CodeElementType.Property
             or CodeElementType.PropertyAccessor or CodeElementType.Event };
     }
+
 
     private void OnPropertyChanged(string propertyName)
     {
