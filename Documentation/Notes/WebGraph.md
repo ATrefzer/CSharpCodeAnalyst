@@ -1068,6 +1068,212 @@ dieselbe Naht wie beim Kontextmenü.
 
 ---
 
+# Web Graph View: Den Knoten nach einer Explore-Aktion wiederfinden (Focus-Hint)
+
+Diese Doku erklärt, wie der Web-Graph nach einer Explore-Aktion (z.B. „Find incoming
+calls") auf den Knoten **zurückzoomt**, von dem die Aktion ausging — damit ein kompletter
+Neu-Layout den Nutzer nicht „verliert". Sie baut auf der Auswahl-/Render-Mechanik der
+vorigen Sektionen auf.
+
+Beteiligte Dateien:
+
+- `CSharpCodeAnalyst/Features/Graph/GraphViewState.cs` — hält den transienten Focus-Hint.
+- `CSharpCodeAnalyst/Features/Graph/GraphViewModel.cs` — setzt den Hint beim Hinzufügen.
+- `CSharpCodeAnalyst/Features/WebGraph/WebGraphControl.xaml.cs` — konsumiert ihn beim Render.
+- `CSharpCodeAnalyst/Features/WebGraph/Web/app.js` — `renderGraph` / `focusNode`.
+
+---
+
+## 1. Das Problem
+
+Jede Aktion, die dem Graphen etwas hinzufügt, rendert ihn **komplett neu**:
+
+```js
+cy.elements().remove();   // ALLE Elemente weg
+cy.add(elements);         // komplett neu
+runLayout();              // Layout positioniert ALLES neu, mit fit:true → Kamera rahmt alles
+```
+
+Es passieren also zwei Dinge gleichzeitig: alle Knoten bekommen **neue Positionen**, und
+die **Kamera springt** auf den Gesamtgraphen. Der Knoten, auf den man geklickt hatte, ist
+danach an einer anderen Stelle und oft winzig.
+
+**Wichtige Einsicht:** Weil *alles* neu gelayoutet wird, hilft „die Kamera einfach stehen
+lassen" **nicht** — der Knoten teleportiert ja trotzdem. Bei vollem Re-Layout bleibt nur,
+die Kamera **aktiv** auf den gemerkten Knoten nachzuführen. (Den Knoten an seiner Stelle
+zu *halten* ginge nur, wenn man die Positionen erhielte — ein deutlich größerer Umbau, hier
+bewusst nicht gewählt.)
+
+---
+
+## 2. Die Idee: ein transienter „Focus-Hint"
+
+Der Knoten, von dem die Aktion ausgeht, ist in C# bekannt — es ist das `CodeElement`, auf
+dem der Kontextmenü-Command ausgelöst wurde (bzw. die Einzel-Auswahl bei den
+Tastatur-Shortcuts). Aber dieser Anker geht auf dem Weg zum Render verloren: der Render
+wird über das **payload-lose** `GraphViewState.Changed` ausgelöst und ist obendrein
+debounced.
+
+Lösung: ein **transienter Hinweis** im geteilten Modell `GraphViewState`, den der Render
+ausliest und dabei löscht:
+
+```csharp
+// Gesetzt von der Aktion, konsumiert vom nächsten Render. null = normales Fit-to-Graph.
+private string? _focusHint;
+
+public void SetFocusHint(string? id) => _focusHint = id;
+
+public string? ConsumeFocusHint()
+{
+    var hint = _focusHint;
+    _focusHint = null;        // wirkt auf GENAU den nächsten Render, nicht auf spätere
+    return hint;
+}
+```
+
+Das „consume + clear" ist der Kern: Der Hint beeinflusst exakt den unmittelbar folgenden
+Render. Spätere, unabhängige Renders (Collapse/Expand, Undo, Dekorationen) lesen `null` und
+verhalten sich wie bisher.
+
+---
+
+## 3. Wer den Hint setzt
+
+`AddToGraph` im `GraphViewModel` ist der gemeinsame Trichter aller „füge etwas hinzu"-
+Aktionen. Es bekommt einen optionalen Anker und setzt den Hint — **erst nach** dem
+Empty-Check, also nur wenn überhaupt ein Render ausgelöst wird:
+
+```csharp
+private void AddToGraph(IEnumerable<CodeElement> originalCodeElements,
+    IEnumerable<Relationship> relationships, bool addCollapsed = false, string? focusId = null)
+{
+    var elementsToAdd = originalCodeElements.ToList();
+    var relationshipsToAdd = relationships.ToList();
+
+    if (elementsToAdd.Count == 0 && relationshipsToAdd.Count == 0)
+    {
+        return;                       // nichts hinzugefügt -> kein Render, kein Hint
+    }
+
+    PushUndo();
+    _state.SetFocusHint(focusId);     // Anker für den kommenden Render
+    // … AutomaticallyAddContainingType, dann _state.AddToGraph(...)
+}
+```
+
+Die Explore-Handler reichen den geklickten Knoten durch, z.B.:
+
+```csharp
+private void FindIncomingCalls(CodeElement method)
+{
+    var callee = _explorer.ExploreWithAccessors(method.Id, _explorer.FindIncomingCalls);
+    AddToGraph(callee.Elements, callee.Relationships, focusId: method.Id);
+}
+```
+
+**Einzel-Anker-Regel:** Wo es keinen *einen* Anker gibt, bleibt es bei `null` (Fit-to-Graph):
+die Mehrfachauswahl der Tastatur-Shortcuts fokussiert nur bei genau einem selektierten
+Knoten; ein Batch-`AddNodeToGraphRequest` nur bei genau einem Knoten.
+
+---
+
+## 4. Wer den Hint konsumiert — und ihn an JS gibt
+
+`WebGraphControl.RenderCurrentGraph` liest den Hint (einmal, früh) und reicht ihn
+JSON-kodiert als zweites Argument an `renderGraph`:
+
+```csharp
+var focusJson = JsonSerializer.Serialize(_state.ConsumeFocusHint());  // "id" oder null
+…
+_ = core.ExecuteScriptAsync($"renderGraph({data.Json}, {focusJson});");
+```
+
+`JsonSerializer` escaped die Id sauber (auch ` ` etc.), das Ergebnis ist gültiges JS.
+Bei `null` wird `renderGraph(…, null)` aufgerufen → in JS ein falsy `focusId` → kein Fokus.
+Der „großer Graph abgelehnt"-Pfad rendert leer und ohne Anker (der Hint wurde zwar
+konsumiert, aber nicht verwendet — korrekt, denn gezeichnet wird ja nichts).
+
+---
+
+## 5. JS: nach dem Layout zentrieren, zoomen, aufblinken
+
+```js
+window.renderGraph = function (graph, focusId) {
+    …
+    cy.add(elements);
+    cy.resize();
+
+    // Anker erst NACH dem (ggf. asynchronen) Layout anfahren.
+    runLayout(focusId ? () => focusNode(focusId) : undefined);
+    updateNavigator();
+};
+
+function focusNode(id) {
+    const node = cy.getElementById(id);
+    if (!node || node.empty()) {
+        return;                       // veraltete Id (rausgefiltert) -> Fit so lassen
+    }
+
+    // Zoom in ein lesbares Band: mind. 0.85 (großer Graph zoomt rein), max. 1.3 (kleiner
+    // Graph nicht über-gezoomt).
+    const targetZoom = Math.min(1.3, Math.max(cy.zoom(), 0.85));
+    cy.animate({ center: { eles: node }, zoom: targetZoom },
+               { duration: 350, easing: "ease-out-cubic" });
+
+    node.flashClass("focus-flash", 800);   // kurzer oranger Halo, dann automatisch weg
+}
+```
+
+Der `focus-flash`-Stil ist ein kurzes Overlay (`overlay-color`/`overlay-opacity`), kein
+Rahmen — so kollidiert er nicht mit der Selektions-/Highlight-Optik.
+
+---
+
+## 6. Der subtile Timing-Fallstrick
+
+Der Fokus muss laufen, **nachdem** das Layout die Positionen gesetzt und sein `fit`
+ausgeführt hat — sonst überschreibt der Layout-Fit unsere Kamera sofort wieder. Dafür
+hängt der Callback an `layoutstop`. Knackpunkt:
+
+> **Diskrete Layouts (z.B. dagre) feuern `layoutstop` *synchron* innerhalb von `run()`.**
+> Ein erst *nach* `run()` angehängter Listener würde es verpassen.
+
+Deshalb nimmt `runLayout` den Callback entgegen und hängt ihn **vor** `run()` an:
+
+```js
+function runLayout(onStop) {
+    if (currentLayout) { currentLayout.stop(); }
+    try {
+        currentLayout = cy.layout(getLayout());
+        if (onStop) { currentLayout.one("layoutstop", onStop); }   // VOR run()
+        currentLayout.run();
+    } catch (err) {
+        currentLayoutName = "fcose";
+        currentLayout = cy.layout(LAYOUTS["fcose"]);
+        if (onStop) { currentLayout.one("layoutstop", onStop); }
+        currentLayout.run();
+    }
+    return currentLayout;
+}
+```
+
+So funktioniert es für diskrete (synchron), kontinuierliche (fcose, später) und
+asynchrone (elk) Layouts gleichermaßen; der Fallback auf fcose feuert ebenfalls
+`layoutstop`.
+
+---
+
+## 7. Zusammenfassung in drei Sätzen
+
+Weil ein voller Re-Layout alle Knoten verschiebt, merkt sich C# die Id des Knotens, von dem
+die Aktion ausging, in einem transienten `GraphViewState`-Hint, den genau der nächste
+Render konsumiert. `WebGraphControl` reicht ihn als `renderGraph(graph, focusId)` an JS,
+das nach `layoutstop` animiert auf den Knoten zentriert, in ein lesbares Zoom-Band geht und
+ihn kurz aufblinken lässt. Der Hint wird nur gesetzt, wenn wirklich etwas hinzukommt und es
+einen eindeutigen Anker gibt — sonst bleibt es beim bisherigen Fit-to-Graph.
+
+---
+
 # Web Graph View: Initialisierung des `WebGraphControl`
 
 Im Fokus: die asynchrone WebView2-Initialisierung, das „ready"-Handshake zwischen C# und

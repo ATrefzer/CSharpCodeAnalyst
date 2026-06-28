@@ -761,6 +761,10 @@ public partial class WebGraphControl : UserControl
         // A re-render rebuilds all elements, so any selection in the web view is gone.
         _state.SetSelection([]);
 
+        // The node a render should re-center on after the layout settles (anchor of an
+        // explore action). Consume it now so it applies to exactly this render.
+        var focusJson = JsonSerializer.Serialize(_state.ConsumeFocusHint());
+
         var data = WebGraphBuilder.Build(_state.CodeGraph, _state.IsCollapsed, _state.ShowFlat, _state.ShowInformationFlow, _state.HideFilter, _state.PresentationState);
 
         // Large-graph guard (restored from the old MSAGL GraphViewer): if too many nodes
@@ -775,7 +779,7 @@ public partial class WebGraphControl : UserControl
         }
 
         _edgeInfos = data.Edges;
-        _ = core.ExecuteScriptAsync($"renderGraph({data.Json});");
+        _ = core.ExecuteScriptAsync($"renderGraph({data.Json}, {focusJson});");
     }
 
     /// <summary>

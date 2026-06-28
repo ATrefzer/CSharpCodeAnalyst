@@ -19,6 +19,11 @@ public class GraphViewState
 
     private readonly HashSet<string> _selectedIds = [];
 
+    // Transient render directive: the node a render should center / zoom onto once the
+    // layout settles (e.g. the element an explore command was invoked on). Set by the
+    // command, consumed by the next render. Null = keep the default fit-to-graph behavior.
+    private string? _focusHint;
+
     public CodeGraph.Graph.CodeGraph CodeGraph { get; private set; } = new();
     public PresentationState PresentationState { get; private set; } = new();
     public GraphHideFilter HideFilter { get; private set; } = new();
@@ -106,6 +111,26 @@ public class GraphViewState
     {
         HideFilter = filter;
         RaiseChanged();
+    }
+
+    /// <summary>
+    ///     Marks the node a following render should center / zoom onto (the anchor of an
+    ///     explore action). Overwrites any previous, unconsumed hint.
+    /// </summary>
+    public void SetFocusHint(string? id)
+    {
+        _focusHint = id;
+    }
+
+    /// <summary>
+    ///     Returns the pending focus hint and clears it, so it affects exactly the next render
+    ///     and not later, unrelated ones (collapse, decorations, …).
+    /// </summary>
+    public string? ConsumeFocusHint()
+    {
+        var hint = _focusHint;
+        _focusHint = null;
+        return hint;
     }
 
     public void SetSelection(IEnumerable<string> ids)

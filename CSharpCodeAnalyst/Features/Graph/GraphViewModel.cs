@@ -577,41 +577,41 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void FindAllOutgoingRelationships(CodeElement element)
     {
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationships);
-        AddToGraph(result.Elements, result.Relationships);
+        AddToGraph(result.Elements, result.Relationships, focusId: element.Id);
     }
 
     private void FindAllIncomingRelationships(CodeElement element)
     {
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindIncomingRelationships);
-        AddToGraph(result.Elements, result.Relationships);
+        AddToGraph(result.Elements, result.Relationships, focusId: element.Id);
     }
 
     private void FindAllOutgoingRelationshipsDeep(CodeElement element)
     {
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationshipsDeep);
-        AddToGraph(result.Elements, result.Relationships, true);
+        AddToGraph(result.Elements, result.Relationships, true, element.Id);
     }
 
     private void FindAllIncomingRelationshipsDeep(CodeElement element)
     {
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindIncomingRelationshipsDeep);
-        AddToGraph(result.Elements, result.Relationships, true);
+        AddToGraph(result.Elements, result.Relationships, true, element.Id);
     }
 
     private void FindSpecializations(CodeElement method)
     {
         var result = _explorer.ExploreWithAccessors(method.Id, _explorer.FindSpecializations);
-        AddToGraph(result.Elements, result.Relationships);
+        AddToGraph(result.Elements, result.Relationships, focusId: method.Id);
     }
 
     private void FindAbstractions(CodeElement method)
     {
         var result = _explorer.ExploreWithAccessors(method.Id, _explorer.FindAbstractions);
-        AddToGraph(result.Elements, result.Relationships);
+        AddToGraph(result.Elements, result.Relationships, focusId: method.Id);
     }
 
     private void AddToGraph(IEnumerable<CodeElement> originalCodeElements, IEnumerable<Relationship> relationships,
-        bool addCollapsed = false)
+        bool addCollapsed = false, string? focusId = null)
     {
         var elementsToAdd = originalCodeElements.ToList();
         var relationshipsToAdd = relationships.ToList();
@@ -623,6 +623,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         PushUndo();
+
+        // Let the render re-center on the anchor (e.g. the node an explore was invoked on),
+        // so a full re-layout does not leave the user lost. Consumed by the next render.
+        _state.SetFocusHint(focusId);
 
         // Apply "Automatically add containing type" setting
         if (_settings.AutomaticallyAddContainingType)
@@ -650,7 +654,12 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     internal void HandleAddNodeToGraphRequest(AddNodeToGraphRequest request)
     {
-        AddToGraph(request.Nodes.ToList(), [], request.AddCollapsed);
+        var nodes = request.Nodes.ToList();
+
+        // Re-center on the added node when it is a single one (e.g. dragged from the tree);
+        // for a batch there is no single anchor.
+        var focusId = nodes.Count == 1 ? nodes[0].Id : null;
+        AddToGraph(nodes, [], request.AddCollapsed, focusId);
     }
 
     /// <summary>
@@ -689,7 +698,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // per-element context-menu commands do.
         var addCollapsed = request.Direction is ExploreDirection.OutgoingRelationshipsDeep
             or ExploreDirection.IncomingRelationshipsDeep;
-        AddToGraph(elements, relationships, addCollapsed);
+
+        // With a single selected node we can re-center on it; for a multi-selection there
+        // is no single anchor, so we keep the default fit-to-graph.
+        var focusId = selectedIds.Count == 1 ? selectedIds[0] : null;
+        AddToGraph(elements, relationships, addCollapsed, focusId);
     }
 
     internal void Clear()
@@ -707,7 +720,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var callee = _explorer.ExploreWithAccessors(method.Id, _explorer.FindIncomingCalls);
-        AddToGraph(callee.Elements, callee.Relationships);
+        AddToGraph(callee.Elements, callee.Relationships, focusId: method.Id);
     }
 
     internal void FindIncomingCallsRecursive(CodeElement method)
@@ -718,7 +731,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var callers = _explorer.ExploreWithAccessors(method.Id, _explorer.FindIncomingCallsRecursive);
-        AddToGraph(callers.Elements, callers.Relationships);
+        AddToGraph(callers.Elements, callers.Relationships, focusId: method.Id);
     }
 
 
@@ -730,7 +743,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FollowIncomingCallsHeuristically);
-        AddToGraph(result.Elements, result.Relationships);
+        AddToGraph(result.Elements, result.Relationships, focusId: element.Id);
     }
 
     private void FindInheritanceTree(CodeElement? type)
@@ -742,7 +755,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         var relationships =
             _explorer.FindFullInheritanceTree(type.Id);
-        AddToGraph(relationships.Elements, relationships.Relationships);
+        AddToGraph(relationships.Elements, relationships.Relationships, focusId: type.Id);
     }
 
     private void FindOutgoingCalls(CodeElement? method)
@@ -753,7 +766,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
 
         var callers = _explorer.ExploreWithAccessors(method.Id, _explorer.FindOutgoingCalls);
-        AddToGraph(callers.Elements, callers.Relationships);
+        AddToGraph(callers.Elements, callers.Relationships, focusId: method.Id);
     }
 
     private static bool IsCallable(CodeElement? method)

@@ -117,18 +117,27 @@ function getLayout() {
 // extension is not registered (its offline lib was not bundled), Cytoscape throws when
 // the layout name is unknown — we catch that and fall back to fcose so rendering never
 // breaks. Returns the running layout (or null if even fcose somehow failed).
-function runLayout() {
+// onStop (optional) runs once the layout has positioned everything. It is attached BEFORE
+// run() because discrete layouts (e.g. dagre) emit "layoutstop" synchronously inside run(),
+// which a listener added afterwards would miss.
+function runLayout(onStop) {
     if (currentLayout) {
         currentLayout.stop();
     }
 
     try {
         currentLayout = cy.layout(getLayout());
+        if (onStop) {
+            currentLayout.one("layoutstop", onStop);
+        }
         currentLayout.run();
     } catch (err) {
         console.warn("Layout '" + currentLayoutName + "' failed, falling back to fcose:", err);
         currentLayoutName = "fcose";
         currentLayout = cy.layout(LAYOUTS["fcose"]);
+        if (onStop) {
+            currentLayout.one("layoutstop", onStop);
+        }
         currentLayout.run();
     }
 
@@ -199,6 +208,11 @@ const cytoscapeStyle = [
     {
         selector: "node:selected",
         style: { "border-width": 3, "border-color": "#ff7f0e" },
+    },
+    {
+        // Transient halo flashed on the anchor node after an explore re-layout (focusNode).
+        selector: "node.focus-flash",
+        style: { "overlay-color": "#ff7f0e", "overlay-opacity": 0.35, "overlay-padding": 8 },
     },
     // Edges are plain black. A bundled edge (count > 1) shows the number of underlying
     // relationships as a label, mirroring how the WPF/MSAGL view marks edge strength.
@@ -346,8 +360,10 @@ function updateNavigator() {
 }
 
 // ---- Bridge: C# -> JS -------------------------------------------------------
-// C# calls this via ExecuteScriptAsync with { nodes, edges }.
-window.renderGraph = function (graph) {
+// C# calls this via ExecuteScriptAsync with { nodes, edges } and an optional focusId:
+// the node to re-center on once the layout settles (the anchor of an explore action), so
+// a full re-layout does not leave the user lost. null = keep the default fit-to-graph.
+window.renderGraph = function (graph, focusId) {
     dismissHintIfGraph(graph);
 
     const elements = [];
@@ -369,12 +385,34 @@ window.renderGraph = function (graph) {
     cy.add(elements);
     cy.resize();
 
-    // Cancel a still-running layout before starting a new one (with safe fallback).
-    runLayout();
+    // Cancel a still-running layout before starting a new one (with safe fallback). When an
+    // anchor is given, re-center on it once the layout settles (and the layout's fit ran),
+    // so a full re-layout does not leave the user lost.
+    runLayout(focusId ? () => focusNode(focusId) : undefined);
 
     // Show/lazily-create the minimap (or hide it when the graph is empty).
     updateNavigator();
 };
+
+// Centers and gently zooms onto a node, then flashes it so the eye finds it. Called after
+// a re-layout so the user keeps track of the node an explore action started from.
+function focusNode(id) {
+    const node = cy.getElementById(id);
+    if (!node || node.empty()) {
+        return; // stale id (e.g. the node was filtered out) -> leave the fit as is
+    }
+
+    // Clamp the zoom into a readable band: at least 0.85 (so a large, fit-zoomed-out graph
+    // zooms in enough to read the node) and at most 1.3 (so a tiny graph isn't over-zoomed).
+    const targetZoom = Math.min(1.3, Math.max(cy.zoom(), 0.85));
+    cy.animate(
+        { center: { eles: node }, zoom: targetZoom },
+        { duration: 350, easing: "ease-out-cubic" }
+    );
+
+    // Soft orange halo for a moment (flashClass adds the class, then removes it after Nms).
+    node.flashClass("focus-flash", 800);
+}
 
 // Update flag / search decorations on the EXISTING elements (no re-layout). C# pushes this
 // whenever the PresentationState decorations change; styling reacts to the data flags.
