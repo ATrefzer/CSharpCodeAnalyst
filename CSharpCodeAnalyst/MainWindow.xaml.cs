@@ -114,19 +114,6 @@ public partial class MainWindow
         base.OnClosing(e);
     }
 
-    private void OnKeyDown(object sender, KeyEventArgs e)
-    {
-        if (WorkingArea.SelectedIndex == TabIndices.Right.WebView)
-        {
-            var mainVm = DataContext as MainViewModel;
-            var graphVm = mainVm?.GraphViewModel;
-            if (graphVm != null && graphVm.TryHandleKeyDown(e))
-            {
-                e.Handled = true;
-            }
-        }
-    }
-
     private void WebSearchBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         // Focus the box (and select its text) when the search row slides open.

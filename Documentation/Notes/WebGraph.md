@@ -712,6 +712,10 @@ private List<CodeElement> GetSelectedElements(CodeGraph.Graph.CodeGraph graph) =
 > der Canvas-Werkzeugleiste haben diese Rolle übernommen. Das Hintergrundmenü zeigt
 > daher meist nichts. Die Auswahl-Mechanik ist aber bewusst schon vorhanden, weil die
 > Werkzeugleisten-Buttons später dieselbe `_selectedIds` lesen werden.
+>
+> Genau dieselbe kanonische Auswahl konsumieren bereits die **Tastatur-Shortcuts**
+> (↑↓ / Page Up/Down / Entf) — siehe die eigene Sektion „Tastatur-Shortcuts (Explore &
+> Delete)". Sie sind das erste Feature, das `_selectedIds` aktiv nutzt.
 
 ---
 
@@ -759,6 +763,310 @@ Graphen ändert — woraufhin sich beide Ansichten über `GraphChanged` aktualis
 
 
 
+
+# Web Graph View: Tastatur-Shortcuts (Explore & Delete)
+
+Diese Doku erklärt die Tastatur-Bedienung im Web-Tab: **warum sie in JavaScript und
+nicht in WPF lebt**, wie ein Tastendruck von der Cytoscape-Seite bis zur Graph-Änderung
+fließt, und welche Design-Entscheidungen dahinterstecken. Sie baut direkt auf der
+Auswahl-Mechanik aus „Kontextmenü & Auswahl", Abschnitt 8 auf — die Shortcuts arbeiten
+auf **derselben kanonischen Auswahl** (`_selectedIds` / `GraphViewState.SelectedIds`).
+
+Beteiligte Dateien:
+
+- `CSharpCodeAnalyst/Features/WebGraph/Web/app.js` — fängt die Tasten ab (JS-Seite).
+- `CSharpCodeAnalyst/Features/WebGraph/WebGraphControl.xaml.cs` — die Brücke (C#).
+- `CSharpCodeAnalyst/Shared/Messages/ExploreSelectedRequest.cs`,
+  `RemoveSelectedElementsRequest.cs` — die Bus-Nachrichten.
+- `CSharpCodeAnalyst/Features/Graph/GraphViewModel.cs` — führt die Aktion aus
+  (besitzt `_explorer`, den Undo-Stack und `AddToGraph`).
+- `CSharpCodeAnalyst/App.xaml.cs` — verdrahtet die Subscriptions.
+
+---
+
+## 1. Was die Tasten tun
+
+| Taste            | Aktion                              | Nachricht                       |
+| ---------------- | ----------------------------------- | ------------------------------- |
+| **↑** Arrow Up   | Find all **outgoing** relationships | `ExploreSelectedRequest`        |
+| **↓** Arrow Down | Find all **incoming** relationships | `ExploreSelectedRequest`        |
+| **⇞** Page Up    | Outgoing relationships **deep**     | `ExploreSelectedRequest`        |
+| **⇟** Page Down  | Incoming relationships **deep**     | `ExploreSelectedRequest`        |
+| **Entf** Delete  | Selektierte Elemente (mit Kindern) entfernen | `RemoveSelectedElementsRequest` |
+
+Alle fünf operieren auf **allen** gerade selektierten Knoten gleichzeitig. Das
+Erweitern von Abhängigkeiten („was ruft das auf / was ruft hier rein") ist beim
+Erforschen der häufigste Schritt — deshalb liegt er auf den Pfeiltasten direkt an der
+Auswahl, ohne den Umweg übers Kontextmenü Knoten für Knoten.
+
+---
+
+## 2. Der Knackpunkt: Warum JavaScript statt WPF?
+
+Das ist die eigentliche Designentscheidung, und sie hängt direkt am **Airspace-Thema**
+(siehe Abschnitt „Airspace"): Der WebView2 ist ein **eigenes Fenster-Handle (HWND)**, in
+dem Chromium läuft — ein separater Prozess neben WPF.
+
+Daraus folgt für die Tastatur:
+
+- **Hat der Cytoscape-Canvas den Fokus** — und genau das ist der Fall, *unmittelbar
+  nachdem* man einen Knoten angeklickt/selektiert hat —, dann gehen Tastendrücke an
+  Chromium. Gewöhnliche Tasten (Pfeile, Page, Entf) werden dort verarbeitet und
+  erreichen die WPF-Eingabekette **nicht**. Ein `Window.KeyDown`-Handler in WPF würde
+  also **nicht feuern**.
+- Ein WPF-Handler greift nur, wenn der Fokus auf einem **WPF-Element** liegt — also
+  gerade *nicht* im Moment „ich habe eben im Canvas selektiert und will jetzt
+  expandieren". Für genau den Arbeitsfluss wäre er also blind.
+
+Deshalb hängt der Listener auf der **JS-Seite**, wo der Canvas-Fokus liegt:
+
+```js
+document.addEventListener("keydown", evt => { ... });
+```
+
+> **Historie:** Die **Entf**-Taste war früher anders gelöst — über
+> `MainWindow.KeyDown="OnKeyDown"` → `GraphViewModel.TryHandleKeyDown(e)`. Das hatte
+> genau diese Fokus-Lücke (griff nicht bei Canvas-Fokus). Beim Einführen der
+> Explore-Shortcuts wurde Entf deshalb **auf denselben JS-Pfad migriert**, und der
+> WPF-Weg (`OnKeyDown`, `TryHandleKeyDown`, das `KeyDown="OnKeyDown"`-Attribut) wurde
+> entfernt. Seitdem laufen **alle** Graph-Tastenkürzel über einen einzigen,
+> fokus-korrekten Weg.
+
+---
+
+## 3. Der Gesamtablauf (Sequenz)
+
+```
+   Tastendruck im Web-Tab (Canvas hat Fokus)
+            │
+            ▼
+[JS] document "keydown"
+       • ist die Taste gemappt? (EXPLORE_KEYS oder "Delete")   ─ nein ─► nichts tun
+       • gibt es überhaupt eine Auswahl?                       ─ nein ─► nichts tun
+       • evt.preventDefault()  (kein Seiten-Scroll)
+       • postToHost({ type:"exploreSelected", action })  ODER  { type:"deleteSelected" }
+            │
+            ▼
+   window.chrome.webview.postMessage(...)            ← die Brücke JS → C#
+            │
+            ▼
+[C#] CoreWebView2.WebMessageReceived  (UI-Thread)
+       • JSON → HostMessage  (Type, Action, …)
+       • switch(Type):
+            "exploreSelected" → ExploreSelected(message.Action)
+            "deleteSelected"  → Publish(new RemoveSelectedElementsRequest())
+            │
+            ▼
+[C#] MessageBus.Publish(ExploreSelectedRequest | RemoveSelectedElementsRequest)
+            │
+            ▼
+[C#] GraphViewModel.HandleExploreSelectedRequest / HandleRemoveSelectedRequest
+       • liest _state.SelectedIds  (die kanonische Auswahl aus Abschnitt 8)
+       • Explore: für jede Id _explorer.ExploreWithAccessors(...), Ergebnisse mergen
+       • AddToGraph(...)  bzw.  OnRemoveSelectedWithChildren()
+            │
+            ▼
+   GraphViewState.Changed  → Web-Tab (und MSAGL) rendern neu
+```
+
+Wichtig, wie beim Kontextmenü: Es fließen **keine Koordinaten** und **keine
+Auswahl-Daten** mit dem Tastendruck. Die Auswahl ist bereits *vorab* gemeldet und in C#
+kanonisch vorhanden (Abschnitt 8). Der Tastendruck trägt nur die **Absicht** („folge
+ausgehenden Relationships").
+
+---
+
+## 4. Schritt 1 — JavaScript fängt die Taste ab
+
+In `app.js`, direkt vor dem `ready`-Handshake:
+
+```js
+// Pfeiltasten -> Explore-Richtung; Page-Tasten -> die "deep"-Varianten.
+const EXPLORE_KEYS = {
+    "ArrowUp":   "outgoingRelationships",
+    "ArrowDown": "incomingRelationships",
+    "PageUp":    "outgoingDeep",
+    "PageDown":  "incomingDeep",
+};
+
+document.addEventListener("keydown", evt => {
+    const action = EXPLORE_KEYS[evt.key];
+    const isDelete = evt.key === "Delete";
+    if (!action && !isDelete) {
+        return;                                   // uninteressante Taste
+    }
+
+    // Keine Auswahl -> Taste ihr Normalverhalten lassen (und keinen No-op-Roundtrip).
+    if (cy.$("node:selected").length === 0) {
+        return;
+    }
+
+    evt.preventDefault();                          // kein versehentliches Scrollen
+    if (isDelete) {
+        postToHost({ type: "deleteSelected" });
+    } else {
+        postToHost({ type: "exploreSelected", action: action });
+    }
+});
+```
+
+Drei bewusste Feinheiten:
+
+- **Früh aussteigen bei fremden Tasten.** Der Listener hängt am `document`, sieht also
+  jeden Tastendruck. Alles außerhalb der Map (und Entf) wird sofort durchgelassen — der
+  Handler ist damit „unsichtbar" für normale Eingaben.
+- **Leere Auswahl = nichts tun.** Ohne selektierte Knoten gäbe es nichts zu erforschen
+  oder zu löschen. Wir verzichten dann auf `preventDefault` *und* auf die Nachricht —
+  die Taste behält ihr Standardverhalten, und C# bekommt keinen No-op-Roundtrip.
+- **`preventDefault()` nur im Trefferfall.** Page Up/Down und Pfeile könnten sonst die
+  Seite scrollen. Da der Canvas die ganze Fläche füllt, ist das kosmetisch, aber sauber.
+
+`postToHost` ist — wie überall im Web-Tab — die einzige Ausgangstür nach C#
+(`window.chrome.webview.postMessage`, von WebView2 injiziert).
+
+---
+
+## 5. Schritt 2 — C# empfängt und verzweigt
+
+Im selben `WebMessageReceived`-Switch wie Klicks und Kontextmenü
+(`WebGraphControl.OnWebMessageReceived`):
+
+```csharp
+case "exploreSelected":
+    ExploreSelected(message.Action);
+    break;
+
+case "deleteSelected":
+    _publisher?.Publish(new RemoveSelectedElementsRequest());
+    break;
+```
+
+`HostMessage` trägt dafür ein zusätzliches Feld `Action` (string). `ExploreSelected`
+übersetzt den Action-String in das Enum und publiziert:
+
+```csharp
+private void ExploreSelected(string? action)
+{
+    ExploreDirection? direction = action switch
+    {
+        "outgoingRelationships" => ExploreDirection.OutgoingRelationships,
+        "incomingRelationships" => ExploreDirection.IncomingRelationships,
+        "outgoingDeep"          => ExploreDirection.OutgoingRelationshipsDeep,
+        "incomingDeep"          => ExploreDirection.IncomingRelationshipsDeep,
+        _                       => null
+    };
+    if (direction is null) return;                 // unbekannte Aktion ignorieren
+
+    _publisher.Publish(new ExploreSelectedRequest(direction.Value));
+}
+```
+
+### Warum eine Bus-Nachricht statt eines direkten Aufrufs?
+
+Weil `WebGraphControl` ein **Render-Adapter** ist: Es kennt nur `_state`
+(`GraphViewState`), `_publisher` und `_settings`. Die eigentliche Logik — den
+`ICodeGraphExplorer`, den **Undo-Stack** und `AddToGraph` — besitzt der
+`GraphViewModel`. Die Brücke übersetzt den Tastendruck deshalb in eine **bestehende-Art**
+von Request und publiziert ihn, genau wie `AddNodeToGraphRequest`. So bleibt die
+Render-Schicht dünn und die Graph-Logik an einer Stelle. (Dieselbe Arbeitsteilung wie
+beim Kontextmenü: JS meldet die *Absicht*, C# führt sie auf dem geteilten Modell aus.)
+
+---
+
+## 6. Schritt 3 — `GraphViewModel` führt aus
+
+Beide Handler lesen die **kanonische Auswahl** `_state.SelectedIds` (gefüttert von den
+`selectionChanged`-Nachrichten aus Abschnitt 8) — die Auswahl reist also *nicht* mit dem
+Tastendruck.
+
+**Explore** (`HandleExploreSelectedRequest`):
+
+```csharp
+Func<string, SearchResult> explore = request.Direction switch
+{
+    ExploreDirection.OutgoingRelationships     => _explorer.FindOutgoingRelationships,
+    ExploreDirection.IncomingRelationships     => _explorer.FindIncomingRelationships,
+    ExploreDirection.OutgoingRelationshipsDeep => _explorer.FindOutgoingRelationshipsDeep,
+    ExploreDirection.IncomingRelationshipsDeep => _explorer.FindIncomingRelationshipsDeep,
+    _ => _ => new SearchResult([], [])
+};
+
+var elements = new HashSet<CodeElement>();
+var relationships = new HashSet<Relationship>();
+foreach (var id in _state.SelectedIds)
+{
+    var result = _explorer.ExploreWithAccessors(id, explore);   // Property -> Accessoren
+    elements.UnionWith(result.Elements);
+    relationships.UnionWith(result.Relationships);
+}
+
+var addCollapsed = request.Direction is ExploreDirection.OutgoingRelationshipsDeep
+    or ExploreDirection.IncomingRelationshipsDeep;
+AddToGraph(elements, relationships, addCollapsed);                // EIN Undo-Schritt
+```
+
+Vier Punkte, die das Verhalten ausmachen:
+
+- **Alles in einem Rutsch.** Über alle Selektierten wird gesammelt und **einmal**
+  `AddToGraph` aufgerufen → die ganze Erweiterung ist ein **einziger Undo-Schritt**
+  (nicht einer pro Knoten).
+- **Properties ziehen ihre Accessoren mit.** `ExploreWithAccessors` expandiert ein
+  selektiertes Property automatisch um seine `get_`/`set_`-Accessoren und nimmt diese
+  Knoten mit ins Ergebnis (siehe die Explorer-Doku zu `GetWithPropertyAccessors` /
+  `ExploreWithAccessors`). Direkt selektierte Accessoren bleiben für sich.
+- **Deep collapsed.** Die „deep"-Varianten können große Teilbäume hereinholen; sie
+  werden — wie die gleichnamigen Kontextmenü-Commands — **eingeklappt** hinzugefügt.
+- **`AddToGraph` ist no-op-fest.** Bei leerem Ergebnis löst es keinen Undo aus und
+  wendet zusätzlich die Einstellung „Automatically add containing type" an.
+
+**Delete** (`HandleRemoveSelectedRequest`) ist ein dünner Vorbau auf die bereits
+vorhandene Logik, die ihrerseits `_state.SelectedIds` liest:
+
+```csharp
+internal void HandleRemoveSelectedRequest(RemoveSelectedElementsRequest request)
+{
+    OnRemoveSelectedWithChildren();   // PushUndo + Kinder einsammeln + RemoveElements
+}
+```
+
+Danach feuert in beiden Fällen `GraphViewState.Changed`, worauf sich Web- **und**
+MSAGL-Ansicht neu aufbauen.
+
+> **Nebenwirkung der Auswahl:** Ein Re-Render baut alle Elemente neu auf, dabei wird die
+> Web-Auswahl geleert (`_state.SetSelection([])`, vgl. Abschnitt 8). Nach einer
+> Explore-/Delete-Aktion ist die vorige Selektion also weg — man selektiert für den
+> nächsten Schritt neu. Das ist gewollt und identisch zum sonstigen Verhalten.
+
+---
+
+## 7. Verdrahtung beim Start
+
+Wie alle Bus-Handler werden die beiden Abos einmalig in `App.StartUi` gesetzt:
+
+```csharp
+messaging.Subscribe<ExploreSelectedRequest>(graphViewModel.HandleExploreSelectedRequest);
+messaging.Subscribe<RemoveSelectedElementsRequest>(graphViewModel.HandleRemoveSelectedRequest);
+```
+
+Die Nachrichten selbst sind schlanke Records in `Shared/Messages/`; `ExploreDirection`
+ist ein Enum mit den vier Richtungen. Mehr braucht es nicht — die Brücke erfindet keine
+neue Interaktion, sie übersetzt nur einen Tastendruck in einen bestehenden
+Modell-Request.
+
+---
+
+## 8. Zusammenfassung in drei Sätzen
+
+Die Graph-Tastenkürzel liegen in JavaScript, weil der WebView2 als eigenes HWND bei
+Canvas-Fokus alle gewöhnlichen Tasten selbst bekommt — ein WPF-`KeyDown` würde dann nie
+feuern. JS prüft nur „gemappte Taste + Auswahl vorhanden" und meldet die *Absicht*
+(`exploreSelected`/`deleteSelected`); C# publiziert daraus eine Bus-Nachricht, die der
+`GraphViewModel` auf der kanonischen Auswahl `_state.SelectedIds` ausführt (Explore via
+`ExploreWithAccessors`, ein Undo-Schritt; bzw. `OnRemoveSelectedWithChildren`). Die
+Modelländerung läuft über `GraphViewState.Changed` zurück in **beide** Ansichten —
+dieselbe Naht wie beim Kontextmenü.
+
+---
 
 # Web Graph View: Initialisierung des `WebGraphControl`
 

@@ -562,6 +562,14 @@ public partial class WebGraphControl : UserControl
                 UpdateSelection(message.Ids);
                 break;
 
+            case "exploreSelected":
+                ExploreSelected(message.Action);
+                break;
+
+            case "deleteSelected":
+                _publisher?.Publish(new RemoveSelectedElementsRequest());
+                break;
+
             case "contextMenu":
                 ShowContextMenu(message);
                 break;
@@ -643,6 +651,36 @@ public partial class WebGraphControl : UserControl
         // The web selection is now canonical in the shared model; feed it there so the
         // toolbar / global commands (in the view model) act on it.
         _state?.SetSelection(ids ?? []);
+    }
+
+    /// <summary>
+    ///     A keyboard shortcut in the web graph asked to expand the current selection by
+    ///     following relationships. The actual exploration lives in the graph view model
+    ///     (it owns the explorer, the undo stack and AddToGraph), so we only translate the
+    ///     JS action into the corresponding request and publish it.
+    /// </summary>
+    private void ExploreSelected(string? action)
+    {
+        if (_publisher is null)
+        {
+            return;
+        }
+
+        ExploreDirection? direction = action switch
+        {
+            "outgoingRelationships" => ExploreDirection.OutgoingRelationships,
+            "incomingRelationships" => ExploreDirection.IncomingRelationships,
+            "outgoingDeep" => ExploreDirection.OutgoingRelationshipsDeep,
+            "incomingDeep" => ExploreDirection.IncomingRelationshipsDeep,
+            _ => null
+        };
+
+        if (direction is null)
+        {
+            return;
+        }
+
+        _publisher.Publish(new ExploreSelectedRequest(direction.Value));
     }
 
     /// <summary>
@@ -760,5 +798,8 @@ public partial class WebGraphControl : UserControl
         // Node id, or — for edge messages — the edge id (source|target or source|type|target).
         public string? Id { get; set; }
         public List<string>? Ids { get; set; }
+
+        // For "exploreSelected": which exploration the keyboard shortcut requested.
+        public string? Action { get; set; }
     }
 }

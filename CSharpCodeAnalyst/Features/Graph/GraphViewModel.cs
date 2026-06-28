@@ -653,6 +653,45 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         AddToGraph(request.Nodes.ToList(), [], request.AddCollapsed);
     }
 
+    /// <summary>
+    ///     Expands every selected element by following relationships in the requested
+    ///     direction (the keyboard shortcuts in the web graph). All selected elements are
+    ///     processed together so the whole expansion is a single undo step; properties also
+    ///     pull in their accessors via <see cref="ICodeGraphExplorer.ExploreWithAccessors" />.
+    /// </summary>
+    internal void HandleExploreSelectedRequest(ExploreSelectedRequest request)
+    {
+        var selectedIds = _state.SelectedIds.ToList();
+        if (selectedIds.Count == 0)
+        {
+            return;
+        }
+
+        Func<string, SearchResult> explore = request.Direction switch
+        {
+            ExploreDirection.OutgoingRelationships => _explorer.FindOutgoingRelationships,
+            ExploreDirection.IncomingRelationships => _explorer.FindIncomingRelationships,
+            ExploreDirection.OutgoingRelationshipsDeep => _explorer.FindOutgoingRelationshipsDeep,
+            ExploreDirection.IncomingRelationshipsDeep => _explorer.FindIncomingRelationshipsDeep,
+            _ => _ => new SearchResult([], [])
+        };
+
+        var elements = new HashSet<CodeElement>();
+        var relationships = new HashSet<Relationship>();
+        foreach (var id in selectedIds)
+        {
+            var result = _explorer.ExploreWithAccessors(id, explore);
+            elements.UnionWith(result.Elements);
+            relationships.UnionWith(result.Relationships);
+        }
+
+        // The deep variants can pull in large subtrees; add them collapsed like the
+        // per-element context-menu commands do.
+        var addCollapsed = request.Direction is ExploreDirection.OutgoingRelationshipsDeep
+            or ExploreDirection.IncomingRelationshipsDeep;
+        AddToGraph(elements, relationships, addCollapsed);
+    }
+
     internal void Clear()
     {
         PushUndo();
@@ -794,15 +833,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         }
     }
 
-    public bool TryHandleKeyDown(KeyEventArgs keyEventArgs)
+    internal void HandleRemoveSelectedRequest(RemoveSelectedElementsRequest request)
     {
-        if (keyEventArgs.Key == Key.Delete)
-        {
-            OnRemoveSelectedWithChildren();
-            return true;
-        }
-
-        return false;
+        OnRemoveSelectedWithChildren();
     }
 
     private void OpenGraphHideDialog()

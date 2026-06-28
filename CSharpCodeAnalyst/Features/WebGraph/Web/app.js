@@ -527,5 +527,38 @@ function reportSelection() {
 
 cy.on("select unselect", "node", reportSelection);
 
+// ---- Keyboard: expand the selection by following relationships --------------
+// Arrow Up/Down follow all outgoing/incoming relationships of every selected node;
+// Page Up/Down do the "deep" variants (whole subtree). C# runs the exploration on
+// the canonical selection it already holds, so we only forward the requested action.
+const EXPLORE_KEYS = {
+    "ArrowUp": "outgoingRelationships",
+    "ArrowDown": "incomingRelationships",
+    "PageUp": "outgoingDeep",
+    "PageDown": "incomingDeep",
+};
+
+document.addEventListener("keydown", evt => {
+    const action = EXPLORE_KEYS[evt.key];
+    const isDelete = evt.key === "Delete";
+    if (!action && !isDelete) {
+        return;
+    }
+
+    // Nothing selected -> let the key do its normal thing (and avoid a no-op round-trip).
+    if (cy.$("node:selected").length === 0) {
+        return;
+    }
+
+    evt.preventDefault();
+    if (isDelete) {
+        // Remove the selected elements (with children). Handled in JS like the explore
+        // shortcuts so it also works while the canvas has keyboard focus.
+        postToHost({ type: "deleteSelected" });
+    } else {
+        postToHost({ type: "exploreSelected", action: action });
+    }
+});
+
 // Tell the host we are ready to receive renderGraph() calls.
 postToHost({ type: "ready" });

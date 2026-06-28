@@ -133,6 +133,8 @@ public partial class App
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
         messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
+        messaging.Subscribe<ExploreSelectedRequest>(graphViewModel.HandleExploreSelectedRequest);
+        messaging.Subscribe<RemoveSelectedElementsRequest>(graphViewModel.HandleRemoveSelectedRequest);
         messaging.Subscribe<QuickInfoUpdateRequest>(infoPanelViewModel.HandleUpdateQuickInfo);
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
