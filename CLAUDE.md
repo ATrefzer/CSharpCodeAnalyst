@@ -66,7 +66,17 @@ Every project inherits a `Microsoft.Build.Framework` `PackageReference` with `Ex
 The UI is not built on a DI container. `App.StartUi` wires up singletons manually (one `MessageBus`, one `CodeGraphExplorer`, one `GraphViewer`, etc.) and injects them into view models. Cross-view-model communication goes through `Shared/Messages/MessageBus.cs` (`Publish`/`Subscribe` on strongly-typed message records in `Shared/Messages/`). When adding a new cross-feature interaction, prefer defining a new message type over introducing direct view-model references.
 
 ### Graph rendering
-`Features/Graph/` wraps Microsoft Automatic Graph Layout (MSAGL). `MsaglHierarchicalBuilder` vs. `MsaglFlatBuilder` produce the graph for nested vs. flat views; `GraphViewer` hosts the MSAGL WPF control and routes clicks/context menus back to commands implementing `ICodeElementContextCommand` / `IRelationshipContextCommand` / `IGlobalCommand`. The ~200-element soft limit mentioned in the README is enforced via `AppSettings.WarningCodeElementLimit`.
+`Features/WebGraph/` replaces the former MSAGL renderer. The graph is displayed in an embedded Chromium browser (`Microsoft.Web.WebView2`) using **Cytoscape.js**. Assets (HTML, CSS, `cytoscape.min.js`, layout extensions) live in `Features/WebGraph/Web/` and are served offline via a WebView2 virtual-host mapping (`https://csharp-code-analyst.local/`).
+
+**Data flow (C# → JS):** `WebGraphBuilder.Build` converts the current `CodeGraph` + `PresentationState` into a `{nodes, edges}` JSON payload. `WebGraphControl` calls `ExecuteScriptAsync("renderGraph(<json>)")` once JS signals readiness with a `{type:"ready"}` message.
+
+**Compound nodes:** Every `CodeElement.Parent` link maps directly to a Cytoscape `parent` field, so namespaces, classes, and other containers render with their children nested inside — no extra hierarchy logic needed.
+
+**Event routing (JS → C#):** Clicks, double-clicks, right-clicks, and selection changes are `postMessage`-ed to C# via `window.chrome.webview.postMessage(...)` and received in `CoreWebView2.WebMessageReceived`. Context menus are WPF `ContextMenu`s built by `WebContextMenuFactory` from the existing command objects (`ICodeElementContextCommand` / `IRelationshipContextCommand` / `IGlobalCommand`), opened with `PlacementMode.MousePoint` over the WebView2 control.
+
+**Initialisation:** `WebGraphControl` (a `UserControl` wrapping `WebView2`) must be in the WPF visual tree to initialise, so the web tab is tab index 0 in `MainWindow` (eager-init on startup). The WebView2 user-data folder goes to `%LocalAppData%\CSharpCodeAnalyst\WebView2`.
+
+The ~200-element soft limit (`AppSettings.WarningCodeElementLimit`) still applies; Cytoscape's canvas-based renderer handles it comfortably with `fcose` or `dagre` layouts.
 
 ### AI Advisor
 `Features/Ai/AiClient.cs` talks to any OpenAI-compatible endpoint (including Anthropic, Ollama). Credentials are stored via `Configuration/AiCredentialStorage`. The service is stateless and is invoked from the cycle-group UI to summarize a cycle.
