@@ -62,6 +62,8 @@ Every project inherits a `Microsoft.Build.Framework` `PackageReference` with `Ex
 ### Parser: two passes, then global-namespace fixup
 `Parser.ParseSolutionInternal` runs `HierarchyAnalyzer` → `RelationshipAnalyzer` → `InsertGlobalNamespaceIfUsed`. The global-namespace insertion normalizes assemblies that contain types directly at the root (e.g. test assemblies with generated `Main`) so that cycle detection always has a shared ancestor above `Namespace` rather than at `Assembly`. Preserve this invariant if you touch the post-processing.
 
+**Document parser modelling decisions:** when you change how the parser maps C# to the graph — a new/changed relationship, a Roslyn quirk worked around, a deliberate "this looks like X but we model it as Y" choice — add or update a short chapter in `Documentation/Roslyn/corrections-and-updates.md` (English, in the existing style: the construct, why it is tricky, how we model it and the reasoning). This file is the running record of those non-obvious decisions; keep it in sync with parser changes.
+
 ### MVVM with a message bus
 The UI is not built on a DI container. `App.StartUi` wires up singletons manually (one `MessageBus`, one `CodeGraphExplorer`, one `GraphViewer`, etc.) and injects them into view models. Cross-view-model communication goes through `Shared/Messages/MessageBus.cs` (`Publish`/`Subscribe` on strongly-typed message records in `Shared/Messages/`). When adding a new cross-feature interaction, prefer defining a new message type over introducing direct view-model references.
 

@@ -189,6 +189,29 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AddConstructorReferenceFromLambda" />
+    ///     Mirrors the constructor handling in <see cref="AnalyzeObjectCreation" /> (same guard: explicit,
+    ///     internal constructors only) but records a "Uses" instead of a "Calls" relationship, because a
+    ///     lambda only references the constructor. Implicit/primary/external constructors carry no edge here;
+    ///     the type "Uses" the lambda walker already adds covers them.
+    /// </summary>
+    public void AddConstructorReferenceFromLambda(CodeElement sourceElement,
+        BaseObjectCreationExpressionSyntax objectCreationSyntax, SemanticModel semanticModel)
+    {
+        if (semanticModel.GetSymbolInfo(objectCreationSyntax).Symbol is
+            IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+        {
+            var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
+            if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+            {
+                var location = objectCreationSyntax.GetSyntaxLocation();
+                AddRelationshipWithFallbackToContainingType(sourceElement, normalizedConstructor,
+                    RelationshipType.Uses, [location], RelationshipAttribute.None);
+            }
+        }
+    }
+
+    /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeTypeSyntax" />
     /// </summary>
     public void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node)

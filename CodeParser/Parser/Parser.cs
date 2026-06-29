@@ -3,7 +3,9 @@ using CodeGraph.Contracts;
 using CodeGraph.Graph;
 using CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.CodeAnalysis.Text;
 
 namespace CodeParser.Parser;
 
@@ -90,6 +92,77 @@ public class Parser(ParserConfig config)
         Trace.TraceInformation("Compiling: " + sw.Elapsed);
 
         return await ParseSolutionInternal(solution);
+    }
+
+    /// <summary>
+    ///     Parses in-memory C# source through the full parser pipeline using a Roslyn
+    ///     <see cref="AdhocWorkspace" /> - no MSBuild, no <see cref="Initializer.InitializeMsBuildLocator" />
+    ///     and no disk access. Intended for unit tests and small tooling that want a real
+    ///     <see cref="CodeGraph.Graph.CodeGraph" /> from a code snippet.
+    ///     The synthetic project/document file names are pure identifiers; none of them needs to exist on
+    ///     disk. The only files read are the framework reference assemblies in the runtime directory.
+    /// </summary>
+    public Task<CodeGraph.Graph.CodeGraph> ParseSourceAsync(string code)
+    {
+        _diagnostics.Clear();
+        var solution = BuildAdhocSolution(code);
+        return ParseSolutionInternal(solution);
+    }
+
+    private static Solution BuildAdhocSolution(string code)
+    {
+        var projectId = ProjectId.CreateNewId();
+
+        // The file paths are synthetic identifiers, not real files. A ".csproj" extension is required so
+        // the project passes HierarchyAnalyzer.ShouldAnalyzeProject; the document path must be non-null so
+        // its syntax tree is recognized as a project file (HierarchyAnalyzer.IsProjectFile).
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "InMemory", "InMemory",
+                LanguageNames.CSharp, "InMemory.csproj")
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithMetadataReferences(FrameworkReferences);
+
+        var workspace = new AdhocWorkspace();
+        workspace.AddProject(projectInfo);
+
+        var documentId = DocumentId.CreateNewId(projectId);
+
+        // AddDocument returns a new (immutable) solution that contains the document - that is the one we
+        // hand to the analyzers; workspace.CurrentSolution would not contain it.
+        return workspace.CurrentSolution.AddDocument(documentId, "InMemory.cs", SourceText.From(code), filePath: "InMemory.cs");
+    }
+
+    /// <summary>
+    ///     A small, curated set of framework reference assemblies, resolved once from the runtime
+    ///     directory. Covers the common BCL surface (incl. LINQ) so typical snippets compile; types defined
+    ///     in the snippet itself resolve regardless. Callers needing more can extend this later.
+    /// </summary>
+    private static readonly MetadataReference[] FrameworkReferences = BuildFrameworkReferences();
+
+    private static MetadataReference[] BuildFrameworkReferences()
+    {
+        var coreDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
+        string[] assemblyFileNames =
+        [
+            "System.Private.CoreLib.dll",
+            "System.Runtime.dll",
+            "System.Linq.dll",
+            "System.Linq.Expressions.dll",
+            "System.Collections.dll",
+            "System.Console.dll",
+            "netstandard.dll"
+        ];
+
+        var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { typeof(object).Assembly.Location };
+        foreach (var fileName in assemblyFileNames)
+        {
+            var path = Path.Combine(coreDirectory, fileName);
+            if (File.Exists(path))
+            {
+                paths.Add(path);
+            }
+        }
+
+        return paths.Select(p => (MetadataReference)MetadataReference.CreateFromFile(p)).ToArray();
     }
 
     /// <summary>

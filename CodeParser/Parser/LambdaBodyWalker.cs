@@ -32,8 +32,10 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
     }
 
     /// <summary>
-    ///     Tracks object creation with "Uses" relationship (not "Creates" for lambdas).
-    ///     Handles both implicit (new()) and explicit (new Foo()) object creation.
+    ///     Tracks object creation with "Uses" relationships (not "Creates"/"Calls" for lambdas).
+    ///     Handles both implicit (new()) and explicit (new Foo()) object creation. We record both the type
+    ///     and - mirroring how method invocations in lambdas are handled - the referenced constructor, so a
+    ///     constructor used only inside a lambda does not appear unused.
     /// </summary>
     private void TrackObjectCreationAsUses(BaseObjectCreationExpressionSyntax node)
     {
@@ -43,6 +45,8 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
             var location = node.GetSyntaxLocation();
             Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
+
+        Analyzer.AddConstructorReferenceFromLambda(SourceElement, node, SemanticModel);
     }
 
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)

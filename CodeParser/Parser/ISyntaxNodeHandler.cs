@@ -82,6 +82,14 @@ public interface ISyntaxNodeHandler
         RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
 
     /// <summary>
+    ///     Records a "Uses" relationship to the constructor referenced by an object creation inside a lambda.
+    ///     The lambda references the constructor but does not invoke it now (we do not know when the lambda
+    ///     runs), so this is "Uses" rather than "Calls"/"Creates". For access from LambdaBodyWalker.
+    /// </summary>
+    void AddConstructorReferenceFromLambda(CodeElement sourceElement,
+        BaseObjectCreationExpressionSyntax objectCreationSyntax, SemanticModel semanticModel);
+
+    /// <summary>
     ///     typeof(),
     ///     sizeof()
     ///     (cast)

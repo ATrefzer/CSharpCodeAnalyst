@@ -102,3 +102,26 @@ So the reference should be modelled, but as a plain `Uses` edge to the **propert
 Detecting it is purely structural: the path from the referenced name up to the enclosing nameof can only run through member access (for qualified names), the argument and the argument list. `SyntaxExtensions.IsInsideNameOf` walks exactly those, then checks for an `InvocationExpressionSyntax` whose expression is the identifier `nameof` **and** that binds to no symbol - the null-symbol check rules out the pathological case of a real method literally named `nameof`.
 
 Without this the property would be classified as a read and routed to `get_Prop` - a getter call that never happens. (The split only made the issue visible; before it, the same reference was a spurious `Calls` to the property container.)
+
+
+
+## Object creation inside lambdas
+
+A lambda body is recorded with `Uses` edges, not `Calls`/`Creates`, because we don't know when (or whether) the lambda runs - see *Lambdas* above. For method calls inside a lambda this already produced a `Uses` edge to the **method**. Object creation, however, only recorded a `Uses` to the **type**, never to the constructor:
+
+```csharp
+imbalances.Select(i => new EventImbalanceViewModel(i));
+```
+
+That left the constructor looking unused - nobody referenced it - even though it is clearly referenced in source.
+
+The fix records the constructor too, as a `Uses` edge (mirroring the method-call case). The model is now symmetric:
+
+|             | type edge     | member edge          |
+|-------------|---------------|----------------------|
+| normal body | `Creates` → T | `Calls` → `T..ctor`  |
+| lambda body | `Uses` → T    | `Uses` → `T..ctor`   |
+
+Both relationships are downgraded from "hard" to "soft" inside a lambda. We deliberately do **not** emit a `Calls` between the constructors (some tools, e.g. NDepend, do): the outer constructor only *builds* the lambda; that `Select` later invokes it is library knowledge the parser does not have. A `Calls` would assert a control-flow edge that does not exist. `Uses` is the honest relationship - a real compile-time dependency (rename/remove the constructor and the lambda no longer compiles) without claiming a run-time call.
+
+Same guard as the normal path (see `AnalyzeObjectCreation`): only explicit, internal constructors get the edge; implicit/primary/external constructors are already covered by the type `Uses`.
