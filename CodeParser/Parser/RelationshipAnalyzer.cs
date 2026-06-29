@@ -222,7 +222,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = identifierSyntax.GetSyntaxLocation();
-            AddPropertyAccessRelationship(sourceElement, propertySymbol, identifierSyntax, propertyAccessType, location);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, identifierSyntax, propertyAccessType, location, semanticModel);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -280,7 +280,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         if (symbol is IPropertySymbol propertySymbol)
         {
             var location = memberAccessSyntax.GetSyntaxLocation();
-            AddPropertyAccessRelationship(sourceElement, propertySymbol, memberAccessSyntax, propertyAccessType, location);
+            AddPropertyAccessRelationship(sourceElement, propertySymbol, memberAccessSyntax, propertyAccessType, location, semanticModel);
         }
         else if (symbol is IFieldSymbol fieldSymbol)
         {
@@ -1057,8 +1057,18 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     ///     accessor elements exist), the access falls back to a relationship to the property itself.
     /// </summary>
     private void AddPropertyAccessRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
-        ExpressionSyntax accessExpression, RelationshipType relationshipType, SourceLocation location)
+        ExpressionSyntax accessExpression, RelationshipType relationshipType, SourceLocation location,
+        SemanticModel semanticModel)
     {
+        // A property referenced inside nameof(...) is a compile-time reference to the symbol, not a
+        // getter/setter access (no accessor runs). Model it as a "Uses" relationship to the property
+        // itself (the container), consistent with how fields and methods inside nameof are handled.
+        if (accessExpression.IsInsideNameOf(semanticModel))
+        {
+            AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, RelationshipType.Uses, [location], RelationshipAttribute.None);
+            return;
+        }
+
         if (_config.SplitPropertyAccessors)
         {
             var accessKind = PropertyAccessClassifier.Classify(accessExpression);
