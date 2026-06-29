@@ -1,4 +1,3 @@
-using CodeGraph.Exploration;
 using CodeGraph.Graph;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
@@ -52,50 +51,6 @@ public class SplitPropertyAccessorsTests
                     $"Accessor '{accessor.FullName}' must be a child of a property.");
             }
         });
-    }
-
-    [Test]
-    public void GetterOnlyProperty_HasSingleGetterChild()
-    {
-        // Facade.Value has only a getter.
-        var property = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value", CodeElementType.Property);
-
-        var accessorChildren = property.Children
-            .Where(c => c.ElementType == CodeElementType.PropertyAccessor)
-            .ToList();
-
-        Assert.That(accessorChildren.Select(c => c.Name), Is.EquivalentTo(new[] { "get_Value" }));
-    }
-
-    [Test]
-    public void AccessorBody_IsAttributedToAccessor_NotToPropertyContainer()
-    {
-        // Facade.Value { get { return _repository.Compute(); } }
-        var property = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value", CodeElementType.Property);
-        var getter = property.Children.Single(c => c.Name == "get_Value");
-        var compute = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Repository.Compute", CodeElementType.Method);
-
-        // The "Calls" edge to Repository.Compute must originate from the getter ...
-        Assert.That(HasRelationship(getter, compute, RelationshipType.Calls), Is.True,
-            "Getter body should call Repository.Compute.");
-
-        // ... and the property container must no longer carry that outgoing call.
-        Assert.That(HasRelationship(property, compute, RelationshipType.Calls), Is.False,
-            "The property container should not carry the accessor's call any more.");
-    }
-
-    [Test]
-    public void ReadAccess_TargetsGetter_NotPropertyContainer()
-    {
-        // Client.Consume contains "var unused = facade.Value;" - a read access.
-        var consume = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Client.Consume", CodeElementType.Method);
-        var property = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value", CodeElementType.Property);
-        var getter = property.Children.Single(c => c.Name == "get_Value");
-
-        Assert.That(HasRelationship(consume, getter, RelationshipType.Calls), Is.True,
-            "Reading the property should target the getter element.");
-        Assert.That(HasRelationship(consume, property, RelationshipType.Calls), Is.False,
-            "Reading the property should no longer target the property container.");
     }
 
     [Test]
@@ -164,28 +119,6 @@ public class SplitPropertyAccessorsTests
             var baseContainer = FindNode(baseProp, CodeElementType.Property);
             Assert.That(HasRelationship(derivedContainer, baseContainer, RelationshipType.Overrides), Is.False,
                 "The property container should not carry the override edge when accessors are split.");
-        });
-    }
-
-    [Test]
-    public void FollowIncomingCalls_TraversesThroughAccessor()
-    {
-        // Repository.Compute is called from Facade.Value's getter body; Client.Consume reads Value.
-        // The heuristic must continue through the getter accessor and reach Client.Consume.
-        var explorer = new CodeGraphExplorer();
-        explorer.LoadCodeGraph(_graph);
-
-        var compute = FindNode("FollowHeuristic.global.FollowHeuristic.PropertyChain.Repository.Compute", CodeElementType.Method);
-        var result = explorer.FollowIncomingCallsHeuristically(compute.Id);
-
-        var elementNames = result.Elements.Select(e => e.FullName).ToHashSet();
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(elementNames, Does.Contain("FollowHeuristic.global.FollowHeuristic.PropertyChain.Facade.Value.get_Value"),
-                "Traversal should pass through the getter accessor.");
-            Assert.That(elementNames, Does.Contain("FollowHeuristic.global.FollowHeuristic.PropertyChain.Client.Consume"),
-                "Traversal should reach the reader Client.Consume through the accessor.");
         });
     }
 

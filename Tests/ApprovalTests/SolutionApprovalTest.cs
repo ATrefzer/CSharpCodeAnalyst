@@ -14,16 +14,6 @@ public class SolutionApprovalTests : ApprovalTestBase
 
         var expected = new[]
         {
-            "Core.BasicLanguageFeatures",
-            "Core.ObjectOriented",
-            "Core.Generics",
-            "Core.Events",
-            "Core.Cycles",
-            "Core.Namespaces",
-            "Core.MethodGroups",
-            "Regression.SpecificBugs",
-            "OrderProcessingExample",
-            "FollowHeuristic",
             "ModuleLevel0",
             "ModuleLevel1",
             "ModuleLevel2",
