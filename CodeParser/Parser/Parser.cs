@@ -41,8 +41,21 @@ public class Parser(ParserConfig config)
         {
             ".sln" or ".slnx" => await ParseSolution(path),
             ".csproj" => await ParseProject(path),
-            _ => throw new ArgumentException($"Unsupported file type: {extension}. Expected .sln, .slnx, or .csproj")
+            ".cs" => await ParseSingleFile(path),
+            _ => throw new ArgumentException($"Unsupported file type: {extension}. Expected .sln, .slnx, .csproj or .cs")
         };
+    }
+
+    /// <summary>
+    ///     Parses a single C# file. Not surfaced as its own menu entry - a user can reach it from the
+    ///     import dialog by typing a ".cs" file name into the file mask, which is handy for quickly
+    ///     inspecting one file. Reads the text from disk and runs it through the in-memory pipeline
+    ///     (<see cref="ParseSourceAsync" />), passing the real path so source locations stay navigable.
+    /// </summary>
+    private async Task<CodeGraph.Graph.CodeGraph> ParseSingleFile(string filePath)
+    {
+        var code = await File.ReadAllTextAsync(filePath);
+        return await ParseSourceAsync(code, filePath);
     }
 
     /// <summary>
@@ -102,20 +115,21 @@ public class Parser(ParserConfig config)
     ///     The synthetic project/document file names are pure identifiers; none of them needs to exist on
     ///     disk. The only files read are the framework reference assemblies in the runtime directory.
     /// </summary>
-    public Task<CodeGraph.Graph.CodeGraph> ParseSourceAsync(string code)
+    public Task<CodeGraph.Graph.CodeGraph> ParseSourceAsync(string code, string? documentPath = null)
     {
         _diagnostics.Clear();
-        var solution = BuildAdhocSolution(code);
+        var solution = BuildAdhocSolution(code, documentPath ?? "InMemory.cs");
         return ParseSolutionInternal(solution);
     }
 
-    private static Solution BuildAdhocSolution(string code)
+    private static Solution BuildAdhocSolution(string code, string documentPath)
     {
         var projectId = ProjectId.CreateNewId();
 
-        // The file paths are synthetic identifiers, not real files. A ".csproj" extension is required so
-        // the project passes HierarchyAnalyzer.ShouldAnalyzeProject; the document path must be non-null so
-        // its syntax tree is recognized as a project file (HierarchyAnalyzer.IsProjectFile).
+        // The project file path is a synthetic identifier, not a real file. A ".csproj" extension is
+        // required so the project passes HierarchyAnalyzer.ShouldAnalyzeProject. The project name is fixed
+        // (not derived from the document) so a user exclusion filter like ".*Tests" cannot accidentally
+        // drop a single file named e.g. "FooTests.cs".
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "InMemory", "InMemory",
                 LanguageNames.CSharp, "InMemory.csproj")
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -126,9 +140,13 @@ public class Parser(ParserConfig config)
 
         var documentId = DocumentId.CreateNewId(projectId);
 
+        // The document path must be non-null so its syntax tree is recognized as a project file
+        // (HierarchyAnalyzer.IsProjectFile). When a real file path is passed it also makes the resulting
+        // SourceLocations point at that file, so "Jump to Code" works.
         // AddDocument returns a new (immutable) solution that contains the document - that is the one we
         // hand to the analyzers; workspace.CurrentSolution would not contain it.
-        return workspace.CurrentSolution.AddDocument(documentId, "InMemory.cs", SourceText.From(code), filePath: "InMemory.cs");
+        return workspace.CurrentSolution.AddDocument(documentId, Path.GetFileName(documentPath),
+            SourceText.From(code), filePath: documentPath);
     }
 
     /// <summary>
