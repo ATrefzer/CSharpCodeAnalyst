@@ -738,6 +738,30 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Analyzer_EventRegistration_Tooltip" xml:space="preserve">
     <value>Finds imbalances between number of event registrations / un-registrations</value>
   </data>
+  <data name="Analyzer_Hotspots_Label" xml:space="preserve">
+    <value>Dependency hotspots</value>
+  </data>
+  <data name="Analyzer_Hotspots_Tooltip" xml:space="preserve">
+    <value>Ranks types by how central they are in the dependency structure (fan-in, fan-out, PageRank). Helps you find the types to understand first.</value>
+  </data>
+  <data name="Analyzer_Hotspots_NoData" xml:space="preserve">
+    <value>No types found to rank</value>
+  </data>
+  <data name="Column_Hotspots_Rank" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="Column_Hotspots_Element" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Column_Hotspots_FanIn" xml:space="preserve">
+    <value>Fan-in</value>
+  </data>
+  <data name="Column_Hotspots_FanOut" xml:space="preserve">
+    <value>Fan-out</value>
+  </data>
+  <data name="Column_Hotspots_Score" xml:space="preserve">
+    <value>Score</value>
+  </data>
   <data name="Find_Cycles_Label" xml:space="preserve">
     <value>Cycles</value>
   </data>

@@ -69,6 +69,10 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
+
+        analyzer = new Hotspots.Analyzer(messaging);
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
+        _analyzers.Add(analyzer.Id, analyzer);
     }
 
     public bool IsDirty()

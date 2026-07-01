@@ -279,6 +279,78 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependency hotspots.
+        /// </summary>
+        public static string Analyzer_Hotspots_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_Hotspots_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ranks types by how central they are in the dependency structure (fan-in, fan-out, PageRank). Helps you find the types to understand first.
+        /// </summary>
+        public static string Analyzer_Hotspots_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_Hotspots_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No types found to rank.
+        /// </summary>
+        public static string Analyzer_Hotspots_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_Hotspots_NoData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to #.
+        /// </summary>
+        public static string Column_Hotspots_Rank {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Rank", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        public static string Column_Hotspots_Element {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Element", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fan-in.
+        /// </summary>
+        public static string Column_Hotspots_FanIn {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_FanIn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fan-out.
+        /// </summary>
+        public static string Column_Hotspots_FanOut {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_FanOut", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Score.
+        /// </summary>
+        public static string Column_Hotspots_Score {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Score", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Analyzers.
         /// </summary>
         public static string Analyzers_Label {
