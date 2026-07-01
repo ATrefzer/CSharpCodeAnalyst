@@ -112,12 +112,14 @@ public static class TypeDependencyAnalysis
 
         var nodes = results.Keys.ToList();
 
+        // Travels against the edges and counts affected types.
         var blastRadius = CalculateBlastRadius(nodes, incoming);
         foreach (var (id, radius) in blastRadius)
         {
             results[id].BlastRadius = radius;
         }
 
+        // Travels along the edges and accumulates rank.
         var pageRank = CalculatePageRank(nodes, outgoing);
         var count = results.Count;
         foreach (var (id, rank) in pageRank)
