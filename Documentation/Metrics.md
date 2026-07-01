@@ -2,6 +2,8 @@
 
 This document explains the metrics computed by C# Code Analyst. 
 
+I don’t want a vast number of random metrics; I just want a few useful ones that focus on specific questions.
+
 ## Dependency Hotspots
 
 The goal of these metrics is to answer the question you have when facing an unfamiliar codebase: **which types should I look at first?**
@@ -9,13 +11,13 @@ The goal of these metrics is to answer the question you have when facing an unfa
 Available via *Analyzers → Dependency hotspots*. The result is a sortable table with one row per
 type:
 
-| Column   | Meaning                                                              |
-|----------|---------------------------------------------------------------------|
-| #        | Rank position when sorted by Score (descending).                    |
-| Type     | The fully qualified type name.                                      |
-| Fan-in   | How many other types depend on this type.                           |
-| Fan-out  | How many other types this type depends on.                          |
-| Score    | Transitive importance (PageRank), normalized so the average is 1.0. |
+| Column  | Meaning                                                      |
+| ------- | ------------------------------------------------------------ |
+| #       | Rank position when sorted by Score (descending).             |
+| Type    | The fully qualified type name.                               |
+| Fan-in  | How many other types depend on this type.                    |
+| Fan-out | How many other types this type depends on.                   |
+| Score   | Transitive importance (PageRank), normalized so the average is 1.0.<br />How much does the the rest of the codebase rests on a type. |
 
 Double-click a row (or right-click → *Show in Code Explorer*) to place the type on the canvas and
 start exploring from there.
@@ -92,6 +94,11 @@ more important than its raw Fan-in suggests.
 types depend on it**, not merely when many types do. This is the PageRank algorithm, the same idea
 Google uses to rank web pages.
 
+(!) In everyday terms: on the web, PageRank estimates how likely you are to reach a page by following
+links; here it estimates how much of the rest of the codebase ultimately rests on a type — directly,
+and through the other types that rest on it. A high Score means a lot of your code leans on this
+type, so it is both what you most need to understand and what is riskiest to change.
+
 ### How it is computed
 
 PageRank is computed by power iteration on the type-level graph:
@@ -128,7 +135,11 @@ This makes Score a size-independent, relative number:
 
 ## How to read the table
 
-1. Sort by **Score** (default) to find the central types in the application — read these first.
+1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry
+   the most weight — the highest payoff to understand and the highest risk to change. That is not
+   automatically where you start reading: it depends on your approach. Working bottom-up, these
+   foundational types are the vocabulary of the system and a natural starting point; working
+   top-down, you may prefer to start at the orchestrators below and drill down into them.
 2. Sort by **Fan-out** to find the big orchestrators — read these to learn what the system *does*.
 3. Watch for the disagreement between Fan-in and Score: a type with high Fan-in but modest Score is
    a widely-used utility (a logger, an extension-method holder); a type with modest Fan-in but high
