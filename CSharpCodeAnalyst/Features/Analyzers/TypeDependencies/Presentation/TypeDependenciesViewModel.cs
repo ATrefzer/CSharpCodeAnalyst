@@ -14,50 +14,59 @@ internal class TypeDependenciesViewModel : Table
     private readonly ObservableCollection<TableRow> _rows;
     private readonly IPublisher _messaging;
 
-    internal TypeDependenciesViewModel(List<TypeHotspot> hotspots, IPublisher messaging)
+    internal TypeDependenciesViewModel(List<TypeDependencyInfo> infos, IPublisher messaging)
     {
         _messaging = messaging;
-        var rows = hotspots.Select(h => new TypeDependencyViewModel(h));
+        var rows = infos.Select(i => new TypeDependencyViewModel(i));
         _rows = new ObservableCollection<TableRow>(rows);
     }
 
     public override IEnumerable<TableColumnDefinition> GetColumns()
     {
+        // Column order mirrors the axes: Fan-in, Blast radius and Score are the incoming
+        // dependence at rising resolution (direct, transitive count, transitive weighted);
+        // Fan-out is the outgoing direction.
         return new List<TableColumnDefinition>
         {
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_Hotspots_Rank,
+                Header = Strings.Column_TypeDependencies_Rank,
                 PropertyName = nameof(TypeDependencyViewModel.Rank),
                 Width = 40
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_Hotspots_Element,
+                Header = Strings.Column_TypeDependencies_Element,
                 PropertyName = nameof(TypeDependencyViewModel.Name)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_Hotspots_FanIn,
+                Header = Strings.Column_TypeDependencies_FanIn,
                 PropertyName = nameof(TypeDependencyViewModel.FanIn)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_Hotspots_FanOut,
-                PropertyName = nameof(TypeDependencyViewModel.FanOut)
+                Header = Strings.Column_TypeDependencies_BlastRadius,
+                PropertyName = nameof(TypeDependencyViewModel.BlastRadius)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_Hotspots_Score,
+                Header = Strings.Column_TypeDependencies_Score,
                 PropertyName = nameof(TypeDependencyViewModel.Score),
 
                 // Sort by the numeric value, not the formatted string.
                 SortMemberName = nameof(TypeDependencyViewModel.ScoreValue)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_TypeDependencies_FanOut,
+                PropertyName = nameof(TypeDependencyViewModel.FanOut)
             }
         };
     }

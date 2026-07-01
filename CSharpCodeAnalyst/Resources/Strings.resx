@@ -747,19 +747,22 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Analyzer_TypeDependencies_NoData" xml:space="preserve">
     <value>No types found to rank</value>
   </data>
-  <data name="Column_Hotspots_Rank" xml:space="preserve">
+  <data name="Column_TypeDependencies_Rank" xml:space="preserve">
     <value>#</value>
   </data>
-  <data name="Column_Hotspots_Element" xml:space="preserve">
+  <data name="Column_TypeDependencies_Element" xml:space="preserve">
     <value>Type</value>
   </data>
-  <data name="Column_Hotspots_FanIn" xml:space="preserve">
+  <data name="Column_TypeDependencies_FanIn" xml:space="preserve">
     <value>Fan-in</value>
   </data>
-  <data name="Column_Hotspots_FanOut" xml:space="preserve">
+  <data name="Column_TypeDependencies_FanOut" xml:space="preserve">
     <value>Fan-out</value>
   </data>
-  <data name="Column_Hotspots_Score" xml:space="preserve">
+  <data name="Column_TypeDependencies_BlastRadius" xml:space="preserve">
+    <value>Blast radius</value>
+  </data>
+  <data name="Column_TypeDependencies_Score" xml:space="preserve">
     <value>Score</value>
   </data>
   <data name="Find_Cycles_Label" xml:space="preserve">

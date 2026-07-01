@@ -4,28 +4,47 @@ This document explains the metrics computed by C# Code Analyst.
 
 I don’t want a vast number of random metrics; I just want a few useful ones that focus on specific questions.
 
-## Dependency Hotspots
+## Type Dependencies
 
-The goal of these metrics is to answer the question you have when facing an unfamiliar codebase: **which types should I look at first?**
+The goal of these metrics is to answer the questions you have when facing an unfamiliar codebase:
+**which types should I look at first?** and **how risky is it to change this one?**
 
-Available via *Analyzers → Dependency hotspots*. The result is a sortable table with one row per
+Available via *Analyzers → Type Dependencies*. The result is a sortable table with one row per
 type:
 
-| Column  | Meaning                                                      |
-| ------- | ------------------------------------------------------------ |
-| #       | Rank position when sorted by Score (descending).             |
-| Type    | The fully qualified type name.                               |
-| Fan-in  | How many other types depend on this type.                    |
-| Fan-out | How many other types this type depends on.                   |
-| Score   | Transitive importance (PageRank), normalized so the average is 1.0.<br />How much does the the rest of the codebase rests on a type. |
+| Column       | Meaning                                                      |
+| ------------ | ------------------------------------------------------------ |
+| #            | Rank position when sorted by Score (descending).             |
+| Type         | The fully qualified type name.                               |
+| Fan-in       | How many other types depend on this type.                    |
+| Blast radius | How many other types transitively depend on this type — its change impact. |
+| Score        | Transitive importance (PageRank), normalized so the average is 1.0. How much the rest of the codebase rests on this type. |
+| Fan-out      | How many other types this type depends on.                   |
 
 Double-click a row (or right-click → *Show in Code Explorer*) to place the type on the canvas and
 start exploring from there.
 
+### The columns as two axes
+
+The columns are not independent. Three of them look at the **incoming** direction ("who depends on
+me?") at rising resolution, and one looks at the **outgoing** direction. Reading them as two axes
+makes the table easy to interpret:
+
+| Axis                         | Metric       | Resolution                         |
+| ---------------------------- | ------------ | ---------------------------------- |
+| Incoming (who depends on me) | Fan-in       | direct (depth 1)                   |
+| Incoming                     | Blast radius | transitive, counted                |
+| Incoming                     | Score        | transitive, weighted by importance |
+| Outgoing (what I depend on)  | Fan-out      | direct (depth 1)                   |
+
+Fan-in, blast radius and Score are three views of the same "who leans on me?" question — a direct
+count, a transitive count, and a transitive count weighted by how important the dependents
+themselves are. Fan-out is the only outgoing view.
+
 ### The type-level graph
 
 The parsed code graph contains fine-grained relationships: a *method* calls another *method*, a
-*field* has a *type*, and so on. Hotspot metrics are not computed on those raw relationships. Every
+*field* has a *type*, and so on. These metrics are not computed on those raw relationships. Every
 relationship is first **lifted to the type that contains its endpoints**:
 
 - A call `A.DoWork()` → `B.Helper()` becomes a type edge `A → B`. 
@@ -82,6 +101,22 @@ They answer two different questions and both are worth reading:
 - **High Fan-out** → this type knows about many others. It is an *orchestrator* or a potential
   god-class. It is also a good entry point, but for the opposite reason: it tells you *what the
   system does*, not *what it is built on*.
+
+## Blast radius
+
+**Blast radius** = the number of types that *transitively* depend on a type — everything that could
+be affected if you change it. Where Fan-in counts only the direct dependents, blast radius follows
+the incoming edges all the way out.
+
+It answers a blunt, practical question: **how scared should I be to touch this?** A type with a
+blast radius of 3 is safe to refactor; one with a blast radius of 800 will ripple through most of
+the codebase.
+
+Blast radius is a **flat count**: every type that can reach you counts as one, regardless of how
+important it is. That is the difference from Score — Score weights each dependent by its own
+importance, blast radius does not. A type used by 500 trivial leaves has a large blast radius but
+may have only a moderate Score. The type itself is never counted in its own blast radius, even when
+it sits in a dependency cycle.
 
 ## Score (PageRank)
 
@@ -141,7 +176,9 @@ This makes Score a size-independent, relative number:
    foundational types are the vocabulary of the system and a natural starting point; working
    top-down, you may prefer to start at the orchestrators below and drill down into them.
 2. Sort by **Fan-out** to find the big orchestrators — read these to learn what the system *does*.
-3. Watch for the disagreement between Fan-in and Score: a type with high Fan-in but modest Score is
+3. Sort by **Blast radius** before a refactoring — it tells you how far the ripples of a change to a
+   type will reach.
+4. Watch for the disagreement between Fan-in and Score: a type with high Fan-in but modest Score is
    a widely-used utility (a logger, an extension-method holder); a type with modest Fan-in but high
    Score is a genuine architectural core. That gap is often the most informative signal in the
    table.

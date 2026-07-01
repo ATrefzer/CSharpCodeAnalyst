@@ -590,47 +590,56 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type.
+        ///   Looks up a localized string similar to Blast radius.
         /// </summary>
-        public static string Column_Hotspots_Element {
+        public static string Column_TypeDependencies_BlastRadius {
             get {
-                return ResourceManager.GetString("Column_Hotspots_Element", resourceCulture);
+                return ResourceManager.GetString("Column_TypeDependencies_BlastRadius", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        public static string Column_TypeDependencies_Element {
+            get {
+                return ResourceManager.GetString("Column_TypeDependencies_Element", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Fan-in.
         /// </summary>
-        public static string Column_Hotspots_FanIn {
+        public static string Column_TypeDependencies_FanIn {
             get {
-                return ResourceManager.GetString("Column_Hotspots_FanIn", resourceCulture);
+                return ResourceManager.GetString("Column_TypeDependencies_FanIn", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Fan-out.
         /// </summary>
-        public static string Column_Hotspots_FanOut {
+        public static string Column_TypeDependencies_FanOut {
             get {
-                return ResourceManager.GetString("Column_Hotspots_FanOut", resourceCulture);
+                return ResourceManager.GetString("Column_TypeDependencies_FanOut", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to #.
         /// </summary>
-        public static string Column_Hotspots_Rank {
+        public static string Column_TypeDependencies_Rank {
             get {
-                return ResourceManager.GetString("Column_Hotspots_Rank", resourceCulture);
+                return ResourceManager.GetString("Column_TypeDependencies_Rank", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Score.
         /// </summary>
-        public static string Column_Hotspots_Score {
+        public static string Column_TypeDependencies_Score {
             get {
-                return ResourceManager.GetString("Column_Hotspots_Score", resourceCulture);
+                return ResourceManager.GetString("Column_TypeDependencies_Score", resourceCulture);
             }
         }
         

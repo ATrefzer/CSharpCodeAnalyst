@@ -3,10 +3,10 @@ using CodeGraph.Graph;
 namespace CodeGraph.Algorithms.Metrics;
 
 /// <summary>
-///     One row of the hotspot result: a type with its coupling degrees and its
-///     transitive importance (PageRank) in the type-level dependency graph.
+///     One row of the type-dependency result: a type with its coupling degrees, its change impact
+///     (blast radius) and its transitive importance (PageRank) in the type-level dependency graph.
 /// </summary>
-public class TypeHotspot(CodeElement type)
+public class TypeDependencyInfo(CodeElement type)
 {
     public CodeElement Type { get; } = type;
 
@@ -15,6 +15,13 @@ public class TypeHotspot(CodeElement type)
 
     /// <summary>How many other types this one depends on (deduplicated outgoing type edges).</summary>
     public int FanOut { get; set; }
+
+    /// <summary>
+    ///     How many other types transitively depend on this one - the set of types that could be
+    ///     affected if it changes. Unlike <see cref="Score" /> this is a flat count: every reachable
+    ///     type counts as one, regardless of its own importance.
+    /// </summary>
+    public int BlastRadius { get; set; }
 
     /// <summary>Raw PageRank. The values over all types sum to 1.</summary>
     public double PageRank { get; set; }
@@ -30,17 +37,17 @@ public class TypeHotspot(CodeElement type)
 }
 
 /// <summary>
-///     Ranks the types of a code graph by how central they are in the dependency structure,
-///     to answer "which types should I understand first?" on an unfamiliar codebase.
+///     Describes how each type sits in the dependency structure, to help answer "which types should
+///     I understand first?" and "how risky is it to change this type?" on an unfamiliar codebase.
 ///
-///     The analysis lifts the fine-grained relationships (method calls, field uses, ...) to
-///     the containing types and works on the resulting type-level graph:
-///     - Fan-in / fan-out are the deduplicated in/out degrees. Ten calls from type A into type
-///       B and a single call both count as one A->B edge; the strength of a coupling is not
-///       modeled in this first version.
-///     - PageRank measures transitive importance: a type is important when important types
-///       depend on it, not merely when many types do. Edges are NOT reversed - importance
-///       flows to the depended-upon types, which is exactly what we want to surface.
+///     The analysis lifts the fine-grained relationships (method calls, field uses, ...) to the
+///     containing types and works on the resulting deduplicated type-level graph:
+///     - Fan-in / fan-out are the in/out degrees. Ten calls from type A into type B and a single
+///       call both count as one A->B edge; dependency is treated as a yes/no fact.
+///     - Blast radius is the number of types that transitively depend on a type (change impact).
+///     - PageRank measures transitive importance: a type is important when important types depend on
+///       it, not merely when many types do. Edges are NOT reversed - importance flows to the
+///       depended-upon types, which is exactly what we want to surface.
 /// </summary>
 public static class TypeDependencyAnalysis
 {
@@ -49,19 +56,19 @@ public static class TypeDependencyAnalysis
     private const double ConvergenceThreshold = 1e-6;
 
     /// <summary>
-    ///     External types are excluded from both the result and the edges: hotspots are about
+    ///     External types are excluded from both the result and the edges: this is about
     ///     understanding the analyzed code, and ubiquitous framework types (object, string, ...)
     ///     would otherwise dominate the fan-in ranking.
     /// </summary>
-    public static List<TypeHotspot> Calculate(Graph.CodeGraph graph)
+    public static List<TypeDependencyInfo> Calculate(Graph.CodeGraph graph)
     {
         ArgumentNullException.ThrowIfNull(graph);
 
-        var hotspots = graph.Nodes.Values
+        var results = graph.Nodes.Values
             .Where(n => IsType(n) && !n.IsExternal)
-            .ToDictionary(n => n.Id, n => new TypeHotspot(n));
+            .ToDictionary(n => n.Id, n => new TypeDependencyInfo(n));
 
-        if (hotspots.Count == 0)
+        if (results.Count == 0)
         {
             return [];
         }
@@ -84,7 +91,7 @@ public static class TypeDependencyAnalysis
                 continue;
             }
 
-            if (!hotspots.ContainsKey(source.Id) || !hotspots.ContainsKey(target.Id))
+            if (!results.ContainsKey(source.Id) || !results.ContainsKey(target.Id))
             {
                 continue; // Endpoint is external or otherwise not a ranked type.
             }
@@ -92,32 +99,82 @@ public static class TypeDependencyAnalysis
             typeEdges.Add((source.Id, target.Id));
         }
 
-        // Deduplicated degrees and the outgoing adjacency used by PageRank.
-        var outgoing = hotspots.Keys.ToDictionary(id => id, _ => new List<string>());
+        // Deduplicated degrees plus the outgoing / incoming adjacency used below.
+        var outgoing = results.Keys.ToDictionary(id => id, _ => new List<string>());
+        var incoming = results.Keys.ToDictionary(id => id, _ => new List<string>());
         foreach (var (source, target) in typeEdges)
         {
-            hotspots[source].FanOut += 1;
-            hotspots[target].FanIn += 1;
+            results[source].FanOut += 1;
+            results[target].FanIn += 1;
             outgoing[source].Add(target);
+            incoming[target].Add(source);
         }
 
-        var pageRank = CalculatePageRank(hotspots.Keys.ToList(), outgoing);
+        var nodes = results.Keys.ToList();
 
-        var count = hotspots.Count;
+        var blastRadius = CalculateBlastRadius(nodes, incoming);
+        foreach (var (id, radius) in blastRadius)
+        {
+            results[id].BlastRadius = radius;
+        }
+
+        var pageRank = CalculatePageRank(nodes, outgoing);
+        var count = results.Count;
         foreach (var (id, rank) in pageRank)
         {
-            hotspots[id].PageRank = rank;
-            hotspots[id].Score = rank * count;
+            results[id].PageRank = rank;
+            results[id].Score = rank * count;
         }
 
-        var result = hotspots.Values
+        var ranked = results.Values
             .OrderByDescending(h => h.PageRank)
             .ThenBy(h => h.Type.FullName)
             .ToList();
 
-        for (var i = 0; i < result.Count; i++)
+        for (var i = 0; i < ranked.Count; i++)
         {
-            result[i].Rank = i + 1;
+            ranked[i].Rank = i + 1;
+        }
+
+        return ranked;
+    }
+
+    /// <summary>
+    ///     For each type, the number of other types that can transitively reach it by following
+    ///     dependency edges - i.e. how many types could be affected if it changes. This is a plain
+    ///     count of the incoming transitive closure; the type itself is never counted, even when it
+    ///     sits in a dependency cycle. Cost is O(N * (N + E)); fine for on-demand analysis.
+    /// </summary>
+    private static Dictionary<string, int> CalculateBlastRadius(
+        List<string> nodes,
+        Dictionary<string, List<string>> incoming)
+    {
+        var result = new Dictionary<string, int>(nodes.Count);
+        var visited = new HashSet<string>();
+        var queue = new Queue<string>();
+
+        foreach (var start in nodes)
+        {
+            visited.Clear();
+            queue.Enqueue(start);
+
+            // The start is the entry point of the walk but is not part of its own blast radius,
+            // so it is never added to "visited" (guarded below to survive cycles).
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                foreach (var dependent in incoming[current])
+                {
+                    if (dependent == start || !visited.Add(dependent))
+                    {
+                        continue;
+                    }
+
+                    queue.Enqueue(dependent);
+                }
+            }
+
+            result[start] = visited.Count;
         }
 
         return result;
@@ -186,7 +243,7 @@ public static class TypeDependencyAnalysis
 
     /// <summary>
     ///     Whether a relationship expresses a compile-time dependency (source depends on target),
-    ///     which is what PageRank and the degrees are built on. Excluded:
+    ///     which is what the degrees, blast radius and PageRank are built on. Excluded:
     ///     - Containment: the parent/child hierarchy, not a dependency.
     ///     - Bundled: artificial edges the UI creates to fold several relationships together.
     ///     - Handles: an event-handler registration. The model stores it as handler -> event, but

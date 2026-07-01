@@ -54,7 +54,7 @@ public class TypeDependencyAnalysisTests
     [Test]
     public void Calculate_SelfCall_ProducesNoEdge()
     {
-        // A method calling a sibling in the same class is internal coupling, not a hotspot signal.
+        // A method calling a sibling in the same class is internal coupling, not a type dependency.
         var a = _graph.CreateClass("A");
         var m1 = _graph.CreateMethod("A.M1", a);
         var m2 = _graph.CreateMethod("A.M2", a);
@@ -113,7 +113,7 @@ public class TypeDependencyAnalysisTests
     }
 
     [Test]
-    public void Calculate_Inheritance_MakesTheBaseTypeTheHotspot()
+    public void Calculate_Inheritance_MakesTheBaseTypeMostCentral()
     {
         // Derived depends on Base. PageRank must flow to the base type.
         var baseType = _graph.CreateClass("Base");
@@ -187,6 +187,48 @@ public class TypeDependencyAnalysisTests
             Assert.That(result["Core"].FanIn, Is.EqualTo(1));
             // Core inherits importance from the heavily-used Gateway.
             Assert.That(result["Core"].PageRank, Is.GreaterThanOrEqualTo(result["Utility"].PageRank));
+        });
+    }
+
+    [Test]
+    public void Calculate_BlastRadius_CountsTransitiveDependents()
+    {
+        // Dependency chain: Leaf -> Mid -> Core (each "uses" the next).
+        // Core is depended on directly by Mid and transitively by Leaf.
+        var core = _graph.CreateClass("Core");
+        var mid = _graph.CreateClass("Mid");
+        var leaf = _graph.CreateClass("Leaf");
+
+        Rel(mid, core, RelationshipType.Uses);
+        Rel(leaf, mid, RelationshipType.Uses);
+
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+
+        Assert.Multiple(() =>
+        {
+            // Direct fan-in of Core is 1, but its blast radius spans the whole chain above it.
+            Assert.That(result["Core"].FanIn, Is.EqualTo(1));
+            Assert.That(result["Core"].BlastRadius, Is.EqualTo(2));
+            Assert.That(result["Mid"].BlastRadius, Is.EqualTo(1));
+            Assert.That(result["Leaf"].BlastRadius, Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void Calculate_BlastRadius_InCycle_DoesNotCountTheTypeItself()
+    {
+        // A <-> B mutual dependency. Each affects only the other, not itself.
+        var a = _graph.CreateClass("A");
+        var b = _graph.CreateClass("B");
+        Rel(a, b, RelationshipType.Uses);
+        Rel(b, a, RelationshipType.Uses);
+
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result["A"].BlastRadius, Is.EqualTo(1));
+            Assert.That(result["B"].BlastRadius, Is.EqualTo(1));
         });
     }
 
