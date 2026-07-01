@@ -2798,7 +2798,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_WarnIfFiltersActive_Tooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show overview after import.
+        /// </summary>
+        public static string Settings_ShowOverviewOnImport {
+            get {
+                return ResourceManager.GetString("Settings_ShowOverviewOnImport", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to After importing a solution, fill the canvas with the whole graph collapsed to give an immediate overview instead of an empty canvas.
+        /// </summary>
+        public static string Settings_ShowOverviewOnImport_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_ShowOverviewOnImport_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Snapshot.
         /// </summary>

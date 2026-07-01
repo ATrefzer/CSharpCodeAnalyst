@@ -671,6 +671,16 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _undoStack.Clear();
     }
 
+    /// <summary>
+    ///     Fills the canvas with the entire code graph, every container collapsed, to give an
+    ///     overview right after importing a solution. Only the top-level roots stay visible and
+    ///     edges roll up to them, so this is a "map" of the codebase rather than a wall of nodes.
+    /// </summary>
+    public void ShowCompleteGraphCollapsed(CodeGraph.Graph.CodeGraph codeGraph)
+    {
+        AddToGraph(codeGraph.Nodes.Values, codeGraph.GetAllRelationships(), true);
+    }
+
 
     internal void HandleAddNodeToGraphRequest(AddNodeToGraphRequest request)
     {

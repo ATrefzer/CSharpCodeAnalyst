@@ -55,6 +55,11 @@
                                           Content="{x:Static resources:Strings.Settings_WarnIfFiltersActive}"
                                           Margin="0,5"
                                           ToolTip="{x:Static resources:Strings.Settings_WarnIfFiltersActive_Tooltip}" />
+
+                                <CheckBox x:Name="ShowOverviewOnImportCheckBox"
+                                          Content="{x:Static resources:Strings.Settings_ShowOverviewOnImport}"
+                                          Margin="0,5"
+                                          ToolTip="{x:Static resources:Strings.Settings_ShowOverviewOnImport_Tooltip}" />
                             </StackPanel>
                         </GroupBox>
 

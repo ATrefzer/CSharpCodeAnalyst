@@ -822,6 +822,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         LoadDefaultSettings();
         LoadCodeGraph(graph);
+
+        // Give an immediate overview of the freshly imported solution: the whole graph, every
+        // container collapsed, so the user starts from a map instead of an empty canvas. Only on
+        // import - loading a saved project restores the user's own view instead. Opt-out via setting.
+        if (_applicationSettings.ShowOverviewOnImport)
+        {
+            GraphViewModel?.ShowCompleteGraphCollapsed(graph);
+        }
+
         _gallery = new Gallery();
         _projectService.StartNewProject();
         IsCanvasHintsVisible = false;

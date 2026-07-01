@@ -879,6 +879,12 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Settings_WarnIfFiltersActive_Tooltip" xml:space="preserve">
     <value>Show a warning if hide filters are active when performing graph operations</value>
   </data>
+  <data name="Settings_ShowOverviewOnImport" xml:space="preserve">
+    <value>Show overview after import</value>
+  </data>
+  <data name="Settings_ShowOverviewOnImport_Tooltip" xml:space="preserve">
+    <value>After importing a solution, fill the canvas with the whole graph collapsed to give an immediate overview instead of an empty canvas</value>
+  </data>
   <data name="GraphFilterDialog_Title" xml:space="preserve">
     <value>Hide elements and relationships</value>
   </data>

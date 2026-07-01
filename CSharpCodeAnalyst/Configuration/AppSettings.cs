@@ -23,6 +23,12 @@ public class AppSettings
 
     public bool WarnIfFiltersActive { get; set; } = true;
 
+    /// <summary>
+    ///     When a solution is imported, fill the canvas with the whole graph collapsed to give an
+    ///     immediate overview instead of an empty canvas.
+    /// </summary>
+    public bool ShowOverviewOnImport { get; set; } = true;
+
     public static string CleanupProjectFilters(string filterText)
     {
         char[] separators = [';', '\n', '\r'];
@@ -54,7 +60,8 @@ public class AppSettings
             IncludeExternalCode = this.IncludeExternalCode,
             IncludeGeneratedCode = this.IncludeGeneratedCode,
             SplitPropertyAccessors = this.SplitPropertyAccessors,
-            WarnIfFiltersActive = this.WarnIfFiltersActive
+            WarnIfFiltersActive = this.WarnIfFiltersActive,
+            ShowOverviewOnImport = this.ShowOverviewOnImport
         };
     }
 }

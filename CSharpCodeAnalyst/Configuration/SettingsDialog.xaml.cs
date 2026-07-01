@@ -31,6 +31,7 @@ public partial class SettingsDialog
         IncludeGeneratedCodeCheckBox.IsChecked = AppSettings.IncludeGeneratedCode;
         SplitPropertyAccessorsCheckBox.IsChecked = AppSettings.SplitPropertyAccessors;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
+        ShowOverviewOnImportCheckBox.IsChecked = AppSettings.ShowOverviewOnImport;
 
         AiEndpointTextBox.Text = UserPreferences.AiEndpoint;
         AiModelTextBox.Text = UserPreferences.AiModel;
@@ -51,6 +52,7 @@ public partial class SettingsDialog
         AppSettings.IncludeGeneratedCode = IncludeGeneratedCodeCheckBox.IsChecked ?? false;
         AppSettings.SplitPropertyAccessors = SplitPropertyAccessorsCheckBox.IsChecked ?? false;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
+        AppSettings.ShowOverviewOnImport = ShowOverviewOnImportCheckBox.IsChecked ?? true;
 
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)
         {
