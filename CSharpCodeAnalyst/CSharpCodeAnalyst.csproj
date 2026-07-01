@@ -74,6 +74,7 @@
         <Resource Include="Resources\filter_32.png" />
         <Resource Include="Resources\outgoing_calls_16.png" />
         <Resource Include="Resources\outgoing_relationships_16.png" />
+        <Resource Include="Resources\explore_neighbors_16.png" />
         <Resource Include="Resources\remove_without_children_16.png" />
         <Resource Include="Resources\remove_with_children_16.png" />
         <Resource Include="Resources\rendering.png" />

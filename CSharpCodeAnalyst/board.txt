@@ -50,3 +50,7 @@ Konkret: Ein Typ, an dem 500 unbedeutende Blätter hängen, hat einen großen Bl
 PageRank/Score: „Wie fundamental bist du?" → gewichtet nach Wichtigkeit der Abhängigen.
 Blast Radius: „Wie viel kann ich kaputt machen?" → flaches Abzählen, jeder gleich.
 Deshalb „nicht gewichtet" — im Sinne von: keine Gewichtung nach Wichtigkeit der Beitragenden, nur Menge.
+
+
+TODO Icons
+<a href="https://www.flaticon.com/free-icons/double-arrow" title="double arrow icons">Double arrow icons created by bouzix - Flaticon</a>

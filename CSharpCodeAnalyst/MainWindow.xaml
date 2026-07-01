@@ -17,7 +17,7 @@
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
-                     Title="{Binding Title}" Height="520" Width="1200"
+                     Title="{Binding Title}" WindowState="Maximized" Height="520" Width="1200"
                      MinWidth="720" MinHeight="400"
                      d:DataContext="{d:DesignInstance analyst:MainViewModel}">
     <Window.Resources>

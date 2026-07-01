@@ -853,7 +853,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("ExpandEverything", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Explore neighbors.
+        /// </summary>
+        public static string ExploreNeighbors {
+            get {
+                return ResourceManager.GetString("ExploreNeighbors", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Export.
         /// </summary>

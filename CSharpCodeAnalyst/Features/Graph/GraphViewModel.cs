@@ -148,7 +148,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new SeparatorCommand());
         var incomingRelationships = IconLoader.LoadIcon("Resources/incoming_relationships_16.png");
         var outgoingRelationships = IconLoader.LoadIcon("Resources/outgoing_relationships_16.png");
+        var exploreNeighbors = IconLoader.LoadIcon("Resources/explore_neighbors_16.png");
 
+        _state.AddCommand(new CodeElementContextCommand(Strings.ExploreNeighbors,
+            ExploreNeighbors, icon: exploreNeighbors));
         _state.AddCommand(new CodeElementContextCommand(Strings.AllIncomingRelationships,
             FindAllIncomingRelationships, icon: incomingRelationships));
         _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationships,
@@ -578,6 +581,23 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         var result = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationships);
         AddToGraph(result.Elements, result.Relationships, focusId: element.Id);
+    }
+
+    /// <summary>
+    ///     Adds the direct neighbors (both incoming and outgoing relationships) of the element in a
+    ///     single step and collapsed. Only newly added elements are collapsed - neighbors already on
+    ///     the canvas keep their state (see <see cref="GraphViewState.AddToGraph" />). When invoked on
+    ///     a property, its accessors are pulled in via <see cref="ICodeGraphExplorer.ExploreWithAccessors" />.
+    /// </summary>
+    private void ExploreNeighbors(CodeElement element)
+    {
+        var incoming = _explorer.ExploreWithAccessors(element.Id, _explorer.FindIncomingRelationships);
+        var outgoing = _explorer.ExploreWithAccessors(element.Id, _explorer.FindOutgoingRelationships);
+
+        var elements = incoming.Elements.Union(outgoing.Elements);
+        var relationships = incoming.Relationships.Union(outgoing.Relationships);
+
+        AddToGraph(elements, relationships, true, element.Id);
     }
 
     private void FindAllIncomingRelationships(CodeElement element)

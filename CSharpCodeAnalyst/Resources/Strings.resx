@@ -132,6 +132,9 @@
   <data name="AllOutgoingRelationshipsDeep" xml:space="preserve">
     <value>All outgoing relationships (deep)</value>
   </data>
+  <data name="ExploreNeighbors" xml:space="preserve">
+    <value>Explore neighbors</value>
+  </data>
   <data name="AppTitle" xml:space="preserve">
     <value>C# Code Analyst</value>
   </data>
