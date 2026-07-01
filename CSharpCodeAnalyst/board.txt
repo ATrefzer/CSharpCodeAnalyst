@@ -10,9 +10,6 @@ UNHANDLED CASES
 
 - (!) Primary constructors of records do not create the properties in the Navigation tree
 
-- Properties may show a cycle because get and set are combined into one property element.
-  This may lead to a false positive cycle but is as intended.
-
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.
 
@@ -25,3 +22,31 @@ BUGS
 MISSING TEST CASES
 ---------------------
 
+
+Metriken nach Fragestellung:
+
+„Was gehört eigentlich zusammen?" (deine Frage, ausgebaut)
+Cluster von Typen finden, die dicht untereinander, aber lose nach außen gekoppelt sind — die faktischen Module. Der Clou: die decken sich oft nicht mit der Namespace-/Ordnerstruktur. Genau da lernt man am meisten („ah, diese drei Klassen aus drei Namespaces sind in Wahrheit eine Einheit"). Baustein ist schon da: CodeElementPartitioner und die SCC-Maschinerie. Die glanceable Variante davon: „was ist wechselseitig gekoppelt?" — Paare/Gruppen, die sich gegenseitig brauchen (2-Zyklen / SCC auf Typebene). Das ist die scharfe Version von „verwoben".
+
+„Wie viel Angst muss ich haben, das anzufassen?" (Blast Radius)
+Pro Typ: wie viele Typen hängen transitiv an ihm — also was bricht potenziell, wenn ich ihn ändere. Das ist bewusst nicht PageRank (der gewichtet), sondern die rohe Reichweite der eingehenden Abhängigkeiten. Eine einzige, sehr intuitive Zahl: „847 Typen können dich erreichen" → Vorsicht. Rechnerisch nur die transitive Hülle der eingehenden Kanten. Für mich der stärkste neue Kandidat neben Hotspots, weil er eine andere Angst beantwortet als „wie fundamental".
+
+„Wo fängt das überhaupt an?" (Entry Points)
+Main, Controller/Endpoints, Event-Handler, DI-Registrierungen, öffentliche API-Oberfläche. Für den Newcomer die allererste Frage, und Hotspots + Entry Points zusammen sind ein kompletter Einstieg („wo beginnt Ausführung" + „worauf ruht alles"). Vieles davon ist aus RelationshipTypes/Attributen ableitbar.
+
+„Was kann ich ignorieren?" (unreferenziert)
+Typen mit Fan-in 0, die keine Entry Points sind. Zweifacher Nutzen: die Landkarte kleiner machen und Aufräum-Kandidaten. Ehrliche Warnung: Reflection/DI/öffentliche API erzeugen Fehlalarme — das muss die Doku klar sagen, sonst löscht jemand was Lebendiges. Deshalb als „möglicherweise ungenutzt", nie als Urteil.
+
+Zwei, die ich bewusst nicht empfehle, damit die Sammlung ehrlich bleibt: klassisches LCOM (Klassen-Kohäsion) — riecht nach Martin/akademisch, schwer glanceable. Und zyklomatische Komplexität — misst Methoden-Innenleben, nicht Struktur; anderes Werkzeug, anderer Zweck.
+
+(!) Bast Radios wäre ein netter Kandidat
+
+Der Unterschied liegt darin, ob die Wichtigkeit der abhängigen Typen mitzählt:
+
+PageRank (gewichtet): Jeder Typ, der von dir abhängt, trägt Rang bei — aber proportional zu seinem eigenen Rang. Hängt eine wichtige Klasse an dir, bekommst du mehr als wenn ein triviales Blatt an dir hängt. Es ist eine gewichtete Summe, rekursiv. „Wichtig ist, wer von Wichtigen gebraucht wird."
+Blast Radius (ungewichtet): Ein reines Abzählen der transitiven Hülle eingehender Kanten. Jeder Typ, der dich erreichen kann, zählt genau 1 — egal ob es ein kritischer Kern-Service oder ein Wegwerf-Test-Helper ist. Es ist die Kardinalität einer Menge, keine gewichtete Summe.
+Konkret: Ein Typ, an dem 500 unbedeutende Blätter hängen, hat einen großen Blast Radius (500 könnten brechen) aber vielleicht moderaten PageRank (die 500 sind ja selbst unwichtig). Genau darin unterscheiden sich die beiden Fragen:
+
+PageRank/Score: „Wie fundamental bist du?" → gewichtet nach Wichtigkeit der Abhängigen.
+Blast Radius: „Wie viel kann ich kaputt machen?" → flaches Abzählen, jeder gleich.
+Deshalb „nicht gewichtet" — im Sinne von: keine Gewichtung nach Wichtigkeit der Beitragenden, nur Menge.

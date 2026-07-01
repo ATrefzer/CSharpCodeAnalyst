@@ -70,7 +70,7 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 
-        analyzer = new Hotspots.Analyzer(messaging);
+        analyzer = new TypeDependencies.Analyzer(messaging);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
     }

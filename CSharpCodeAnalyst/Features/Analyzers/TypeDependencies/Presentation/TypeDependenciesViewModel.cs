@@ -7,17 +7,17 @@ using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Features.Analyzers.Hotspots.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.TypeDependencies.Presentation;
 
-internal class HotspotsViewModel : Table
+internal class TypeDependenciesViewModel : Table
 {
     private readonly ObservableCollection<TableRow> _rows;
     private readonly IPublisher _messaging;
 
-    internal HotspotsViewModel(List<TypeHotspot> hotspots, IPublisher messaging)
+    internal TypeDependenciesViewModel(List<TypeHotspot> hotspots, IPublisher messaging)
     {
         _messaging = messaging;
-        var rows = hotspots.Select(h => new HotspotRowViewModel(h));
+        var rows = hotspots.Select(h => new TypeDependencyViewModel(h));
         _rows = new ObservableCollection<TableRow>(rows);
     }
 
@@ -29,35 +29,35 @@ internal class HotspotsViewModel : Table
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_Hotspots_Rank,
-                PropertyName = nameof(HotspotRowViewModel.Rank),
+                PropertyName = nameof(TypeDependencyViewModel.Rank),
                 Width = 40
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_Hotspots_Element,
-                PropertyName = nameof(HotspotRowViewModel.Name)
+                PropertyName = nameof(TypeDependencyViewModel.Name)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_Hotspots_FanIn,
-                PropertyName = nameof(HotspotRowViewModel.FanIn)
+                PropertyName = nameof(TypeDependencyViewModel.FanIn)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_Hotspots_FanOut,
-                PropertyName = nameof(HotspotRowViewModel.FanOut)
+                PropertyName = nameof(TypeDependencyViewModel.FanOut)
             },
             new()
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_Hotspots_Score,
-                PropertyName = nameof(HotspotRowViewModel.Score),
+                PropertyName = nameof(TypeDependencyViewModel.Score),
 
                 // Sort by the numeric value, not the formatted string.
-                SortMemberName = nameof(HotspotRowViewModel.ScoreValue)
+                SortMemberName = nameof(TypeDependencyViewModel.ScoreValue)
             }
         };
     }
@@ -79,12 +79,12 @@ internal class HotspotsViewModel : Table
             new CommandDefinition
             {
                 Header = Strings.CopyToExplorerGraph_MenuItem,
-                Command = new WpfCommand<HotspotRowViewModel>(ShowInExplorer)
+                Command = new WpfCommand<TypeDependencyViewModel>(ShowInExplorer)
             }
         ];
     }
 
-    private void ShowInExplorer(HotspotRowViewModel row)
+    private void ShowInExplorer(TypeDependencyViewModel row)
     {
         _messaging.Publish(new AddNodeToGraphRequest(row.Element));
     }

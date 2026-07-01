@@ -5,7 +5,7 @@ using CodeParserTests.Helper;
 namespace CodeParserTests.UnitTests.Metrics;
 
 [TestFixture]
-public class HotspotAnalysisTests
+public class TypeDependencyAnalysisTests
 {
     [SetUp]
     public void SetUp()
@@ -23,7 +23,7 @@ public class HotspotAnalysisTests
     [Test]
     public void Calculate_EmptyGraph_ReturnsEmpty()
     {
-        var result = HotspotAnalysis.Calculate(_graph);
+        var result = TypeDependencyAnalysis.Calculate(_graph);
         Assert.That(result, Is.Empty);
     }
 
@@ -40,7 +40,7 @@ public class HotspotAnalysisTests
         Rel(m1, bm, RelationshipType.Calls);
         Rel(m2, bm, RelationshipType.Calls);
 
-        var result = HotspotAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
 
         Assert.Multiple(() =>
         {
@@ -61,7 +61,7 @@ public class HotspotAnalysisTests
 
         Rel(m1, m2, RelationshipType.Calls);
 
-        var result = HotspotAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
 
         Assert.Multiple(() =>
         {
@@ -79,7 +79,7 @@ public class HotspotAnalysisTests
 
         Rel(a, external, RelationshipType.Uses);
 
-        var result = HotspotAnalysis.Calculate(_graph);
+        var result = TypeDependencyAnalysis.Calculate(_graph);
 
         Assert.Multiple(() =>
         {
@@ -102,7 +102,7 @@ public class HotspotAnalysisTests
         Rel(a, c, RelationshipType.Containment);
         Rel(b, c, RelationshipType.Bundled);
 
-        var result = HotspotAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
 
         Assert.Multiple(() =>
         {
@@ -123,7 +123,7 @@ public class HotspotAnalysisTests
         Rel(derived1, baseType, RelationshipType.Inherits);
         Rel(derived2, baseType, RelationshipType.Inherits);
 
-        var result = HotspotAnalysis.Calculate(_graph);
+        var result = TypeDependencyAnalysis.Calculate(_graph);
 
         Assert.Multiple(() =>
         {
@@ -145,7 +145,7 @@ public class HotspotAnalysisTests
         Rel(b, hub, RelationshipType.Uses);
         Rel(c, hub, RelationshipType.Uses);
 
-        var result = HotspotAnalysis.Calculate(_graph);
+        var result = TypeDependencyAnalysis.Calculate(_graph);
 
         Assert.Multiple(() =>
         {
@@ -179,7 +179,7 @@ public class HotspotAnalysisTests
         Rel(leaf3, gateway, RelationshipType.Uses);
         Rel(gateway, core, RelationshipType.Uses);
 
-        var result = HotspotAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
+        var result = TypeDependencyAnalysis.Calculate(_graph).ToDictionary(h => h.Type.Id);
 
         Assert.Multiple(() =>
         {
@@ -199,7 +199,7 @@ public class HotspotAnalysisTests
         Rel(a, b, RelationshipType.Uses);
         Rel(b, c, RelationshipType.Uses);
 
-        var result = HotspotAnalysis.Calculate(_graph);
+        var result = TypeDependencyAnalysis.Calculate(_graph);
 
         Assert.That(result.Sum(h => h.PageRank), Is.EqualTo(1.0).Within(1e-6));
     }

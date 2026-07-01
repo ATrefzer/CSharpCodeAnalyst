@@ -42,7 +42,7 @@ public class TypeHotspot(CodeElement type)
 ///       depend on it, not merely when many types do. Edges are NOT reversed - importance
 ///       flows to the depended-upon types, which is exactly what we want to surface.
 /// </summary>
-public static class HotspotAnalysis
+public static class TypeDependencyAnalysis
 {
     private const double DampingFactor = 0.85;
     private const int MaxIterations = 100;

@@ -3,11 +3,11 @@ using CodeGraph.Algorithms.Metrics;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Features.Analyzers.Hotspots.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.TypeDependencies.Presentation;
 
-public class HotspotRowViewModel : TableRow
+public class TypeDependencyViewModel : TableRow
 {
-    internal HotspotRowViewModel(TypeHotspot hotspot)
+    internal TypeDependencyViewModel(TypeHotspot hotspot)
     {
         Element = hotspot.Type;
         Rank = hotspot.Rank;

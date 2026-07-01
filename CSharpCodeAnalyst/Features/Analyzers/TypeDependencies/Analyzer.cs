@@ -1,11 +1,11 @@
 using CodeGraph.Algorithms.Metrics;
-using CSharpCodeAnalyst.Features.Analyzers.Hotspots.Presentation;
+using CSharpCodeAnalyst.Features.Analyzers.TypeDependencies.Presentation;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 
-namespace CSharpCodeAnalyst.Features.Analyzers.Hotspots;
+namespace CSharpCodeAnalyst.Features.Analyzers.TypeDependencies;
 
 /// <summary>
 ///     Ranks the types of the code graph by their centrality in the dependency structure
@@ -20,21 +20,21 @@ public class Analyzer : IAnalyzer
         _messaging = messaging;
     }
 
-    public string Id { get; } = "DependencyHotspots";
-    public string Name { get; } = Strings.Analyzer_Hotspots_Label;
-    public string Description { get; set; } = Strings.Analyzer_Hotspots_Tooltip;
+    public string Id { get; } = "TypeDependencies";
+    public string Name { get; } = Strings.Analyzer_TypeDependencies_Label;
+    public string Description { get; set; } = Strings.Analyzer_TypeDependencies_Tooltip;
 
     public void Analyze(CodeGraph.Graph.CodeGraph graph)
     {
-        var hotspots = HotspotAnalysis.Calculate(graph);
+        var hotspots = TypeDependencyAnalysis.Calculate(graph);
 
         if (hotspots.Count == 0)
         {
-            ToastManager.ShowInfo(Strings.Analyzer_Hotspots_NoData);
+            ToastManager.ShowInfo(Strings.Analyzer_TypeDependencies_NoData);
             return;
         }
 
-        var vm = new HotspotsViewModel(hotspots, _messaging);
+        var vm = new TypeDependenciesViewModel(hotspots, _messaging);
         _messaging.Publish(new ShowTabularDataRequest(vm));
     }
 

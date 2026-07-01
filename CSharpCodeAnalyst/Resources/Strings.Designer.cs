@@ -279,77 +279,32 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dependency hotspots.
+        ///   Looks up a localized string similar to Type Dependencies.
         /// </summary>
-        public static string Analyzer_Hotspots_Label {
+        public static string Analyzer_TypeDependencies_Label {
             get {
-                return ResourceManager.GetString("Analyzer_Hotspots_Label", resourceCulture);
+                return ResourceManager.GetString("Analyzer_TypeDependencies_Label", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Ranks types by how central they are in the dependency structure (fan-in, fan-out, PageRank). Helps you find the types to understand first.
-        /// </summary>
-        public static string Analyzer_Hotspots_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_Hotspots_Tooltip", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to No types found to rank.
         /// </summary>
-        public static string Analyzer_Hotspots_NoData {
+        public static string Analyzer_TypeDependencies_NoData {
             get {
-                return ResourceManager.GetString("Analyzer_Hotspots_NoData", resourceCulture);
+                return ResourceManager.GetString("Analyzer_TypeDependencies_NoData", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to #.
+        ///   Looks up a localized string similar to Ranks types by their role in the dependency structure (fan-in, fan-out, importance). Helps you find the types to understand first..
         /// </summary>
-        public static string Column_Hotspots_Rank {
+        public static string Analyzer_TypeDependencies_Tooltip {
             get {
-                return ResourceManager.GetString("Column_Hotspots_Rank", resourceCulture);
+                return ResourceManager.GetString("Analyzer_TypeDependencies_Tooltip", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Type.
-        /// </summary>
-        public static string Column_Hotspots_Element {
-            get {
-                return ResourceManager.GetString("Column_Hotspots_Element", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Fan-in.
-        /// </summary>
-        public static string Column_Hotspots_FanIn {
-            get {
-                return ResourceManager.GetString("Column_Hotspots_FanIn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Fan-out.
-        /// </summary>
-        public static string Column_Hotspots_FanOut {
-            get {
-                return ResourceManager.GetString("Column_Hotspots_FanOut", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Score.
-        /// </summary>
-        public static string Column_Hotspots_Score {
-            get {
-                return ResourceManager.GetString("Column_Hotspots_Score", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Analyzers.
         /// </summary>
@@ -631,6 +586,51 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Column_EventRegistration_Header {
             get {
                 return ResourceManager.GetString("Column_EventRegistration_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type.
+        /// </summary>
+        public static string Column_Hotspots_Element {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Element", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fan-in.
+        /// </summary>
+        public static string Column_Hotspots_FanIn {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_FanIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fan-out.
+        /// </summary>
+        public static string Column_Hotspots_FanOut {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_FanOut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to #.
+        /// </summary>
+        public static string Column_Hotspots_Rank {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Rank", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Score.
+        /// </summary>
+        public static string Column_Hotspots_Score {
+            get {
+                return ResourceManager.GetString("Column_Hotspots_Score", resourceCulture);
             }
         }
         
@@ -1042,16 +1042,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("FindInTree", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Jump to code.
-        /// </summary>
-        public static string JumpToCode {
-            get {
-                return ResourceManager.GetString("JumpToCode", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Find outgoing Calls.
         /// </summary>
@@ -1258,52 +1249,6 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Highlighting_Label", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Force (fCoSE).
-        /// </summary>
-        public static string Layout_Force_Label {
-            get {
-                return ResourceManager.GetString("Layout_Force_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Layered ↓ (Dagre).
-        /// </summary>
-        public static string Layout_DagreTopBottom_Label {
-            get {
-                return ResourceManager.GetString("Layout_DagreTopBottom_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Layered → (Dagre).
-        /// </summary>
-        public static string Layout_DagreLeftRight_Label {
-            get {
-                return ResourceManager.GetString("Layout_DagreLeftRight_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Layered ↓ (ELK, nested).
-        /// </summary>
-        public static string Layout_ElkDown_Label {
-            get {
-                return ResourceManager.GetString("Layout_ElkDown_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Layered → (ELK, nested).
-        /// </summary>
-        public static string Layout_ElkRight_Label {
-            get {
-                return ResourceManager.GetString("Layout_ElkRight_Label", resourceCulture);
-            }
-        }
-
         
         /// <summary>
         ///   Looks up a localized string similar to Outgoing edges.
@@ -1495,6 +1440,60 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Jump to code.
+        /// </summary>
+        public static string JumpToCode {
+            get {
+                return ResourceManager.GetString("JumpToCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (Dagre).
+        /// </summary>
+        public static string Layout_DagreLeftRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreLeftRight_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (Dagre).
+        /// </summary>
+        public static string Layout_DagreTopBottom_Label {
+            get {
+                return ResourceManager.GetString("Layout_DagreTopBottom_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Layered ↓ (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkDown_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkDown_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Layered → (ELK, nested).
+        /// </summary>
+        public static string Layout_ElkRight_Label {
+            get {
+                return ResourceManager.GetString("Layout_ElkRight_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Force (fCoSE).
+        /// </summary>
+        public static string Layout_Force_Label {
+            get {
+                return ResourceManager.GetString("Layout_Force_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Layout.
         /// </summary>
         public static string Layout_Label {
@@ -1646,7 +1645,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Legend_Property", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Property accessor (get/set).
         /// </summary>
@@ -1655,7 +1654,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Legend_PropertyAccessor", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Record.
         /// </summary>
@@ -2601,7 +2600,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_IncludeExternalCode_Tooltip", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Include _generated code.
         /// </summary>
@@ -2610,7 +2609,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_IncludeGeneratedCode", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Include source-generated code (e.g. [ObservableProperty], [RelayCommand]) when parsing the solution. Without this, calls to generated members appear as a relationship to the containing type..
         /// </summary>
@@ -2619,25 +2618,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_IncludeGeneratedCode_Tooltip", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Split property _getter/setter.
-        /// </summary>
-        public static string Settings_SplitPropertyAccessors {
-            get {
-                return ResourceManager.GetString("Settings_SplitPropertyAccessors", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Model the getter and setter of each property as separate elements (get_Prop / set_Prop)....
-        /// </summary>
-        public static string Settings_SplitPropertyAccessors_Tooltip {
-            get {
-                return ResourceManager.GetString("Settings_SplitPropertyAccessors_Tooltip", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Performance Settings.
         /// </summary>
@@ -2725,6 +2706,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Settings_Settings_AddContainingType_Tooltip {
             get {
                 return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split property _getter/setter.
+        /// </summary>
+        public static string Settings_SplitPropertyAccessors {
+            get {
+                return ResourceManager.GetString("Settings_SplitPropertyAccessors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Model the getter and setter of each property as separate elements (get_Prop / set_Prop). This distinguishes read from write access and avoids false cycles caused by merging both directions onto a single property node..
+        /// </summary>
+        public static string Settings_SplitPropertyAccessors_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_SplitPropertyAccessors_Tooltip", resourceCulture);
             }
         }
         
@@ -2819,6 +2818,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stop.
+        /// </summary>
+        public static string StopRendering_Label {
+            get {
+                return ResourceManager.GetString("StopRendering_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw..
+        /// </summary>
+        public static string StopRendering_Tooltip {
+            get {
+                return ResourceManager.GetString("StopRendering_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer.
         /// </summary>
         public static string Tab_Analyzer {
@@ -2893,25 +2910,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("TooMuchElementsTitle", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Stop.
-        /// </summary>
-        public static string StopRendering_Label {
-            get {
-                return ResourceManager.GetString("StopRendering_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Stop a runaway render. Terminates the graph render process and reloads the view (the model is kept). Use this if a large graph takes too long to draw.
-        /// </summary>
-        public static string StopRendering_Tooltip {
-            get {
-                return ResourceManager.GetString("StopRendering_Tooltip", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search in code element name. ENTER to start search.
         ///&apos;!&apos; Clears the search but keeps highlighting
