@@ -56,6 +56,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly IUserNotification _ui;
     private UserPreferences _userSettings;
     private Table? _analyzerResult;
+    private Table? _partitionsResult;
     private AppSettings _applicationSettings;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
 
@@ -165,6 +166,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         set
         {
             _analyzerResult = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public Table? PartitionsResult
+    {
+        get => _partitionsResult;
+        set
+        {
+            _partitionsResult = value;
             OnPropertyChanged();
         }
     }
@@ -778,6 +789,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         Cycles = null;
         AnalyzerResult = null;
+        PartitionsResult = null;
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateMetrics(codeGraph);
@@ -1008,7 +1020,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         var partitionsVm = new PartitionsViewModel(pvm);
-        HandleShowTabularData(new ShowTabularDataRequest(partitionsVm));
+
+        // Partitions get their own tab so drilling in from the Type Cohesion analyzer (or the tree)
+        // does not overwrite the analyzer result the user came from.
+        PartitionsResult = partitionsVm;
+        SelectedRightTabIndex = TabIndices.Right.Partitions;
     }
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)

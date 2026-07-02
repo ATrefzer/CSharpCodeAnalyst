@@ -390,6 +390,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Metrics_TabHeader" xml:space="preserve">
     <value>Metrics</value>
   </data>
+  <data name="Partitions_TabHeader" xml:space="preserve">
+    <value>Partitions</value>
+  </data>
   <data name="Level_Header" xml:space="preserve">
     <value>Level</value>
   </data>
@@ -749,6 +752,27 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Analyzer_TypeDependencies_NoData" xml:space="preserve">
     <value>No types found to rank</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_Label" xml:space="preserve">
+    <value>Type Cohesion</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_Tooltip" xml:space="preserve">
+    <value>Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions.</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_NoData" xml:space="preserve">
+    <value>No classes with separable partitions found</value>
+  </data>
+  <data name="Column_TypeCohesion_Class" xml:space="preserve">
+    <value>Class</value>
+  </data>
+  <data name="Column_TypeCohesion_Partitions" xml:space="preserve">
+    <value>Partitions</value>
+  </data>
+  <data name="Column_TypeCohesion_Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="ShowPartitions" xml:space="preserve">
+    <value>Show partitions</value>
   </data>
   <data name="Column_TypeDependencies_Rank" xml:space="preserve">
     <value>#</value>

@@ -295,7 +295,70 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Analyzer_TypeDependencies_NoData", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Type Cohesion.
+        /// </summary>
+        public static string Analyzer_TypeCohesion_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions.
+        /// </summary>
+        public static string Analyzer_TypeCohesion_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No classes with separable partitions found.
+        /// </summary>
+        public static string Analyzer_TypeCohesion_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_NoData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Class.
+        /// </summary>
+        public static string Column_TypeCohesion_Class {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Class", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Partitions.
+        /// </summary>
+        public static string Column_TypeCohesion_Partitions {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Partitions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Members.
+        /// </summary>
+        public static string Column_TypeCohesion_Members {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Members", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show partitions.
+        /// </summary>
+        public static string ShowPartitions {
+            get {
+                return ResourceManager.GetString("ShowPartitions", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Ranks types by their role in the dependency structure (fan-in, fan-out, importance). Helps you find the types to understand first..
         /// </summary>
@@ -1789,7 +1852,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Metrics_TabHeader", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Partitions.
+        /// </summary>
+        public static string Partitions_TabHeader {
+            get {
+                return ResourceManager.GetString("Partitions_TabHeader", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Clear movement parent.
         /// </summary>

@@ -73,6 +73,10 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer = new TypeDependencies.Analyzer(messaging);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
+
+        analyzer = new TypeCohesion.Analyzer(messaging);
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
+        _analyzers.Add(analyzer.Id, analyzer);
     }
 
     public bool IsDirty()

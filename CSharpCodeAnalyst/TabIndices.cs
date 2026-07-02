@@ -22,5 +22,6 @@ internal static class TabIndices
         public const int Cycles = 1;
         public const int Analyzer = 2;
         public const int Metrics = 3;
+        public const int Partitions = 4;
     }
 }
