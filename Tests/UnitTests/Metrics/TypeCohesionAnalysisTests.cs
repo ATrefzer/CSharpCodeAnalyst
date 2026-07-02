@@ -66,6 +66,30 @@ public class TypeCohesionAnalysisTests
             Assert.That(result[0].Type.Id, Is.EqualTo("A"));
             Assert.That(result[0].PartitionCount, Is.EqualTo(2));
             Assert.That(result[0].MemberCount, Is.EqualTo(4));
+            // Two balanced groups of two -> the biggest holds half.
+            Assert.That(result[0].LargestPartitionShare, Is.EqualTo(0.5).Within(1e-9));
+        });
+    }
+
+    [Test]
+    public void Calculate_UnbalancedSplit_ReportsHighLargestShare()
+    {
+        // One connected group of three plus a single isolated method -> 3/4 in the biggest.
+        var c = _graph.CreateClass("A");
+        var m1 = _graph.CreateMethod("A.M1", c);
+        var m2 = _graph.CreateMethod("A.M2", c);
+        var m3 = _graph.CreateMethod("A.M3", c);
+        _graph.CreateMethod("A.M4", c);
+        Rel(m1, m2, RelationshipType.Calls);
+        Rel(m2, m3, RelationshipType.Calls);
+
+        var result = TypeCohesionAnalysis.Calculate(_graph);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result[0].PartitionCount, Is.EqualTo(2));
+            Assert.That(result[0].LargestPartitionShare, Is.EqualTo(0.75).Within(1e-9));
         });
     }
 

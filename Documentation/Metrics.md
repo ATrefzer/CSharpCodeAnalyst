@@ -4,6 +4,17 @@ This document explains the metrics computed by C# Code Analyst.
 
 I don’t want a vast number of random metrics; I just want a few useful ones that focus on specific questions.
 
+The metrics come from two analyzers that look at a class from opposite sides:
+
+- **Type Dependencies** looks at a class *from the outside* — how it sits in the dependency graph:
+  what depends on it and what it depends on. It answers *which types matter most* and *what is risky
+  to change*.
+- **Type Cohesion** looks *from the inside* — whether a class's own members form one thing or
+  several. It answers *which classes are secretly several classes and should be split*.
+
+Both work at the type level and are reached from the *Analyzers* ribbon. Their results appear in the
+Analyzer tab; cohesion additionally drills down into the Partitions tab.
+
 ## Type Dependencies
 
 The goal of these metrics is to answer the questions you have when facing an unfamiliar codebase:
@@ -16,30 +27,14 @@ type:
 | ------------ | ------------------------------------------------------------ |
 | #            | Rank position when sorted by Score (descending).             |
 | Type         | The fully qualified type name.                               |
-| Fan-in       | How many other types depend on this type.                    |
-| Blast radius | How many other types transitively depend on this type — its change impact. |
-| Score        | Transitive importance (PageRank), normalized so the average is 1.0. How much the rest of the codebase rests on this type. |
-| Fan-out      | How many other types this type depends on.                   |
+| Fan-in       | How many other types depend on this type.<br />direct (depth 1) |
+| Blast radius | How many other types transitively depend on this type — its change impact.<br />transitive, counted |
+| Score        | Transitive importance (PageRank), normalized so the average is 1.0. How much the rest of the codebase rests on this type.<br />transitive, weighted by importance |
+| Fan-out      | How many other types this type depends on.<br />direct (depth 1) |
 
-Double-click a row (or right-click → *Show in Code Explorer*) to place the type on the canvas and
-start exploring from there.
+`Containment`, `Bundled`, `Handles` are special relationships which are not considered in this analysis. Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`.
 
-### The columns as two axes
-
-The columns are not independent. Three of them look at the **incoming** direction ("who depends on
-me?") at rising resolution, and one looks at the **outgoing** direction. Reading them as two axes
-makes the table easy to interpret:
-
-| Axis                         | Metric       | Resolution                         |
-| ---------------------------- | ------------ | ---------------------------------- |
-| Incoming (who depends on me) | Fan-in       | direct (depth 1)                   |
-| Incoming                     | Blast radius | transitive, counted                |
-| Incoming                     | Score        | transitive, weighted by importance |
-| Outgoing (what I depend on)  | Fan-out      | direct (depth 1)                   |
-
-Fan-in, blast radius and Score are three views of the same "who leans on me?" question — a direct
-count, a transitive count, and a transitive count weighted by how important the dependents
-themselves are. Fan-out is the only outgoing view.
+Types defined outside the analyzed solution (framework, NuGet packages) are excluded. Otherwise ubiquitous types like `object` or `string` would dominate the Fan-in ranking.
 
 ### The type-level graph
 
@@ -60,36 +55,11 @@ This is intentional. **Dependency is a yes/no fact in this context.** For the qu
 A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full
 stop.
 
-Note: The only quantity that genuinely exists statically is the number of distinct **call sites**
-(`SourceLocations` in the model) or the number of member-to-member edges between two types. That is
-a measure of *how entangled* two types are — relevant for estimating decoupling effort,
-but a different question from centrality. 
+Note: The one quantity that genuinely exists is the number of distinct **call sites** between two
+types — a measure of how *entangled* they are, relevant for estimating decoupling effort. But that
+is a different question from centrality, so it is not used here.
 
-### Which relationships count as a dependency
-
-Most relationship kinds express "the source depends on the target" and all point in the same
-direction (dependent → dependency), so they are treated as equal, unweighted edges:
-
-`Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`.
-
-Three kinds are **excluded**:
-
-- **Containment** — the parent/child hierarchy (namespace contains class, class contains method).
-  This is structure, not a dependency. 
-- **Bundled** — artificial edges the UI creates to fold several relationships together for display.
-  Not part of the real code.
-- **Handles** — an event-handler registration. The model stores it as `handler → event`, but this
-  is the reverse callback wiring (the event later calls the handler at runtime), not a compile-time
-  dependency of the handler on the event. The real dependency created by `someEvent += OnHandler;` — the subscriber referencing the event — is
-  already captured as a `Calls`/`Uses` edge, so nothing is lost by dropping `Handles`.
-
-### External types are excluded
-
-Types defined outside the analyzed solution (framework, NuGet packages) are excluded from the result
-and from the edges. Otherwise ubiquitous types like `object` or `string` would dominate the Fan-in
-ranking without telling you anything about *your* architecture.
-
-## Fan-in and Fan-out
+### Fan-in and Fan-out
 
 - **Fan-in** (afferent coupling) = the number of distinct types that depend on this type.
 - **Fan-out** (efferent coupling) = the number of distinct types this type depends on.
@@ -102,7 +72,14 @@ They answer two different questions and both are worth reading:
   god-class. It is also a good entry point, but for the opposite reason: it tells you *what the
   system does*, not *what it is built on*.
 
-## Blast radius
+The extremes are informative too:
+
+- **Fan-in = 0** → nothing depends on this type. It is either an *entry point* (`Main`, a controller,
+  a top-level command/handler) or *dead code*. Both are worth a look.
+- **Fan-out = 0** → this type depends on nothing in your solution. A *pure leaf*: a value type, enum
+  or DTO, or a self-contained foundation. These are the stable bottom of the graph.
+
+### Blast radius
 
 **Blast radius** = the number of types that *transitively* depend on a type — everything that could
 be affected if you change it. Where Fan-in counts only the direct dependents, blast radius follows
@@ -115,10 +92,13 @@ the codebase.
 Blast radius is a **flat count**: every type that can reach you counts as one, regardless of how
 important it is. That is the difference from Score — Score weights each dependent by its own
 importance, blast radius does not. A type used by 500 trivial leaves has a large blast radius but
-may have only a moderate Score. The type itself is never counted in its own blast radius, even when
-it sits in a dependency cycle.
+may have only a moderate Score. The type itself is never counted in its own blast radius.
 
-## Score (PageRank)
+Blast radius is always **≥ Fan-in** (the direct dependents are a subset of the transitive ones). When
+the two are far apart — small Fan-in, large blast radius — the type sits *deep*: few types touch it
+directly, but those few carry its influence across much of the codebase.
+
+### Score (PageRank)
 
 Fan-in alone has a blind spot: it treats every incoming dependency as equal. A logging utility used
 by 200 trivial classes gets a huge Fan-in, but it is not an architecturally important type — it is
@@ -134,7 +114,13 @@ links; here it estimates how much of the rest of the codebase ultimately rests o
 and through the other types that rest on it. A high Score means a lot of your code leans on this
 type, so it is both what you most need to understand and what is riskiest to change.
 
-### How it is computed
+Score is the PageRank value normalized so the **average type scores 1.0**:
+
+- **Score = 1.0** → an average type.
+- **Score = 5.0** → five times more central than the average type.
+- **Score < 1.0** → below-average centrality (most leaf types).
+
+#### How it is computed
 
 PageRank is computed by power iteration on the type-level graph:
 
@@ -146,29 +132,16 @@ PR(v) = (1 - d) / N  +  d · Σ  PR(u) / outdegree(u)
 - `N` = number of types, `d` = damping factor (0.85).
 - Edges are **not reversed.** Rank flows along `A → B` edges toward the depended-upon type `B`, so
   foundational types (base classes, interfaces, core services) accumulate rank and rise to the top.
-- **Dangling types** (no outgoing edges, e.g. DTOs etc) would leak rank out of the system; their rank is
-  redistributed uniformly across all types each iteration.
-- Iteration stops when the values converge (total change < 1e-6) or after 100 iterations.
 
-The raw PageRank values form a probability distribution: they sum to 1 over all types. On a large
-solution each raw value is therefore tiny and hard to interpret.
-
-### PageRank × N (average = 1.0)
-
-Because the raw values sum to 1 across `N` types, the **average** raw value is `1/N`. Multiplying
-every value by `N` rescales the average to exactly 1.0:
+The raw PageRank values form a **probability distribution**: they sum to 1 over all types, so on a
+large solution each value is tiny. The **Score** shown in the table is that value multiplied by `N`
+(the number of types), which rescales the average to exactly 1.0:
 
 ```
 average Score = (1 / N) · N = 1
 ```
 
-This makes Score a size-independent, relative number:
-
-- **Score = 1.0** → an average type.
-- **Score = 5.0** → five times more central than the average type.
-- **Score < 1.0** → below-average centrality (most leaf types).
-
-## How to read the table
+### Reading the numbers
 
 1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry
    the most weight — the highest payoff to understand and the highest risk to change. That is not
@@ -182,11 +155,100 @@ This makes Score a size-independent, relative number:
    a widely-used utility (a logger, an extension-method holder); a type with modest Fan-in but high
    Score is a genuine architectural core. That gap is often the most informative signal in the
    table.
+5. **High Score together with high Fan-out** is the most dangerous combination: the type is both
+   foundational (much rests on it) and an orchestrator (it knows everyone). A god-class you cannot
+   change without touching a lot — the first candidate to break apart.
 
-## Limitations
+### Limitations
 
 - Metrics are structural only. They say nothing about code quality, correctness, or how hard a type
   is to read internally — only about its position in the dependency graph.
 - Dependencies are counted as yes/no; the strength or frequency of a coupling is not modeled.
 - External types are excluded, so a type whose real importance comes from being called by framework
   callbacks (e.g. a controller invoked only by ASP.NET) may rank lower than its runtime role.
+
+## Type Cohesion
+
+Where *Type Dependencies* looks at a class from the outside, **Type Cohesion** looks *inside* a class
+and answers a different question: **is this class secretly several classes — and if so, in how many
+parts does it fall apart?**
+
+Available via *Analyzers → Type Cohesion*. The result is a sortable table listing only the classes
+that are split candidates:
+
+| Column     | Meaning                                                                    |
+| ---------- | -------------------------------------------------------------------------- |
+| Class      | The fully qualified class name.                                            |
+| Partitions | Into how many independent groups the class's members fall.                 |
+| Members    | Number of direct members — size / priority context.                       |
+| Largest %  | Share of the members that sit in the biggest partition (see below).        |
+
+Double-click a row to open its partitions in the *Partitions* tab.
+
+### What a partition is
+
+The members of a class (methods, fields, properties, ...) form an internal graph: two members are
+**connected** when one calls the other or they access the same field. A *partition* is a connected
+component of that graph — a group of members that hang together and do not interact with the rest.
+
+- **1 partition** → fully cohesive: everything is interconnected. (These classes are *not* listed.)
+- **N ≥ 2 partitions** → the class is really N separable units. It could be split into N smaller,
+  more focused classes.
+
+This is the connected-components view of cohesion (LCOM4).
+
+Only **classes** are analyzed (not structs, records or interfaces). Pure data holders are skipped:
+a class with fewer than two methods has too little behavior for cohesion to mean anything, and
+would otherwise show up as maximally "incohesive" (each field its own partition).
+
+### Base classes are folded in
+
+Methods of a class may be linked together through base-class members. 
+
+Therefore base-class members are pulled in as **connectors**: they link the class's own
+members that interact through inherited state or behavior, but are then **projected out** of the
+reported partitions — because a split concerns the members *this* class actually owns. 
+
+External base classes are ignored.
+
+### Reading the numbers
+
+**Partitions** tells you *that* a class falls apart; **Largest %** tells you *whether it is worth
+splitting*. Two classes with the same partition count can be very different:
+
+| Class | Partitions | Members | Largest % | Reading                                          |
+| ----- | ---------- | ------- | --------- | ------------------------------------------------ |
+| X     | 2          | 19      | 53 %      | 10 vs 9 — a genuine two-responsibility class.     |
+| Y     | 2          | 19      | 95 %      | 18 vs 1 — one cohesive blob plus a stray helper.  |
+
+**Largest %** is the size of the biggest partition divided by all partitioned members:
+
+- Near **100 %** → one dominant group plus a few strays. The "split" is trivial (shed one method).
+  Low priority.
+- Near **1 / Partitions** (evenly divided) → the class breaks into balanced, separate
+  responsibilities. A real refactoring candidate. High priority.
+
+Read the three columns together:
+
+- **Many Partitions + many Members + low Largest %** → the worst offenders: a big class that
+  genuinely breaks into several balanced, separate parts. Sort by **Largest % ascending** to bring
+  these to the top, and use **Members** to pick the bigger fish among them.
+- **High Partitions + high Largest %** → the opposite shape: one solid core and many
+  tiny, unrelated helpers. You can peel these off one at a time rather than doing a big
+  split.
+- **Few Members with ≥ 2 partitions** → low stakes. Technically incohesive, but too small to be
+  worth acting on.
+
+### Drilling into the partitions
+
+Double-clicking a row (or right-click → *Show partitions*) opens the concrete groups in the
+*Partitions* tab, so you immediately see *which* members would go where.
+
+### Limitations
+
+- Only in-solution base classes are folded in; members inherited from framework types are not visible
+  to the analysis.
+- Static utility classes and grab-bag helpers legitimately show many partitions — a high partition
+  count is not automatically a defect, only a signal that the members do not interact.
+- Cohesion is structural: it sees which members touch the same state, not whether they belong
+  together *conceptually*.

@@ -1,4 +1,4 @@
-﻿using CodeGraph.Graph;
+using CodeGraph.Graph;
 
 namespace CodeGraph.Algorithms.Partitioning;
 
@@ -10,7 +10,14 @@ public class CodeElementPartitioner
 {
     public static List<HashSet<string>> GetPartitions(Graph.CodeGraph codeGraph, CodeElement parentElement, bool includeBaseClasses)
     {
-        var subGraph = CreateSubGraph(codeGraph, parentElement, includeBaseClasses);
+        // When base classes are included, their members join the graph only as "connectors": they
+        // link the class's own members that interact through shared inherited state / behaviour, but
+        // are removed from the reported partitions afterward (a split concerns the own members).
+        var baseMemberIds = new HashSet<string>();
+        var subGraph = includeBaseClasses
+            ? CreateSubGraphWithBaseConnectors(codeGraph, parentElement, baseMemberIds)
+            : CreateSubGraph(codeGraph, parentElement);
+
         var codeElementIdToPartition = InitializePartitions(subGraph);
 
         var allRelationships = subGraph.GetAllRelationships().ToList();
@@ -28,28 +35,119 @@ public class CodeElementPartitioner
             MergePartitions(codeElementIdToPartition, sourcePartition, targetPartition);
         }
 
+        var partitions = GetDistinctPartitions(codeElementIdToPartition);
 
-        return GetDistinctPartitions(codeElementIdToPartition);
+        if (baseMemberIds.Count > 0)
+        {
+            // Project onto the class's own members: base members were connectors only.
+            partitions = partitions
+                .Select(partition =>
+                {
+                    partition.ExceptWith(baseMemberIds);
+                    return partition;
+                })
+                .Where(partition => partition.Count > 0)
+                .ToList();
+        }
+
+        return partitions;
     }
 
-    private static Graph.CodeGraph CreateSubGraph(Graph.CodeGraph codeGraph, CodeElement parentElement, bool includeBaseClasses)
+    private static Graph.CodeGraph CreateSubGraph(Graph.CodeGraph codeGraph, CodeElement parentElement)
     {
-        // TODO implement includeBaseClasses
-        // We would have to move(!) all code elements from the base class into the sub graph
-        // and get rid of the base class itself. Simulating one big class.
-        // We also have to add the dependencies between the base class and the derived class.
-        // These get lost during the process.
-
         var subGraph = codeGraph.SubGraphOf(parentElement);
-
-        // TODO
-        // - Other sub graphs for all base classes
-        // - Move all children of base classes into the main sub graph
-        // - Add dependencies from original graph that got lost like access to base members.
 
         // Remove the single parent element to avoid that everything is in one partition
         subGraph.RemoveCodeElement(parentElement.Id);
         return subGraph;
+    }
+
+    /// <summary>
+    ///     Builds the sub graph of the class's own members plus the members of its (in-solution) base
+    ///     classes as connectors. Own members are linked by any relationship; edges that touch a base
+    ///     member connect only via <see cref="RelationshipType.Calls" /> / <see cref="RelationshipType.Uses" />
+    ///     (real member interaction / shared state), so structural edges like Overrides do not merge
+    ///     members artificially. The visited base member ids are collected into
+    ///     <paramref name="baseMemberIds" /> so the caller can project them out again.
+    /// </summary>
+    private static Graph.CodeGraph CreateSubGraphWithBaseConnectors(Graph.CodeGraph codeGraph, CodeElement parentElement,
+        HashSet<string> baseMemberIds)
+    {
+        var ownIds = parentElement.GetChildrenIncludingSelf();
+
+        var baseClasses = GetBaseClasses(codeGraph, parentElement);
+        var baseContainerIds = baseClasses.Select(b => b.Id).ToHashSet();
+        foreach (var baseClass in baseClasses)
+        {
+            baseMemberIds.UnionWith(baseClass.GetChildrenIncludingSelf());
+        }
+
+        var includedIds = new HashSet<string>(ownIds);
+        includedIds.UnionWith(baseMemberIds);
+
+        var subGraph = codeGraph.Clone(IncludeRelationship, includedIds);
+
+        // Remove the container nodes so they don't force all their members into one partition.
+        subGraph.RemoveCodeElement(parentElement.Id);
+        foreach (var baseContainerId in baseContainerIds)
+        {
+            subGraph.RemoveCodeElement(baseContainerId);
+        }
+
+        return subGraph;
+
+        bool IncludeRelationship(Relationship relationship)
+        {
+            if (!includedIds.Contains(relationship.SourceId) || !includedIds.Contains(relationship.TargetId))
+            {
+                return false;
+            }
+
+            // Own <-> own: keep the existing behaviour (any relationship connects).
+            if (ownIds.Contains(relationship.SourceId) && ownIds.Contains(relationship.TargetId))
+            {
+                return true;
+            }
+
+            // Anything touching a base member connects only through real interaction.
+            return relationship.Type is RelationshipType.Calls or RelationshipType.Uses;
+        }
+    }
+
+    /// <summary>
+    ///     Returns the in-solution base classes of the given class, walking the Inherits chain.
+    ///     External base classes are skipped (their members are not in the graph).
+    /// </summary>
+    private static List<CodeElement> GetBaseClasses(Graph.CodeGraph codeGraph, CodeElement element)
+    {
+        var baseClasses = new List<CodeElement>();
+        var visited = new HashSet<string>();
+        var queue = new Queue<CodeElement>();
+        queue.Enqueue(element);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            var inheritsFrom = current.Relationships
+                .Where(r => r.Type == RelationshipType.Inherits && r.SourceId == current.Id);
+
+            foreach (var relationship in inheritsFrom)
+            {
+                var baseClass = codeGraph.TryGetCodeElement(relationship.TargetId);
+                if (baseClass is null || baseClass.IsExternal)
+                {
+                    continue;
+                }
+
+                if (visited.Add(baseClass.Id))
+                {
+                    baseClasses.Add(baseClass);
+                    queue.Enqueue(baseClass);
+                }
+            }
+        }
+
+        return baseClasses;
     }
 
     private static void MergePartitions(Dictionary<string, HashSet<string>> codeElementIdToPartition, HashSet<string> sourcePartition, HashSet<string> targetPartition)

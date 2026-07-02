@@ -43,6 +43,15 @@ internal class TypeCohesionViewModel : Table
                 Type = ColumnType.Text,
                 Header = Strings.Column_TypeCohesion_Members,
                 PropertyName = nameof(TypeCohesionRowViewModel.Members)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_TypeCohesion_LargestPartition,
+                PropertyName = nameof(TypeCohesionRowViewModel.LargestShare),
+
+                // Sort by the numeric value, not the formatted percentage string.
+                SortMemberName = nameof(TypeCohesionRowViewModel.LargestShareValue)
             }
         };
     }
@@ -88,6 +97,7 @@ internal class TypeCohesionViewModel : Table
 
     private void ShowPartitions(TypeCohesionRowViewModel row)
     {
-        _messaging.Publish(new ShowPartitionsRequest(row.Element, false));
+        // Base-aware, to match the partition count shown in the table.
+        _messaging.Publish(new ShowPartitionsRequest(row.Element, true));
     }
 }

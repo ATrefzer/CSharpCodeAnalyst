@@ -626,6 +626,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Largest %.
+        /// </summary>
+        public static string Column_TypeCohesion_LargestPartition {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_LargestPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Members.
         /// </summary>
         public static string Column_TypeCohesion_Members {
@@ -1892,7 +1901,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Partition (base exclusive).
+        ///   Looks up a localized string similar to _Partition.
         /// </summary>
         public static string Partition {
             get {
@@ -1924,15 +1933,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Partitions_TabHeader {
             get {
                 return ResourceManager.GetString("Partitions_TabHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Partition (base inclusive).
-        /// </summary>
-        public static string PartitionWithBase {
-            get {
-                return ResourceManager.GetString("PartitionWithBase", resourceCulture);
             }
         }
         

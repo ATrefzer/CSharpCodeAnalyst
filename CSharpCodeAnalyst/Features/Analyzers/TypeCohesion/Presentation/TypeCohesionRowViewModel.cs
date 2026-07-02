@@ -1,3 +1,4 @@
+using System.Globalization;
 using CodeGraph.Algorithms.Partitioning;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -12,6 +13,10 @@ public class TypeCohesionRowViewModel : TableRow
         Name = info.Type.FullName;
         Partitions = info.PartitionCount;
         Members = info.MemberCount;
+
+        // Bound for display; sorting uses the numeric value below via SortMemberName.
+        LargestShareValue = info.LargestPartitionShare;
+        LargestShare = info.LargestPartitionShare.ToString("P0", CultureInfo.InvariantCulture);
     }
 
     /// <summary>The underlying class node, used to drill into its partitions.</summary>
@@ -20,4 +25,6 @@ public class TypeCohesionRowViewModel : TableRow
     public string Name { get; }
     public int Partitions { get; }
     public int Members { get; }
+    public string LargestShare { get; }
+    public double LargestShareValue { get; }
 }

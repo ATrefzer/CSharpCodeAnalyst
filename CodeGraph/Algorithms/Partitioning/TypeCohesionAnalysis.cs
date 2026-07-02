@@ -6,7 +6,7 @@ namespace CodeGraph.Algorithms.Partitioning;
 ///     One row of the cohesion result: a class that decomposes into several independent member
 ///     groups (partitions) and is therefore a candidate for splitting.
 /// </summary>
-public class TypeCohesionInfo(CodeElement type, int partitionCount, int memberCount)
+public class TypeCohesionInfo(CodeElement type, int partitionCount, int memberCount, double largestPartitionShare)
 {
     public CodeElement Type { get; } = type;
 
@@ -19,6 +19,13 @@ public class TypeCohesionInfo(CodeElement type, int partitionCount, int memberCo
 
     /// <summary>Number of direct members - size/priority context for the split.</summary>
     public int MemberCount { get; } = memberCount;
+
+    /// <summary>
+    ///     Fraction (0..1) of the partitioned elements that sit in the biggest partition. Near 1
+    ///     means one dominant group plus a few stray members (a trivial split); near 1/PartitionCount
+    ///     means an even, genuine split between separate responsibilities.
+    /// </summary>
+    public double LargestPartitionShare { get; } = largestPartitionShare;
 }
 
 /// <summary>
@@ -55,15 +62,18 @@ public static class TypeCohesionAnalysis
                 continue;
             }
 
-            // Base classes are not folded in (CodeElementPartitioner limitation): cohesion is
-            // measured over the class's own declared members only.
-            var partitions = CodeElementPartitioner.GetPartitions(graph, type, false);
+            // Base classes are folded in as connectors: inherited state/behaviour links the class's
+            // own members, but the reported partitions only contain the class's own members.
+            var partitions = CodeElementPartitioner.GetPartitions(graph, type, true);
             if (partitions.Count < 2)
             {
                 continue; // Cohesive - not a split candidate.
             }
 
-            result.Add(new TypeCohesionInfo(type, partitions.Count, type.Children.Count));
+            var sizes = partitions.Select(p => p.Count).ToList();
+            var largestShare = (double)sizes.Max() / sizes.Sum();
+
+            result.Add(new TypeCohesionInfo(type, partitions.Count, type.Children.Count, largestShare));
         }
 
         return result

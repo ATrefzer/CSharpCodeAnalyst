@@ -280,10 +280,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>File</value>
   </data>
   <data name="Partition" xml:space="preserve">
-    <value>_Partition (base exclusive)</value>
-  </data>
-  <data name="PartitionWithBase" xml:space="preserve">
-    <value>Partition (base inclusive)</value>
+    <value>_Partition</value>
   </data>
   <data name="ImportSolution_Label" xml:space="preserve">
     <value>Import Visual Studio _solution or C# project ...</value>
@@ -770,6 +767,9 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Column_TypeCohesion_Members" xml:space="preserve">
     <value>Members</value>
+  </data>
+  <data name="Column_TypeCohesion_LargestPartition" xml:space="preserve">
+    <value>Largest %</value>
   </data>
   <data name="ShowPartitions" xml:space="preserve">
     <value>Show partitions</value>
