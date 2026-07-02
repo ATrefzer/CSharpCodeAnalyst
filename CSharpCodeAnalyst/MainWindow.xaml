@@ -478,12 +478,12 @@
                     <dynamicDataGrid1:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
                 </TabItem>
 
-                <TabItem Header="{x:Static resources:Strings.Metrics_TabHeader}">
-                    <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Metrics}" />
-                </TabItem>
-
                 <TabItem Header="{x:Static resources:Strings.Partitions_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid TableData="{Binding PartitionsResult}" />
+                </TabItem>
+
+                <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
+                    <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
                 </TabItem>
             </TabControl>
         </Grid>

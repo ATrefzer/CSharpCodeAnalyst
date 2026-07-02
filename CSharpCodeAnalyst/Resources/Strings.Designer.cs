@@ -279,6 +279,33 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type Cohesion.
+        /// </summary>
+        public static string Analyzer_TypeCohesion_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No classes with separable partitions found.
+        /// </summary>
+        public static string Analyzer_TypeCohesion_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions..
+        /// </summary>
+        public static string Analyzer_TypeCohesion_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_TypeCohesion_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type Dependencies.
         /// </summary>
         public static string Analyzer_TypeDependencies_Label {
@@ -295,70 +322,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Analyzer_TypeDependencies_NoData", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Type Cohesion.
-        /// </summary>
-        public static string Analyzer_TypeCohesion_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions.
-        /// </summary>
-        public static string Analyzer_TypeCohesion_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No classes with separable partitions found.
-        /// </summary>
-        public static string Analyzer_TypeCohesion_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_NoData", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Class.
-        /// </summary>
-        public static string Column_TypeCohesion_Class {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Class", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Partitions.
-        /// </summary>
-        public static string Column_TypeCohesion_Partitions {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Partitions", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Members.
-        /// </summary>
-        public static string Column_TypeCohesion_Members {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Members", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Show partitions.
-        /// </summary>
-        public static string ShowPartitions {
-            get {
-                return ResourceManager.GetString("ShowPartitions", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Ranks types by their role in the dependency structure (fan-in, fan-out, importance). Helps you find the types to understand first..
         /// </summary>
@@ -653,6 +617,33 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Class.
+        /// </summary>
+        public static string Column_TypeCohesion_Class {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Class", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Members.
+        /// </summary>
+        public static string Column_TypeCohesion_Members {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partitions.
+        /// </summary>
+        public static string Column_TypeCohesion_Partitions {
+            get {
+                return ResourceManager.GetString("Column_TypeCohesion_Partitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blast radius.
         /// </summary>
         public static string Column_TypeDependencies_BlastRadius {
@@ -660,7 +651,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeDependencies_BlastRadius", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Type.
         /// </summary>
@@ -669,7 +660,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeDependencies_Element", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fan-in.
         /// </summary>
@@ -678,7 +669,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeDependencies_FanIn", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fan-out.
         /// </summary>
@@ -687,7 +678,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeDependencies_FanOut", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to #.
         /// </summary>
@@ -696,7 +687,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeDependencies_Rank", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Score.
         /// </summary>
@@ -916,7 +907,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("ExpandEverything", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Explore neighbors.
         /// </summary>
@@ -925,7 +916,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("ExploreNeighbors", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Export.
         /// </summary>
@@ -1827,42 +1818,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to # Code elements.
-        /// </summary>
-        public static string Metric_CodeElements {
-            get {
-                return ResourceManager.GetString("Metric_CodeElements", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to # Relationships.
-        /// </summary>
-        public static string Metric_Relationships {
-            get {
-                return ResourceManager.GetString("Metric_Relationships", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Metrics.
-        /// </summary>
-        public static string Metrics_TabHeader {
-            get {
-                return ResourceManager.GetString("Metrics_TabHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Partitions.
-        /// </summary>
-        public static string Partitions_TabHeader {
-            get {
-                return ResourceManager.GetString("Partitions_TabHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Clear movement parent.
         /// </summary>
         public static string MovementParent_Clear_Tooltip {
@@ -1960,6 +1915,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Partitions_NoPartitions {
             get {
                 return ResourceManager.GetString("Partitions_NoPartitions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partitions.
+        /// </summary>
+        public static string Partitions_TabHeader {
+            get {
+                return ResourceManager.GetString("Partitions_TabHeader", resourceCulture);
             }
         }
         
@@ -2800,6 +2764,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show overview after import.
+        /// </summary>
+        public static string Settings_ShowOverviewOnImport {
+            get {
+                return ResourceManager.GetString("Settings_ShowOverviewOnImport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to After importing a solution, fill the canvas with the whole graph collapsed to give an immediate overview instead of an empty canvas.
+        /// </summary>
+        public static string Settings_ShowOverviewOnImport_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_ShowOverviewOnImport_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Split property _getter/setter.
         /// </summary>
         public static string Settings_SplitPropertyAccessors {
@@ -2870,25 +2852,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_WarnIfFiltersActive_Tooltip", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Show overview after import.
+        ///   Looks up a localized string similar to Show partitions.
         /// </summary>
-        public static string Settings_ShowOverviewOnImport {
+        public static string ShowPartitions {
             get {
-                return ResourceManager.GetString("Settings_ShowOverviewOnImport", resourceCulture);
+                return ResourceManager.GetString("ShowPartitions", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to After importing a solution, fill the canvas with the whole graph collapsed to give an immediate overview instead of an empty canvas.
-        /// </summary>
-        public static string Settings_ShowOverviewOnImport_Tooltip {
-            get {
-                return ResourceManager.GetString("Settings_ShowOverviewOnImport_Tooltip", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Snapshot.
         /// </summary>
@@ -2922,6 +2895,33 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Snapshot_Tooltip {
             get {
                 return ResourceManager.GetString("Snapshot_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # Code elements.
+        /// </summary>
+        public static string Statistics_CodeElements {
+            get {
+                return ResourceManager.GetString("Statistics_CodeElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to # Relationships.
+        /// </summary>
+        public static string Statistics_Relationships {
+            get {
+                return ResourceManager.GetString("Statistics_Relationships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statistics.
+        /// </summary>
+        public static string Statistics_TabHeader {
+            get {
+                return ResourceManager.GetString("Statistics_TabHeader", resourceCulture);
             }
         }
         

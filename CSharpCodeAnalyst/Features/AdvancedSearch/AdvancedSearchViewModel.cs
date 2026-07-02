@@ -44,7 +44,6 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         ClearSearchCommand = new WpfCommand(ClearSearch);
         AddSelectedToGraphCommand = new WpfCommand(AddSelectedToGraph);
         AddSelectedToGraphCollapsedCommand = new WpfCommand(AddSelectedToGraphCollapsed);
-        PartitionCommand = new WpfCommand<SearchItemViewModel>(OnPartition, CanPartition);
         CopyToClipboardCommand = new WpfCommand<SearchItemViewModel>(OnCopyToClipboard);
         JumpToCodeCommand = new WpfCommand<SearchItemViewModel>(JumpToCode, CanJumpToCode);
         SelectAllCommand = new WpfCommand(SelectAll);
@@ -91,7 +90,6 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     public ICommand ClearSearchCommand { get; }
     public ICommand AddSelectedToGraphCommand { get; }
     public ICommand AddSelectedToGraphCollapsedCommand { get; }
-    public ICommand PartitionCommand { get; }
     public ICommand CopyToClipboardCommand { get; }
     public ICommand JumpToCodeCommand { get; }
     public ICommand SelectAllCommand { get; }
@@ -144,11 +142,6 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         Clipboard.SetText(text);
     }
 
-    private static bool CanPartition(SearchItemViewModel? vm)
-    {
-        return vm?.CodeElement is { ElementType: CodeElementType.Class };
-    }
-
     private static bool CanJumpToCode(SearchItemViewModel? vm)
     {
         return SourceLocationNavigator.CanJump(vm?.CodeElement);
@@ -159,14 +152,6 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         if (vm?.CodeElement is { } element)
         {
             SourceLocationNavigator.JumpTo(element);
-        }
-    }
-
-    private void OnPartition(SearchItemViewModel? vm)
-    {
-        if (vm?.CodeElement != null)
-        {
-            _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
         }
     }
 

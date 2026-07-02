@@ -387,8 +387,8 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="CycleSummary_TabHeader" xml:space="preserve">
     <value>Cycle summary</value>
   </data>
-  <data name="Metrics_TabHeader" xml:space="preserve">
-    <value>Metrics</value>
+  <data name="Statistics_TabHeader" xml:space="preserve">
+    <value>Statistics</value>
   </data>
   <data name="Partitions_TabHeader" xml:space="preserve">
     <value>Partitions</value>
@@ -822,10 +822,10 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Load_Message_Default" xml:space="preserve">
     <value>Loading ...</value>
   </data>
-  <data name="Metric_CodeElements" xml:space="preserve">
+  <data name="Statistics_CodeElements" xml:space="preserve">
     <value># Code elements</value>
   </data>
-  <data name="Metric_Relationships" xml:space="preserve">
+  <data name="Statistics_Relationships" xml:space="preserve">
     <value># Relationships</value>
   </data>
   <data name="DynamicGrid_LoadError" xml:space="preserve">

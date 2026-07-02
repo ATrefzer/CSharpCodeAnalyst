@@ -33,8 +33,6 @@ public class TreeViewModel : INotifyPropertyChanged
         CollapseTreeCommand = new WpfCommand(CollapseTree);
         ClearSearchCommand = new WpfCommand(ClearSearch);
         AddNodeToGraphCommand = new WpfCommand<TreeItemViewModel>(AddNodeToGraph);
-        PartitionTreeCommand = new WpfCommand<TreeItemViewModel>(Partition, CanPartition);
-        PartitionWithBaseTreeCommand = new WpfCommand<TreeItemViewModel>(PartitionWithBase, CanPartition);
         CopyToClipboardCommand = new WpfCommand<TreeItemViewModel>(OnCopyToClipboard);
         JumpToCodeCommand = new WpfCommand<TreeItemViewModel>(JumpToCode, CanJumpToCode);
 
@@ -78,8 +76,6 @@ public class TreeViewModel : INotifyPropertyChanged
     public ICommand SearchCommand { get; }
     public ICommand AddNodeToGraphCommand { get; private set; }
     public ICommand DeleteFromModelCommand { get; }
-    public ICommand PartitionTreeCommand { get; private set; }
-    public ICommand PartitionWithBaseTreeCommand { get; private set; }
     public ICommand CopyToClipboardCommand { get; private set; }
     public ICommand JumpToCodeCommand { get; }
     public ICommand CreateCodeElementCommand { get; private set; }
@@ -167,32 +163,6 @@ public class TreeViewModel : INotifyPropertyChanged
             SourceLocationNavigator.JumpTo(element);
         }
     }
-
-    private void PartitionWithBase(TreeItemViewModel vm)
-    {
-        if (vm.CodeElement is null)
-        {
-            return;
-        }
-
-        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, true));
-    }
-
-    private static bool CanPartition(TreeItemViewModel? vm)
-    {
-        return vm is { CodeElement.ElementType: CodeElementType.Class };
-    }
-
-    private void Partition(TreeItemViewModel vm)
-    {
-        if (vm.CodeElement is null)
-        {
-            return;
-        }
-
-        _messaging.Publish(new ShowPartitionsRequest(vm.CodeElement, false));
-    }
-
 
     private void ClearSearch()
     {

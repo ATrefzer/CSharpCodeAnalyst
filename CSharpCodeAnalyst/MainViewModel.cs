@@ -22,7 +22,7 @@ using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
-using CSharpCodeAnalyst.Features.Metrics;
+using CSharpCodeAnalyst.Features.Statistics;
 using CSharpCodeAnalyst.Features.Partitions;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
@@ -340,7 +340,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand OpenFilterDialogCommand { get; }
     public ICommand OpenSettingsDialogCommand { get; }
 
-    public ObservableCollection<IMetric> Metrics
+    public ObservableCollection<IStatistic> Statistics
     {
         set
         {
@@ -792,18 +792,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         PartitionsResult = null;
         InfoPanelViewModel?.ClearQuickInfo();
 
-        UpdateMetrics(codeGraph);
+        UpdateStatistics(codeGraph);
     }
 
-    private void UpdateMetrics(CodeGraph.Graph.CodeGraph codeGraph)
+    private void UpdateStatistics(CodeGraph.Graph.CodeGraph codeGraph)
     {
         // Default output: summary of graph
         var numberOfRelationships = codeGraph.GetAllRelationships().Count();
-        var outputs = new ObservableCollection<IMetric>();
+        var outputs = new ObservableCollection<IStatistic>();
         outputs.Clear();
-        outputs.Add(new MetricOutput(Strings.Metric_CodeElements, codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
-        outputs.Add(new MetricOutput(Strings.Metric_Relationships, numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
-        Metrics = outputs;
+        outputs.Add(new StatisticsOutput(Strings.Statistics_CodeElements, codeGraph.Nodes.Count.ToString(CultureInfo.InvariantCulture)));
+        outputs.Add(new StatisticsOutput(Strings.Statistics_Relationships, numberOfRelationships.ToString(CultureInfo.InvariantCulture)));
+        Statistics = outputs;
     }
 
     private async void OnImportSolution()
@@ -1042,7 +1042,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         AnalyzerResult = null;
         InfoPanelViewModel?.ClearQuickInfo();
 
-        UpdateMetrics(message.Graph);
+        UpdateStatistics(message.Graph);
 
         // Force new file
         _projectService.MarkDirty(true);

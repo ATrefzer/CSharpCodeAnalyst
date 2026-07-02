@@ -21,7 +21,7 @@ internal static class TabIndices
         public const int WebView = 0;
         public const int Cycles = 1;
         public const int Analyzer = 2;
-        public const int Metrics = 3;
-        public const int Partitions = 4;
+        public const int Partitions = 3;
+        public const int Statistics = 4;
     }
 }
