@@ -5,6 +5,7 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Search;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.TypeDependencies.Presentation;
@@ -74,6 +75,26 @@ internal class TypeDependenciesViewModel : Table
     public override ObservableCollection<TableRow> GetData()
     {
         return _rows;
+    }
+
+    public override bool CanFilter => true;
+
+    /// <summary>
+    ///     Filters by type name using the same search expression as the Advanced Search
+    ///     (supports camel-case, OR via '|', AND via spaces). The searched column is the type name.
+    /// </summary>
+    public override ObservableCollection<TableRow> Filter(string searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            return _rows;
+        }
+
+        var expression = SearchExpressionFactory.CreateSearchExpression(searchText);
+        var filtered = _rows
+            .Cast<TypeDependencyViewModel>()
+            .Where(row => expression.Evaluate(row.Element));
+        return new ObservableCollection<TableRow>(filtered);
     }
 
     public override DataTemplate? GetRowDetailsTemplate()

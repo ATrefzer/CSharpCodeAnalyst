@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.Attributes;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -32,9 +33,20 @@ public partial class DynamicDataGrid
             new PropertyMetadata(null, OnSelfDescribingDataChanged));
 
 
+    private readonly DispatcherTimer _searchTimer;
+
     public DynamicDataGrid()
     {
         InitializeComponent();
+
+        // Debounce search input, mirroring the Advanced Search behaviour.
+        _searchTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _searchTimer.Tick += (_, _) =>
+        {
+            _searchTimer.Stop();
+            ApplyFilter();
+        };
+
         ShowEmptyState(true);
     }
 
@@ -92,6 +104,10 @@ public partial class DynamicDataGrid
         {
             ClearColumns();
 
+            // Search is a TableData feature only.
+            SearchBox.Visibility = Visibility.Collapsed;
+            _searchTimer.Stop();
+
             var items = data?.OfType<object>().ToArray();
             if (items is null || items.Length == 0)
             {
@@ -122,6 +138,7 @@ public partial class DynamicDataGrid
         try
         {
             ClearColumns();
+            ConfigureSearchBox();
 
             if (TableData == null)
             {
@@ -185,6 +202,46 @@ public partial class DynamicDataGrid
             // Default value is collapsed
             MainDataGrid.RowDetailsVisibilityMode = DataGridRowDetailsVisibilityMode.Collapsed;
         }
+    }
+
+    /// <summary>
+    ///     Shows the search box only when the current <see cref="TableData" /> opts into filtering,
+    ///     and drops any query left over from a previously shown table.
+    /// </summary>
+    private void ConfigureSearchBox()
+    {
+        SearchBox.Visibility = TableData?.CanFilter == true ? Visibility.Visible : Visibility.Collapsed;
+
+        _searchTimer.Stop();
+        if (SearchTextBox.Text.Length > 0)
+        {
+            // Raises TextChanged, but an empty filter just returns all rows.
+            SearchTextBox.Clear();
+        }
+    }
+
+    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _searchTimer.Stop();
+        _searchTimer.Start();
+    }
+
+    private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Clearing raises TextChanged, which re-runs the (empty) filter and restores all rows.
+        SearchTextBox.Clear();
+    }
+
+    private void ApplyFilter()
+    {
+        if (TableData is null || !TableData.CanFilter)
+        {
+            return;
+        }
+
+        var data = TableData.Filter(SearchTextBox.Text);
+        MainDataGrid.ItemsSource = data;
+        ShowEmptyState(!data.Any());
     }
 
     private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)

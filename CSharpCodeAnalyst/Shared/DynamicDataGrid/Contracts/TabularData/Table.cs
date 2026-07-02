@@ -34,6 +34,22 @@ public abstract class Table : INotifyPropertyChanged
         return [];
     }
 
+    /// <summary>
+    ///     Whether this table offers a search box in the <c>DynamicDataGrid</c>. Only tables that
+    ///     override this to return true get the box; it stays collapsed otherwise.
+    /// </summary>
+    public virtual bool CanFilter => false;
+
+    /// <summary>
+    ///     Returns the rows matching <paramref name="searchText" />. The table decides which
+    ///     column(s) the text is matched against and what search syntax it understands. An empty
+    ///     search text returns all rows. Only called when <see cref="CanFilter" /> is true.
+    /// </summary>
+    public virtual ObservableCollection<TableRow> Filter(string searchText)
+    {
+        return GetData();
+    }
+
     protected static DataTemplate? CreateDataTemplateFromString(string xamlTemplate)
     {
         try

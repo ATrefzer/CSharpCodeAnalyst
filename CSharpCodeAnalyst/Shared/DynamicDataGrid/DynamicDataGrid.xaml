@@ -15,43 +15,68 @@
     </UserControl.Resources>
 
     <Grid>
-        <DataGrid x:Name="MainDataGrid"
-                  SelectionMode="Single"
-                  Style="{StaticResource ReadOnlyGrid}" LoadingRow="MainDataGrid_OnLoadingRow"
-                  AutoGenerateColumns="False">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <DataGrid.Resources>
-                <Style TargetType="DataGridRow">
+        <!-- Search Box Area. Only shown for filterable TableData (see code-behind). -->
+        <DockPanel x:Name="SearchBox" Grid.Row="0" Margin="5" Background="LightYellow"
+                   Visibility="Collapsed">
+            <Button x:Name="ClearSearchButton"
+                    DockPanel.Dock="Right"
+                    Width="22" Height="22" Margin="2,0,0,0"
+                    Click="ClearSearchButton_Click">
+                <Image Source="/Resources/clear_32.png" />
+            </Button>
 
-                    <Setter Property="ContextMenu">
-                        <Setter.Value>
-                            <ContextMenu>
-                                <!-- Filled dynamically -->
-                            </ContextMenu>
-                        </Setter.Value>
-                    </Setter>
+            <TextBox x:Name="SearchTextBox"
+                     Height="22"
+                     Margin="0"
+                     Background="LightYellow"
+                     FontSize="12"
+                     TextChanged="SearchTextBox_TextChanged" />
+        </DockPanel>
 
-                    <!-- Does no longer work here. See OnDataGridLoadingRow how it is handled now-->
-                    <!-- <Setter Property="DetailsVisibility" Value="Collapsed" /> -->
-                    <!-- <Style.Triggers> -->
-                    <!--     <DataTrigger Binding="{Binding IsExpanded}" Value="True"> -->
-                    <!--         <Setter Property="DetailsVisibility" Value="Visible" /> -->
-                    <!--     </DataTrigger> -->
-                    <!-- </Style.Triggers> -->
-                </Style>
-            </DataGrid.Resources>
+        <Grid Grid.Row="1">
+            <DataGrid x:Name="MainDataGrid"
+                      SelectionMode="Single"
+                      Style="{StaticResource ReadOnlyGrid}" LoadingRow="MainDataGrid_OnLoadingRow"
+                      AutoGenerateColumns="False">
+
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridRow">
+
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <!-- Filled dynamically -->
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+
+                        <!-- Does no longer work here. See OnDataGridLoadingRow how it is handled now-->
+                        <!-- <Setter Property="DetailsVisibility" Value="Collapsed" /> -->
+                        <!-- <Style.Triggers> -->
+                        <!--     <DataTrigger Binding="{Binding IsExpanded}" Value="True"> -->
+                        <!--         <Setter Property="DetailsVisibility" Value="Visible" /> -->
+                        <!--     </DataTrigger> -->
+                        <!-- </Style.Triggers> -->
+                    </Style>
+                </DataGrid.Resources>
 
 
-            <!-- Columns are added dynamically -->
-        </DataGrid>
+                <!-- Columns are added dynamically -->
+            </DataGrid>
 
-        <!-- Loading/Empty State -->
-        <TextBlock x:Name="EmptyStateText"
-                   Text="No data to display"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Foreground="Gray"
-                   FontStyle="Italic"
-                   Visibility="Visible" />
+            <!-- Loading/Empty State -->
+            <TextBlock x:Name="EmptyStateText"
+                       Text="No data to display"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="Gray"
+                       FontStyle="Italic"
+                       Visibility="Visible" />
+        </Grid>
     </Grid>
 </UserControl>
