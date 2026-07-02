@@ -222,7 +222,7 @@ Adds all missing relationships between code elements in the Code Explorer</value
     <value>Recompute size and fit to view, keeping the current node positions</value>
   </data>
   <data name="WebView_TabHeader" xml:space="preserve">
-    <value>Web View</value>
+    <value>Code Explorer</value>
   </data>
   <data name="WebView_Initializing" xml:space="preserve">
     <value>Initializing graph view…</value>

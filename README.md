@@ -246,6 +246,16 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 ---
 
+## Metrics
+
+C# Code Analyst can calculate a few but meaningful metrics.
+
+You can read more about the supported metrics here: [Metrics](Documentation/Metrics.md)
+
+All metrics are accessible through the Analyzer Ribbon and the results are presented in the analyzer output table.
+
+![](Documentation/Images/metrics-example.png)
+
 ## Other languages
 
 The tool is written for C#, but you can also import jdeps output for basic visualization of Java code.
@@ -262,7 +272,7 @@ Please take note of the following issues:
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
 - Source locations are not extracted for all dependencies; only those that are easily extractable are included.
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
-- Only types used in a lambda expression are extracted. Method calls inside lambdas are not covered. I know that the method that creates the lambda "uses" the found types. But I cannot track where the lambda is actually called. I think that is a good compromise.
+- A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.
 
 ## Thank you
 

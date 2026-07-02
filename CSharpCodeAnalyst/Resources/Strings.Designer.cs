@@ -3090,7 +3090,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Web View.
+        ///   Looks up a localized string similar to Code Explorer.
         /// </summary>
         public static string WebView_TabHeader {
             get {

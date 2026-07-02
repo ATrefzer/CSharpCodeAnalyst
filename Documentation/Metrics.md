@@ -29,24 +29,11 @@ Available via *Analyzers → Type Dependencies*. The result is a sortable table 
 | Score        | Transitive importance (PageRank), normalized so the average is 1.0. How much the rest of the codebase rests on this type.<br />transitive, weighted by importance |
 | Fan-out      | How many other types this type depends on.<br />direct (depth 1) |
 
-`Containment`, `Bundled`, `Handles` are special relationships which are not considered in this analysis. Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`.
-
 Types defined outside the analyzed solution (e.g., frameworks and NuGet packages) are excluded. Otherwise, ubiquitous types like `object` or `string` would dominate the Fan-in ranking.
 
-### The type-level graph
+One note how the dependencies are counted: If 10 methods in class `A` call 5 methods in class `B` and class `A` accesses one field in class `B` we count one type dependency`A → B.` **Dependency is a yes/no fact in this context.** For the question "must I understand B in order to understand A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full stop.
 
-The parsed code graph contains fine-grained relationships: a *method* calls another *method*, a *field* has a *type*, and so on. These metrics are not computed on those raw relationships. Every relationship is first **lifted to the type that contains its endpoints**:
-
-- A call `A.DoWork()` → `B.Helper()` becomes a type edge `A → B`. 
-- Relationships above the type level (namespace, assembly) have no containing type and are ignored.
-
-This is deliberate. For understanding architecture, "does class A depend on class B?" is the useful question — not "which of A's methods calls which of B's methods".
-
-After lifting, the type edges are **deduplicated**. If class `A` calls ten different methods on class `B`, that is a single `A → B` edge.
-
-This is intentional. **Dependency is a yes/no fact in this context.** For the question "must I understand B in order to understand A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full stop.
-
-Note: The one quantity that genuinely exists is the number of distinct **call sites** between two types — a measure of how *entangled* they are, relevant for estimating decoupling effort. But that is a different question from centrality, so it is not used here.
+Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`. You may have seen a `Handles` relationship in the code graph. This is ignored. It is a special relationship introduced to show which method handles an event. In terms of dependencies, this is the wrong direction. The dependency is recognized when the event is registered, however.
 
 ### Fan-in and Fan-out
 
@@ -154,7 +141,7 @@ Only **classes** are analyzed (not structs, records or interfaces). Pure data ho
 
 Methods of a class may be linked together through base-class members. 
 
-Therefore base-class members are pulled in as **connectors**: they link the class's own members that interact through inherited state or behavior, but are then **projected out** of the reported partitions — because a split concerns the members *this* class actually owns.  External base classes are ignored.
+Therefore, base-class members are pulled in as **connectors**: they link the class's own members that interact through inherited state or behavior, but are then **projected out** of the reported partitions — because a split concerns the members *this* class actually owns.  External base classes are ignored.
 
 ### Reading the numbers
 
