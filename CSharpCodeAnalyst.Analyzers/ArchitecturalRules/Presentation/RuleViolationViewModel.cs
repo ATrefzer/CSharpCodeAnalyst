@@ -17,7 +17,7 @@ public class RuleViolationViewModel : TableRow
 
     public RuleViolationViewModel(Violation violation, CodeGraph.Graph.CodeGraph codeGraph, IPublisher messaging)
     {
-        ErrorIcon = IconLoader.LoadIcon("CSharpCodeAnalyst.AnalyzerSdk", "Resources/error.png");
+        ErrorIcon = IconLoader.LoadIcon(typeof(IconLoader).Assembly.GetName().Name, "Resources/error.png");
         _violation = violation;
         _codeGraph = codeGraph;
         _messaging = messaging;

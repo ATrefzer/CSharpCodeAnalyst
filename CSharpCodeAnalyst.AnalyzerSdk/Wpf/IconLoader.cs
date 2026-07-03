@@ -15,28 +15,15 @@ public static class IconLoader
     /// </summary>
     public static ImageSource? LoadIcon(string iconPath)
     {
-        try
-        {
-            var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
-            var cacheKey = $"{assemblyName}|{iconPath}";
-
-            if (IconCache.TryGetValue(cacheKey, out var icon))
-            {
-                return icon;
-            }
-
-            var bitmap = Load(assemblyName, iconPath);
-
-            IconCache[cacheKey] = bitmap;
-            return bitmap;
-        }
-        catch
-        {
-            return null;
-        }
+        var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+        return LoadIcon(assemblyName, iconPath);
     }
 
-    public static ImageSource? LoadIcon(string assemblyName, string iconPath)
+    /// <summary>
+    ///     Loads an icon embedded as a WPF "Resource" in the given assembly - use this for icons
+    ///     shared across assemblies (e.g. SDK icons referenced by an analyzer plugin).
+    /// </summary>
+    public static ImageSource? LoadIcon(string? assemblyName, string iconPath)
     {
         try
         {
