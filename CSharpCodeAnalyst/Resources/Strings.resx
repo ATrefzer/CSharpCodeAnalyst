@@ -275,9 +275,6 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Tab_Cycles" xml:space="preserve">
     <value>Cycle Groups</value>
   </data>
-  <data name="Tab_Analyzer" xml:space="preserve">
-    <value>Analyzer</value>
-  </data>
   <data name="Tab_Summary" xml:space="preserve">
     <value>Summary</value>
   </data>
@@ -393,7 +390,7 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Statistics</value>
   </data>
   <data name="Partitions_TabHeader" xml:space="preserve">
-    <value>Partitions</value>
+    <value>Partitions: {0}</value>
   </data>
   <data name="Level_Header" xml:space="preserve">
     <value>Level</value>
@@ -445,6 +442,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   </data>
   <data name="Error_Title" xml:space="preserve">
     <value>Error</value>
+  </data>
+  <data name="Success_Title" xml:space="preserve">
+    <value>Success</value>
   </data>
   <data name="InvalidFilter_Message" xml:space="preserve">
     <value>Invalid project filter regular expression.</value>
@@ -740,11 +740,59 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="ExportSvg_Label" xml:space="preserve">
     <value>Export SVG ...</value>
   </data>
+  <data name="Analyzer_ArchitecturalRules_Label" xml:space="preserve">
+    <value>Architectural rules</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_Tooltip" xml:space="preserve">
+    <value>Validates your architectural constraints based on user-defined rules</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_NoData" xml:space="preserve">
+    <value>No rule violations found!</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_ParseError" xml:space="preserve">
+    <value>Error parsing rules: {0}</value>
+  </data>
+  <data name="ArchitecturalRules_LoadDialog_Title" xml:space="preserve">
+    <value>Load rules</value>
+  </data>
+  <data name="ArchitecturalRules_SaveDialog_Title" xml:space="preserve">
+    <value>Save rules</value>
+  </data>
+  <data name="ArchitecturalRules_LoadFileError_Message" xml:space="preserve">
+    <value>Error loading file: {0}</value>
+  </data>
+  <data name="ArchitecturalRules_SaveFileError_Message" xml:space="preserve">
+    <value>Error saving file: {0}</value>
+  </data>
+  <data name="ArchitecturalRules_SaveFileSuccess_Message" xml:space="preserve">
+    <value>Rules saved successfully!</value>
+  </data>
+  <data name="ArchitecturalRules_ClearConfirm_Message" xml:space="preserve">
+    <value>Are you sure you want to clear all rules?</value>
+  </data>
+  <data name="ArchitecturalRules_ClearConfirm_Title" xml:space="preserve">
+    <value>Confirm Clear</value>
+  </data>
+  <data name="Column_ArchitecturalRules_RuleType" xml:space="preserve">
+    <value>Rule Type</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Violations" xml:space="preserve">
+    <value>Violations</value>
+  </data>
   <data name="Analyzer_EventRegistration_Label" xml:space="preserve">
     <value>Event registrations</value>
   </data>
   <data name="Analyzer_EventRegistration_Tooltip" xml:space="preserve">
     <value>Finds imbalances between number of event registrations / un-registrations</value>
+  </data>
+  <data name="Analyzer_EventRegistration_NoData" xml:space="preserve">
+    <value>No event handler registration / un-registration imbalances found</value>
   </data>
   <data name="Analyzer_TypeDependencies_Label" xml:space="preserve">
     <value>Type Dependencies</value>
@@ -898,6 +946,18 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Cmd_RulesFile" xml:space="preserve">
     <value>Rules file: {0}</value>
+  </data>
+  <data name="Cmd_NoRuleViolations" xml:space="preserve">
+    <value>No rule violations found.</value>
+  </data>
+  <data name="Cmd_ViolationsHeader" xml:space="preserve">
+    <value>Violations</value>
+  </data>
+  <data name="Cmd_RuleTypeLine" xml:space="preserve">
+    <value>- Rule Type: {0}</value>
+  </data>
+  <data name="Cmd_InvalidRelationship" xml:space="preserve">
+    <value>(!) Invalid relationship with missing elements.</value>
   </data>
   <data name="Settings_IncludeExternalCode" xml:space="preserve">
     <value>Include _external code</value>

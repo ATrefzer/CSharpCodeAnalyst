@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using CSharpCodeAnalyst.Resources;
 using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
@@ -55,7 +56,7 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         var openFileDialog = new OpenFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = "Load rules"
+            Title = Strings.ArchitecturalRules_LoadDialog_Title
         };
 
         if (openFileDialog.ShowDialog() == true)
@@ -66,7 +67,7 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading file: {ex.Message}", "Error",
+                MessageBox.Show(string.Format(Strings.ArchitecturalRules_LoadFileError_Message, ex.Message), Strings.Error_Title,
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -77,7 +78,7 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         var saveFileDialog = new SaveFileDialog
         {
             Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = "Save rules"
+            Title = Strings.ArchitecturalRules_SaveDialog_Title
         };
 
         if (saveFileDialog.ShowDialog() == true)
@@ -85,12 +86,12 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
             try
             {
                 File.WriteAllText(saveFileDialog.FileName, RulesText);
-                MessageBox.Show("Rules saved successfully!", "Success",
+                MessageBox.Show(Strings.ArchitecturalRules_SaveFileSuccess_Message, Strings.Success_Title,
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving file: {ex.Message}", "Error",
+                MessageBox.Show(string.Format(Strings.ArchitecturalRules_SaveFileError_Message, ex.Message), Strings.Error_Title,
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -98,7 +99,7 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("Are you sure you want to clear all rules?", "Confirm Clear",
+        if (MessageBox.Show(Strings.ArchitecturalRules_ClearConfirm_Message, Strings.ArchitecturalRules_ClearConfirm_Title,
                 MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
         {
             RulesText = string.Empty;

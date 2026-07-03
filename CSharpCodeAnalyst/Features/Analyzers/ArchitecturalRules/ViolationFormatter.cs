@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
 
@@ -10,17 +11,17 @@ public static class ViolationsFormatter
 
         if (violations.Count == 0)
         {
-            sb.AppendLine("No rule violations found.");
+            sb.AppendLine(Strings.Cmd_NoRuleViolations);
         }
         else
         {
-            sb.AppendLine("Violations");
+            sb.AppendLine(Strings.Cmd_ViolationsHeader);
 
 
             foreach (var violation in violations)
             {
                 sb.AppendLine();
-                sb.AppendLine($"- Rule Type: {violation.Rule}");
+                sb.AppendLine(string.Format(Strings.Cmd_RuleTypeLine, violation.Rule));
                 foreach (var relationship in violation.ViolatingRelationships)
                 {
                     var sourceElement = graph.Nodes.GetValueOrDefault(relationship.SourceId);
@@ -28,7 +29,7 @@ public static class ViolationsFormatter
 
                     if (sourceElement == null || targetElement == null)
                     {
-                        sb.AppendLine("(!) Invalid relationship with missing elements.");
+                        sb.AppendLine(Strings.Cmd_InvalidRelationship);
                         continue;
                     }
 

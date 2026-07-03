@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -9,6 +10,7 @@ using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst;
@@ -29,6 +31,56 @@ public partial class MainWindow
     {
         // Set a fixed width for the left column on first load to prevent jumping
         EnsureLeftColumnWidth();
+
+        if (DataContext is MainViewModel mainVm)
+        {
+            InitializeDynamicTabs(mainVm);
+        }
+    }
+
+    /// <summary>
+    ///     Projects MainViewModel.DynamicTabs onto WorkingArea: the fixed tabs stay hand-written in
+    ///     XAML, every dynamic tab gets its own TabItem added/removed here as the collection changes.
+    /// </summary>
+    private void InitializeDynamicTabs(MainViewModel mainVm)
+    {
+        var headerTemplate = (DataTemplate)Resources["DynamicTabHeaderTemplate"];
+        var contentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
+
+        mainVm.DynamicTabs.CollectionChanged += (_, e) =>
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                foreach (DynamicTabViewModel tab in e.NewItems!)
+                {
+                    WorkingArea.Items.Add(new TabItem
+                    {
+                        Header = tab,
+                        Content = tab,
+                        HeaderTemplate = headerTemplate,
+                        ContentTemplate = contentTemplate
+                    });
+                }
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (DynamicTabViewModel tab in e.OldItems!)
+                {
+                    var tabItem = FindDynamicTabItem(tab);
+                    if (tabItem is not null)
+                    {
+                        WorkingArea.Items.Remove(tabItem);
+                    }
+                }
+            }
+        };
+
+        mainVm.DynamicTabActivated += tab => { WorkingArea.SelectedItem = FindDynamicTabItem(tab); };
+    }
+
+    private TabItem? FindDynamicTabItem(DynamicTabViewModel tab)
+    {
+        return WorkingArea.Items.OfType<TabItem>().FirstOrDefault(ti => ReferenceEquals(ti.Content, tab));
     }
 
     private void EnsureLeftColumnWidth()

@@ -5,6 +5,7 @@ using System.Windows;
 using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
@@ -72,10 +73,10 @@ public class Analyzer : IAnalyzer
 
     public string Name
     {
-        get => "Architectural rules";
+        get => Strings.Analyzer_ArchitecturalRules_Label;
     }
 
-    public string Description { get; } = "Validates your architectural constraints based on user-defined rules";
+    public string Description { get; } = Strings.Analyzer_ArchitecturalRules_Tooltip;
 
     public string Id
     {
@@ -148,7 +149,7 @@ public class Analyzer : IAnalyzer
         }
         catch (Exception ex)
         {
-            _userNotification.ShowError($"Error parsing rules: {ex.Message}");
+            _userNotification.ShowError(string.Format(Strings.Analyzer_ArchitecturalRules_ParseError, ex.Message));
             return;
         }
 
@@ -157,13 +158,13 @@ public class Analyzer : IAnalyzer
 
         if (violations.Count == 0)
         {
-            _userNotification.ShowSuccess("No rule violations found!");
+            _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_NoData);
         }
         else
         {
             // Show violations in tabular format
             var violationsViewModel = new RuleViolationsViewModel(violations, _currentGraph);
-            _messaging.Publish(new ShowTabularDataRequest(violationsViewModel));
+            _messaging.Publish(new ShowTabularDataRequest(Id, Name, violationsViewModel));
         }
     }
 

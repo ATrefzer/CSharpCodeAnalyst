@@ -15,13 +15,15 @@ internal static class TabIndices
         public const int InfoPanel = 2;
     }
 
-    /// <summary>Right working area — <c>WorkingArea</c>, bound to <c>SelectedRightTabIndex</c>.</summary>
+    /// <summary>
+    ///     Right working area — <c>WorkingArea</c>, bound to <c>SelectedRightTabIndex</c>. Only the
+    ///     fixed tabs are listed here; dynamic analyzer/partitions tabs are appended after them and
+    ///     selected directly (by TabItem, not by index) - see <c>MainWindow.xaml.cs</c>.
+    /// </summary>
     internal static class Right
     {
         public const int WebView = 0;
         public const int Cycles = 1;
-        public const int Analyzer = 2;
-        public const int Partitions = 3;
-        public const int Statistics = 4;
+        public const int Statistics = 2;
     }
 }

@@ -50,7 +50,7 @@ public class Analyzer : IAnalyzer
         }
 
         var vm = new MethodComplexityViewModel(rows, _messaging);
-        _messaging.Publish(new ShowTabularDataRequest(vm));
+        _messaging.Publish(new ShowTabularDataRequest(Id, Name, vm));
     }
 
     public string? GetPersistentData()

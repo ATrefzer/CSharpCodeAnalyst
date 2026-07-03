@@ -29,6 +29,24 @@
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
+            <!-- Header/content look for the dynamic analyzer/partitions tabs; instantiated from
+                 code-behind (MainWindow.xaml.cs) since those TabItems are not declared in XAML. -->
+            <DataTemplate x:Key="DynamicTabHeaderTemplate">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding CloseCommand}"
+                            Padding="2"
+                            ToolTip="{x:Static resources:Strings.Close_Button}">
+                        <Image Source="/Resources/close_16.png" Width="10" Height="10" />
+                    </Button>
+                </StackPanel>
+            </DataTemplate>
+
+            <DataTemplate x:Key="DynamicTabContentTemplate">
+                <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Table}" />
+            </DataTemplate>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -474,17 +492,13 @@
                     <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Cycles}" />
                 </TabItem>
 
-                <TabItem Header="{x:Static resources:Strings.Tab_Analyzer}">
-                    <dynamicDataGrid1:DynamicDataGrid TableData="{Binding AnalyzerResult}" />
-                </TabItem>
-
-                <TabItem Header="{x:Static resources:Strings.Partitions_TabHeader}">
-                    <dynamicDataGrid1:DynamicDataGrid TableData="{Binding PartitionsResult}" />
-                </TabItem>
-
                 <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
                 </TabItem>
+
+                <!-- Analyzer / Partitions results: dynamic tabs, one per result id, appended and
+                     removed here in code-behind (see MainWindow.xaml.cs) as MainViewModel.DynamicTabs
+                     changes. Templates below define how such a tab's header and content look. -->
             </TabControl>
         </Grid>
 

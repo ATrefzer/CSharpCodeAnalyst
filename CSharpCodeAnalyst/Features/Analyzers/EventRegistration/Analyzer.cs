@@ -25,12 +25,12 @@ public class Analyzer : IAnalyzer
 
         if (imbalances.Count == 0)
         {
-            ToastManager.ShowSuccess("No event handler registration / un-registration imbalances found");
+            ToastManager.ShowSuccess(Strings.Analyzer_EventRegistration_NoData);
             return;
         }
 
         var vm = new EventImbalancesViewModel(imbalances);
-        _messaging.Publish(new ShowTabularDataRequest(vm));
+        _messaging.Publish(new ShowTabularDataRequest(Id, Name, vm));
     }
 
     public string Name { get; } = Strings.Analyzer_EventRegistration_Label;

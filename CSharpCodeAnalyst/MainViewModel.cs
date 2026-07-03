@@ -37,6 +37,7 @@ using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Filter;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
+using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
 
@@ -58,8 +59,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly MetricStore _metricStore;
     private readonly IUserNotification _ui;
     private UserPreferences _userSettings;
-    private Table? _analyzerResult;
-    private Table? _partitionsResult;
     private AppSettings _applicationSettings;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
 
@@ -104,7 +103,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         // Table data
         _cycles = null;
-        _analyzerResult = null;
 
 
         // Apply settings
@@ -165,25 +163,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private ICommand OpenRecentFileCommand { get; }
 
-    public Table? AnalyzerResult
-    {
-        get => _analyzerResult;
-        set
-        {
-            _analyzerResult = value;
-            OnPropertyChanged();
-        }
-    }
+    /// <summary>
+    ///     Analyzer-style result tabs (Method Complexity, Type Cohesion, Partitions, ...), created on
+    ///     demand and keyed by id. MainWindow's code-behind projects this onto the working-area
+    ///     TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
+    /// </summary>
+    public ObservableCollection<DynamicTabViewModel> DynamicTabs { get; } = [];
 
-    public Table? PartitionsResult
-    {
-        get => _partitionsResult;
-        set
-        {
-            _partitionsResult = value;
-            OnPropertyChanged();
-        }
-    }
+    /// <summary>Raised when a dynamic tab should become the active one (new or updated result).</summary>
+    public event Action<DynamicTabViewModel>? DynamicTabActivated;
 
     public Table? Cycles
     {
@@ -626,8 +614,30 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
-        AnalyzerResult = tabularDataRequest.Table;
-        SelectedRightTabIndex = TabIndices.Right.Analyzer;
+        ShowDynamicTab(tabularDataRequest.Id, tabularDataRequest.Title, tabularDataRequest.Table);
+    }
+
+    /// <summary>
+    ///     Creates a new dynamic tab for <paramref name="id" />, or - if one already exists - updates
+    ///     it in place, so re-running the same analyzer replaces its own tab instead of piling up
+    ///     duplicates. Either way the tab is brought to the front.
+    /// </summary>
+    private void ShowDynamicTab(string id, string title, Table table)
+    {
+        var tab = DynamicTabs.FirstOrDefault(t => t.Id == id);
+        if (tab is null)
+        {
+            tab = new DynamicTabViewModel(id, title, table);
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            DynamicTabs.Add(tab);
+        }
+        else
+        {
+            tab.Title = title;
+            tab.Table = table;
+        }
+
+        DynamicTabActivated?.Invoke(tab);
     }
 
     private async void OnFindCycles()
@@ -793,8 +803,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         GraphViewModel?.LoadCodeGraph(_codeGraph);
 
         Cycles = null;
-        AnalyzerResult = null;
-        PartitionsResult = null;
+        DynamicTabs.Clear();
         _metricStore.Clear();
         InfoPanelViewModel?.ClearQuickInfo();
 
@@ -1030,10 +1039,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         var partitionsVm = new PartitionsViewModel(pvm);
 
-        // Partitions get their own tab so drilling in from the Type Cohesion analyzer (or the tree)
-        // does not overwrite the analyzer result the user came from.
-        PartitionsResult = partitionsVm;
-        SelectedRightTabIndex = TabIndices.Right.Partitions;
+        // Partitions get their own tab per type, keyed by id, so drilling in from the Type Cohesion
+        // analyzer (or the tree) for different classes does not overwrite each other.
+        var title = string.Format(Strings.Partitions_TabHeader, originalCodeElement.Name);
+        ShowDynamicTab($"Partitions:{originalCodeElement.Id}", title, partitionsVm);
     }
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
@@ -1048,7 +1057,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         // Maybe not valid anymore
         Cycles = null;
-        AnalyzerResult = null;
+        DynamicTabs.Clear();
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateStatistics(message.Graph);

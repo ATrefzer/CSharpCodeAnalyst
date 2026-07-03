@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
@@ -27,26 +28,26 @@ public class RuleViolationsViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = "Rule Type",
+                Header = Strings.Column_ArchitecturalRules_RuleType,
                 PropertyName = nameof(RuleViolationViewModel.RuleType),
                 IsExpandable = true
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = "Source",
+                Header = Strings.Column_ArchitecturalRules_Source,
                 PropertyName = nameof(RuleViolationViewModel.Source)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = "Target",
+                Header = Strings.Column_ArchitecturalRules_Target,
                 PropertyName = nameof(RuleViolationViewModel.Target)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = "Violations",
+                Header = Strings.Column_ArchitecturalRules_Violations,
                 PropertyName = nameof(RuleViolationViewModel.ViolationCount)
             }
         };
