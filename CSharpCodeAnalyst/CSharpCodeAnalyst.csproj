@@ -19,21 +19,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
-        <Page Update="Features\Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
         <Page Update="Shared\UI\CodeElementLineTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
@@ -159,6 +144,8 @@
     <ItemGroup>
         <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
         <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj" />
     </ItemGroup>
 
 

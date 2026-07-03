@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <!-- Moved files keep their original CSharpCodeAnalyst.* namespaces; RootNamespace must match
+             so embedded resource manifest names (e.g. for Strings.resx) line up with those namespaces. -->
+        <RootNamespace>CSharpCodeAnalyst</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Features\Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="Features\Analyzers\Resources\Strings.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Strings.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Features\Analyzers\Resources\Strings.resx">
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1" />
+    </ItemGroup>
+
+</Project>
