@@ -112,7 +112,7 @@ public class Parser(ParserConfig config)
     ///     Parses in-memory C# source through the full parser pipeline using a Roslyn
     ///     <see cref="AdhocWorkspace" /> - no MSBuild, no <see cref="Initializer.InitializeMsBuildLocator" />
     ///     and no disk access. Intended for unit tests and small tooling that want a real
-    ///     <see cref="CodeGraph.Graph.CodeGraph" /> from a code snippet.
+    ///     <see cref="CodeGraph" /> from a code snippet.
     ///     The synthetic project/document file names are pure identifiers; none of them needs to exist on
     ///     disk. The only files read are the framework reference assemblies in the runtime directory.
     /// </summary>

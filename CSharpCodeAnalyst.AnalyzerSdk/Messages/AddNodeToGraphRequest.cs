@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.AnalyzerSdk.Messages;
 

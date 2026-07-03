@@ -9,8 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
     </ItemGroup>
 
     <ItemGroup>

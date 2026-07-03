@@ -4,13 +4,14 @@ using System.Text;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
-using CSharpCodeAnalyst.CodeParser.Parser;
-using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
 using Microsoft.Extensions.Configuration;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CSharpCodeAnalyst.CommandLine;
 

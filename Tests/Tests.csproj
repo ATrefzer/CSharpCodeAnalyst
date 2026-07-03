@@ -21,8 +21,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
-        <ProjectReference Include="..\CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj" />
