@@ -4,7 +4,7 @@ using System.Text;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;

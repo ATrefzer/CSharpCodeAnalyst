@@ -6,27 +6,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
         <!-- Moved files keep their original CSharpCodeAnalyst.* namespaces; RootNamespace must match
-             so embedded resource manifest names (e.g. for SdkStrings.resx) line up with those namespaces. -->
+             so those namespaces (and any embedded resource manifest names) still line up. -->
         <RootNamespace>CSharpCodeAnalyst</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Update="Shared\Resources\SdkStrings.Designer.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>SdkStrings.resx</DependentUpon>
-        </Compile>
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Update="Shared\Resources\SdkStrings.resx">
-            <Generator>PublicResXFileCodeGenerator</Generator>
-            <LastGenOutput>SdkStrings.Designer.cs</LastGenOutput>
-        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>

@@ -5,9 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
-        <!-- Moved files keep their original CSharpCodeAnalyst.* namespaces; RootNamespace must match
-             so embedded resource manifest names (e.g. for Strings.resx) line up with those namespaces. -->
-        <RootNamespace>CSharpCodeAnalyst</RootNamespace>
+        <RootNamespace>CSharpCodeAnalyst.Analyzers</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,17 +14,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
+        <Page Update="ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
+        <Page Update="ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Features\Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
+        <Page Update="EventRegistration\Presentation\SourceLocationTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
             <XamlRuntime>Wpf</XamlRuntime>
             <SubType>Designer</SubType>
@@ -34,7 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="Features\Analyzers\Resources\Strings.Designer.cs">
+        <Compile Update="Resources\Strings.Designer.cs">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>Strings.resx</DependentUpon>
@@ -42,7 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Update="Features\Analyzers\Resources\Strings.resx">
+        <EmbeddedResource Update="Resources\Strings.resx">
             <Generator>PublicResXFileCodeGenerator</Generator>
             <LastGenOutput>Strings.Designer.cs</LastGenOutput>
         </EmbeddedResource>

@@ -13,6 +13,7 @@ using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
+using CSharpCodeAnalyst.Shared.Services;
 using Microsoft.Extensions.Configuration;
 
 namespace CSharpCodeAnalyst;
@@ -143,6 +144,7 @@ public partial class App
         messaging.Subscribe<CycleCalculationComplete>(viewModel.HandleCycleCalculationComplete);
         messaging.Subscribe<ShowPartitionsRequest>(viewModel.HandleShowPartitionsRequest);
         messaging.Subscribe<ShowCycleGroupRequest>(viewModel.HandleShowCycleGroupRequest);
+        messaging.Subscribe<OpenSourceLocationRequest>(r => SourceLocationNavigator.Open(r.Location));
 
 
         // Refactorings are forwarded to all other view models
