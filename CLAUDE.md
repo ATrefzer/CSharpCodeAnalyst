@@ -95,4 +95,4 @@ The ~200-element soft limit (`AppSettings.WarningCodeElementLimit`) still applie
 
 - `.editorconfig` is authoritative and ReSharper-tuned: braces required on all `if`/`foreach`/`while`, max line length 199, expression-bodied accessors preferred, `internal` first in modifier order. Analyzer severities default to `none` — do not add warning-as-error enforcement without discussion.
 - Nullable reference types are enabled everywhere; honour the annotations rather than suppressing with `!`.
-- Namespaces match folders. `CodeGraph.Graph.CodeGraph` is a class inside the `CodeGraph` assembly — fully-qualify it (`CodeGraph.Graph.CodeGraph`) in places where the namespace/type collision is ambiguous; existing code already does.
+- Namespaces match folders, rooted under `CSharpCodeAnalyst.*` for every project (e.g. `CSharpCodeAnalyst.CodeGraph.Graph`, `CSharpCodeAnalyst.CodeParser.Parser`). `CodeGraph` is a class inside `CSharpCodeAnalyst.CodeGraph.Graph` — fully-qualify it (`CSharpCodeAnalyst.CodeGraph.Graph.CodeGraph`) in places where the namespace/type collision is ambiguous; existing code already does.
