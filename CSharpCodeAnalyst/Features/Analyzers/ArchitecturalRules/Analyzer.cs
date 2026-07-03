@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Presentation;
 using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -231,7 +232,13 @@ public class Analyzer : IAnalyzer
         if (_rules.Count == 0)
             return violations;
 
-        var allRelationships = graph.GetAllRelationships().ToList();
+        // Only real dependencies are subject to architectural rules. Descriptive edges like Handles
+        // (event-handler wiring), and the non-dependency Containment / Bundled edges, are excluded -
+        // otherwise, for example, a class whose method is subscribed to an event by external code
+        // would be flagged as depending on the event's type. Same definition as the dependency metrics.
+        var allRelationships = graph.GetAllRelationships()
+            .Where(r => r.Type.IsDependency())
+            .ToList();
 
         // Group rules by type and source
         var denyRules = _rules.OfType<DenyRule>().ToList();

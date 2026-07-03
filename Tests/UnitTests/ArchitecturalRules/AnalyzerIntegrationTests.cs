@@ -21,7 +21,11 @@ public class AnalyzerIntegrationTests
     {
         var rules = RuleParser.ParseRules(rulesText);
         var violations = new List<Violation>();
-        var allRelationships = graph.GetAllRelationships().ToList();
+
+        // Mirror the analyzer: only real dependencies are subject to the rules.
+        var allRelationships = graph.GetAllRelationships()
+            .Where(r => r.Type.IsDependency())
+            .ToList();
 
         // Group rules by type and source (matching the Analyzer logic)
         var denyRules = rules.OfType<DenyRule>().ToList();
@@ -140,6 +144,46 @@ public class AnalyzerIntegrationTests
         Assert.That(isolateViolation!.ViolatingRelationships.Count, Is.EqualTo(1));
         Assert.That(isolateViolation.ViolatingRelationships[0].SourceId, Is.EqualTo(orderEntity.Id));
         Assert.That(isolateViolation.ViolatingRelationships[0].TargetId, Is.EqualTo(orderRepository.Id));
+    }
+
+    [Test]
+    public void FullWorkflow_HandlesRelationship_IsNotAViolation()
+    {
+        // A class whose method handles an event in another layer must NOT be flagged: Handles is
+        // callback wiring, not a compile-time dependency of the handler on the event.
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+        var ui = _codeGraph.CreateNamespace("MyApp.UI");
+
+        var handlerClass = _codeGraph.CreateClass("OrderView", business);
+        var eventClass = _codeGraph.CreateClass("Button", ui);
+        var clickEvent = _codeGraph.CreateEvent("Button.Click", eventClass);
+
+        handlerClass.Relationships.Add(new Relationship(handlerClass.Id, clickEvent.Id, RelationshipType.Handles));
+
+        var rulesText = "DENY: MyApp.Business.** -> MyApp.UI.**";
+
+        var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
+
+        Assert.That(results, Is.Empty, "A Handles edge is not a dependency and must not violate the rule");
+    }
+
+    [Test]
+    public void FullWorkflow_UsesRelationship_IsAViolation()
+    {
+        // Control for the Handles case: the same layers, but a real Uses edge, IS a violation.
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+        var ui = _codeGraph.CreateNamespace("MyApp.UI");
+
+        var source = _codeGraph.CreateClass("OrderView", business);
+        var target = _codeGraph.CreateClass("Button", ui);
+
+        source.Relationships.Add(new Relationship(source.Id, target.Id, RelationshipType.Uses));
+
+        var rulesText = "DENY: MyApp.Business.** -> MyApp.UI.**";
+
+        var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
+
+        Assert.That(results, Has.Count.EqualTo(1));
     }
 
     [Test]

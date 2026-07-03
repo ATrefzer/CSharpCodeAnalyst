@@ -78,7 +78,7 @@ public static class TypeDependencyAnalysis
         var typeEdges = new HashSet<(string Source, string Target)>();
         foreach (var relationship in graph.GetAllRelationships())
         {
-            if (!IsDependency(relationship.Type))
+            if (!relationship.Type.IsDependency())
             {
                 continue;
             }
@@ -241,21 +241,6 @@ public static class TypeDependencyAnalysis
         }
 
         return current;
-    }
-
-    /// <summary>
-    ///     Whether a relationship expresses a compile-time dependency (source depends on target),
-    ///     which is what the degrees, blast radius and PageRank are built on. Excluded:
-    ///     - Containment: the parent/child hierarchy, not a dependency.
-    ///     - Bundled: artificial edges the UI creates to fold several relationships together.
-    ///     - Handles: an event-handler registration. The model stores it as handler -> event, but
-    ///       it is the callback wiring (the event later calls the handler), not a dependency of
-    ///       the handler on the event. Counting it would give handlers spurious importance.
-    /// </summary>
-    private static bool IsDependency(RelationshipType type)
-    {
-        return type is not (RelationshipType.Containment or RelationshipType.Bundled
-            or RelationshipType.Handles);
     }
 
     private static bool IsType(CodeElement element)
