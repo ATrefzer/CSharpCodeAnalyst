@@ -1,5 +1,6 @@
 ﻿using CodeGraph.Contracts;
 using CodeGraph.Export;
+using CodeGraph.Metrics;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
@@ -27,17 +28,17 @@ public class Importer
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
+            return Result<ParseResult>.Canceled();
         }
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
+            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -48,12 +49,12 @@ public class Importer
         return result;
     }
 
-    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportJdepsAsync()
+    public async Task<Result<ParseResult>> ImportJdepsAsync()
     {
         var fileName = TryGetImportJdepsFilePath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
+            return Result<ParseResult>.Canceled();
         }
 
         return await ExecuteGuardedImportAsync(
@@ -61,12 +62,12 @@ public class Importer
             () => ImportJDepsFuncAsync(fileName));
     }
 
-    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportPlainTextAsync()
+    public async Task<Result<ParseResult>> ImportPlainTextAsync()
     {
         var fileName = TryGetImportPlainTextPath();
         if (string.IsNullOrEmpty(fileName))
         {
-            return Result<CodeGraph.Graph.CodeGraph>.Canceled();
+            return Result<ParseResult>.Canceled();
         }
 
         return await ExecuteGuardedImportAsync(
@@ -74,35 +75,35 @@ public class Importer
             () => ImportPlainTextFuncAsync(fileName));
     }
 
-    private Task<CodeGraph.Graph.CodeGraph> ImportJDepsFuncAsync(string filePath)
+    private Task<ParseResult> ImportJDepsFuncAsync(string filePath)
     {
         var importer = new JdepsReader();
-        return Task.FromResult(importer.ImportFromFile(filePath));
+        return Task.FromResult(new ParseResult(importer.ImportFromFile(filePath), new MetricStore()));
     }
 
-    private Task<CodeGraph.Graph.CodeGraph> ImportPlainTextFuncAsync(string filePath)
+    private Task<ParseResult> ImportPlainTextFuncAsync(string filePath)
     {
         var graph = CodeGraphSerializer.DeserializeFromFile(filePath);
-        return Task.FromResult(graph);
+        return Task.FromResult(new ParseResult(graph, new MetricStore()));
     }
 
 
-    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
         parser.Progress.ParserProgress += OnParserProgress;
 
         try
         {
             _parserDiagnostics = null;
-            var graph = await parser.ParseAsync(solutionPath).ConfigureAwait(true);
+            var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(true);
 
             if (parser.Diagnostics.HasDiagnostics)
             {
                 _parserDiagnostics = parser.Diagnostics;
             }
 
-            return graph;
+            return parseResult;
         }
         finally
         {
@@ -120,20 +121,20 @@ public class Importer
         ImportStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
     }
 
-    private async Task<Result<CodeGraph.Graph.CodeGraph>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<CodeGraph.Graph.CodeGraph>> importFunc)
+    private async Task<Result<ParseResult>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<ParseResult>> importFunc)
     {
         try
         {
             OnImportStateChanged(progressMessage, true);
 
-            var graph = await Task.Run(importFunc);
-            return Result<CodeGraph.Graph.CodeGraph>.Success(graph);
+            var parseResult = await Task.Run(importFunc);
+            return Result<ParseResult>.Success(parseResult);
         }
         catch (Exception ex)
         {
             var message = string.Format(Strings.OperationFailed_Message, ex.Message);
             _ui.ShowError(message);
-            return Result<CodeGraph.Graph.CodeGraph>.Failure(ex);
+            return Result<ParseResult>.Failure(ex);
         }
         finally
         {

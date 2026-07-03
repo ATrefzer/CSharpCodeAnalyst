@@ -6,6 +6,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.TypeDependencies.Presentation;
@@ -108,6 +109,11 @@ internal class TypeDependenciesViewModel : Table
         [
             new CommandDefinition
             {
+                Header = Strings.JumpToCode,
+                Command = new WpfCommand<TypeDependencyViewModel>(JumpToCode, CanJumpToCode)
+            },
+            new CommandDefinition
+            {
                 Header = Strings.CopyToExplorerGraph_MenuItem,
                 Command = new WpfCommand<TypeDependencyViewModel>(ShowInExplorer)
             }
@@ -117,5 +123,15 @@ internal class TypeDependenciesViewModel : Table
     private void ShowInExplorer(TypeDependencyViewModel row)
     {
         _messaging.Publish(new AddNodeToGraphRequest(row.Element));
+    }
+
+    private static bool CanJumpToCode(TypeDependencyViewModel row)
+    {
+        return row.Element.SourceLocations.Count > 0;
+    }
+
+    private static void JumpToCode(TypeDependencyViewModel row)
+    {
+        SourceLocationNavigator.Open(row.Element.SourceLocations[0]);
     }
 }

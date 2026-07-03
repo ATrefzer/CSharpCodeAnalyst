@@ -63,10 +63,11 @@ public class FollowIncomingCallsParseTests
     private CodeGraph.Graph.CodeGraph _graph = null!;
 
     [OneTimeSetUp]
-    public void Setup()
+    public async Task Setup()
     {
         var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
-        _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult();
+        var result = await parser.ParseSourceAsync(Code);
+        _graph = result.CodeGraph;
     }
 
     [Test]

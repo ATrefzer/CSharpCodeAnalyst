@@ -233,9 +233,7 @@ public class Analyzer : IAnalyzer
             return violations;
 
         // Only real dependencies are subject to architectural rules. Descriptive edges like Handles
-        // (event-handler wiring), and the non-dependency Containment / Bundled edges, are excluded -
-        // otherwise, for example, a class whose method is subscribed to an event by external code
-        // would be flagged as depending on the event's type. Same definition as the dependency metrics.
+        // (event-handler wiring), and the non-dependency Containment / Bundled edges, are excluded
         var allRelationships = graph.GetAllRelationships()
             .Where(r => r.Type.IsDependency())
             .ToList();

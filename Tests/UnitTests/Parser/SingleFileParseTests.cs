@@ -28,7 +28,7 @@ public class SingleFileParseTests
         try
         {
             var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
-            var graph = parser.ParseAsync(path).GetAwaiter().GetResult();
+            var graph = parser.ParseAsync(path).GetAwaiter().GetResult().CodeGraph;
 
             var foo = graph.Nodes.Values.SingleOrDefault(n => n.ElementType == CodeElementType.Class && n.Name == "Foo");
             var bar = graph.Nodes.Values.SingleOrDefault(n => n.ElementType == CodeElementType.Method && n.Name == "Bar");

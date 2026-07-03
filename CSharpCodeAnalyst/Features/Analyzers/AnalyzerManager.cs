@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.Features.Analyzers.EventRegistration;
+﻿using CodeGraph.Metrics;
+using CSharpCodeAnalyst.Features.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Notifications;
 
@@ -58,7 +59,7 @@ internal class AnalyzerManager : IAnalyzerManager
         AnalyzerDataChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification)
+    public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification, MetricStore metricStore)
     {
         _analyzers.Clear();
 
@@ -75,6 +76,10 @@ internal class AnalyzerManager : IAnalyzerManager
         _analyzers.Add(analyzer.Id, analyzer);
 
         analyzer = new TypeCohesion.Analyzer(messaging);
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
+        _analyzers.Add(analyzer.Id, analyzer);
+
+        analyzer = new MethodComplexity.Analyzer(messaging, metricStore);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
     }

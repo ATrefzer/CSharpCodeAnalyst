@@ -437,15 +437,15 @@ public partial class DynamicDataGrid
 
         row.IsSelected = true;
 
-        // Only Table may provide commands.
-        var command = TableData?.GetCommands().SingleOrDefault();
-        if (command == null)
+        // Only Table may provide commands. Double-click always triggers the first one, if it can run.
+        var command = TableData?.GetCommands().FirstOrDefault();
+        if (command?.Command is not { } cmd || !cmd.CanExecute(row.DataContext))
         {
             e.Handled = true;
             return;
         }
 
-        Dispatcher.BeginInvoke(() => command.Command?.Execute(row.DataContext));
+        Dispatcher.BeginInvoke(() => cmd.Execute(row.DataContext));
     }
 
     private void RowOnContextMenuOpening(object sender, ContextMenuEventArgs e)

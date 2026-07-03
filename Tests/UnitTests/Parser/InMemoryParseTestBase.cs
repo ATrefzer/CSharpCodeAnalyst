@@ -21,11 +21,12 @@ public abstract class InMemoryParseTestBase
     protected virtual bool SplitPropertyAccessors => false;
 
     [OneTimeSetUp]
-    public void ParseCode()
+    public async Task ParseCode()
     {
         var parser = new CodeParser.Parser.Parser(
             new ParserConfig(new ProjectExclusionRegExCollection(), false, splitPropertyAccessors: SplitPropertyAccessors));
-        Graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult();
+        var result = await parser.ParseSourceAsync(Code);
+        Graph = result.CodeGraph;
     }
 
     /// <summary>All element paths of the given type (e.g. every class as "Outer.Inner").</summary>

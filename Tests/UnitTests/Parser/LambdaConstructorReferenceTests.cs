@@ -96,6 +96,6 @@ public class LambdaConstructorReferenceTests
     private static CodeGraph.Graph.CodeGraph Parse(string code)
     {
         var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
-        return parser.ParseSourceAsync(code).GetAwaiter().GetResult();
+        return parser.ParseSourceAsync(code).GetAwaiter().GetResult().CodeGraph;
     }
 }

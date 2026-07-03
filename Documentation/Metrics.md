@@ -4,14 +4,16 @@ This document explains the metrics computed by C# Code Analyst.
 
 Rather than providing a large number of metrics, C# Code Analyst focuses on a small set that answers specific questions.
 
-C# Code Analyst provides two analyses:
+C# Code Analyst provides three analyses:
 
 - **Type Dependencies** helps you find the most important and riskiest types in a solution.
 - **Type Cohesion** helps you find classes that are doing too many unrelated things and may need to be split.
+- **Method Complexity** helps you find the largest and most complicated methods.
 
 Together, they help you understand an unfamiliar codebase and identify potential design issues.
 
-Both work at the type level and can be accessed from the *Analyzers* ribbon. Their results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
+The first two work at the type level, the last at the method level. All are accessed from the *Analyzers*
+ribbon and their results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
 
 ## Type Dependencies
 
@@ -31,7 +33,7 @@ Available via *Analyzers → Type Dependencies*. The result is a sortable table 
 
 Types defined outside the analyzed solution (e.g., frameworks and NuGet packages) are excluded. Otherwise, ubiquitous types like `object` or `string` would dominate the Fan-in ranking.
 
-One note how the dependencies are counted: If 10 methods in class `A` call 5 methods in class `B` and class `A` accesses one field in class `B` we count one type dependency`A → B.` **Dependency is a yes/no fact in this context.** For the question "must I understand B in order to understand A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full stop.
+One note on how the dependencies are counted: If 10 methods in class `A` call 5 methods in class `B` and class `A` accesses one field in class `B`, we count one type dependency `A → B.` **Dependency is a yes/no fact in this context.** For the question "must I understand B in order to understand A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full stop.
 
 Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`. You may have seen a `Handles` relationship in the code graph. This is ignored. It is a special relationship introduced to show which method handles an event. In terms of dependencies, this is the wrong direction. The dependency is recognized when the event is registered, however.
 
@@ -56,7 +58,7 @@ The extremes are informative too:
 
 It answers a blunt, practical question: **how scared should I be to touch this?** A type with a blast radius of 3 is safer to refactor; one with a blast radius of 800 may ripple through most of the codebase.
 
-Blast radius is a **flat count**: every type that can reach you counts as one, regardless of how important it is. That is the difference from Score — Score weights each dependent by its own importance, blast radius does not. A type used by 500 trivial leaves has a large blast radius but may have only a moderate Score. The type itself is never counted in its own blast radius.
+Blast radius is a **flat count**: every type that can reach you counts as one, regardless of how important it is. That is the difference from Score — Score weights each dependent by its own importance while blast radius does not. A type used by 500 trivial leaves has a large blast radius but may have only a moderate Score. The type itself is never counted in its own blast radius.
 
 Blast radius is always **≥ Fan-in** (the direct dependents are a subset of the transitive ones). When the two are far apart — small Fan-in, large blast radius — the type sits *deep*: few types touch it directly, but those few carry its influence across much of the codebase.
 
@@ -173,3 +175,61 @@ Double-clicking a row (or right-click → *Show partitions*) opens the concrete 
 - Only in-solution base classes are folded in; members inherited from framework types are not visible to the analysis.
 - Static utility classes and miscellaneous helper classes legitimately show many partitions — a high partition count is not automatically a defect, only a signal that the members do not interact.
 - Cohesion is structural: it sees which members touch the same state, not whether they belong together *conceptually*.
+
+## Method Complexity
+
+Where the other two analyses look at *types*, **Method Complexity** zooms in on individual **methods**
+and answers: **which methods are the largest and the most complicated**
+
+Available via *Analyzers → Method Complexity*. Because the numbers come from the method bodies, they
+are **collected during import** and only when *Collect source metrics on import* is enabled in the
+settings (they are then stored with the project). If the option was off, the analyzer tells you so.
+
+The result is a sortable table with one row per method:
+
+| Column     | Meaning                                                                      |
+| ---------- | ---------------------------------------------------------------------------- |
+| Method     | The fully qualified method name.                                            |
+| Code       | Lines that contain actual code (comment-only and blank lines excluded).      |
+| Statements | Number of executable statements — the size independent of formatting.        |
+| Comments   | Comment-only lines, including the `///` documentation comment above.          |
+| Comment %  | Comments ÷ (Code + Comments) — a rough documentation density.                |
+| Complexity | Cyclomatic complexity (see below).                                          |
+
+### How the numbers are computed
+
+All values are read straight from the method's syntax, no formatting assumptions:
+
+- **Code / Comments** classify each line of the method declaration: a line is *code* if it contains any real token, a *comment* line if it only carries comment trivia, otherwise blank. A line with code and a trailing comment counts as code. Method signature and standalone `{ }` are counted.
+
+- **Statements** count executable statements (wrapping `{ }` blocks are not counted). An expression-bodied method (`=> expr`) counts as one. Independent of how it is laid out.
+
+- **Complexity** is the McCabe cyclomatic complexity: `1` plus one for every decision point — `if`, `while`, `for`, `foreach`, `case`, `catch`, the `?:` operator and the `&&` / `||` / `??` operators. Compound conditions like `if (a && b || c)` are counted as multiple decision points because the short-circuit operators create extra branches. Here, various tools can vary.
+  This is roughly the number of independent paths through the method, i.e., the number of test cases required to cover it.
+  
+  Note: In graph theory, the metric is `V(G) = E − N + 2`. This is the number of linearly independent paths through the code. Most tools, however, use the simpler version `V(G) ≈ 1 + D`, where `D` is the number of decision points. Each decision point typically adds exactly one extra edge and one extra node, increasing complexity by 1. The approximation works well for structured code.
+
+### Reading the table
+
+- Sort by **Complexity** (default) to find the branchiest methods — the ones most error-prone and hardest to reason about.  Some consensus guidelines:
+  
+  - Complexity ≤ 10: Good/simple
+  
+  - 11–20: Moderate
+  
+  - 21–50: Complex (should refactor)
+  
+  - 50: Very high risk
+  
+- Sort by **Code** or **Statements** to find methods that are unusually long. **Code** still varies with how the method is laid out — brace style (K&R vs. Allman), one statement per line versus several packed together — so two methods with identical logic can end up with different **Code** counts. **Statements** does not: it counts the syntactic units directly, independent of line breaks, which makes it the fairer size when comparing methods written in different layout styles.
+
+- **Comment %** is context, not a target: near-zero on a complex method may mean it is under-documented. A high value is not automatically good.
+
+### Limitations
+
+- Metrics are collected only when the option is enabled *before* importing; changing it requires a
+  re-import.
+- The counts are structural, not semantic: they measure size and branching, not whether the logic is
+  actually complicated or the comments are useful.
+- Complexity counts syntactic decision points; the exact set differs slightly between tools, so absolute
+  numbers may not match another analyzer — the *ranking* is what matters.

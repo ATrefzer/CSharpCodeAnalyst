@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
@@ -9,17 +8,16 @@ using CSharpCodeAnalyst.Shared.Search;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
-namespace CSharpCodeAnalyst.Features.Analyzers.TypeCohesion.Presentation;
+namespace CSharpCodeAnalyst.Features.Analyzers.MethodComplexity.Presentation;
 
-internal class TypeCohesionViewModel : Table
+internal class MethodComplexityViewModel : Table
 {
     private readonly IPublisher _messaging;
     private readonly ObservableCollection<TableRow> _rows;
 
-    internal TypeCohesionViewModel(List<TypeCohesionInfo> infos, IPublisher messaging)
+    internal MethodComplexityViewModel(List<MethodComplexityRowViewModel> rows, IPublisher messaging)
     {
         _messaging = messaging;
-        var rows = infos.Select(i => new TypeCohesionRowViewModel(i));
         _rows = new ObservableCollection<TableRow>(rows);
     }
 
@@ -30,29 +28,39 @@ internal class TypeCohesionViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_TypeCohesion_Class,
-                PropertyName = nameof(TypeCohesionRowViewModel.Name)
+                Header = Strings.Column_MethodComplexity_Method,
+                PropertyName = nameof(MethodComplexityRowViewModel.Name)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_TypeCohesion_Partitions,
-                PropertyName = nameof(TypeCohesionRowViewModel.Partitions)
+                Header = Strings.Column_MethodComplexity_Code,
+                PropertyName = nameof(MethodComplexityRowViewModel.Code)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_TypeCohesion_Members,
-                PropertyName = nameof(TypeCohesionRowViewModel.Members)
+                Header = Strings.Column_MethodComplexity_Statements,
+                PropertyName = nameof(MethodComplexityRowViewModel.Statements)
             },
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_TypeCohesion_LargestPartition,
-                PropertyName = nameof(TypeCohesionRowViewModel.LargestShare),
-
-                // Sort by the numeric value, not the formatted percentage string.
-                SortMemberName = nameof(TypeCohesionRowViewModel.LargestShareValue)
+                Header = Strings.Column_MethodComplexity_Comments,
+                PropertyName = nameof(MethodComplexityRowViewModel.Comments)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_MethodComplexity_CommentRatio,
+                PropertyName = nameof(MethodComplexityRowViewModel.CommentRatio),
+                SortMemberName = nameof(MethodComplexityRowViewModel.CommentRatioValue)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_MethodComplexity_Complexity,
+                PropertyName = nameof(MethodComplexityRowViewModel.Complexity)
             }
         };
     }
@@ -74,19 +82,19 @@ internal class TypeCohesionViewModel : Table
             new CommandDefinition
             {
                 Header = Strings.JumpToCode,
-                Command = new WpfCommand<TypeCohesionRowViewModel>(JumpToCode, CanJumpToCode)
+                Command = new WpfCommand<MethodComplexityRowViewModel>(JumpToCode, CanJumpToCode)
             },
             new CommandDefinition
             {
-                Header = Strings.ShowPartitions,
-                Command = new WpfCommand<TypeCohesionRowViewModel>(ShowPartitions)
+                Header = Strings.CopyToExplorerGraph_MenuItem,
+                Command = new WpfCommand<MethodComplexityRowViewModel>(ShowInExplorer)
             }
         ];
     }
 
     public override bool CanFilter => true;
 
-    /// <summary>Filters by class name using the same search expression as the Advanced Search.</summary>
+    /// <summary>Filters by method name using the same search expression as the Advanced Search.</summary>
     public override ObservableCollection<TableRow> Filter(string searchText)
     {
         if (string.IsNullOrWhiteSpace(searchText))
@@ -96,23 +104,22 @@ internal class TypeCohesionViewModel : Table
 
         var expression = SearchExpressionFactory.CreateSearchExpression(searchText);
         var filtered = _rows
-            .Cast<TypeCohesionRowViewModel>()
+            .Cast<MethodComplexityRowViewModel>()
             .Where(row => expression.Evaluate(row.Element));
         return new ObservableCollection<TableRow>(filtered);
     }
 
-    private void ShowPartitions(TypeCohesionRowViewModel row)
+    private void ShowInExplorer(MethodComplexityRowViewModel row)
     {
-        // Base-aware, to match the partition count shown in the table.
-        _messaging.Publish(new ShowPartitionsRequest(row.Element, true));
+        _messaging.Publish(new AddNodeToGraphRequest(row.Element));
     }
 
-    private static bool CanJumpToCode(TypeCohesionRowViewModel row)
+    private static bool CanJumpToCode(MethodComplexityRowViewModel row)
     {
         return row.Element.SourceLocations.Count > 0;
     }
 
-    private static void JumpToCode(TypeCohesionRowViewModel row)
+    private static void JumpToCode(MethodComplexityRowViewModel row)
     {
         SourceLocationNavigator.Open(row.Element.SourceLocations[0]);
     }

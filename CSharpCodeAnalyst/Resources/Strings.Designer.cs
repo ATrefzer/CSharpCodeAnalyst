@@ -633,7 +633,97 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Column_TypeCohesion_LargestPartition", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Method Complexity.
+        /// </summary>
+        public static string Analyzer_MethodComplexity_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_MethodComplexity_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lines of code and cyclomatic complexity per method.
+        /// </summary>
+        public static string Analyzer_MethodComplexity_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_MethodComplexity_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No source metrics available.
+        /// </summary>
+        public static string Analyzer_MethodComplexity_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_MethodComplexity_NoData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Method.
+        /// </summary>
+        public static string Column_MethodComplexity_Method {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Method", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lines.
+        /// </summary>
+        public static string Column_MethodComplexity_Lines {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Lines", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Code.
+        /// </summary>
+        public static string Column_MethodComplexity_Code {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Code", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Statements.
+        /// </summary>
+        public static string Column_MethodComplexity_Statements {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Statements", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comments.
+        /// </summary>
+        public static string Column_MethodComplexity_Comments {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Comments", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comment %.
+        /// </summary>
+        public static string Column_MethodComplexity_CommentRatio {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_CommentRatio", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Complexity.
+        /// </summary>
+        public static string Column_MethodComplexity_Complexity {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Complexity", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Members.
         /// </summary>
@@ -2780,7 +2870,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Settings_ShowOverviewOnImport_Tooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Collect source metrics on import.
+        /// </summary>
+        public static string Settings_CollectSourceMetrics {
+            get {
+                return ResourceManager.GetString("Settings_CollectSourceMetrics", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Collect per-method lines of code and cyclomatic complexity during import, shown in the Method Complexity analyzer.
+        /// </summary>
+        public static string Settings_CollectSourceMetrics_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_CollectSourceMetrics_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Split property _getter/setter.
         /// </summary>

@@ -1,4 +1,5 @@
 using CodeGraph.Graph;
+using CodeGraph.Metrics;
 using CSharpCodeAnalyst.Features.Gallery;
 
 namespace CSharpCodeAnalyst.Persistence.Dto;
@@ -20,6 +21,12 @@ public class ProjectData
     public Dictionary<string, string> AnalyzerData { get; set; } = new();
 
     /// <summary>
+    ///     Optional per-member source metrics (lines of code, cyclomatic complexity). Empty unless
+    ///     metric collection was enabled during import.
+    /// </summary>
+    public List<SerializableMemberMetrics> MemberMetrics { get; set; } = [];
+
+    /// <summary>
     ///     Gallery is already serializable.
     /// </summary>
     public Gallery Gallery { get; set; } = new();
@@ -32,6 +39,27 @@ public class ProjectData
     public Gallery GetGallery()
     {
         return Gallery;
+    }
+
+    public void SetMetrics(MetricStore store)
+    {
+        MemberMetrics = store.Metrics
+            .Select(kvp => new SerializableMemberMetrics(kvp.Key, kvp.Value.CodeLines, kvp.Value.CommentLines,
+                kvp.Value.LogicalLinesOfCode, kvp.Value.CyclomaticComplexity))
+            .ToList();
+    }
+
+    public Dictionary<string, MemberMetrics> GetMetrics()
+    {
+        return MemberMetrics.ToDictionary(
+            m => m.ElementId,
+            m => new MemberMetrics
+            {
+                CodeLines = m.CodeLines,
+                CommentLines = m.CommentLines,
+                LogicalLinesOfCode = m.LogicalLinesOfCode,
+                CyclomaticComplexity = m.CyclomaticComplexity
+            });
     }
 
     /// <summary>
