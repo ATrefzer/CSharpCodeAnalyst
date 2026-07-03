@@ -1,6 +1,6 @@
-﻿using CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
 
-namespace CodeGraph.Algorithms.Cycles;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 public class SearchGraph : IGraphRepresentation<SearchNode>
 {

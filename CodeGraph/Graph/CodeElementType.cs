@@ -1,4 +1,4 @@
-﻿namespace CodeGraph.Graph;
+﻿namespace CSharpCodeAnalyst.CodeGraph.Graph;
 
 public enum CodeElementType
 {

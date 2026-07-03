@@ -1,5 +1,4 @@
-using CodeGraph.Exploration;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Exploration;
 
 namespace CodeParserTests.UnitTests.Parser;
 

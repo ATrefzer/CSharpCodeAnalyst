@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     Artifacts from the first phase of the parser.

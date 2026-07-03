@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     Whether a property reference reads (getter), writes (setter) or does both.

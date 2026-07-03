@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     A project reduced to the bits needed to decide which one to keep when several projects share the

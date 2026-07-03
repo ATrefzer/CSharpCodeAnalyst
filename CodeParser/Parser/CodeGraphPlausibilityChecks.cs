@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 internal static class CodeGraphPlausibilityChecks
 {

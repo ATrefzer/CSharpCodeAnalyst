@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Exploration;
+namespace CSharpCodeAnalyst.CodeGraph.Exploration;
 
 internal class Context(Graph.CodeGraph codeGraph)
 {

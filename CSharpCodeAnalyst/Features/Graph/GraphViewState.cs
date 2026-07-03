@@ -1,4 +1,4 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 

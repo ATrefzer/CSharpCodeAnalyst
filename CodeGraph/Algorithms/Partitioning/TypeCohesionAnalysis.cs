@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Algorithms.Partitioning;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 
 /// <summary>
 ///     One row of the cohesion result: a class that decomposes into several independent member

@@ -1,6 +1,6 @@
-using CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.Analyzers.TypeCohesion.Presentation;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;

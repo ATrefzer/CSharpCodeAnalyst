@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;

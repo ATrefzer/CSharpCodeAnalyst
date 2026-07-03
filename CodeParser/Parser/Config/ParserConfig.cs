@@ -1,4 +1,4 @@
-﻿namespace CodeParser.Parser.Config;
+﻿namespace CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 public class ParserConfig
 {

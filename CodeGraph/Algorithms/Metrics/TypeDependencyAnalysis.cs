@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Algorithms.Metrics;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 
 /// <summary>
 ///     One row of the type-dependency result: a type with its coupling degrees, its change impact

@@ -1,9 +1,9 @@
-using CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     Computes source-level metrics for a member from its declaration syntax. Deliberately

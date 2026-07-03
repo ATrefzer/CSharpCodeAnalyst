@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
+        <ProjectReference Include="..\CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
     </ItemGroup>
 
     <ItemGroup>

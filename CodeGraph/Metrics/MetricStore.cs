@@ -1,4 +1,4 @@
-namespace CodeGraph.Metrics;
+namespace CSharpCodeAnalyst.CodeGraph.Metrics;
 
 /// <summary>
 ///     Holds the optional per-member source metrics, keyed by <see cref="Graph.CodeElement.Id" />.

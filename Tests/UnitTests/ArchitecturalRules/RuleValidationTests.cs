@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
 using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 

@@ -1,4 +1,4 @@
-﻿namespace CodeGraph.Contracts;
+﻿namespace CSharpCodeAnalyst.CodeGraph.Contracts;
 
 public class ParserProgressArg(string message) : EventArgs
 {

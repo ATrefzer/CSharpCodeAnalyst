@@ -1,4 +1,4 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 // ReSharper disable StringLiteralTypo
 
@@ -9,7 +9,7 @@ namespace CodeParserTests.ApprovalTests;
 /// </summary>
 public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 {
-    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
         return GetTestGraph("Old.CSharpLanguage");
     }
@@ -330,7 +330,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         Assert.That(actual, Is.EquivalentTo(expected));
     }
 
-    private static HashSet<string> GetAllEventUsages(CodeGraph.Graph.CodeGraph graph)
+    private static HashSet<string> GetAllEventUsages(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)

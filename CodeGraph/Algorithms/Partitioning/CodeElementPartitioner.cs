@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Algorithms.Partitioning;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 
 /// <summary>
 ///     Finds disjunct partitions of code elements that are related to each other.

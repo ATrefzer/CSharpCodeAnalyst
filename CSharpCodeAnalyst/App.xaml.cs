@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Windows;
-using CodeGraph.Exploration;
-using CodeParser.Parser;
+using CSharpCodeAnalyst.CodeGraph.Exploration;
+using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.AdvancedSearch;

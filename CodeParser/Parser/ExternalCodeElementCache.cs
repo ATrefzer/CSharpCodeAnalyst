@@ -1,7 +1,7 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     In pass 1 only internal code elements are created.

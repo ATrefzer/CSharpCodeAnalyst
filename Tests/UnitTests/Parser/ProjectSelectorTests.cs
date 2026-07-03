@@ -1,4 +1,4 @@
-using CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser;
 
 namespace CodeParserTests.UnitTests.Parser;
 

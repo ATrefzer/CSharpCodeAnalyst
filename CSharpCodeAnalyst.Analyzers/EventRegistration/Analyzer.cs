@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
-using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
+﻿using CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;

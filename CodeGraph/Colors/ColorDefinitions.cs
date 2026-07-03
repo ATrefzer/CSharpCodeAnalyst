@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Colors;
+namespace CSharpCodeAnalyst.CodeGraph.Colors;
 
 public static class ColorDefinitions
 {

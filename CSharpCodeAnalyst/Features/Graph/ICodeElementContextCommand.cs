@@ -1,5 +1,5 @@
 ﻿using System.Windows.Media;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Features.Graph;
 

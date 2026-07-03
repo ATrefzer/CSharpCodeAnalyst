@@ -1,6 +1,6 @@
-using CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     The complete output of a parse: the code graph together with the (optional) per-member source

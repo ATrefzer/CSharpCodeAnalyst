@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Features.Refactoring;
 

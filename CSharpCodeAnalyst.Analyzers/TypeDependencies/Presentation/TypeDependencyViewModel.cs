@@ -1,6 +1,6 @@
 using System.Globalization;
-using CodeGraph.Algorithms.Metrics;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.TypeDependencies.Presentation;

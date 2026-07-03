@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using CodeGraph.Graph;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     Phase 2/2 of the parser: Analyzing relationships between code elements.

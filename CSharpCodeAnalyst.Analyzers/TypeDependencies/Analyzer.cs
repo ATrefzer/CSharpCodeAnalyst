@@ -1,6 +1,6 @@
-using CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.Analyzers.TypeDependencies.Presentation;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;

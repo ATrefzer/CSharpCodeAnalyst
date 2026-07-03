@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 using System.Windows.Media;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Graph;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;

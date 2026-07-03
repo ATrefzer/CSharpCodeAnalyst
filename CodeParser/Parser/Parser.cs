@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
-using CodeGraph.Contracts;
-using CodeGraph.Graph;
-using CodeGraph.Metrics;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 /// <summary>
 ///     Parses a solution and builds a code graph.

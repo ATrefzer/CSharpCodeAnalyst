@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using LibGit2Sharp;
 
 namespace ApprovalTestTool;

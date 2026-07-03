@@ -1,6 +1,6 @@
-using CodeGraph.Algorithms.Cycles;
-using CodeGraph.Export;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
+using CSharpCodeAnalyst.CodeGraph.Export;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Features.Ai;
 

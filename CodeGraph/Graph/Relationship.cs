@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Serialization;
 
-namespace CodeGraph.Graph;
+namespace CSharpCodeAnalyst.CodeGraph.Graph;
 
 [DebuggerDisplay("{Type}")]
 public class Relationship

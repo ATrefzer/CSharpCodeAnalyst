@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 // ReSharper disable NotResolvedInText
 
-namespace CodeGraph.Algorithms.Cycles;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 [DebuggerDisplay("{OriginalElement.ElementType}: {OriginalElement.Name}")]
 public class SearchNode(string id, CodeElement originalElement)

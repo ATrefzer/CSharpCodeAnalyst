@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Algorithms.Metrics;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 
 public class InOutDegree(CodeElement element)
 {

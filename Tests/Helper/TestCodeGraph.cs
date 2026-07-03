@@ -1,8 +1,8 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.Helper;
 
-public class TestCodeGraph : CodeGraph.Graph.CodeGraph
+public class TestCodeGraph : CodeGraph
 {
     public CodeElement CreateNamespace(string id, CodeElement? parent = null)
     {

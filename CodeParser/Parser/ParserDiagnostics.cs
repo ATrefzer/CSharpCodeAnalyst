@@ -1,7 +1,7 @@
-using CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
 using Microsoft.CodeAnalysis;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 internal class ParserDiagnostics : IParserDiagnostics
 {

@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Shared.Search;
 

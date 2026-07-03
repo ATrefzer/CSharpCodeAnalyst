@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using CodeGraph.Algorithms.Cycles;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;

@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;

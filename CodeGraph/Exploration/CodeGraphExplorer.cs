@@ -1,9 +1,9 @@
-﻿using CodeGraph.Algorithms.Cycles;
-using CodeGraph.Contracts;
-using CodeGraph.Graph;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Exploration;
+namespace CSharpCodeAnalyst.CodeGraph.Exploration;
 
 public class CodeGraphExplorer : ICodeGraphExplorer
 {

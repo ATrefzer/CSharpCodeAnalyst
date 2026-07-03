@@ -1,6 +1,6 @@
-﻿using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Algorithms.Cycles;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 public static class RelationshipClassifier
 {

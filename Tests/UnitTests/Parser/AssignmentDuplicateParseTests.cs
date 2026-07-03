@@ -1,5 +1,5 @@
-using CodeGraph.Graph;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -30,13 +30,13 @@ public class AssignmentDuplicateParseTests
                                 }
                                 """;
 
-    private CodeGraph.Graph.CodeGraph _graph = null!;
+    private CodeGraph _graph = null!;
 
     [OneTimeSetUp]
     public async Task Setup()
     {
         // Split off to mirror the original parser configuration of this scenario.
-        var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
+        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         var result = await parser.ParseSourceAsync(Code);
         _graph = result.CodeGraph;
     }

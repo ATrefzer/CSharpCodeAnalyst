@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.Build.Locator;
 
-namespace CodeParser.Parser;
+namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 public static class Initializer
 {

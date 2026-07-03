@@ -1,6 +1,6 @@
-﻿using CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
 
-namespace CodeGraph.Graph;
+namespace CSharpCodeAnalyst.CodeGraph.Graph;
 
 public record IntegrationResult(CodeElement CodeElement, bool IsAdded);
 

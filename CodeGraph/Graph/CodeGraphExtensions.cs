@@ -1,4 +1,4 @@
-﻿namespace CodeGraph.Graph;
+﻿namespace CSharpCodeAnalyst.CodeGraph.Graph;
 
 /// <summary>
 ///     Set of basic algorithms to build for higher algorithms

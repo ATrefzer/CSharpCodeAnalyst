@@ -1,4 +1,4 @@
-﻿using CodeGraph.Algorithms.Cycles;
+﻿using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 namespace CodeParserTests.UnitTests.Cycles;
 

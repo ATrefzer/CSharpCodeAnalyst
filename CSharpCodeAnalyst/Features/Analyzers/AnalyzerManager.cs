@@ -1,5 +1,5 @@
-﻿using CodeGraph.Metrics;
-using CSharpCodeAnalyst.Analyzers.EventRegistration;
+﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Notifications;
 using ArchitecturalRules = CSharpCodeAnalyst.Analyzers.ArchitecturalRules;

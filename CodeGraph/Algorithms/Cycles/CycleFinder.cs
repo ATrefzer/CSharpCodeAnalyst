@@ -1,4 +1,4 @@
-﻿namespace CodeGraph.Algorithms.Cycles;
+﻿namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 public static class CycleFinder
 {

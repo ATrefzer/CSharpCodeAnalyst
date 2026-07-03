@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace CodeGraph.Algorithms.Cycles;
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 public class SearchNodeComparer : IEqualityComparer<SearchNode>
 {

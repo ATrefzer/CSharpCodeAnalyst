@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace CodeGraph.Export;
+namespace CSharpCodeAnalyst.CodeGraph.Export;
 
 /// <summary>
 ///     Builder class to create a directed graph file to be processed with Visual Studio's

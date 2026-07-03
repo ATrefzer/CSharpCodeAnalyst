@@ -1,4 +1,4 @@
-using CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

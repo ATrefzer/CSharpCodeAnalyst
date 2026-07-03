@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using CodeGraph.Graph;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -27,7 +27,7 @@ public class SingleFileParseTests
 
         try
         {
-            var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
+            var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
             var graph = parser.ParseAsync(path).GetAwaiter().GetResult().CodeGraph;
 
             var foo = graph.Nodes.Values.SingleOrDefault(n => n.ElementType == CodeElementType.Class && n.Name == "Foo");

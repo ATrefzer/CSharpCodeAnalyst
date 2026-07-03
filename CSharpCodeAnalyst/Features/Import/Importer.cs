@@ -1,8 +1,8 @@
-﻿using CodeGraph.Contracts;
-using CodeGraph.Export;
-using CodeGraph.Metrics;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Export;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Notifications;

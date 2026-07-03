@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Export;
+namespace CSharpCodeAnalyst.CodeGraph.Export;
 
 /// <summary>
 ///     Serializes and deserializes CodeGraph to/from a human-readable text format.

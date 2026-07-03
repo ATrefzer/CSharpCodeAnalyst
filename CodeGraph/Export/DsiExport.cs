@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace CodeGraph.Export;
+namespace CSharpCodeAnalyst.CodeGraph.Export;
 
 public static class DsiExport
 {

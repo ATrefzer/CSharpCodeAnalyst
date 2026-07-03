@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CodeParser.Parser.Config;
+namespace CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 public class ProjectExclusionRegExCollection
 {

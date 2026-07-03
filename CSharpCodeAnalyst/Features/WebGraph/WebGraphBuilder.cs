@@ -1,13 +1,13 @@
 using System.Text.Json;
-using CodeGraph.Colors;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Colors;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Graph.Filtering;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
 /// <summary>
-///     Transforms a <see cref="CodeGraph.Graph.CodeGraph" /> into the JSON shape that
+///     Transforms a <see cref="CodeGraph" /> into the JSON shape that
 ///     the Cytoscape front-end (app.js / renderGraph) expects: { nodes: [...], edges: [...] }.
 ///     It honours the presentation state (collapse/expand) and the <see cref="GraphHideFilter" /> (hidden element and
 ///     relationship types).

@@ -1,7 +1,7 @@
-﻿using CodeGraph.Exploration;
-using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Exploration;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Contracts;
+namespace CSharpCodeAnalyst.CodeGraph.Contracts;
 
 public interface ICodeGraphExplorer
 {

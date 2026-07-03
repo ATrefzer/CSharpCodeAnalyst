@@ -1,5 +1,5 @@
 using System.IO;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Features.Import;
 

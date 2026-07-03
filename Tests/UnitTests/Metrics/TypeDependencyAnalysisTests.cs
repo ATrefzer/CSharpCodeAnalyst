@@ -1,6 +1,6 @@
-using CodeGraph.Algorithms.Metrics;
-using CodeGraph.Graph;
 using CodeParserTests.Helper;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Metrics;
 

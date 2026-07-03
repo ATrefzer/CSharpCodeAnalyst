@@ -1,7 +1,7 @@
-﻿using CodeGraph.Colors;
-using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Colors;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Export;
+namespace CSharpCodeAnalyst.CodeGraph.Export;
 
 /// <summary>
 ///     Debug class to export the hierarchy of a code graph to a dgml file.

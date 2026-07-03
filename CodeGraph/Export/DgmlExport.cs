@@ -1,7 +1,7 @@
-﻿using CodeGraph.Colors;
-using CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Colors;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CodeGraph.Export;
+namespace CSharpCodeAnalyst.CodeGraph.Export;
 
 public static class DgmlExport
 {

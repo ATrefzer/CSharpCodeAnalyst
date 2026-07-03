@@ -1,4 +1,4 @@
-namespace CodeGraph.Metrics;
+namespace CSharpCodeAnalyst.CodeGraph.Metrics;
 
 /// <summary>
 ///     Source-level metrics for a single member (method, ...), collected optionally during parsing

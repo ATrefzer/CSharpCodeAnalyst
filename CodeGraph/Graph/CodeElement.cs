@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace CodeGraph.Graph;
+namespace CSharpCodeAnalyst.CodeGraph.Graph;
 
 [DebuggerDisplay("{ElementType}: {Name} {(IsExternal ? \"(External)\" : \"\")}")]
 public class CodeElement(string id, CodeElementType elementType, string name, string fullName, CodeElement? parent)

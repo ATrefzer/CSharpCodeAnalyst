@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.ApprovalTests;
 
@@ -33,7 +33,7 @@ public class ResolvedRelationship
 
 internal static class Init
 {
-    private static CodeGraph.Graph.CodeGraph? _instance;
+    private static CodeGraph? _instance;
 
     static Init()
     {
@@ -41,7 +41,7 @@ internal static class Init
         Initializer.InitializeMsBuildLocator();
     }
 
-    public static async Task<CodeGraph.Graph.CodeGraph> LoadAsync()
+    public static async Task<CodeGraph> LoadAsync()
     {
         if (_instance == null)
         {
@@ -61,7 +61,7 @@ internal static class Init
 public abstract class ApprovalTestBase
 {
 
-    protected CodeGraph.Graph.CodeGraph Graph = null!;
+    protected CodeGraph Graph = null!;
 
 
     public static string DumpRelationships(HashSet<string> relationships)
@@ -76,17 +76,17 @@ public abstract class ApprovalTestBase
         return formattedNodes;
     }
 
-    protected HashSet<string> GetAllStructs(CodeGraph.Graph.CodeGraph graph)
+    protected HashSet<string> GetAllStructs(CodeGraph graph)
     {
         return GetElementOfType(graph, CodeElementType.Struct);
     }
 
-    protected HashSet<string> GetAllEnums(CodeGraph.Graph.CodeGraph graph)
+    protected HashSet<string> GetAllEnums(CodeGraph graph)
     {
         return GetElementOfType(graph, CodeElementType.Enum);
     }
 
-    protected HashSet<string> GetAllProperties(CodeGraph.Graph.CodeGraph graph)
+    protected HashSet<string> GetAllProperties(CodeGraph graph)
     {
         return GetElementOfType(graph, CodeElementType.Property);
     }
@@ -101,7 +101,7 @@ public abstract class ApprovalTestBase
         return element.FullName.StartsWith(projectFilter);
     }
 
-    protected CodeGraph.Graph.CodeGraph GetTestGraph(string rootElementName)
+    protected CodeGraph GetTestGraph(string rootElementName)
     {
         var root = Graph.Nodes.Values.Single(n => n.FullName == rootElementName);
         return Graph.SubGraphOf(root);
@@ -113,31 +113,31 @@ public abstract class ApprovalTestBase
         Graph = await Init.LoadAsync();
     }
 
-    protected HashSet<string> GetAllClasses(CodeGraph.Graph.CodeGraph graph)
+    protected HashSet<string> GetAllClasses(CodeGraph graph)
     {
         return GetElementOfType(graph, CodeElementType.Class);
     }
 
-    protected HashSet<string> GetAllClasses(CodeGraph.Graph.CodeGraph graph, string inNamespace)
+    protected HashSet<string> GetAllClasses(CodeGraph graph, string inNamespace)
     {
         return GetElementOfType(graph, CodeElementType.Class, inNamespace);
     }
 
-    protected static HashSet<string> GetAllNodes(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllNodes(CodeGraph graph)
     {
         return graph.Nodes.Values
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    protected static HashSet<string> GetAllNodesOfType(CodeGraph.Graph.CodeGraph graph, CodeElementType type)
+    protected static HashSet<string> GetAllNodesOfType(CodeGraph graph, CodeElementType type)
     {
         return graph.Nodes.Values.Where(n => n.ElementType == type)
             .Select(n => n.FullName)
             .ToHashSet();
     }
 
-    private static HashSet<string> GetElementOfType(CodeGraph.Graph.CodeGraph graph, CodeElementType type, string? inNamespace = null!)
+    private static HashSet<string> GetElementOfType(CodeGraph graph, CodeElementType type, string? inNamespace = null!)
     {
         var elements = graph.Nodes.Values
             .Where(n => n.ElementType == type);
@@ -151,7 +151,7 @@ public abstract class ApprovalTestBase
             .ToHashSet();
     }
 
-    public HashSet<string> GetAllMethodGroupUsages(CodeGraph.Graph.CodeGraph graph)
+    public HashSet<string> GetAllMethodGroupUsages(CodeGraph graph)
     {
         return graph.GetAllRelationships()
             .Where(r => r.Type == RelationshipType.Uses && r.Attributes.HasFlag(RelationshipAttribute.IsMethodGroup))
@@ -160,7 +160,7 @@ public abstract class ApprovalTestBase
             .ToHashSet();
     }
 
-    public HashSet<string> GetRelationshipsOfType(CodeGraph.Graph.CodeGraph graph, RelationshipType type)
+    public HashSet<string> GetRelationshipsOfType(CodeGraph graph, RelationshipType type)
     {
         return graph.GetAllRelationships()
             .Where(r => r.Type == type)
@@ -169,7 +169,7 @@ public abstract class ApprovalTestBase
             .ToHashSet();
     }
 
-    protected HashSet<string> GetAllRelationships(CodeGraph.Graph.CodeGraph graph)
+    protected HashSet<string> GetAllRelationships(CodeGraph graph)
     {
         return graph.GetAllRelationships()
             .Select(CreateResolvedRelationShip)
@@ -185,7 +185,7 @@ public abstract class ApprovalTestBase
         return new ResolvedRelationship(Graph.Nodes[relationship.SourceId].FullName, Graph.Nodes[relationship.TargetId].FullName);
     }
 
-    public static HashSet<string> GetAllEventImplementations(CodeGraph.Graph.CodeGraph graph)
+    public static HashSet<string> GetAllEventImplementations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -198,7 +198,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    public static HashSet<string> GetAllPropertyOverrides(CodeGraph.Graph.CodeGraph graph)
+    public static HashSet<string> GetAllPropertyOverrides(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -211,7 +211,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    protected static HashSet<string> GetAllPropertyImplementations(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllPropertyImplementations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -224,7 +224,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    protected static HashSet<string> GetAllMethodImplementations(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllMethodImplementations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -237,7 +237,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    protected static HashSet<string> GetAllMethodOverrides(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllMethodOverrides(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -250,7 +250,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    public static HashSet<string> GetAllEventInvocations(CodeGraph.Graph.CodeGraph graph)
+    public static HashSet<string> GetAllEventInvocations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -261,7 +261,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    protected static HashSet<string> GetAllInterfaceImplementations(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllInterfaceImplementations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
@@ -275,7 +275,7 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
-    protected static HashSet<string> GetAllClassInheritance(CodeGraph.Graph.CodeGraph graph)
+    protected static HashSet<string> GetAllClassInheritance(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
