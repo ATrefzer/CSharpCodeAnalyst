@@ -27,7 +27,7 @@ public static class SourceMetricsCollector
         var codeLines = new HashSet<int>();
         var commentLines = new HashSet<int>();
 
-        // A line is "code" when a real token touches it.
+        // A line is "code" when a real token touches it. Method signature and curly standalone curly brackets count.
         foreach (var token in declaration.DescendantTokens())
         {
             AddLines(codeLines, token.GetLocation().GetLineSpan());
@@ -81,11 +81,8 @@ public static class SourceMetricsCollector
     }
 
     /// <summary>
-    ///     McCabe cyclomatic complexity: one plus the number of decision points (branching statements,
-    ///     switch cases/arms, catch clauses, the conditional operator, the short-circuiting / null
-    ///     coalescing operators including "??=", and the "and"/"or" pattern combinators). A bare "_"
-    ///     switch-expression arm is treated like a classic "default:" label and does not count on its
-    ///     own. The exact set varies between tools.
+    ///     McCabe cyclomatic complexity: one plus the number of decision points.
+    ///     The exact set varies between tools.
     /// </summary>
     private static int ComputeCyclomaticComplexity(SyntaxNode node)
     {
