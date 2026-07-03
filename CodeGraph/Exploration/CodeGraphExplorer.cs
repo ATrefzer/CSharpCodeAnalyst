@@ -147,6 +147,36 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return GetRelationships(d => ids.Contains(d.SourceId) && ids.Contains(d.TargetId));
     }
 
+    public SearchResult FindAllRelationshipsDeep(HashSet<string> ids)
+    {
+        if (_codeGraph is null)
+        {
+            return new SearchResult([], []);
+        }
+
+        var expandedIds = ids
+            .Where(_codeGraph.Nodes.ContainsKey)
+            .SelectMany(id => _codeGraph.Nodes[id].GetChildrenIncludingSelf())
+            .ToHashSet();
+
+        var relationships = FindAllRelationships(expandedIds).ToList();
+        var relationshipElementIds = relationships
+            .SelectMany(r => new[] { r.SourceId, r.TargetId })
+            .ToHashSet();
+
+        // Found elements can be deep inside the given roots (e.g. two methods buried in two
+        // selected assemblies). Fill in the namespaces/classes connecting them to a root that is
+        // already known, so they don't end up added without their hierarchy.
+        var gapIds = FillGapsInHierarchy(ids.Union(relationshipElementIds).ToHashSet());
+
+        var elements = relationshipElementIds
+            .Union(gapIds)
+            .Select(id => _codeGraph.Nodes[id])
+            .ToHashSet();
+
+        return new SearchResult(elements, relationships);
+    }
+
     public SearchResult FindIncomingCalls(string id)
     {
         ArgumentNullException.ThrowIfNull(id);

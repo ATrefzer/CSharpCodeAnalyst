@@ -54,6 +54,7 @@
     <ItemGroup>
         <Resource Include="Resources\add_parent_16.png" />
         <Resource Include="Resources\collapse-all_32.png" />
+        <Resource Include="Resources\complete_relationships_deep_32.png" />
         <Resource Include="Resources\copy_fqn_16.png" />
         <Resource Include="Resources\expand-all_32.png" />
         <Resource Include="Resources\find_abstractions_16.png" />

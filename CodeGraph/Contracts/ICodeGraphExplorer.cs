@@ -26,6 +26,16 @@ public interface ICodeGraphExplorer
     IEnumerable<Relationship> FindAllRelationships(HashSet<string> ids);
 
     /// <summary>
+    ///     Like <see cref="FindAllRelationships" />, but each given node is expanded to itself plus all of
+    ///     its descendants first. Finds relationships between children of the given nodes even when
+    ///     those children are not yet present themselves (e.g. two methods of two selected classes, or
+    ///     two methods buried deep in two selected assemblies, that call each other). The result
+    ///     includes the newly discovered elements plus any intermediate hierarchy (namespaces, classes)
+    ///     needed to connect them to a given root.
+    /// </summary>
+    SearchResult FindAllRelationshipsDeep(HashSet<string> ids);
+
+    /// <summary>
     ///     Methods that implement or overload the given method
     /// </summary>
     SearchResult FindSpecializations(string id);

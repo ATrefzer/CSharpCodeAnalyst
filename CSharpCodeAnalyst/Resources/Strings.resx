@@ -207,7 +207,12 @@ If no code element is selected the parent for all code elements is added.</value
   </data>
   <data name="CompleteRelationships" xml:space="preserve">
     <value>Complete relationships
-Adds all missing relationships between code elements in the Code Explorer</value>
+If code elements are selected, adds missing relationships between them.
+If none are selected, adds missing relationships between all code elements in the Code Explorer.</value>
+  </data>
+  <data name="CompleteRelationshipsDeep" xml:space="preserve">
+    <value>Complete relationships (deep)
+Like Complete relationships, but also expands into descendants (e.g. methods of selected classes), pulling in any new code elements needed to show a found relationship. New elements are added collapsed.</value>
   </data>
   <data name="Layout_Tooltip" xml:space="preserve">
     <value>Recompute the graph layout from scratch</value>

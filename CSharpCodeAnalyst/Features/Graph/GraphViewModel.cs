@@ -192,12 +192,18 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // Toolbar
         CompleteToContainingTypesCommand = new WpfCommand(OnCompleteToContainingTypes);
         CompleteRelationshipsCommand = new WpfCommand(OnCompleteRelationships);
+        CompleteRelationshipsDeepCommand = new WpfCommand(OnCompleteRelationshipsDeep);
         ClearAllFlagsCommand = new WpfCommand(OnClearAllFlags);
         FocusOnSelectedCommand = new WpfCommand(OnFocusOnSelected);
         ExpandEverythingCommand = new WpfCommand(OnExpandEverything);
         CollapseEverythingCommand = new WpfCommand(OnCollapseEverything);
         RemoveSelectedCommand = new WpfCommand(OnRemoveSelectedWithChildren);
         AddParentsCommand = new WpfCommand(OnAddParents);
+
+        // Selection changes come from the web view, not WPF input events, so WpfCommand's
+        // CommandManager.RequerySuggested would not otherwise re-evaluate CanExecute predicates that
+        // depend on the selection. No toolbar command uses one yet, but this keeps it ready for when one does.
+        _state.SelectionChanged += () => WpfCommand.RaiseCanExecuteChanged();
 
         // Global commands, moved to toolbar
         // _state.AddGlobalCommand(new GlobalCommand(Strings.CompleteRelationships, CompleteRelationships));
@@ -210,6 +216,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public ICommand CompleteToContainingTypesCommand { get; set; }
     public ICommand CompleteRelationshipsCommand { get; set; }
+    public ICommand CompleteRelationshipsDeepCommand { get; set; }
     public ICommand UndoCommand { get; }
     public ICommand OpenGraphHideDialogCommand { get; }
     public ICommand ClearAllFlagsCommand { get; }
@@ -381,12 +388,36 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private void OnCompleteRelationships()
     {
-        // Not interested in the selected elements!
-        var viewerGraph = _state.CodeGraph;
-        var ids = viewerGraph.Nodes.Keys.ToHashSet();
+        var ids = GetSelectionOrAllPresentIds();
         var relationships = _explorer.FindAllRelationships(ids);
 
         AddToGraph([], relationships);
+    }
+
+    /// <summary>
+    ///     Deep variant of <see cref="OnCompleteRelationships" />: also expands into the descendants of
+    ///     the given roots, so relationships between not-yet-shown children (e.g. two methods of two
+    ///     selected classes that call each other) are found and both the relationships and the newly
+    ///     discovered elements are added. Newly discovered elements are added collapsed, so a deep
+    ///     completion on a large selection does not blow up the canvas.
+    /// </summary>
+    private void OnCompleteRelationshipsDeep()
+    {
+        var ids = GetSelectionOrAllPresentIds();
+        var result = _explorer.FindAllRelationshipsDeep(ids);
+        AddToGraph(result.Elements, result.Relationships, addCollapsed: true);
+    }
+
+    /// <summary>
+    ///     The selected elements, or (if nothing is selected) every element currently present on the
+    ///     canvas - so these commands act on "everything shown" by default and narrow to the selection
+    ///     once the user picks specific elements.
+    /// </summary>
+    private HashSet<string> GetSelectionOrAllPresentIds()
+    {
+        return _state.SelectedIds.Count > 0
+            ? _state.SelectedIds.ToHashSet()
+            : _state.CodeGraph.Nodes.Keys.ToHashSet();
     }
 
     private void OnCompleteToContainingTypes()

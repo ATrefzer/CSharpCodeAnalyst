@@ -35,6 +35,12 @@
             <Image Source="/Resources/synchronize_32.png" Width="20" Height="20" />
         </Button>
 
+        <Button Command="{Binding CompleteRelationshipsDeepCommand}"
+                ToolTip="{x:Static resources:Strings.CompleteRelationshipsDeep}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/complete_relationships_deep_32.png" Width="20" Height="20" />
+        </Button>
+
         <Button Command="{Binding ClearAllFlagsCommand}"
                 ToolTip="{x:Static resources:Strings.ClearAllFlags}"
                 Style="{StaticResource ToolbarButtonStyle}">

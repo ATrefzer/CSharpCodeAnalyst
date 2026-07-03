@@ -223,6 +223,75 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FindAllRelationshipsDeep_FindsRelationshipsBetweenDescendantsOfGivenRoots()
+    {
+        var classA = _graph.CreateClass("ClassA");
+        var classB = _graph.CreateClass("ClassB");
+        var methodA = _graph.CreateMethod("MethodA", classA);
+        var methodB = _graph.CreateMethod("MethodB", classB);
+        var callAtoB = Rel(methodA, methodB, RelationshipType.Calls);
+        var callBtoA = Rel(methodB, methodA, RelationshipType.Calls);
+
+        // Only the two classes are "on canvas"; neither method is known yet.
+        var roots = new HashSet<string> { classA.Id, classB.Id };
+        var result = _explorer.FindAllRelationshipsDeep(roots);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Relationships, Is.EquivalentTo(new[] { callAtoB, callBtoA }));
+            Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([methodA.Id, methodB.Id]));
+        });
+    }
+
+    [Test]
+    public void FindAllRelationshipsDeep_IgnoresRelationshipsOutsideGivenRoots()
+    {
+        var classA = _graph.CreateClass("ClassA");
+        var classB = _graph.CreateClass("ClassB");
+        var classC = _graph.CreateClass("ClassC");
+        var methodA = _graph.CreateMethod("MethodA", classA);
+        var methodC = _graph.CreateMethod("MethodC", classC);
+        Rel(methodA, methodC, RelationshipType.Calls);
+
+        // ClassC is not among the roots, so the call to/from it must not show up.
+        var roots = new HashSet<string> { classA.Id, classB.Id };
+        var result = _explorer.FindAllRelationshipsDeep(roots);
+
+        Assert.That(result.Relationships, Is.Empty);
+    }
+
+    [Test]
+    public void FindAllRelationshipsDeep_FillsHierarchyBetweenRootsAndFoundElements()
+    {
+        // Two assemblies, each several levels deep, with a method in one calling a method in the other.
+        var asmA = _graph.CreateAssembly("AsmA");
+        var nsA = _graph.CreateNamespace("NsA", asmA);
+        var classA = _graph.CreateClass("ClassA", nsA);
+        var methodA = _graph.CreateMethod("MethodA", classA);
+
+        var asmB = _graph.CreateAssembly("AsmB");
+        var nsB = _graph.CreateNamespace("NsB", asmB);
+        var classB = _graph.CreateClass("ClassB", nsB);
+        var methodB = _graph.CreateMethod("MethodB", classB);
+
+        var call = Rel(methodA, methodB, RelationshipType.Calls);
+
+        // Only the two assemblies are on canvas; everything below is unknown.
+        var roots = new HashSet<string> { asmA.Id, asmB.Id };
+        var result = _explorer.FindAllRelationshipsDeep(roots);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Relationships, Is.EquivalentTo(new[] { call }));
+
+            // The methods themselves plus the namespaces and classes connecting them to their
+            // (already known) assembly must be included - the assemblies themselves must not.
+            Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo(
+                new[] { nsA.Id, classA.Id, methodA.Id, nsB.Id, classB.Id, methodB.Id }));
+        });
+    }
+
+    [Test]
     public void FindOutgoingRelationshipsDeep_IncludesChildrenSources()
     {
         var cls = _graph.CreateClass("Cls");

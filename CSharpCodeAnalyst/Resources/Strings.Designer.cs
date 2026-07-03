@@ -798,14 +798,25 @@ namespace CSharpCodeAnalyst.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to Complete relationships
-        ///Adds all missing relationships between code elements in the Code Explorer.
+        ///If code elements are selected, adds missing relationships between them.
+        ///If none are selected, adds missing relationships between all code elements in the Code Explorer.
         /// </summary>
         public static string CompleteRelationships {
             get {
                 return ResourceManager.GetString("CompleteRelationships", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Complete relationships (deep)
+        ///Like Complete relationships, but also expands into descendants (e.g. methods of selected classes), pulling in any new code elements needed to show a found relationship. New elements are added collapsed.
+        /// </summary>
+        public static string CompleteRelationshipsDeep {
+            get {
+                return ResourceManager.GetString("CompleteRelationshipsDeep", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Complete to containing types.
         ///For code elements like methods and fields, it is ensured that at least the containing class (or struct) 
