@@ -31,6 +31,31 @@ public class SourceMetricsParseTests
                                         for (int i = 0; i < x; i++) { }
                                         return b ? x : -x;
                                     }
+
+                                    public void CoalesceAssign(string? s)
+                                    {
+                                        s ??= "x";
+                                    }
+
+                                    public bool PatternCombinator(int x)
+                                    {
+                                        return x is > 0 and < 100;
+                                    }
+
+                                    public int SwitchExprDefault(int x)
+                                    {
+                                        return x switch
+                                        {
+                                            1 => 10,
+                                            _ when x < 0 => -1,
+                                            _ => 0
+                                        };
+                                    }
+                                }
+
+                                abstract class Abstract
+                                {
+                                    public abstract void NoBody();
                                 }
                                 """;
 
@@ -58,6 +83,9 @@ public class SourceMetricsParseTests
         var bar = MetricsFor(result, "Bar");
         var lines = MetricsFor(result, "Lines");
         var complex = MetricsFor(result, "Complex");
+        var coalesceAssign = MetricsFor(result, "CoalesceAssign");
+        var patternCombinator = MetricsFor(result, "PatternCombinator");
+        var switchExprDefault = MetricsFor(result, "SwitchExprDefault");
 
         Assert.Multiple(() =>
         {
@@ -79,7 +107,29 @@ public class SourceMetricsParseTests
             // 1 + if + '&&' + for + '?:' = 5.
             Assert.That(complex.CyclomaticComplexity, Is.EqualTo(5));
             Assert.That(complex.CommentLines, Is.EqualTo(0));
+
+            // 1 + '??=' = 2.
+            Assert.That(coalesceAssign.CyclomaticComplexity, Is.EqualTo(2));
+
+            // 1 + 'and' pattern combinator = 2.
+            Assert.That(patternCombinator.CyclomaticComplexity, Is.EqualTo(2));
+
+            // 1 + case '1' + guarded '_ when' arm = 3; the bare '_' catch-all does not count,
+            // matching how a classic 'default:' label is excluded.
+            Assert.That(switchExprDefault.CyclomaticComplexity, Is.EqualTo(3));
         });
+    }
+
+    [Test]
+    public async Task Metrics_NotComputed_ForMemberWithoutBody()
+    {
+        var parser = CreateParser(true);
+        var result = await parser.ParseSourceAsync(Code);
+
+        var noBody = result.CodeGraph.Nodes.Values.Single(
+            n => n.ElementType == CodeElementType.Method && n.Name == "NoBody");
+
+        Assert.That(result.Metrics.TryGet(noBody.Id), Is.Null);
     }
 
     private static MemberMetrics MetricsFor(ParseResult result, string methodName)

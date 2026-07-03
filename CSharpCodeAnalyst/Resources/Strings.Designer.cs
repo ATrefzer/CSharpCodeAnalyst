@@ -689,11 +689,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Logical.
+        ///   Looks up a localized string similar to Statements.
         /// </summary>
-        public static string Column_MethodComplexity_Logical {
+        public static string Column_MethodComplexity_Statements {
             get {
-                return ResourceManager.GetString("Column_MethodComplexity_Logical", resourceCulture);
+                return ResourceManager.GetString("Column_MethodComplexity_Statements", resourceCulture);
             }
         }
 

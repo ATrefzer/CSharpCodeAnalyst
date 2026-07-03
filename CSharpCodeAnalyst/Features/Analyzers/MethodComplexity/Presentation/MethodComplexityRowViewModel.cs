@@ -12,7 +12,7 @@ public class MethodComplexityRowViewModel : TableRow
         Element = element;
         Name = element.FullName;
         Code = metrics.CodeLines;
-        Logical = metrics.LogicalLinesOfCode;
+        Statements = metrics.LogicalLinesOfCode;
         Comments = metrics.CommentLines;
         Complexity = metrics.CyclomaticComplexity;
 
@@ -26,7 +26,7 @@ public class MethodComplexityRowViewModel : TableRow
 
     public string Name { get; }
     public int Code { get; }
-    public int Logical { get; }
+    public int Statements { get; }
     public int Comments { get; }
     public string CommentRatio { get; }
     public double CommentRatioValue { get; }

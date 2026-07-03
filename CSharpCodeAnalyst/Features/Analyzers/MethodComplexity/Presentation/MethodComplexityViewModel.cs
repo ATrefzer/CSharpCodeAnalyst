@@ -39,8 +39,8 @@ internal class MethodComplexityViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_MethodComplexity_Logical,
-                PropertyName = nameof(MethodComplexityRowViewModel.Logical)
+                Header = Strings.Column_MethodComplexity_Statements,
+                PropertyName = nameof(MethodComplexityRowViewModel.Statements)
             },
             new()
             {

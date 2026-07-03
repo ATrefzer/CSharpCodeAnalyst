@@ -191,7 +191,7 @@ The result is a sortable table with one row per method:
 | ---------- | ---------------------------------------------------------------------------- |
 | Method     | The fully qualified method name.                                            |
 | Code       | Lines that contain actual code (comment-only and blank lines excluded).      |
-| Logical    | Number of executable statements — the size independent of formatting.        |
+| Statements | Number of executable statements — the size independent of formatting.        |
 | Comments   | Comment-only lines, including the `///` documentation comment above.          |
 | Comment %  | Comments ÷ (Code + Comments) — a rough documentation density.                |
 | Complexity | Cyclomatic complexity (see below).                                          |
@@ -203,7 +203,7 @@ All values are read straight from the method's syntax, no formatting assumptions
 - **Code / Comments** classify each line of the declaration: a line is *code* if it contains any real
   token, a *comment* line if it only carries comment trivia, otherwise blank. A line with code and a
   trailing comment counts as code.
-- **Logical** counts the executable statements (the wrapping `{ }` blocks are not counted). An
+- **Statements** counts the executable statements (the wrapping `{ }` blocks are not counted). An
   expression-bodied method (`=> expr`) counts as one. It answers "how much does this method *do*",
   independent of how it is laid out.
 - **Complexity** is the McCabe cyclomatic complexity: `1` plus one for every decision point — `if`,
@@ -215,7 +215,7 @@ All values are read straight from the method's syntax, no formatting assumptions
 
 - Sort by **Complexity** (default) to find the branchiest methods — the ones most error-prone and
   hardest to reason about.
-- Sort by **Code** or **Logical** to find the sheer giants. *Logical* is the fairer size when methods
+- Sort by **Code** or **Statements** to find the sheer giants. *Statements* is the fairer size when methods
   differ in comment and whitespace style.
 - **Comment %** is context, not a target: near-zero on a complex method may mean it is under-documented;
   a high value is not automatically good.

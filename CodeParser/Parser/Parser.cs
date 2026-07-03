@@ -223,7 +223,8 @@ public class Parser(ParserConfig config)
 
     /// <summary>
     ///     Optionally computes per-member source metrics from the symbol map built in phase 1.
-    ///     Only method-like symbols (which have a body) are measured.
+    ///     Only method-like symbols with an actual implementation are measured; abstract/extern/
+    ///     interface declarations and body-less partial signatures are skipped.
     /// </summary>
     private MetricStore CollectSourceMetrics(Artifacts artifacts)
     {
@@ -243,7 +244,7 @@ public class Parser(ParserConfig config)
             }
 
             var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
-            if (syntax is not null)
+            if (syntax is not null && SourceMetricsCollector.HasBody(syntax))
             {
                 metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
             }
