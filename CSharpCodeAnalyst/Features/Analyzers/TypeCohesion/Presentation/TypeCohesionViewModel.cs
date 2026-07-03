@@ -6,6 +6,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.TypeCohesion.Presentation;
@@ -72,6 +73,11 @@ internal class TypeCohesionViewModel : Table
         [
             new CommandDefinition
             {
+                Header = Strings.JumpToCode,
+                Command = new WpfCommand<TypeCohesionRowViewModel>(JumpToCode, CanJumpToCode)
+            },
+            new CommandDefinition
+            {
                 Header = Strings.ShowPartitions,
                 Command = new WpfCommand<TypeCohesionRowViewModel>(ShowPartitions)
             }
@@ -99,5 +105,15 @@ internal class TypeCohesionViewModel : Table
     {
         // Base-aware, to match the partition count shown in the table.
         _messaging.Publish(new ShowPartitionsRequest(row.Element, true));
+    }
+
+    private static bool CanJumpToCode(TypeCohesionRowViewModel row)
+    {
+        return row.Element.SourceLocations.Count > 0;
+    }
+
+    private static void JumpToCode(TypeCohesionRowViewModel row)
+    {
+        SourceLocationNavigator.Open(row.Element.SourceLocations[0]);
     }
 }

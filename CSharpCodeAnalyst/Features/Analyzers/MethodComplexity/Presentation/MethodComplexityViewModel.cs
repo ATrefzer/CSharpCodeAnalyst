@@ -5,6 +5,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Search;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Analyzers.MethodComplexity.Presentation;
@@ -80,6 +81,11 @@ internal class MethodComplexityViewModel : Table
         [
             new CommandDefinition
             {
+                Header = Strings.JumpToCode,
+                Command = new WpfCommand<MethodComplexityRowViewModel>(JumpToCode, CanJumpToCode)
+            },
+            new CommandDefinition
+            {
                 Header = Strings.CopyToExplorerGraph_MenuItem,
                 Command = new WpfCommand<MethodComplexityRowViewModel>(ShowInExplorer)
             }
@@ -106,5 +112,15 @@ internal class MethodComplexityViewModel : Table
     private void ShowInExplorer(MethodComplexityRowViewModel row)
     {
         _messaging.Publish(new AddNodeToGraphRequest(row.Element));
+    }
+
+    private static bool CanJumpToCode(MethodComplexityRowViewModel row)
+    {
+        return row.Element.SourceLocations.Count > 0;
+    }
+
+    private static void JumpToCode(MethodComplexityRowViewModel row)
+    {
+        SourceLocationNavigator.Open(row.Element.SourceLocations[0]);
     }
 }
