@@ -115,8 +115,10 @@ public class Analyzer : IAnalyzer
             var persistentData = JsonSerializer.Deserialize<PersistenceData>(data);
             if (persistentData != null)
             {
-                var rulesText = persistentData.RulesText ?? string.Empty;
-                ParseAndStoreRules(rulesText);
+                // Set directly instead of going through ParseAndStoreRules: loading a saved
+                // project is not a user edit and must not mark the analyzer dirty.
+                _rulesText = persistentData.RulesText ?? string.Empty;
+                _rules = RuleParser.ParseRules(_rulesText);
             }
         }
         catch (Exception ex)
@@ -127,6 +129,8 @@ public class Analyzer : IAnalyzer
             _rulesText = string.Empty;
             _rules.Clear();
         }
+
+        SetDirty(false);
     }
 
     public bool IsDirty()
