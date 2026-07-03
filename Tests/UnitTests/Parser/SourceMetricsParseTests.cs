@@ -1,5 +1,6 @@
 using CodeGraph.Graph;
 using CodeGraph.Metrics;
+using CodeParser.Parser;
 using CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
@@ -39,20 +40,20 @@ public class SourceMetricsParseTests
     public async Task Metrics_NotCollected_WhenFlagIsOff()
     {
         var parser = CreateParser(false);
-        await parser.ParseSourceAsync(Code);
+        var result = await parser.ParseSourceAsync(Code);
 
-        Assert.That(parser.Metrics.IsEmpty, Is.True);
+        Assert.That(result.Metrics.IsEmpty, Is.True);
     }
 
     [Test]
     public async Task Metrics_LinesOfCodeAndComplexity_AreComputed()
     {
         var parser = CreateParser(true);
-        var graph = await parser.ParseSourceAsync(Code);
+        var result = await parser.ParseSourceAsync(Code);
 
-        var bar = MetricsFor(parser, graph, "Bar");
-        var lines = MetricsFor(parser, graph, "Lines");
-        var complex = MetricsFor(parser, graph, "Complex");
+        var bar = MetricsFor(result, "Bar");
+        var lines = MetricsFor(result, "Lines");
+        var complex = MetricsFor(result, "Complex");
 
         Assert.Multiple(() =>
         {
@@ -69,10 +70,10 @@ public class SourceMetricsParseTests
         });
     }
 
-    private static MemberMetrics MetricsFor(CodeParser.Parser.Parser parser, CodeGraph.Graph.CodeGraph graph, string methodName)
+    private static MemberMetrics MetricsFor(ParseResult result, string methodName)
     {
-        var method = graph.Nodes.Values.Single(n => n.ElementType == CodeElementType.Method && n.Name == methodName);
-        var metrics = parser.Metrics.TryGet(method.Id);
+        var method = result.CodeGraph.Nodes.Values.Single(n => n.ElementType == CodeElementType.Method && n.Name == methodName);
+        var metrics = result.Metrics.TryGet(method.Id);
         Assert.That(metrics, Is.Not.Null, $"No metrics for {methodName}");
         return metrics!;
     }

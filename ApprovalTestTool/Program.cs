@@ -154,7 +154,7 @@ internal static class TestTool
     {
         var parserConfig = new ParserConfig(new ProjectExclusionRegExCollection(), false);
         var parser = new Parser(parserConfig);
-        var graph = await parser.ParseAsync(slnPath);
+        var graph = (await parser.ParseAsync(slnPath)).CodeGraph;
         await File.WriteAllTextAsync(outputPath, graph.ToDebug());
     }
 

@@ -11,6 +11,7 @@ using CodeGraph.Algorithms.Metrics;
 using CodeGraph.Algorithms.Partitioning;
 using CodeGraph.Graph;
 using CodeGraph.Metrics;
+using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.AdvancedSearch;
@@ -835,20 +836,20 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void CompleteImport(CodeGraph.Graph.CodeGraph graph)
+    private void CompleteImport(ParseResult parseResult)
     {
         LoadDefaultSettings();
-        LoadCodeGraph(graph);
+        LoadCodeGraph(parseResult.CodeGraph);
 
         // Carry the freshly collected source metrics into the shared store (empty if the option was off).
-        _metricStore.LoadFrom(_importer.Metrics.Metrics);
+        _metricStore.LoadFrom(parseResult.Metrics.Metrics);
 
         // Give an immediate overview of the freshly imported solution: the whole graph, every
         // container collapsed, so the user starts from a map instead of an empty canvas. Only on
         // import - loading a saved project restores the user's own view instead. Opt-out via setting.
         if (_applicationSettings.ShowOverviewOnImport)
         {
-            GraphViewModel?.ShowCompleteGraphCollapsed(graph);
+            GraphViewModel?.ShowCompleteGraphCollapsed(parseResult.CodeGraph);
         }
 
         _gallery = new Gallery();
@@ -1102,6 +1103,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _gallery = projectData.GetGallery();
 
         // Restore the source metrics (LoadCodeGraph cleared the shared store).
+        // Singleton share with analyzer!
         _metricStore.LoadFrom(projectData.GetMetrics());
 
         // Restore analyzer data

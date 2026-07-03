@@ -33,11 +33,12 @@ public class AssignmentDuplicateParseTests
     private CodeGraph.Graph.CodeGraph _graph = null!;
 
     [OneTimeSetUp]
-    public void Setup()
+    public async Task Setup()
     {
         // Split off to mirror the original parser configuration of this scenario.
         var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
-        _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult();
+        var result = await parser.ParseSourceAsync(Code);
+        _graph = result.CodeGraph;
     }
 
     [Test]

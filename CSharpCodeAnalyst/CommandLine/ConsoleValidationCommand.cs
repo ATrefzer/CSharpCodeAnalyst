@@ -91,7 +91,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);
         var parser = new Parser(new ParserConfig(filter, settings.IncludeExternalCode, settings.IncludeGeneratedCode, settings.SplitPropertyAccessors));
-        var graph = await parser.ParseAsync(solutionPath).ConfigureAwait(false);
+        var graph = (await parser.ParseAsync(solutionPath).ConfigureAwait(false)).CodeGraph;
 
         var failures = parser.Diagnostics.FormatFailures();
         if (!string.IsNullOrEmpty(failures))

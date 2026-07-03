@@ -29,7 +29,7 @@ public class SplitPropertyAccessorsTests
 
         var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false,
             splitPropertyAccessors: true));
-        _graph = await parser.ParseAsync(@"..\..\..\..\TestSuite\TestSuite.sln");
+        _graph = (await parser.ParseAsync(@"..\..\..\..\TestSuite\TestSuite.sln")).CodeGraph;
     }
 
     [Test]

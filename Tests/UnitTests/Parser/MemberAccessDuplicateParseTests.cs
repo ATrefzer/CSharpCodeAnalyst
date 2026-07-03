@@ -43,7 +43,7 @@ public class MemberAccessDuplicateParseTests
     {
         // Split off to mirror the original parser configuration of this scenario.
         var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
-        _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult();
+        _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult().CodeGraph;
     }
 
     [Test]

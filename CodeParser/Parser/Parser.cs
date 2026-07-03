@@ -20,7 +20,6 @@ public class Parser(ParserConfig config)
 {
 
     private readonly ParserDiagnostics _diagnostics = new();
-    private readonly MetricStore _metrics = new();
     private readonly Progress _progress = new();
 
 
@@ -34,17 +33,8 @@ public class Parser(ParserConfig config)
         get => _diagnostics;
     }
 
-    /// <summary>
-    ///     Per-member source metrics collected during the last parse. Empty unless
-    ///     <see cref="ParserConfig.CollectSourceMetrics" /> was enabled.
-    /// </summary>
-    public MetricStore Metrics
-    {
-        get => _metrics;
-    }
 
-
-    public async Task<CodeGraph.Graph.CodeGraph> ParseAsync(string path)
+    public async Task<ParseResult> ParseAsync(string path)
     {
         var extension = Path.GetExtension(path).ToLowerInvariant();
 
@@ -63,7 +53,7 @@ public class Parser(ParserConfig config)
     ///     inspecting one file. Reads the text from disk and runs it through the in-memory pipeline
     ///     (<see cref="ParseSourceAsync" />), passing the real path so source locations stay navigable.
     /// </summary>
-    private async Task<CodeGraph.Graph.CodeGraph> ParseSingleFile(string filePath)
+    private async Task<ParseResult> ParseSingleFile(string filePath)
     {
         var code = await File.ReadAllTextAsync(filePath);
         return await ParseSourceAsync(code, filePath);
@@ -72,7 +62,7 @@ public class Parser(ParserConfig config)
     /// <summary>
     ///     Parses a single project and builds a code graph.
     /// </summary>
-    private async Task<CodeGraph.Graph.CodeGraph> ParseProject(string projectPath)
+    private async Task<ParseResult> ParseProject(string projectPath)
     {
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
@@ -101,7 +91,7 @@ public class Parser(ParserConfig config)
     /// <summary>
     ///     Parses a complete solution and builds a code graph.
     /// </summary>
-    private async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath)
+    private async Task<ParseResult> ParseSolution(string solutionPath)
     {
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
@@ -126,7 +116,7 @@ public class Parser(ParserConfig config)
     ///     The synthetic project/document file names are pure identifiers; none of them needs to exist on
     ///     disk. The only files read are the framework reference assemblies in the runtime directory.
     /// </summary>
-    public Task<CodeGraph.Graph.CodeGraph> ParseSourceAsync(string code, string? documentPath = null)
+    public Task<ParseResult> ParseSourceAsync(string code, string? documentPath = null)
     {
         _diagnostics.Clear();
         var solution = BuildAdhocSolution(code, documentPath ?? "InMemory.cs");
@@ -197,7 +187,7 @@ public class Parser(ParserConfig config)
     /// <summary>
     ///     Internal method that does the actual parsing work.
     /// </summary>
-    private async Task<CodeGraph.Graph.CodeGraph> ParseSolutionInternal(Solution solution)
+    private async Task<ParseResult> ParseSolutionInternal(Solution solution)
     {
         var sw = Stopwatch.StartNew();
 
@@ -205,7 +195,7 @@ public class Parser(ParserConfig config)
         var phase1 = new HierarchyAnalyzer(_progress, config, _diagnostics);
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
-        CollectSourceMetrics(artifacts);
+        var metrics = CollectSourceMetrics(artifacts);
 
         sw.Stop();
         Trace.TraceInformation("Finding code elements: " + sw.Elapsed);
@@ -227,7 +217,7 @@ public class Parser(ParserConfig config)
 #endif
         //await File.WriteAllTextAsync("d:\\debug0.txt", codeGraph.ToDebug());
 
-        return codeGraph;
+        return new ParseResult(codeGraph, metrics);
     }
 
 
@@ -235,14 +225,15 @@ public class Parser(ParserConfig config)
     ///     Optionally computes per-member source metrics from the symbol map built in phase 1.
     ///     Only method-like symbols (which have a body) are measured.
     /// </summary>
-    private void CollectSourceMetrics(Artifacts artifacts)
+    private MetricStore CollectSourceMetrics(Artifacts artifacts)
     {
+        var metrics = new MetricStore();
         if (!config.CollectSourceMetrics)
         {
-            return;
+            return metrics;
         }
 
-        _progress?.SendProgress("Calculating source metrics");
+        _progress.SendProgress("Calculating source metrics");
 
         foreach (var (elementId, symbol) in artifacts.ElementIdToSymbolMap)
         {
@@ -254,9 +245,11 @@ public class Parser(ParserConfig config)
             var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
             if (syntax is not null)
             {
-                _metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
+                metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
             }
         }
+
+        return metrics;
     }
 
     /// <summary>
