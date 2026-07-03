@@ -39,7 +39,7 @@ public class Analyzer : IAnalyzer
             .Where(kvp => graph.Nodes.ContainsKey(kvp.Key))
             .Select(kvp => new MethodComplexityRowViewModel(graph.Nodes[kvp.Key], kvp.Value))
             .OrderByDescending(r => r.Complexity)
-            .ThenByDescending(r => r.Lines)
+            .ThenByDescending(r => r.Code)
             .ThenBy(r => r.Name)
             .ToList();
 

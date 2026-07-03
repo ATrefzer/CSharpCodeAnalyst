@@ -680,6 +680,42 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Code.
+        /// </summary>
+        public static string Column_MethodComplexity_Code {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Code", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Logical.
+        /// </summary>
+        public static string Column_MethodComplexity_Logical {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Logical", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comments.
+        /// </summary>
+        public static string Column_MethodComplexity_Comments {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_Comments", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Comment %.
+        /// </summary>
+        public static string Column_MethodComplexity_CommentRatio {
+            get {
+                return ResourceManager.GetString("Column_MethodComplexity_CommentRatio", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Complexity.
         /// </summary>
         public static string Column_MethodComplexity_Complexity {

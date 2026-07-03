@@ -4,14 +4,16 @@ This document explains the metrics computed by C# Code Analyst.
 
 Rather than providing a large number of metrics, C# Code Analyst focuses on a small set that answers specific questions.
 
-C# Code Analyst provides two analyses:
+C# Code Analyst provides three analyses:
 
 - **Type Dependencies** helps you find the most important and riskiest types in a solution.
 - **Type Cohesion** helps you find classes that are doing too many unrelated things and may need to be split.
+- **Method Complexity** helps you find the largest and most complicated methods.
 
 Together, they help you understand an unfamiliar codebase and identify potential design issues.
 
-Both work at the type level and can be accessed from the *Analyzers* ribbon. Their results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
+The first two work at the type level, the last at the method level. All are accessed from the *Analyzers*
+ribbon and their results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
 
 ## Type Dependencies
 
@@ -173,3 +175,57 @@ Double-clicking a row (or right-click → *Show partitions*) opens the concrete 
 - Only in-solution base classes are folded in; members inherited from framework types are not visible to the analysis.
 - Static utility classes and miscellaneous helper classes legitimately show many partitions — a high partition count is not automatically a defect, only a signal that the members do not interact.
 - Cohesion is structural: it sees which members touch the same state, not whether they belong together *conceptually*.
+
+## Method Complexity
+
+Where the other two analyses look at *types*, **Method Complexity** zooms in on individual **methods**
+and answers: **which methods are the largest and the most complicated**
+
+Available via *Analyzers → Method Complexity*. Because the numbers come from the method bodies, they
+are **collected during import** and only when *Collect source metrics on import* is enabled in the
+settings (they are then stored with the project). If the option was off, the analyzer tells you so.
+
+The result is a sortable table with one row per method:
+
+| Column     | Meaning                                                                      |
+| ---------- | ---------------------------------------------------------------------------- |
+| Method     | The fully qualified method name.                                            |
+| Code       | Lines that contain actual code (comment-only and blank lines excluded).      |
+| Logical    | Number of executable statements — the size independent of formatting.        |
+| Comments   | Comment-only lines, including the `///` documentation comment above.          |
+| Comment %  | Comments ÷ (Code + Comments) — a rough documentation density.                |
+| Complexity | Cyclomatic complexity (see below).                                          |
+
+### How the numbers are computed
+
+All values are read straight from the method's syntax, no formatting assumptions:
+
+- **Code / Comments** classify each line of the declaration: a line is *code* if it contains any real
+  token, a *comment* line if it only carries comment trivia, otherwise blank. A line with code and a
+  trailing comment counts as code.
+- **Logical** counts the executable statements (the wrapping `{ }` blocks are not counted). An
+  expression-bodied method (`=> expr`) counts as one. It answers "how much does this method *do*",
+  independent of how it is laid out.
+- **Complexity** is the McCabe cyclomatic complexity: `1` plus one for every decision point — `if`,
+  `while`, `for`, `foreach`, `case`, `catch`, the `?:` operator and the `&&` / `||` / `??` operators.
+  Roughly, the number of independent paths through the method, i.e. how many test cases it takes to
+  cover it. A value up to ~5 is simple; 10+ deserves a closer look.
+
+### Reading the table
+
+- Sort by **Complexity** (default) to find the branchiest methods — the ones most error-prone and
+  hardest to reason about.
+- Sort by **Code** or **Logical** to find the sheer giants. *Logical* is the fairer size when methods
+  differ in comment and whitespace style.
+- **Comment %** is context, not a target: near-zero on a complex method may mean it is under-documented;
+  a high value is not automatically good.
+- Double-click a row (or right-click → *Show in Code Explorer*) to place the method on the canvas.
+
+### Limitations
+
+- Metrics are collected only when the option is enabled *before* importing; changing it requires a
+  re-import.
+- The counts are structural, not semantic: they measure size and branching, not whether the logic is
+  actually complicated or the comments are useful.
+- Complexity counts syntactic decision points; the exact set differs slightly between tools, so absolute
+  numbers may not match another analyzer — the *ranking* is what matters.

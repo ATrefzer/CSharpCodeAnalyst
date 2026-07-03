@@ -33,8 +33,27 @@ internal class MethodComplexityViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_MethodComplexity_Lines,
-                PropertyName = nameof(MethodComplexityRowViewModel.Lines)
+                Header = Strings.Column_MethodComplexity_Code,
+                PropertyName = nameof(MethodComplexityRowViewModel.Code)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_MethodComplexity_Logical,
+                PropertyName = nameof(MethodComplexityRowViewModel.Logical)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_MethodComplexity_Comments,
+                PropertyName = nameof(MethodComplexityRowViewModel.Comments)
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_MethodComplexity_CommentRatio,
+                PropertyName = nameof(MethodComplexityRowViewModel.CommentRatio),
+                SortMemberName = nameof(MethodComplexityRowViewModel.CommentRatioValue)
             },
             new()
             {

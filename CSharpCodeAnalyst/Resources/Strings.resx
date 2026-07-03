@@ -783,8 +783,17 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Column_MethodComplexity_Method" xml:space="preserve">
     <value>Method</value>
   </data>
-  <data name="Column_MethodComplexity_Lines" xml:space="preserve">
-    <value>Lines</value>
+  <data name="Column_MethodComplexity_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Column_MethodComplexity_Logical" xml:space="preserve">
+    <value>Logical</value>
+  </data>
+  <data name="Column_MethodComplexity_Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="Column_MethodComplexity_CommentRatio" xml:space="preserve">
+    <value>Comment %</value>
   </data>
   <data name="Column_MethodComplexity_Complexity" xml:space="preserve">
     <value>Complexity</value>

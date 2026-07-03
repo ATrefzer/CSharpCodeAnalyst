@@ -13,12 +13,16 @@ public class SourceMetricsParseTests
 
                                 class C
                                 {
+                                    /// <summary>Doc.</summary>
                                     public int Bar(int x) => x * 2;
 
+                                    // leading comment
                                     public void Lines()
                                     {
-                                        var a = 1;
+                                        var a = 1; // trailing comment
                                         var b = 2;
+
+                                        var c = 3;
                                     }
 
                                     public int Complex(int x, bool b)
@@ -46,7 +50,7 @@ public class SourceMetricsParseTests
     }
 
     [Test]
-    public async Task Metrics_LinesOfCodeAndComplexity_AreComputed()
+    public async Task Metrics_AreComputed()
     {
         var parser = CreateParser(true);
         var result = await parser.ParseSourceAsync(Code);
@@ -57,16 +61,24 @@ public class SourceMetricsParseTests
 
         Assert.Multiple(() =>
         {
-            // Expression-bodied one-liner.
-            Assert.That(bar.LinesOfCode, Is.EqualTo(1));
+            // Expression-bodied one-liner, with a doc comment above.
+            Assert.That(bar.CodeLines, Is.EqualTo(1));
+            Assert.That(bar.CommentLines, Is.EqualTo(1), "The /// doc comment counts");
+            Assert.That(bar.LogicalLinesOfCode, Is.EqualTo(1), "Expression body counts as one");
             Assert.That(bar.CyclomaticComplexity, Is.EqualTo(1));
 
-            // Declaration + '{' + two statements + '}'.
-            Assert.That(lines.LinesOfCode, Is.EqualTo(5));
+            // Declaration + '{' + three statements + '}' = 6 code lines; the blank line is not counted.
+            Assert.That(lines.CodeLines, Is.EqualTo(6));
+            // Only the leading '// comment'; the trailing comment sits on a code line.
+            Assert.That(lines.CommentLines, Is.EqualTo(1));
+            Assert.That(lines.LogicalLinesOfCode, Is.EqualTo(3));
             Assert.That(lines.CyclomaticComplexity, Is.EqualTo(1));
 
-            // 1 (base) + if + '&&' + for + '?:' = 5.
+            // if + return + for + return = 4 statements (blocks excluded).
+            Assert.That(complex.LogicalLinesOfCode, Is.EqualTo(4));
+            // 1 + if + '&&' + for + '?:' = 5.
             Assert.That(complex.CyclomaticComplexity, Is.EqualTo(5));
+            Assert.That(complex.CommentLines, Is.EqualTo(0));
         });
     }
 

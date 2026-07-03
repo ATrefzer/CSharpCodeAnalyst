@@ -44,7 +44,8 @@ public class ProjectData
     public void SetMetrics(MetricStore store)
     {
         MemberMetrics = store.Metrics
-            .Select(kvp => new SerializableMemberMetrics(kvp.Key, kvp.Value.LinesOfCode, kvp.Value.CyclomaticComplexity))
+            .Select(kvp => new SerializableMemberMetrics(kvp.Key, kvp.Value.CodeLines, kvp.Value.CommentLines,
+                kvp.Value.LogicalLinesOfCode, kvp.Value.CyclomaticComplexity))
             .ToList();
     }
 
@@ -52,7 +53,13 @@ public class ProjectData
     {
         return MemberMetrics.ToDictionary(
             m => m.ElementId,
-            m => new MemberMetrics { LinesOfCode = m.LinesOfCode, CyclomaticComplexity = m.CyclomaticComplexity });
+            m => new MemberMetrics
+            {
+                CodeLines = m.CodeLines,
+                CommentLines = m.CommentLines,
+                LogicalLinesOfCode = m.LogicalLinesOfCode,
+                CyclomaticComplexity = m.CyclomaticComplexity
+            });
     }
 
     /// <summary>
