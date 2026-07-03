@@ -14,7 +14,7 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Styles/ImageStyles.xaml" />
+                <ResourceDictionary Source="/CSharpCodeAnalyst.AnalyzerSdk;component/Shared/Styles/ImageStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

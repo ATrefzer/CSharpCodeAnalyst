@@ -15,6 +15,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Resource Include="Shared\Resources\blue-info_16.png" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1" />
     </ItemGroup>
 
