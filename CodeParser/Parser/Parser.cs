@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using CodeGraph.Contracts;
 using CodeGraph.Graph;
+using CodeGraph.Metrics;
 using CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,6 +20,7 @@ public class Parser(ParserConfig config)
 {
 
     private readonly ParserDiagnostics _diagnostics = new();
+    private readonly MetricStore _metrics = new();
     private readonly Progress _progress = new();
 
 
@@ -30,6 +32,15 @@ public class Parser(ParserConfig config)
     public IParserDiagnostics Diagnostics
     {
         get => _diagnostics;
+    }
+
+    /// <summary>
+    ///     Per-member source metrics collected during the last parse. Empty unless
+    ///     <see cref="ParserConfig.CollectSourceMetrics" /> was enabled.
+    /// </summary>
+    public MetricStore Metrics
+    {
+        get => _metrics;
     }
 
 
@@ -194,6 +205,8 @@ public class Parser(ParserConfig config)
         var phase1 = new HierarchyAnalyzer(_progress, config, _diagnostics);
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
+        CollectSourceMetrics(artifacts);
+
         sw.Stop();
         Trace.TraceInformation("Finding code elements: " + sw.Elapsed);
         sw = Stopwatch.StartNew();
@@ -217,6 +230,34 @@ public class Parser(ParserConfig config)
         return codeGraph;
     }
 
+
+    /// <summary>
+    ///     Optionally computes per-member source metrics from the symbol map built in phase 1.
+    ///     Only method-like symbols (which have a body) are measured.
+    /// </summary>
+    private void CollectSourceMetrics(Artifacts artifacts)
+    {
+        if (!config.CollectSourceMetrics)
+        {
+            return;
+        }
+
+        _progress?.SendProgress("Calculating source metrics");
+
+        foreach (var (elementId, symbol) in artifacts.ElementIdToSymbolMap)
+        {
+            if (symbol is not IMethodSymbol)
+            {
+                continue;
+            }
+
+            var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (syntax is not null)
+            {
+                _metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
+            }
+        }
+    }
 
     /// <summary>
     ///     If any assembly uses the global namespace we add the global namespace to all assemblies.

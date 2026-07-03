@@ -60,6 +60,11 @@
                                           Content="{x:Static resources:Strings.Settings_ShowOverviewOnImport}"
                                           Margin="0,5"
                                           ToolTip="{x:Static resources:Strings.Settings_ShowOverviewOnImport_Tooltip}" />
+
+                                <CheckBox x:Name="CollectSourceMetricsCheckBox"
+                                          Content="{x:Static resources:Strings.Settings_CollectSourceMetrics}"
+                                          Margin="0,5"
+                                          ToolTip="{x:Static resources:Strings.Settings_CollectSourceMetrics_Tooltip}" />
                             </StackPanel>
                         </GroupBox>
 

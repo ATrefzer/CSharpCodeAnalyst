@@ -1,5 +1,6 @@
 ﻿using CodeGraph.Contracts;
 using CodeGraph.Export;
+using CodeGraph.Metrics;
 using CodeParser.Parser;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
@@ -25,9 +26,15 @@ public class Importer
         _ui = ui;
     }
 
+    /// <summary>
+    ///     Per-member source metrics from the last solution import. Empty for other import kinds or
+    ///     when metric collection was disabled.
+    /// </summary>
+    public MetricStore Metrics { get; private set; } = new();
+
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    public async Task<Result<CodeGraph.Graph.CodeGraph>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -37,7 +44,7 @@ public class Importer
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
+            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -76,25 +83,28 @@ public class Importer
 
     private Task<CodeGraph.Graph.CodeGraph> ImportJDepsFuncAsync(string filePath)
     {
+        Metrics = new MetricStore();
         var importer = new JdepsReader();
         return Task.FromResult(importer.ImportFromFile(filePath));
     }
 
     private Task<CodeGraph.Graph.CodeGraph> ImportPlainTextFuncAsync(string filePath)
     {
+        Metrics = new MetricStore();
         var graph = CodeGraphSerializer.DeserializeFromFile(filePath);
         return Task.FromResult(graph);
     }
 
 
-    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    private async Task<CodeGraph.Graph.CodeGraph> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
         parser.Progress.ParserProgress += OnParserProgress;
 
         try
         {
             _parserDiagnostics = null;
+            Metrics = new MetricStore();
             var graph = await parser.ParseAsync(solutionPath).ConfigureAwait(true);
 
             if (parser.Diagnostics.HasDiagnostics)
@@ -102,6 +112,7 @@ public class Importer
                 _parserDiagnostics = parser.Diagnostics;
             }
 
+            Metrics = parser.Metrics;
             return graph;
         }
         finally

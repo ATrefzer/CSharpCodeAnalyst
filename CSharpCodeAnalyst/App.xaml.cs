@@ -97,8 +97,12 @@ public partial class App
         var uiNotification = new WindowsUserNotification();
         var messaging = new MessageBus();
 
+        // Shared store for optional per-member source metrics: filled by MainViewModel on import /
+        // project load, read by the Method Complexity analyzer.
+        var metricStore = new CodeGraph.Metrics.MetricStore();
+
         var analyzerManager = new AnalyzerManager();
-        analyzerManager.LoadAnalyzers(messaging, uiNotification);
+        analyzerManager.LoadAnalyzers(messaging, uiNotification, metricStore);
 
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
@@ -117,7 +121,7 @@ public partial class App
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
-        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService);
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService, metricStore);
         var graphViewModel = new GraphViewModel(graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);

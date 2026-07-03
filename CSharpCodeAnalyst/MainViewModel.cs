@@ -10,6 +10,7 @@ using CodeGraph.Algorithms.Cycles;
 using CodeGraph.Algorithms.Metrics;
 using CodeGraph.Algorithms.Partitioning;
 using CodeGraph.Graph;
+using CodeGraph.Metrics;
 using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.AdvancedSearch;
@@ -53,6 +54,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
     private readonly RefactoringService _refactoringService;
+    private readonly MetricStore _metricStore;
     private readonly IUserNotification _ui;
     private UserPreferences _userSettings;
     private Table? _analyzerResult;
@@ -75,13 +77,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
-        AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService)
+        AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
+        MetricStore metricStore)
     {
         // Initialize settings
         _applicationSettings = settings;
         _userSettings = userSettings;
         _analyzerManager = analyzerManager;
         _refactoringService = refactoringService;
+        _metricStore = metricStore;
 
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
@@ -790,6 +794,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Cycles = null;
         AnalyzerResult = null;
         PartitionsResult = null;
+        _metricStore.Clear();
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateStatistics(codeGraph);
@@ -812,7 +817,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AskUserToSaveProject();
 
-            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode, _applicationSettings.SplitPropertyAccessors);
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode, _applicationSettings.SplitPropertyAccessors, _applicationSettings.CollectSourceMetrics);
 
             if (result.IsCanceled)
             {
@@ -834,6 +839,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         LoadDefaultSettings();
         LoadCodeGraph(graph);
+
+        // Carry the freshly collected source metrics into the shared store (empty if the option was off).
+        _metricStore.LoadFrom(_importer.Metrics.Metrics);
 
         // Give an immediate overview of the freshly imported solution: the whole graph, every
         // container collapsed, so the user starts from a map instead of an empty canvas. Only on
@@ -1058,6 +1066,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         projectData.Settings.ShowDataFlow = _graphViewModel.ShowDataFlow;
         projectData.Settings.ExclusionFilter = _projectExclusionFilters.ToString();
         projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
+        projectData.SetMetrics(_metricStore);
         return projectData;
     }
 
@@ -1091,6 +1100,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         LoadSettings(projectData.Settings);
         LoadCodeGraph(projectData.GetCodeGraph());
         _gallery = projectData.GetGallery();
+
+        // Restore the source metrics (LoadCodeGraph cleared the shared store).
+        _metricStore.LoadFrom(projectData.GetMetrics());
 
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);
