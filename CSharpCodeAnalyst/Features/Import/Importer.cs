@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Export;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser;

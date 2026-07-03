@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Shared.Wpf;
+namespace CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 
 public class WpfCommand : ICommand
 {

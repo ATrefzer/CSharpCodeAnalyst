@@ -1,7 +1,7 @@
 using System.Globalization;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Analyzers.TypeCohesion.Presentation;
 

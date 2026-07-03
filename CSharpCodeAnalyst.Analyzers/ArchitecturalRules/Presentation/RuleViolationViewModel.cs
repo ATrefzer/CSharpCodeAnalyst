@@ -2,10 +2,10 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
-using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
-using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.Wpf;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
+using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 
@@ -17,7 +17,7 @@ public class RuleViolationViewModel : TableRow
 
     public RuleViolationViewModel(Violation violation, CodeGraph.Graph.CodeGraph codeGraph, IPublisher messaging)
     {
-        ErrorIcon = IconLoader.LoadIcon("Resources/error.png");
+        ErrorIcon = IconLoader.LoadIcon("CSharpCodeAnalyst.AnalyzerSdk", "Resources/error.png");
         _violation = violation;
         _codeGraph = codeGraph;
         _messaging = messaging;

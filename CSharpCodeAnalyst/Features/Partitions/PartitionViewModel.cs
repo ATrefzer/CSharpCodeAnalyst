@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst.Features.Partitions;

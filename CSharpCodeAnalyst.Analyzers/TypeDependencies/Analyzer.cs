@@ -1,9 +1,9 @@
 using CSharpCodeAnalyst.Analyzers.TypeDependencies.Presentation;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
-using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.Notifications;
 
 namespace CSharpCodeAnalyst.Analyzers.TypeDependencies;
 

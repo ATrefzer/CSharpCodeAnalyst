@@ -1,6 +1,6 @@
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
-namespace CSharpCodeAnalyst.Shared.Messages;
+namespace CSharpCodeAnalyst.AnalyzerSdk.Messages;
 
 /// <summary>
 ///     Requests a dynamic result tab. <see cref="Id" /> keys the tab: publishing again under the

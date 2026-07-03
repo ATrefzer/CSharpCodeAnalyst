@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Export;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Notifications;

@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
+using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
-using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.EventRegistration.Presentation;
 

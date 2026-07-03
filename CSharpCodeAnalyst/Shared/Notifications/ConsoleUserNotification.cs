@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 
 namespace CSharpCodeAnalyst.Shared.Notifications;
 

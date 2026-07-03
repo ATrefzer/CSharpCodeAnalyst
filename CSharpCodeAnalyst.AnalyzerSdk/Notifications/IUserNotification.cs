@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Shared.Notifications;
+﻿namespace CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 
 public interface IUserNotification
 {

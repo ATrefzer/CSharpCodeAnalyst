@@ -1,11 +1,11 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Analyzers.Resources;
-using CSharpCodeAnalyst.Shared.Contracts;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
-using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.Search;
-using CSharpCodeAnalyst.Shared.Wpf;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
+using CSharpCodeAnalyst.AnalyzerSdk.Search;
+using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.MethodComplexity.Presentation;
 

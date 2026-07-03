@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+namespace CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
 public abstract class TableRow : INotifyPropertyChanged
 {

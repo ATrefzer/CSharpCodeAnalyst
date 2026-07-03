@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
 
-namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+namespace CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
 /// <summary>
 ///     Main interface for table data.

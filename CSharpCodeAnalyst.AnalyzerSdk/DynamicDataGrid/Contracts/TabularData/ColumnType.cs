@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+﻿namespace CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
 /// <summary>
 ///     Available column types for the dynamic data grid

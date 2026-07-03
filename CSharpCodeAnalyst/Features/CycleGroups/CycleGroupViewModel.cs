@@ -1,8 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst.Features.CycleGroups;

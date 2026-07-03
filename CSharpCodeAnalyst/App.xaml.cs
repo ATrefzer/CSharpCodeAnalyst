@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.CodeGraph.Exploration;
 using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CommandLine;

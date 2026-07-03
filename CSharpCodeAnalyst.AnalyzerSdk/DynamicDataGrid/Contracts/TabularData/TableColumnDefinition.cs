@@ -1,7 +1,6 @@
-﻿using System.Collections;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
-namespace CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+namespace CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
 public class TableColumnDefinition
 {

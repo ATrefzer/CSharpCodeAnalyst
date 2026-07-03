@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Persistence.Contracts;

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0-windows</TargetFramework>
@@ -7,7 +7,7 @@
         <UseWPF>true</UseWPF>
         <!-- Moved files keep their original CSharpCodeAnalyst.* namespaces; RootNamespace must match
              so those namespaces (and any embedded resource manifest names) still line up. -->
-        <RootNamespace>CSharpCodeAnalyst</RootNamespace>
+        <RootNamespace>CSharpCodeAnalyst.AnalyzerSdk</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,7 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="Shared\Resources\blue-info_16.png" />
+        <Resource Include="Resources\blue-info_16.png" />
+        <Resource Include="Resources\error.png" />
     </ItemGroup>
 
     <ItemGroup>

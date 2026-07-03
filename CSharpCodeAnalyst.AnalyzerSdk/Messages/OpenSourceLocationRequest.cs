@@ -1,6 +1,6 @@
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Shared.Messages;
+namespace CSharpCodeAnalyst.AnalyzerSdk.Messages;
 
 public class OpenSourceLocationRequest(SourceLocation location)
 {
