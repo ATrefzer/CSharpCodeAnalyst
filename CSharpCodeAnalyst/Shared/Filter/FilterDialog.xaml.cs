@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Windows;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Shared.Filter;

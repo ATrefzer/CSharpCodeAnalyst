@@ -1,4 +1,6 @@
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.Features.AdvancedSearch;
 using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Contracts;

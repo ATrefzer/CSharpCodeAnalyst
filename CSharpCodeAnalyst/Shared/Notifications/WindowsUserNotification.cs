@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
 using Microsoft.Win32;

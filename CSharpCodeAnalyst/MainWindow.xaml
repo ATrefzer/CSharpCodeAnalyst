@@ -25,7 +25,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="Styles/DataGridStyles.xaml" />
-                <ResourceDictionary Source="Styles/ImageStyles.xaml" />
+                <ResourceDictionary Source="/CSharpCodeAnalyst.AnalyzerSdk;component/Styles/ImageStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 

@@ -1,4 +1,6 @@
-﻿namespace CSharpCodeAnalyst.Shared.Contracts;
+﻿using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+
+namespace CSharpCodeAnalyst.Shared.Contracts;
 
 public interface IAnalyzerManager
 {

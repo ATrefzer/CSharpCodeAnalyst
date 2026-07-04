@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-using CodeGraph.Colors;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Colors;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Features.Help;
 

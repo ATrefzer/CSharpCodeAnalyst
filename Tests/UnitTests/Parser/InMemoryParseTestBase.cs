@@ -1,5 +1,5 @@
-using CodeGraph.Graph;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -12,7 +12,7 @@ namespace CodeParserTests.UnitTests.Parser;
 /// </summary>
 public abstract class InMemoryParseTestBase
 {
-    protected CodeGraph.Graph.CodeGraph Graph = null!;
+    protected CodeGraph Graph = null!;
 
     /// <summary>The C# snippet to parse. One compilation unit; typically under <c>namespace Demo;</c>.</summary>
     protected abstract string Code { get; }
@@ -23,7 +23,7 @@ public abstract class InMemoryParseTestBase
     [OneTimeSetUp]
     public async Task ParseCode()
     {
-        var parser = new CodeParser.Parser.Parser(
+        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(
             new ParserConfig(new ProjectExclusionRegExCollection(), false, splitPropertyAccessors: SplitPropertyAccessors));
         var result = await parser.ParseSourceAsync(Code);
         Graph = result.CodeGraph;

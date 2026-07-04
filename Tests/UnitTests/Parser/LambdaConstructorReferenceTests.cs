@@ -1,5 +1,5 @@
-using CodeGraph.Graph;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -33,7 +33,7 @@ public class LambdaConstructorReferenceTests
                                 }
                                 """;
 
-    private CodeGraph.Graph.CodeGraph _graph = null!;
+    private CodeGraph _graph = null!;
 
     [OneTimeSetUp]
     public void Setup()
@@ -93,9 +93,9 @@ public class LambdaConstructorReferenceTests
         return source.Relationships.Any(r => r.TargetId == target.Id && r.Type == type);
     }
 
-    private static CodeGraph.Graph.CodeGraph Parse(string code)
+    private static CodeGraph Parse(string code)
     {
-        var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
+        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         return parser.ParseSourceAsync(code).GetAwaiter().GetResult().CodeGraph;
     }
 }

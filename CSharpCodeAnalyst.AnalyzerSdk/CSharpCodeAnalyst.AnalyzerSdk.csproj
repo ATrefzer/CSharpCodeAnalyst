@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <!-- Moved files keep their original CSharpCodeAnalyst.* namespaces; RootNamespace must match
+             so those namespaces (and any embedded resource manifest names) still line up. -->
+        <RootNamespace>CSharpCodeAnalyst.AnalyzerSdk</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Resource Include="Resources\blue-info_16.png" />
+        <Resource Include="Resources\error.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1" />
+    </ItemGroup>
+
+</Project>

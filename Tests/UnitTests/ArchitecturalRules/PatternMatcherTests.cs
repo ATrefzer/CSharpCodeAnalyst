@@ -1,5 +1,5 @@
 using CodeParserTests.Helper;
-using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 

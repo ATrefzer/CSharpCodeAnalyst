@@ -3,10 +3,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
+using CSharpCodeAnalyst.AnalyzerSdk.Search;
+using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.Shared.Search;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Wpf;
 

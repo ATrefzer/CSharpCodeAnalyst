@@ -1,6 +1,6 @@
-using CodeGraph.Algorithms.Partitioning;
-using CodeGraph.Graph;
 using CodeParserTests.Helper;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Partitioning;
 

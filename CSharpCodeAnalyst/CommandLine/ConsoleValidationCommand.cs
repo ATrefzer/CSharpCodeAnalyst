@@ -1,15 +1,17 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Text;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Features.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
 using Microsoft.Extensions.Configuration;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CSharpCodeAnalyst.CommandLine;
 

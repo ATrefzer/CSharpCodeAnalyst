@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using CSharpCodeAnalyst.Shared.DynamicDataGrid.Contracts.TabularData;
+using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 
 namespace CSharpCodeAnalyst.Shared.Tabs;
 

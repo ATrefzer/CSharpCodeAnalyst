@@ -2,7 +2,8 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;

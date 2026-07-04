@@ -252,231 +252,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rule text cannot be empty.
-        /// </summary>
-        public static string Analyzer_Empty_Rule {
-            get {
-                return ResourceManager.GetString("Analyzer_Empty_Rule", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Architectural rules.
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Validates your architectural constraints based on user-defined rules.
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No rule violations found!.
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_NoData", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Error parsing rules: {0}.
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_ParseError {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_ParseError", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Load rules.
-        /// </summary>
-        public static string ArchitecturalRules_LoadDialog_Title {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_LoadDialog_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Save rules.
-        /// </summary>
-        public static string ArchitecturalRules_SaveDialog_Title {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_SaveDialog_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Error loading file: {0}.
-        /// </summary>
-        public static string ArchitecturalRules_LoadFileError_Message {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_LoadFileError_Message", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Error saving file: {0}.
-        /// </summary>
-        public static string ArchitecturalRules_SaveFileError_Message {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_SaveFileError_Message", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Rules saved successfully!.
-        /// </summary>
-        public static string ArchitecturalRules_SaveFileSuccess_Message {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_SaveFileSuccess_Message", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Are you sure you want to clear all rules?.
-        /// </summary>
-        public static string ArchitecturalRules_ClearConfirm_Message {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_ClearConfirm_Message", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Confirm Clear.
-        /// </summary>
-        public static string ArchitecturalRules_ClearConfirm_Title {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_ClearConfirm_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Rule Type.
-        /// </summary>
-        public static string Column_ArchitecturalRules_RuleType {
-            get {
-                return ResourceManager.GetString("Column_ArchitecturalRules_RuleType", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Source.
-        /// </summary>
-        public static string Column_ArchitecturalRules_Source {
-            get {
-                return ResourceManager.GetString("Column_ArchitecturalRules_Source", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Target.
-        /// </summary>
-        public static string Column_ArchitecturalRules_Target {
-            get {
-                return ResourceManager.GetString("Column_ArchitecturalRules_Target", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Violations.
-        /// </summary>
-        public static string Column_ArchitecturalRules_Violations {
-            get {
-                return ResourceManager.GetString("Column_ArchitecturalRules_Violations", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Event registrations.
-        /// </summary>
-        public static string Analyzer_EventRegistration_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_EventRegistration_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Finds imbalances between number of event registrations / un-registrations.
-        /// </summary>
-        public static string Analyzer_EventRegistration_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_EventRegistration_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No event handler registration / un-registration imbalances found.
-        /// </summary>
-        public static string Analyzer_EventRegistration_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_EventRegistration_NoData", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Type Cohesion.
-        /// </summary>
-        public static string Analyzer_TypeCohesion_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_Label", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No classes with separable partitions found.
-        /// </summary>
-        public static string Analyzer_TypeCohesion_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_NoData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions..
-        /// </summary>
-        public static string Analyzer_TypeCohesion_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeCohesion_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type Dependencies.
-        /// </summary>
-        public static string Analyzer_TypeDependencies_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeDependencies_Label", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No types found to rank.
-        /// </summary>
-        public static string Analyzer_TypeDependencies_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeDependencies_NoData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ranks types by their role in the dependency structure (fan-in, fan-out, importance). Helps you find the types to understand first..
-        /// </summary>
-        public static string Analyzer_TypeDependencies_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_TypeDependencies_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Analyzers.
         /// </summary>
         public static string Analyzers_Label {
@@ -500,38 +275,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string AppTitle {
             get {
                 return ResourceManager.GetString("AppTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Architectural rules configuration.
-        /// </summary>
-        public static string ArchitecturalRules_Title {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Three rules are supported:
-        ///
-        ///DENY: Forbids dependencies from source to target
-        ///RESTRICT: Allows only specified dependencies
-        ///ISOLATE: Completely isolates the source from external dependencies
-        ///
-        ///Patterns:
-        ///MyApp.Business → exact match
-        ///MyApp.Business.* → element + direct children
-        ///MyApp.Business.** → element + all descendants
-        ///
-        ///Examples:
-        ///DENY: MyApp.Business.** -&gt; MyApp.Data.**
-        ///RESTRICT: MyApp.Controllers.** -&gt; MyApp.Services.**
-        ///ISOLATE: MyApp.Domain.**.
-        /// </summary>
-        public static string ArchitectureRules_Info {
-            get {
-                return ResourceManager.GetString("ArchitectureRules_Info", resourceCulture);
             }
         }
         
@@ -631,42 +374,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Cmd_RulesFile {
             get {
                 return ResourceManager.GetString("Cmd_RulesFile", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No rule violations found..
-        /// </summary>
-        public static string Cmd_NoRuleViolations {
-            get {
-                return ResourceManager.GetString("Cmd_NoRuleViolations", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Violations.
-        /// </summary>
-        public static string Cmd_ViolationsHeader {
-            get {
-                return ResourceManager.GetString("Cmd_ViolationsHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to - Rule Type: {0}.
-        /// </summary>
-        public static string Cmd_RuleTypeLine {
-            get {
-                return ResourceManager.GetString("Cmd_RuleTypeLine", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to (!) Invalid relationship with missing elements..
-        /// </summary>
-        public static string Cmd_InvalidRelationship {
-            get {
-                return ResourceManager.GetString("Cmd_InvalidRelationship", resourceCulture);
             }
         }
 
@@ -788,69 +495,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event handler (possible errors).
-        /// </summary>
-        public static string Column_EventRegistration_Header {
-            get {
-                return ResourceManager.GetString("Column_EventRegistration_Header", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Class.
-        /// </summary>
-        public static string Column_TypeCohesion_Class {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Class", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Largest %.
-        /// </summary>
-        public static string Column_TypeCohesion_LargestPartition {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_LargestPartition", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Method Complexity.
-        /// </summary>
-        public static string Analyzer_MethodComplexity_Label {
-            get {
-                return ResourceManager.GetString("Analyzer_MethodComplexity_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Lines of code and cyclomatic complexity per method.
-        /// </summary>
-        public static string Analyzer_MethodComplexity_Tooltip {
-            get {
-                return ResourceManager.GetString("Analyzer_MethodComplexity_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No source metrics available.
-        /// </summary>
-        public static string Analyzer_MethodComplexity_NoData {
-            get {
-                return ResourceManager.GetString("Analyzer_MethodComplexity_NoData", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Method.
-        /// </summary>
-        public static string Column_MethodComplexity_Method {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_Method", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Lines.
         /// </summary>
         public static string Column_MethodComplexity_Lines {
@@ -859,123 +503,6 @@ namespace CSharpCodeAnalyst.Resources {
             }
         }
 
-        /// <summary>
-        ///   Looks up a localized string similar to Code.
-        /// </summary>
-        public static string Column_MethodComplexity_Code {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_Code", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Statements.
-        /// </summary>
-        public static string Column_MethodComplexity_Statements {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_Statements", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Comments.
-        /// </summary>
-        public static string Column_MethodComplexity_Comments {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_Comments", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Comment %.
-        /// </summary>
-        public static string Column_MethodComplexity_CommentRatio {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_CommentRatio", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Complexity.
-        /// </summary>
-        public static string Column_MethodComplexity_Complexity {
-            get {
-                return ResourceManager.GetString("Column_MethodComplexity_Complexity", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Members.
-        /// </summary>
-        public static string Column_TypeCohesion_Members {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Members", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Partitions.
-        /// </summary>
-        public static string Column_TypeCohesion_Partitions {
-            get {
-                return ResourceManager.GetString("Column_TypeCohesion_Partitions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Blast radius.
-        /// </summary>
-        public static string Column_TypeDependencies_BlastRadius {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_BlastRadius", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type.
-        /// </summary>
-        public static string Column_TypeDependencies_Element {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_Element", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fan-in.
-        /// </summary>
-        public static string Column_TypeDependencies_FanIn {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_FanIn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fan-out.
-        /// </summary>
-        public static string Column_TypeDependencies_FanOut {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_FanOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to #.
-        /// </summary>
-        public static string Column_TypeDependencies_Rank {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_Rank", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Score.
-        /// </summary>
-        public static string Column_TypeDependencies_Score {
-            get {
-                return ResourceManager.GetString("Column_TypeDependencies_Score", resourceCulture);
-            }
-        }
-        
         /// <summary>
         ///   Looks up a localized string similar to Complete relationships
         ///If code elements are selected, adds missing relationships between them.
@@ -1141,15 +668,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Error_Title {
             get {
                 return ResourceManager.GetString("Error_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Success.
-        /// </summary>
-        public static string Success_Title {
-            get {
-                return ResourceManager.GetString("Success_Title", resourceCulture);
             }
         }
 
@@ -2108,15 +1626,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Operation completed successfully!.
-        /// </summary>
-        public static string Message_OperationCompleted_Successful {
-            get {
-                return ResourceManager.GetString("Message_OperationCompleted_Successful", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Clear movement parent.
         /// </summary>
         public static string MovementParent_Clear_Tooltip {
@@ -2650,51 +2159,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Clear.
-        /// </summary>
-        public static string Rules_Clear {
-            get {
-                return ResourceManager.GetString("Rules_Clear", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Define the architectural rules for your solution:.
-        /// </summary>
-        public static string Rules_Header {
-            get {
-                return ResourceManager.GetString("Rules_Header", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Load from file....
-        /// </summary>
-        public static string Rules_LoadFromFile {
-            get {
-                return ResourceManager.GetString("Rules_LoadFromFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Rules definition.
-        /// </summary>
-        public static string Rules_RuleDefinition {
-            get {
-                return ResourceManager.GetString("Rules_RuleDefinition", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to _Save to file....
-        /// </summary>
-        public static string Rules_SaveToFile {
-            get {
-                return ResourceManager.GetString("Rules_SaveToFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Do you want to save the project so you don&apos;t have to import it again?.
         /// </summary>
         public static string Save_Message {
@@ -3162,15 +2626,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show partitions.
-        /// </summary>
-        public static string ShowPartitions {
-            get {
-                return ResourceManager.GetString("ShowPartitions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Snapshot.
         /// </summary>
         public static string Snapshot {
@@ -3358,15 +2813,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Undo_Tooltip {
             get {
                 return ResourceManager.GetString("Undo_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Save/_Validate.
-        /// </summary>
-        public static string Validate {
-            get {
-                return ResourceManager.GetString("Validate", resourceCulture);
             }
         }
         

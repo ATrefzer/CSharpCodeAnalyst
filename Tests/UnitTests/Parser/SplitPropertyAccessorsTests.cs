@@ -1,6 +1,6 @@
-using CodeGraph.Graph;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -12,7 +12,7 @@ namespace CodeParserTests.UnitTests.Parser;
 [TestFixture]
 public class SplitPropertyAccessorsTests
 {
-    private CodeGraph.Graph.CodeGraph _graph = null!;
+    private CodeGraph _graph = null!;
 
     [OneTimeSetUp]
     public async Task FixtureSetup()
@@ -27,7 +27,7 @@ public class SplitPropertyAccessorsTests
             // already registered
         }
 
-        var parser = new CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false,
+        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false,
             splitPropertyAccessors: true));
         _graph = (await parser.ParseAsync(@"..\..\..\..\TestSuite\TestSuite.sln")).CodeGraph;
     }

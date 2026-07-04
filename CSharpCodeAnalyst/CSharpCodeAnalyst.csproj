@@ -19,28 +19,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\RelationshipViewModelTemplate.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
-        <Page Update="Features\Analyzers\ArchitecturalRules\Presentation\ArchitecturalRulesDialog.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
-        <Page Update="Features\Analyzers\EventRegistration\Presentation\SourceLocationTemplate.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
-        </Page>
         <Page Update="Shared\UI\CodeElementLineTemplate.xaml">
             <Generator>MSBuild:Compile</Generator>
-        </Page>
-        <Page Update="Styles\ImageStyles.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <XamlRuntime>Wpf</XamlRuntime>
-            <SubType>Designer</SubType>
         </Page>
     </ItemGroup>
 
@@ -67,7 +47,6 @@
         <Resource Include="Resources\funnel_32.png" />
         <Resource Include="Resources\check.png" />
         <Resource Include="Resources\analysis_32.png" />
-        <Resource Include="Resources\error.png" />
         <Resource Include="Resources\flag.png" />
         <Resource Include="Resources\guidepost_small.png" />
         <Resource Include="Resources\help_32.png" />
@@ -126,7 +105,6 @@
         <Resource Include="Resources\Field_16.png" />
         <Resource Include="Resources\Record_16.png" />
         <Resource Include="Resources\Other_16.png" />
-        <Resource Include="Resources\blue-info_16.png" />
         <Resource Include="Resources\focus_32.png" />
         <Resource Include="Resources\puzzle.png" />
         <Resource Include="Resources\synchronize_32.png" />
@@ -157,8 +135,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CodeParser\CodeParser.csproj" />
-        <ProjectReference Include="..\CodeGraph\CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
     </ItemGroup>
 
 

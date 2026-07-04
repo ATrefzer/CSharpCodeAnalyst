@@ -1,5 +1,5 @@
-using CodeGraph.Graph;
-using CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Features.Gallery;
 
 namespace CSharpCodeAnalyst.Persistence.Dto;

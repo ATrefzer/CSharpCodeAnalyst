@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.Shared.Contracts;
+﻿using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.Shared.Contracts;
 
 namespace CSharpCodeAnalyst.Shared.Messages;
 

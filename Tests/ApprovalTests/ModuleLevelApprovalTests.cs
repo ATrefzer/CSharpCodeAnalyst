@@ -1,4 +1,4 @@
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.ApprovalTests;
 
@@ -6,7 +6,7 @@ namespace CodeParserTests.ApprovalTests;
 public class ModuleLevelApprovalTests : ApprovalTestBase
 {
 
-    private CodeGraph.Graph.CodeGraph GetTestAssemblyGraph()
+    private CodeGraph GetTestAssemblyGraph()
     {
         var g0 = GetTestGraph("ModuleLevel0");
         var g1 = GetTestGraph("ModuleLevel1");

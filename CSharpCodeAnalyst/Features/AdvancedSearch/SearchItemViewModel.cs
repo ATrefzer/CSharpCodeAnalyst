@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Media.Imaging;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Shared.Messages;
 
 namespace CSharpCodeAnalyst.Features.AdvancedSearch;

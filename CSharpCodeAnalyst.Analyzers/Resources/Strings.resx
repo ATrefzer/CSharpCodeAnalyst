@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Microsoft ResX Schema
+
+    Version 2.0
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
+    associated with the data types.
+
+    Example:
+
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+
+    There are any number of "resheader" rows that contain simple
+    name/value pairs.
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
+    mimetype set.
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
+    extensible. For a given mimetype the value must be set accordingly:
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
+    read any of the formats listed below.
+
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Own copies of a few generic keys also used by the host app (CSharpCodeAnalyst.Resources.Strings).
+       Duplicated rather than shared to keep this project independent of the host assembly. -->
+  <data name="Error_Title" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="OperationFailed_Message" xml:space="preserve">
+    <value>Operation failed: {0}</value>
+  </data>
+  <data name="Close_Button" xml:space="preserve">
+    <value>_Close</value>
+  </data>
+  <data name="CopyToExplorerGraph_MenuItem" xml:space="preserve">
+    <value>Show in Code Explorer</value>
+  </data>
+  <data name="JumpToCode" xml:space="preserve">
+    <value>Jump to code</value>
+  </data>
+
+  <data name="Analyzer_ArchitecturalRules_Label" xml:space="preserve">
+    <value>Architectural rules</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_Tooltip" xml:space="preserve">
+    <value>Validates your architectural constraints based on user-defined rules</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_NoData" xml:space="preserve">
+    <value>No rule violations found!</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_ParseError" xml:space="preserve">
+    <value>Error parsing rules: {0}</value>
+  </data>
+  <data name="Analyzer_EventRegistration_Label" xml:space="preserve">
+    <value>Event registrations</value>
+  </data>
+  <data name="Analyzer_EventRegistration_Tooltip" xml:space="preserve">
+    <value>Finds imbalances between number of event registrations / un-registrations</value>
+  </data>
+  <data name="Analyzer_EventRegistration_NoData" xml:space="preserve">
+    <value>No event handler registration / un-registration imbalances found</value>
+  </data>
+  <data name="Analyzer_TypeDependencies_Label" xml:space="preserve">
+    <value>Type Dependencies</value>
+  </data>
+  <data name="Analyzer_TypeDependencies_Tooltip" xml:space="preserve">
+    <value>Ranks types by their role in the dependency structure (fan-in, fan-out, importance). Helps you find the types to understand first.</value>
+  </data>
+  <data name="Analyzer_TypeDependencies_NoData" xml:space="preserve">
+    <value>No types found to rank</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_Label" xml:space="preserve">
+    <value>Type Cohesion</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_Tooltip" xml:space="preserve">
+    <value>Finds classes whose members split into independent groups (partitions) — candidates for splitting. Double-click a row to view its partitions.</value>
+  </data>
+  <data name="Analyzer_TypeCohesion_NoData" xml:space="preserve">
+    <value>No classes with separable partitions found</value>
+  </data>
+  <data name="Analyzer_MethodComplexity_Label" xml:space="preserve">
+    <value>Method Complexity</value>
+  </data>
+  <data name="Analyzer_MethodComplexity_Tooltip" xml:space="preserve">
+    <value>Lines of code and cyclomatic complexity per method. Requires 'Collect source metrics on import' to be enabled before importing.</value>
+  </data>
+  <data name="Analyzer_MethodComplexity_NoData" xml:space="preserve">
+    <value>No source metrics available. Enable 'Collect source metrics on import' in the settings and re-import the solution.</value>
+  </data>
+  <data name="Analyzer_Empty_Rule" xml:space="preserve">
+    <value>Rule text cannot be empty</value>
+  </data>
+
+  <data name="Column_ArchitecturalRules_RuleType" xml:space="preserve">
+    <value>Rule Type</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Column_ArchitecturalRules_Violations" xml:space="preserve">
+    <value>Violations</value>
+  </data>
+  <data name="Column_TypeCohesion_Class" xml:space="preserve">
+    <value>Class</value>
+  </data>
+  <data name="Column_TypeCohesion_Partitions" xml:space="preserve">
+    <value>Partitions</value>
+  </data>
+  <data name="Column_TypeCohesion_Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="Column_TypeCohesion_LargestPartition" xml:space="preserve">
+    <value>Largest %</value>
+  </data>
+  <data name="Column_MethodComplexity_Method" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="Column_MethodComplexity_Code" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="Column_MethodComplexity_Statements" xml:space="preserve">
+    <value>Statements</value>
+  </data>
+  <data name="Column_MethodComplexity_Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="Column_MethodComplexity_CommentRatio" xml:space="preserve">
+    <value>Comment %</value>
+  </data>
+  <data name="Column_MethodComplexity_Complexity" xml:space="preserve">
+    <value>Complexity</value>
+  </data>
+  <data name="Column_TypeDependencies_Rank" xml:space="preserve">
+    <value>#</value>
+  </data>
+  <data name="Column_TypeDependencies_Element" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Column_TypeDependencies_FanIn" xml:space="preserve">
+    <value>Fan-in</value>
+  </data>
+  <data name="Column_TypeDependencies_FanOut" xml:space="preserve">
+    <value>Fan-out</value>
+  </data>
+  <data name="Column_TypeDependencies_BlastRadius" xml:space="preserve">
+    <value>Blast radius</value>
+  </data>
+  <data name="Column_TypeDependencies_Score" xml:space="preserve">
+    <value>Score</value>
+  </data>
+  <data name="Column_EventRegistration_Header" xml:space="preserve">
+    <value>Event handler (possible errors)</value>
+  </data>
+
+  <data name="ShowPartitions" xml:space="preserve">
+    <value>Show partitions</value>
+  </data>
+  <data name="Success_Title" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Validate" xml:space="preserve">
+    <value>Save/_Validate</value>
+  </data>
+
+  <data name="Cmd_NoRuleViolations" xml:space="preserve">
+    <value>No rule violations found.</value>
+  </data>
+  <data name="Cmd_ViolationsHeader" xml:space="preserve">
+    <value>Violations</value>
+  </data>
+  <data name="Cmd_RuleTypeLine" xml:space="preserve">
+    <value>- Rule Type: {0}</value>
+  </data>
+  <data name="Cmd_InvalidRelationship" xml:space="preserve">
+    <value>(!) Invalid relationship with missing elements.</value>
+  </data>
+
+  <data name="ArchitecturalRules_Title" xml:space="preserve">
+    <value>Architectural rules configuration</value>
+  </data>
+  <data name="Rules_Header" xml:space="preserve">
+    <value>Define the architectural rules for your solution:</value>
+  </data>
+  <data name="Rules_RuleDefinition" xml:space="preserve">
+    <value>Rules definition</value>
+  </data>
+  <data name="Rules_LoadFromFile" xml:space="preserve">
+    <value>_Load from file...</value>
+  </data>
+  <data name="Rules_SaveToFile" xml:space="preserve">
+    <value>_Save to file...</value>
+  </data>
+  <data name="Rules_Clear" xml:space="preserve">
+    <value>_Clear</value>
+  </data>
+  <data name="ArchitectureRules_Info" xml:space="preserve">
+    <value>Three rules are supported:
+
+DENY: Forbids dependencies from source to target
+RESTRICT: Allows only specified dependencies
+ISOLATE: Completely isolates the source from external dependencies
+
+Patterns:
+MyApp.Business → exact match
+MyApp.Business.* → element + direct children
+MyApp.Business.** → element + all descendants
+
+Examples:
+DENY: MyApp.Business.** -&gt; MyApp.Data.**
+RESTRICT: MyApp.Controllers.** -&gt; MyApp.Services.**
+ISOLATE: MyApp.Domain.**</value>
+  </data>
+  <data name="ArchitecturalRules_LoadDialog_Title" xml:space="preserve">
+    <value>Load rules</value>
+  </data>
+  <data name="ArchitecturalRules_SaveDialog_Title" xml:space="preserve">
+    <value>Save rules</value>
+  </data>
+  <data name="ArchitecturalRules_LoadFileError_Message" xml:space="preserve">
+    <value>Error loading file: {0}</value>
+  </data>
+  <data name="ArchitecturalRules_SaveFileError_Message" xml:space="preserve">
+    <value>Error saving file: {0}</value>
+  </data>
+  <data name="ArchitecturalRules_SaveFileSuccess_Message" xml:space="preserve">
+    <value>Rules saved successfully!</value>
+  </data>
+  <data name="ArchitecturalRules_ClearConfirm_Message" xml:space="preserve">
+    <value>Are you sure you want to clear all rules?</value>
+  </data>
+  <data name="ArchitecturalRules_ClearConfirm_Title" xml:space="preserve">
+    <value>Confirm Clear</value>
+  </data>
+</root>

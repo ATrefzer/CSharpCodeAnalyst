@@ -1,5 +1,5 @@
 using System.Windows.Media.Imaging;
-using CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Shared.Messages;
 

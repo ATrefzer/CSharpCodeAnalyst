@@ -1,7 +1,7 @@
-using CodeGraph.Graph;
-using CodeGraph.Metrics;
-using CodeParser.Parser;
-using CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
+using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -59,9 +59,9 @@ public class SourceMetricsParseTests
                                 }
                                 """;
 
-    private static CodeParser.Parser.Parser CreateParser(bool collectMetrics)
+    private static CSharpCodeAnalyst.CodeParser.Parser.Parser CreateParser(bool collectMetrics)
     {
-        return new CodeParser.Parser.Parser(
+        return new CSharpCodeAnalyst.CodeParser.Parser.Parser(
             new ParserConfig(new ProjectExclusionRegExCollection(), false, collectSourceMetrics: collectMetrics));
     }
 
