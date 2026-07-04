@@ -3,7 +3,8 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
-///     Isolates source pattern from any external dependencies
+///     Isolates source pattern from any external dependencies.
+///     For leaf nodes in the graph.
 ///     Syntax: ISOLATE: Source
 /// </summary>
 public class IsolateRule : RuleBase

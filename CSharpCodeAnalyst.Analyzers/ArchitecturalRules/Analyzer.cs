@@ -64,6 +64,7 @@ public class Analyzer : IAnalyzer
         _openDialog.OnValidateRequested = OnValidateRules;
         _openDialog.OnAcceptBaselineRequested = OnAcceptBaseline;
         _openDialog.OnRemoveUnusedRulesRequested = OnRemoveUnusedRules;
+        _openDialog.OnGenerateRulesRequested = OnGenerateRules;
 
         // Handle dialog closing
         _openDialog.Closed += (_, _) =>
@@ -247,6 +248,29 @@ public class Analyzer : IAnalyzer
         OnValidateRules(cleaned);
 
         _userNotification.ShowSuccess(string.Format(Strings.Analyzer_ArchitecturalRules_Cleanup_Removed, removed));
+    }
+
+    /// <summary>
+    ///     Overwrites all rules with a generated set that freezes the current assembly-level
+    ///     dependency structure, then re-validates. No confirmation - the previous rules are replaced.
+    /// </summary>
+    private void OnGenerateRules()
+    {
+        if (_currentGraph == null || _openDialog == null)
+        {
+            return;
+        }
+
+        var generated = AssemblyRuleGenerator.Generate(_currentGraph);
+        var header = string.Format(Strings.ArchitecturalRules_Generated_Header, DateTime.Now);
+        var newText = string.IsNullOrEmpty(generated)
+            ? $"// {header}{Environment.NewLine}"
+            : $"// {header}{Environment.NewLine}{Environment.NewLine}{generated.TrimEnd()}{Environment.NewLine}";
+
+        _openDialog.RulesText = newText;
+
+        // Re-validate so the user immediately sees that the generated rules are a clean baseline.
+        OnValidateRules(newText);
     }
 
     private void OnApplicationExit(object sender, ExitEventArgs e)

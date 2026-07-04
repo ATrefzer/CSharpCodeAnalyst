@@ -641,6 +641,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to _Generate rules.
+        /// </summary>
+        public static string Rules_Generate {
+            get {
+                return ResourceManager.GetString("Rules_Generate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Overwrites all rules ... freezes the current assembly-level dependency structure.
+        /// </summary>
+        public static string Rules_Generate_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_Generate_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Remove _unused rules.
         /// </summary>
         public static string Rules_RemoveUnused {
@@ -691,6 +709,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string ArchitecturalRules_Baseline_Header {
             get {
                 return ResourceManager.GetString("ArchitecturalRules_Baseline_Header", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Generated from the current assembly structure {0}. Review and adjust.
+        /// </summary>
+        public static string ArchitecturalRules_Generated_Header {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Generated_Header", resourceCulture);
             }
         }
 

@@ -319,6 +319,12 @@
     <data name="Rules_Status_Warnings" xml:space="preserve">
     <value>{0} warning(s) and {1} violation(s) — see the message and the result table.</value>
   </data>
+    <data name="Rules_Generate" xml:space="preserve">
+    <value>_Generate rules</value>
+  </data>
+    <data name="Rules_Generate_Tooltip" xml:space="preserve">
+    <value>Overwrites all rules (no confirmation) with a generated set that freezes the current assembly-level dependency structure. A good starting point you can then refine.</value>
+  </data>
     <data name="Rules_RemoveUnused" xml:space="preserve">
     <value>Remove _unused rules</value>
   </data>
@@ -333,6 +339,9 @@
   </data>
     <data name="ArchitecturalRules_Baseline_Header" xml:space="preserve">
     <value>Baseline accepted {0}</value>
+  </data>
+    <data name="ArchitecturalRules_Generated_Header" xml:space="preserve">
+    <value>Generated from the current assembly structure {0}. Review and adjust.</value>
   </data>
     <data name="ArchitectureRules_Info" xml:space="preserve">
     <value>Four rules are supported:

@@ -73,6 +73,11 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
     /// </summary>
     public Action? OnRemoveUnusedRulesRequested { get; set; }
 
+    /// <summary>
+    /// Callback invoked when the Generate-Rules button is clicked
+    /// </summary>
+    public Action? OnGenerateRulesRequested { get; set; }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")
@@ -94,6 +99,11 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
     private void RemoveUnusedRulesButton_Click(object sender, RoutedEventArgs e)
     {
         OnRemoveUnusedRulesRequested?.Invoke();
+    }
+
+    private void GenerateRulesButton_Click(object sender, RoutedEventArgs e)
+    {
+        OnGenerateRulesRequested?.Invoke();
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)

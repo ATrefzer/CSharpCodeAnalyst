@@ -2,31 +2,55 @@
 
 [TOC]
 
-This application helps you to explore, understand, and maintain C# code.
+**Interactive dependency graph explorer for C# with cycle detection, simulated refactoring, and AI assistance.**
+
+[![GitHub stars](https://img.shields.io/github/stars/ATrefzer/CSharpCodeAnalyst.svg)](https://github.com/ATrefzer/CSharpCodeAnalyst/stargazers)
+[![License](https://img.shields.io/github/license/ATrefzer/CSharpCodeAnalyst)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/ATrefzer/CSharpCodeAnalyst)](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest)
+
+This desktop application helps you **explore, understand, and maintain** large C# codebases — especially when dealing with complex dependencies and architectural issues.
 
 ![](Documentation/Images/quick-start.png)
 
-Here is a [YouTube presentation](https://www.youtube.com/watch?v=o_r1CdQy0tY) on using the application to analyze cyclic dependencies.
+**[Watch the YouTube demo →](https://www.youtube.com/watch?v=o_r1CdQy0tY)** (Cycle analysis)
+
+## Features
+
+- **Full code graph analysis** of your Visual Studio solution
+- **Cycle detection & breaking** (Strongly Connected Components)
+- **AI Advisor** – get refactoring suggestions how to break cycles from Claude.ai.
+- **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
+- **Simulated Refactoring** – test structural changes without touching your source code
+- **Architectural Rules** – define and validate DENY / RESTRICT / ISOLATE rules
+- **Advanced search & navigation**
+- **Export** to PlantUML, DGML, PNG/SVG, and more
 
 ## Requirements
 
 - **Windows** (x64)
-- **.NET 10 Runtime** — required to run the application
-- **.NET SDK or Visual Studio** — provides MSBuild, which is used to load your C# solution
+- **.NET 10 Runtime** (to run the application)
+- **.NET SDK or Visual Studio** (provides MSBuild to load your solution)
 
 ## Download
 
 Grab the latest build from the [Releases page](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest). Extract the zip and run `CSharpCodeAnalyst.exe`.
 
-## Quick Start
+## Download & Quick Start
 
-All workflows start the same way: **Import your C# solution file** via *Home → Import → Import Visual Studio solution*.
+1. Download the latest release from the [Releases page](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest)
+2. Extract the zip and run `CSharpCodeAnalyst.exe`
+3. Go to **Home → Import → Import Visual Studio solution**
 
-This builds the **model** — the complete code graph of your solution, containing all assemblies, namespaces, classes, methods, and their relationships.
+This builds a complete in-memory graph **model** of your solution (assemblies, namespaces, types, members and relationships).
 
-> **Good to know:** The tool analyzes the code graph, not the filesystem — the source directory structure is ignored. External assemblies are excluded by default (opt in via settings). See [Limitations](#limitations) for the full list.
+> **Good to know:** The tool analyzes the code graph, not the file system — the source directory structure is ignored. External assemblies are excluded by default (opt in via settings). See [Limitations](#limitations) for details,
 
-Here is what you can do with this app:
+### What you can do from here
+
+- **Find and break dependency cycles**
+- **Explore unfamiliar codebases** interactively
+- **Validate architectural constraints**
+- **Export diagrams** for documentation or further analysis
 
 ### Find and break dependency cycles
 
@@ -203,9 +227,9 @@ There are four rules supported.
 
 **DENY**: Forbids dependencies from source to target
 
-**RESTRICT**: Allows only specified dependencies
+**RESTRICT**: Allows only specified dependencies. RESTRICT rules with the same source are aggregated.
 
-**ISOLATE**: Completely isolates the source from external dependencies
+**ISOLATE**: Completely isolates the source from external dependencies. Only incoming dependencies are allowed.
 
 **ALLOW**: Defines an exception. An ALLOW rule never reports violations itself; it suppresses matching violations found by the other rules.
 

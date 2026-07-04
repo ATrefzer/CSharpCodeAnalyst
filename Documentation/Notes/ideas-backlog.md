@@ -20,14 +20,14 @@ erosion that no static tool can find. On top of that: hotspots = change frequenc
   analysis as a separate application.** Before designing anything here, review Insight and
   decide what to port / merge instead of rewriting ("analysis suite" idea).
 
-### 3. Rule proposal from the current architecture
+### 3. Rule proposal from the current architecture — DONE (2026-07-04)
 
-Inverse of the baseline: analyze the dependency directions between assemblies / top-level
-namespaces and propose a rule set that already holds today. Examples: an assembly nobody
-depends on → ISOLATE candidate (with ALLOW for its few outgoing edges); 98% of edges run
-UI → Domain and never back → DENY proposal for the reverse direction. Removes the empty-dialog
-hurdle when starting with the rules feature. Works purely heuristically; the AI advisor could
-optionally comment on the proposals.
+Implemented as the **Generate rules** button (assembly level, no AI): freezes the current
+dependency structure verbatim. Per internal assembly — 0 internal deps → ISOLATE, otherwise a
+RESTRICT to each assembly it currently depends on. No implicit cycle-only assumptions; captures
+the ist-state so every new inter-assembly dependency is reported. `AssemblyRuleGenerator`.
+Possible follow-ups: namespace-level granularity; smarter handling when external code is imported
+(ISOLATE/RESTRICT can then flag framework usage).
 
 ## Analyzers / metrics with real meaning
 
