@@ -614,6 +614,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to No violations found.
+        /// </summary>
+        public static string Rules_Status_Clean {
+            get {
+                return ResourceManager.GetString("Rules_Status_Clean", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} violation(s) found — see the result table.
+        /// </summary>
+        public static string Rules_Status_Violations {
+            get {
+                return ResourceManager.GetString("Rules_Status_Violations", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} warning(s) and {1} violation(s) — see the message and the result table.
+        /// </summary>
+        public static string Rules_Status_Warnings {
+            get {
+                return ResourceManager.GetString("Rules_Status_Warnings", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Remove _unused rules.
         /// </summary>
         public static string Rules_RemoveUnused {

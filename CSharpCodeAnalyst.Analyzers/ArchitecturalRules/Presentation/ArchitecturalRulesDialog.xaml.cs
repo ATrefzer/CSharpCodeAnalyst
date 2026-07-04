@@ -29,6 +29,21 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
     } = string.Empty;
 
     /// <summary>
+    ///     Summary of the last validation, shown inline in the dialog.
+    /// </summary>
+    public string StatusText
+    {
+        get;
+        set
+        {
+            if (field == value) { return; }
+
+            field = value;
+            OnPropertyChanged();
+        }
+    } = string.Empty;
+
+    /// <summary>
     ///     Whether the last validation found violations. Controls the Accept-Baseline button.
     /// </summary>
     public bool HasViolations

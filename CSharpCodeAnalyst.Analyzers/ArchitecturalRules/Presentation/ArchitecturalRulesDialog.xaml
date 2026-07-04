@@ -72,9 +72,9 @@
         </GroupBox>
 
 
-        <!-- Buttons -->
-            <StackPanel  Grid.Row="2"  Orientation="Horizontal"
-                         HorizontalAlignment="Right">
+        <!-- Status line + buttons -->
+        <DockPanel Grid.Row="2">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
             <Button x:Name="RemoveUnusedRulesButton" Content="{x:Static resources:Strings.Rules_RemoveUnused}"
                     Width="130" Height="25" Margin="0,0,10,0"
                     ToolTip="{x:Static resources:Strings.Rules_RemoveUnused_Tooltip}"
@@ -90,7 +90,15 @@
             <Button x:Name="CloseButton" Content="{x:Static resources:Strings.Close_Button}"  Height="25" Width="80"
                     IsCancel="True"
                     Click="CloseButton_Click" />
-        </StackPanel>
+            </StackPanel>
+
+            <!-- Result of the last validation, shown inline so feedback is visible even though the
+                 dialog is modeless and covers the result table behind it. -->
+            <TextBlock x:Name="StatusTextBlock" Text="{Binding StatusText}"
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                       Margin="0,0,10,0" Foreground="#555555"
+                       ToolTip="{Binding StatusText}" />
+        </DockPanel>
         
     </Grid>
 </Window>

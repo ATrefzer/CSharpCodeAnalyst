@@ -167,23 +167,29 @@ public class Analyzer : IAnalyzer
 
         // Remember the violations so the user can freeze them as a baseline.
         _lastViolations = result.Violations;
-        if (_openDialog != null)
-        {
-            _openDialog.HasViolations = result.Violations.Count > 0;
-        }
 
+        // The result table lives behind the modeless dialog, so every outcome also gets an inline
+        // status line - otherwise validating looks like it did nothing when only violations changed.
+        string status;
         if (result.Warnings.Count > 0)
         {
             _userNotification.ShowWarning(string.Join(Environment.NewLine, result.Warnings));
+            status = string.Format(Strings.Rules_Status_Warnings, result.Warnings.Count, result.Violations.Count);
+        }
+        else if (result.Violations.Count > 0)
+        {
+            status = string.Format(Strings.Rules_Status_Violations, result.Violations.Count);
+        }
+        else
+        {
+            _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_NoData);
+            status = Strings.Rules_Status_Clean;
         }
 
-        if (result.Violations.Count == 0)
+        if (_openDialog != null)
         {
-            // Don't claim success when rules silently matched nothing.
-            if (result.Warnings.Count == 0)
-            {
-                _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_NoData);
-            }
+            _openDialog.HasViolations = result.Violations.Count > 0;
+            _openDialog.StatusText = status;
         }
 
         // Show violations in tabular format
@@ -231,7 +237,7 @@ public class Analyzer : IAnalyzer
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(_openDialog.RulesText, _currentGraph);
         if (removed == 0)
         {
-            _userNotification.ShowInfo(Strings.Analyzer_ArchitecturalRules_Cleanup_NothingToRemove);
+            _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_Cleanup_NothingToRemove);
             return;
         }
 
