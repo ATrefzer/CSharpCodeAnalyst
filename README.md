@@ -209,15 +209,25 @@ There are four rules supported.
 
 **ALLOW**: Defines an exception. An ALLOW rule never reports violations itself; it suppresses matching violations found by the other rules.
 
-You describe the source or target side of a rule with the following pattern.
+### How patterns work
 
-MyApp.Business → exact match
+The source and target side of a rule is a **full path** in the analysis tree: it starts with the **assembly name**, followed by the namespaces and, optionally, a type or member. If the assembly is named like its root namespace, the name appears twice (e.g. `MyApp.MyApp.Business`) — this looks odd at first, but it is the correct path.
 
-MyApp.Business.* → element + direct children
+You don't have to type these paths by hand: right-click any element in the tree view or graph and choose **"Copy Full Path"** to copy it exactly as the rules expect it.
 
-MyApp.Business.** → element + all descendants
+A pattern can end with a wildcard suffix:
+
+MyApp.MyApp.Business → the element itself
+
+MyApp.MyApp.Business.* → element + direct children
+
+MyApp.MyApp.Business.** → element + all descendants
+
+The part before the wildcard is an **anchor**: it must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree — it collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp`, but nothing in a sibling assembly `MyApp.Utils`, because that assembly is a separate root in the tree and not a child of the anchor.
 
 ### Examples
+
+In these examples the assembly is called `MyApp` and contains the namespaces `Business`, `Data`, ... directly — so the paths start with `MyApp.Business`, not with a duplicated name.
 
 ```
 // Business layer should not access the Data layer directly
@@ -229,8 +239,8 @@ RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
 // Core components may not depend on UI
 DENY: MyApp.Core.** -> MyApp.UI.**
 
-// Domain should be completely isolated
-ISOLATE: MyApp.Domain.**
+// Keys should be completely isolated, use ALLOW to define exceptions.
+ISOLATE: MyApp.Keys.**
 
 // Specific class restrictions
 DENY: MyApp.Models.User -> MyApp.Data.Database
