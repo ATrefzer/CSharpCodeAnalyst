@@ -1,0 +1,26 @@
+// CSharpCodeAnalyst rules
+
+DENY: CSharpCodeAnalyst.Analyzers.** -> CSharpCodeAnalyst.**
+
+// The application is only allowed to instantiate the anlyzers
+DENY: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.** 
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Analyzer.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Violation.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.ArchitecturalRules.ViolationsFormatter.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.EventRegistration.Analyzer.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.MethodComplexity.Analyzer.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.TypeCohesion.Analyzer.*
+ALLOW: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.CSharpCodeAnalyst.Analyzers.TypeDependencies.Analyzer.*
+
+// The Sdk can only access the CodeGraph
+RESTRICT: CSharpCodeAnalyst.AnalyzerSdk.** -> CSharpCodeAnalyst.CodeGraph.**
+
+// CodeParser can only access the CodeGraph
+RESTRICT: CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CodeGraph.**
+
+// CodeGrap is at the bottom, only incoming edges
+DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.CodeParser.**
+DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.AnalyzerSdk.**
+DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.Analyzers.**
+DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.**
+

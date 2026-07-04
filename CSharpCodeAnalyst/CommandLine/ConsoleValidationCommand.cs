@@ -49,10 +49,10 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         // Parse solution and do analysis
         var settings = LoadAppSettings();
         var graph = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
-        var violations = RunAnalysis(rulesFile, graph);
+        var analysisResult = RunAnalysis(rulesFile, graph);
 
         // Write output
-        var result = ViolationsFormatter.Format(graph, violations);
+        var result = ViolationsFormatter.Format(graph, analysisResult);
         var outFile = arguments.GetValueOrDefault("out");
         if (!string.IsNullOrEmpty(outFile))
         {
@@ -61,7 +61,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
 
         Trace.WriteLine(result);
 
-        var resultCode = violations.Count == 0 ? 0 : 1;
+        var resultCode = analysisResult.Violations.Count == 0 ? 0 : 1;
         Trace.TraceInformation(Strings.Cmd_AnalysisComplete, resultCode);
         return resultCode;
     }
@@ -78,14 +78,13 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return settings;
     }
 
-    private static List<Violation> RunAnalysis(string rulesFilePath, CodeGraph.Graph.CodeGraph graph)
+    private static RuleAnalysisResult RunAnalysis(string rulesFilePath, CodeGraph.Graph.CodeGraph graph)
     {
         var messaging = new MessageBus();
         var messageBox = new ConsoleUserNotification();
         var analyzer = new Analyzer(messaging, messageBox);
 
-        var violations = analyzer.Analyze(graph, rulesFilePath);
-        return violations;
+        return analyzer.Analyze(graph, rulesFilePath);
     }
 
     private static async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath, AppSettings settings)

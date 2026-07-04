@@ -130,12 +130,12 @@
                     </MenuItem>
 
                     <Separator />
-                    <MenuItem Header="{x:Static resources:Strings.CopyFullQualifiedNameToClipboard}"
+                    <MenuItem Header="{x:Static resources:Strings.CopyFullPathToClipboard}"
                               Command="{Binding CopyToClipboardCommand}"
                               CommandParameter="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}}">
 
                         <MenuItem.Icon>
-                            <Image Source="/Resources/copy_fqn_16.png" />
+                            <Image Source="/Resources/copy_full_path_16.png" />
                         </MenuItem.Icon>
                     </MenuItem>
 

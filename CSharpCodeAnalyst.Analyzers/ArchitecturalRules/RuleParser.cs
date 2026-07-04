@@ -23,6 +23,10 @@ public static class RuleParser
         $@"^\s*ISOLATE\s*:\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    private static readonly Regex AllowRegex = new(
+        $@"^\s*ALLOW\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     public static RuleBase ParseRule(string ruleText)
     {
         if (string.IsNullOrWhiteSpace(ruleText))
@@ -70,10 +74,24 @@ public static class RuleParser
             };
         }
 
+        // Try ALLOW rule (exception to DENY / RESTRICT / ISOLATE)
+        var allowMatch = AllowRegex.Match(trimmedRule);
+        if (allowMatch.Success)
+        {
+            return new AllowRule
+            {
+                RuleText = trimmedRule,
+                Source = allowMatch.Groups[1].Value.Trim(),
+                Target = allowMatch.Groups[2].Value.Trim(),
+                Description = $"Allow dependencies from {allowMatch.Groups[1].Value.Trim()} to {allowMatch.Groups[2].Value.Trim()} (exception)"
+            };
+        }
+
         throw new FormatException($"Invalid rule syntax: '{ruleText}'. Expected formats:\n" +
                                   "DENY: Source -> Target\n" +
                                   "RESTRICT: Source -> Target\n" +
-                                  "ISOLATE: Source");
+                                  "ISOLATE: Source\n" +
+                                  "ALLOW: Source -> Target");
     }
 
     public static List<RuleBase> ParseRules(string rulesText)

@@ -8,7 +8,6 @@ using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
-using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -158,18 +157,25 @@ public class Analyzer : IAnalyzer
         }
 
         // Execute analysis
-        var violations = ExecuteAnalysis(_currentGraph);
+        var result = RuleEngine.Execute(_rules, _currentGraph);
 
-        if (violations.Count == 0)
+        if (result.Warnings.Count > 0)
         {
-            _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_NoData);
+            _userNotification.ShowWarning(string.Join(Environment.NewLine, result.Warnings));
         }
-        else
+
+        if (result.Violations.Count == 0)
         {
-            // Show violations in tabular format
-            var violationsViewModel = new RuleViolationsViewModel(violations, _currentGraph, _messaging);
-            _messaging.Publish(new ShowTabularDataRequest(Id, Name, violationsViewModel));
+            // Don't claim success when rules silently matched nothing.
+            if (result.Warnings.Count == 0)
+            {
+                _userNotification.ShowSuccess(Strings.Analyzer_ArchitecturalRules_NoData);
+            }
         }
+
+        // Show violations in tabular format
+        var violationsViewModel = new RuleViolationsViewModel(result.Violations, _currentGraph, _messaging);
+        _messaging.Publish(new ShowTabularDataRequest(Id, Name, violationsViewModel));
     }
 
     private void OnApplicationExit(object sender, ExitEventArgs e)
@@ -189,10 +195,10 @@ public class Analyzer : IAnalyzer
     /// <summary>
     ///     Direct analysis with rules from file (for command-line use)
     /// </summary>
-    public List<Violation> Analyze(CodeGraph.Graph.CodeGraph graph, string fileToRules)
+    public RuleAnalysisResult Analyze(CodeGraph.Graph.CodeGraph graph, string fileToRules)
     {
         ParseAndStoreRules(File.ReadAllText(fileToRules));
-        return ExecuteAnalysis(graph);
+        return RuleEngine.Execute(_rules, graph);
     }
 
     private static string GetSampleRules()
@@ -204,14 +210,18 @@ public class Analyzer : IAnalyzer
                // Business layer should not access Data layer directly
                DENY: MyApp.Business.** -> MyApp.Data.**
 
+               // Exception: ALLOW never reports violations, it only suppresses
+               // violations found by the other rules
+               ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+
                // Controllers may only access Services
                RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
 
                // Core components may not depend on UI
                DENY: MyApp.Core.** -> MyApp.UI.**
 
-               // Domain should be completely isolated
-               ISOLATE: MyApp.Domain.**
+               // Completely isolated, define exceptions with ALLOW
+               ISOLATE: MyApp.Meta.**
 
                // Specific class restrictions
                DENY: MyApp.Models.User -> MyApp.Data.Database
@@ -228,78 +238,5 @@ public class Analyzer : IAnalyzer
         }
 
         _rulesText = rulesText;
-    }
-
-    private List<Violation> ExecuteAnalysis(CodeGraph.Graph.CodeGraph graph)
-    {
-        var violations = new List<Violation>();
-
-        if (_rules.Count == 0)
-            return violations;
-
-        // Only real dependencies are subject to architectural rules. Descriptive edges like Handles
-        // (event-handler wiring), and the non-dependency Containment / Bundled edges, are excluded
-        var allRelationships = graph.GetAllRelationships()
-            .Where(r => r.Type.IsDependency())
-            .ToList();
-
-        // Group rules by type and source
-        var denyRules = _rules.OfType<DenyRule>().ToList();
-        var isolateRules = _rules.OfType<IsolateRule>().ToList();
-        var restrictRules = _rules.OfType<RestrictRule>().ToList();
-
-        // Process DENY rules (each is independent)
-        foreach (var denyRule in denyRules)
-        {
-            var sourceIds = PatternMatcher.ResolvePattern(denyRule.Source, graph);
-            var targetIds = PatternMatcher.ResolvePattern(denyRule.Target, graph);
-
-            var ruleViolations = denyRule.ValidateRule(sourceIds, targetIds, allRelationships);
-            if (ruleViolations.Count > 0)
-            {
-                violations.Add(new Violation(denyRule, ruleViolations));
-            }
-        }
-
-        // Process ISOLATE rules (each is independent)
-        foreach (var isolateRule in isolateRules)
-        {
-            var sourceIds = PatternMatcher.ResolvePattern(isolateRule.Source, graph);
-            var emptyTargetIds = new HashSet<string>(); // Not used for ISOLATE
-
-            var ruleViolations = isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships);
-            if (ruleViolations.Count > 0)
-            {
-                violations.Add(new Violation(isolateRule, ruleViolations));
-            }
-        }
-
-        // Process RESTRICT rules (group by source)
-        var restrictGroups = restrictRules.GroupBy(r => r.Source).ToList();
-        foreach (var group in restrictGroups)
-        {
-            var restrictGroup = new RestrictRuleGroup(group.Key, group);
-            var sourceIds = PatternMatcher.ResolvePattern(group.Key, graph);
-
-            // Collect all allowed target IDs from all rules in the group
-            // References inside the source pattern are always allowed implicitly(!).
-            var allowedTargetIds = new HashSet<string>(sourceIds);
-            foreach (var restrictRule in group)
-            {
-                var targetIds = PatternMatcher.ResolvePattern(restrictRule.Target, graph);
-                allowedTargetIds.UnionWith(targetIds);
-            }
-
-            restrictGroup.AllowedTargetIds = allowedTargetIds;
-
-            var groupViolations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
-            if (groupViolations.Count > 0)
-            {
-                // Use first rule in group as representative for violation
-                violations.Add(new Violation(group.First(), groupViolations));
-            }
-        }
-
-        return violations;
     }
 }

@@ -1,6 +1,5 @@
 using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
-using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
@@ -20,65 +19,7 @@ public class AnalyzerIntegrationTests
     private static List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
     {
         var rules = RuleParser.ParseRules(rulesText);
-        var violations = new List<Violation>();
-
-        // Mirror the analyzer: only real dependencies are subject to the rules.
-        var allRelationships = graph.GetAllRelationships()
-            .Where(r => r.Type.IsDependency())
-            .ToList();
-
-        // Group rules by type and source (matching the Analyzer logic)
-        var denyRules = rules.OfType<DenyRule>().ToList();
-        var isolateRules = rules.OfType<IsolateRule>().ToList();
-        var restrictRules = rules.OfType<RestrictRule>().ToList();
-
-        // Process DENY rules
-        foreach (var denyRule in denyRules)
-        {
-            var sourceIds = PatternMatcher.ResolvePattern(denyRule.Source, graph);
-            var targetIds = PatternMatcher.ResolvePattern(denyRule.Target, graph);
-            var ruleViolations = denyRule.ValidateRule(sourceIds, targetIds, allRelationships);
-            if (ruleViolations.Count > 0)
-            {
-                violations.Add(new Violation(denyRule, ruleViolations));
-            }
-        }
-
-        // Process ISOLATE rules
-        foreach (var isolateRule in isolateRules)
-        {
-            var sourceIds = PatternMatcher.ResolvePattern(isolateRule.Source, graph);
-            var emptyTargetIds = new HashSet<string>();
-            var ruleViolations = isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships);
-            if (ruleViolations.Count > 0)
-            {
-                violations.Add(new Violation(isolateRule, ruleViolations));
-            }
-        }
-
-        // Process RESTRICT rules (group by source)
-        var restrictGroups = restrictRules.GroupBy(r => r.Source).ToList();
-        foreach (var group in restrictGroups)
-        {
-            var restrictGroup = new RestrictRuleGroup(group.Key, group);
-            var sourceIds = PatternMatcher.ResolvePattern(group.Key, graph);
-
-            var allowedTargetIds = new HashSet<string>();
-            foreach (var restrictRule in group)
-            {
-                var targetIds = PatternMatcher.ResolvePattern(restrictRule.Target, graph);
-                allowedTargetIds.UnionWith(targetIds);
-            }
-
-            restrictGroup.AllowedTargetIds = allowedTargetIds;
-            var groupViolations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
-            if (groupViolations.Count > 0)
-            {
-                violations.Add(new Violation(group.First(), groupViolations));
-            }
-        }
-
-        return violations;
+        return RuleEngine.Execute(rules, graph).Violations;
     }
 
     [Test]

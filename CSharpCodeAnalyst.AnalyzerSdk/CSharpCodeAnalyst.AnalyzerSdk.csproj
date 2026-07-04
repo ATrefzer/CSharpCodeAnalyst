@@ -11,16 +11,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="Resources\blue-info_16.png" />
-        <Resource Include="Resources\error.png" />
+        <Resource Include="Resources\blue-info_16.png"/>
+        <Resource Include="Resources\error.png"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1" />
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1"/>
     </ItemGroup>
 
 </Project>

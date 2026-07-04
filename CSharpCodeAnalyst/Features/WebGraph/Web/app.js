@@ -176,7 +176,7 @@ const cytoscapeStyle = [
         // While a right-click (context menu) is in progress we hide Cytoscape's gray
         // "active" press overlay — it lingers behind the opening menu and looks broken.
         selector: ".suppress-overlay",
-        style: { "overlay-opacity": 0 },
+        style: {"overlay-opacity": 0},
     },
     {
         // Compound parent (a node that contains children) renders as a container.
@@ -193,26 +193,26 @@ const cytoscapeStyle = [
     {
         // Collapsed container drawn as a leaf: bold + thicker border signals "expandable".
         selector: "node[?collapsed]",
-        style: { "font-weight": "bold", "border-width": 2, "border-color": "#555555" },
+        style: {"font-weight": "bold", "border-width": 2, "border-color": "#555555"},
     },
     // Persistent decorations from C# PresentationState. Both red like MSAGL; the flag is
     // thicker and wins over search (it is defined last among the two equal-specificity rules).
     {
         selector: "node[?searchHighlighted]",
-        style: { "border-color": "#ff0000", "border-width": 2 },
+        style: {"border-color": "#ff0000", "border-width": 2},
     },
     {
         selector: "node[?flagged]",
-        style: { "border-color": "#ff0000", "border-width": 3 },
+        style: {"border-color": "#ff0000", "border-width": 3},
     },
     {
         selector: "node:selected",
-        style: { "border-width": 3, "border-color": "#ff7f0e" },
+        style: {"border-width": 3, "border-color": "#ff7f0e"},
     },
     {
         // Transient halo flashed on the anchor node after an explore re-layout (focusNode).
         selector: "node.focus-flash",
-        style: { "overlay-color": "#ff7f0e", "overlay-opacity": 0.35, "overlay-padding": 8 },
+        style: {"overlay-color": "#ff7f0e", "overlay-opacity": 0.35, "overlay-padding": 8},
     },
     // Edges are plain black. A bundled edge (count > 1) shows the number of underlying
     // relationships as a label, mirroring how the WPF/MSAGL view marks edge strength.
@@ -243,7 +243,7 @@ const cytoscapeStyle = [
     },
     {
         selector: "edge[kind = 'Implements']",
-        style: { "line-style": "dotted" },
+        style: {"line-style": "dotted"},
     },
     {
         // Flat view only: containment shown as a quiet gray edge with no arrowhead.
@@ -267,7 +267,7 @@ const cytoscapeStyle = [
     // Hover highlighting: emphasize the relevant set (no fading of the rest for now).
     {
         selector: "node.highlighted",
-        style: { "border-color": "#ff7f0e", "border-width": 3 },
+        style: {"border-color": "#ff7f0e", "border-width": 3},
     },
     {
         selector: "edge.highlighted",
@@ -283,12 +283,12 @@ const cytoscapeStyle = [
 // Small example so the page also renders something when opened standalone in a
 // browser. In the app this is immediately replaced by renderGraph().
 const exampleElements = [
-    { data: { id: "BaseDevice", label: "BaseDevice", kind: "Class" } },
-    { data: { id: "Printer", label: "Printer", kind: "Class" } },
-    { data: { id: "BaseDevice.Init", label: "Init()", kind: "Method", parent: "BaseDevice" } },
-    { data: { id: "Printer.Print", label: "Print()", kind: "Method", parent: "Printer" } },
-    { data: { id: "e1", source: "Printer", target: "BaseDevice", kind: "Inherits" } },
-    { data: { id: "e2", source: "Printer.Print", target: "BaseDevice.Init", kind: "Calls" } },
+    {data: {id: "BaseDevice", label: "BaseDevice", kind: "Class"}},
+    {data: {id: "Printer", label: "Printer", kind: "Class"}},
+    {data: {id: "BaseDevice.Init", label: "Init()", kind: "Method", parent: "BaseDevice"}},
+    {data: {id: "Printer.Print", label: "Print()", kind: "Method", parent: "Printer"}},
+    {data: {id: "e1", source: "Printer", target: "BaseDevice", kind: "Inherits"}},
+    {data: {id: "e2", source: "Printer.Print", target: "BaseDevice.Init", kind: "Calls"}},
 ];
 
 // Tracks the in-flight layout so a new render can cancel it (avoids racing fcose runs).
@@ -372,13 +372,32 @@ window.renderGraph = function (graph, focusId) {
             // color is the exact per-type color computed by C# (ColorDefinitions); the
             // node style reads data("color") and only falls back to KIND_COLOR when absent.
             // flagged / searchHighlighted are PresentationState decorations (red borders).
-            data: { id: n.id, label: n.label, kind: n.kind, color: n.color, parent: n.parent || undefined, collapsed: n.collapsed, flagged: n.flagged, searchHighlighted: n.searchHighlighted },
+            data: {
+                id: n.id,
+                label: n.label,
+                kind: n.kind,
+                color: n.color,
+                parent: n.parent || undefined,
+                collapsed: n.collapsed,
+                flagged: n.flagged,
+                searchHighlighted: n.searchHighlighted
+            },
             classes: n.external ? "external" : "",
         });
     }
     for (const e of graph.edges) {
         // color is optional (null = default black); set per relationship type by C#.
-        elements.push({ data: { id: e.id, source: e.source, target: e.target, kind: e.kind, count: e.count, color: e.color, flagged: e.flagged } });
+        elements.push({
+            data: {
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                kind: e.kind,
+                count: e.count,
+                color: e.color,
+                flagged: e.flagged
+            }
+        });
     }
 
     cy.elements().remove();
@@ -406,8 +425,8 @@ function focusNode(id) {
     // zooms in enough to read the node) and at most 1.3 (so a tiny graph isn't over-zoomed).
     const targetZoom = Math.min(1.3, Math.max(cy.zoom(), 0.85));
     cy.animate(
-        { center: { eles: node }, zoom: targetZoom },
-        { duration: 350, easing: "ease-out-cubic" }
+        {center: {eles: node}, zoom: targetZoom},
+        {duration: 350, easing: "ease-out-cubic"}
     );
 
     // Soft orange halo for a moment (flashClass adds the class, then removes it after Nms).
@@ -462,14 +481,14 @@ window.setLayout = function (name) {
 // Whole graph on a white background. PNG is built in; SVG needs the cytoscape-svg extension.
 window.exportPngBase64 = function () {
     // Raw base64, no "data:image/png;base64," prefix.
-    return cy.png({ output: "base64", full: true, bg: "#ffffff" });
+    return cy.png({output: "base64", full: true, bg: "#ffffff"});
 };
 
 window.exportSvg = function () {
     if (typeof cy.svg !== "function") {
         return "";   // extension missing -> C# reports it could not export
     }
-    return cy.svg({ full: true, bg: "#ffffff" });
+    return cy.svg({full: true, bg: "#ffffff"});
 };
 
 // ---- Hover highlighting (local; mode comes from the ribbon via C#) ----------
@@ -526,7 +545,7 @@ function shortestNonSelfCircuit(node) {
         }
 
         // dijkstra with default weight 1 == BFS shortest path (in edge count).
-        const search = cy.elements().dijkstra({ root: neighbor, directed: true });
+        const search = cy.elements().dijkstra({root: neighbor, directed: true});
         const backDistance = search.distanceTo(node);
         if (backDistance === Infinity) {
             return; // no way back through this neighbor
@@ -548,22 +567,22 @@ cy.on("mouseout", "node, edge", clearHighlight);
 
 // ---- User interaction -> host ----------------------------------------------
 cy.on("tap", "node", evt => {
-    postToHost({ type: "nodeClicked", id: evt.target.id() });
+    postToHost({type: "nodeClicked", id: evt.target.id()});
 });
 
 cy.on("tap", "edge", evt => {
     // The edge id is enough: C# has the relationships behind it keyed by id.
-    postToHost({ type: "edgeClicked", id: evt.target.id() });
+    postToHost({type: "edgeClicked", id: evt.target.id()});
 });
 
 cy.on("dbltap", "node", evt => {
-    postToHost({ type: "nodeDblClicked", id: evt.target.id() });
+    postToHost({type: "nodeDblClicked", id: evt.target.id()});
 });
 
 // A tap on empty canvas (target is the core, not a node/edge) clears the Info panel.
 cy.on("tap", evt => {
     if (evt.target === cy) {
-        postToHost({ type: "backgroundClicked" });
+        postToHost({type: "backgroundClicked"});
     }
 });
 
@@ -577,16 +596,16 @@ cy.on("cxttapstart", "node, edge", evt => evt.target.addClass("suppress-overlay"
 cy.on("cxttapend", "node, edge", evt => evt.target.removeClass("suppress-overlay"));
 
 cy.on("cxttap", "node", evt => {
-    postToHost({ type: "contextMenu", kind: "node", id: evt.target.id() });
+    postToHost({type: "contextMenu", kind: "node", id: evt.target.id()});
 });
 
 cy.on("cxttap", "edge", evt => {
-    postToHost({ type: "contextMenu", kind: "edge", id: evt.target.id() });
+    postToHost({type: "contextMenu", kind: "edge", id: evt.target.id()});
 });
 
 cy.on("cxttap", evt => {
     if (evt.target === cy) {
-        postToHost({ type: "contextMenu", kind: "background" });
+        postToHost({type: "contextMenu", kind: "background"});
     }
 });
 
@@ -601,7 +620,7 @@ function reportSelection() {
     clearTimeout(selectionTimer);
     selectionTimer = setTimeout(() => {
         const ids = cy.$("node:selected").map(n => n.id());
-        postToHost({ type: "selectionChanged", ids: ids });
+        postToHost({type: "selectionChanged", ids: ids});
     }, 0);
 }
 
@@ -634,11 +653,11 @@ document.addEventListener("keydown", evt => {
     if (isDelete) {
         // Remove the selected elements (with children). Handled in JS like the explore
         // shortcuts so it also works while the canvas has keyboard focus.
-        postToHost({ type: "deleteSelected" });
+        postToHost({type: "deleteSelected"});
     } else {
-        postToHost({ type: "exploreSelected", action: action });
+        postToHost({type: "exploreSelected", action: action});
     }
 });
 
 // Tell the host we are ready to receive renderGraph() calls.
-postToHost({ type: "ready" });
+postToHost({type: "ready"});

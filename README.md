@@ -199,13 +199,15 @@ In the ribbon, go to Analyzers and then click "Architectural rules". If a projec
 
 ![](Documentation/Images/rule-configuration.png)
 
-There are three rules supported.
+There are four rules supported.
 
 **DENY**: Forbids dependencies from source to target
 
 **RESTRICT**: Allows only specified dependencies
 
 **ISOLATE**: Completely isolates the source from external dependencies
+
+**ALLOW**: Defines an exception. An ALLOW rule never reports violations itself; it suppresses matching violations found by the other rules.
 
 You describe the source or target side of a rule with the following pattern.
 
@@ -232,9 +234,16 @@ ISOLATE: MyApp.Domain.**
 
 // Specific class restrictions
 DENY: MyApp.Models.User -> MyApp.Data.Database
+
+// Exceptions: the reporting module may access the Data layer
+// even though the Business layer as a whole may not
+DENY: MyApp.Business.** -> MyApp.Data.**
+ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
 ```
 
 The result of the analysis is shown in the table output for analyzers.
+
+If a pattern does not match any code element (for example due to a typo), the rule has no effect. The analysis reports a warning for every such pattern so that silently dead rules are visible.
 
 ![](Documentation/Images/rule-result.png)
 

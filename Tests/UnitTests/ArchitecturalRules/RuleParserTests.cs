@@ -55,6 +55,29 @@ public class RuleParserTests
     }
 
     [Test]
+    public void ParseAllowRule_ValidSyntax_ShouldReturnAllowRule()
+    {
+        // Arrange
+        var ruleText = "ALLOW: Business.Reporting.** -> Data.**";
+
+        // Act
+        var rule = RuleParser.ParseRule(ruleText);
+
+        // Assert
+        Assert.That(rule, Is.InstanceOf<AllowRule>());
+        var allowRule = (AllowRule)rule;
+        Assert.That(allowRule.Source, Is.EqualTo("Business.Reporting.**"));
+        Assert.That(allowRule.Target, Is.EqualTo("Data.**"));
+        Assert.That(allowRule.RuleText, Is.EqualTo(ruleText));
+    }
+
+    [Test]
+    public void ParseAllowRule_MissingTarget_ShouldThrow()
+    {
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW: Business.**"));
+    }
+
+    [Test]
     public void ParseRule_CaseInsensitive_ShouldWork()
     {
         // Arrange

@@ -181,10 +181,10 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // unless the element has exactly one source location).
         _state.AddCommand(new CodeElementContextCommand(Strings.JumpToCode, JumpToCode, canEnable: CanJumpToCode));
 
-        var copyFqn = IconLoader.LoadIcon("Resources/copy_fqn_16.png");
+        var copyIcon = IconLoader.LoadIcon("Resources/copy_full_path_16.png");
        
-        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullQualifiedNameToClipboard,
-            OnCopyToClipboard, icon: copyFqn));
+        _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullPathToClipboard,
+            OnCopyToClipboard, icon: copyIcon));
 
      
 
