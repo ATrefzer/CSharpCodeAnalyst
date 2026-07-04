@@ -18,7 +18,7 @@ RESTRICT: CSharpCodeAnalyst.AnalyzerSdk.** -> CSharpCodeAnalyst.CodeGraph.**
 // CodeParser can only access the CodeGraph
 RESTRICT: CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CodeGraph.**
 
-// CodeGrap is at the bottom, only incoming edges
+// CodeGraph is at the bottom, only incoming edges
 DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.CodeParser.**
 DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.AnalyzerSdk.**
 DENY: CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.Analyzers.**

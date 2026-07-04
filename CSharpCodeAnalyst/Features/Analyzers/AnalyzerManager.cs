@@ -45,16 +45,16 @@ internal class AnalyzerManager : IAnalyzerManager
     }
 
     /// <summary>
-    ///     Restores persistent data to all analyzers
+    ///     Restores persistent data to all analyzers.
+    ///     Analyzers without an entry in the given data are reset. Otherwise they would
+    ///     keep the state of the previously loaded project (e.g. architectural rules).
     /// </summary>
     public void RestoreAnalyzerData(Dictionary<string, string> data)
     {
         foreach (var analyzer in _analyzers.Values)
         {
-            if (data.TryGetValue(analyzer.Id, out var analyzerData))
-            {
-                analyzer.SetPersistentData(analyzerData);
-            }
+            data.TryGetValue(analyzer.Id, out var analyzerData);
+            analyzer.SetPersistentData(analyzerData);
         }
     }
 

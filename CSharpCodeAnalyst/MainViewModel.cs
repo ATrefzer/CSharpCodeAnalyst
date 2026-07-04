@@ -865,6 +865,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             GraphViewModel?.ShowCompleteGraphCollapsed(parseResult.CodeGraph);
         }
 
+        // Reset analyzer state from the previously loaded project
+        // (e.g. architectural rules must not survive an import).
+        _analyzerManager.RestoreAnalyzerData([]);
+
         _gallery = new Gallery();
         _projectService.StartNewProject();
         IsCanvasHintsVisible = false;

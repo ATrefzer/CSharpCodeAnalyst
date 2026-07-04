@@ -271,7 +271,7 @@ C# Code Analyst can calculate a few but meaningful metrics.
 
 You can read more about the supported metrics here: [Metrics](Documentation/Metrics.md)
 
-All metrics are accessible through the Analyzer Ribbon and the results are presented in the analyzer output table.
+All metrics are accessible via the Analyzer Ribbon, and the results are presented in a table on a separate tab
 
 ![](Documentation/Images/metrics-example.png)
 
