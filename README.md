@@ -257,6 +257,18 @@ If a pattern does not match any code element (for example due to a typo), the ru
 
 ![](Documentation/Images/rule-result.png)
 
+### Accept a baseline
+
+Introducing rules into an existing code base is the hard part: the first check often reports hundreds of violations, and it is tempting to give up. The **Accept Baseline** button solves this. It becomes available once a validation has found violations. Clicking it freezes the *current* state: every violation is turned into an explicit `ALLOW` exception that is appended to your rules (grouped by the rule it came from). Afterwards the rules are re-validated, so you immediately see a clean result.
+
+From that point on, only *new* violations are reported — the existing ones are accepted as technical debt you can pay down over time. This is what makes the feature practical for real projects rather than only greenfield code: you can adopt an architectural rule today without having to fix everything it flags first.
+
+The exceptions are exact paths down to the member level, so a baseline freezes precisely what exists today. Overloaded methods (which share one path) are all covered by the single exception generated for them.
+
+### Remove unused rules
+
+Over time — after refactorings, or once baselined elements are deleted — rules can end up matching nothing. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is deliberately conservative: it never removes a rule that still enforces something, so it can never weaken your checks.
+
 ### Command-line
 
 To integrate the tool into a build pipeline, you can call it without a user interface. You can find the syntax of the command-line here:

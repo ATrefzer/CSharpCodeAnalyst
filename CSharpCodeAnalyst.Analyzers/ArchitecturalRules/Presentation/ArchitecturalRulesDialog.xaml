@@ -75,6 +75,15 @@
         <!-- Buttons -->
             <StackPanel  Grid.Row="2"  Orientation="Horizontal"
                          HorizontalAlignment="Right">
+            <Button x:Name="RemoveUnusedRulesButton" Content="{x:Static resources:Strings.Rules_RemoveUnused}"
+                    Width="130" Height="25" Margin="0,0,10,0"
+                    ToolTip="{x:Static resources:Strings.Rules_RemoveUnused_Tooltip}"
+                    Click="RemoveUnusedRulesButton_Click" />
+            <Button x:Name="AcceptBaselineButton" Content="{x:Static resources:Strings.Rules_AcceptBaseline}"
+                    Width="120" Height="25" Margin="0,0,10,0"
+                    ToolTip="{x:Static resources:Strings.Rules_AcceptBaseline_Tooltip}"
+                    IsEnabled="{Binding HasViolations}"
+                    Click="AcceptBaselineButton_Click" />
             <Button x:Name="ValidateButton" Content="{x:Static resources:Strings.Validate}" Width="80" Height="25"
                     Margin="0,0,10,0" IsDefault="True"
                     Click="ValidateButton_Click" />

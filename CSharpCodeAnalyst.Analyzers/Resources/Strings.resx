@@ -156,6 +156,12 @@
     <data name="Analyzer_ArchitecturalRules_PatternNoMatch" xml:space="preserve">
     <value>Rule '{0}': the pattern '{1}' does not match any code element. The rule has no effect.</value>
   </data>
+  <data name="Analyzer_ArchitecturalRules_Cleanup_Removed" xml:space="preserve">
+    <value>Removed {0} rule(s) that matched no code element.</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_Cleanup_NothingToRemove" xml:space="preserve">
+    <value>No ineffective rules found. Every rule matches at least one code element or still enforces a constraint.</value>
+  </data>
     <data name="Analyzer_EventRegistration_Label" xml:space="preserve">
     <value>Event registrations</value>
   </data>
@@ -303,6 +309,21 @@
   </data>
     <data name="Rules_Clear" xml:space="preserve">
     <value>_Clear</value>
+  </data>
+    <data name="Rules_RemoveUnused" xml:space="preserve">
+    <value>Remove _unused rules</value>
+  </data>
+    <data name="Rules_RemoveUnused_Tooltip" xml:space="preserve">
+    <value>Removes rules that match no code element and therefore have no effect. Rules that still enforce something are kept.</value>
+  </data>
+    <data name="Rules_AcceptBaseline" xml:space="preserve">
+    <value>Accept _Baseline</value>
+  </data>
+    <data name="Rules_AcceptBaseline_Tooltip" xml:space="preserve">
+    <value>Adds an ALLOW exception for every current violation, so only new violations are reported from now on. Use this to introduce rules into an existing code base.</value>
+  </data>
+    <data name="ArchitecturalRules_Baseline_Header" xml:space="preserve">
+    <value>Baseline accepted {0}</value>
   </data>
     <data name="ArchitectureRules_Info" xml:space="preserve">
     <value>Four rules are supported:

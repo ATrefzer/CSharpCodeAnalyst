@@ -18,13 +18,13 @@ public static class PatternMatcher
         // Split pattern into base path and wildcard suffix
         var (basePath, expansionMode) = ParsePattern(pattern);
 
-        // Find the start element by exact FullName match
-        var startElement = FindStartElement(basePath, codeGraph);
-        if (startElement == null)
-            return matchingIds; // No matching start element found
-
-        // Apply expansion based on wildcard suffix
-        ApplyExpansion(startElement, expansionMode, matchingIds);
+        // A full path is not necessarily unique: overloaded methods share the same full name.
+        // Resolve to ALL matching elements and union their expansions, so e.g. an ALLOW rule for
+        // a method covers every overload instead of an arbitrary single one.
+        foreach (var startElement in FindStartElements(basePath, codeGraph))
+        {
+            ApplyExpansion(startElement, expansionMode, matchingIds);
+        }
 
         return matchingIds;
     }
@@ -47,10 +47,10 @@ public static class PatternMatcher
         return (pattern, ExpansionMode.Self);
     }
 
-    private static CodeElement? FindStartElement(string basePath, CodeGraph.Graph.CodeGraph codeGraph)
+    private static IEnumerable<CodeElement> FindStartElements(string basePath, CodeGraph.Graph.CodeGraph codeGraph)
     {
-        // Find element with exact FullName match
-        return codeGraph.Nodes.Values.FirstOrDefault(element =>
+        // All elements with an exact FullName match (more than one for overloaded members).
+        return codeGraph.Nodes.Values.Where(element =>
             string.Equals(element.FullName, basePath, StringComparison.OrdinalIgnoreCase));
     }
 

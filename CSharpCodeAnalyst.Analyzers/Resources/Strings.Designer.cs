@@ -603,7 +603,70 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
                 return ResourceManager.GetString("Rules_Clear", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Accept _Baseline.
+        /// </summary>
+        public static string Rules_AcceptBaseline {
+            get {
+                return ResourceManager.GetString("Rules_AcceptBaseline", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove _unused rules.
+        /// </summary>
+        public static string Rules_RemoveUnused {
+            get {
+                return ResourceManager.GetString("Rules_RemoveUnused", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Removes rules that match no code element ....
+        /// </summary>
+        public static string Rules_RemoveUnused_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_RemoveUnused_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Removed {0} rule(s) that matched no code element.
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_Cleanup_Removed {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_Removed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No ineffective rules found. ....
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_Cleanup_NothingToRemove {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_NothingToRemove", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds an ALLOW exception for every current violation, ....
+        /// </summary>
+        public static string Rules_AcceptBaseline_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_AcceptBaseline_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Baseline accepted {0}.
+        /// </summary>
+        public static string ArchitecturalRules_Baseline_Header {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Baseline_Header", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Define the architectural rules for your solution:.
         /// </summary>

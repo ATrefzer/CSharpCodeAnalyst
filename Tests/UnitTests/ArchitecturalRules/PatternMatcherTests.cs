@@ -1,5 +1,6 @@
 using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
@@ -14,6 +15,24 @@ public class PatternMatcherTests
     }
 
     private TestCodeGraph _codeGraph;
+
+    [Test]
+    public void ResolvePattern_DuplicateFullName_ReturnsAllMatches()
+    {
+        // Overloaded methods share the same full path but are distinct elements. A pattern must
+        // resolve to ALL of them, otherwise e.g. an ALLOW rule would only cover one overload.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var overload1 = new CodeElement("m1", CodeElementType.Method, "Save", "MyApp.Business.Service.Save", ns);
+        var overload2 = new CodeElement("m2", CodeElementType.Method, "Save", "MyApp.Business.Service.Save", ns);
+        _codeGraph.Nodes["m1"] = overload1;
+        _codeGraph.Nodes["m2"] = overload2;
+        ns.Children.Add(overload1);
+        ns.Children.Add(overload2);
+
+        var result = PatternMatcher.ResolvePattern("MyApp.Business.Service.Save", _codeGraph);
+
+        Assert.That(result, Is.EquivalentTo(new[] { "m1", "m2" }));
+    }
 
     [Test]
     public void ResolvePattern_ExactMatch_ShouldReturnElement()

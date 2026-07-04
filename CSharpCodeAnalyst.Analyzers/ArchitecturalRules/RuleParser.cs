@@ -9,7 +9,12 @@ public static class RuleParser
     // Allowed character for identifiers. Add - to end.
     private const string AllowedNameChars = @"[a-zA-Z0-9_-]+";
 
-    private static readonly string QualifiedName = $@"{AllowedNameChars}(?:\.{AllowedNameChars})*(?:\.\*{{1,2}})?";
+    // A single path segment. The optional leading dot allows compiler-generated member names
+    // like the constructor ".ctor" or the static constructor ".cctor", which produce a double
+    // dot in the full path (e.g. "MyClass..ctor" = "MyClass" + separator + ".ctor").
+    private static readonly string NameSegment = $@"\.?{AllowedNameChars}";
+
+    private static readonly string QualifiedName = $@"{NameSegment}(?:\.{NameSegment})*(?:\.\*{{1,2}})?";
 
     private static readonly Regex DenyRegex = new(
         $@"^\s*DENY\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",

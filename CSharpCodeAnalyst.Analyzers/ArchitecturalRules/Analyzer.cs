@@ -21,6 +21,9 @@ public class Analyzer : IAnalyzer
     private List<RuleBase> _rules = [];
     private string _rulesText;
 
+    // Violations of the last validation run - the source for "Accept Baseline".
+    private List<Violation> _lastViolations = [];
+
     public Analyzer(IPublisher messaging, IUserNotification userNotification)
     {
         _messaging = messaging;
@@ -59,12 +62,15 @@ public class Analyzer : IAnalyzer
 
         // Set up validation callback
         _openDialog.OnValidateRequested = OnValidateRules;
+        _openDialog.OnAcceptBaselineRequested = OnAcceptBaseline;
+        _openDialog.OnRemoveUnusedRulesRequested = OnRemoveUnusedRules;
 
         // Handle dialog closing
         _openDialog.Closed += (_, _) =>
         {
             _openDialog = null;
             _currentGraph = null;
+            _lastViolations = [];
         };
 
         _openDialog.Show();
@@ -159,6 +165,13 @@ public class Analyzer : IAnalyzer
         // Execute analysis
         var result = RuleEngine.Execute(_rules, _currentGraph);
 
+        // Remember the violations so the user can freeze them as a baseline.
+        _lastViolations = result.Violations;
+        if (_openDialog != null)
+        {
+            _openDialog.HasViolations = result.Violations.Count > 0;
+        }
+
         if (result.Warnings.Count > 0)
         {
             _userNotification.ShowWarning(string.Join(Environment.NewLine, result.Warnings));
@@ -176,6 +189,58 @@ public class Analyzer : IAnalyzer
         // Show violations in tabular format
         var violationsViewModel = new RuleViolationsViewModel(result.Violations, _currentGraph, _messaging);
         _messaging.Publish(new ShowTabularDataRequest(Id, Name, violationsViewModel));
+    }
+
+    /// <summary>
+    ///     Freezes the violations of the last validation as ALLOW exceptions and appends them to
+    ///     the rules. Afterwards the rules are re-validated so the user sees the now-clean state.
+    /// </summary>
+    private void OnAcceptBaseline()
+    {
+        if (_currentGraph == null || _openDialog == null || _lastViolations.Count == 0)
+        {
+            return;
+        }
+
+        var baseline = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, _openDialog.RulesText);
+        if (string.IsNullOrEmpty(baseline))
+        {
+            return;
+        }
+
+        var existing = _openDialog.RulesText.TrimEnd();
+        var header = string.Format(Strings.ArchitecturalRules_Baseline_Header, DateTime.Now);
+        var newText = $"{existing}{Environment.NewLine}{Environment.NewLine}// {header}{Environment.NewLine}{baseline.TrimEnd()}{Environment.NewLine}";
+
+        _openDialog.RulesText = newText;
+
+        // Re-validate so the result table and the button state reflect the new baseline.
+        OnValidateRules(newText);
+    }
+
+    /// <summary>
+    ///     Removes rules that currently match no code element (behaviour-preserving) and re-validates.
+    /// </summary>
+    private void OnRemoveUnusedRules()
+    {
+        if (_currentGraph == null || _openDialog == null)
+        {
+            return;
+        }
+
+        var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(_openDialog.RulesText, _currentGraph);
+        if (removed == 0)
+        {
+            _userNotification.ShowInfo(Strings.Analyzer_ArchitecturalRules_Cleanup_NothingToRemove);
+            return;
+        }
+
+        _openDialog.RulesText = cleaned;
+
+        // Re-validate so the result table and button states reflect the cleaned rule set.
+        OnValidateRules(cleaned);
+
+        _userNotification.ShowSuccess(string.Format(Strings.Analyzer_ArchitecturalRules_Cleanup_Removed, removed));
     }
 
     private void OnApplicationExit(object sender, ExitEventArgs e)

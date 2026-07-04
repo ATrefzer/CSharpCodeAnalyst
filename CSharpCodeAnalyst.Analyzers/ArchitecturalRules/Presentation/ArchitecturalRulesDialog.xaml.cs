@@ -29,9 +29,34 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
     } = string.Empty;
 
     /// <summary>
+    ///     Whether the last validation found violations. Controls the Accept-Baseline button.
+    /// </summary>
+    public bool HasViolations
+    {
+        get;
+        set
+        {
+            if (field == value) { return; }
+
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
     /// Callback invoked when the Validate button is clicked
     /// </summary>
     public Action<string>? OnValidateRequested { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the Accept-Baseline button is clicked
+    /// </summary>
+    public Action? OnAcceptBaselineRequested { get; set; }
+
+    /// <summary>
+    /// Callback invoked when the Remove-Unused-Rules button is clicked
+    /// </summary>
+    public Action? OnRemoveUnusedRulesRequested { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -44,6 +69,16 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
     {
         // Invoke the validation callback without closing the dialog
         OnValidateRequested?.Invoke(RulesText);
+    }
+
+    private void AcceptBaselineButton_Click(object sender, RoutedEventArgs e)
+    {
+        OnAcceptBaselineRequested?.Invoke();
+    }
+
+    private void RemoveUnusedRulesButton_Click(object sender, RoutedEventArgs e)
+    {
+        OnRemoveUnusedRulesRequested?.Invoke();
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)

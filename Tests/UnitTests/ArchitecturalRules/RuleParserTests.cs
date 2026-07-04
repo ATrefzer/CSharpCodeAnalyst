@@ -78,6 +78,30 @@ public class RuleParserTests
     }
 
     [Test]
+    public void ParseRule_ConstructorMemberName_ShouldParse()
+    {
+        // Roslyn names constructors ".ctor", producing a double dot in the full path.
+        var ruleText = "ALLOW: MyApp.Features.AnalyzerManager.LoadAnalyzers -> MyApp.Rules.Analyzer..ctor";
+
+        var rule = RuleParser.ParseRule(ruleText);
+
+        Assert.That(rule, Is.InstanceOf<AllowRule>());
+        var allowRule = (AllowRule)rule;
+        Assert.That(allowRule.Source, Is.EqualTo("MyApp.Features.AnalyzerManager.LoadAnalyzers"));
+        Assert.That(allowRule.Target, Is.EqualTo("MyApp.Rules.Analyzer..ctor"));
+    }
+
+    [Test]
+    public void ParseRule_StaticConstructorMemberName_ShouldParse()
+    {
+        // Static constructors are named ".cctor".
+        var rule = RuleParser.ParseRule("DENY: MyApp.A..cctor -> MyApp.B.SomeType");
+
+        Assert.That(rule, Is.InstanceOf<DenyRule>());
+        Assert.That(((DenyRule)rule).Source, Is.EqualTo("MyApp.A..cctor"));
+    }
+
+    [Test]
     public void ParseRule_CaseInsensitive_ShouldWork()
     {
         // Arrange
