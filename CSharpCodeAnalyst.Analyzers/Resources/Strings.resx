@@ -198,6 +198,43 @@
     <data name="Analyzer_MethodComplexity_NoData" xml:space="preserve">
     <value>No source metrics available. Source metrics are only computed when importing a C# solution.</value>
   </data>
+    <data name="Analyzer_SystemMetrics_Label" xml:space="preserve">
+    <value>System Metrics</value>
+  </data>
+    <data name="Analyzer_SystemMetrics_Tooltip" xml:space="preserve">
+    <value>Metrics about the code base as a whole, such as how far a change ripples through the system on average.</value>
+  </data>
+    <data name="Analyzer_SystemMetrics_NoData" xml:space="preserve">
+    <value>Not enough types to compute system metrics.</value>
+  </data>
+    <data name="Column_SystemMetrics_Metric" xml:space="preserve">
+    <value>Metric</value>
+  </data>
+    <data name="Column_SystemMetrics_Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+    <data name="Column_SystemMetrics_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+    <data name="SystemMetrics_PropagationCost_Name" xml:space="preserve">
+    <value>Propagation cost</value>
+  </data>
+    <data name="SystemMetrics_PropagationCost_Description" xml:space="preserve">
+    <value>The average proportion of types in the system you can reach from a random type (transitively)
+Lower is better; watch the trend across imports rather than the absolute value.</value>
+  </data>
+    <data name="SystemMetrics_TypesAnalyzed_Name" xml:space="preserve">
+    <value>Types analyzed</value>
+  </data>
+    <data name="SystemMetrics_TypesAnalyzed_Description" xml:space="preserve">
+    <value>Number of internal types the metrics are based on.</value>
+  </data>
+    <data name="SystemMetrics_TypeDependencies_Name" xml:space="preserve">
+    <value>Type dependencies</value>
+  </data>
+    <data name="SystemMetrics_TypeDependencies_Description" xml:space="preserve">
+    <value>Distinct directed type-to-type dependencies.</value>
+  </data>
     <data name="Analyzer_Empty_Rule" xml:space="preserve">
     <value>Rule text cannot be empty</value>
   </data>

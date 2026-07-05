@@ -60,6 +60,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No ineffective rules found. Every rule matches at least one code element or still enforces a constraint..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_Cleanup_NothingToRemove {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_NothingToRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removed {0} rule(s) that matched no code element..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_Cleanup_Removed {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_Removed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Architectural rules.
         /// </summary>
         public static string Analyzer_ArchitecturalRules_Label {
@@ -168,6 +186,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to System Metrics.
+        /// </summary>
+        public static string Analyzer_SystemMetrics_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_SystemMetrics_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough types to compute system metrics..
+        /// </summary>
+        public static string Analyzer_SystemMetrics_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_SystemMetrics_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Metrics about the code base as a whole, such as how far a change ripples through the system on average..
+        /// </summary>
+        public static string Analyzer_SystemMetrics_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_SystemMetrics_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type Cohesion.
         /// </summary>
         public static string Analyzer_TypeCohesion_Label {
@@ -222,6 +267,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Baseline accepted {0}.
+        /// </summary>
+        public static string ArchitecturalRules_Baseline_Header {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Baseline_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to clear all rules?.
         /// </summary>
         public static string ArchitecturalRules_ClearConfirm_Message {
@@ -236,6 +290,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string ArchitecturalRules_ClearConfirm_Title {
             get {
                 return ResourceManager.GetString("ArchitecturalRules_ClearConfirm_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generated from the current assembly structure {0}. Review and adjust..
+        /// </summary>
+        public static string ArchitecturalRules_Generated_Header {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Generated_Header", resourceCulture);
             }
         }
         
@@ -470,6 +533,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string Column_SystemMetrics_Description {
+            get {
+                return ResourceManager.GetString("Column_SystemMetrics_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Metric.
+        /// </summary>
+        public static string Column_SystemMetrics_Metric {
+            get {
+                return ResourceManager.GetString("Column_SystemMetrics_Metric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value.
+        /// </summary>
+        public static string Column_SystemMetrics_Value {
+            get {
+                return ResourceManager.GetString("Column_SystemMetrics_Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Class.
         /// </summary>
         public static string Column_TypeCohesion_Class {
@@ -596,15 +686,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Clear.
-        /// </summary>
-        public static string Rules_Clear {
-            get {
-                return ResourceManager.GetString("Rules_Clear", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Accept _Baseline.
         /// </summary>
         public static string Rules_AcceptBaseline {
@@ -612,34 +693,25 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
                 return ResourceManager.GetString("Rules_AcceptBaseline", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to No violations found.
+        ///   Looks up a localized string similar to Adds an ALLOW exception for every current violation, so only new violations are reported from now on. Use this to introduce rules into an existing code base..
         /// </summary>
-        public static string Rules_Status_Clean {
+        public static string Rules_AcceptBaseline_Tooltip {
             get {
-                return ResourceManager.GetString("Rules_Status_Clean", resourceCulture);
+                return ResourceManager.GetString("Rules_AcceptBaseline_Tooltip", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to {0} violation(s) found — see the result table.
+        ///   Looks up a localized string similar to _Clear.
         /// </summary>
-        public static string Rules_Status_Violations {
+        public static string Rules_Clear {
             get {
-                return ResourceManager.GetString("Rules_Status_Violations", resourceCulture);
+                return ResourceManager.GetString("Rules_Clear", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} warning(s) and {1} violation(s) — see the message and the result table.
-        /// </summary>
-        public static string Rules_Status_Warnings {
-            get {
-                return ResourceManager.GetString("Rules_Status_Warnings", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to _Generate rules.
         /// </summary>
@@ -648,79 +720,16 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
                 return ResourceManager.GetString("Rules_Generate", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Overwrites all rules ... freezes the current assembly-level dependency structure.
+        ///   Looks up a localized string similar to Overwrites all rules (no confirmation) with a generated set that freezes the current assembly-level dependency structure. A good starting point you can then refine..
         /// </summary>
         public static string Rules_Generate_Tooltip {
             get {
                 return ResourceManager.GetString("Rules_Generate_Tooltip", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Remove _unused rules.
-        /// </summary>
-        public static string Rules_RemoveUnused {
-            get {
-                return ResourceManager.GetString("Rules_RemoveUnused", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Removes rules that match no code element ....
-        /// </summary>
-        public static string Rules_RemoveUnused_Tooltip {
-            get {
-                return ResourceManager.GetString("Rules_RemoveUnused_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Removed {0} rule(s) that matched no code element.
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_Cleanup_Removed {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_Removed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to No ineffective rules found. ....
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_Cleanup_NothingToRemove {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_Cleanup_NothingToRemove", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Adds an ALLOW exception for every current violation, ....
-        /// </summary>
-        public static string Rules_AcceptBaseline_Tooltip {
-            get {
-                return ResourceManager.GetString("Rules_AcceptBaseline_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Baseline accepted {0}.
-        /// </summary>
-        public static string ArchitecturalRules_Baseline_Header {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_Baseline_Header", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Generated from the current assembly structure {0}. Review and adjust.
-        /// </summary>
-        public static string ArchitecturalRules_Generated_Header {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_Generated_Header", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Define the architectural rules for your solution:.
         /// </summary>
@@ -736,6 +745,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string Rules_LoadFromFile {
             get {
                 return ResourceManager.GetString("Rules_LoadFromFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove _unused rules.
+        /// </summary>
+        public static string Rules_RemoveUnused {
+            get {
+                return ResourceManager.GetString("Rules_RemoveUnused", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Removes rules that match no code element and therefore have no effect. Rules that still enforce something are kept..
+        /// </summary>
+        public static string Rules_RemoveUnused_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_RemoveUnused_Tooltip", resourceCulture);
             }
         }
         
@@ -758,6 +785,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No violations found..
+        /// </summary>
+        public static string Rules_Status_Clean {
+            get {
+                return ResourceManager.GetString("Rules_Status_Clean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} violation(s) found — see the result table..
+        /// </summary>
+        public static string Rules_Status_Violations {
+            get {
+                return ResourceManager.GetString("Rules_Status_Violations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} warning(s) and {1} violation(s) — see the message and the result table..
+        /// </summary>
+        public static string Rules_Status_Warnings {
+            get {
+                return ResourceManager.GetString("Rules_Status_Warnings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show partitions.
         /// </summary>
         public static string ShowPartitions {
@@ -772,6 +826,61 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string Success_Title {
             get {
                 return ResourceManager.GetString("Success_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The average proportion of types in the system you can reach from a random type (transitively)
+        ///Lower is better; watch the trend across imports rather than the absolute value..
+        /// </summary>
+        public static string SystemMetrics_PropagationCost_Description {
+            get {
+                return ResourceManager.GetString("SystemMetrics_PropagationCost_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Propagation cost.
+        /// </summary>
+        public static string SystemMetrics_PropagationCost_Name {
+            get {
+                return ResourceManager.GetString("SystemMetrics_PropagationCost_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Distinct directed type-to-type dependencies..
+        /// </summary>
+        public static string SystemMetrics_TypeDependencies_Description {
+            get {
+                return ResourceManager.GetString("SystemMetrics_TypeDependencies_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type dependencies.
+        /// </summary>
+        public static string SystemMetrics_TypeDependencies_Name {
+            get {
+                return ResourceManager.GetString("SystemMetrics_TypeDependencies_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of internal types the metrics are based on..
+        /// </summary>
+        public static string SystemMetrics_TypesAnalyzed_Description {
+            get {
+                return ResourceManager.GetString("SystemMetrics_TypesAnalyzed_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types analyzed.
+        /// </summary>
+        public static string SystemMetrics_TypesAnalyzed_Name {
+            get {
+                return ResourceManager.GetString("SystemMetrics_TypesAnalyzed_Name", resourceCulture);
             }
         }
         

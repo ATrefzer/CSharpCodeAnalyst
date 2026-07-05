@@ -356,10 +356,15 @@ public partial class DynamicDataGrid
         var style = new Style(typeof(DataGridCell));
         style.Setters.Add(new Setter(BackgroundProperty, backgroundBinding));
 
-        var selected = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true };
-        selected.Setters.Add(new Setter(BackgroundProperty, SystemColors.HighlightBrush));
-        selected.Setters.Add(new Setter(ForegroundProperty, SystemColors.HighlightTextBrush));
-        style.Triggers.Add(selected);
+        // Only override with the selection highlight while the selection is *active* (the grid has
+        // focus). Otherwise a still-selected-but-unfocused cell would keep the blue highlight instead
+        // of falling back to its rating colour.
+        var activeSelection = new MultiTrigger();
+        activeSelection.Conditions.Add(new Condition(DataGridCell.IsSelectedProperty, true));
+        activeSelection.Conditions.Add(new Condition(Selector.IsSelectionActiveProperty, true));
+        activeSelection.Setters.Add(new Setter(BackgroundProperty, SystemColors.HighlightBrush));
+        activeSelection.Setters.Add(new Setter(ForegroundProperty, SystemColors.HighlightTextBrush));
+        style.Triggers.Add(activeSelection);
 
         return style;
     }

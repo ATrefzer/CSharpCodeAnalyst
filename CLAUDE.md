@@ -82,6 +82,19 @@ The UI is not built on a DI container. `App.StartUi` wires up singletons manuall
 
 The ~200-element soft limit (`AppSettings.WarningCodeElementLimit`) still applies; Cytoscape's canvas-based renderer handles it comfortably with `fcose` or `dagre` layouts.
 
+### Analyzers (how to add one)
+Analyzers are the boxes under the **Analyzers** ribbon button. Each implements `IAnalyzer` (`CSharpCodeAnalyst.AnalyzerSdk/Contracts/IAnalyzer.cs`): `Id` / `Name` / `Description`, an `Analyze(CodeGraph)` that does the work, plus `GetPersistentData` / `SetPersistentData` / `IsDirty` / `DataChanged` (return `null` / no-op / `false` for a stateless analyzer — only the Architectural Rules analyzer actually persists). They live in `CSharpCodeAnalyst.Analyzers/<Feature>/` with the presentation VMs under `<Feature>/Presentation/`. The pure algorithm belongs one layer down in `CSharpCodeAnalyst.CodeGraph/Algorithms/Metrics/` (UI-free, unit-tested directly).
+
+Data flow, end to end:
+1. **Algorithm** in `CodeGraph/Algorithms/...` takes the `CodeGraph` and returns a plain result object. Type-level analyses lift relationships to the containing type, deduplicate, and exclude `IsExternal` nodes (see `TypeDependencyAnalysis` / `SystemMetricsAnalysis` as the reference); reuse `Type.IsDependency()` to decide which edges count.
+2. **`Analyze`** runs the algorithm; on an empty result it calls `_userNotification.ShowSuccess(...NoData)` and returns, otherwise it builds a **table view model** and publishes `new ShowTabularDataRequest(Id, Name, vm)` on the message bus.
+3. **Table VM** derives from `Table` (`AnalyzerSdk/DynamicDataGrid/Contracts/TabularData/`): `GetColumns()` returns `TableColumnDefinition`s (each binds a `PropertyName` on the row VM), `GetData()` returns the `TableRow`s. Optional: `CanFilter`/`Filter`, `GetCommands()` (context-menu / double-click actions), row-details template, and per-column `Rating` (an `IMetricRating` → colored cell background, see `ThresholdRating` and `RatingToBrushConverter`).
+4. **Row VM** derives from `TableRow` and exposes one property per column (plus a `SortMemberName`/`RatingValuePropertyName` numeric backer when the displayed column is a formatted string).
+5. **Register** the analyzer in `CSharpCodeAnalyst/Features/Analyzers/AnalyzerManager.LoadAnalyzers` (add a `using <Feature> = ...` alias and an `_analyzers.Add`). **No XAML change** is needed: the ribbon `RibbonSplitButton` binds `ItemsSource` to `MainViewModel.Analyzers` (= `AnalyzerManager.All`) and runs `ExecuteAnalyzerCommand` with the analyzer `Id`; `MainViewModel` publishes the result into a `DynamicTab` that hosts a `DynamicDataGrid`.
+6. **Strings** live in `CSharpCodeAnalyst.Analyzers/Resources/Strings.resx` **and** its hand-maintained `Strings.Designer.cs` (add the getter yourself). Convention: `Analyzer_<Id>_Label` / `_Tooltip` / `_NoData`, `Column_<Id>_<Col>`.
+
+`SystemMetrics` is the smallest complete example to copy from (system-wide single values in a metric/value/description table).
+
 ### AI Advisor
 `Features/Ai/AiClient.cs` talks to any OpenAI-compatible endpoint (including Anthropic, Ollama). Credentials are stored via `Configuration/AiCredentialStorage`. The service is stateless and is invoked from the cycle-group UI to summarize a cycle.
 

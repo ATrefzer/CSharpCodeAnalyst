@@ -4,16 +4,18 @@ This document explains the metrics computed by C# Code Analyst.
 
 Rather than providing a large number of metrics, C# Code Analyst focuses on a small set that answers specific questions.
 
-C# Code Analyst provides three analyses:
+C# Code Analyst provides four analyses:
 
 - **Type Dependencies** helps you find the most important and riskiest types in a solution.
 - **Type Cohesion** helps you find classes that are doing too many unrelated things and may need to be split.
 - **Method Complexity** helps you find the largest and most complicated methods.
+- **System Metrics** describes the code base as a whole with a single value per metric.
 
 Together, they help you understand an unfamiliar codebase and identify potential design issues.
 
-The first two work at the type level, the last at the method level. All are accessed from the *Analyzers*
-ribbon and their results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
+Type Dependencies and Type Cohesion work at the type level, Method Complexity at the method level, and
+System Metrics at the level of the whole system. All are accessed from the *Analyzers* ribbon and their
+results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
 
 ## Type Dependencies
 
@@ -234,6 +236,48 @@ All values are read straight from the method's syntax, no formatting assumptions
   actually complicated or the comments are useful.
 - Complexity counts syntactic decision points; the exact set differs slightly between tools, so absolute
   numbers may not match another analyzer — the *ranking* is what matters.
+
+## System Metrics
+
+Where the other analyses produce one row per type or method, **System Metrics** describes the code base
+*as a whole*: each metric is a single value. Available via *Analyzers → System Metrics*; the result is a
+small table with one row per metric.
+
+| Metric            | Meaning                                                      |
+| ----------------- | ------------------------------------------------------------ |
+| Propagation cost  | How far a change ripples through the system on average (see below). |
+| Types analyzed    | Number of internal types the metrics are based on (the *N* of the analysis).<br />Class, Interface, Struct, Record, Enum, Delegate |
+| Type dependencies | Distinct directed type-to-type dependencies (deduplicated, self edges dropped).<br />Nested types (nested classes/enums) are separate nodes and are counted individually. |
+
+### Propagation cost
+
+Propagation cost answers a single, blunt question about the whole code base: **if I change a random
+type, how much of the rest of the system can the change ripple to on average?**
+
+It is computed on the type-level dependency graph — the same graph the Type Dependencies analyzer uses:
+relationships are lifted to their containing type, deduplicated, and external types are excluded. On that
+graph we take the *transitive* reach of every type and average it:
+
+```
+propagation cost = (ordered type pairs (A, B), A ≠ B, where A can transitively reach B) / (N · (N − 1))
+```
+
+N·(N−1) is simply the maximum number of all possible directed pairs between different types.
+
+So it is the density of the reachability ("who can reach whom") relation, expressed as a percentage:
+
+- **0 %** → fully decoupled: no type can reach any other. Nothing ripples.
+- **100 %** → every type can reach every other type. A change can, in principle, touch everything.
+
+This is the classic *propagation cost* of MacCormack, Rusnak and Baldwin, and it is closely related to
+**blast radius**: blast radius is the transitive reach of a *single* type, propagation cost is the average
+of that reach over all types, normalized to a percentage.
+
+**How to read it:** Do **not** treat the absolute number as a grade — it depends heavily on the size and
+nature of the system, and there is no universal "good" threshold. Its value is as a **trend**: track it
+across imports. A propagation cost that climbs release over release means changes are getting harder to
+contain; one that falls means the architecture is decoupling. It pairs naturally with the cycle analysis —
+large cycles are one of the main drivers of a high propagation cost.
 
 ## Why not Robert C. Martin's package metrics?
 

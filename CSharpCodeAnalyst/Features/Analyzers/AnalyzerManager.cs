@@ -6,6 +6,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Notifications;
 using ArchitecturalRules = CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using MethodComplexity = CSharpCodeAnalyst.Analyzers.MethodComplexity;
+using SystemMetrics = CSharpCodeAnalyst.Analyzers.SystemMetrics;
 using TypeCohesion = CSharpCodeAnalyst.Analyzers.TypeCohesion;
 using TypeDependencies = CSharpCodeAnalyst.Analyzers.TypeDependencies;
 
@@ -69,14 +70,18 @@ internal class AnalyzerManager : IAnalyzerManager
     {
         _analyzers.Clear();
 
-        IAnalyzer analyzer = new Analyzer(messaging, userNotification);
+        IAnalyzer analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
-
-        analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
+        
+        analyzer = new Analyzer(messaging, userNotification);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
-
+        
+        analyzer = new SystemMetrics.Analyzer(messaging, userNotification);
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
+        _analyzers.Add(analyzer.Id, analyzer);
+        
         analyzer = new TypeDependencies.Analyzer(messaging, userNotification);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
@@ -88,6 +93,8 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer = new MethodComplexity.Analyzer(messaging, userNotification, metricStore);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
+
+       
     }
 
     public bool IsDirty()
