@@ -20,15 +20,6 @@ erosion that no static tool can find. On top of that: hotspots = change frequenc
   analysis as a separate application.** Before designing anything here, review Insight and
   decide what to port / merge instead of rewriting ("analysis suite" idea).
 
-### 3. Rule proposal from the current architecture — DONE (2026-07-04)
-
-Implemented as the **Generate rules** button (assembly level, no AI): freezes the current
-dependency structure verbatim. Per internal assembly — 0 internal deps → ISOLATE, otherwise a
-RESTRICT to each assembly it currently depends on. No implicit cycle-only assumptions; captures
-the ist-state so every new inter-assembly dependency is reported. `AssemblyRuleGenerator`.
-Possible follow-ups: namespace-level granularity; smarter handling when external code is imported
-(ISOLATE/RESTRICT can then flag framework usage).
-
 ## Analyzers / metrics with real meaning
 
 - **Cyclicity percentage**: share of elements per namespace/assembly that are part of an SCC.
@@ -39,9 +30,6 @@ Possible follow-ups: namespace-level granularity; smarter handling when external
   understandable. Surprisingly rare in free tools.
 - **Propagation cost** (MacCormack/Baldwin): average share of the system transitively reachable
   from an element. One number for "how tangled is this system", ideal as a trend across imports.
-- **Blast radius ranking**: "if I change X, how many elements transitively depend on it?" As an
-  analyzer table (top 50), not only as an explorer query — answers the most common practical
-  question ("where is change dangerous?") without click work.
 
 ## Usability — small things with large effect
 
