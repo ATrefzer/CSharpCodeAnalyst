@@ -332,7 +332,36 @@ public partial class DynamicDataGrid
             column.SortMemberPath = columnDef.SortMemberName;
         }
 
+        if (columnDef.Rating != null)
+        {
+            column.CellStyle = CreateRatingCellStyle(columnDef);
+        }
+
         return column;
+    }
+
+    /// <summary>
+    ///     Colours the cell background from the column's <see cref="TableColumnDefinition.Rating" />.
+    ///     A selection trigger yields to the system highlight so a selected cell stays visible.
+    /// </summary>
+    private static Style CreateRatingCellStyle(TableColumnDefinition columnDef)
+    {
+        var ratingProperty = columnDef.RatingValuePropertyName ?? columnDef.PropertyName;
+        var backgroundBinding = new Binding(ratingProperty)
+        {
+            Converter = RatingToBrushConverter.Instance,
+            ConverterParameter = columnDef.Rating
+        };
+
+        var style = new Style(typeof(DataGridCell));
+        style.Setters.Add(new Setter(BackgroundProperty, backgroundBinding));
+
+        var selected = new Trigger { Property = DataGridCell.IsSelectedProperty, Value = true };
+        selected.Setters.Add(new Setter(BackgroundProperty, SystemColors.HighlightBrush));
+        selected.Setters.Add(new Setter(ForegroundProperty, SystemColors.HighlightTextBrush));
+        style.Triggers.Add(selected);
+
+        return style;
     }
 
     private DataGridTemplateColumn CreateLinkColumn(TableColumnDefinition columnDef)

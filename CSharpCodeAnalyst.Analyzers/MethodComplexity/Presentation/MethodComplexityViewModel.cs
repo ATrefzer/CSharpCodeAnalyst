@@ -59,7 +59,10 @@ internal class MethodComplexityViewModel : Table
             {
                 Type = ColumnType.Text,
                 Header = Strings.Column_MethodComplexity_Complexity,
-                PropertyName = nameof(MethodComplexityRowViewModel.Complexity)
+                PropertyName = nameof(MethodComplexityRowViewModel.Complexity),
+
+                // McCabe thresholds: 1-10 simple (green), 11-20 moderate (orange), >20 complex (red).
+                Rating = new ThresholdRating(10, 20)
             }
         };
     }

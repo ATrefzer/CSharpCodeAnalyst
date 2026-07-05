@@ -18,5 +18,18 @@ public class TableColumnDefinition
     public bool IsExpandable { get; set; }
 
     public string? SortMemberName { get; set; } = null;
+
+    /// <summary>
+    ///     Optional metric rating. When set, the grid colors the cell background according to the
+    ///     rated value (green / orange / red). Null = no rating, cell renders normally.
+    /// </summary>
+    public IMetricRating? Rating { get; set; }
+
+    /// <summary>
+    ///     Which property the <see cref="Rating" /> is evaluated against. Defaults to
+    ///     <see cref="PropertyName" />. Set this when the displayed column is a formatted string but
+    ///     the rating should use the underlying numeric value (mirrors <see cref="SortMemberName" />).
+    /// </summary>
+    public string? RatingValuePropertyName { get; set; } = null;
 }
 
