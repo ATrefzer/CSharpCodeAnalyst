@@ -106,7 +106,8 @@ average Score = (1 / N) · N = 1
 
 - Metrics are structural only. They say nothing about code quality, correctness, or how hard a type is to read internally — only about its position in the dependency graph.
 - Dependencies are counted as yes/no; the strength or frequency of a coupling is not modeled.
-- External types are excluded, so a type whose real importance comes from being called by framework callbacks (e.g. a controller invoked only by ASP.NET) may rank lower than its runtime role.
+- External types are excluded, so a type whose real importance comes from being called by framework callbacks (e.g., a controller invoked only by ASP.NET) may rank lower than its runtime role. However, when counting externals at the type level, objects, strings, etc. would dominate immediately.
+
 
 ## Type Cohesion
 
@@ -227,9 +228,18 @@ All values are read straight from the method's syntax, no formatting assumptions
 
 ### Limitations
 
-- Metrics are collected only when the option is enabled *before* importing; changing it requires a
-  re-import.
+- Metrics are collected when importing a C# solution and stored with the project. Graphs imported
+  from other sources (e.g. jdeps or plain text) have no source metrics.
 - The counts are structural, not semantic: they measure size and branching, not whether the logic is
   actually complicated or the comments are useful.
 - Complexity counts syntactic decision points; the exact set differs slightly between tools, so absolute
   numbers may not match another analyzer — the *ranking* is what matters.
+
+## Why not Robert C. Martin's package metrics?
+
+Martin's package (component, here assembly) metrics are frequently cited: **Instability** `I = Ce / (Ca + Ce)`,
+**Abstractness** `A = abstract types ÷ all types`, and **Distance from the main sequence**
+`D = |A + I − 1|`, where `Ca` / `Ce` are the afferent / efferent coupling of a *package*. I
+deliberately **do not** compute them. The reasons:
+
+While many books and articles mention these metrics, I can barely find anyone who actually uses them to improve anything. Even worse, abstractness is a shallow syntactic count. A is just *interfaces + abstract classes ÷ all types*. It confuses "number of interfaces" with genuine abstraction: extracting an interface to raise the score does not make a design more abstract, and optimizing for the number invites interface-for-its-own-sake churn. **Distance** is built on A and inherits this weakness. This is a common criticism in practice, and matches our own experience: the metric is quoted far more often than it is acted upon. I'm curious. If you use these metrics, please create an issue and let me know.

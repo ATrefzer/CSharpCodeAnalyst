@@ -25,9 +25,6 @@ erosion that no static tool can find. On top of that: hotspots = change frequenc
 - **Cyclicity percentage**: share of elements per namespace/assembly that are part of an SCC.
   SCCs are already computed — as a single number per module this becomes a health metric that
   can be tracked over time ("cycle debt: 12% → 9%"). Much more tangible than the raw cycle list.
-- **Martin metrics** (Instability, Abstractness, Distance from Main Sequence): trivial to compute
-  from existing fan-in/fan-out; the "zone of pain" classification per assembly is immediately
-  understandable. Surprisingly rare in free tools.
 - **Propagation cost** (MacCormack/Baldwin): average share of the system transitively reachable
   from an element. One number for "how tangled is this system", ideal as a trend across imports.
 
@@ -50,7 +47,5 @@ erosion that no static tool can find. On top of that: hotspots = change frequenc
 
 ## Suggested order
 
-1. Baseline feature (smallest effort, makes the freshly extended rules feature usable in real
-   projects).
-2. Hotspots / change coupling (true differentiator; review Comprehend first, see above).
-3. Cyclicity metric on the side — nearly free.
+1. Hotspots / change coupling (true differentiator; review Comprehend first, see above).
+2. Cyclicity metric on the side — nearly free.
