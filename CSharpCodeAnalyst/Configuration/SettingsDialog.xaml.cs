@@ -32,7 +32,6 @@ public partial class SettingsDialog
         SplitPropertyAccessorsCheckBox.IsChecked = AppSettings.SplitPropertyAccessors;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
         ShowOverviewOnImportCheckBox.IsChecked = AppSettings.ShowOverviewOnImport;
-        CollectSourceMetricsCheckBox.IsChecked = AppSettings.CollectSourceMetrics;
 
         AiEndpointTextBox.Text = UserPreferences.AiEndpoint;
         AiModelTextBox.Text = UserPreferences.AiModel;
@@ -54,7 +53,6 @@ public partial class SettingsDialog
         AppSettings.SplitPropertyAccessors = SplitPropertyAccessorsCheckBox.IsChecked ?? false;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
         AppSettings.ShowOverviewOnImport = ShowOverviewOnImportCheckBox.IsChecked ?? true;
-        AppSettings.CollectSourceMetrics = CollectSourceMetricsCheckBox.IsChecked ?? false;
 
         if (int.TryParse(WarningLimitTextBox.Text, out var warningLimit) && warningLimit > 0)
         {

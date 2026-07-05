@@ -222,17 +222,13 @@ public class Parser(ParserConfig config)
 
 
     /// <summary>
-    ///     Optionally computes per-member source metrics from the symbol map built in phase 1.
+    ///     Computes per-member source metrics from the symbol map built in phase 1.
     ///     Only method-like symbols with an actual implementation are measured; abstract/extern/
     ///     interface declarations and body-less partial signatures are skipped.
     /// </summary>
     private MetricStore CollectSourceMetrics(Artifacts artifacts)
     {
         var metrics = new MetricStore();
-        if (!config.CollectSourceMetrics)
-        {
-            return metrics;
-        }
 
         _progress.SendProgress("Calculating source metrics");
 

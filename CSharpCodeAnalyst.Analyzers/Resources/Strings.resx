@@ -193,10 +193,10 @@
     <value>Method Complexity</value>
   </data>
     <data name="Analyzer_MethodComplexity_Tooltip" xml:space="preserve">
-    <value>Lines of code and cyclomatic complexity per method. Requires 'Collect source metrics on import' to be enabled before importing.</value>
+    <value>Lines of code and cyclomatic complexity per method.</value>
   </data>
     <data name="Analyzer_MethodComplexity_NoData" xml:space="preserve">
-    <value>No source metrics available. Enable 'Collect source metrics on import' in the settings and re-import the solution.</value>
+    <value>No source metrics available. Source metrics are only computed when importing a C# solution.</value>
   </data>
     <data name="Analyzer_Empty_Rule" xml:space="preserve">
     <value>Rule text cannot be empty</value>

@@ -2346,24 +2346,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Collect source metrics on import.
-        /// </summary>
-        public static string Settings_CollectSourceMetrics {
-            get {
-                return ResourceManager.GetString("Settings_CollectSourceMetrics", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Collect per-method lines of code and cyclomatic complexity during import, shown in the Method Complexity analyzer.
-        /// </summary>
-        public static string Settings_CollectSourceMetrics_Tooltip {
-            get {
-                return ResourceManager.GetString("Settings_CollectSourceMetrics_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to General settings.
         /// </summary>
         public static string Settings_General {

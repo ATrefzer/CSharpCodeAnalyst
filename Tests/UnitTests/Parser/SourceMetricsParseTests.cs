@@ -59,25 +59,16 @@ public class SourceMetricsParseTests
                                 }
                                 """;
 
-    private static CSharpCodeAnalyst.CodeParser.Parser.Parser CreateParser(bool collectMetrics)
+    private static CSharpCodeAnalyst.CodeParser.Parser.Parser CreateParser()
     {
         return new CSharpCodeAnalyst.CodeParser.Parser.Parser(
-            new ParserConfig(new ProjectExclusionRegExCollection(), false, collectSourceMetrics: collectMetrics));
-    }
-
-    [Test]
-    public async Task Metrics_NotCollected_WhenFlagIsOff()
-    {
-        var parser = CreateParser(false);
-        var result = await parser.ParseSourceAsync(Code);
-
-        Assert.That(result.Metrics.IsEmpty, Is.True);
+            new ParserConfig(new ProjectExclusionRegExCollection(), false));
     }
 
     [Test]
     public async Task Metrics_AreComputed()
     {
-        var parser = CreateParser(true);
+        var parser = CreateParser();
         var result = await parser.ParseSourceAsync(Code);
 
         var bar = MetricsFor(result, "Bar");
@@ -123,7 +114,7 @@ public class SourceMetricsParseTests
     [Test]
     public async Task Metrics_NotComputed_ForMemberWithoutBody()
     {
-        var parser = CreateParser(true);
+        var parser = CreateParser();
         var result = await parser.ParseSourceAsync(Code);
 
         var noBody = result.CodeGraph.Nodes.Values.Single(

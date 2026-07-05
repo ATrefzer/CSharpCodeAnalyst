@@ -29,7 +29,7 @@ public class Importer
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
-    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
+    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -39,7 +39,7 @@ public class Importer
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
+            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -89,9 +89,9 @@ public class Importer
     }
 
 
-    private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors, bool collectSourceMetrics)
+    private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors, collectSourceMetrics));
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
         parser.Progress.ParserProgress += OnParserProgress;
 
         try

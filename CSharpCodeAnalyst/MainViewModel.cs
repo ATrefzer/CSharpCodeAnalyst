@@ -831,7 +831,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AskUserToSaveProject();
 
-            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode, _applicationSettings.SplitPropertyAccessors, _applicationSettings.CollectSourceMetrics);
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode, _applicationSettings.SplitPropertyAccessors);
 
             if (result.IsCanceled)
             {

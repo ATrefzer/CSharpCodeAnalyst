@@ -150,7 +150,7 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No source metrics available. Enable &apos;Collect source metrics on import&apos; in the settings and re-import the solution..
+        ///   Looks up a localized string similar to No source metrics available. Source metrics are only computed when importing a C# solution..
         /// </summary>
         public static string Analyzer_MethodComplexity_NoData {
             get {
@@ -159,7 +159,7 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Lines of code and cyclomatic complexity per method. Requires &apos;Collect source metrics on import&apos; to be enabled before importing..
+        ///   Looks up a localized string similar to Lines of code and cyclomatic complexity per method..
         /// </summary>
         public static string Analyzer_MethodComplexity_Tooltip {
             get {

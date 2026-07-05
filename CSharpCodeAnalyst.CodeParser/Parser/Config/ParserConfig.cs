@@ -5,13 +5,12 @@ public class ParserConfig
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals,
-        bool includeGeneratedCode = false, bool splitPropertyAccessors = false, bool collectSourceMetrics = false)
+        bool includeGeneratedCode = false, bool splitPropertyAccessors = false)
     {
         _projectExclusionFilters = projectExclusionFilters;
         IncludeExternals = includeExternals;
         IncludeGeneratedCode = includeGeneratedCode;
         SplitPropertyAccessors = splitPropertyAccessors;
-        CollectSourceMetrics = collectSourceMetrics;
     }
 
     public bool IncludeExternals { get; }
@@ -31,13 +30,6 @@ public class ParserConfig
     ///     merged onto a single property node.
     /// </summary>
     public bool SplitPropertyAccessors { get; }
-
-    /// <summary>
-    ///     When enabled, per-member source metrics (lines of code, cyclomatic complexity) are
-    ///     collected during parsing and exposed via <see cref="Parser.Metrics" />. Optional and only
-    ///     used for display.
-    /// </summary>
-    public bool CollectSourceMetrics { get; }
 
     public bool IsProjectIncluded(string projectName)
     {

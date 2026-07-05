@@ -182,8 +182,8 @@ Where the other two analyses look at *types*, **Method Complexity** zooms in on 
 and answers: **which methods are the largest and the most complicated**
 
 Available via *Analyzers → Method Complexity*. Because the numbers come from the method bodies, they
-are **collected during import** and only when *Collect source metrics on import* is enabled in the
-settings (they are then stored with the project). If the option was off, the analyzer tells you so.
+are **collected during import** of a C# solution and stored with the project. Graphs imported from
+other sources (e.g. jdeps or plain text) have no source metrics, and the analyzer tells you so.
 
 The result is a sortable table with one row per method:
 

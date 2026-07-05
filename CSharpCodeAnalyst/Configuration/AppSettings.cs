@@ -29,12 +29,6 @@ public class AppSettings
     /// </summary>
     public bool ShowOverviewOnImport { get; set; } = true;
 
-    /// <summary>
-    ///     When enabled, per-member source metrics (lines of code, cyclomatic complexity) are
-    ///     collected during import for the Method Complexity analyzer.
-    /// </summary>
-    public bool CollectSourceMetrics { get; set; }
-
     public static string CleanupProjectFilters(string filterText)
     {
         char[] separators = [';', '\n', '\r'];
@@ -67,8 +61,7 @@ public class AppSettings
             IncludeGeneratedCode = this.IncludeGeneratedCode,
             SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
-            ShowOverviewOnImport = this.ShowOverviewOnImport,
-            CollectSourceMetrics = this.CollectSourceMetrics
+            ShowOverviewOnImport = this.ShowOverviewOnImport
         };
     }
 }
