@@ -1,10 +1,7 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Focus on outgoing / Incoming
-- Readme: Token usage on refactorings
-- Readme: Analyze cycles without getting overwhelmed
-- Readme: Unhandled cases see below.
+- Architectural rule based on cycles!
 
 - Property has not much contrast to method
 

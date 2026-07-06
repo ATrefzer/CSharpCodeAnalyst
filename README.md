@@ -73,6 +73,8 @@ You can analyze a cycle group further in the **Code Explorer.**
 
 ![](Documentation/Images/cycle-graph.png)
 
+Code Explorer now offers a wide range of tools to analyze the cycle. A good strategy is to identify a set of dependencies that seem incorrect to you and focus on them first (see ‘Focus on Incoming Dependencies’, ‘Focus on Outgoing Dependencies’, ‘Focus on Selected Elements’, etc.).
+
 ### AI Advisor
 
 Once you have loaded a cycle group into the Code Explorer, the **AI Advisor** button in the toolbar sends the cycle to a configured LLM and asks it for ideas on how to resolve or break down the dependency cycle.
@@ -122,10 +124,10 @@ The **Code Explorer** is an interactive canvas where you can explore unfamiliar 
 
 ![image-20240731123233438](Documentation/Images/code-explorer.png)
 
-1. Use the **Tree View** tab to add a single code element to the canvas.
-2. Use the **Advanced Search** tab to search for code elements via more complex expressions. From the search result, you can add multiple code elements at once to the canvas. It supports `type:class`, `type:method`, `source:intern` and ReSharper-style camel-case search (e.g. `SC` finds `ShoppingCart`).
-3. **Right-click** an element on the canvas to explore relationships. For instance, you can track all incoming method calls or expand the inheritance tree.
-4. To perform operations on multiple selected elements, use the tool buttons in the Code Explorer.
+1. Use the **Tree View** or **Advanced Search** tab to search for code elements to add the canvas. The search expression supports `type:class`, `type:method`, `source:intern` and ReSharper-style camel-case search (e.g. `SC` finds `ShoppingCart`).
+2. **Right-click** an element on the canvas to explore its relationships with its neighbors.
+3. Use the **tool buttons**  in the Code Explorer to perform operations on multiple selected elements.
+4. To keep the graph painless, use Hide filters (Ribbon), node collapsing (double-click), and focus on selected elements (tool buttons) or on incoming or outgoing edges (context menu).
 
 ### Examples
 
@@ -164,6 +166,10 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 ![](Documentation/Images/example-uml.png)
 
 ---
+
+### Plain Text
+
+That sounds boring, but it’s actually useful. If you want an LLM to carry out a more extensive refactoring, you may find your tokens disappearing – and yet the result may still not be satisfactory. If you provide the LLM with the task and the structural information as a dependency graph in text, the results and token usage improve significantly. The LLM doesn’t even need a description of the graph.
 
 ## Validate architectural rules
 
@@ -277,6 +283,7 @@ Please take note of the following issues:
 - Source locations are not extracted for all dependencies; only those that are easily extractable are included.
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
 - A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.
+- Primary constructors of records do not create the properties in the code graph.
 
 ## Thank you
 

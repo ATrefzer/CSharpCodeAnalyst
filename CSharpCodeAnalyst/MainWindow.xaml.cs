@@ -74,6 +74,14 @@ public partial class MainWindow
                     }
                 }
             }
+            else if (e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                // Clear() does not populate OldItems, so remove every dynamic TabItem still present.
+                foreach (var tabItem in WorkingArea.Items.OfType<TabItem>().Where(ti => ti.Content is DynamicTabViewModel).ToList())
+                {
+                    WorkingArea.Items.Remove(tabItem);
+                }
+            }
         };
 
         mainVm.DynamicTabActivated += tab => { WorkingArea.SelectedItem = FindDynamicTabItem(tab); };

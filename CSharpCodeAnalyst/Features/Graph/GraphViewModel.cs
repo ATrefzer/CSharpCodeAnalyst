@@ -13,11 +13,9 @@ using CSharpCodeAnalyst.Features.Graph.Filtering;
 using CSharpCodeAnalyst.Features.Graph.RenderOptions;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Resources;
-using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.UI;
-using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Graph;
 
@@ -185,11 +183,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new CodeElementContextCommand(Strings.JumpToCode, JumpToCode, canEnable: CanJumpToCode));
 
         var copyIcon = IconLoader.LoadIcon("Resources/copy_full_path_16.png");
-       
+
         _state.AddCommand(new CodeElementContextCommand(Strings.CopyFullPathToClipboard,
             OnCopyToClipboard, icon: copyIcon));
 
-     
+
 
 
         UndoCommand = new WpfCommand(Undo);
@@ -411,7 +409,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         var ids = GetSelectionOrAllPresentIds();
         var result = _explorer.FindAllRelationshipsDeep(ids);
-        AddToGraph(result.Elements, result.Relationships, addCollapsed: true);
+        AddToGraph(result.Elements, result.Relationships, true);
     }
 
     /// <summary>
@@ -665,69 +663,24 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         FocusAcrossBoundary(element, false);
     }
 
-    /// <summary>
-    ///     Reduces the canvas to the relationships that cross the boundary of the clicked container in
-    ///     one direction. For <paramref name="outgoing" /> only edges that start somewhere inside the
-    ///     container (any descendant, including itself) and end outside it survive; for incoming the
-    ///     reverse. Only the endpoints of those edges remain - everything that does not participate in a
-    ///     crossing edge is removed. Lets you break a large dependency cycle down into "what does this
-    ///     part reach out to" / "who reaches into it".
-    /// </summary>
+    
     private void FocusAcrossBoundary(CodeElement element, bool outgoing)
     {
         var graph = _state.CodeGraph;
-        if (!graph.Nodes.TryGetValue(element.Id, out var node))
+
+        var result = CodeGraphServices.FocusOnIncomingEdges(graph, element, outgoing);
+        if (!result.Success || result.NewGraph is null)
         {
-            return;
-        }
-
-        var inside = node.GetChildrenIncludingSelf();
-
-        bool CrossesBoundary(Relationship relationship)
-        {
-            var sourceInside = inside.Contains(relationship.SourceId);
-            var targetInside = inside.Contains(relationship.TargetId);
-            return outgoing ? sourceInside && !targetInside : !sourceInside && targetInside;
-        }
-
-        var idsToKeep = new HashSet<string>();
-        foreach (var relationship in graph.GetAllRelationships())
-        {
-            if (CrossesBoundary(relationship))
-            {
-                idsToKeep.Add(relationship.SourceId);
-                idsToKeep.Add(relationship.TargetId);
-                
-                // Keep also the parent chain intact.
-                var source = graph.Nodes[relationship.SourceId];
-                var target = graph.Nodes[relationship.TargetId];
-
-                var parentsInGraph = source.GetPathToRoot(false)
-                    .Union(target.GetPathToRoot(false)).Select(e => e.Id);
-                
-                // The parents that are already in the graph.
-                idsToKeep.UnionWith(parentsInGraph);
-            }
-        }
-        
-    
-
-        if (idsToKeep.Count == 0)
-        {
-            // Nothing crosses the boundary in this direction - leave the canvas untouched.
             return;
         }
 
         PushUndo();
 
         var session = _state.GetSession();
-        var newGraph = graph.Clone(CrossesBoundary, idsToKeep);
-
-        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
         var presentationState = session.PresentationState.Clone();
-        presentationState.RemoveStates(idsToRemove);
+        presentationState.RemoveStates(result.RemovedIds);
 
-        _state.LoadSession(newGraph, presentationState);
+        _state.LoadSession(result.NewGraph, presentationState);
     }
 
     private void FindSpecializations(CodeElement method)
@@ -838,8 +791,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
         // The deep variants can pull in large subtrees; add them collapsed like the
         // per-element context-menu commands do.
-        var addCollapsed = request.Direction is ExploreDirection.OutgoingRelationshipsDeep
-            or ExploreDirection.IncomingRelationshipsDeep;
+        var addCollapsed = request.Direction is ExploreDirection.OutgoingRelationshipsDeep or ExploreDirection.IncomingRelationshipsDeep;
 
         // With a single selected node we can re-center on it; for a multi-selection there
         // is no single anchor, so we keep the default fit-to-graph.
@@ -913,8 +865,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     private static bool IsCallable(CodeElement? method)
     {
-        return method is { ElementType: CodeElementType.Method or CodeElementType.Property
-            or CodeElementType.PropertyAccessor or CodeElementType.Event };
+        return method is { ElementType: CodeElementType.Method or CodeElementType.Property or CodeElementType.PropertyAccessor or CodeElementType.Event };
     }
 
 
