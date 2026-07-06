@@ -140,7 +140,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
 
         ShowGalleryCommand = new WpfCommand(OnShowGallery);
-        ShowLegendCommand = new WpfCommand(OnShowLegend);
         OpenFilterDialogCommand = new WpfCommand(OnOpenFilterDialog);
         OpenSettingsDialogCommand = new WpfCommand(OnOpenSettingsDialog);
         ExportToDgmlCommand = new WpfCommand(OnExportToDgml);
@@ -266,7 +265,29 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand ExportToDsiCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
-    public ICommand ShowLegendCommand { get; }
+    public bool IsLegendOpen
+    {
+        get;
+        set
+        {
+            if (field == value)
+            {
+                return;
+            }
+
+            field = value;
+            OnPropertyChanged();
+
+            if (value)
+            {
+                OpenLegendDialog();
+            }
+            else
+            {
+                _openedLegendDialog?.Close();
+            }
+        }
+    }
     public ICommand ExecuteAnalyzerCommand { get; set; }
     public ICommand SnapshotCommand { get; }
     public ICommand RestoreCommand { get; }
@@ -538,18 +559,28 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private void OnShowLegend()
+    private void OpenLegendDialog()
     {
-        if (_openedLegendDialog == null)
+        if (_openedLegendDialog != null)
         {
-            _openedLegendDialog = new LegendDialog
-            {
-                Owner = Application.Current.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner
-            };
-            _openedLegendDialog.Closed += (_, _) => _openedLegendDialog = null;
-            _openedLegendDialog.Show();
+            _openedLegendDialog.Activate();
+            return;
         }
+
+        _openedLegendDialog = new LegendDialog
+        {
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        _openedLegendDialog.Closed += OnLegendDialogClosed;
+        _openedLegendDialog.Show();
+    }
+
+    private void OnLegendDialogClosed(object? sender, EventArgs e)
+    {
+        _openedLegendDialog!.Closed -= OnLegendDialogClosed;
+        _openedLegendDialog = null;
+        IsLegendOpen = false;
     }
 
     private void OnOpenFilterDialog()

@@ -73,6 +73,6 @@ public static class CodeGraphServices
         var newGraph = graph.Clone(CrossesBoundary, idsToKeep);
         var removedIds = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
 
-        return new GraphResult { NewGraph = newGraph, RemovedIds = removedIds, Success = true };
+        return new GraphResult { NewGraph = newGraph, RemovedIds = removedIds, Success = true};
     }
 }

@@ -325,14 +325,13 @@
                 <!-- Help Ribbon Group -->
                 <RibbonGroup Header="{x:Static resources:Strings.Help_Header}"
                              LargeImageSource="/Resources/help_32.png">
-                    <RibbonButton Label="{x:Static resources:Strings.Legend_Label}"
-                                  LargeImageSource="/Resources/legend_32.png"
-
-                                  Command="{Binding ShowLegendCommand}" KeyTip="LE">
-                        <RibbonButton.ToolTip>
+                    <RibbonToggleButton Label="{x:Static resources:Strings.Legend_Label}"
+                                        LargeImageSource="/Resources/legend_32.png"
+                                        IsChecked="{Binding IsLegendOpen, Mode=TwoWay}" KeyTip="LE">
+                        <RibbonToggleButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Legend_Tooltip}" />
-                        </RibbonButton.ToolTip>
-                    </RibbonButton>
+                        </RibbonToggleButton.ToolTip>
+                    </RibbonToggleButton>
                 </RibbonGroup>
 
                 <!-- Helpers Ribbon Group -->
