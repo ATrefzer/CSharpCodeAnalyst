@@ -73,7 +73,7 @@ You can analyze a cycle group further in the **Code Explorer.**
 
 ![](Documentation/Images/cycle-graph.png)
 
-Code Explorer now offers a wide range of tools to analyze the cycle. A good strategy is to identify a set of dependencies that seem incorrect to you and focus on them first (see ‘Focus on Incoming Dependencies’, ‘Focus on Outgoing Dependencies’, ‘Focus on Selected Elements’, etc.).
+The Code Explorer now offers a wide range of tools to analyze the cycle. A good strategy is to identify a set of dependencies that seem incorrect to you and focus on them first (see ‘Focus on Incoming Dependencies’, ‘Focus on Outgoing Dependencies’, ‘Focus on Selected Elements’, etc.).
 
 ### AI Advisor
 
