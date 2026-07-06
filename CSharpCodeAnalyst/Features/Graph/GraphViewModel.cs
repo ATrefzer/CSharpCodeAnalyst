@@ -165,6 +165,9 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new CodeElementContextCommand(Strings.AllOutgoingRelationshipsDeep,
             FindAllOutgoingRelationshipsDeep));
 
+        _state.AddCommand(new CodeElementContextCommand(Strings.FocusOnIncomingDeep, FocusOnIncomingDeep));
+        _state.AddCommand(new CodeElementContextCommand(Strings.FocusOnOutgoingDeep, FocusOnOutgoingDeep));
+
 
         /*
             Partition belongs to the tree view because it refers to all code elements inside the class.
@@ -652,6 +655,81 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         AddToGraph(result.Elements, result.Relationships, true, element.Id);
     }
 
+    private void FocusOnOutgoingDeep(CodeElement element)
+    {
+        FocusAcrossBoundary(element, true);
+    }
+
+    private void FocusOnIncomingDeep(CodeElement element)
+    {
+        FocusAcrossBoundary(element, false);
+    }
+
+    /// <summary>
+    ///     Reduces the canvas to the relationships that cross the boundary of the clicked container in
+    ///     one direction. For <paramref name="outgoing" /> only edges that start somewhere inside the
+    ///     container (any descendant, including itself) and end outside it survive; for incoming the
+    ///     reverse. Only the endpoints of those edges remain - everything that does not participate in a
+    ///     crossing edge is removed. Lets you break a large dependency cycle down into "what does this
+    ///     part reach out to" / "who reaches into it".
+    /// </summary>
+    private void FocusAcrossBoundary(CodeElement element, bool outgoing)
+    {
+        var graph = _state.CodeGraph;
+        if (!graph.Nodes.TryGetValue(element.Id, out var node))
+        {
+            return;
+        }
+
+        var inside = node.GetChildrenIncludingSelf();
+
+        bool CrossesBoundary(Relationship relationship)
+        {
+            var sourceInside = inside.Contains(relationship.SourceId);
+            var targetInside = inside.Contains(relationship.TargetId);
+            return outgoing ? sourceInside && !targetInside : !sourceInside && targetInside;
+        }
+
+        var idsToKeep = new HashSet<string>();
+        foreach (var relationship in graph.GetAllRelationships())
+        {
+            if (CrossesBoundary(relationship))
+            {
+                idsToKeep.Add(relationship.SourceId);
+                idsToKeep.Add(relationship.TargetId);
+                
+                // Keep also the parent chain intact.
+                var source = graph.Nodes[relationship.SourceId];
+                var target = graph.Nodes[relationship.TargetId];
+
+                var parentsInGraph = source.GetPathToRoot(false)
+                    .Union(target.GetPathToRoot(false)).Select(e => e.Id);
+                
+                // The parents that are already in the graph.
+                idsToKeep.UnionWith(parentsInGraph);
+            }
+        }
+        
+    
+
+        if (idsToKeep.Count == 0)
+        {
+            // Nothing crosses the boundary in this direction - leave the canvas untouched.
+            return;
+        }
+
+        PushUndo();
+
+        var session = _state.GetSession();
+        var newGraph = graph.Clone(CrossesBoundary, idsToKeep);
+
+        var idsToRemove = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
+        var presentationState = session.PresentationState.Clone();
+        presentationState.RemoveStates(idsToRemove);
+
+        _state.LoadSession(newGraph, presentationState);
+    }
+
     private void FindSpecializations(CodeElement method)
     {
         var result = _explorer.ExploreWithAccessors(method.Id, _explorer.FindSpecializations);
@@ -934,7 +1012,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)
     {
-        // No  undo because the old model does not exist anymore.
+        // No undo because the old model does not exist anymore.
 
         var session = _state.GetSession();
         var canvasGraph = _state.CodeGraph;

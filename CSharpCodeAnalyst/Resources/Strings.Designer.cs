@@ -249,6 +249,18 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("AllOutgoingRelationshipsDeep", resourceCulture);
             }
         }
+
+        public static string FocusOnIncomingDeep {
+            get {
+                return ResourceManager.GetString("FocusOnIncomingDeep", resourceCulture);
+            }
+        }
+
+        public static string FocusOnOutgoingDeep {
+            get {
+                return ResourceManager.GetString("FocusOnOutgoingDeep", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Analyzers.

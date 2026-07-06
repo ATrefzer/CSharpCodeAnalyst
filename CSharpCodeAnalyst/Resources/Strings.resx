@@ -137,6 +137,12 @@
     <data name="AllOutgoingRelationshipsDeep" xml:space="preserve">
     <value>All outgoing relationships (deep)</value>
   </data>
+    <data name="FocusOnIncomingDeep" xml:space="preserve">
+    <value>Focus on incoming (deep)</value>
+  </data>
+    <data name="FocusOnOutgoingDeep" xml:space="preserve">
+    <value>Focus on outgoing (deep)</value>
+  </data>
     <data name="ExploreNeighbors" xml:space="preserve">
     <value>Explore neighbors</value>
   </data>
