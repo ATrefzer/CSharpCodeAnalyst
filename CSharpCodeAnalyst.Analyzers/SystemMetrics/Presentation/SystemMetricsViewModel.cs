@@ -21,6 +21,11 @@ internal class SystemMetricsViewModel : Table
                 Strings.SystemMetrics_PropagationCost_Description),
 
             new SystemMetricRowViewModel(
+                Strings.SystemMetrics_Cyclicity_Name,
+                metrics.Cyclicity.ToString("P1", CultureInfo.InvariantCulture),
+                Strings.SystemMetrics_Cyclicity_Description),
+
+            new SystemMetricRowViewModel(
                 Strings.SystemMetrics_TypesAnalyzed_Name,
                 metrics.TypeCount.ToString(CultureInfo.InvariantCulture),
                 Strings.SystemMetrics_TypesAnalyzed_Description),

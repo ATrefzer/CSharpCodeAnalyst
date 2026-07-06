@@ -1,3 +1,5 @@
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
@@ -20,6 +22,12 @@ public class SystemMetrics
     ///     to a random type can ripple to. 0 = fully decoupled, 1 = every type reaches every other.
     /// </summary>
     public double PropagationCost { get; init; }
+
+    /// <summary>
+    ///     Cyclicity in [0,1]: the share of types that sit inside a dependency cycle (a strongly
+    ///     connected component of two or more types). 0 = fully acyclic, 1 = every type is entangled.
+    /// </summary>
+    public double Cyclicity { get; init; }
 }
 
 /// <summary>
@@ -107,8 +115,26 @@ public static class SystemMetricsAnalysis
         {
             TypeCount = n,
             TypeDependencyCount = edges.Count,
-            PropagationCost = propagationCost
+            PropagationCost = propagationCost,
+            Cyclicity = CalculateCyclicity(typeIds, outgoing, n)
         };
+    }
+
+    /// <summary>
+    ///     Share of types that belong to a cycle. We run the shared Tarjan SCC algorithm on the type
+    ///     graph and count the types that sit in a strongly connected component of two or more types
+    ///     (a single type is trivially its own SCC and does not count; self edges were already dropped).
+    /// </summary>
+    private static double CalculateCyclicity(HashSet<string> typeIds, Dictionary<string, List<string>> outgoing, int n)
+    {
+        var graph = new AdjacencyGraph(typeIds, outgoing);
+        var sccs = Tarjan.FindStronglyConnectedComponents(graph);
+
+        var typesInCycles = sccs
+            .Where(scc => scc.Vertices.Count >= 2)
+            .Sum(scc => scc.Vertices.Count);
+
+        return (double)typesInCycles / n;
     }
 
     private static CodeElement? ContainingType(Graph.CodeGraph graph, string elementId)
@@ -127,5 +153,36 @@ public static class SystemMetricsAnalysis
         return element.ElementType is CodeElementType.Class or CodeElementType.Interface
             or CodeElementType.Struct or CodeElementType.Record or CodeElementType.Enum
             or CodeElementType.Delegate;
+    }
+
+    /// <summary>
+    ///     Minimal adapter that exposes the already-built type graph (vertices + outgoing adjacency)
+    ///     to the shared <see cref="Tarjan" /> algorithm. Only <see cref="GetVertices" /> and
+    ///     <see cref="GetNeighbors" /> are used by Tarjan; the rest satisfies the interface.
+    /// </summary>
+    private sealed class AdjacencyGraph(HashSet<string> vertices, Dictionary<string, List<string>> outgoing)
+        : IGraphRepresentation<string>
+    {
+        public uint VertexCount => (uint)vertices.Count;
+
+        public IReadOnlyCollection<string> GetVertices()
+        {
+            return vertices;
+        }
+
+        public IReadOnlyCollection<string> GetNeighbors(string vertex)
+        {
+            return outgoing[vertex];
+        }
+
+        public bool IsVertex(string vertex)
+        {
+            return vertices.Contains(vertex);
+        }
+
+        public bool IsEdge(string source, string target)
+        {
+            return outgoing.TryGetValue(source, out var neighbors) && neighbors.Contains(target);
+        }
     }
 }

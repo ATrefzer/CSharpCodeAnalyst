@@ -246,6 +246,7 @@ small table with one row per metric.
 | Metric            | Meaning                                                      |
 | ----------------- | ------------------------------------------------------------ |
 | Propagation cost  | How far a change ripples through the system on average (see below). |
+| Cyclicity         | Share of types that sit inside a dependency cycle (see below). |
 | Types analyzed    | Number of internal types the metrics are based on (the *N* of the analysis).<br />Class, Interface, Struct, Record, Enum, Delegate |
 | Type dependencies | Distinct directed type-to-type dependencies (deduplicated, self edges dropped).<br />Nested types (nested classes/enums) are separate nodes and are counted individually. |
 
@@ -278,6 +279,31 @@ nature of the system, and there is no universal "good" threshold. Its value is a
 across imports. A propagation cost that climbs release over release means changes are getting harder to
 contain; one that falls means the architecture is decoupling. It pairs naturally with the cycle analysis —
 large cycles are one of the main drivers of a high propagation cost.
+
+### Cyclicity
+
+Cyclicity answers: **how much of the code base is tangled up in dependency cycles?** It is the share of
+types that sit inside a cycle:
+
+```
+cyclicity = (types that belong to a strongly connected component of ≥ 2 types) / N
+```
+
+It runs on the same type-level graph as propagation cost. We compute the strongly connected components
+(SCCs) with the same Tarjan algorithm the cycle search uses; a type counts as "cyclic" when it sits in an
+SCC of two or more types. A lone type is trivially its own SCC and does not count (self dependencies are
+ignored).
+
+- **0 %** → the type graph is acyclic — the ideal.
+- **100 %** → every type is part of one big knot.
+
+Unlike propagation cost, cyclicity *does* have a natural target: **lower is always better, and 0 % is a
+meaningful goal** at the type level. It is the single-number companion to the *Cycles* view: the Cycle
+Groups tab shows you *which* cycles exist, cyclicity tells you *how much* of the system they involve and
+whether that share is shrinking release over release.
+
+Note this is the system-wide figure. A per-namespace / per-assembly breakdown (which module is the most
+tangled) is a natural follow-up but is not computed yet.
 
 ## Why not Robert C. Martin's package metrics?
 

@@ -830,8 +830,27 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The average proportion of types in the system you can reach from a random type (transitively)
-        ///Lower is better; watch the trend across imports rather than the absolute value..
+        ///   Looks up a localized string similar to Percentage of types in the system that are part of a dependency cycle.
+        ///Lower is better. 0% means the type graph is acyclic..
+        /// </summary>
+        public static string SystemMetrics_Cyclicity_Description {
+            get {
+                return ResourceManager.GetString("SystemMetrics_Cyclicity_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cyclicity.
+        /// </summary>
+        public static string SystemMetrics_Cyclicity_Name {
+            get {
+                return ResourceManager.GetString("SystemMetrics_Cyclicity_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The average percentage of types in the system that are transitively reachable from a randomly chosen type.
+        ///Lower is better. Focus on the trend across imports rather than the absolute value..
         /// </summary>
         public static string SystemMetrics_PropagationCost_Description {
             get {

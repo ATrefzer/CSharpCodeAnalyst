@@ -98,5 +98,54 @@ public class SystemMetricsAnalysisTests
 
         Assert.That(metrics.TypeCount, Is.EqualTo(1));
         Assert.That(metrics.PropagationCost, Is.EqualTo(0.0));
+        Assert.That(metrics.Cyclicity, Is.EqualTo(0.0));
+    }
+
+    [Test]
+    public void AcyclicChain_HasZeroCyclicity()
+    {
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        Depend(a, b);
+        Depend(b, c);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.Cyclicity, Is.EqualTo(0.0));
+    }
+
+    [Test]
+    public void FullCycle_HasCyclicityOne()
+    {
+        // A -> B -> C -> A: all three types form one strongly connected component.
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        Depend(a, b);
+        Depend(b, c);
+        Depend(c, a);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.Cyclicity, Is.EqualTo(1.0).Within(1e-9));
+    }
+
+    [Test]
+    public void PartialCycle_CountsOnlyTheEntangledTypes()
+    {
+        // A <-> B is a cycle (2 types); C and D are acyclic. 2 of 4 types => 50 %.
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        var d = Type("D");
+        Depend(a, b);
+        Depend(b, a);
+        Depend(d, c);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.TypeCount, Is.EqualTo(4));
+        Assert.That(metrics.Cyclicity, Is.EqualTo(0.5).Within(1e-9));
     }
 }

@@ -22,9 +22,11 @@ erosion that no static tool can find. On top of that: hotspots = change frequenc
 
 ## Analyzers / metrics with real meaning
 
-- **Cyclicity percentage**: share of elements per namespace/assembly that are part of an SCC.
-  SCCs are already computed — as a single number per module this becomes a health metric that
-  can be tracked over time ("cycle debt: 12% → 9%"). Much more tangible than the raw cycle list.
+- **Cyclicity percentage** — system-wide version DONE: a "Cyclicity" row in the **System Metrics**
+  analyzer (`SystemMetricsAnalysis`), the share of *types* that sit in a cycle (SCC >= 2), computed
+  with the shared Tarjan on the type graph. Still open: the per-namespace / per-assembly breakdown
+  (which module is most tangled) — a table with one row per module, via a level-lift function
+  (ContainingType / ContainingNamespace) + Tarjan, not the mixed-level SearchGraph.
 - **Propagation cost** (MacCormack/Baldwin) — DONE. Implemented as the first metric of the new
   **System Metrics** analyzer (`SystemMetricsAnalysis`, one value for the whole system): average
   share of the *other* types a change can transitively ripple to. The System Metrics analyzer is the

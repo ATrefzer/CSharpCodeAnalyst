@@ -220,8 +220,15 @@
     <value>Propagation cost</value>
   </data>
     <data name="SystemMetrics_PropagationCost_Description" xml:space="preserve">
-    <value>The average proportion of types in the system you can reach from a random type (transitively)
-Lower is better; watch the trend across imports rather than the absolute value.</value>
+    <value>The average percentage of types in the system that are transitively reachable from a randomly chosen type.
+Lower is better. Focus on the trend across imports rather than the absolute value.</value>
+  </data>
+    <data name="SystemMetrics_Cyclicity_Name" xml:space="preserve">
+    <value>Cyclicity</value>
+  </data>
+    <data name="SystemMetrics_Cyclicity_Description" xml:space="preserve">
+    <value>Percentage of types in the system that are part of a dependency cycle.
+Lower is better. 0% means the type graph is acyclic.</value>
   </data>
     <data name="SystemMetrics_TypesAnalyzed_Name" xml:space="preserve">
     <value>Types analyzed</value>
