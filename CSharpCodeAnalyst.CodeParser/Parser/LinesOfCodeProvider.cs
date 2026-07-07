@@ -16,8 +16,8 @@ public enum EscapeStyle
     // '\' escapes the following character (regular strings, chars, template literals).
     Backslash,
 
-    // The delimiter written twice in a row is a literal delimiter; '\' has no special meaning
-    // (C# verbatim strings: "" inside @"...").
+    // Writing the delimiter twice in a row is the escape sequence for a literal delimiter
+    // character; '\' has no special meaning (C# verbatim strings: "" inside @"...").
     DoubledDelimiter
 }
 
@@ -335,8 +335,9 @@ public class LinesOfCodeProvider
     }
 
     /// <summary>
-    ///     C# verbatim strings: End written twice in a row is an escaped embedded delimiter and
-    ///     keeps the region open; a single End closes it. '\' has no special meaning.
+    ///     C# verbatim strings: End written twice in a row is the escape sequence for a literal,
+    ///     embedded delimiter character and keeps the region open; a single End closes it. '\'
+    ///     has no special meaning.
     /// </summary>
     private static RegionStep EvaluateDoubledDelimiter(string line, int index, string end)
     {
