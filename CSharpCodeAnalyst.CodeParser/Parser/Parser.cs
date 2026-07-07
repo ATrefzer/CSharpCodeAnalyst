@@ -242,7 +242,7 @@ public class Parser(ParserConfig config)
             var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
             if (syntax is not null && SourceMetricsCollector.HasBody(syntax))
             {
-                metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
+                metrics.Add(elementId, SourceMetricsCollector.ComputeForMethodDeclaration(syntax));
             }
         }
 

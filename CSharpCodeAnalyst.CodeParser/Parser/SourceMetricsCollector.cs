@@ -22,20 +22,59 @@ public static class SourceMetricsCollector
         return declaration.ChildNodes().Any(n => n is BlockSyntax or ArrowExpressionClauseSyntax);
     }
 
-    public static MemberMetrics Compute(SyntaxNode declaration)
+    public static (int Code, int Comment) ComputeForFile(string pathToCSharpFile)
+    {
+        var text = File.ReadAllText(pathToCSharpFile);
+        var tree = CSharpSyntaxTree.ParseText(text, path: pathToCSharpFile);
+        var root = tree.GetRoot();
+        var stats = ComputeFromSyntaxNode(root);
+        return (stats.codeLines.Count, stats.commentLines.Count);
+    }
+
+    public static MemberMetrics ComputeForMethodDeclaration(SyntaxNode declaration)
+    {
+        var (codeLines, commentLines) = ComputeFromSyntaxNode(declaration);
+
+        return new MemberMetrics
+        {
+            CodeLines = codeLines.Count,
+            CommentLines = commentLines.Count,
+            LogicalLinesOfCode = CountLogicalLines(declaration),
+            CyclomaticComplexity = ComputeCyclomaticComplexity(declaration)
+        };
+    }
+
+    /// <summary>
+    /// The given syntaxNode may be whole syntax tree of a C# file or a method declaration to calculate the metrics for a
+    /// method only.
+    /// </summary>
+    private static (HashSet<int> codeLines, HashSet<int> commentLines) ComputeFromSyntaxNode(SyntaxNode syntaxNode)
     {
         var codeLines = new HashSet<int>();
         var commentLines = new HashSet<int>();
 
         // A line is "code" when a real token touches it. Method signature and curly standalone curly brackets count.
-        foreach (var token in declaration.DescendantTokens())
+        // There is no separate "blank" concept: every line in a token's/trivia's line span is
+        // attributed to Code/Comment, even if that line is empty. A multi-line raw or verbatim
+        // string literal is a single token, so a blank-looking line inside it still counts as
+        // Code here - unlike LinesOfCodeProvider (the text-scanning counter for the same
+        // purpose), which always counts a blank-looking line as blank regardless of context.
+        // This is the main source of the small per-file differences between the two counters
+        // and is accepted, not a bug - see ArchitecturalRules/Analyzer.cs GetSampleRules() for a
+        // real example (6 blank lines inside a raw string literal).
+        foreach (var token in syntaxNode.DescendantTokens())
         {
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                // We would overcount to 1 for an empty file.
+                continue;
+            }
             AddLines(codeLines, token.GetLocation().GetLineSpan());
         }
 
         // Comment trivia inside the member, plus the documentation / comment block directly above the
         // signature (which lives in the first token's leading trivia and is part of DescendantTrivia).
-        foreach (var trivia in declaration.DescendantTrivia())
+        foreach (var trivia in syntaxNode.DescendantTrivia())
         {
             if (IsComment(trivia.Kind()))
             {
@@ -45,14 +84,7 @@ public static class SourceMetricsCollector
 
         // A line with code stays code even if it also carries a trailing comment.
         commentLines.ExceptWith(codeLines);
-
-        return new MemberMetrics
-        {
-            CodeLines = codeLines.Count,
-            CommentLines = commentLines.Count,
-            LogicalLinesOfCode = CountLogicalLines(declaration),
-            CyclomaticComplexity = ComputeCyclomaticComplexity(declaration)
-        };
+        return (codeLines, commentLines);
     }
 
     private static void AddLines(HashSet<int> lines, FileLinePositionSpan span)
