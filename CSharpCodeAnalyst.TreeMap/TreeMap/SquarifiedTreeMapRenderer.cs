@@ -78,8 +78,7 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap
                 // See HierarchyBuilder.InsertLeaf.
 
                 var color = DefaultDrawingPrimitives.WhiteToRedGradient.GradientStops.GetRelativeColor(data.NormalizedWeightMetric);
-                brush = new SolidColorBrush(color);
-                brush.Freeze();
+                brush = BrushCache.GetBrush(color);
             }
 
             return brush;

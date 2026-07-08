@@ -131,13 +131,54 @@ public sealed class HotspotNode
         _children.Sort((a, b) => b.AreaMetricSum.CompareTo(a.AreaMetricSum));
     }
 
-    /// <summary>The weight metric is normalized only across the leaf nodes.</summary>
+    /// <summary>
+    ///     The weight metric is normalized only across the leaf nodes, using a rank-based
+    ///     (percentile) mapping instead of min-max: commit counts are heavily skewed, so with
+    ///     min-max a single outlier gets all the color and almost every other leaf is compressed
+    ///     into the bottom of the scale. With percentiles the median leaf sits in the middle of
+    ///     the color ramp. Ties share the same percentile (average rank), so equal weights always
+    ///     get equal colors - including the all-equal case, which min-max cannot handle at all
+    ///     (division by zero).
+    /// </summary>
     public void NormalizeWeightMetrics()
     {
-        var min = double.MaxValue;
-        var max = 0.0;
-        GetMinMaxWeight(ref min, ref max);
-        NormalizeWeightMetrics(min, max - min);
+        var leaves = new List<HotspotNode>();
+        CollectLeaves(leaves);
+
+        if (leaves.Count == 0)
+        {
+            return;
+        }
+
+        if (leaves.Count == 1)
+        {
+            leaves[0].NormalizedWeightMetric = 1.0;
+            return;
+        }
+
+        leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
+
+        var count = leaves.Count;
+        var index = 0;
+        while (index < count)
+        {
+            // Find the run of leaves sharing the same weight and give all of them the
+            // percentile of their average rank.
+            var last = index;
+            while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
+            {
+                last++;
+            }
+
+            var averageRank = (index + last) / 2.0;
+            var percentile = averageRank / (count - 1);
+            for (var i = index; i <= last; i++)
+            {
+                leaves[i].NormalizedWeightMetric = percentile;
+            }
+
+            index = last + 1;
+        }
     }
 
     /// <summary>Collapses single-child chains (e.g. a folder that only contains one sub-folder).</summary>
@@ -146,30 +187,16 @@ public sealed class HotspotNode
         return _children.Count == 1 ? _children[0].Shrink() : this;
     }
 
-    private void GetMinMaxWeight(ref double min, ref double max)
+    private void CollectLeaves(List<HotspotNode> leaves)
     {
         if (IsLeafNode)
         {
-            min = Math.Min(min, WeightMetric);
-            max = Math.Max(max, WeightMetric);
+            leaves.Add(this);
         }
 
         foreach (var child in _children)
         {
-            child.GetMinMaxWeight(ref min, ref max);
-        }
-    }
-
-    private void NormalizeWeightMetrics(double min, double range)
-    {
-        if (IsLeafNode)
-        {
-            NormalizedWeightMetric = (WeightMetric - min) / range;
-        }
-
-        foreach (var child in _children)
-        {
-            child.NormalizeWeightMetrics(min, range);
+            child.CollectLeaves(leaves);
         }
     }
 

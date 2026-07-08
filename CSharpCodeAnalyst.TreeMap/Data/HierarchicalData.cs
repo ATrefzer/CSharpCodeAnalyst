@@ -377,7 +377,9 @@ namespace CSharpCodeAnalyst.TreeMap.Data
         {
             if (IsLeafNode)
             {
-                NormalizedWeightMetric = (WeightMetric - min) / range;
+                // All (remaining) leaves may share the same weight, e.g. after filtering.
+                // Map them to the middle of the scale instead of dividing by zero (NaN color).
+                NormalizedWeightMetric = range <= double.Epsilon ? 0.5 : (WeightMetric - min) / range;
             }
 
             foreach (var hierarchicalData in Children)
