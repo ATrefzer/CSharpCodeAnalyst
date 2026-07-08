@@ -1273,7 +1273,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("History_FileAlreadyExists_Message", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hotspots.
+        /// </summary>
+        public static string History_Hotspots_TabTitle {
+            get {
+                return ResourceManager.GetString("History_Hotspots_TabTitle", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to File Already Exists.
         /// </summary>

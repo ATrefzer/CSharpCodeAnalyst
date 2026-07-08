@@ -46,14 +46,16 @@ public partial class MainWindow
     private void InitializeDynamicTabs(MainViewModel mainVm)
     {
         var headerTemplate = (DataTemplate)Resources["DynamicTabHeaderTemplate"];
-        var contentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
+        var tabularContentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
+        var hierarchicalContentTemplate = (DataTemplate)Resources["DynamicHierarchicalTabContentTemplate"];
 
         mainVm.DynamicTabs.CollectionChanged += (_, e) =>
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
-                foreach (DynamicTabViewModel tab in e.NewItems!)
+                foreach (ITabViewModel tab in e.NewItems!)
                 {
+                    var contentTemplate = tab is HierarchicalTabViewModel ? hierarchicalContentTemplate : tabularContentTemplate;
                     WorkingArea.Items.Add(new TabItem
                     {
                         Header = tab,
@@ -65,7 +67,7 @@ public partial class MainWindow
             }
             else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
-                foreach (DynamicTabViewModel tab in e.OldItems!)
+                foreach (ITabViewModel tab in e.OldItems!)
                 {
                     var tabItem = FindDynamicTabItem(tab);
                     if (tabItem is not null)
@@ -77,7 +79,7 @@ public partial class MainWindow
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
                 // Clear() does not populate OldItems, so remove every dynamic TabItem still present.
-                foreach (var tabItem in WorkingArea.Items.OfType<TabItem>().Where(ti => ti.Content is DynamicTabViewModel).ToList())
+                foreach (var tabItem in WorkingArea.Items.OfType<TabItem>().Where(ti => ti.Content is ITabViewModel).ToList())
                 {
                     WorkingArea.Items.Remove(tabItem);
                 }
@@ -87,7 +89,7 @@ public partial class MainWindow
         mainVm.DynamicTabActivated += tab => { WorkingArea.SelectedItem = FindDynamicTabItem(tab); };
     }
 
-    private TabItem? FindDynamicTabItem(DynamicTabViewModel tab)
+    private TabItem? FindDynamicTabItem(ITabViewModel tab)
     {
         return WorkingArea.Items.OfType<TabItem>().FirstOrDefault(ti => ReferenceEquals(ti.Content, tab));
     }

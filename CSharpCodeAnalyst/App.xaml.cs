@@ -138,6 +138,7 @@ public partial class App
         // Setup messaging
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
         messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
+        messaging.Subscribe<ShowHierarchicalDataRequest>(viewModel.HandleShowHierarchicalData);
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
         messaging.Subscribe<ExploreSelectedRequest>(graphViewModel.HandleExploreSelectedRequest);
         messaging.Subscribe<RemoveSelectedElementsRequest>(graphViewModel.HandleRemoveSelectedRequest);

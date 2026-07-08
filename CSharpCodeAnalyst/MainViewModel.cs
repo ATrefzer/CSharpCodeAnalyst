@@ -45,6 +45,7 @@ using CSharpCodeAnalyst.Shared.Notifications;
 using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
+using CSharpCodeAnalyst.TreeMap;
 
 namespace CSharpCodeAnalyst;
 
@@ -177,14 +178,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private ICommand OpenRecentFileCommand { get; }
 
     /// <summary>
-    ///     Analyzer-style result tabs (Method Complexity, Type Cohesion, Partitions, ...), created on
-    ///     demand and keyed by id. MainWindow's code-behind projects this onto the working-area
-    ///     TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
+    ///     Dynamic result tabs (Method Complexity, Type Cohesion, Partitions, tree-map hotspots, ...),
+    ///     created on demand and keyed by id. MainWindow's code-behind projects this onto the
+    ///     working-area TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
     /// </summary>
-    public ObservableCollection<DynamicTabViewModel> DynamicTabs { get; } = [];
+    public ObservableCollection<ITabViewModel> DynamicTabs { get; } = [];
 
     /// <summary>Raised when a dynamic tab should become the active one (new or updated result).</summary>
-    public event Action<DynamicTabViewModel>? DynamicTabActivated;
+    public event Action<ITabViewModel>? DynamicTabActivated;
 
     public Table? Cycles
     {
@@ -662,6 +663,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ShowDynamicTab(tabularDataRequest.Id, tabularDataRequest.Title, tabularDataRequest.Table);
     }
 
+    public void HandleShowHierarchicalData(ShowHierarchicalDataRequest hierarchicalDataRequest)
+    {
+        ShowHierarchicalTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data);
+    }
+
     /// <summary>
     ///     Creates a new dynamic tab for <paramref name="id" />, or - if one already exists - updates
     ///     it in place, so re-running the same analyzer replaces its own tab instead of piling up
@@ -669,7 +675,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void ShowDynamicTab(string id, string title, Table table)
     {
-        var tab = DynamicTabs.FirstOrDefault(t => t.Id == id);
+        var tab = DynamicTabs.OfType<DynamicTabViewModel>().FirstOrDefault(t => t.Id == id);
         if (tab is null)
         {
             tab = new DynamicTabViewModel(id, title, table);
@@ -680,6 +686,27 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             tab.Title = title;
             tab.Table = table;
+        }
+
+        DynamicTabActivated?.Invoke(tab);
+    }
+
+    /// <summary>
+    ///     Same as <see cref="ShowDynamicTab" />, but for tree-map style hierarchical results.
+    /// </summary>
+    private void ShowHierarchicalTab(string id, string title, HierarchicalDataContext data)
+    {
+        var tab = DynamicTabs.OfType<HierarchicalTabViewModel>().FirstOrDefault(t => t.Id == id);
+        if (tab is null)
+        {
+            tab = new HierarchicalTabViewModel(id, title, data);
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            DynamicTabs.Add(tab);
+        }
+        else
+        {
+            tab.Title = title;
+            tab.Data = data;
         }
 
         DynamicTabActivated?.Invoke(tab);

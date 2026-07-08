@@ -12,7 +12,7 @@ namespace CSharpCodeAnalyst.Shared.Tabs;
 ///     <see cref="System.Collections.ObjectModel.ObservableCollection{T}" /> on MainViewModel;
 ///     MainWindow's code-behind projects that collection onto the working-area TabControl.
 /// </summary>
-public sealed class DynamicTabViewModel(string id, string title, Table table) : INotifyPropertyChanged
+public sealed class DynamicTabViewModel(string id, string title, Table table) : ITabViewModel
 {
     public string Id { get; } = id;
 

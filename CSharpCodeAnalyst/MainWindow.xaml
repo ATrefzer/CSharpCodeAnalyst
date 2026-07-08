@@ -48,6 +48,10 @@
                 <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Table}" />
             </DataTemplate>
 
+            <DataTemplate x:Key="DynamicHierarchicalTabContentTemplate">
+                <treeMap:TreeMapView DataContext="{Binding Data}" />
+            </DataTemplate>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -507,14 +511,11 @@
                 <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
                 </TabItem>
-                
-                <TabItem Header="Hotspot">
-                    <treeMap:TreeMapView  DataContext="{Binding History.Data}" />
-                </TabItem>
 
-                <!-- Analyzer / Partitions results: dynamic tabs, one per result id, appended and
-                     removed here in code-behind (see MainWindow.xaml.cs) as MainViewModel.DynamicTabs
-                     changes. Templates below define how such a tab's header and content look. -->
+                <!-- Analyzer / Partitions / hierarchical (tree-map) results: dynamic tabs, one per
+                     result id, appended and removed here in code-behind (see MainWindow.xaml.cs) as
+                     MainViewModel.DynamicTabs changes. Templates above define how such a tab's header
+                     and content look. -->
             </TabControl>
         </Grid>
 

@@ -21,7 +21,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Strings {
+    public class Strings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -35,7 +35,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CSharpCodeAnalyst.TreeMap.Resources.Strings", typeof(Strings).Assembly);
@@ -50,7 +50,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -62,7 +62,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Highlight.
         /// </summary>
-        internal static string HighlightPattern {
+        public static string HighlightPattern {
             get {
                 return ResourceManager.GetString("HighlightPattern", resourceCulture);
             }
@@ -71,7 +71,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Maximum.
         /// </summary>
-        internal static string Maximum {
+        public static string Maximum {
             get {
                 return ResourceManager.GetString("Maximum", resourceCulture);
             }
@@ -80,7 +80,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Minimum.
         /// </summary>
-        internal static string Minimum {
+        public static string Minimum {
             get {
                 return ResourceManager.GetString("Minimum", resourceCulture);
             }
@@ -89,7 +89,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to No filter, just highlight.
         /// </summary>
-        internal static string NoFilterJustHighlight {
+        public static string NoFilterJustHighlight {
             get {
                 return ResourceManager.GetString("NoFilterJustHighlight", resourceCulture);
             }
@@ -98,7 +98,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Reset.
         /// </summary>
-        internal static string Reset {
+        public static string Reset {
             get {
                 return ResourceManager.GetString("Reset", resourceCulture);
             }
@@ -107,7 +107,7 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
-        internal static string ToolsTitle {
+        public static string ToolsTitle {
             get {
                 return ResourceManager.GetString("ToolsTitle", resourceCulture);
             }

@@ -29,6 +29,8 @@ public class HistoryProgressArgs : EventArgs
 
 internal class HistoryViewModel : INotifyPropertyChanged
 {
+    private const string HotspotsTabId = "History.Hotspots";
+
     private readonly MessageBus _messaging;
     private readonly IUserNotification _ui;
     private string _lastOutputFilePath = string.Empty;
@@ -43,21 +45,6 @@ internal class HistoryViewModel : INotifyPropertyChanged
     }
 
     public ICommand CollectCommand { get; }
-
-    public HierarchicalDataContext Data
-    {
-        get;
-        set
-        {
-            if (Equals(value, field))
-            {
-                return;
-            }
-
-            field = value;
-            OnPropertyChanged();
-        }
-    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -85,12 +72,20 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
 
             var data = new HierarchicalData("Root");
-            data.AddChild(new HierarchicalData("Child1", 100));
-            data.AddChild(new HierarchicalData("Child1", 200));
+            data.AddChild(new HierarchicalData("Child1", 100, 10));
+            data.AddChild(new HierarchicalData("Child1", 200, 100));
             data.SumAreaMetrics();
-            Data = new HierarchicalDataContext(data);
+            data.NormalizeWeightMetrics();
+            data.RemoveLeafNodesWithoutArea();
 
-            
+            var context = new HierarchicalDataContext(data)
+            {
+                AreaSemantic = "Area",
+                WeightSemantic = "Weight"
+            };
+            _messaging.Publish(new ShowHierarchicalDataRequest(HotspotsTabId, Strings.History_Hotspots_TabTitle, context));
+
+            return;
             var supported = LinesOfCodeFileTypes.GetFileTypes().Keys;
             var filter = new ExtensionIncludeFilter(supported.ToArray());
 

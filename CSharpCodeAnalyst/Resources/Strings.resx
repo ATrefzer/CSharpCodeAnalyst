@@ -1136,4 +1136,7 @@ Search with resharper style = Use at least one uppercase character in a search t
       <value>The file '{0}' already exists.
 Do you want to overwrite it?</value>
     </data>
+    <data name="History_Hotspots_TabTitle" xml:space="preserve">
+      <value>Hotspots</value>
+    </data>
 </root>
