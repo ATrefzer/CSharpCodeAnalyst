@@ -1,13 +1,15 @@
 using System.IO;
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Resources;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Features.Ai;
 
 public partial class AiAdvisorWindow
 {
     private static AiAdvisorWindow? _instance;
+
+    private IUserNotification? _ui;
 
     private AiAdvisorWindow()
     {
@@ -18,7 +20,7 @@ public partial class AiAdvisorWindow
     ///     Shows (or updates) the singleton advisor window with new content.
     ///     The window is owned by the main window so it closes together with the app.
     /// </summary>
-    public static void ShowAdvice(string markdownText)
+    public static void ShowAdvice(string markdownText, IUserNotification ui)
     {
         if (_instance == null || !_instance.IsLoaded)
         {
@@ -38,6 +40,7 @@ public partial class AiAdvisorWindow
             _instance.Activate();
         }
 
+        _instance._ui = ui;
         _instance.SetContent(markdownText);
     }
 
@@ -48,17 +51,16 @@ public partial class AiAdvisorWindow
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog
+        var options = new FileDialogOptions
         {
-            Title = Strings.AiAdvisorWindow_SaveDialog_Title,
-            Filter = Strings.AiAdvisorWindow_SaveDialog_Filter,
             DefaultExt = ".md",
             FileName = Strings.AiAdvisorWindow_SaveDialog_DefaultFileName
         };
 
-        if (dialog.ShowDialog() == true)
+        var path = _ui?.ShowSaveFileDialog(Strings.AiAdvisorWindow_SaveDialog_Filter, Strings.AiAdvisorWindow_SaveDialog_Title, options);
+        if (path is not null)
         {
-            File.WriteAllText(dialog.FileName, MarkdownViewer.Markdown ?? string.Empty);
+            File.WriteAllText(path, MarkdownViewer.Markdown ?? string.Empty);
         }
     }
 

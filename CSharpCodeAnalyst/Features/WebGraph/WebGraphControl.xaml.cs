@@ -8,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
@@ -17,7 +18,6 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Messages;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Features.WebGraph;
 
@@ -60,6 +60,7 @@ public partial class WebGraphControl : UserControl
     private AppSettings? _settings;
 
     private GraphViewState? _state;
+    private IUserNotification? _userNotification;
 
     public WebGraphControl()
     {
@@ -81,11 +82,12 @@ public partial class WebGraphControl : UserControl
     /// <summary>
     ///     Wires the web view to the shared model both views use. Called once at start-up.
     /// </summary>
-    public void SetViewer(GraphViewState state, IPublisher publisher, ISubscriber subscriber, AppSettings settings)
+    public void Initialize(GraphViewState state, IPublisher publisher, ISubscriber subscriber, AppSettings settings, IUserNotification userNotification)
     {
         _state = state;
         _publisher = publisher;
         _settings = settings;
+        _userNotification = userNotification;
         _state.Changed += OnStateChanged;
 
         // The hover-highlight mode is chosen in the ribbon; forward changes to JS,
@@ -151,18 +153,14 @@ public partial class WebGraphControl : UserControl
                 return;
             }
 
-            var dialog = new SaveFileDialog
-            {
-                Filter = "PNG files (*.png)|*.png",
-                Title = "Export to PNG",
-                DefaultExt = ".png"
-            };
-            if (dialog.ShowDialog() != true)
+            var path = _userNotification?.ShowSaveFileDialog("PNG files (*.png)|*.png", "Export to PNG",
+                new FileDialogOptions { DefaultExt = ".png" });
+            if (path is null)
             {
                 return;
             }
 
-            await File.WriteAllBytesAsync(dialog.FileName, Convert.FromBase64String(base64));
+            await File.WriteAllBytesAsync(path, Convert.FromBase64String(base64));
         }
         catch (Exception ex)
         {
@@ -197,18 +195,14 @@ public partial class WebGraphControl : UserControl
                 return;
             }
 
-            var dialog = new SaveFileDialog
-            {
-                Filter = "SVG files (*.svg)|*.svg",
-                Title = "Export to SVG",
-                DefaultExt = ".svg"
-            };
-            if (dialog.ShowDialog() != true)
+            var path = _userNotification?.ShowSaveFileDialog("SVG files (*.svg)|*.svg", "Export to SVG",
+                new FileDialogOptions { DefaultExt = ".svg" });
+            if (path is null)
             {
                 return;
             }
 
-            await File.WriteAllTextAsync(dialog.FileName, svg);
+            await File.WriteAllTextAsync(path, svg);
         }
         catch (Exception ex)
         {

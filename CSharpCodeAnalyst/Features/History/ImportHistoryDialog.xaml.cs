@@ -1,64 +1,62 @@
 using System.IO;
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Resources;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Features.History;
 
 public partial class ImportHistoryDialog : Window
 {
+    private readonly IUserNotification _ui;
     private string? _confirmedOverwritePath;
 
-    public ImportHistoryDialog(ImportHistoryDialogViewModel viewModel)
+    public ImportHistoryDialog(ImportHistoryDialogViewModel viewModel, IUserNotification ui)
     {
         InitializeComponent();
         DataContext = viewModel;
         ViewModel = viewModel;
+        _ui = ui;
     }
 
     public ImportHistoryDialogViewModel ViewModel { get; }
 
     private void BrowseRepository_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFolderDialog
-        {
-            Title = Strings.History_SelectRepositoryRootTitle
-        };
+        var initialDirectory = Directory.Exists(ViewModel.RepositoryPath) ? ViewModel.RepositoryPath : null;
 
-        if (Directory.Exists(ViewModel.RepositoryPath))
+        var path = _ui.ShowFolderBrowserDialog(Strings.History_SelectRepositoryRootTitle, initialDirectory, this);
+        if (path is not null)
         {
-            dialog.InitialDirectory = ViewModel.RepositoryPath;
-        }
-
-        if (dialog.ShowDialog(this) == true)
-        {
-            ViewModel.RepositoryPath = dialog.FolderName;
+            ViewModel.RepositoryPath = path;
         }
     }
 
     private void BrowseOutputFile_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new SaveFileDialog
+        var currentDirectory = Path.GetDirectoryName(ViewModel.OutputFilePath);
+        var options = new FileDialogOptions
         {
-            Title = Strings.History_SelectOutputFileTitle,
-            Filter = Strings.History_TextFilesFilter,
             DefaultExt = ".txt",
-            OverwritePrompt = true
+            OverwritePrompt = true,
+            Owner = this
         };
 
-        var currentDirectory = Path.GetDirectoryName(ViewModel.OutputFilePath);
         if (!string.IsNullOrEmpty(currentDirectory) && Directory.Exists(currentDirectory))
         {
-            dialog.InitialDirectory = currentDirectory;
-            dialog.FileName = Path.GetFileName(ViewModel.OutputFilePath);
+            options = options with
+            {
+                InitialDirectory = currentDirectory,
+                FileName = Path.GetFileName(ViewModel.OutputFilePath)
+            };
         }
 
-        if (dialog.ShowDialog(this) == true)
+        var path = _ui.ShowSaveFileDialog(Strings.History_TextFilesFilter, Strings.History_SelectOutputFileTitle, options);
+        if (path is not null)
         {
-            ViewModel.OutputFilePath = dialog.FileName;
+            ViewModel.OutputFilePath = path;
 
             // SaveFileDialog already asked for overwrite confirmation.
-            _confirmedOverwritePath = dialog.FileName;
+            _confirmedOverwritePath = path;
         }
     }
 

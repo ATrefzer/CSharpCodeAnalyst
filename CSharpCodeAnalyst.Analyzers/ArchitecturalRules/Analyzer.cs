@@ -57,7 +57,8 @@ public class Analyzer : IAnalyzer
 
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             // Load existing rules or provide sample rules
-            RulesText = string.IsNullOrEmpty(_rulesText) ? GetSampleRules() : _rulesText
+            RulesText = string.IsNullOrEmpty(_rulesText) ? GetSampleRules() : _rulesText,
+            UserNotification = _userNotification
         };
 
         // Set up validation callback

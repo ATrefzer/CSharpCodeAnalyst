@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Windows;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 
 namespace CSharpCodeAnalyst.Shared.Notifications;
@@ -25,13 +26,19 @@ internal class ConsoleUserNotification : IUserNotification
         Trace.TraceWarning(message);
     }
 
-    public string? ShowOpenFileDialog(string filter, string title)
+    public string? ShowOpenFileDialog(string filter, string title, FileDialogOptions? options = null)
     {
         // Not in console mode
         return null;
     }
 
-    public string? ShowSaveFileDialog(string filter, string title)
+    public string? ShowSaveFileDialog(string filter, string title, FileDialogOptions? options = null)
+    {
+        // Not in console mode
+        return null;
+    }
+
+    public string? ShowFolderBrowserDialog(string title, string? initialDirectory = null, Window? owner = null)
     {
         // Not in console mode
         return null;

@@ -830,7 +830,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         if (!string.IsNullOrWhiteSpace(response))
         {
-            AiAdvisorWindow.ShowAdvice(response);
+            AiAdvisorWindow.ShowAdvice(response, _ui);
         }
     }
 

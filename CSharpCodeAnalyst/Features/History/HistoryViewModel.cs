@@ -58,7 +58,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
             viewModel.OutputFilePath = _lastOutputFilePath;
             viewModel.RepositoryPath = _lastRepositoryPath;
 
-            var dialog = new ImportHistoryDialog(viewModel) { Owner = Application.Current.MainWindow };
+            var dialog = new ImportHistoryDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
 
             if (dialog.ShowDialog() == false)
             {

@@ -2,8 +2,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Analyzers.Resources;
-using Microsoft.Win32;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 
@@ -15,6 +15,9 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         InitializeComponent();
         DataContext = this;
     }
+
+    /// <summary>Set by the owner (Analyzer) right after construction.</summary>
+    public IUserNotification? UserNotification { get; set; }
 
     public string RulesText
     {
@@ -111,49 +114,47 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         Close();
     }
 
+    private const string RulesFileFilter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*";
+
     private void LoadFileButton_Click(object sender, RoutedEventArgs e)
     {
-        var openFileDialog = new OpenFileDialog
+        var path = UserNotification?.ShowOpenFileDialog(RulesFileFilter, Strings.ArchitecturalRules_LoadDialog_Title,
+            new FileDialogOptions { Owner = this });
+        if (string.IsNullOrEmpty(path))
         {
-            Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = Strings.ArchitecturalRules_LoadDialog_Title
-        };
+            return;
+        }
 
-        if (openFileDialog.ShowDialog() == true)
+        try
         {
-            try
-            {
-                RulesText = File.ReadAllText(openFileDialog.FileName);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format(Strings.ArchitecturalRules_LoadFileError_Message, ex.Message), Strings.Error_Title,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            RulesText = File.ReadAllText(path);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(string.Format(Strings.ArchitecturalRules_LoadFileError_Message, ex.Message), Strings.Error_Title,
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
     private void SaveFileButton_Click(object sender, RoutedEventArgs e)
     {
-        var saveFileDialog = new SaveFileDialog
+        var path = UserNotification?.ShowSaveFileDialog(RulesFileFilter, Strings.ArchitecturalRules_SaveDialog_Title,
+            new FileDialogOptions { Owner = this });
+        if (string.IsNullOrEmpty(path))
         {
-            Filter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*",
-            Title = Strings.ArchitecturalRules_SaveDialog_Title
-        };
+            return;
+        }
 
-        if (saveFileDialog.ShowDialog() == true)
+        try
         {
-            try
-            {
-                File.WriteAllText(saveFileDialog.FileName, RulesText);
-                MessageBox.Show(Strings.ArchitecturalRules_SaveFileSuccess_Message, Strings.Success_Title,
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(string.Format(Strings.ArchitecturalRules_SaveFileError_Message, ex.Message), Strings.Error_Title,
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            File.WriteAllText(path, RulesText);
+            MessageBox.Show(Strings.ArchitecturalRules_SaveFileSuccess_Message, Strings.Success_Title,
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(string.Format(Strings.ArchitecturalRules_SaveFileError_Message, ex.Message), Strings.Error_Title,
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
