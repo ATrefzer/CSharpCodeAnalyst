@@ -14,6 +14,7 @@
                      xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
                      xmlns:webGraph="clr-namespace:CSharpCodeAnalyst.Features.WebGraph"
                      xmlns:dd="urn:gong-wpf-dragdrop"
+                     xmlns:treeMap="clr-namespace:CSharpCodeAnalyst.TreeMap;assembly=CSharpCodeAnalyst.TreeMap"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -321,6 +322,18 @@
                     </Grid>
                 </RibbonGroup>
 
+                <!-- Git History -->
+                <RibbonGroup Header="{x:Static resources:Strings.History}"
+                             LargeImageSource="/Resources/inbox_32.png">
+                    <RibbonButton Label="{x:Static resources:Strings.Collect}"
+                                  LargeImageSource="/Resources/inbox_32.png"
+                                  Command="{Binding History.CollectCommand}"
+                                  KeyTip="CH">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.CollectHistory_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                </RibbonGroup>
 
                 <!-- Help Ribbon Group -->
                 <RibbonGroup Header="{x:Static resources:Strings.Help_Header}"
@@ -493,6 +506,10 @@
 
                 <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
+                </TabItem>
+                
+                <TabItem Header="Hotspot">
+                    <treeMap:TreeMapView  DataContext="{Binding History.Data}" />
                 </TabItem>
 
                 <!-- Analyzer / Partitions results: dynamic tabs, one per result id, appended and

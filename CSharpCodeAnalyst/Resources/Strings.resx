@@ -1066,4 +1066,68 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="AiAdvisorWindow_SaveDialog_DefaultFileName" xml:space="preserve">
     <value>ai-advice</value>
   </data>
+    <data name="History" xml:space="preserve">
+      <value>History</value>
+    </data>
+    <data name="Collect" xml:space="preserve">
+      <value>Collect</value>
+    </data>
+    <data name="CollectHistory_Tooltip" xml:space="preserve">
+      <value>Collect change data from GIT history</value>
+    </data>
+    <data name="History_ImportDialog_Title" xml:space="preserve">
+      <value>Import History</value>
+    </data>
+    <data name="History_ImportDialog_Description" xml:space="preserve">
+      <value>Select the root folder of the Git repository to analyze and the text file the collected commit history should be written to.</value>
+    </data>
+    <data name="History_RepositoryPath_Label" xml:space="preserve">
+      <value>Repository root:</value>
+    </data>
+    <data name="History_RepositoryPath_Required" xml:space="preserve">
+      <value>Please select the repository root folder.</value>
+    </data>
+    <data name="History_RepositoryPath_NotFound" xml:space="preserve">
+      <value>The folder does not exist.</value>
+    </data>
+    <data name="History_RepositoryPath_NotGitRepository" xml:space="preserve">
+      <value>The folder is not a Git repository (no .git folder found).</value>
+    </data>
+    <data name="History_OutputFilePath_Label" xml:space="preserve">
+      <value>Output file:</value>
+    </data>
+    <data name="History_OutputFilePath_Required" xml:space="preserve">
+      <value>Please choose an output file.</value>
+    </data>
+    <data name="History_OutputFilePath_Invalid" xml:space="preserve">
+      <value>The path is not valid: {0}</value>
+    </data>
+    <data name="History_OutputFilePath_DirectoryNotFound" xml:space="preserve">
+      <value>The output directory does not exist.</value>
+    </data>
+    <data name="History_OutputFilePath_CannotCreate" xml:space="preserve">
+      <value>The file cannot be created: {0}</value>
+    </data>
+    <data name="History_OkButton" xml:space="preserve">
+      <value>OK</value>
+    </data>
+    <data name="History_CancelButton" xml:space="preserve">
+      <value>Cancel</value>
+    </data>
+    <data name="History_SelectRepositoryRootTitle" xml:space="preserve">
+      <value>Select Repository Root</value>
+    </data>
+    <data name="History_SelectOutputFileTitle" xml:space="preserve">
+      <value>Select Output File</value>
+    </data>
+    <data name="History_TextFilesFilter" xml:space="preserve">
+      <value>Text files (*.txt)|*.txt|All files (*.*)|*.*</value>
+    </data>
+    <data name="History_FileAlreadyExists_Title" xml:space="preserve">
+      <value>File Already Exists</value>
+    </data>
+    <data name="History_FileAlreadyExists_Message" xml:space="preserve">
+      <value>The file '{0}' already exists.
+Do you want to overwrite it?</value>
+    </data>
 </root>

@@ -27,6 +27,7 @@ using CSharpCodeAnalyst.Features.Export;
 using CSharpCodeAnalyst.Features.Gallery;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Help;
+using CSharpCodeAnalyst.Features.History;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
 using CSharpCodeAnalyst.Features.Statistics;
@@ -78,7 +79,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private AdvancedSearchViewModel? _searchViewModel;
 
     private TreeViewModel? _treeViewModel;
-
+    
+    
+    public HistoryViewModel History { get; private set; } 
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
@@ -104,7 +107,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _projectService.ProjectSaved += OnProjectSaved;
         _projectService.DirtyStateChanged += OnDirtyStateChanged;
 
-
+        History =  new HistoryViewModel(messaging);
+        
         // Table data
         _cycles = null;
 

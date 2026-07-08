@@ -1,0 +1,57 @@
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.desmos.com/api/v1.0/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #calculator {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="calculator"></div>
+  <script >
+    var elt = document.getElementById('calculator');
+    var options = { border: false };
+    var calculator = Desmos.GraphingCalculator(elt, options);
+
+    calculator.setMathBounds({
+                    left: -167,
+                    right: 167,
+                    bottom: -114,
+                    top: 114
+            });
+
+
+    calculator.setExpressions([
+    {id:'1', latex: '(x-0)^2+(y--72.38622)^2=41.792206209514^2'},{id:'2', latex: '(x--83.58441)^2+(y--72.38622)^2=41.792206209514^2'},{id:'3', latex: '(x--125.37662)^2+(y-0)^2=41.792206209514^2'},{id:'4', latex: '(x--83.58441)^2+(y-72.38622)^2=41.792206209514^2'},{id:'5', latex: '(x-0)^2+(y-72.38622)^2=41.792206209514^2'},{id:'6', latex: '(x-41.79221)^2+(y-0)^2=41.792206209514^2'},{id:'7', latex: '(x-83.58441)^2+(y-72.38622)^2=41.792206209514^2'},{id:'8', latex: '(x-125.37662)^2+(y-0)^2=41.792206209514^2'},{id:'9', latex: '(x-83.58441)^2+(y--72.38622)^2=41.792206209514^2'},{id:'solution1', latex: '(x-125.37662)^2+(y-0)^2=41.792206209514^2'},{id:'solution2', latex: '(x-0)^2+(y-72.38622)^2=41.792206209514^2'},
+                {
+                    type: 'table',
+                    columns: [
+                    {
+                        latex: 'x',
+                        values: ['0.00000','-83.58441','-125.37662','-83.58441','0.00000','41.79221','83.58441','125.37662','83.58441']
+                    },
+                    {
+                        latex: 'y',
+                        values: ['-72.38622','-72.38622','0.00000','72.38622','72.38622','0.00000','72.38622','0.00000','-72.38622'],
+     
+                        color: Desmos.Colors.BLUE,
+                        columnMode: Desmos.ColumnModes.LINES,
+                        dragMode: Desmos.DragModes.XY
+                    }]
+                }	
+    ]);
+  </script>
+</body>
+</html>

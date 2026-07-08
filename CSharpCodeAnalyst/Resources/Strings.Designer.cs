@@ -249,18 +249,6 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("AllOutgoingRelationshipsDeep", resourceCulture);
             }
         }
-
-        public static string FocusOnIncomingDeep {
-            get {
-                return ResourceManager.GetString("FocusOnIncomingDeep", resourceCulture);
-            }
-        }
-
-        public static string FocusOnOutgoingDeep {
-            get {
-                return ResourceManager.GetString("FocusOnOutgoingDeep", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to Analyzers.
@@ -502,6 +490,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string CollapseTree_Tooltip {
             get {
                 return ResourceManager.GetString("CollapseTree_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collect.
+        /// </summary>
+        public static string Collect {
+            get {
+                return ResourceManager.GetString("Collect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collect change data from GIT history.
+        /// </summary>
+        public static string CollectHistory_Tooltip {
+            get {
+                return ResourceManager.GetString("CollectHistory_Tooltip", resourceCulture);
             }
         }
         
@@ -989,6 +995,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Focus on incoming (deep).
+        /// </summary>
+        public static string FocusOnIncomingDeep {
+            get {
+                return ResourceManager.GetString("FocusOnIncomingDeep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Focus on outgoing (deep).
+        /// </summary>
+        public static string FocusOnOutgoingDeep {
+            get {
+                return ResourceManager.GetString("FocusOnOutgoingDeep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Follow incoming Calls (Heuristic).
         /// </summary>
         public static string FollowIncomingCalls {
@@ -1213,6 +1237,178 @@ namespace CSharpCodeAnalyst.Resources {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to History.
+        /// </summary>
+        public static string History {
+            get {
+                return ResourceManager.GetString("History", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import History.
+        /// </summary>
+        public static string History_ImportDialog_Title {
+            get {
+                return ResourceManager.GetString("History_ImportDialog_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the root folder of the Git repository to analyze and the text file the collected commit history should be written to..
+        /// </summary>
+        public static string History_ImportDialog_Description {
+            get {
+                return ResourceManager.GetString("History_ImportDialog_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Repository root:.
+        /// </summary>
+        public static string History_RepositoryPath_Label {
+            get {
+                return ResourceManager.GetString("History_RepositoryPath_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Please select the repository root folder..
+        /// </summary>
+        public static string History_RepositoryPath_Required {
+            get {
+                return ResourceManager.GetString("History_RepositoryPath_Required", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The folder does not exist..
+        /// </summary>
+        public static string History_RepositoryPath_NotFound {
+            get {
+                return ResourceManager.GetString("History_RepositoryPath_NotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The folder is not a Git repository (no .git folder found)..
+        /// </summary>
+        public static string History_RepositoryPath_NotGitRepository {
+            get {
+                return ResourceManager.GetString("History_RepositoryPath_NotGitRepository", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Output file:.
+        /// </summary>
+        public static string History_OutputFilePath_Label {
+            get {
+                return ResourceManager.GetString("History_OutputFilePath_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Please choose an output file..
+        /// </summary>
+        public static string History_OutputFilePath_Required {
+            get {
+                return ResourceManager.GetString("History_OutputFilePath_Required", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The path is not valid: {0}.
+        /// </summary>
+        public static string History_OutputFilePath_Invalid {
+            get {
+                return ResourceManager.GetString("History_OutputFilePath_Invalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The output directory does not exist..
+        /// </summary>
+        public static string History_OutputFilePath_DirectoryNotFound {
+            get {
+                return ResourceManager.GetString("History_OutputFilePath_DirectoryNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The file cannot be created: {0}.
+        /// </summary>
+        public static string History_OutputFilePath_CannotCreate {
+            get {
+                return ResourceManager.GetString("History_OutputFilePath_CannotCreate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string History_OkButton {
+            get {
+                return ResourceManager.GetString("History_OkButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string History_CancelButton {
+            get {
+                return ResourceManager.GetString("History_CancelButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select Repository Root.
+        /// </summary>
+        public static string History_SelectRepositoryRootTitle {
+            get {
+                return ResourceManager.GetString("History_SelectRepositoryRootTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select Output File.
+        /// </summary>
+        public static string History_SelectOutputFileTitle {
+            get {
+                return ResourceManager.GetString("History_SelectOutputFileTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Text files (*.txt)|*.txt|All files (*.*)|*.*.
+        /// </summary>
+        public static string History_TextFilesFilter {
+            get {
+                return ResourceManager.GetString("History_TextFilesFilter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File Already Exists.
+        /// </summary>
+        public static string History_FileAlreadyExists_Title {
+            get {
+                return ResourceManager.GetString("History_FileAlreadyExists_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The file '{0}' already exists.
+        ///Do you want to overwrite it?.
+        /// </summary>
+        public static string History_FileAlreadyExists_Message {
+            get {
+                return ResourceManager.GetString("History_FileAlreadyExists_Message", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Home.
         /// </summary>

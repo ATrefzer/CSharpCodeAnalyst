@@ -1,0 +1,57 @@
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://www.desmos.com/api/v1.0/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #calculator {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="calculator"></div>
+  <script >
+    var elt = document.getElementById('calculator');
+    var options = { border: false };
+    var calculator = Desmos.GraphingCalculator(elt, options);
+
+    calculator.setMathBounds({
+                    left: -1314,
+                    right: 449,
+                    bottom: -657,
+                    top: 657
+            });
+
+
+    calculator.setExpressions([
+    {id:'1', latex: '(x--657.36682)^2+(y-0)^2=657.366819428385^2'},{id:'2', latex: '(x-85.07547)^2+(y-246.88907)^2=125.049156209328^2'},{id:'3', latex: '(x-57.38946)^2+(y-451.07272)^2=81.0029680866669^2'},{id:'4', latex: '(x-213.55846)^2+(y-407.97786)^2=81.0029680866669^2'},{id:'5', latex: '(x-309.85904)^2+(y-254.8656)^2=99.8758990609228^2'},{id:'6', latex: '(x-346.58573)^2+(y-55.11205)^2=103.225881420046^2'},{id:'7', latex: '(x-304.3059)^2+(y--157.52726)^2=113.576001591877^2'},{id:'8', latex: '(x-312.23791)^2+(y--361.96338)^2=91.0139402679824^2'},{id:'9', latex: '(x-152.03448)^2+(y--448.77433)^2=91.1982402028475^2'},{id:'10', latex: '(x--36.74859)^2+(y--431.28451)^2=98.3932722971286^2'},{id:'solution1', latex: '(x-213.55846)^2+(y-407.97786)^2=81.0029680866669^2'},{id:'solution2', latex: '(x--81.66489)^2+(y-367.94745)^2=81.0029680866669^2'},
+                {
+                    type: 'table',
+                    columns: [
+                    {
+                        latex: 'x',
+                        values: ['-657.36682','85.07547','57.38946','213.55846','309.85904','346.58573','304.30590','312.23791','152.03448','-36.74859']
+                    },
+                    {
+                        latex: 'y',
+                        values: ['0.00000','246.88907','451.07272','407.97786','254.86560','55.11205','-157.52726','-361.96338','-448.77433','-431.28451'],
+     
+                        color: Desmos.Colors.BLUE,
+                        columnMode: Desmos.ColumnModes.LINES,
+                        dragMode: Desmos.DragModes.XY
+                    }]
+                }	
+    ]);
+  </script>
+</body>
+</html>
