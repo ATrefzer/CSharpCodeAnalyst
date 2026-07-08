@@ -1075,6 +1075,24 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="CollectHistory_Tooltip" xml:space="preserve">
       <value>Collect change data from GIT history</value>
     </data>
+    <data name="LoadHistory_Label" xml:space="preserve">
+      <value>Load</value>
+    </data>
+    <data name="LoadHistory_Tooltip" xml:space="preserve">
+      <value>Load previously collected history data</value>
+    </data>
+    <data name="Hotspots_Label" xml:space="preserve">
+      <value>Hotspots</value>
+    </data>
+    <data name="Hotspots_Tooltip" xml:space="preserve">
+      <value>Show hotspots from the collected history data</value>
+    </data>
+    <data name="ChangeCoupling_Label" xml:space="preserve">
+      <value>Change Coupling</value>
+    </data>
+    <data name="ChangeCoupling_Tooltip" xml:space="preserve">
+      <value>Show files that change together (change coupling)</value>
+    </data>
     <data name="History_ImportDialog_Title" xml:space="preserve">
       <value>Import History</value>
     </data>
@@ -1138,5 +1156,17 @@ Do you want to overwrite it?</value>
     </data>
     <data name="History_Hotspots_TabTitle" xml:space="preserve">
       <value>Hotspots</value>
+    </data>
+    <data name="History_JsonFilesFilter" xml:space="preserve">
+      <value>JSON files (*.json)|*.json|All files (*.*)|*.*</value>
+    </data>
+    <data name="History_LoadDialogTitle" xml:space="preserve">
+      <value>Load History Data</value>
+    </data>
+    <data name="History_Loaded" xml:space="preserve">
+      <value>History data loaded</value>
+    </data>
+    <data name="History_NoDataLoaded" xml:space="preserve">
+      <value>No history data loaded</value>
     </data>
 </root>

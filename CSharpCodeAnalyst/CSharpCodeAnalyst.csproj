@@ -116,6 +116,10 @@
         <Resource Include="Resources\advisor.png"/>
         <None Remove="Resources\inbox_32.png" />
         <Resource Include="Resources\inbox_32.png" />
+        <None Remove="Resources\collision_32.png" />
+        <Resource Include="Resources\collision_32.png" />
+        <None Remove="Resources\hotspot_32.png" />
+        <Resource Include="Resources\hotspot_32.png" />
     </ItemGroup>
 
 

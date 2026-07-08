@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 using CSharpCodeAnalyst.History.Model;
 using LibGit2Sharp;
 
@@ -16,6 +17,7 @@ namespace CSharpCodeAnalyst.History.Git
             get => Contributions.Any();
         }
 
+        [JsonConstructor]
         public History(ChangeSetHistory changeSets, Dictionary<string, Contribution> contributions)
         {
             ChangeSets = changeSets;

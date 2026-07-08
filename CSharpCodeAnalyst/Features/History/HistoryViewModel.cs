@@ -13,6 +13,7 @@ using CSharpCodeAnalyst.History.Model;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
+using CSharpCodeAnalyst.Shared.UI;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -23,7 +24,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
     private readonly IProgress<BusyState> _busy;
     private readonly MessageBus _messaging;
     private readonly IUserNotification _ui;
-    private HistoryDto _lastHistory;
+    private HistoryDto? _lastHistory;
     private string _lastOutputFilePath = string.Empty;
     private string _lastRepositoryPath = string.Empty;
 
@@ -33,9 +34,18 @@ internal class HistoryViewModel : INotifyPropertyChanged
         _ui = ui;
         _busy = busy;
         CollectCommand = new WpfCommand(OnCollect);
+        LoadCommand = new WpfCommand(OnLoad);
+        HotspotsCommand = new WpfCommand(OnHotspots);
+        ChangeCouplingCommand = new WpfCommand(OnChangeCoupling);
     }
 
     public ICommand CollectCommand { get; }
+
+    public ICommand LoadCommand { get; }
+
+    public ICommand HotspotsCommand { get; }
+
+    public ICommand ChangeCouplingCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -113,6 +123,47 @@ internal class HistoryViewModel : INotifyPropertyChanged
         finally
         {
             _busy.Report(new BusyState(string.Empty, false));
+        }
+    }
+
+    private void OnLoad()
+    {
+        var path = _ui.ShowOpenFileDialog(Strings.History_JsonFilesFilter, Strings.History_LoadDialogTitle);
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(path);
+            var options = new JsonSerializerOptions { WriteIndented = false };
+            _lastHistory = JsonSerializer.Deserialize<HistoryDto>(json, options);
+            _lastOutputFilePath = path;
+            _ui.ShowSuccess(Strings.History_Loaded);
+        }
+        catch (Exception e)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, e.Message));
+            Trace.WriteLine($"Failed {nameof(OnLoad)} {e}");
+        }
+    }
+
+    private void OnHotspots()
+    {
+        if (_lastHistory is null)
+        {
+            ToastManager.ShowWarning(Strings.History_NoDataLoaded);
+            return;
+        }
+    }
+
+    private void OnChangeCoupling()
+    {
+        if (_lastHistory is null)
+        {
+            ToastManager.ShowWarning(Strings.History_NoDataLoaded);
+            return;
         }
     }
 

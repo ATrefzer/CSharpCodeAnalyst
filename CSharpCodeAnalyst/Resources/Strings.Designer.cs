@@ -510,7 +510,61 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("CollectHistory_Tooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load.
+        /// </summary>
+        public static string LoadHistory_Label {
+            get {
+                return ResourceManager.GetString("LoadHistory_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load previously collected history data.
+        /// </summary>
+        public static string LoadHistory_Tooltip {
+            get {
+                return ResourceManager.GetString("LoadHistory_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hotspots.
+        /// </summary>
+        public static string Hotspots_Label {
+            get {
+                return ResourceManager.GetString("Hotspots_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show hotspots from the collected history data.
+        /// </summary>
+        public static string Hotspots_Tooltip {
+            get {
+                return ResourceManager.GetString("Hotspots_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Change Coupling.
+        /// </summary>
+        public static string ChangeCoupling_Label {
+            get {
+                return ResourceManager.GetString("ChangeCoupling_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Show files that change together (change coupling).
+        /// </summary>
+        public static string ChangeCoupling_Tooltip {
+            get {
+                return ResourceManager.GetString("ChangeCoupling_Tooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Complete relationships
         ///If code elements are selected, adds missing relationships between them.
@@ -1280,6 +1334,42 @@ namespace CSharpCodeAnalyst.Resources {
         public static string History_Hotspots_TabTitle {
             get {
                 return ResourceManager.GetString("History_Hotspots_TabTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to JSON files (*.json)|*.json|All files (*.*)|*.*.
+        /// </summary>
+        public static string History_JsonFilesFilter {
+            get {
+                return ResourceManager.GetString("History_JsonFilesFilter", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Load History Data.
+        /// </summary>
+        public static string History_LoadDialogTitle {
+            get {
+                return ResourceManager.GetString("History_LoadDialogTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to History data loaded.
+        /// </summary>
+        public static string History_Loaded {
+            get {
+                return ResourceManager.GetString("History_Loaded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No history data loaded.
+        /// </summary>
+        public static string History_NoDataLoaded {
+            get {
+                return ResourceManager.GetString("History_NoDataLoaded", resourceCulture);
             }
         }
 

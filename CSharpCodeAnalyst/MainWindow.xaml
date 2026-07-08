@@ -337,6 +337,33 @@
                             <ToolTip Content="{x:Static resources:Strings.CollectHistory_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.LoadHistory_Label}"
+                                  LargeImageSource="/Resources/load_project.png"
+                                  Command="{Binding History.LoadCommand}"
+                                  KeyTip="LH">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.LoadHistory_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.Hotspots_Label}"
+                                  LargeImageSource="/Resources/hotspot_32.png"
+                                  Command="{Binding History.HotspotsCommand}"
+                                  KeyTip="HO">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Hotspots_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.ChangeCoupling_Label}"
+                                  LargeImageSource="/Resources/collision_32.png"
+                                  Command="{Binding History.ChangeCouplingCommand}"
+                                  KeyTip="CC">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.ChangeCoupling_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
                 </RibbonGroup>
 
                 <!-- Help Ribbon Group -->
