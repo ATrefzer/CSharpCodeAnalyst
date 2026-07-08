@@ -12,8 +12,6 @@ using CSharpCodeAnalyst.History.Git;
 using CSharpCodeAnalyst.History.Model;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.Messages;
-using CSharpCodeAnalyst.TreeMap;
-using CSharpCodeAnalyst.TreeMap.Data;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -33,9 +31,9 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     private readonly MessageBus _messaging;
     private readonly IUserNotification _ui;
+    private HistoryDto _lastHistory;
     private string _lastOutputFilePath = string.Empty;
     private string _lastRepositoryPath = string.Empty;
-    private CSharpCodeAnalyst.History.Git.History? _lastHistory;
 
     public HistoryViewModel(MessageBus messaging, IUserNotification ui)
     {
@@ -58,7 +56,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
             viewModel.OutputFilePath = _lastOutputFilePath;
             viewModel.RepositoryPath = _lastRepositoryPath;
-            
+
             var dialog = new ImportHistoryDialog(viewModel) { Owner = Application.Current.MainWindow };
 
             if (dialog.ShowDialog() == false)
@@ -71,46 +69,50 @@ internal class HistoryViewModel : INotifyPropertyChanged
             _lastHistory = null;
 
 
-            var data = new HierarchicalData("Root");
-            data.AddChild(new HierarchicalData("Child1", 100, 10));
-            data.AddChild(new HierarchicalData("Child1", 200, 100));
-            data.SumAreaMetrics();
-            data.NormalizeWeightMetrics();
-            data.RemoveLeafNodesWithoutArea();
+            // var data = new HierarchicalData("Root");
+            // data.AddChild(new HierarchicalData("Child1", 100, 10));
+            // data.AddChild(new HierarchicalData("Child1", 200, 100));
+            // data.SumAreaMetrics();
+            // data.NormalizeWeightMetrics();
+            // data.RemoveLeafNodesWithoutArea();
+            //
+            // var context = new HierarchicalDataContext(data)
+            // {
+            //     AreaSemantic = "Area",
+            //     WeightSemantic = "Weight"
+            // };
+            // _messaging.Publish(new ShowHierarchicalDataRequest(HotspotsTabId, Strings.History_Hotspots_TabTitle, context));
 
-            var context = new HierarchicalDataContext(data)
-            {
-                AreaSemantic = "Area",
-                WeightSemantic = "Weight"
-            };
-            _messaging.Publish(new ShowHierarchicalDataRequest(HotspotsTabId, Strings.History_Hotspots_TabTitle, context));
-
-            return;
             var supported = LinesOfCodeFileTypes.GetFileTypes().Keys;
             var filter = new ExtensionIncludeFilter(supported.ToArray());
 
-            var provider = new GitProvider();
-            provider.Initialize(_lastRepositoryPath);
+
 
             OnProgress?.Invoke(this, new HistoryProgressArgs(Strings.History_Progress_Init));
 
 
-            var adapter = new ProgressAdapter(msg => OnProgress?.Invoke(this, new HistoryProgressArgs(msg)));
+            var progressAdapter = new ProgressAdapter(msg => OnProgress?.Invoke(this, new HistoryProgressArgs(msg)));
 
-            CSharpCodeAnalyst.History.Git.History? history = null;
+            HistoryDto dto = new HistoryDto();
 
             // Run in background so progress can pass.
             await Task.Run(() =>
             {
-                history = provider.ExtractHistory(adapter, true, filter);
-                
+                var gitProvider = new GitProvider();
+                gitProvider.Initialize(_lastRepositoryPath);
+                dto.History = gitProvider.ExtractHistory(progressAdapter, true, filter);
+
+                var metricProvider = new LinesOfCodeProvider(progressAdapter);
+                dto.LinesOfCode = metricProvider.AnalyzeDirectory(_lastRepositoryPath);
+
+
                 // Write file
                 var options = new JsonSerializerOptions { WriteIndented = false };
-                var json = JsonSerializer.Serialize(history, options);
+                var json = JsonSerializer.Serialize(dto, options);
                 File.WriteAllText(_lastOutputFilePath, json);
             });
-            
-            _lastHistory = history;
+
+            _lastHistory = dto;
             _ui.ShowSuccess(Strings.History_Extracted);
         }
         catch (Exception e)
@@ -130,19 +132,14 @@ internal class HistoryViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-
-    private class ProgressAdapter : IProgress
+    /// <summary>
+    /// Collect all parts for persistence
+    /// </summary>
+    private class HistoryDto
     {
-        private readonly Action<string> _adapter;
+        public CSharpCodeAnalyst.History.Git.History? History { get; set; }
 
-        public ProgressAdapter(Action<string> adapter)
-        {
-            _adapter = adapter;
-        }
-
-        public void Message(string msg)
-        {
-            _adapter(msg);
-        }
+        public Dictionary<string, LinesOfCodeProvider.LinesOfCode>? LinesOfCode { get; set; }
     }
+    
 }

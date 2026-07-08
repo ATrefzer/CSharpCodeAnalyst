@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
 
 namespace CSharpCodeAnalyst.CodeParser.Parser;
 
@@ -79,9 +80,9 @@ public class LinesOfCodeProvider
     private readonly Dictionary<string, Func<string, (int code, int comments)>> _handlers = [];
 
     private readonly Lock _lock = new();
-    private readonly Progress? _progress;
+    private readonly IProgress? _progress;
 
-    public LinesOfCodeProvider(Progress? progress)
+    public LinesOfCodeProvider(IProgress? progress)
     {
         _progress = progress;
         _fileTypes = LinesOfCodeFileTypes.GetFileTypes();
@@ -106,17 +107,22 @@ public class LinesOfCodeProvider
         }
     }
 
+    public class LinesOfCode
+    {
+        public int Code { get; init; }
+        public int Comments { get; init; }
+    }
     /// <summary>
     ///     Public entry point: recursively analyzes all recognized source files
     ///     under the given directory and returns per-file code/comment/blank counts.
     /// </summary>
-    public Dictionary<string, (int Code, int Comments)> AnalyzeDirectory(string path)
+    public Dictionary<string, LinesOfCode> AnalyzeDirectory(string path)
     {
         var processedFiles = 0;
 
         _progress?.SendProgress($"Collecting files from '{path}'");
 
-        var results = new ConcurrentDictionary<string, (int Code, int Comments)>();
+        var results = new ConcurrentDictionary<string, LinesOfCode>();
 
         var files = SafeEnumerateFiles(path)
             .Where(f => _fileTypes.ContainsKey(Path.GetExtension(f).ToLowerInvariant()));
@@ -131,12 +137,12 @@ public class LinesOfCodeProvider
                 {
                     // Override processing with custom handler
                     var stats = handler(file);
-                    results[file] = (stats.code, stats.comments);
+                    results[file] = new LinesOfCode{Code =stats.code, Comments = stats.comments};
                 }
                 else
                 {
                     var stats = AnalyzeFile(file, _fileTypes[ext]);
-                    results[file] = (stats.code, stats.comments);
+                    results[file] = new LinesOfCode{Code =stats.code, Comments = stats.comments};
                 }
 
                 int processed;
@@ -158,7 +164,7 @@ public class LinesOfCodeProvider
             }
         });
 
-        return new Dictionary<string, (int Code, int Comments)>(results);
+        return new Dictionary<string, LinesOfCode>(results);
     }
 
     /// <summary>

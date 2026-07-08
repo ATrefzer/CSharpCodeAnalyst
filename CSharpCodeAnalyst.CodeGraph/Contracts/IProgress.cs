@@ -3,4 +3,5 @@
 public interface IProgress
 {
     event EventHandler<ParserProgressArg> ParserProgress;
+    void SendProgress(string message);
 }

@@ -4,7 +4,6 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 
 public class Progress : IProgress
 {
-
     public event EventHandler<ParserProgressArg>? ParserProgress;
 
     public void SendProgress(string message)
