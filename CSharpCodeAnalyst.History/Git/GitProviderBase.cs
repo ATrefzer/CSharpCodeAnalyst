@@ -135,7 +135,7 @@ private static void SerializeProject(ProjectData projectData, string filePath)
     }
 
 
-    protected Dictionary<string, Contribution> ExtractContributions(IProgress progress, IFilter fileTypeFilter)
+    protected Dictionary<string, Contribution> ExtractContributions(IProgress<string>? progress, IFilter fileTypeFilter)
     {
         var allLocalFiles = GetAllTrackedLocalFiles();
 
@@ -143,7 +143,7 @@ private static void SerializeProject(ProjectData projectData, string filePath)
         return CalculateContributionsParallel(progress, localFiles);
     }
 
-    protected Dictionary<string, Contribution> CalculateContributionsParallel(IProgress progress, List<string> localFiles)
+    protected Dictionary<string, Contribution> CalculateContributionsParallel(IProgress<string>? progress, List<string> localFiles)
     {
         // Calculate main developer for each file
         var fileToContribution = new ConcurrentDictionary<string, Contribution>();
@@ -164,7 +164,7 @@ private static void SerializeProject(ProjectData projectData, string filePath)
                 // Progress
                 var count = fileToContribution.Count;
 
-                progress.Message($"Calculating work {count}/{all}");
+                progress?.Report($"Calculating work {count}/{all}");
             });
 
         // Lower case keys are the lookup contract. Git can track paths that differ

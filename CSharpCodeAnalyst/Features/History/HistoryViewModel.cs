@@ -91,7 +91,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
             OnProgress?.Invoke(this, new HistoryProgressArgs(Strings.History_Progress_Init));
 
 
-            var progressAdapter = new ProgressAdapter(msg => OnProgress?.Invoke(this, new HistoryProgressArgs(msg)));
+            var progress = new Progress<string>(msg => OnProgress?.Invoke(this, new HistoryProgressArgs(msg)));
 
             HistoryDto dto = new HistoryDto();
 
@@ -100,9 +100,9 @@ internal class HistoryViewModel : INotifyPropertyChanged
             {
                 var gitProvider = new GitProvider();
                 gitProvider.Initialize(_lastRepositoryPath);
-                dto.History = gitProvider.ExtractHistory(progressAdapter, true, filter);
+                dto.History = gitProvider.ExtractHistory(progress, true, filter);
 
-                var metricProvider = new LinesOfCodeProvider(progressAdapter);
+                var metricProvider = new LinesOfCodeProvider(progress);
                 dto.LinesOfCode = metricProvider.AnalyzeDirectory(_lastRepositoryPath);
 
 

@@ -18,6 +18,13 @@ public class Importer
     private readonly IUserNotification _ui;
 
     /// <summary>
+    ///     Constructed once on the UI thread, so it captures the UI SynchronizationContext: progress
+    ///     reported from the background parse (see ExecuteGuardedImportAsync) is marshalled back
+    ///     automatically instead of touching view-model properties from a worker thread.
+    /// </summary>
+    private readonly IProgress<string> _progress;
+
+    /// <summary>
     ///     Store this value because we cannot show the diagnostics dialog in the worker.
     /// </summary>
     private IParserDiagnostics? _parserDiagnostics;
@@ -25,6 +32,7 @@ public class Importer
     public Importer(IUserNotification ui)
     {
         _ui = ui;
+        _progress = new Progress<string>(msg => OnImportStateChanged(msg, true));
     }
 
     public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
@@ -91,30 +99,17 @@ public class Importer
 
     private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
-        parser.Progress.ParserProgress += OnParserProgress;
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors), _progress);
 
-        try
+        _parserDiagnostics = null;
+        var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(true);
+
+        if (parser.Diagnostics.HasDiagnostics)
         {
-            _parserDiagnostics = null;
-            var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(true);
-
-            if (parser.Diagnostics.HasDiagnostics)
-            {
-                _parserDiagnostics = parser.Diagnostics;
-            }
-
-            return parseResult;
+            _parserDiagnostics = parser.Diagnostics;
         }
-        finally
-        {
-            parser.Progress.ParserProgress -= OnParserProgress;
-        }
-    }
 
-    private void OnParserProgress(object? sender, ParserProgressArg e)
-    {
-        OnImportStateChanged(e.Message, true);
+        return parseResult;
     }
 
     private void OnImportStateChanged(string message, bool isLoading)

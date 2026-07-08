@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using CSharpCodeAnalyst.CodeGraph.Contracts;
 
 namespace CSharpCodeAnalyst.CodeParser.Parser;
 
@@ -80,9 +79,9 @@ public class LinesOfCodeProvider
     private readonly Dictionary<string, Func<string, (int code, int comments)>> _handlers = [];
 
     private readonly Lock _lock = new();
-    private readonly IProgress? _progress;
+    private readonly IProgress<string>? _progress;
 
-    public LinesOfCodeProvider(IProgress? progress)
+    public LinesOfCodeProvider(IProgress<string>? progress)
     {
         _progress = progress;
         _fileTypes = LinesOfCodeFileTypes.GetFileTypes();
@@ -103,7 +102,7 @@ public class LinesOfCodeProvider
         if (processedFiles % 10 == 0)
         {
             var msg = $"Already processed {processedFiles} files.";
-            _progress?.SendProgress(msg);
+            _progress?.Report(msg);
         }
     }
 
@@ -120,7 +119,7 @@ public class LinesOfCodeProvider
     {
         var processedFiles = 0;
 
-        _progress?.SendProgress($"Collecting files from '{path}'");
+        _progress?.Report($"Collecting files from '{path}'");
 
         var results = new ConcurrentDictionary<string, LinesOfCode>();
 

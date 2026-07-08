@@ -31,6 +31,6 @@
         /// </summary>
         HashSet<string> GetAllTrackedFiles();
 
-        Git.History ExtractHistory(IProgress progress, bool includeWorkData, IFilter fileTypeFilter);
+        Git.History ExtractHistory(IProgress<string>? progress, bool includeWorkData, IFilter fileTypeFilter);
     }
 }

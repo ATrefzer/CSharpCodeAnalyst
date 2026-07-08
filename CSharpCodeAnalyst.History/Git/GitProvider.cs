@@ -53,7 +53,7 @@ namespace CSharpCodeAnalyst.History.Git
             return type.FullName + "," + type.Assembly.GetName().Name;
         }
 
-        public History ExtractHistory(IProgress? progress, bool includeWorkData, IFilter fileTypeFilter)
+        public History ExtractHistory(IProgress<string>? progress, bool includeWorkData, IFilter fileTypeFilter)
         {
             VerifyGitPreConditions();
             var changeSets = ExtractChangeSets(progress);
@@ -67,7 +67,7 @@ namespace CSharpCodeAnalyst.History.Git
             return new History(changeSets);
         }
 
-        private ChangeSetHistory ExtractChangeSets(IProgress progress)
+        private ChangeSetHistory ExtractChangeSets(IProgress<string>? progress)
         {
             var (history, graph) = GetRawHistory(progress);
 
@@ -98,7 +98,7 @@ namespace CSharpCodeAnalyst.History.Git
         /// <summary>
         ///     Raw history. Nothing deleted or cleaned
         /// </summary>
-        public (ChangeSetHistory, Graph) GetRawHistory(IProgress progress)
+        public (ChangeSetHistory, Graph) GetRawHistory(IProgress<string>? progress)
         {
             // GetRawHistory is also called directly (tests), so initialize here.
             Warnings = new List<WarningMessage>();
@@ -110,10 +110,10 @@ namespace CSharpCodeAnalyst.History.Git
             {
                 // All nodes in current branch reachable from the head.
 
-                progress?.Message("Reading commit graph");
+                progress?.Report("Reading commit graph");
                 graph = GetGraph(repo);
 
-                progress?.Message("Creating the history");
+                progress?.Report("Creating the history");
                 history = CreateHistory(repo, graph, progress);
             }
 
@@ -130,7 +130,7 @@ namespace CSharpCodeAnalyst.History.Git
         /// <summary>
         ///     Creates the history in a form that we can process further from initial commit to the last one.
         /// </summary>
-        private ChangeSetHistory CreateHistory(Repository repo, Graph graph, IProgress progress)
+        private ChangeSetHistory CreateHistory(Repository repo, Graph graph, IProgress<string>? progress)
         {
             var nodeCount = graph.AllNodes.Count();
             var currentNode = 0;
@@ -167,7 +167,7 @@ namespace CSharpCodeAnalyst.History.Git
                     continue;
                 }
 
-                progress?.Message($"Processing commit {++currentNode} / {nodeCount}");
+                progress?.Report($"Processing commit {++currentNode} / {nodeCount}");
 
                 var commit = repo.Lookup<Commit>(node.CommitHash);
                 var differences = CalculateDiffs(repo, commit);
