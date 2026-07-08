@@ -156,6 +156,25 @@ public sealed class HotspotNode
             return;
         }
 
+        // Tuning point. The rank-based mapping below encodes only the ORDER of the leaves -
+        // distances are lost (the 2nd hottest file looks almost as red as the hottest, even if
+        // it has a fraction of the commits). If the proportions matter more than the ordering,
+        // replace everything below with a dampened min-max mapping instead:
+        //
+        //     var min = leaves.Min(l => l.WeightMetric);
+        //     var max = leaves.Max(l => l.WeightMetric);
+        //     var range = max - min;
+        //     foreach (var leaf in leaves)
+        //     {
+        //         leaf.NormalizedWeightMetric = range <= double.Epsilon
+        //             ? 0.5
+        //             : Math.Sqrt((leaf.WeightMetric - min) / range);
+        //     }
+        //
+        // Math.Sqrt keeps real distances but compresses the outliers; for very skewed data the
+        // logarithm dampens harder:
+        //     Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
+
         leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
 
         var count = leaves.Count;
