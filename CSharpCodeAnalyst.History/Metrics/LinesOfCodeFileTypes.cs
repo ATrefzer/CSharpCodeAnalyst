@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.CodeParser.Parser;
+﻿namespace CSharpCodeAnalyst.History.Metrics;
 
 public static class LinesOfCodeFileTypes
 {

@@ -98,30 +98,7 @@ public abstract class GitProviderBase
         return new HashSet<string>(all.Select(Decoder.DecodeEscapedBytes));
     }
 
-
-    /*
-     *
-     *  private static ProjectData DeserializeProject(string filePath)
-{
-    var json = File.ReadAllText(filePath);
-    var options = new JsonSerializerOptions
-    {
-        ReferenceHandler = ReferenceHandler.Preserve
-    };
-    return JsonSerializer.Deserialize<ProjectData>(json, options)
-           ?? throw new InvalidOperationException("Failed to deserialize project");
-}
-
-private static void SerializeProject(ProjectData projectData, string filePath)
-{
-    var options = new JsonSerializerOptions { WriteIndented = false };
-    var json = JsonSerializer.Serialize(projectData, options);
-    File.WriteAllText(filePath, json);
-}
-
-     */
-
-    protected List<string> GetAllTrackedLocalFiles()
+    public List<string> GetAllTrackedLocalFiles()
     {
         var trackedServerPaths = GetAllTrackedFiles();
 

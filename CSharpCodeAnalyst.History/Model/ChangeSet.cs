@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace CSharpCodeAnalyst.History.Model
 {
     [Serializable]
@@ -7,8 +9,15 @@ namespace CSharpCodeAnalyst.History.Model
         public string Committer { get; set; }
         public DateTime Date { get; set; }
         public string Id { get; set; }
+
+        // No setter by design (callers must not swap the list, only fill the existing one). System.Text.Json's
+        // default ObjectCreationHandling is Replace, which silently skips read-only properties on deserialize -
+        // Populate makes it fill the existing instance via Add() instead.
+        [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
         public List<ChangeItem> Items { get; } = new List<ChangeItem>();
 
-        public List<WorkItem> WorkItems { get; } = new List<WorkItem>();     
+        // Not filled at the moment, see insight. Requires a regex to extract work items from commits.
+        [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
+        public List<WorkItem> WorkItems { get; } = new List<WorkItem>();
     }
 }

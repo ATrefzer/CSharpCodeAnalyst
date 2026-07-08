@@ -5,15 +5,19 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
-using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.History.Analyzer;
 using CSharpCodeAnalyst.History.Git;
+using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
+using CSharpCodeAnalyst.TreeMap;
+using CSharpCodeAnalyst.TreeMap.Data;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -69,42 +73,32 @@ internal class HistoryViewModel : INotifyPropertyChanged
             _lastOutputFilePath = viewModel.OutputFilePath;
             _lastHistory = null;
 
-
-            // var data = new HierarchicalData("Root");
-            // data.AddChild(new HierarchicalData("Child1", 100, 10));
-            // data.AddChild(new HierarchicalData("Child1", 200, 100));
-            // data.SumAreaMetrics();
-            // data.NormalizeWeightMetrics();
-            // data.RemoveLeafNodesWithoutArea();
-            //
-            // var context = new HierarchicalDataContext(data)
-            // {
-            //     AreaSemantic = "Area",
-            //     WeightSemantic = "Weight"
-            // };
-            // _messaging.Publish(new ShowHierarchicalDataRequest(HotspotsTabId, Strings.History_Hotspots_TabTitle, context));
-
             var supported = LinesOfCodeFileTypes.GetFileTypes().Keys;
             var filter = new ExtensionIncludeFilter(supported.ToArray());
-
-
 
             _busy.Report(new BusyState(Strings.History_Progress_Init, true));
 
             var progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
 
-            HistoryDto dto = new HistoryDto();
+            var dto = new HistoryDto();
+            dto.SupportedFilesExtensions = supported.ToList();
 
             // Run in background so progress can pass.
             await Task.Run(() =>
             {
                 var gitProvider = new GitProvider();
                 gitProvider.Initialize(_lastRepositoryPath);
+
+                // The filter is needed only for the contributions. The history contains all files.
+                // It is the known file types we can also calculate lines of code for. Avoids calculating
+                // contribution for binary files etc.
                 dto.History = gitProvider.ExtractHistory(progress, true, filter);
 
+                // Collect metrics only for tracked files.
+                var trackedFiles = gitProvider.GetAllTrackedLocalFiles();
+                var trackedFilesFilter = new FileFilter(trackedFiles);
                 var metricProvider = new LinesOfCodeProvider(progress);
-                dto.LinesOfCode = metricProvider.AnalyzeDirectory(_lastRepositoryPath);
-
+                dto.LinesOfCode = metricProvider.AnalyzeDirectory(_lastRepositoryPath, trackedFilesFilter);
 
                 // Write file
                 var options = new JsonSerializerOptions { WriteIndented = false };
@@ -151,21 +145,77 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     private void OnHotspots()
     {
-        if (_lastHistory is null)
+        if (_lastHistory is null || _lastHistory.History is null || _lastHistory.LinesOfCode is null)
         {
             ToastManager.ShowWarning(Strings.History_NoDataLoaded);
             return;
         }
+
+        var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
+        var result = analyzer.AnalyzeHotspots(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode);
+
+        // Format to hierarchical (tree-map) data.
+        var root = ToHierarchicalData(result);
+        root.SumAreaMetrics();
+
+        // data.NormalizeWeightMetrics();
+        root.RemoveLeafNodesWithoutArea();
+
+        var data = new HierarchicalDataContext(root)
+        {
+            AreaSemantic = Strings.Hotspots_AreaSemantic,
+            WeightSemantic = Strings.Hotspots_WeightSemantic
+        };
+
+        _messaging.Publish(new ShowHierarchicalDataRequest("ID_Hotspots", Strings.Hotspots_Tab_Title, data));
+    }
+
+    /// <summary>
+    ///     Converts the UI-free <see cref="HotspotNode" /> tree from the analyzer into the TreeMap
+    ///     control's own <see cref="HierarchicalData" />. Leaf weights are carried over as already
+    ///     normalized, so only <see cref="HierarchicalData.SumAreaMetrics" /> needs to run again on the
+    ///     result (it also sorts children by descending area, which the renderer relies on).
+    /// </summary>
+    private static HierarchicalData ToHierarchicalData(HotspotNode node)
+    {
+        var data = node.IsLeafNode
+            ? new HierarchicalData(node.Name, node.AreaMetric, node.NormalizedWeightMetric, true)
+            : new HierarchicalData(node.Name);
+
+        data.Description = node.Description;
+        data.ColorKey = node.ColorKey;
+        data.Tag = node.Tag;
+
+        foreach (var child in node.Children)
+        {
+            data.AddChild(ToHierarchicalData(child));
+        }
+
+        return data;
     }
 
     private void OnChangeCoupling()
     {
-        if (_lastHistory is null)
+        if (_lastHistory is null || _lastHistory.History is null)
         {
             ToastManager.ShowWarning(Strings.History_NoDataLoaded);
             return;
         }
+
+        var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
+        var result = analyzer.AnalyzeChangeCoupling(_lastHistory.History.ChangeSets);
+
+        if (result.Count == 0)
+        {
+            ToastManager.ShowWarning(Strings.History_NoCouplingsFound);
+            return;
+        }
+
+        // Format to table data
+        var table = new ChangeCouplingsViewModel(result, _messaging);
+        _messaging.Publish(new ShowTabularDataRequest("ID_ChangeCouplings", Strings.ChangeCoupling_Tab_Title, table));
     }
+
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
@@ -173,13 +223,13 @@ internal class HistoryViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Collect all parts for persistence
+    ///     Collect all parts for persistence
     /// </summary>
     private class HistoryDto
     {
         public CSharpCodeAnalyst.History.Git.History? History { get; set; }
 
         public Dictionary<string, LinesOfCodeProvider.LinesOfCode>? LinesOfCode { get; set; }
+        public List<string>? SupportedFilesExtensions { get; set; }
     }
-    
 }

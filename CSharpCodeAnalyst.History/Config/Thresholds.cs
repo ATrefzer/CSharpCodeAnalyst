@@ -7,8 +7,8 @@
     {
         public static int MaxWorkItemsPerCommitForSummary { get; set; }= 200;
 
-        public static int MinCommitsForHotspots { get; set; } = 3;
-        public static int MinLinesOfCodeForHotspot { get; set; } = 1;
+        public static int MinCommitsForHotspots { get; set; } = 2;
+        public static int MinLinesOfCodeForHotspot { get; set; } = 2;
 
         /// <summary>
         /// Changesets with more modifications are ignored in change coupling.
@@ -19,6 +19,6 @@
         /// Reduces the output for change coupling
         /// </summary>
         public static int MinCouplingForChangeCoupling { get; set; } = 20;
-        public static double MinDegreeForChangeCoupling { get; set; } = 40.0;
+        public static double MinDegreeForChangeCoupling { get; set; } = 20.0;
     }
 }

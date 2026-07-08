@@ -17,13 +17,14 @@ This desktop application helps you **explore, understand, and maintain** large C
 ## Features
 
 - **Full code graph analysis** of your Visual Studio solution
-- **Cycle detection & breaking** (Strongly Connected Components)
+- **Cycle detection & breaking**
 - **AI Advisor** – get refactoring suggestions how to break cycles from Claude.ai.
 - **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
 - **Simulated Refactoring** – test structural changes without touching your source code
 - **Architectural Rules** – define and validate DENY / RESTRICT / ISOLATE rules
 - **Advanced search & navigation**
 - **Export** to PlantUML, DGML, PNG/SVG, and more
+- **GIT History Analysis** - perform a hotspot analysis on your GIT repository.
 
 ## Requirements
 

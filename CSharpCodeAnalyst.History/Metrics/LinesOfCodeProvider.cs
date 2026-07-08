@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
+using CSharpCodeAnalyst.History.Model;
 
-namespace CSharpCodeAnalyst.CodeParser.Parser;
+namespace CSharpCodeAnalyst.History.Metrics;
 
 public enum RegionKind
 {
@@ -115,7 +116,7 @@ public class LinesOfCodeProvider
     ///     Public entry point: recursively analyzes all recognized source files
     ///     under the given directory and returns per-file code/comment/blank counts.
     /// </summary>
-    public Dictionary<string, LinesOfCode> AnalyzeDirectory(string path)
+    public Dictionary<string, LinesOfCode> AnalyzeDirectory(string path, FileFilter? filter)
     {
         var processedFiles = 0;
 
@@ -124,9 +125,16 @@ public class LinesOfCodeProvider
         var results = new ConcurrentDictionary<string, LinesOfCode>();
 
         var files = SafeEnumerateFiles(path)
-            .Where(f => _fileTypes.ContainsKey(Path.GetExtension(f).ToLowerInvariant()));
+            .Where(f => _fileTypes.ContainsKey(Path.GetExtension(f).ToLowerInvariant())).ToList();
 
-        Parallel.ForEach(files, file =>
+
+        var acceptedFiles = files;
+        if (filter != null)
+        {
+            acceptedFiles = files.Where(filter.IsAccepted).ToList();
+        }
+
+        Parallel.ForEach(acceptedFiles, file =>
         {
             var ext = Path.GetExtension(file).ToLowerInvariant();
 
@@ -163,7 +171,7 @@ public class LinesOfCodeProvider
             }
         });
 
-        return new Dictionary<string, LinesOfCode>(results);
+        return new Dictionary<string, LinesOfCode>(results, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

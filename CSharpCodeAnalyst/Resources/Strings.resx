@@ -1169,4 +1169,33 @@ Do you want to overwrite it?</value>
     <data name="History_NoDataLoaded" xml:space="preserve">
       <value>No history data loaded</value>
     </data>
+    <data name="History_NoCouplingsFound" xml:space="preserve">
+      <value>No couplings found.</value>
+    </data>
+
+    <data name="ChangeCoupling_Header_Item1" xml:space="preserve">
+      <value>Item 1</value>
+    </data>
+    <data name="ChangeCoupling_Header_Item2" xml:space="preserve">
+      <value>Item 2</value>
+    </data>
+    <data name="ChangeCoupling_Header_Couplings" xml:space="preserve">
+      <value>Couplings</value>
+    </data>
+    <data name="ChangeCoupling_Header_Degree" xml:space="preserve">
+      <value>Degree</value>
+    </data>
+    <data name="ChangeCoupling_Tab_Title" xml:space="preserve">
+      <value>Change Couplings</value>
+    </data>
+    <data name="Hotspots_Tab_Title" xml:space="preserve">
+      <value>Hotspots</value>
+    </data>
+    <data name="Hotspots_AreaSemantic" xml:space="preserve">
+      <value>Lines of Code</value>
+    </data>
+    <data name="Hotspots_WeightSemantic" xml:space="preserve">
+      <value>Commits</value>
+    </data>
+
 </root>

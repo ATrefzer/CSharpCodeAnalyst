@@ -1,4 +1,5 @@
 ﻿using CSharpCodeAnalyst.CodeParser.Parser;
+using CSharpCodeAnalyst.History.Metrics;
 
 namespace CodeParserTests.UnitTests.Parser;
 
