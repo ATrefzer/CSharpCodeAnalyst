@@ -54,6 +54,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
+
+    /// <summary>Busy/status-bar sink shared by Importer, HistoryViewModel and IProjectService.</summary>
+    private readonly IProgress<BusyState> _busy;
+
     private readonly Exporter _exporter;
     private readonly Importer _importer;
 
@@ -98,19 +102,19 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
         _ui = new WindowsUserNotification();
-        _importer = new Importer(_ui);
+        _busy = new Progress<BusyState>(OnBusyStateChanged);
+
+        _importer = new Importer(_ui, _busy);
         _exporter = new Exporter(_ui);
-        _importer.ImportStateChanged += OnUpdateProgress;
 
         _projectService = projectService;
-        _projectService.ProgressChanged += OnUpdateProgress;
+        _projectService.Progress = _busy;
         _projectService.ProjectLoaded += OnProjectLoaded;
         _projectService.ProjectSaved += OnProjectSaved;
         _projectService.DirtyStateChanged += OnDirtyStateChanged;
 
-        History =  new HistoryViewModel(messaging, _ui);
-        History.OnProgress += OnExternalProgress;
-        
+        History = new HistoryViewModel(messaging, _ui, _busy);
+
         // Table data
         _cycles = null;
 
@@ -164,12 +168,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         RefreshMru();
     }
 
-    private void OnExternalProgress(object? sender, HistoryProgressArgs e)
-    {
-        LoadMessage = e.Message;
-        IsLoading = !string.IsNullOrEmpty(e.Message);
-    }
-    
 
     public WpfCommand ExportPlainTextCommand { get; set; }
 
@@ -446,10 +444,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnUpdateProgress(object? sender, ImportStateChangedArgs e)
+    private void OnBusyStateChanged(BusyState state)
     {
-        IsLoading = e.IsLoading;
-        LoadMessage = e.ProgressMessage;
+        IsLoading = state.IsLoading;
+        LoadMessage = state.Message;
     }
 
     private void OnAnalyzerDataChanged(object? sender, EventArgs e)

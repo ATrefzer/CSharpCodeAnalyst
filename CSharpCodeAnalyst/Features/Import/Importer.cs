@@ -18,9 +18,15 @@ public class Importer
     private readonly IUserNotification _ui;
 
     /// <summary>
-    ///     Constructed once on the UI thread, so it captures the UI SynchronizationContext: progress
-    ///     reported from the background parse (see ExecuteGuardedImportAsync) is marshalled back
-    ///     automatically instead of touching view-model properties from a worker thread.
+    ///     Busy/status-bar sink, owned by MainViewModel and injected here.
+    /// </summary>
+    private readonly IProgress<BusyState> _busy;
+
+    /// <summary>
+    ///     Wraps <see cref="_busy" /> for the parser, which reports plain progress text. Constructed
+    ///     once on the UI thread, so it captures the UI SynchronizationContext: progress reported from
+    ///     the background parse (see ExecuteGuardedImportAsync) is marshalled back automatically
+    ///     instead of touching view-model properties from a worker thread.
     /// </summary>
     private readonly IProgress<string> _progress;
 
@@ -29,13 +35,12 @@ public class Importer
     /// </summary>
     private IParserDiagnostics? _parserDiagnostics;
 
-    public Importer(IUserNotification ui)
+    public Importer(IUserNotification ui, IProgress<BusyState> busy)
     {
         _ui = ui;
-        _progress = new Progress<string>(msg => OnImportStateChanged(msg, true));
+        _busy = busy;
+        _progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
     }
-
-    public event EventHandler<ImportStateChangedArgs>? ImportStateChanged;
 
     public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
@@ -112,16 +117,11 @@ public class Importer
         return parseResult;
     }
 
-    private void OnImportStateChanged(string message, bool isLoading)
-    {
-        ImportStateChanged?.Invoke(this, new ImportStateChangedArgs(message, isLoading));
-    }
-
     private async Task<Result<ParseResult>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<ParseResult>> importFunc)
     {
         try
         {
-            OnImportStateChanged(progressMessage, true);
+            _busy.Report(new BusyState(progressMessage, true));
 
             var parseResult = await Task.Run(importFunc);
             return Result<ParseResult>.Success(parseResult);
@@ -134,7 +134,7 @@ public class Importer
         }
         finally
         {
-            OnImportStateChanged(string.Empty, false);
+            _busy.Report(new BusyState(string.Empty, false));
         }
     }
 

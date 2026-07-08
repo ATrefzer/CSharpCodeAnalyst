@@ -11,42 +11,33 @@ using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.History.Git;
 using CSharpCodeAnalyst.History.Model;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 
 namespace CSharpCodeAnalyst.Features.History;
-
-public class HistoryProgressArgs : EventArgs
-{
-    public HistoryProgressArgs(string message)
-    {
-        Message = message;
-    }
-
-    public string Message { get; }
-}
 
 internal class HistoryViewModel : INotifyPropertyChanged
 {
     private const string HotspotsTabId = "History.Hotspots";
 
+    private readonly IProgress<BusyState> _busy;
     private readonly MessageBus _messaging;
     private readonly IUserNotification _ui;
     private HistoryDto _lastHistory;
     private string _lastOutputFilePath = string.Empty;
     private string _lastRepositoryPath = string.Empty;
 
-    public HistoryViewModel(MessageBus messaging, IUserNotification ui)
+    public HistoryViewModel(MessageBus messaging, IUserNotification ui, IProgress<BusyState> busy)
     {
         _messaging = messaging;
         _ui = ui;
+        _busy = busy;
         CollectCommand = new WpfCommand(OnCollect);
     }
 
     public ICommand CollectCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    public event EventHandler<HistoryProgressArgs> OnProgress;
 
     private async void OnCollect()
     {
@@ -88,10 +79,9 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
 
 
-            OnProgress?.Invoke(this, new HistoryProgressArgs(Strings.History_Progress_Init));
+            _busy.Report(new BusyState(Strings.History_Progress_Init, true));
 
-
-            var progress = new Progress<string>(msg => OnProgress?.Invoke(this, new HistoryProgressArgs(msg)));
+            var progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
 
             HistoryDto dto = new HistoryDto();
 
@@ -122,8 +112,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
         }
         finally
         {
-            // Hide progress
-            OnProgress?.Invoke(this, new HistoryProgressArgs(string.Empty));
+            _busy.Report(new BusyState(string.Empty, false));
         }
     }
 
