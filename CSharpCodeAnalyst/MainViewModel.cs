@@ -107,7 +107,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _projectService.ProjectSaved += OnProjectSaved;
         _projectService.DirtyStateChanged += OnDirtyStateChanged;
 
-        History =  new HistoryViewModel(messaging);
+        History =  new HistoryViewModel(messaging, _ui);
+        History.OnProgress += OnExternalProgress;
         
         // Table data
         _cycles = null;
@@ -162,7 +163,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         RefreshMru();
     }
 
-
+    private void OnExternalProgress(object? sender, HistoryProgressArgs e)
+    {
+        LoadMessage = e.Message;
+        IsLoading = !string.IsNullOrEmpty(e.Message);
+    }
+    
 
     public WpfCommand ExportPlainTextCommand { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.History.Contracts
+﻿namespace CSharpCodeAnalyst.History.Model
 {
     public sealed class WarningMessage
     {

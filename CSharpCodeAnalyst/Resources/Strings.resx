@@ -1123,6 +1123,12 @@ Search with resharper style = Use at least one uppercase character in a search t
     <data name="History_TextFilesFilter" xml:space="preserve">
       <value>Text files (*.txt)|*.txt|All files (*.*)|*.*</value>
     </data>
+    <data name="History_Progress_Init" xml:space="preserve">
+      <value>Extracting history data ...</value>
+    </data>
+    <data name="History_Extracted" xml:space="preserve">
+      <value>History successfully extracted</value>
+    </data>
     <data name="History_FileAlreadyExists_Title" xml:space="preserve">
       <value>File Already Exists</value>
     </data>

@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.History.System;
+﻿namespace CSharpCodeAnalyst.History.Model;
 
 [Serializable]
 public class ProviderException : Exception
