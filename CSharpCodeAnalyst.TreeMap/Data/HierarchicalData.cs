@@ -58,7 +58,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
         }
 
-        public HierarchicalData(string name, double areaMetric, double weightMetric, bool weightIsAleadyNormalized = false)
+        public HierarchicalData(string name, double areaMetric, double weightMetric, bool weightIsAlreadyNormalized = false)
         {
             Name = name;
             Description = Name;
@@ -67,7 +67,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             WeightMetric = weightMetric;
             NormalizedWeightMetric = 0.0;
 
-            if (weightIsAleadyNormalized)
+            if (weightIsAlreadyNormalized)
             {
                 NormalizedWeightMetric = weightMetric;
                 if (WeightMetric < 0.0 || WeightMetric > 1)
@@ -298,7 +298,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
             foreach (var child in Children)
             {
-                child.TraverseBottomUp(action);
+                child.TraverseTopDown(action);
             }
         }
 
@@ -306,7 +306,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
         {
             TraverseBottomUp(x =>
                              {
-                                 if (!double.IsNaN(x.AreaMetricSum))
+                                 if (double.IsNaN(x.AreaMetricSum))
                                  {
                                      Debugger.Break();
                                  }

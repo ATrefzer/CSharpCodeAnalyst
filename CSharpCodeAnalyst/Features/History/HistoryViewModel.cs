@@ -154,12 +154,14 @@ internal class HistoryViewModel : INotifyPropertyChanged
         var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
         var result = analyzer.AnalyzeHotspots(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode);
 
-        // Format to hierarchical (tree-map) data.
+        // Format to hierarchical (tree-map) data. The HotspotNode tree arrives cleaned
+        // (no empty branches, no leaves without area) and with normalized weights - see
+        // HotspotBuilder.Build. Both properties are load-bearing: the initial rendering
+        // pass in HierarchicalDataViewBase neither filters nor normalizes, it trusts
+        // NormalizedWeightMetric as delivered. Only the area sums must be computed here,
+        // because the conversion does not carry them over.
         var root = ToHierarchicalData(result);
         root.SumAreaMetrics();
-
-        // data.NormalizeWeightMetrics();
-        root.RemoveLeafNodesWithoutArea();
 
         var data = new HierarchicalDataContext(root)
         {
