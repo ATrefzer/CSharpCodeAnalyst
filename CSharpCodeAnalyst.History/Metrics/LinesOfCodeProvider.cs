@@ -114,7 +114,7 @@ public class LinesOfCodeProvider
     }
     /// <summary>
     ///     Public entry point: recursively analyzes all recognized source files
-    ///     under the given directory and returns per-file code/comment/blank counts.
+    ///     under the given directory and returns per-file code/comment counts.
     /// </summary>
     public Dictionary<string, LinesOfCode> AnalyzeDirectory(string path, FileFilter? filter)
     {
@@ -125,7 +125,12 @@ public class LinesOfCodeProvider
         var results = new ConcurrentDictionary<string, LinesOfCode>();
 
         var files = SafeEnumerateFiles(path)
-            .Where(f => _fileTypes.ContainsKey(Path.GetExtension(f).ToLowerInvariant())).ToList();
+            .Where(f =>
+            {
+                // Custom handlers may cover extensions that have no FileTypeInfo at all.
+                var ext = Path.GetExtension(f).ToLowerInvariant();
+                return _fileTypes.ContainsKey(ext) || _handlers.ContainsKey(ext);
+            }).ToList();
 
 
         var acceptedFiles = files;

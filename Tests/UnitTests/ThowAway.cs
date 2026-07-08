@@ -15,7 +15,7 @@ public class ThowAway
         var path = @"d:\Repositories\CSharpCodeAnalyst";
 
         // Pure counting
-        var result1 = provider.AnalyzeDirectory(path);
+        var result1 = provider.AnalyzeDirectory(path, null);
 
         var ordered1 = result1.OrderBy(t => t.Key).ToList();
         var builder = new StringBuilder();
@@ -29,7 +29,7 @@ public class ThowAway
 
         // Roslyn
         provider.RegisterCustomProvider(".cs", SourceMetricsCollector.ComputeForFile);
-        var result2 = provider.AnalyzeDirectory(path);
+        var result2 = provider.AnalyzeDirectory(path, null);
 
         var ordered2 = result2.OrderBy(tpl => tpl.Key).ToList();
         builder = new StringBuilder();
