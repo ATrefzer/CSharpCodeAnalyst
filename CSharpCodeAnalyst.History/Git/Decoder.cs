@@ -15,12 +15,12 @@ namespace CSharpCodeAnalyst.History.Git
         /// Based on
         /// https://stackoverflow.com/questions/24273673/i-have-a-string-of-octal-escapes-that-i-need-to-convert-to-korean-text-not-sur
         /// </summary>
-        public static string DecodeEscapedBytes(string escapedString)
+        public static string DecodeEscapedBytes(string? escapedString)
         {
             if (escapedString == null)
             {
                 // Can happen at the end of the file. Be robust.
-                return null;
+                return string.Empty;
             }
 
             try
@@ -45,11 +45,11 @@ namespace CSharpCodeAnalyst.History.Git
         /// supported"
         /// Same applies to autor name.
         /// </summary>
-        public static string Decode1252(string encoded)
+        public static string Decode1252(string? encoded)
         {
             if (encoded == null)
             {
-                return null;
+                return string.Empty;
             }
 
             var encoding = Encoding.GetEncoding(1252);

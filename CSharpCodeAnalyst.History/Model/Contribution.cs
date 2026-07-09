@@ -27,7 +27,7 @@ namespace CSharpCodeAnalyst.History.Model
         public MainDeveloper GetMainDeveloper()
         {
             // Find main developer
-            string mainDeveloper = null;
+            string? mainDeveloper = null;
             double linesOfWork = 0;
 
             double lineCount = DeveloperToContribution.Values.Sum(w => w);
@@ -39,6 +39,15 @@ namespace CSharpCodeAnalyst.History.Model
                     mainDeveloper = pair.Key;
                     linesOfWork = pair.Value;
                 }
+            }
+
+            // No recorded work (empty or all-zero contributions): there is no main developer.
+            // Return a well-defined "unknown" instead of a null developer and a NaN percentage
+            // (0/0). "" is the same "unknown" convention the KnowledgeBuilder already treats as
+            // the default color.
+            if (mainDeveloper == null || lineCount <= 0)
+            {
+                return new MainDeveloper("", 0.0);
             }
 
             return new MainDeveloper(mainDeveloper, 100.0 * linesOfWork / lineCount);

@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.History.Extensions
     public static class DictionaryExtension
     {
         public static void AddToValue<TKey>(
-                this Dictionary<TKey, uint> dict, TKey key, uint work)
+                this Dictionary<TKey, uint> dict, TKey key, uint work) where TKey : notnull
         {
             if (dict.TryGetValue(key, out var currentValue))
             {

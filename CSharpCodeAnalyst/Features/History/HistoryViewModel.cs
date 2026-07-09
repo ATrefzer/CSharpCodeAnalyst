@@ -85,6 +85,9 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     private async void OnCollect()
     {
+        // Captured inside the background task and surfaced after it finishes.
+        var gitWarnings = new List<WarningMessage>();
+
         try
         {
             var viewModel = new ImportHistoryDialogViewModel();
@@ -122,6 +125,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
                 // It is the known file types we can also calculate lines of code for. Avoids calculating
                 // contribution for binary files etc.
                 dto.History = gitProvider.ExtractHistory(progress, true, filter);
+                gitWarnings = gitProvider.Warnings;
 
                 // Collect metrics only for tracked files.
                 var trackedFiles = gitProvider.GetAllTrackedLocalFiles();
@@ -146,6 +150,14 @@ internal class HistoryViewModel : INotifyPropertyChanged
         finally
         {
             _busy.Report(new BusyState(string.Empty, false));
+        }
+
+        // Surface the git provider's warnings (rename-tracking resets, scope drift, one-time ids)
+        // in the same dialog the solution import uses. Shown after the busy overlay is gone; the
+        // dialog no-ops when there is nothing to report.
+        if (gitWarnings.Count > 0)
+        {
+            _ui.ShowErrorWarningDialog([], gitWarnings.Select(w => $"{w.Commit}: {w.Warning}").ToList());
         }
     }
 

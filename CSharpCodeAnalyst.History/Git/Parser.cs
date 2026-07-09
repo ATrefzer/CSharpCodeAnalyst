@@ -13,7 +13,7 @@ namespace CSharpCodeAnalyst.History.Git
         private readonly PathMapper _mapper;
         private const string EndHeaderMarker = "END_HEADER";
         private const string RecordMarker = "START_HEADER";
-        private string _lastLine;
+        private string? _lastLine;
 
         public Parser(PathMapper mapper)
         {
@@ -83,8 +83,7 @@ namespace CSharpCodeAnalyst.History.Git
                 return true;
             }
 
-            string line;
-            while ((line = ReadLine(reader)) != null)
+            while (ReadLine(reader) is { } line)
             {
                 if (line.Equals(RecordMarker))
                 {
@@ -116,6 +115,12 @@ namespace CSharpCodeAnalyst.History.Git
                 while (proceed)
                 {
                     var changeSet = ParseRecord(reader, graph);
+                    if (changeSet == null)
+                    {
+                        // Truncated final record - stop and keep the records parsed so far.
+                        break;
+                    }
+
                     changeSets.Add(changeSet);
                     proceed = GoToNextRecord(reader);
                 }
@@ -125,14 +130,21 @@ namespace CSharpCodeAnalyst.History.Git
             return history;
         }
 
-        private ChangeSet ParseRecord(StreamReader reader, Graph? graph)
+        private ChangeSet? ParseRecord(StreamReader reader, Graph? graph)
         {
-            // We are located on the first data item of the record
+            // We are located on the first data item of the record. A truncated stream (the git
+            // process died, malformed output) can end mid-record, so any read may return null.
+            // Bail out with null instead of dereferencing null or parsing a null date; the caller
+            // stops and keeps the records parsed so far.
             var hash = ReadLine(reader);
-
             var committer = ReadLine(reader);
             var date = ReadLine(reader);
             var parents = ReadLine(reader);
+
+            if (hash == null || committer == null || date == null || parents == null)
+            {
+                return null;
+            }
 
             var comment = ReadComment(reader);
 
@@ -168,10 +180,11 @@ namespace CSharpCodeAnalyst.History.Git
 
         private string ReadComment(StreamReader reader)
         {
-            string commentLine;
-
             var commentBuilder = new StringBuilder();
-            while ((commentLine = ReadLine(reader)) != EndHeaderMarker)
+
+            // Terminate on the end marker OR on end-of-stream (null). Without the null check a
+            // stream truncated before END_HEADER would loop forever reading null.
+            while (ReadLine(reader) is { } commentLine && commentLine != EndHeaderMarker)
             {
                 if (!string.IsNullOrEmpty(commentLine))
                 {
@@ -179,11 +192,10 @@ namespace CSharpCodeAnalyst.History.Git
                 }
             }
 
-            Debug.Assert(commentLine == EndHeaderMarker);
             return commentBuilder.ToString().Trim('\r', '\n');
         }
 
-        public string ReadLine(StreamReader reader)
+        private string? ReadLine(StreamReader reader)
         {
             // The only place where we read
             var raw = reader.ReadLine()?.Trim();
@@ -193,7 +205,7 @@ namespace CSharpCodeAnalyst.History.Git
             return _lastLine;
         }
 
-        public static KindOfChange ToKindOfChange(string kind)
+        private static KindOfChange ToKindOfChange(string kind)
         {
             if (kind.StartsWith("R"))
             {

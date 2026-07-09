@@ -22,7 +22,7 @@ public abstract class GitProviderBase
     protected readonly PathMapper _mapper;
     protected readonly string _projectBase;
 
-    public List<WarningMessage> Warnings { get; protected set; }
+    public List<WarningMessage> Warnings { get; } = [];
 
     /// <summary>
     ///     The start directory.

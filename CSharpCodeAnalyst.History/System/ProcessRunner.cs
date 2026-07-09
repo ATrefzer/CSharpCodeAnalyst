@@ -5,14 +5,14 @@ namespace CSharpCodeAnalyst.History.System
 {
     public sealed class ProcessResult
     {
-        public int ExitCode { get; set; }
-        public string StdErr { get; set; }
-        public string StdOut { get; set; }
+        public required int ExitCode { get; init; }
+        public required string StdErr { get; init; }
+        public required string StdOut { get; init; }
     }
 
     public class ProcessRunner
     {
-        public Encoding DefaultEncoding { get; set; }
+        public Encoding DefaultEncoding { get; init; } = Encoding.UTF8;
 
         public ProcessResult RunProcess(string pathToExecutable, string arguments)
         {
@@ -22,7 +22,7 @@ namespace CSharpCodeAnalyst.History.System
         /// <summary>
         /// ExitCode, StdOut, StdErr
         /// </summary>
-        public ProcessResult RunProcess(string pathToExecutable, string arguments, string workingDirectory)
+        public ProcessResult RunProcess(string pathToExecutable, string arguments, string? workingDirectory)
         {
             using (var process = CreateProcess(pathToExecutable, DefaultEncoding, workingDirectory))
             {
@@ -46,7 +46,7 @@ namespace CSharpCodeAnalyst.History.System
             }
         }
 
-        private static Process CreateProcess(string pathToExecutable, Encoding encoding, string workingDirectory = null)
+        private static Process CreateProcess(string pathToExecutable, Encoding encoding, string? workingDirectory = null)
         {
             var startInfo = new ProcessStartInfo
             {

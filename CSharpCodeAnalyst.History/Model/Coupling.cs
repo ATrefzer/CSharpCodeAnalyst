@@ -28,7 +28,7 @@ namespace CSharpCodeAnalyst.History.Model
             return string.Join("__", item2, item1);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
             {

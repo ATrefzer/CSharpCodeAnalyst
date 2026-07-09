@@ -7,9 +7,9 @@ using CSharpCodeAnalyst.TreeMap.Tools;
 
 namespace CSharpCodeAnalyst.TreeMap.TreeMap;
 
-public sealed class SquarifiedTreeMapRenderer : IRenderer
+public sealed class TreeMapRenderer : IRenderer
 {
-    private readonly IBrushFactory _brushFactory;
+    private readonly IBrushFactory? _brushFactory;
     private readonly HitTest _hitTest = new();
     private IHierarchicalData? _data;
     private TreeMapLayout? _layoutMap;
@@ -17,11 +17,10 @@ public sealed class SquarifiedTreeMapRenderer : IRenderer
     // ReSharper disable once NotAccessedField.Local
     private int _level = -1;
 
-    public SquarifiedTreeMapRenderer(IBrushFactory brushFactory)
+    public TreeMapRenderer(IBrushFactory? brushFactory)
     {
         _brushFactory = brushFactory;
     }
-
 
     public IHighlighting? Highlighting { get; set; }
 
@@ -76,6 +75,10 @@ public sealed class SquarifiedTreeMapRenderer : IRenderer
         SolidColorBrush brush;
         if (data.ColorKey != null)
         {
+            if (_brushFactory is null)
+            {
+                throw new InvalidOperationException("No BrushFactory has been set.");
+            }
             brush = _brushFactory.GetBrush(data.ColorKey);
         }
         else

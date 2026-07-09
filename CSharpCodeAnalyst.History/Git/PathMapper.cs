@@ -14,7 +14,7 @@
             var decoded = Decoder.DecodeEscapedBytes(serverPath);
 
             // In git we have the restriction 
-            // that we cannot choose any sub directory.
+            // that we cannot choose any subdirectory.
             // (Current knowledge). Select the one with .git for the moment.
 
             // Example

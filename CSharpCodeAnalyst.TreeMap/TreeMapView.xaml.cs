@@ -54,7 +54,7 @@ namespace CSharpCodeAnalyst.TreeMap
 
         protected override IRenderer CreateRenderer()
         {
-            return new SquarifiedTreeMapRenderer(BrushFactory);
+            return new TreeMapRenderer(BrushFactory);
         }
 
         protected override DrawingCanvas GetCanvas()

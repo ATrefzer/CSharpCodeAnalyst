@@ -1,14 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics;
-using LibGit2Sharp;
 
 namespace CSharpCodeAnalyst.History.Git;
-
-internal class GitNode
-{
-    public Scope Scope { get; set; }
-    public Commit Commit { get; set; }
-}
 
 [DebuggerDisplay("{CommitHash}: P={Parents.Count}, C={Children.Count}")]
 public sealed class GraphNode
@@ -18,14 +11,9 @@ public sealed class GraphNode
         CommitHash = commitHash;
     }
 
-
-    public object Commit { get; set; }
-
     public Scope? Scope { get; set; }
 
-
     public string CommitHash { get; }
-
 
     public List<GraphNode> Parents { get; } = new();
     public List<GraphNode> Children { get; } = new();
@@ -95,42 +83,6 @@ public class Graph : IEnumerable<GraphNode>
         return newGraph;
     }
 
-    /// <summary>
-    ///     Removes all nodes from the graph that don't end up at the given hash
-    /// </summary>
-    public void MinimizeTo(string hash)
-    {
-        // Find relevant nodes. These are nodes that lead to the given hash.
-        var relevant = new HashSet<string>();
-        var queue = new Queue<GraphNode>();
-        queue.Enqueue(GetNode(hash));
-
-        while (queue.Any())
-        {
-            var node = queue.Dequeue();
-
-            if (relevant.Add(node.CommitHash))
-            {
-                node.Parents.ForEach(parent => queue.Enqueue(parent));
-            }
-        }
-
-        // Remove all non relevant nodes
-        var toRemove = new HashSet<string>(_hashToGraphNode.Keys.Except(relevant));
-        foreach (var node in toRemove)
-        {
-            _hashToGraphNode.Remove(node);
-        }
-
-        foreach (var node in AllNodes)
-        {
-            node.Parents.RemoveAll(parent => toRemove.Contains(parent.CommitHash));
-            node.Children.RemoveAll(child => toRemove.Contains(child.CommitHash));
-        }
-
-        GetNode(hash).Children.Clear();
-    }
-
     private LeaseCommonAncestorPreprocessData PreprocessLeastCommonAncestor()
     {
         void TraverseDepthFirst(LeaseCommonAncestorPreprocessData preprocessData, GraphNode node, int currentDepth = 0)
@@ -167,7 +119,7 @@ public class Graph : IEnumerable<GraphNode>
     ///     See https://www.youtube.com/watch?v=sD1IoalFomA
     ///     The graph has to be rooted. Since the algorithm is intended to work for trees I made an adjustment
     ///     such that I process branching nodes only once.
-    ///     Otherwise we would process the same sub graphs again and again.
+    ///     Otherwise, we would process the same sub graphs again and again.
     /// </summary>
     public GraphNode FindCommonAncestor(GraphNode node1, GraphNode node2)
     {

@@ -13,7 +13,7 @@
         /// If the source control system does not provide unique ids like in svn use the StringId with
         /// server path.
         /// </summary>
-        public string Id { get; set; }
+        public required string Id { get; set; }
 
         /// <summary>
         ///  It still may be around on hard disk but removed from TFS!
@@ -22,10 +22,8 @@
 
         public DateTime Date { get; set; }
 
-        public string LocalPath { get; set; }
+        public required string LocalPath { get; init; }
 
-        public string Revision { get; set; }
-
-        public string ServerPath { get; set; }
+        public required string ServerPath { get; init; }
     }
 }

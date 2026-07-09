@@ -120,7 +120,7 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
     public (ChangeSetHistory, Graph) GetRawHistory(IProgress<string>? progress)
     {
         // GetRawHistory is also called directly (tests), so initialize here.
-        Warnings = new List<WarningMessage>();
+        Warnings.Clear();
         _stats = new Statistics();
 
         Graph graph;
@@ -442,15 +442,18 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
     private ChangeItem CreateChangeItem(TreeEntryChanges change, Scope scope,
         Dictionary<string, string> deletedServerPathToId, string commitHash)
     {
-        var item = new ChangeItem();
-        item.Kind = ToChangeKind(change.Status);
-        item.ServerPath = change.Path;
-        item.FromServerPath = change.OldPath;
-        item.LocalPath = _mapper.MapToLocalFile(change.Path);
+        var id = scope.GetIdOrDefault(change.Path);
+        var item = new ChangeItem
+            {
+                Kind = ToChangeKind(change.Status),
+                ServerPath = change.Path,
+                FromServerPath = change.OldPath,
+                LocalPath = _mapper.MapToLocalFile(change.Path),
+                // Assign id
+                Id = id
+            };
 
 
-        // Assign id
-        item.Id = scope.GetIdOrDefault(change.Path);
         if (item.Id == null)
         {
             Debug.Assert(change.Status == ChangeKind.Deleted);
@@ -471,14 +474,17 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
 
     private static ChangeSet CreateChangeSet(Commit commit)
     {
-        var cs = new ChangeSet();
-        cs.Comment = commit.MessageShort;
-        cs.Id = commit.Sha;
-        cs.Committer = commit.Author.Name;
+        var cs = new ChangeSet
+            {
+                Comment = commit.MessageShort,
+                Id = commit.Sha,
+                Committer = commit.Author.Name,
+                
+                // Committer date, not author date. After a rebase or cherry-pick the author date
+                // may be older than the parent commit and would break the history ordering.
+                Date = commit.Committer.When.LocalDateTime
+            };
 
-        // Committer date, not author date. After a rebase or cherry-pick the author date
-        // may be older than the parent commit and would break the history ordering.
-        cs.Date = commit.Committer.When.LocalDateTime;
         return cs;
     }
 

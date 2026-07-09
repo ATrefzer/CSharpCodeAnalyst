@@ -9,7 +9,7 @@ public class KnowledgeBuilderTests
 {
     private static Artifact Artifact(string localPath, string serverPath, int commits)
     {
-        return new Artifact { LocalPath = localPath, ServerPath = serverPath, Commits = commits };
+        return new Artifact { LocalPath = localPath, ServerPath = serverPath, Commits = commits, Id = Guid.NewGuid().ToString() };
     }
 
     [Test]

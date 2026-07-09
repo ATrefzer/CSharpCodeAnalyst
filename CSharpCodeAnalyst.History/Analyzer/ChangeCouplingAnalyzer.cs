@@ -27,8 +27,8 @@ public sealed class ChangeCouplingAnalyzer
                 continue;
             }
 
-            // Accepted files
-            var itemIds = cs.Items.Select(i => i.Id).ToList(); //.Where(item => filter.IsAccepted(item.LocalPath)).Select(item => item.Id).ToList();
+            // Accepted files. Analysis path: every item carries a tracking id (see ChangeItem.Id).
+            var itemIds = cs.Items.Select(i => i.Id!).ToList();
 
             // Do you have uncommitted changes.
             // Do you have commit items not inside the base directory?
@@ -70,10 +70,12 @@ public sealed class ChangeCouplingAnalyzer
         {
             foreach (var item in cs.Items)
             {
-                if (!idToLocalFile.ContainsKey(item.Id))
+                // Analysis path: every item carries a tracking id (see ChangeItem.Id).
+                var id = item.Id!;
+                if (!idToLocalFile.ContainsKey(id))
                 {
                     // Seen the first time means latest file.
-                    idToLocalFile.Add(item.Id, item.LocalPath);
+                    idToLocalFile.Add(id, item.LocalPath);
                 }
             }
         }

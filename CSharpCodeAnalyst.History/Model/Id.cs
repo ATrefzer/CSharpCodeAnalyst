@@ -6,12 +6,12 @@
         /// <summary>
         /// Define in derived class
         /// </summary>
-        public abstract override int GetHashCode();
+        public override abstract int GetHashCode();
 
         /// <summary>
         /// Define in derived class
         /// </summary>
-        public abstract override bool Equals(object obj);
+        public override abstract bool Equals(object? obj);
 
         public static bool operator ==(Id obj1, Id obj2)
         {
