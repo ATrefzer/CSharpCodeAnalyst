@@ -91,6 +91,10 @@ public abstract class HierarchicalDataViewBase : UserControl
         var id = 1;
         _originalData.TraverseBottomUp(node => node.Id = id++);
 
+        // Weights arrive raw - the view owns the normalization. DoFilter re-normalizes
+        // whenever leaves are removed by a filter change.
+        _originalData.NormalizeWeightMetrics();
+
         // Initially no filtering so skip removing nodes.
         ZoomLevelChanged(_originalData);
     }

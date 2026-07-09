@@ -22,12 +22,12 @@ public sealed class HotspotBuilder
 
         try
         {
-            // Must run first: filtering in InsertLeaf can leave branch nodes with no accepted
-            // children behind - structurally leaves, but with no area (NaN). SumAreaMetrics would
-            // throw on those. Throws itself if nothing at all is left.
+            // Filtering in InsertLeaf can leave branch nodes with no accepted children behind -
+            // structurally leaves, but with no area (NaN). Remove them; throws itself if nothing
+            // at all is left. Everything else (area sums, sorting, weight normalization) is
+            // visualization work and owned by the tree-map side - this analyzer only collects
+            // the raw data.
             data.RemoveLeafNodesWithoutArea();
-            data.SumAreaMetrics();
-            data.NormalizeWeightMetrics();
         }
         catch (Exception ex)
         {

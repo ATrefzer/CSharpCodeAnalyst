@@ -22,10 +22,9 @@ namespace CSharpCodeAnalyst.TreeMap.Data
     /// Now we can call RemoveLeafNodesWithoutArea to remove these nodes (recursively).
     /// The AreaMeticSum however is initialized with 0.
     /// 
-    /// Normally weight can be anything and it is normalized via NormalizeWeightMetrics.
-    /// If you want to provide an already normalized weight metric you have to tell via ctor.
-    /// This should be consistent with leaf and inner nodes, even if the inner nodes do not have a 
-    /// weight!
+    /// Weights are always provided raw (e.g. commit counts). The tree-map view normalizes them
+    /// via NormalizeWeightMetrics - once when the data is loaded and again after every filter
+    /// change - so data producers do not need to know anything about the color mapping.
     /// </summary>
     [Serializable]
     public sealed class HierarchicalData : IHierarchicalData, IEnumerable<IHierarchicalData>
@@ -58,7 +57,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
         }
 
-        public HierarchicalData(string name, double areaMetric, double weightMetric, bool weightIsAlreadyNormalized = false)
+        public HierarchicalData(string name, double areaMetric, double weightMetric)
         {
             Name = name;
             Description = Name;
@@ -66,15 +65,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             AreaMetricSum = 0.0;
             WeightMetric = weightMetric;
             NormalizedWeightMetric = 0.0;
-
-            if (weightIsAlreadyNormalized)
-            {
-                NormalizedWeightMetric = weightMetric;
-                if (WeightMetric < 0.0 || WeightMetric > 1)
-                {
-                    throw new ArgumentException("Normalized weight not in range [0,1]");
-                }
-            }
         }
         
         // TODO
@@ -199,17 +189,73 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
 
         /// <summary>
-        /// The weight metric is normalized only across the leaf nodes.
+        /// The weight metric is normalized only across the leaf nodes, using a rank-based
+        /// (percentile) mapping: weights like commit counts are heavily skewed, so with min-max
+        /// a single outlier gets all the color and almost every other leaf is compressed into
+        /// the bottom of the color scale. With percentiles the median leaf sits in the middle
+        /// of the color ramp. Ties share the same percentile (average rank), so equal weights
+        /// always get equal colors - including the all-equal case (0.5), which min-max cannot
+        /// handle at all (division by zero).
         /// </summary>
         public void NormalizeWeightMetrics()
         {
-            // Get min and max of weight metric and map to range 0...1.
-            var range = GetMinMaxWeight();
-            var min = range.Min;
-            var max = range.Max;
-            var scale = max - min;
+            var leaves = new List<HierarchicalData>();
+            CollectLeaves(leaves);
 
-            NormalizeWeightMetrics(min, scale);
+            if (leaves.Count == 0)
+            {
+                return;
+            }
+
+            if (leaves.Count == 1)
+            {
+                // Degenerate case of "all weights equal": middle of the scale.
+                leaves[0].NormalizedWeightMetric = 0.5;
+                return;
+            }
+
+            // Tuning point. The rank-based mapping below encodes only the ORDER of the leaves -
+            // distances are lost (the 2nd hottest leaf looks almost as red as the hottest, even
+            // if it has a fraction of the weight). If the proportions matter more than the
+            // ordering, replace everything below with a dampened min-max mapping instead:
+            //
+            //     var min = leaves.Min(l => l.WeightMetric);
+            //     var max = leaves.Max(l => l.WeightMetric);
+            //     var range = max - min;
+            //     foreach (var leaf in leaves)
+            //     {
+            //         leaf.NormalizedWeightMetric = range <= double.Epsilon
+            //             ? 0.5
+            //             : Math.Sqrt((leaf.WeightMetric - min) / range);
+            //     }
+            //
+            // Math.Sqrt keeps real distances but compresses the outliers; for very skewed data
+            // the logarithm dampens harder:
+            //     Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
+
+            leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
+
+            var count = leaves.Count;
+            var index = 0;
+            while (index < count)
+            {
+                // Find the run of leaves sharing the same weight and give all of them the
+                // percentile of their average rank.
+                var last = index;
+                while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
+                {
+                    last++;
+                }
+
+                var averageRank = (index + last) / 2.0;
+                var percentile = averageRank / (count - 1);
+                for (var i = index; i <= last; i++)
+                {
+                    leaves[i].NormalizedWeightMetric = percentile;
+                }
+
+                index = last + 1;
+            }
         }
 
         /// <summary>
@@ -373,19 +419,17 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             }
         }
 
-        private void NormalizeWeightMetrics(double min, double range)
+        private void CollectLeaves(List<HierarchicalData> leaves)
         {
             if (IsLeafNode)
             {
-                // All (remaining) leaves may share the same weight, e.g. after filtering.
-                // Map them to the middle of the scale instead of dividing by zero (NaN color).
-                NormalizedWeightMetric = range <= double.Epsilon ? 0.5 : (WeightMetric - min) / range;
+                leaves.Add(this);
             }
 
             foreach (var hierarchicalData in Children)
             {
                 var child = (HierarchicalData) hierarchicalData;
-                child.NormalizeWeightMetrics(min, range);
+                child.CollectLeaves(leaves);
             }
         }
 

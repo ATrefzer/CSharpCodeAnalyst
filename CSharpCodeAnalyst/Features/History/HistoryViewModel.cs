@@ -155,11 +155,10 @@ internal class HistoryViewModel : INotifyPropertyChanged
         var result = analyzer.AnalyzeHotspots(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode);
 
         // Format to hierarchical (tree-map) data. The HotspotNode tree arrives cleaned
-        // (no empty branches, no leaves without area) and with normalized weights - see
-        // HotspotBuilder.Build. Both properties are load-bearing: the initial rendering
-        // pass in HierarchicalDataViewBase neither filters nor normalizes, it trusts
-        // NormalizedWeightMetric as delivered. Only the area sums must be computed here,
-        // because the conversion does not carry them over.
+        // (no empty branches, no leaves without area - see HotspotBuilder.Build) and with
+        // raw weights (commit counts); normalizing them for coloring is owned by the
+        // tree-map view. Only the area sums must be computed here, because the conversion
+        // does not carry them over.
         var root = ToHierarchicalData(result);
         root.SumAreaMetrics();
 
@@ -174,14 +173,14 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     /// <summary>
     ///     Converts the UI-free <see cref="HotspotNode" /> tree from the analyzer into the TreeMap
-    ///     control's own <see cref="HierarchicalData" />. Leaf weights are carried over as already
-    ///     normalized, so only <see cref="HierarchicalData.SumAreaMetrics" /> needs to run again on the
-    ///     result (it also sorts children by descending area, which the renderer relies on).
+    ///     control's own <see cref="HierarchicalData" />. Areas and weights are carried over raw;
+    ///     only <see cref="HierarchicalData.SumAreaMetrics" /> needs to run again on the result
+    ///     (it also sorts children by descending area, which the renderer relies on).
     /// </summary>
     private static HierarchicalData ToHierarchicalData(HotspotNode node)
     {
         var data = node.IsLeafNode
-            ? new HierarchicalData(node.Name, node.AreaMetric, node.NormalizedWeightMetric, true)
+            ? new HierarchicalData(node.Name, node.AreaMetric, node.WeightMetric)
             : new HierarchicalData(node.Name);
 
         data.Description = node.Description;
