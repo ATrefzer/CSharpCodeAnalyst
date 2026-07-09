@@ -1608,6 +1608,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Image Viewer.
+        /// </summary>
+        public static string ImageViewer_Title {
+            get {
+                return ResourceManager.GetString("ImageViewer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select a solution or project file.
         /// </summary>
         public static string Import_DialogTitle {
@@ -1752,7 +1761,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Not applicable!.
+        ///   Looks up a localized string similar to Main developer %.
         /// </summary>
         public static string Knowledge_WeightSemantic {
             get {
@@ -2058,6 +2067,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show contribution in file.
+        /// </summary>
+        public static string Menu_ShowFileContribution {
+            get {
+                return ResourceManager.GetString("Menu_ShowFileContribution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hide filters are active!.
         /// </summary>
         public static string Message_FiltersAreActive {
@@ -2182,6 +2200,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Proceed_Title {
             get {
                 return ResourceManager.GetString("Proceed_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Annotate file {0}.
+        /// </summary>
+        public static string Progress_ShowWork {
+            get {
+                return ResourceManager.GetString("Progress_ShowWork", resourceCulture);
             }
         }
         

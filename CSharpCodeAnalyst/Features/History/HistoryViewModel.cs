@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
@@ -18,7 +19,9 @@ using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.TreeMap;
+using CSharpCodeAnalyst.TreeMap.Bitmap;
 using CSharpCodeAnalyst.TreeMap.Data;
+using CSharpCodeAnalyst.TreeMap.Interfaces;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -113,8 +116,10 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
             var progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
 
-            var dto = new HistoryDto();
-            dto.SupportedFilesExtensions = supported.ToList();
+            var dto = new HistoryDto(viewModel.RepositoryPath)
+            {
+                SupportedFilesExtensions = supported.ToList()
+            };
 
             // Run in background so progress can pass.
             await Task.Run(() =>
@@ -214,13 +219,60 @@ internal class HistoryViewModel : INotifyPropertyChanged
         var root = ToHierarchicalData(result);
         root.SumAreaMetrics();
 
+        var commands = new HierarchicalDataCommands();
+        commands.Register(Strings.Menu_ShowFileContribution, OnShowFileContribution);
+
         var data = new HierarchicalDataContext(root)
         {
             AreaSemantic = Strings.Hotspots_AreaSemantic,
-            WeightSemantic = Strings.Hotspots_WeightSemantic
+            WeightSemantic = Strings.Hotspots_WeightSemantic,
+            Commands = commands
         };
 
+
         _messaging.Publish(new ShowHierarchicalDataRequest("ID_Hotspots", Strings.Hotspots_Tab_Title, data));
+    }
+
+    private void OnShowFileContribution(IHierarchicalData data)
+    {
+        var fileToAnalyze = data.Tag as string;
+
+        if (fileToAnalyze is null || _lastHistory is null)
+        {
+            return;
+        }
+
+        BitmapSource? bitmapSource = null;
+        try
+        {
+            var msg = string.Format(Strings.Progress_ShowWork, fileToAnalyze);
+            _busy.Report(new BusyState(msg, true));
+
+            // Path may come from the persistence and points to somewhere else than _lastRepositoryPath
+            var gitProvider = new GitProvider(_lastHistory.ProjectBase);
+            
+            // Annotate
+            var workByDeveloper = gitProvider.CalculateDeveloperWork(fileToAnalyze);
+
+            var bitmap = new FractionBitmap();
+            var brushFactory = new BrushFactory(workByDeveloper.Keys.ToList());
+
+            bitmapSource = bitmap.Create(workByDeveloper, brushFactory, true);
+        }
+        catch (Exception e)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, e.Message));
+            Trace.WriteLine($"Failed {nameof(OnShowFileContribution)} {e}");
+        }
+        finally
+        {
+            _busy.Report(new BusyState(string.Empty, false));
+        }
+
+        if (bitmapSource != null)
+        {
+            OnShowImage(bitmapSource);
+        }
     }
 
 
@@ -292,11 +344,30 @@ internal class HistoryViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+
+    private void OnShowImage(BitmapSource bitmapSource)
+    {
+        // Show image
+        var viewer = new ImageViewer.ImageViewer();
+        viewer.SetImage(bitmapSource);
+        viewer.Owner = Application.Current.MainWindow;
+        viewer.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        viewer.SizeToContent = SizeToContent.WidthAndHeight;
+        viewer.ResizeMode = ResizeMode.NoResize;
+        viewer.ShowDialog();
+    }
+
     /// <summary>
     ///     Collect all parts for persistence
     /// </summary>
     private class HistoryDto
     {
+        public HistoryDto(string projectBase)
+        {
+            ProjectBase = projectBase;
+        }
+
+        public string ProjectBase { get; init; }
         public CSharpCodeAnalyst.History.Git.History? History { get; set; }
 
         public Dictionary<string, LinesOfCodeProvider.LinesOfCode>? LinesOfCode { get; set; }

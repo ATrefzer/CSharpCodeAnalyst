@@ -7,10 +7,11 @@ namespace CSharpCodeAnalyst.TreeMap
     /// </summary>
     public sealed class HierarchicalDataContext
     {
-        public HierarchicalDataContext(IHierarchicalData data, IBrushFactory brushFactory)
+        public HierarchicalDataContext(IHierarchicalData data, IBrushFactory brushFactory, HierarchicalDataCommands? commands = null)
         {
             Data = data;
             BrushFactory = brushFactory;
+            Commands = commands;
         }
 
         public HierarchicalDataContext Clone()
@@ -35,6 +36,8 @@ namespace CSharpCodeAnalyst.TreeMap
         /// Otherwise, a gradient is used.
         /// </summary>
         public IBrushFactory? BrushFactory { get; }
+
+        public HierarchicalDataCommands? Commands { get; init; }
 
         public IHierarchicalData Data { get; }
 

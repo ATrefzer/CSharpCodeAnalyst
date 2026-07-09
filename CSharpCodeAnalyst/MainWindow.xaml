@@ -49,7 +49,8 @@
             </DataTemplate>
 
             <DataTemplate x:Key="DynamicHierarchicalTabContentTemplate">
-                <treeMap:TreeMapView DataContext="{Binding Data}" />
+                <treeMap:TreeMapView DataContext="{Binding Data}"
+                                     UserCommands="{Binding Commands}"/>
             </DataTemplate>
 
         </ResourceDictionary>

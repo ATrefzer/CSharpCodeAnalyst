@@ -14,6 +14,22 @@ namespace CSharpCodeAnalyst.Shared.Tabs;
 /// </summary>
 public sealed class HierarchicalTabViewModel(string id, string title, HierarchicalDataContext data) : ITabViewModel
 {
+
+    public HierarchicalDataContext Data
+    {
+        get;
+        set
+        {
+            if (ReferenceEquals(field, value))
+            {
+                return;
+            }
+
+            field = value;
+            OnPropertyChanged();
+        }
+    } = data;
+
     public string Id { get; } = id;
 
     public string Title
@@ -30,21 +46,6 @@ public sealed class HierarchicalTabViewModel(string id, string title, Hierarchic
             OnPropertyChanged();
         }
     } = title;
-
-    public HierarchicalDataContext Data
-    {
-        get;
-        set
-        {
-            if (ReferenceEquals(field, value))
-            {
-                return;
-            }
-
-            field = value;
-            OnPropertyChanged();
-        }
-    } = data;
 
     /// <summary>Set by the owner (MainViewModel) right after construction.</summary>
     public ICommand? CloseCommand { get; set; }

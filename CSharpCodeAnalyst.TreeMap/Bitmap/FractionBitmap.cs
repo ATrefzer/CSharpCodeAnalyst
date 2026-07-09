@@ -9,8 +9,7 @@ namespace CSharpCodeAnalyst.TreeMap.Bitmap;
 
 public sealed class FractionBitmap
 {
-    public void Create(string filename, Dictionary<string, uint> workByDevelopers,
-        IBrushFactory brushFactory, bool legend)
+    public BitmapSource Create(Dictionary<string, uint> workByDevelopers, IBrushFactory brushFactory, bool legend)
     {
         double allWork = workByDevelopers.Values.Sum(w => w);
 
@@ -92,8 +91,11 @@ public sealed class FractionBitmap
         var renderTarget = new RenderTargetBitmap(2000, 2000, 96, 96, PixelFormats.Pbgra32);
         renderTarget.Render(visual);
 
-        var trimmedBitmap = BitmapManipulation.TrimBitmap(renderTarget);
-        SaveBitmap(trimmedBitmap, filename);
+        // The background is drawn as opaque white above, so the alpha-based trim cannot detect it
+        // (no transparent pixels exist). Trim by the white background color instead, otherwise the
+        // whole 2000x2000 canvas is returned with a huge white margin around the small content.
+        var trimmedBitmap = BitmapManipulation.TrimBitmap(renderTarget, Colors.White);
+        return trimmedBitmap;
     }
     
     private void SaveBitmap(BitmapSource bitmap, string filename)

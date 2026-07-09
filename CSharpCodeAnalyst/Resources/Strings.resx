@@ -1212,7 +1212,14 @@ Do you want to overwrite it?</value>
     <data name="Knowledge_WeightSemantic" xml:space="preserve">
       <value>Main developer %</value>
     </data>
-    
-    
+    <data name="Menu_ShowFileContribution" xml:space="preserve">
+      <value>Show contribution in file</value>
+    </data>
+    <data name="Progress_ShowWork" xml:space="preserve">
+      <value>Annotate file {0}</value>
+    </data>
+    <data name="ImageViewer_Title" xml:space="preserve">
+      <value>Image Viewer</value>
+    </data>
 
 </root>
