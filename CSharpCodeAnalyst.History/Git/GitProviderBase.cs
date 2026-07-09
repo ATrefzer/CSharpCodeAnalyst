@@ -58,45 +58,10 @@ public abstract class GitProviderBase
         return workByDevelopers;
     }
 
-    /// <summary>
-    ///     <inheritdoc cref="ISourceControlProvider.ExportFileHistory" />
-    /// </summary>
-    public List<FileRevision> ExportFileHistory(DirectoryInfo cache, string localFile)
-    {
-        var result = new List<FileRevision>();
-
-        var log = _gitCli.Log(localFile);
-
-        var historyOfSingleFile = ParseLogString(log);
-        foreach (var cs in historyOfSingleFile.ChangeSets)
-        {
-            var changeItem = cs.Items.First();
-
-            var fi = new FileInfo(localFile);
-            var exportFile = GetPathToExportedFile(cache, fi, cs.Id);
-
-            if (!changeItem.IsDelete())
-            {
-                // Download if not already in cache
-                if (!File.Exists(exportFile))
-                {
-                    // If item is deleted we won't find it in this changeset.
-                    _gitCli.ExportFileRevision(changeItem.ServerPath, cs.Id, exportFile);
-                }
-
-                var revision = new FileRevision(changeItem.LocalPath, cs.Id, cs.Date, exportFile);
-                result.Add(revision);
-            }
-        }
-
-        return result;
-    }
-
     public HashSet<string> GetAllTrackedFiles()
     {
         return GetAllTrackedFiles(null);
     }
-
 
     public HashSet<string> GetAllTrackedFiles(string? hash)
     {
