@@ -28,8 +28,6 @@ public abstract class HierarchicalDataViewBase : UserControl
         nameof(UserCommands), typeof(HierarchicalDataCommands), typeof(HierarchicalDataViewBase),
         new PropertyMetadata(null));
 
-    private readonly HitTest _hitTest = new();
-
     private readonly MenuItem _toolMenuItem = new()
         { Header = "Tools", Tag = null };
 
@@ -241,7 +239,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
         var canvas = GetCanvas();
         var pos = _renderer.Transform(Mouse.GetPosition(canvas));
-        var hit = _hitTest.Hit(_zoomLevel, pos);
+        var hit = _renderer.Hit(_zoomLevel, pos);
         var menu = GetContextMenu(sender);
         if (hit != null && menu != null)
         {
@@ -292,7 +290,7 @@ public abstract class HierarchicalDataViewBase : UserControl
         // Circle packing renderer uses transformations. So we have to translate the mouse position
         // into the coordinates of the circles.
         var pos = _renderer.Transform(e.GetPosition(GetCanvas()));
-        var hit = _hitTest.Hit(_zoomLevel, pos);
+        var hit = _renderer.Hit(_zoomLevel, pos);
         if (hit != null)
         {
             InitPopup(hit);

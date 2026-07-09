@@ -10,7 +10,9 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap;
 public sealed class SquarifiedTreeMapRenderer : IRenderer
 {
     private readonly IBrushFactory _brushFactory;
+    private readonly HitTest _hitTest = new();
     private IHierarchicalData? _data;
+    private TreeMapLayout? _layoutMap;
 
     // ReSharper disable once NotAccessedField.Local
     private int _level = -1;
@@ -39,9 +41,9 @@ public sealed class SquarifiedTreeMapRenderer : IRenderer
             return;
         }
 
-        // Calculate the layout
+        // Calculate the layout. Keep the resulting map so hit testing can reuse it.
         var layout = new SquarifiedTreeMapLayout();
-        layout.Layout(_data, actualWidth, actualHeight);
+        _layoutMap = layout.Layout(_data, actualWidth, actualHeight);
 
         // Render to drawing context
         _level = 0;
@@ -54,9 +56,14 @@ public sealed class SquarifiedTreeMapRenderer : IRenderer
         return mousePosition;
     }
 
-    private static RectangularLayoutInfo GetLayout(IHierarchicalData data)
+    public IHierarchicalData? Hit(IHierarchicalData root, Point pos)
     {
-        return data.Layout as RectangularLayoutInfo ?? new RectangularLayoutInfo();
+        return _layoutMap == null ? null : _hitTest.Hit(root, pos, _layoutMap);
+    }
+
+    private RectangularLayoutInfo GetLayout(IHierarchicalData data)
+    {
+        return _layoutMap?.Get(data) ?? new RectangularLayoutInfo();
     }
 
     private SolidColorBrush GetBrush(IHierarchicalData data)

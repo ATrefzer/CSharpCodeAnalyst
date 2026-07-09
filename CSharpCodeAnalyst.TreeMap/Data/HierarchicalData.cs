@@ -78,7 +78,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
         public string Description { get; set; }
 
         public bool IsLeafNode => Children.Count == 0;
-        public LayoutInfo? Layout { get; set; }
 
         public string Name { get; }
 
@@ -375,7 +374,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
         private void Dump(IHierarchicalData item, int level, StringBuilder builder)
         {
-            builder.AppendLine(new string(Enumerable.Repeat('\t', level).ToArray()) + item.Name + " " + item.Layout);
+            builder.AppendLine(new string(Enumerable.Repeat('\t', level).ToArray()) + item.Name);
 
             foreach (var child in item.Children)
             {

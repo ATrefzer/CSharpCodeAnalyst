@@ -30,32 +30,30 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap
     public sealed class SquarifiedTreeMapLayout
     {
         private int _level = -1;
+        private TreeMapLayout _map = new();
 
         public bool DebugEnabled { get; set; }
 
-        public void Layout(IHierarchicalData root, double width, double height)
+        public TreeMapLayout Layout(IHierarchicalData root, double width, double height)
         {
+            _map = new TreeMapLayout();
             var rect = new Rect(new Point(0, 0), new Size(width, height));
             var layout = GetLayout(root);
             layout.Rect = rect;
             Squarify(rect, root);
+            return _map;
         }
 
-        private static RectangularLayoutInfo GetLayout(IHierarchicalData data)
+        private RectangularLayoutInfo GetLayout(IHierarchicalData data)
         {
-            if (data.Layout == null)
-            {
-                data.Layout = new RectangularLayoutInfo();
-            }
-
-            return data.Layout as RectangularLayoutInfo;
+            return _map.GetOrCreate(data);
         }
 
         private void Backup(List<IHierarchicalData> stripMembers)
         {
             foreach (var item in stripMembers)
             {
-                item.Layout?.Backup();
+                GetLayout(item).Backup();
             }
         }
 
@@ -166,8 +164,7 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap
                 //var itemHeight = stripHeight * itemAreaProportion;
 
                 // Update layout render information
-                item.Layout = item.Layout ?? new RectangularLayoutInfo();
-                var layout = (RectangularLayoutInfo)item.Layout;
+                var layout = GetLayout(item);
                 layout.Rect.Width = stripWidth;
                 layout.Rect.Height = itemHeight;
                 layout.Rect.X = availableSpace.X;
@@ -188,7 +185,7 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap
         {
             foreach (var item in stripMembers)
             {
-                item.Layout.Rollback();
+                GetLayout(item).Rollback();
             }
         }
 

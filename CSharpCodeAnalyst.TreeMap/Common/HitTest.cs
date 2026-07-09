@@ -1,23 +1,25 @@
 ﻿using System.Windows;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.TreeMap.TreeMap;
 
 namespace CSharpCodeAnalyst.TreeMap.Common
 {
     internal sealed class HitTest
     {
         /// <summary>
-        /// Layout must have been called
+        /// The layout must have been calculated - pass the map the renderer produced.
         /// </summary>
-        public IHierarchicalData? Hit(IHierarchicalData item, Point mousePos)
+        public IHierarchicalData? Hit(IHierarchicalData item, Point mousePos, TreeMapLayout layout)
         {
-            // We may find a more detailed hit deeper.
-            IHierarchicalData? best = null;
-            if (item.Layout == null)
+            var rect = layout.Get(item);
+            if (rect == null)
             {
                 return null;
             }
 
-            if (item.Layout.IsHit(mousePos))
+            // We may find a more detailed hit deeper.
+            IHierarchicalData? best = null;
+            if (rect.IsHit(mousePos))
             {
                 best = item;
                 if (item.IsLeafNode)
@@ -28,9 +30,9 @@ namespace CSharpCodeAnalyst.TreeMap.Common
 
             foreach (var child in item.Children)
             {
-                if (child.Layout.IsHit(mousePos))
+                if (layout.Get(child)?.IsHit(mousePos) == true)
                 {
-                    return Hit(child, mousePos);
+                    return Hit(child, mousePos, layout);
                 }
             }
 

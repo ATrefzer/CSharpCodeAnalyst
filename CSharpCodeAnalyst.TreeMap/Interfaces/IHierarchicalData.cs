@@ -1,15 +1,7 @@
-﻿using CSharpCodeAnalyst.TreeMap.Common;
-
-namespace CSharpCodeAnalyst.TreeMap.Interfaces
+﻿namespace CSharpCodeAnalyst.TreeMap.Interfaces
 {
     public interface IHierarchicalData : IEnumerable<IHierarchicalData>
     {
-        // TODO move layoutig code outside.
-        /// <summary>
-        /// Attached layout information. This property is not cloned
-        /// </summary>
-        LayoutInfo? Layout { get; set; }
-
         /// <summary>
         /// null = don't use, empty use default color, otherwise the assigned color.
         /// </summary>
