@@ -11,4 +11,10 @@ internal class ChangeCouplingViewModel(Coupling coupling) : TableRow
     public int Couplings { get; set; } = coupling.Couplings;
     public string DegreeText { get; set; } = coupling.Degree.ToString("0.00");
     public string CouplingsText { get; set; } = coupling.Couplings.ToString();
+
+    /// <summary>
+    ///     Synthetic key for the table search: a coupling spans two file columns, so the search
+    ///     text must be matched against both. Combining them lets a single term hit either file.
+    /// </summary>
+    public string SearchKey => File1 + " " + File2;
 }

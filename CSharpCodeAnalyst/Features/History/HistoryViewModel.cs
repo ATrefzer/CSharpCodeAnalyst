@@ -270,7 +270,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
         }
 
         // Format to table data
-        var table = new ChangeCouplingsViewModel(result, _messaging);
+        var table = new ChangeCouplingsViewModel(result);
         _messaging.Publish(new ShowTabularDataRequest("ID_ChangeCouplings", Strings.ChangeCoupling_Tab_Title, table));
     }
 
