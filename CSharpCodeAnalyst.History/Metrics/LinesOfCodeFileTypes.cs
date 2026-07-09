@@ -14,18 +14,6 @@ public static class LinesOfCodeFileTypes
         Start = "'", End = "'", Escaping = EscapeStyle.Backslash, Kind = RegionKind.Code
     };
 
-    // Markup attribute values: XML/HTML have no '\' escape mechanism, so a trailing backslash
-    // (e.g. Path="C:\Temp\") must not swallow the closing quote.
-    private static readonly DelimitedRegionStyle XmlDoubleQuoteString = new()
-    {
-        Start = "\"", End = "\"", Escaping = EscapeStyle.None, Kind = RegionKind.Code
-    };
-
-    private static readonly DelimitedRegionStyle XmlSingleQuoteString = new()
-    {
-        Start = "'", End = "'", Escaping = EscapeStyle.None, Kind = RegionKind.Code
-    };
-
     /// <summary>
     ///     Whether the '"' at quoteIndex is preceded by a verbatim-string prefix: @" / $@" / @$".
     /// </summary>
@@ -75,29 +63,34 @@ public static class LinesOfCodeFileTypes
         };
 
         // XML (xaml, xml, resx, etc.)
+        // Deliberately NO string regions: quotes delimit strings only inside tags (attribute
+        // values), which a line scanner cannot know - in element text they are plain content
+        // and must not suppress a following comment ("...<!-- x -->" IS a comment there).
+        // Nothing is lost by this: well-formed XML forbids '<' inside attribute values (it must
+        // be &lt;), so a comment opener can never legally occur inside an attribute string.
         var xmlContent = new FileTypeInfo
         {
             Name = "XAML/XML",
             SingleLineComment = null, // XML has no single-line comments
-            Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment }, XmlDoubleQuoteString, XmlSingleQuoteString }
+            Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment } }
         };
 
         fileTypes[".xaml"] = xmlContent;
         fileTypes[".xml"] = xmlContent;
         fileTypes[".resx"] = xmlContent;
 
-        // HTML - comment syntax is XML-style. Note: this does NOT switch into JS/CSS comment
-        // syntax inside embedded <script>/<style> blocks (would need tag-awareness, which this
-        // line scanner does not have), so LOC inside such blocks is only approximate - the same
-        // accepted trade-off as the rest of this file.
-        // No single-quote region for HTML: apostrophes in prose ("don't") are far more common
-        // than single-quoted attribute values containing "<!--", and an unpaired apostrophe
-        // would open a never-closing region that swallows all following comments.
+        // HTML - comment syntax is XML-style, and like XML there are deliberately NO string
+        // regions: the browser really does start a comment at "<!--" even between quotes in
+        // text content ("sss<!-- x -->" renders as "sss"). A '<' inside an HTML attribute
+        // value is technically possible but rare - accepted trade-off.
+        // Note: this does NOT switch into JS/CSS comment syntax inside embedded
+        // <script>/<style> blocks (would need tag-awareness, which this line scanner does not
+        // have), so LOC inside such blocks is only approximate.
         fileTypes[".html"] = new FileTypeInfo
         {
             Name = "HTML",
             SingleLineComment = null,
-            Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment }, XmlDoubleQuoteString }
+            Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment } }
         };
         fileTypes[".htm"] = fileTypes[".html"];
 

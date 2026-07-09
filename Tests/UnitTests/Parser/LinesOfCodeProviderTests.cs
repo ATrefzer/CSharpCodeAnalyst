@@ -326,11 +326,28 @@ public class LinesOfCodeProviderTests
     [Test]
     public void Xml_AttributeEndingWithBackslash_DoesNotSwallowClosingQuote()
     {
-        // XML has no backslash escaping - Path="C:\Temp\" must close at the final quote
-        // instead of running the "string" on and hiding the comment on the next line.
+        // Quotes are plain content in markup (no string regions at all), so neither the
+        // quotes nor the backslashes may hide the comment on the next line.
         var lines = new[]
         {
             "<Dir Path=\"C:\\Temp\\\" />",
+            "<!-- a comment -->"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".xml");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Xml_CommentAfterUnbalancedQuoteInElementText_IsStillAComment()
+    {
+        // Quotes in element text are plain characters - they must not open a "string"
+        // that suppresses comment detection on the following lines.
+        var lines = new[]
+        {
+            "<Description>He said \"hello</Description>",
             "<!-- a comment -->"
         };
 
@@ -358,6 +375,26 @@ public class LinesOfCodeProviderTests
         var (code, comments) = _sut.AnalyzeLines(lines, ".html");
 
         Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Html_CommentStartingInsideQuotedText_IsStillAComment()
+    {
+        // The browser starts a comment at "<!--" even between quotes in text content:
+        // "sss<!--ddd -->" renders as "sss. The quotes must not suppress the comment.
+        var lines = new[]
+        {
+            "<p>\"sss<!--ddd",
+            "ddd continues -->",
+            "\"</p>"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".html");
+
+        // Line 1 mixes text and comment start (counts as code), line 2 is comment only,
+        // line 3 is text again.
+        Assert.That(code, Is.EqualTo(2));
         Assert.That(comments, Is.EqualTo(1));
     }
 
