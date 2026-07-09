@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:treeMap="clr-namespace:CSharpCodeAnalyst.TreeMap"
         xmlns:tools="clr-namespace:CSharpCodeAnalyst.TreeMap.Tools"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.TreeMap.Resources"
         mc:Ignorable="d"
@@ -40,7 +39,7 @@
         <CheckBox Content="{x:Static resources:Strings.NoFilterJustHighlight}"
                   IsChecked="{Binding NoFilterJustHighlight}"/>
 
-        <!-- Area filter: min / max as one labelled group. -->
+        <!-- Area filter: min / max as one labeled group. -->
         <GroupBox Header="{Binding AreaSemantic, Mode=OneWay}" Margin="0 12 0 0" Padding="8 4 8 8">
             <StackPanel>
                 <DockPanel Margin="0 4 0 0">
@@ -61,7 +60,7 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- Weight filter: min / max as one labelled group. -->
+        <!-- Weight filter: min / max as one labeled group. -->
         <GroupBox Header="{Binding WeightSemantic, Mode=OneWay}" Margin="0 10 0 0" Padding="8 4 8 8">
             <StackPanel>
                 <DockPanel Margin="0 4 0 0">

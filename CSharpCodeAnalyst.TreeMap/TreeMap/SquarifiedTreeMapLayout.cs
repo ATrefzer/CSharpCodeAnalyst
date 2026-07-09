@@ -55,7 +55,7 @@ namespace CSharpCodeAnalyst.TreeMap.TreeMap
         {
             foreach (var item in stripMembers)
             {
-                item.Layout.Backup();
+                item.Layout?.Backup();
             }
         }
 

@@ -66,9 +66,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             WeightMetric = weightMetric;
             NormalizedWeightMetric = 0.0;
         }
-        
-        // TODO
-        public int Id { get; set; }
 
         public double AreaMetric { get; }
 
@@ -367,9 +364,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             newData.Tag = cloneThis.Tag;
             newData.AreaMetricSum = cloneThis.AreaMetricSum;
             newData.NormalizedWeightMetric = cloneThis.NormalizedWeightMetric;
-            
-            // TODO remove
-            newData.Id = cloneThis.Id;
 
             foreach (var child in cloneThis._children)
             {

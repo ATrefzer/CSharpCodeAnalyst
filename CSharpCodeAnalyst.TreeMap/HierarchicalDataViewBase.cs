@@ -52,10 +52,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     ///     a reference to the original data (no filter)
     /// </summary>
     private IHierarchicalData? _zoomLevel;
-
- 
-
-
+    
     /// <summary>
     ///     Commands that apply to leaf nodes of a hierarchical data.
     /// </summary>
@@ -70,7 +67,7 @@ public abstract class HierarchicalDataViewBase : UserControl
         _originalData = null;
         BrushFactory = null;
 
-        if (!(DataContext is HierarchicalDataContext context))
+        if (DataContext is not HierarchicalDataContext context)
         {
             // This is called once with the wrong context.
             return;
@@ -85,11 +82,6 @@ public abstract class HierarchicalDataViewBase : UserControl
         _originalData = context.Data;
 
         InitializeTools(context.AreaSemantic, context.WeightSemantic);
-
-        // TODO Cleanup Extract Ids and add layout infos.
-        // Should not be part of the hierarchical data.
-        var id = 1;
-        _originalData.TraverseBottomUp(node => node.Id = id++);
 
         // Weights arrive raw - the view owns the normalization. DoFilter re-normalizes
         // whenever leaves are removed by a filter change.
@@ -122,8 +114,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
     private IHierarchicalData DoFilter(IHierarchicalData data)
     {
-        // TODO move outside
-        if (_toolViewModel.NoFilterJustHighlight)
+        if (_toolViewModel is null || _toolViewModel.NoFilterJustHighlight)
         {
             // Highlighting the filter instead of removing the nodes.
             return data;
@@ -149,37 +140,33 @@ public abstract class HierarchicalDataViewBase : UserControl
         return data;
     }
 
-    protected void OnToolFilterChanged(object? sender, EventArgs args)
+    private void OnToolFilterChanged(object? sender, EventArgs args)
     {
         if (_originalData is null)
         {
             return;
         }
 
-        var oldZoomLevelId = _zoomLevel?.Id;
+        var oldZoomLevelPath = _zoomLevel?.GetPathToRoot();
         var sourceData = DoFilter(_originalData.Clone());
 
-        var zoomTo = FindById(sourceData, oldZoomLevelId);
+        var zoomTo = FindByPath(sourceData, oldZoomLevelPath);
 
         ZoomLevelChanged(zoomTo);
     }
 
-    private IHierarchicalData FindById(IHierarchicalData tree, int? id)
+    private IHierarchicalData FindByPath(IHierarchicalData tree, string? path)
     {
-        var zoomTo = tree;
-        if (!id.HasValue)
+        if (path == null)
         {
-            return zoomTo;
+            return tree;
         }
 
-        var idValue = id.Value;
-        var newZoom = tree.FirstOrDefault(node => node.Id == idValue);
-        if (newZoom != null)
-        {
-            zoomTo = newZoom;
-        }
-
-        return zoomTo;
+        // Re-locate the previously zoomed node in the freshly filtered clone by its path to
+        // root. A node's path is unique (siblings never share a name) and stable across the
+        // clone, so it identifies the same logical node without a separate Id field. Falls back
+        // to the root when the node no longer exists (its subtree was filtered away).
+        return tree.FirstOrDefault(node => node.GetPathToRoot() == path) ?? tree;
     }
 
 

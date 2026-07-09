@@ -9,11 +9,6 @@ namespace CSharpCodeAnalyst.TreeMap.Interfaces
         /// Attached layout information. This property is not cloned
         /// </summary>
         LayoutInfo? Layout { get; set; }
-        
-        /// <summary>
-        /// Unique Id of this node within the hierarchy. (Cloned)
-        /// </summary>
-        int Id { get; set; }
 
         /// <summary>
         /// null = don't use, empty use default color, otherwise the assigned color.
