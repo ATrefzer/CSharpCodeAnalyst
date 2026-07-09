@@ -28,12 +28,14 @@ public sealed class HotspotNode
         WeightMetric = weightMetric;
     }
     
-    public HotspotNode(string name, double areaMetric, string colorKey)
+    /// <summary>Leaf node colored by an explicit color key (e.g. main developer). The weight is
+    /// only used for the filter slider here, not for coloring.</summary>
+    public HotspotNode(string name, double areaMetric, string colorKey, double weightMetric)
     {
         Name = name;
         Description = name;
         AreaMetric = areaMetric;
-        WeightMetric = double.NaN;
+        WeightMetric = weightMetric;
         ColorKey = colorKey;
     }
     

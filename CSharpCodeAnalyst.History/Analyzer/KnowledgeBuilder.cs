@@ -37,7 +37,9 @@ public sealed class KnowledgeBuilder : BuilderBase
 
     protected override HotspotNode CreateLeafNode(string leafName, Artifact item)
     {
-        var leaf = new HotspotNode(leafName, GetArea(item), GetColorKey(item))
+        // Color comes from the main developer (ColorKey); the weight carries the ownership
+        // percentage so the filter slider shows a meaningful value instead of NaN.
+        var leaf = new HotspotNode(leafName, GetArea(item), GetColorKey(item), GetMainDeveloper(item).Percent)
         {
             Description = GetDescription(item),
             Tag = item.LocalPath

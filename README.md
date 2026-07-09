@@ -49,7 +49,7 @@ This builds a complete in-memory graph **model** of your solution (assemblies, n
 - **[Export your graph](#export-your-graph)** — PlantUML, DGML, PNG/SVG, and more for documentation or further analysis
 - **[Validate architectural rules](#validate-architectural-rules)** — define DENY / RESTRICT / ISOLATE rules and check them, in the app or in CI
 
-Independent from the dependency graph tools, you can also analyze a GIT history using the History Tool
+Independent from the dependency graph tools, you can also analyze a GIT history using the **History Tool**
 
 - **[Analyze a GIT repoository](#analyze-a-git-repository)** 
 
@@ -281,15 +281,25 @@ jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 
 ## Analyze a GIT repository
 
-Years ago, I wrote a repository analyzer based on Adam Tornhill's book "Your code as a crime scene." Learn more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, such as Knowledge loss, but I added the most useful ones to C# Code Analyst. Change coupling is especially interesting since a static analyzer cannot capture it.
+Years ago, I wrote a repository analyzer based on Adam Tornhill’s book “Your code as a crime scene.” Learn more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, but I added the most useful ones to C# Code Analyst. Change coupling is especially interesting since a static analyzer cannot capture it.
 
 Two files are coupled when they often change together. For example, one class encodes a file, and another decodes it. You cannot change one without the other. Such hidden dependencies can be made visible, which fits perfectly into a dependency analyzer tool.
 
-The other analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is drawn as the area of a rectangle, and the number of changes is represented as color. The deeper the color, the more often a file was changed over time. Large files that often change are called hotspots and are good candidates to monitor.
+For example, in the first row, 93.1% of commits that contain **Item1** or **Item2**'' committed both items together; therefore, the files may be coupled.
+
+![](Documentation/Images/change-coupling.png)
+
+The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is drawn as the area of a rectangle, and the number of changes is represented as color. The deeper the color, the more often a file was changed over time. Large files that often change are called hotspots and are good candidates to monitor.
 
 ![](Documentation/Images/hotspot.png)
 
+Finally, you can analyze a developer's contribution to a file.
 
+That has nothing to do with dependency analysis, but it's helpful if you need to know who to ask for help or which area should be documented when a team member leaves the project.
+
+The developer who contributed most to a file (based on a simple GIT blame) is denoted as the main developer, and the file is colored accordingly. That does not mean this developer has the best knowledge of the file. But it is a reasonable best guess.
+
+![](Documentation/Images/knowledge.png)
 
 ## Limitations
 
