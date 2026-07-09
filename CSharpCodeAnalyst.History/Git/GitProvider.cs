@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Serialization;
+using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Model;
 using LibGit2Sharp;
 
@@ -25,7 +26,17 @@ namespace CSharpCodeAnalyst.History.Git
         }
 
         public ChangeSetHistory ChangeSets { get; }
-        public Dictionary<string, Contribution> Contributions { get; }
+        public Dictionary<string, Contribution> Contributions { get; private set; }
+
+        /// <summary>
+        ///     A JSON round-trip drops the case-insensitive comparer on the Contributions
+        ///     dictionary. Restore it so path lookups behave like a freshly collected History.
+        ///     Idempotent.
+        /// </summary>
+        public void NormalizeLookupKeys()
+        {
+            Contributions = Contributions.ToCaseInsensitivePathKeys();
+        }
     }
     
     /// <summary>

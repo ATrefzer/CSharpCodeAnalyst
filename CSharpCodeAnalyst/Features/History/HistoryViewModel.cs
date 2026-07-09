@@ -9,6 +9,7 @@ using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 using CSharpCodeAnalyst.History.Analyzer;
+using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Git;
 using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
@@ -41,6 +42,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
         LoadCommand = new WpfCommand(OnLoad);
         HotspotsCommand = new WpfCommand(OnHotspots);
         ChangeCouplingCommand = new WpfCommand(OnChangeCoupling);
+        KnowledgeCommand = new WpfCommand(OnKnowledge);
     }
 
     public ICommand CollectCommand { get; }
@@ -50,8 +52,38 @@ internal class HistoryViewModel : INotifyPropertyChanged
     public ICommand HotspotsCommand { get; }
 
     public ICommand ChangeCouplingCommand { get; }
+    public ICommand KnowledgeCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnKnowledge()
+    {
+        if (_lastHistory is null || _lastHistory.History is null || _lastHistory.LinesOfCode is null)
+        {
+            ToastManager.ShowWarning(Strings.History_NoDataLoaded);
+            return;
+        }
+
+        var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
+        var result = analyzer.AnalyzeKnowledge(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode, _lastHistory.History.Contributions);
+
+        var brushFactory = new BrushFactory(GetDistinctColorKeys(result));
+
+        // Format to hierarchical (tree-map) data. The HotspotNode tree arrives cleaned
+        // (no empty branches, no leaves without area - see HotspotBuilder.Build) and with
+        // coloring as weights.
+        var root = ToHierarchicalData(result);
+        root.SumAreaMetrics();
+
+
+        var data = new HierarchicalDataContext(root, brushFactory)
+        {
+            AreaSemantic = Strings.Knowledge_AreaSemantic,
+            WeightSemantic = Strings.Knowledge_WeightSemantic
+        };
+
+        _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data));
+    }
 
     private async void OnCollect()
     {
@@ -133,6 +165,17 @@ internal class HistoryViewModel : INotifyPropertyChanged
             var json = File.ReadAllText(path);
             var options = new JsonSerializerOptions { WriteIndented = false };
             _lastHistory = JsonSerializer.Deserialize<HistoryDto>(json, options);
+
+            // A JSON round-trip silently drops the case-insensitive comparer on the path-keyed
+            // dictionaries. Restore it here, once, so every downstream analyzer can look up by
+            // path without caring about casing (see DictionaryExtension.ToCaseInsensitivePathKeys).
+            if (_lastHistory?.LinesOfCode != null)
+            {
+                _lastHistory.LinesOfCode = _lastHistory.LinesOfCode.ToCaseInsensitivePathKeys();
+            }
+
+            _lastHistory?.History?.NormalizeLookupKeys();
+
             _lastOutputFilePath = path;
             _ui.ShowSuccess(Strings.History_Loaded);
         }
@@ -170,6 +213,23 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
         _messaging.Publish(new ShowHierarchicalDataRequest("ID_Hotspots", Strings.Hotspots_Tab_Title, data));
     }
+
+
+    private static List<string> GetDistinctColorKeys(HotspotNode root)
+    {
+        var colorKeys = new HashSet<string>();
+        root.VisitAll(n =>
+        {
+            // The color key is the main developer, NOT the file/folder name. The BrushFactory
+            // must be keyed by exactly the ColorKeys the renderer later looks brushes up with.
+            if (!string.IsNullOrEmpty(n.ColorKey))
+            {
+                colorKeys.Add(n.ColorKey);
+            }
+        });
+        return colorKeys.ToList();
+    }
+
 
     /// <summary>
     ///     Converts the UI-free <see cref="HotspotNode" /> tree from the analyzer into the TreeMap

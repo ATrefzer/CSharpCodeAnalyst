@@ -144,11 +144,10 @@ public abstract class GitProviderBase
                 progress?.Report($"Calculating work {count}/{all}");
             });
 
-        // Lower case keys are the lookup contract. Git can track paths that differ
-        // only in casing, so a plain ToDictionary could throw on duplicate keys.
-        return fileToContribution
-            .GroupBy(pair => pair.Key.ToLowerInvariant())
-            .ToDictionary(group => group.Key, group => group.First().Value);
+        // Case-insensitive lookups are the contract. Git can track paths that differ only in
+        // casing, so a plain ToDictionary could throw on duplicate keys - the helper keeps the
+        // original casing, uses a case-insensitive comparer and deduplicates.
+        return fileToContribution.ToCaseInsensitivePathKeys();
     }
 
     protected ChangeSetHistory ParseLogString(string gitLogString)

@@ -1554,6 +1554,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Lines of Code.
+        /// </summary>
+        public static string Hotspots_AreaSemantic {
+            get {
+                return ResourceManager.GetString("Hotspots_AreaSemantic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hotspots.
         /// </summary>
         public static string Hotspots_Label {
@@ -1570,31 +1579,22 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Hotspots_Tab_Title", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Lines of Code.
-        /// </summary>
-        public static string Hotspots_AreaSemantic {
-            get {
-                return ResourceManager.GetString("Hotspots_AreaSemantic", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Commits.
-        /// </summary>
-        public static string Hotspots_WeightSemantic {
-            get {
-                return ResourceManager.GetString("Hotspots_WeightSemantic", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Show hotspots from the collected history data.
         /// </summary>
         public static string Hotspots_Tooltip {
             get {
                 return ResourceManager.GetString("Hotspots_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commits.
+        /// </summary>
+        public static string Hotspots_WeightSemantic {
+            get {
+                return ResourceManager.GetString("Hotspots_WeightSemantic", resourceCulture);
             }
         }
         
@@ -1712,6 +1712,51 @@ namespace CSharpCodeAnalyst.Resources {
         public static string JumpToCode {
             get {
                 return ResourceManager.GetString("JumpToCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Commits.
+        /// </summary>
+        public static string Knowledge_AreaSemantic {
+            get {
+                return ResourceManager.GetString("Knowledge_AreaSemantic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Knowledge.
+        /// </summary>
+        public static string Knowledge_Label {
+            get {
+                return ResourceManager.GetString("Knowledge_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Knowledge.
+        /// </summary>
+        public static string Knowledge_Tab_Title {
+            get {
+                return ResourceManager.GetString("Knowledge_Tab_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyze knowledge distribution in the repository..
+        /// </summary>
+        public static string Knowledge_Tooltip {
+            get {
+                return ResourceManager.GetString("Knowledge_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not applicable!.
+        /// </summary>
+        public static string Knowledge_WeightSemantic {
+            get {
+                return ResourceManager.GetString("Knowledge_WeightSemantic", resourceCulture);
             }
         }
         

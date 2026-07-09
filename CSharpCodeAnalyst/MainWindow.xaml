@@ -364,6 +364,15 @@
                             <ToolTip Content="{x:Static resources:Strings.ChangeCoupling_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
+                    
+                    <RibbonButton Label="{x:Static resources:Strings.Knowledge_Label}"
+                                  LargeImageSource="/Resources/knowledge_32.png"
+                                  Command="{Binding History.KnowledgeCommand}"
+                                  KeyTip="CC">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Knowledge_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
                 </RibbonGroup>
 
                 <!-- Help Ribbon Group -->

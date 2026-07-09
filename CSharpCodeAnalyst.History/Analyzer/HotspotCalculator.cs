@@ -13,12 +13,10 @@ namespace CSharpCodeAnalyst.History.Analyzer
 
         public HotspotCalculator(IEnumerable<Artifact> artifacts, Dictionary<string, LinesOfCodeProvider.LinesOfCode> metrics)
         {
-            // GetLinesOfCode looks up by a lower-cased key, but the incoming dictionary (fresh from
-            // LinesOfCodeProvider, or round-tripped through JSON - which never preserves a custom
-            // comparer) uses ordinal, case-sensitive keys. Without this the lookup misses almost
-            // every file, GetLinesOfCode silently returns 0 for everything, and every artifact fails
-            // IsAccepted - the tree ends up with no leaves at all.
-            _metrics = new Dictionary<string, LinesOfCodeProvider.LinesOfCode>(metrics, StringComparer.OrdinalIgnoreCase);
+            // The metrics dictionary is already keyed case-insensitively by the time it reaches an
+            // analyzer - freshly built by LinesOfCodeProvider, or normalized right after loading a
+            // project (see HistoryViewModel.OnLoad). So a plain path lookup is enough here.
+            _metrics = metrics;
             foreach (var artifact in artifacts)
             {
                 _maxCommits = Math.Max(_maxCommits, GetCommits(artifact));
@@ -33,16 +31,7 @@ namespace CSharpCodeAnalyst.History.Analyzer
         /// </summary>
         public double GetLinesOfCode(Artifact item)
         {
-            var area = 0.0;
-            var key = item.LocalPath.ToLowerInvariant();
-
-            if (_metrics.ContainsKey(key))
-            {
-                // Lines of code
-                area = _metrics[key].Code;
-            }
-
-            return area;
+            return _metrics.TryGetValue(item.LocalPath, out var loc) ? loc.Code : 0.0;
         }
 
         /// <summary>

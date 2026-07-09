@@ -3,8 +3,7 @@ namespace CSharpCodeAnalyst.History.Analyzer;
 /// <summary>
 ///     Self-contained hierarchical tree node for the hotspot analysis. Deliberately independent from
 ///     CSharpCodeAnalyst.TreeMap.Data.HierarchicalData (which lives in a WPF-only assembly) so this
-///     library stays free of any UI dependency. If a second hierarchical analysis needs the same
-///     tree-building machinery, extract the shared parts into a base type then - not before.
+///     library stays free of any UI dependency.
 /// </summary>
 public sealed class HotspotNode
 {
@@ -28,7 +27,16 @@ public sealed class HotspotNode
         AreaMetric = areaMetric;
         WeightMetric = weightMetric;
     }
-
+    
+    public HotspotNode(string name, double areaMetric, string colorKey)
+    {
+        Name = name;
+        Description = name;
+        AreaMetric = areaMetric;
+        WeightMetric = double.NaN;
+        ColorKey = colorKey;
+    }
+    
     public string Name { get; }
     public string Description { get; set; }
     public string? ColorKey { get; set; }
@@ -49,6 +57,15 @@ public sealed class HotspotNode
     {
         _children.Add(child);
         child.Parent = this;
+    }
+    
+    public void VisitAll(Action<HotspotNode> action)
+    {
+        action(this);
+        foreach (var child in Children)
+        {
+            child.VisitAll(action);
+        }
     }
 
     public string GetPathToRoot()

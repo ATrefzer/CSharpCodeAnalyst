@@ -7,8 +7,20 @@
 **Review-Fazit:** Der Scanner-Kern ist aus meiner Sicht solide — die Zustandsmaschine, die Escape-Strategien und die Delimiter-Arithmetik sind korrekt, und die dokumentierten Konventionen (Blank vor Region, Code vor Kommentar) sind konsistent umgesetzt. Drei Punkte habe ich gefunden, die ich **nicht** angefasst habe, weil du erst dein Okay geben sollst:
 
 1. **Echter Bug:** In `LinesOfCodeProvider.cs:128` filtert `AnalyzeDirectory` nur nach `_fileTypes` — ein per `RegisterCustomProvider` registrierter Handler für eine Extension, die *nicht* in den FileTypes steht (z. B. `.rs`), wird nie aufgerufen, die Dateien werden stillschweigend übersprungen. Fix: `_fileTypes.ContainsKey(ext) || _handlers.ContainsKey(ext)`.
+
 2. **Randfall:** `@"""text"` (Verbatim-String, der mit einer escaped Quote beginnt) wird als Raw String geparst, weil der Raw-String-Eintrag kein `RequiresPrefix` hat, das ein vorangehendes `@` ablehnt. Die Region schließt dann falsch und Folgezeilen werden fehlklassifiziert.
+
 3. **Trade-off:** XML/HTML nutzen `EscapeStyle.Backslash`, obwohl es dort kein Backslash-Escaping gibt (`Path="C:\Temp\"` hält den String offen), und ein Apostroph in HTML-Fließtext (`don't`) öffnet eine nie schließende Single-Quote-Region, die nachfolgende `<!-- -->`-Kommentare als Code zählt. Für XML/HTML wäre `EscapeStyle.None` sicherer.
+
+   **-- Anm:  Nein, in HTML "xxx <!-- yyy -->" ist yyy ein Kommentar!**
+   Du hast recht — und der Fehler liegt tiefer als das Escaping, das wir neulich korrigiert haben. Ich prüfe die Definitionen und korrigiere sie. Kurz die Analyse vorweg:
+
+   **Unsere Annahme war falsch herum.** In HTML (und XML) haben Anführungszeichen nur *innerhalb von Tags* eine Trennzeichen-Bedeutung (Attributwerte). Im Textinhalt sind `"` und `'` gewöhnliche Zeichen — ein `<!--` startet dort **immer** einen Kommentar, egal ob Quotes drumherum stehen. Genau das zeigt dein Test. Unser zeilenbasierter Scanner kennt keinen Tag-Kontext, also müssen wir uns für eine Näherung entscheiden — und die String-Regionen sind die falsche:
+
+   - **Für XML ist die String-Region sogar beweisbar nutzlos:** Wohlgeformtes XML verbietet `<` in Attributwerten (muss `<` sein). Ein `<!--` kann in einem XML-Attribut-String also gar nicht legal vorkommen — es gibt nichts zu schützen. Die Region kann nur schaden (dein Fall: Quotes im Elementtext verschlucken Kommentare).
+   - **Für HTML** ist `<` in Attributwerten technisch möglich, aber selten — Quotes im Fließtext sind dagegen alltäglich. Browser-Verhalten ist die bessere Näherung.
+
+   Die Lösung: XML und HTML bekommen **nur noch die Kommentar-Region**, keine String-Regionen (so macht es cloc übrigens auch). Damit fliegen auch die `XmlDoubleQuoteString`/`XmlSingleQuoteString`-Definitionen wieder raus:
 
 **Erweiterung umgesetzt** in `LinesOfCodeFileTypes.cs`:
 
@@ -20,7 +32,7 @@ Was geändert wurde:
 
 1. **Custom-Handler-Filter** (`LinesOfCodeProvider.cs:127`): `AnalyzeDirectory` akzeptiert jetzt auch Dateien, deren Extension nur in `_handlers` registriert ist. Ein `RegisterCustomProvider(".rs", ...)` funktioniert damit auch ohne eingebauten FileType. Test: legt ein Temp-Verzeichnis mit einer `.rs`-Datei an und prüft, dass der Handler aufgerufen wird.
 2. **`@"""`-Kollision** (`LinesOfCodeFileTypes.cs`): Der Raw-String-Eintrag hat jetzt `RequiresPrefix = (line, i) => !IsVerbatimStringPrefix(line, i)` — nach `@`, `$@` oder `@$` kann es kein Raw String sein (die Sprache erlaubt dort kein `@`-Präfix), also fällt der Match korrekt auf den Verbatim-Eintrag durch. Test: `var s = @"""escaped start";` gefolgt von einem echten Kommentar.
-3. **XML/HTML-Escaping**: Neue geteilte Styles `XmlDoubleQuoteString`/`XmlSingleQuoteString` mit `EscapeStyle.None` — ein `Path="C:\Temp\"` schließt jetzt korrekt an der letzten Quote. Zusätzlich hat HTML keine Single-Quote-Region mehr, damit Apostrophe im Fließtext (`don't`) keine nie schließende Region öffnen, die nachfolgende `<!-- -->`-Kommentare verschluckt. XML behält beide Quote-Regionen (Attribute mit `'...'` sind dort üblich und in der Regel gepaart). Beides mit eigenem Test.
+3. **XML/HTML-Escaping**: XML (`.xaml`/`.xml`/`.resx`) und HTML (`.html`/`.htm`) haben nur noch die `<!-- -->`-Kommentar-Region, keinerlei String-Regionen (so macht es auch cloc).
 
 ## TreeMapView Darstellung
 
