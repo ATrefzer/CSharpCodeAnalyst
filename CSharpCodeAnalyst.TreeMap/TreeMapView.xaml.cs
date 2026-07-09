@@ -3,7 +3,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using CSharpCodeAnalyst.TreeMap.Drawing;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
-using CSharpCodeAnalyst.TreeMap.Tools;
 using CSharpCodeAnalyst.TreeMap.TreeMap;
 
 namespace CSharpCodeAnalyst.TreeMap
@@ -17,7 +16,10 @@ namespace CSharpCodeAnalyst.TreeMap
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
-            ToolsExtension.Instance.ToolCloseRequested += Instance_ToolCloseRequested;
+
+            // Close the tool window when this view leaves the screen entirely (switch to a
+            // non-tree-map tab, tab closed). The tab-to-tab case is handled in OnDataContextChanged.
+            Unloaded += (_, _) => HideToolView();
 
             _popup.Placement = PlacementMode.Custom;
             _popup.CustomPopupPlacementCallback = PlaceTooltip;
@@ -43,11 +45,6 @@ namespace CSharpCodeAnalyst.TreeMap
                 new CustomPopupPlacement(new Point(-popupSize.Width - gap, gap), PopupPrimaryAxis.Horizontal),
                 new CustomPopupPlacement(new Point(-popupSize.Width - gap, -popupSize.Height - gap), PopupPrimaryAxis.Horizontal)
             ];
-        }
-
-        private void Instance_ToolCloseRequested(object? sender, object e)
-        {
-            HideToolView();
         }
 
         protected override void ClosePopup()

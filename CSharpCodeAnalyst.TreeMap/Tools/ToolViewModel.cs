@@ -114,7 +114,7 @@ namespace CSharpCodeAnalyst.TreeMap.Tools
             }
         }
 
-        private string? _searchPattern;
+        private string _searchPattern = string.Empty;
         public string SearchPattern
         {
             get => _searchPattern;

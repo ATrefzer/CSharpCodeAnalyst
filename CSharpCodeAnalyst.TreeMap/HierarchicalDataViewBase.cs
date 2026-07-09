@@ -62,6 +62,11 @@ public abstract class HierarchicalDataViewBase : UserControl
 
     protected void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
+        // The single TreeMapView instance is reused across all tree-map tabs (same DataTemplate),
+        // so switching tabs just rebinds it. The tool window belongs to the data we were showing -
+        // close it here so the newly shown tab can open its own.
+        HideToolView();
+
         _originalData = null;
         BrushFactory = null;
 
@@ -175,6 +180,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     {
         // When the control is no longer visible close the tool window.
         _toolView?.Close();
+        _toolView = null;
         _zoomLevel = null;
     }
 
@@ -265,9 +271,11 @@ public abstract class HierarchicalDataViewBase : UserControl
     private void ShowToolsCommand()
     {
         // Filter
-        _toolView = new ToolView();
-        _toolView.Owner = Application.Current.MainWindow;
-        _toolView.DataContext = _toolViewModel;
+        _toolView = new ToolView
+            {
+                Owner = Application.Current.MainWindow,
+                DataContext = _toolViewModel
+            };
         _toolView.Show();
     }
 
