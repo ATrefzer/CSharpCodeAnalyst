@@ -21,11 +21,11 @@ public class HierarchyAnalyzer
     private readonly Dictionary<IAssemblySymbol, List<GlobalStatementSyntax>> _globalStatementsByAssembly =
         new(SymbolEqualityComparer.Default);
 
-    private readonly Progress _progress;
+    private readonly IProgress<string>? _progress;
     private readonly HashSet<string> _projectFilePaths = [];
     private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
 
-    internal HierarchyAnalyzer(Progress progress, ParserConfig config, ParserDiagnostics diagnostics)
+    internal HierarchyAnalyzer(IProgress<string>? progress, ParserConfig config, ParserDiagnostics diagnostics)
     {
         _progress = progress;
         _config = config;
@@ -518,7 +518,7 @@ public class HierarchyAnalyzer
         if (numberOfCodeElements % 10 == 0)
         {
             var msg = $"Phase 1/2: Already found {numberOfCodeElements} code elements.";
-            _progress.SendProgress(msg);
+            _progress?.Report(msg);
         }
     }
 

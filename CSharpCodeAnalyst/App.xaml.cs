@@ -118,7 +118,7 @@ public partial class App
 
         var refactoringInteraction = new RefactoringInteraction();
         var refactoringService = new RefactoringService(refactoringInteraction, messaging);
-        mainWindow.SetViewer(graphViewState, messaging, messaging, applicationSettings);
+        mainWindow.Initialize(graphViewState, messaging, messaging, applicationSettings, uiNotification);
 
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
@@ -138,6 +138,7 @@ public partial class App
         // Setup messaging
         messaging.Subscribe<LocateInTreeRequest>(mainWindow.HandleLocateInTreeRequest);
         messaging.Subscribe<ShowTabularDataRequest>(viewModel.HandleShowTabularData);
+        messaging.Subscribe<ShowHierarchicalDataRequest>(viewModel.HandleShowHierarchicalData);
         messaging.Subscribe<AddNodeToGraphRequest>(graphViewModel.HandleAddNodeToGraphRequest);
         messaging.Subscribe<ExploreSelectedRequest>(graphViewModel.HandleExploreSelectedRequest);
         messaging.Subscribe<RemoveSelectedElementsRequest>(graphViewModel.HandleRemoveSelectedRequest);

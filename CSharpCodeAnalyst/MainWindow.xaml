@@ -14,6 +14,7 @@
                      xmlns:graph="clr-namespace:CSharpCodeAnalyst.Features.Graph"
                      xmlns:webGraph="clr-namespace:CSharpCodeAnalyst.Features.WebGraph"
                      xmlns:dd="urn:gong-wpf-dragdrop"
+                     xmlns:treeMap="clr-namespace:CSharpCodeAnalyst.TreeMap;assembly=CSharpCodeAnalyst.TreeMap"
                      x:Name="RootWindow"
                      Icon="/Resources/lamp.ico"
                      Closing="RootWindow_Closing"
@@ -45,6 +46,10 @@
 
             <DataTemplate x:Key="DynamicTabContentTemplate">
                 <dynamicDataGrid1:DynamicDataGrid TableData="{Binding Table}" />
+            </DataTemplate>
+
+            <DataTemplate x:Key="DynamicHierarchicalTabContentTemplate">
+                <treeMap:TreeMapView DataContext="{Binding Data}" />
             </DataTemplate>
 
         </ResourceDictionary>
@@ -321,6 +326,54 @@
                     </Grid>
                 </RibbonGroup>
 
+                <!-- Git History -->
+                <RibbonGroup Header="{x:Static resources:Strings.History}"
+                             LargeImageSource="/Resources/inbox_32.png">
+                    <RibbonButton Label="{x:Static resources:Strings.Collect}"
+                                  LargeImageSource="/Resources/inbox_32.png"
+                                  Command="{Binding History.CollectCommand}"
+                                  KeyTip="CH">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.CollectHistory_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.LoadHistory_Label}"
+                                  LargeImageSource="/Resources/load_project.png"
+                                  Command="{Binding History.LoadCommand}"
+                                  KeyTip="LH">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.LoadHistory_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.Hotspots_Label}"
+                                  LargeImageSource="/Resources/hotspot_32.png"
+                                  Command="{Binding History.HotspotsCommand}"
+                                  KeyTip="HO">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Hotspots_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.ChangeCoupling_Label}"
+                                  LargeImageSource="/Resources/collision_32.png"
+                                  Command="{Binding History.ChangeCouplingCommand}"
+                                  KeyTip="CC">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.ChangeCoupling_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                    
+                    <RibbonButton Label="{x:Static resources:Strings.Knowledge_Label}"
+                                  LargeImageSource="/Resources/knowledge_32.png"
+                                  Command="{Binding History.KnowledgeCommand}"
+                                  KeyTip="CC">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Knowledge_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                </RibbonGroup>
 
                 <!-- Help Ribbon Group -->
                 <RibbonGroup Header="{x:Static resources:Strings.Help_Header}"
@@ -495,9 +548,10 @@
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
                 </TabItem>
 
-                <!-- Analyzer / Partitions results: dynamic tabs, one per result id, appended and
-                     removed here in code-behind (see MainWindow.xaml.cs) as MainViewModel.DynamicTabs
-                     changes. Templates below define how such a tab's header and content look. -->
+                <!-- Analyzer / Partitions / hierarchical (tree-map) results: dynamic tabs, one per
+                     result id, appended and removed here in code-behind (see MainWindow.xaml.cs) as
+                     MainViewModel.DynamicTabs changes. Templates above define how such a tab's header
+                     and content look. -->
             </TabControl>
         </Grid>
 

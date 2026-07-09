@@ -16,7 +16,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
     private readonly ExternalCodeElementCache _externalCodeElementCache = new();
     private readonly Lock _lock = new();
-    private readonly Progress _progress;
+    private readonly IProgress<string>? _progress;
     private Artifacts? _artifacts;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
     private long _lastProgress;
@@ -26,7 +26,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// <summary>
     ///     Phase 2/2 of the parser: Analyzing relationships between code elements.
     /// </summary>
-    public RelationshipAnalyzer(Progress progress, ParserConfig config)
+    public RelationshipAnalyzer(IProgress<string>? progress, ParserConfig config)
     {
         _progress = progress;
         _config = config;
@@ -469,7 +469,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             if (Interlocked.CompareExchange(ref _lastProgress, currentProgress, lastReported) == lastReported)
             {
                 var msg = $"Phase 2/2: Analyzing relationships. Finished {currentProgress}%.";
-                _progress.SendProgress(msg);
+                _progress?.Report(msg);
             }
         }
     }

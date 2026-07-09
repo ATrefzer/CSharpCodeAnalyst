@@ -16,17 +16,10 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 ///     1. Find all code elements and their parent-child relationships.
 ///     2. Build the dependencies between the code elements.
 /// </summary>
-public class Parser(ParserConfig config)
+public class Parser(ParserConfig config, IProgress<string>? progress = null)
 {
 
     private readonly ParserDiagnostics _diagnostics = new();
-    private readonly Progress _progress = new();
-
-
-    public IProgress Progress
-    {
-        get => _progress;
-    }
 
     public IParserDiagnostics Diagnostics
     {
@@ -67,7 +60,7 @@ public class Parser(ParserConfig config)
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
 
-        _progress.SendProgress("Compiling project ...");
+        progress?.Report("Compiling project ...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.RegisterWorkspaceFailedHandler(WorkspaceFailedHandler);
@@ -96,7 +89,7 @@ public class Parser(ParserConfig config)
         _diagnostics.Clear();
         var sw = Stopwatch.StartNew();
 
-        _progress.SendProgress("Compiling solution ...");
+        progress?.Report("Compiling solution ...");
 
         using var workspace = MSBuildWorkspace.Create();
         workspace.RegisterWorkspaceFailedHandler(WorkspaceFailedHandler);
@@ -192,7 +185,7 @@ public class Parser(ParserConfig config)
         var sw = Stopwatch.StartNew();
 
         // First Pass: Build Hierarchy
-        var phase1 = new HierarchyAnalyzer(_progress, config, _diagnostics);
+        var phase1 = new HierarchyAnalyzer(progress, config, _diagnostics);
         var (codeGraph, artifacts) = await phase1.BuildHierarchy(solution);
 
         var metrics = CollectSourceMetrics(artifacts);
@@ -202,7 +195,7 @@ public class Parser(ParserConfig config)
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
-        var phase2 = new RelationshipAnalyzer(_progress, config);
+        var phase2 = new RelationshipAnalyzer(progress, config);
         await phase2.AnalyzeRelationships(solution, codeGraph, artifacts);
 
         sw.Stop();
@@ -230,7 +223,7 @@ public class Parser(ParserConfig config)
     {
         var metrics = new MetricStore();
 
-        _progress.SendProgress("Calculating source metrics");
+        progress?.Report("Calculating source metrics");
 
         foreach (var (elementId, symbol) in artifacts.ElementIdToSymbolMap)
         {
@@ -242,7 +235,7 @@ public class Parser(ParserConfig config)
             var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
             if (syntax is not null && SourceMetricsCollector.HasBody(syntax))
             {
-                metrics.Add(elementId, SourceMetricsCollector.Compute(syntax));
+                metrics.Add(elementId, SourceMetricsCollector.ComputeForMethodDeclaration(syntax));
             }
         }
 

@@ -7,6 +7,7 @@ using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -46,14 +47,16 @@ public partial class MainWindow
     private void InitializeDynamicTabs(MainViewModel mainVm)
     {
         var headerTemplate = (DataTemplate)Resources["DynamicTabHeaderTemplate"];
-        var contentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
+        var tabularContentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
+        var hierarchicalContentTemplate = (DataTemplate)Resources["DynamicHierarchicalTabContentTemplate"];
 
         mainVm.DynamicTabs.CollectionChanged += (_, e) =>
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
-                foreach (DynamicTabViewModel tab in e.NewItems!)
+                foreach (ITabViewModel tab in e.NewItems!)
                 {
+                    var contentTemplate = tab is HierarchicalTabViewModel ? hierarchicalContentTemplate : tabularContentTemplate;
                     WorkingArea.Items.Add(new TabItem
                     {
                         Header = tab,
@@ -65,7 +68,7 @@ public partial class MainWindow
             }
             else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
-                foreach (DynamicTabViewModel tab in e.OldItems!)
+                foreach (ITabViewModel tab in e.OldItems!)
                 {
                     var tabItem = FindDynamicTabItem(tab);
                     if (tabItem is not null)
@@ -77,7 +80,7 @@ public partial class MainWindow
             else if (e.Action == NotifyCollectionChangedAction.Reset)
             {
                 // Clear() does not populate OldItems, so remove every dynamic TabItem still present.
-                foreach (var tabItem in WorkingArea.Items.OfType<TabItem>().Where(ti => ti.Content is DynamicTabViewModel).ToList())
+                foreach (var tabItem in WorkingArea.Items.OfType<TabItem>().Where(ti => ti.Content is ITabViewModel).ToList())
                 {
                     WorkingArea.Items.Remove(tabItem);
                 }
@@ -87,7 +90,7 @@ public partial class MainWindow
         mainVm.DynamicTabActivated += tab => { WorkingArea.SelectedItem = FindDynamicTabItem(tab); };
     }
 
-    private TabItem? FindDynamicTabItem(DynamicTabViewModel tab)
+    private TabItem? FindDynamicTabItem(ITabViewModel tab)
     {
         return WorkingArea.Items.OfType<TabItem>().FirstOrDefault(ti => ReferenceEquals(ti.Content, tab));
     }
@@ -159,12 +162,12 @@ public partial class MainWindow
         }
     }
 
-    public void SetViewer(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber, AppSettings settings)
+    public void Initialize(GraphViewState graphViewState, IPublisher publisher, ISubscriber subscriber, AppSettings settings, IUserNotification userNotification)
     {
         // The web view observes the shared model directly and listens on the bus for
         // render-only commands (Layout / Refit / Export). The graph search box (bound to
         // MainViewModel.GraphSearchViewModel) lives in the web tab's tool bar.
-        WebGraphView.SetViewer(graphViewState, publisher, subscriber, settings);
+        WebGraphView.Initialize(graphViewState, publisher, subscriber, settings, userNotification);
     }
 
     protected override void OnClosing(CancelEventArgs e)

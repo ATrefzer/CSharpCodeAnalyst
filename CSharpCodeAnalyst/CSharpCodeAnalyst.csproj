@@ -114,6 +114,14 @@
         <Resource Include="Resources\snapshot_32.png"/>
         <Resource Include="Resources\add-parent_32.png"/>
         <Resource Include="Resources\advisor.png"/>
+        <None Remove="Resources\inbox_32.png" />
+        <Resource Include="Resources\inbox_32.png" />
+        <None Remove="Resources\collision_32.png" />
+        <Resource Include="Resources\collision_32.png" />
+        <None Remove="Resources\hotspot_32.png" />
+        <Resource Include="Resources\hotspot_32.png" />
+        <None Remove="Resources\knowledge_32.png" />
+        <Resource Include="Resources\knowledge_32.png" />
     </ItemGroup>
 
 
@@ -139,6 +147,8 @@
         <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj"/>
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj"/>
+        <ProjectReference Include="..\CSharpCodeAnalyst.History\CSharpCodeAnalyst.History.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.TreeMap\CSharpCodeAnalyst.TreeMap.csproj" />
     </ItemGroup>
 
 

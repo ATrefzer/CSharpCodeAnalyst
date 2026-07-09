@@ -27,6 +27,7 @@ using CSharpCodeAnalyst.Features.Export;
 using CSharpCodeAnalyst.Features.Gallery;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Help;
+using CSharpCodeAnalyst.Features.History;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
 using CSharpCodeAnalyst.Features.Statistics;
@@ -44,6 +45,7 @@ using CSharpCodeAnalyst.Shared.Notifications;
 using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
+using CSharpCodeAnalyst.TreeMap;
 
 namespace CSharpCodeAnalyst;
 
@@ -52,6 +54,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 {
     private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
+
+    /// <summary>Busy/status-bar sink shared by Importer, HistoryViewModel and IProjectService.</summary>
+    private readonly IProgress<BusyState> _busy;
+
     private readonly Exporter _exporter;
     private readonly Importer _importer;
 
@@ -78,7 +84,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private AdvancedSearchViewModel? _searchViewModel;
 
     private TreeViewModel? _treeViewModel;
-
+    
+    
+    public HistoryViewModel History { get; private set; } 
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
@@ -94,16 +102,18 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
         _ui = new WindowsUserNotification();
-        _importer = new Importer(_ui);
+        _busy = new Progress<BusyState>(OnBusyStateChanged);
+
+        _importer = new Importer(_ui, _busy);
         _exporter = new Exporter(_ui);
-        _importer.ImportStateChanged += OnUpdateProgress;
 
         _projectService = projectService;
-        _projectService.ProgressChanged += OnUpdateProgress;
+        _projectService.Progress = _busy;
         _projectService.ProjectLoaded += OnProjectLoaded;
         _projectService.ProjectSaved += OnProjectSaved;
         _projectService.DirtyStateChanged += OnDirtyStateChanged;
 
+        History = new HistoryViewModel(messaging, _ui, _busy);
 
         // Table data
         _cycles = null;
@@ -159,7 +169,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     }
 
 
-
     public WpfCommand ExportPlainTextCommand { get; set; }
 
     public ObservableCollection<Mru> RecentFiles { get; } = [];
@@ -167,14 +176,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private ICommand OpenRecentFileCommand { get; }
 
     /// <summary>
-    ///     Analyzer-style result tabs (Method Complexity, Type Cohesion, Partitions, ...), created on
-    ///     demand and keyed by id. MainWindow's code-behind projects this onto the working-area
-    ///     TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
+    ///     Dynamic result tabs (Method Complexity, Type Cohesion, Partitions, tree-map hotspots, ...),
+    ///     created on demand and keyed by id. MainWindow's code-behind projects this onto the
+    ///     working-area TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
     /// </summary>
-    public ObservableCollection<DynamicTabViewModel> DynamicTabs { get; } = [];
+    public ObservableCollection<ITabViewModel> DynamicTabs { get; } = [];
 
     /// <summary>Raised when a dynamic tab should become the active one (new or updated result).</summary>
-    public event Action<DynamicTabViewModel>? DynamicTabActivated;
+    public event Action<ITabViewModel>? DynamicTabActivated;
 
     public Table? Cycles
     {
@@ -435,10 +444,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnUpdateProgress(object? sender, ImportStateChangedArgs e)
+    private void OnBusyStateChanged(BusyState state)
     {
-        IsLoading = e.IsLoading;
-        LoadMessage = e.ProgressMessage;
+        IsLoading = state.IsLoading;
+        LoadMessage = state.Message;
     }
 
     private void OnAnalyzerDataChanged(object? sender, EventArgs e)
@@ -652,6 +661,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ShowDynamicTab(tabularDataRequest.Id, tabularDataRequest.Title, tabularDataRequest.Table);
     }
 
+    public void HandleShowHierarchicalData(ShowHierarchicalDataRequest hierarchicalDataRequest)
+    {
+        ShowHierarchicalTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data);
+    }
+
     /// <summary>
     ///     Creates a new dynamic tab for <paramref name="id" />, or - if one already exists - updates
     ///     it in place, so re-running the same analyzer replaces its own tab instead of piling up
@@ -659,7 +673,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// </summary>
     private void ShowDynamicTab(string id, string title, Table table)
     {
-        var tab = DynamicTabs.FirstOrDefault(t => t.Id == id);
+        var tab = DynamicTabs.OfType<DynamicTabViewModel>().FirstOrDefault(t => t.Id == id);
         if (tab is null)
         {
             tab = new DynamicTabViewModel(id, title, table);
@@ -670,6 +684,27 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             tab.Title = title;
             tab.Table = table;
+        }
+
+        DynamicTabActivated?.Invoke(tab);
+    }
+
+    /// <summary>
+    ///     Same as <see cref="ShowDynamicTab" />, but for tree-map style hierarchical results.
+    /// </summary>
+    private void ShowHierarchicalTab(string id, string title, HierarchicalDataContext data)
+    {
+        var tab = DynamicTabs.OfType<HierarchicalTabViewModel>().FirstOrDefault(t => t.Id == id);
+        if (tab is null)
+        {
+            tab = new HierarchicalTabViewModel(id, title, data);
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            DynamicTabs.Add(tab);
+        }
+        else
+        {
+            tab.Title = title;
+            tab.Data = data;
         }
 
         DynamicTabActivated?.Invoke(tab);
@@ -795,7 +830,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         if (!string.IsNullOrWhiteSpace(response))
         {
-            AiAdvisorWindow.ShowAdvice(response);
+            AiAdvisorWindow.ShowAdvice(response, _ui);
         }
     }
 

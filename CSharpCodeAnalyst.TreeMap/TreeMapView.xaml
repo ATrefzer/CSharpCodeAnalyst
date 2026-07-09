@@ -1,0 +1,49 @@
+﻿<treeMap:HierarchicalDataViewBase x:Class="CSharpCodeAnalyst.TreeMap.TreeMapView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             xmlns:treeMap="clr-namespace:CSharpCodeAnalyst.TreeMap"
+             xmlns:drawing="clr-namespace:CSharpCodeAnalyst.TreeMap.Drawing"
+             d:DesignHeight="300"
+             d:DesignWidth="300"
+             MouseMove="Window_MouseMove"
+             MouseLeave="Window_MouseLeave"
+             ContextMenuOpening="OnContextMenuOpening">
+
+    <UserControl.ContextMenu>
+        <ContextMenu x:Name="_contextMenu" />
+    </UserControl.ContextMenu>
+
+    <Grid>
+        <drawing:DrawingCanvas x:Name="_canvasOrImage"/>
+
+        <Popup AllowsTransparency="True"
+               Placement="Relative"
+               Name="_popup">
+            <!-- Margin reserves room for the drop shadow; the popup itself is transparent.
+                 IsHitTestVisible=False: the tooltip must never swallow mouse events, otherwise
+                 the canvas gets a MouseLeave (closing the popup) whenever the cursor transiently
+                 touches it - see PlaceTooltip in code-behind. -->
+            <Border IsHitTestVisible="False"
+                    Background="#2D2D30"
+                    BorderBrush="#3F3F46"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="10,7"
+                    Margin="0,0,10,10">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="8"
+                                      ShadowDepth="2"
+                                      Opacity="0.35"/>
+                </Border.Effect>
+                <TextBlock Name="_popupText"
+                           Foreground="#F1F1F1"
+                           FontSize="12"
+                           LineHeight="18"
+                           LineStackingStrategy="BlockLineHeight"/>
+            </Border>
+        </Popup>
+    </Grid>
+</treeMap:HierarchicalDataViewBase>

@@ -1,9 +1,9 @@
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Configuration;
-using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Notifications;
 
 namespace CSharpCodeAnalyst.Persistence.Json;
@@ -31,7 +31,7 @@ public class ProjectService : IProjectService
     public event EventHandler<ProjectLoadedEventArgs>? ProjectLoaded;
     public event EventHandler<string>? ProjectSaved;
     public event EventHandler? DirtyStateChanged;
-    public event EventHandler<ImportStateChangedArgs>? ProgressChanged;
+    public IProgress<BusyState>? Progress { private get; set; }
 
     public bool IsDirty => _dirtyState != DirtyState.Saved;
     public bool RequiresNewFilePath => _dirtyState == DirtyState.DirtyForceNewFile;
@@ -47,7 +47,7 @@ public class ProjectService : IProjectService
             return;
         }
 
-        ProgressChanged?.Invoke(this, new ImportStateChangedArgs("Loading...", true));
+        Progress?.Report(new BusyState("Loading...", true));
         try
         {
             var result = await _storage.LoadFromFileAsync(path);
@@ -65,7 +65,7 @@ public class ProjectService : IProjectService
         }
         finally
         {
-            ProgressChanged?.Invoke(this, new ImportStateChangedArgs(string.Empty, false));
+            Progress?.Report(new BusyState(string.Empty, false));
         }
     }
 

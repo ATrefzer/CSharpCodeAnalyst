@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Windows;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared.UI;
@@ -30,28 +31,79 @@ internal class WindowsUserNotification : IUserNotification
             MessageBoxButton.OK, MessageBoxImage.Warning);
     }
     
-    public string? ShowOpenFileDialog(string filter, string title)
+    public string? ShowOpenFileDialog(string filter, string title, FileDialogOptions? options = null)
     {
         var dialog = new OpenFileDialog
         {
             Filter = filter,
             Title = title
         };
-        
-        return dialog.ShowDialog() == true ? dialog.FileName : null;
+        ApplyCommonOptions(dialog, options);
+
+        return ShowDialog(dialog, options?.Owner) == true ? dialog.FileName : null;
     }
-    
-    public string? ShowSaveFileDialog(string filter, string title)
+
+    public string? ShowSaveFileDialog(string filter, string title, FileDialogOptions? options = null)
     {
         var dialog = new SaveFileDialog
         {
             Filter = filter,
+            Title = title,
+            OverwritePrompt = options?.OverwritePrompt ?? true
+        };
+        ApplyCommonOptions(dialog, options);
+
+        return ShowDialog(dialog, options?.Owner) == true ? dialog.FileName : null;
+    }
+
+    public string? ShowFolderBrowserDialog(string title, string? initialDirectory = null, Window? owner = null)
+    {
+        var dialog = new OpenFolderDialog
+        {
             Title = title
         };
-        
-        return dialog.ShowDialog() == true ? dialog.FileName : null;
+
+        if (!string.IsNullOrEmpty(initialDirectory) && Directory.Exists(initialDirectory))
+        {
+            dialog.InitialDirectory = initialDirectory;
+        }
+
+        return ShowDialog(dialog, owner) == true ? dialog.FolderName : null;
     }
-    
+
+    private static void ApplyCommonOptions(FileDialog dialog, FileDialogOptions? options)
+    {
+        if (options is null)
+        {
+            return;
+        }
+
+        if (options.DefaultExt is not null)
+        {
+            dialog.DefaultExt = options.DefaultExt;
+        }
+
+        if (options.FileName is not null)
+        {
+            dialog.FileName = options.FileName;
+        }
+
+        if (!string.IsNullOrEmpty(options.InitialDirectory) && Directory.Exists(options.InitialDirectory))
+        {
+            dialog.InitialDirectory = options.InitialDirectory;
+        }
+    }
+
+    /// <summary>
+    ///     Shows a common dialog owned by <paramref name="owner" />, falling back to the application's
+    ///     main window so every dialog is consistently parented instead of floating unowned.
+    /// </summary>
+    private static bool? ShowDialog(CommonDialog dialog, Window? owner)
+    {
+        var effectiveOwner = owner ?? Application.Current?.MainWindow;
+        return effectiveOwner is not null ? dialog.ShowDialog(effectiveOwner) : dialog.ShowDialog();
+    }
+
     public void ShowErrorWarningDialog(List<string> errors, List<string> warnings)
     {
         ErrorWarningDialog.Show(errors, warnings, Application.Current.MainWindow);

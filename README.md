@@ -17,13 +17,14 @@ This desktop application helps you **explore, understand, and maintain** large C
 ## Features
 
 - **Full code graph analysis** of your Visual Studio solution
-- **Cycle detection & breaking** (Strongly Connected Components)
+- **Cycle detection & breaking**
 - **AI Advisor** – get refactoring suggestions how to break cycles from Claude.ai.
 - **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
 - **Simulated Refactoring** – test structural changes without touching your source code
 - **Architectural Rules** – define and validate DENY / RESTRICT / ISOLATE rules
 - **Advanced search & navigation**
 - **Export** to PlantUML, DGML, PNG/SVG, and more
+- **GIT History Analysis** - perform a hotspot or change coupling analysis on your GIT repository.
 
 ## Requirements
 
@@ -47,6 +48,10 @@ This builds a complete in-memory graph **model** of your solution (assemblies, n
 - **[Explore your codebase](#explore-your-codebase)** — trace calls, expand inheritance trees, and follow relationships on an interactive canvas
 - **[Export your graph](#export-your-graph)** — PlantUML, DGML, PNG/SVG, and more for documentation or further analysis
 - **[Validate architectural rules](#validate-architectural-rules)** — define DENY / RESTRICT / ISOLATE rules and check them, in the app or in CI
+
+Independent from the dependency graph tools, you can also analyze a GIT history using the **History Tool**
+
+- **[Analyze a GIT repoository](#analyze-a-git-repository)** 
 
 ---
 
@@ -273,6 +278,28 @@ The tool is written for C#, but you can also import jdeps output for basic visua
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 ```
+
+## Analyze a GIT repository
+
+Years ago, I wrote a repository analyzer based on Adam Tornhill’s book “Your code as a crime scene.” Learn more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, but I added the most useful ones to C# Code Analyst. Change coupling is especially interesting since a static analyzer cannot capture it.
+
+Two files are coupled when they often change together. For example, one class encodes a file, and another decodes it. You cannot change one without the other. Such hidden dependencies can be made visible, which fits perfectly into a dependency analyzer tool.
+
+For example, in the first row, 93.1% of commits that contain **Item1** or **Item2**'' committed both items together; therefore, the files may be coupled.
+
+![](Documentation/Images/change-coupling.png)
+
+The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is drawn as the area of a rectangle, and the number of changes is represented as color. The deeper the color, the more often a file was changed over time. Large files that often change are called hotspots and are good candidates to monitor.
+
+![](Documentation/Images/hotspot.png)
+
+Finally, you can analyze a developer's contribution to a file.
+
+That has nothing to do with dependency analysis, but it's helpful if you need to know who to ask for help or which area should be documented when a team member leaves the project.
+
+The developer who contributed most to a file (based on a simple GIT blame) is denoted as the main developer, and the file is colored accordingly. That does not mean this developer has the best knowledge of the file. But it is a reasonable best guess.
+
+![](Documentation/Images/knowledge.png)
 
 ## Limitations
 

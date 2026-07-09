@@ -1,5 +1,5 @@
-using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Persistence.Dto;
+using CSharpCodeAnalyst.Shared;
 
 namespace CSharpCodeAnalyst.Persistence.Contracts;
 
@@ -20,8 +20,8 @@ public interface IProjectService
     /// <summary>Raised whenever the dirty state changes.</summary>
     event EventHandler? DirtyStateChanged;
 
-    /// <summary>Raised by the underlying storage when a long-running operation starts or ends.</summary>
-    event EventHandler<ImportStateChangedArgs>? ProgressChanged;
+    /// <summary>Busy/status-bar sink, set once by the owner (MainViewModel).</summary>
+    IProgress<BusyState>? Progress { set; }
 
     bool IsDirty { get; }
 
