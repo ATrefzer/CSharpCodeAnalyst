@@ -1,6 +1,6 @@
 
 
-Review mit Claude Fable.
+# Code Review 2006-06-12
 
 ## Gesamturteil
 
@@ -54,8 +54,6 @@ Korrekt umgesetzt ist das, was abgedeckt ist — ich habe in den behandelten Pfa
 
 Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus ausgeführten Tests. Bei den als „bestätigt" markierten Lücken (Indexer, Records, Pattern, ctor-Initializer, Property-Initializer) bin ich mir sehr sicher; wenn du magst, schreibe ich dir als Nächstes gezielte TestSuite-Fälle + Approval-Tests, die jede dieser Lücken nachweisen — das wäre auch die saubere Grundlage, um sie dann einzeln zu schließen.
 
-
-
 ## Die priorisierte Liste
 
 **Block A — fehlende Abhängigkeiten (höchster Nutzen, je 1 Commit):**
@@ -76,10 +74,6 @@ Hinweis zur Verlässlichkeit: Die Befunde stammen aus Code-Lektüre, nicht aus a
 **Block B — Korrektheit:** B1 Key() ref/out/Indexer · B2 Multi-Targeting · B3 VB/F#-Filter · B4 Lock/Dummy-Name
 
 **Block C — Vereinfachung/Doku:** C1 Single/Multi-Threaded zusammenführen · C2 Walker zusammenführen · C3 Interface-Map · C4 Doku aktualisieren
-
-
-
-
 
 # Weitere Punkte bei der Umsetzung aufgefallen
 
