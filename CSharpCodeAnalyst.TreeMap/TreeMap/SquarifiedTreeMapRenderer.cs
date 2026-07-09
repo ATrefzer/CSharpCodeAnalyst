@@ -1,108 +1,106 @@
-﻿
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using CSharpCodeAnalyst.TreeMap.Common;
 using CSharpCodeAnalyst.TreeMap.Drawing;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
 using CSharpCodeAnalyst.TreeMap.Tools;
 
-namespace CSharpCodeAnalyst.TreeMap.TreeMap
+namespace CSharpCodeAnalyst.TreeMap.TreeMap;
+
+public sealed class SquarifiedTreeMapRenderer : IRenderer
 {
-    public sealed class SquarifiedTreeMapRenderer : IRenderer
+    private readonly IBrushFactory _brushFactory;
+    private IHierarchicalData? _data;
+
+    // ReSharper disable once NotAccessedField.Local
+    private int _level = -1;
+
+    public SquarifiedTreeMapRenderer(IBrushFactory brushFactory)
     {
-        private IHierarchicalData? _data;
+        _brushFactory = brushFactory;
+    }
 
-        // ReSharper disable once NotAccessedField.Local
-        private int _level = -1;
-        private IBrushFactory _brushFactory;
 
-        public SquarifiedTreeMapRenderer(IBrushFactory brushFactory)
+    public IHighlighting? Highlighting { get; set; }
+
+    /// <summary>
+    ///     Ensure that SumAreaMetrics and NormalizeWeightMetric was called and
+    ///     no node has an area of 0.
+    /// </summary>
+    public void LoadData(IHierarchicalData data)
+    {
+        _data = data;
+    }
+
+    public void RenderToDrawingContext(double actualWidth, double actualHeight, DrawingContext dc)
+    {
+        if (_data == null)
         {
-            _brushFactory = brushFactory;
+            return;
         }
 
+        // Calculate the layout
+        var layout = new SquarifiedTreeMapLayout();
+        layout.Layout(_data, actualWidth, actualHeight);
 
-        public IHighlighting? Highlighting { get; set; }
+        // Render to drawing context
+        _level = 0;
+        RenderToDrawingContext(dc, _data);
+    }
 
-        /// <summary>
-        /// Ensure that SumAreaMetrics and NormalizeWeightMetric was called and
-        /// no node has an area of 0.
-        /// </summary>
-        public void LoadData(IHierarchicalData data)
+    public Point Transform(Point mousePosition)
+    {
+        // We directly daw in screen coordinates.
+        return mousePosition;
+    }
+
+    private static RectangularLayoutInfo GetLayout(IHierarchicalData data)
+    {
+        return data.Layout as RectangularLayoutInfo ?? new RectangularLayoutInfo();
+    }
+
+    private SolidColorBrush GetBrush(IHierarchicalData data)
+    {
+        if (Highlighting != null && Highlighting.IsHighlighted(data))
         {
-            _data = data;
+            return DefaultDrawingPrimitives.HighlightBrush;
         }
 
-        public void RenderToDrawingContext(double actualWidth, double actualHeight, DrawingContext dc)
+        SolidColorBrush brush;
+        if (data.ColorKey != null)
         {
-            if (_data == null)
-            {
-                return;
-            }
+            brush = _brushFactory.GetBrush(data.ColorKey);
+        }
+        else
+        {
+            // For non leaf nodes the weight is 0. We only can merge area metrics.
+            // See HierarchyBuilder.InsertLeaf.
 
-            // Calculate the layout
-            var layout = new SquarifiedTreeMapLayout();
-            layout.Layout(_data, actualWidth, actualHeight);
-
-            // Render to drawing context
-            _level = 0;
-            RenderToDrawingContext(dc, _data);
+            var color = DefaultDrawingPrimitives.WhiteToRedGradient.GradientStops.GetRelativeColor(data.NormalizedWeightMetric);
+            brush = BrushCache.GetBrush(color);
         }
 
-        public Point Transform(Point mousePosition)
+        return brush;
+    }
+
+
+    private void RenderToDrawingContext(DrawingContext dc, IHierarchicalData data)
+    {
+        _level++;
+        if (data.IsLeafNode)
         {
-            // We directly daw in screen coordinates.
-            return mousePosition;
+            var brush = GetBrush(data);
+
+            //dc.DrawRectangle(_gradient, _pen, data.Layout.Rect);
+            var layout = GetLayout(data);
+            dc.DrawRectangle(brush, DefaultDrawingPrimitives.BlackPen, layout.Rect);
         }
 
-        private static RectangularLayoutInfo GetLayout(IHierarchicalData data)
+        foreach (var child in data.Children)
         {
-            return data.Layout as RectangularLayoutInfo;
+            RenderToDrawingContext(dc, child);
         }
 
-        private SolidColorBrush GetBrush(IHierarchicalData data)
-        {
-            if (Highlighting != null && Highlighting.IsHighlighted(data))
-            {
-                return DefaultDrawingPrimitives.HighlightBrush;
-            }
-
-            SolidColorBrush brush;
-            if (data.ColorKey != null)
-            {
-                brush = _brushFactory.GetBrush(data.ColorKey);
-            }
-            else
-            {
-                // For non leaf nodes the weight is 0. We only can merge area metrics.
-                // See HierarchyBuilder.InsertLeaf.
-
-                var color = DefaultDrawingPrimitives.WhiteToRedGradient.GradientStops.GetRelativeColor(data.NormalizedWeightMetric);
-                brush = BrushCache.GetBrush(color);
-            }
-
-            return brush;
-        }
-
-
-        private void RenderToDrawingContext(DrawingContext dc, IHierarchicalData data)
-        {
-            _level++;
-            if (data.IsLeafNode)
-            {
-                var brush = GetBrush(data);
-
-                //dc.DrawRectangle(_gradient, _pen, data.Layout.Rect);
-                var layout = GetLayout(data);
-                dc.DrawRectangle(brush, DefaultDrawingPrimitives.BlackPen, layout.Rect);
-            }
-
-            foreach (var child in data.Children)
-            {
-                RenderToDrawingContext(dc, child);
-            }
-
-            _level--;
-        }
+        _level--;
     }
 }

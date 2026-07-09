@@ -10,10 +10,17 @@ namespace CSharpCodeAnalyst.History.Git;
 
 public abstract class GitProviderBase
 {
-    protected GitCommandLine _gitCli;
+    protected GitProviderBase(string projectBase)
+    {
+        _projectBase = projectBase;
+        _gitCli = new GitCommandLine(_projectBase);
 
-    protected PathMapper _mapper;
-    protected string _projectBase;
+        // "/" maps to _startDirectory
+        _mapper = new PathMapper(_projectBase);
+    }
+    private readonly GitCommandLine _gitCli;
+    protected readonly PathMapper _mapper;
+    protected readonly string _projectBase;
 
     public List<WarningMessage> Warnings { get; protected set; }
 
@@ -199,16 +206,7 @@ public abstract class GitProviderBase
             return Convert.ToHexString(bytes, 0, 8);
         }
     }
-
-
-    public virtual void Initialize(string projectBase)
-    {
-        _projectBase = projectBase;
-        _gitCli = new GitCommandLine(_projectBase);
-
-        // "/" maps to _startDirectory
-        _mapper = new PathMapper(_projectBase);
-    }
+    
 
     protected void SaveFullLogToDisk(string path)
     {

@@ -58,10 +58,10 @@ internal static class BitmapManipulation
             }
         }
 
-        // Image is empty...
+        // Image is empty.
         if (!foundPixel)
         {
-            return null;
+            throw new InvalidOperationException("Image is empty");
         }
 
         // Find yMin top to bottom
@@ -192,7 +192,7 @@ internal static class BitmapManipulation
 
         if (!foundPixel)
         {
-            return null;
+            throw new InvalidOperationException("Image is empty");
         }
 
         // Find yMin

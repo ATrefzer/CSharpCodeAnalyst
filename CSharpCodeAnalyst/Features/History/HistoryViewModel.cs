@@ -24,8 +24,6 @@ namespace CSharpCodeAnalyst.Features.History;
 
 internal class HistoryViewModel : INotifyPropertyChanged
 {
-    private const string HotspotsTabId = "History.Hotspots";
-
     private readonly IProgress<BusyState> _busy;
     private readonly MessageBus _messaging;
     private readonly IUserNotification _ui;
@@ -118,8 +116,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
             // Run in background so progress can pass.
             await Task.Run(() =>
             {
-                var gitProvider = new GitProvider();
-                gitProvider.Initialize(_lastRepositoryPath);
+                var gitProvider = new GitProvider(_lastRepositoryPath);
 
                 // The filter is needed only for the contributions. The history contains all files.
                 // It is the known file types we can also calculate lines of code for. Avoids calculating

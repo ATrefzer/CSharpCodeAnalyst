@@ -16,9 +16,11 @@ namespace CSharpCodeAnalyst.TreeMap
         public HierarchicalDataContext Clone()
         {
             // Layout info is lost!
-            var clone = new HierarchicalDataContext(Data.Clone(), BrushFactory);
-            clone.WeightSemantic = WeightSemantic;
-            clone.AreaSemantic = AreaSemantic;
+            var clone = new HierarchicalDataContext(Data.Clone(), BrushFactory!)
+                {
+                    WeightSemantic = WeightSemantic,
+                    AreaSemantic = AreaSemantic
+                };
             return clone;
         }
 

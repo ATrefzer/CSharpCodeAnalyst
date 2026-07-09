@@ -21,7 +21,7 @@ public sealed class GraphNode
 
     public object Commit { get; set; }
 
-    public Scope Scope { get; set; }
+    public Scope? Scope { get; set; }
 
 
     public string CommitHash { get; }
@@ -39,7 +39,7 @@ public class Graph : IEnumerable<GraphNode>
 
     // hash -> node {hash, parent hashes}
     private readonly Dictionary<string, GraphNode> _hashToGraphNode = new();
-    private readonly object _lockObj = new();
+    private readonly Lock _lockObj = new();
 
     private LeaseCommonAncestorPreprocessData _preprocessData;
 
@@ -256,7 +256,7 @@ public class Graph : IEnumerable<GraphNode>
         return _hashToGraphNode.ContainsKey(hash);
     }
 
-    public GraphNode GetNode(string hash)
+    public GraphNode? GetNode(string? hash)
     {
         if (hash == null)
         {
@@ -264,17 +264,6 @@ public class Graph : IEnumerable<GraphNode>
         }
 
         return _hashToGraphNode[hash];
-    }
-
-    public bool TryGetNode(string hash, out GraphNode node)
-    {
-        if (hash == null)
-        {
-            node = null;
-            return false;
-        }
-
-        return _hashToGraphNode.TryGetValue(hash, out node);
     }
 
     private class LeaseCommonAncestorPreprocessData

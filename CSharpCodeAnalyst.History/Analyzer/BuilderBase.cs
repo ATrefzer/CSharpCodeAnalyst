@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.History.Extensions;
+﻿using System.Diagnostics;
+using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Model;
 
 namespace CSharpCodeAnalyst.History.Analyzer;
@@ -22,6 +23,7 @@ public abstract class BuilderBase
         }
         catch (Exception ex)
         {
+            Trace.WriteLine(ex.Message);
             return HotspotNode.NoData();
         }
 

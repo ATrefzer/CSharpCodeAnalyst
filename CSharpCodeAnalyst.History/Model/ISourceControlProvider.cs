@@ -7,12 +7,6 @@
     {
         List<WarningMessage> Warnings { get; }
 
-        /// <summary>
-        /// Provides all information to query the source control system.
-        /// </summary>
-        /// <param name="projectBase">Root folder of the local repository.</param>
-        void Initialize(string projectBas);
-
         string BaseDirectory {get;}
 
         /// <summary>

@@ -33,14 +33,6 @@ namespace CSharpCodeAnalyst.History.Model
 
             foreach (var changeset in ChangeSets)
             {
-                if (changeset.WorkItems.Count >= Thresholds.MaxWorkItemsPerCommitForSummary)
-                {
-                    // Ignore monster merges.
-                    // Note: We may lose files for the summary when the last merge with many work items contains a final rename.
-                    // Maybe write a warning or make further analysis.
-                    continue;
-                }
-
                 Debug.Assert(set.Add(changeset.Id)); // Change set appears only once
                 foreach (var item in changeset.Items)
                 {
@@ -92,7 +84,6 @@ namespace CSharpCodeAnalyst.History.Model
                     // Aggregate information from earlier commits (for example number of commits etc)
                     ApplyCommits(artifact);
                     ApplyCommitter(artifact, committerAlias);
-                    ApplyWorkItems(artifact, changeset);
                 }
             }
 
@@ -109,14 +100,6 @@ namespace CSharpCodeAnalyst.History.Model
         private static void ApplyCommits(Artifact artifact)
         {
             artifact.Commits = artifact.Commits + 1;
-        }
-
-        private static void ApplyWorkItems(Artifact artifact, ChangeSet changeset)
-        {
-            foreach (var workitem in changeset.WorkItems)
-            {
-                artifact.WorkItems.Add(workitem);
-            }
         }
 
         private static Artifact CreateArtifact(ChangeSet cs, ChangeItem item)

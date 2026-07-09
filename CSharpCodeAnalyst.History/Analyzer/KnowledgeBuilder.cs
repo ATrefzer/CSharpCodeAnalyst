@@ -8,9 +8,9 @@ namespace CSharpCodeAnalyst.History.Analyzer;
 /// </summary>
 public sealed class KnowledgeBuilder : BuilderBase
 {
-    private Dictionary<string, MainDeveloper> _mainDeveloper;
-    private Dictionary<string, LinesOfCodeProvider.LinesOfCode> _metrics;
-    private readonly string _onlyThisDeveloper;
+    private Dictionary<string, MainDeveloper>? _mainDeveloper;
+    private Dictionary<string, LinesOfCodeProvider.LinesOfCode>? _metrics;
+    private readonly string? _onlyThisDeveloper;
 
     public KnowledgeBuilder()
     {
@@ -49,6 +49,7 @@ public sealed class KnowledgeBuilder : BuilderBase
 
     private double GetArea(Artifact item)
     {
+        ArgumentNullException.ThrowIfNull(_metrics);
         return _metrics.TryGetValue(item.LocalPath, out var loc) ? loc.Code : 0.0;
     }
 
@@ -83,6 +84,8 @@ public sealed class KnowledgeBuilder : BuilderBase
 
     private MainDeveloper GetMainDeveloper(Artifact item)
     {
+        ArgumentNullException.ThrowIfNull(_mainDeveloper);
+        
         // Default (empty developer, maps to the neutral brush) when the file has no contribution.
         return _mainDeveloper.TryGetValue(item.LocalPath, out var dev) ? dev : new MainDeveloper("", 0.0);
     }

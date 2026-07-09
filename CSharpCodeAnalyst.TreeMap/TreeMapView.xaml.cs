@@ -45,7 +45,7 @@ namespace CSharpCodeAnalyst.TreeMap
             ];
         }
 
-        private void Instance_ToolCloseRequested(object sender, object e)
+        private void Instance_ToolCloseRequested(object? sender, object e)
         {
             HideToolView();
         }
@@ -57,7 +57,7 @@ namespace CSharpCodeAnalyst.TreeMap
 
         protected override IRenderer CreateRenderer()
         {
-            return new SquarifiedTreeMapRenderer(_brushFactory);
+            return new SquarifiedTreeMapRenderer(BrushFactory);
         }
 
         protected override DrawingCanvas GetCanvas()

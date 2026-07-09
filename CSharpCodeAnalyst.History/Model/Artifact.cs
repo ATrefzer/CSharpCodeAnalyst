@@ -27,9 +27,5 @@
         public string Revision { get; set; }
 
         public string ServerPath { get; set; }
-
-        public HashSet<string> Teams { get; } = new HashSet<string>();
-
-        public HashSet<WorkItem> WorkItems { get; } = new HashSet<WorkItem>();
     }
 }

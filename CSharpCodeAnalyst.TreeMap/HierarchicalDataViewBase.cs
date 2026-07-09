@@ -25,7 +25,7 @@ namespace CSharpCodeAnalyst.TreeMap;
 public abstract class HierarchicalDataViewBase : UserControl
 {
     public static readonly DependencyProperty UserCommandsProperty = DependencyProperty.Register(
-        "UserCommands", typeof(HierarchicalDataCommands), typeof(HierarchicalDataViewBase),
+        nameof(UserCommands), typeof(HierarchicalDataCommands), typeof(HierarchicalDataViewBase),
         new PropertyMetadata(null));
 
     private readonly HitTest _hitTest = new();
@@ -33,7 +33,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     private readonly MenuItem _toolMenuItem = new()
         { Header = "Tools", Tag = null };
 
-    protected IBrushFactory? _brushFactory;
+    protected IBrushFactory? BrushFactory { get; set; }
 
     /// <summary>
     ///     Original data, untouched
@@ -68,7 +68,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     protected void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         _originalData = null;
-        _brushFactory = null;
+        BrushFactory = null;
 
         if (!(DataContext is HierarchicalDataContext context))
         {
@@ -81,7 +81,7 @@ public abstract class HierarchicalDataViewBase : UserControl
             return;
         }
         
-        _brushFactory = context.BrushFactory;
+        BrushFactory = context.BrushFactory;
         _originalData = context.Data;
 
         InitializeTools(context.AreaSemantic, context.WeightSemantic);
@@ -99,13 +99,13 @@ public abstract class HierarchicalDataViewBase : UserControl
         ZoomLevelChanged(_originalData);
     }
 
-    protected void OnToolHighlightPatternChanged(object? sender, EventArgs args)
+    private void OnToolHighlightPatternChanged(object? sender, EventArgs args)
     {
         // Render again with new highlighting
         DoRender(_zoomLevel);
     }
 
-    protected void ChangeZoomLevelCommand(IHierarchicalData item)
+    private void ChangeZoomLevelCommand(IHierarchicalData? item)
     {
         if (item == null)
         {
@@ -194,7 +194,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     }
 
 
-    protected void InitializeTools(string areaSemantic, string weightSemantic)
+    private void InitializeTools(string areaSemantic, string weightSemantic)
     {
         var area = new HashSet<double>();
         var weight = new HashSet<double>();
@@ -213,9 +213,11 @@ public abstract class HierarchicalDataViewBase : UserControl
         var areaList = area.OrderBy(x => x).ToList();
         var weightList = weight.OrderBy(x => x).ToList();
 
-        _toolViewModel = new ToolViewModel(areaList, weightList);
-        _toolViewModel.AreaSemantic = areaSemantic;
-        _toolViewModel.WeightSemantic = weightSemantic;
+        _toolViewModel = new ToolViewModel(areaList, weightList)
+            {
+                AreaSemantic = areaSemantic,
+                WeightSemantic = weightSemantic
+            };
 
         _toolViewModel.FilterChanged += OnToolFilterChanged;
         _toolViewModel.HighlightPatternChanged += OnToolHighlightPatternChanged;
@@ -235,7 +237,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
     protected abstract void InitPopup(IHierarchicalData hit);
 
-    protected virtual ContextMenu GetContextMenu(object sender)
+    protected ContextMenu? GetContextMenu(object sender)
     {
         var fe = sender as FrameworkElement;
         return fe?.ContextMenu;
@@ -275,7 +277,7 @@ public abstract class HierarchicalDataViewBase : UserControl
     }
 
 
-    protected void ShowToolsCommand()
+    private void ShowToolsCommand()
     {
         // Filter
         _toolView = new ToolView();
@@ -310,7 +312,7 @@ public abstract class HierarchicalDataViewBase : UserControl
         }
     }
 
-    protected void ZoomLevelChanged(IHierarchicalData data)
+    private void ZoomLevelChanged(IHierarchicalData? data)
     {
         if (data == null)
         {
@@ -320,7 +322,7 @@ public abstract class HierarchicalDataViewBase : UserControl
         DoRender(data);
     }
 
-    protected void DoRender(IHierarchicalData data)
+    private void DoRender(IHierarchicalData data)
     {
         _zoomLevel = data;
         _renderer = CreateRenderer();
@@ -332,8 +334,11 @@ public abstract class HierarchicalDataViewBase : UserControl
     private void AddZoomLevel(ContextMenu menu, IHierarchicalData data)
     {
         var header = data.GetPathToRoot();
-        var menuItem = new MenuItem { Header = header };
-        menuItem.Command = new DelegateCommand(() => ChangeZoomLevelCommand(data));
+        var menuItem = new MenuItem 
+        {
+            Header = header,
+            Command = new DelegateCommand(() => ChangeZoomLevelCommand(data))
+        };
         menu.Items.Add(menuItem);
     }
 

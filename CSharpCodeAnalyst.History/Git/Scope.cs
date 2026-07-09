@@ -108,7 +108,7 @@ namespace CSharpCodeAnalyst.History.Git
         }
 
 
-        public string GetIdOrDefault(string serverPath)
+        public string? GetIdOrDefault(string serverPath)
         {
             if (_serverPathToId.TryGetValue(serverPath, out var guid))
             {
@@ -169,7 +169,7 @@ namespace CSharpCodeAnalyst.History.Git
             return _idToServerPath[id];
         }
 
-        public string GetServerPathOrDefault(Guid id)
+        public string? GetServerPathOrDefault(Guid id)
         {
             if (_idToServerPath.TryGetValue(id, out var serverPath))
             {

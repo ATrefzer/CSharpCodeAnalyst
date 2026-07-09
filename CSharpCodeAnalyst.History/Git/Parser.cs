@@ -98,7 +98,7 @@ namespace CSharpCodeAnalyst.History.Git
         /// <summary>
         /// Log file has format specified in GitCommandLine class
         /// </summary>
-        private ChangeSetHistory ParseLog(Stream log, Graph graph)
+        private ChangeSetHistory ParseLog(Stream log, Graph? graph)
         {
             var changeSets = new List<ChangeSet>();
 
@@ -125,7 +125,7 @@ namespace CSharpCodeAnalyst.History.Git
             return history;
         }
 
-        private ChangeSet ParseRecord(StreamReader reader, Graph graph)
+        private ChangeSet ParseRecord(StreamReader reader, Graph? graph)
         {
             // We are located on the first data item of the record
             var hash = ReadLine(reader);
@@ -139,11 +139,13 @@ namespace CSharpCodeAnalyst.History.Git
             // Last node has no parents.
             graph?.UpdateGraph(hash, parents);
 
-            var cs = new ChangeSet();
-            cs.Id = hash;
-            cs.Committer = committer;
-            cs.Comment = comment;
-            cs.Date = DateTime.Parse(date);
+            var cs = new ChangeSet
+                {
+                    Id = hash,
+                    Committer = committer,
+                    Comment = comment,
+                    Date = DateTime.Parse(date)
+                };
 
             ReadChangeItems(cs, reader);
             return cs;

@@ -15,9 +15,5 @@ namespace CSharpCodeAnalyst.History.Model
         // Populate makes it fill the existing instance via Add() instead.
         [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
         public List<ChangeItem> Items { get; } = new List<ChangeItem>();
-
-        // Not filled at the moment, see insight. Requires a regex to extract work items from commits.
-        [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
-        public List<WorkItem> WorkItems { get; } = new List<WorkItem>();
     }
 }

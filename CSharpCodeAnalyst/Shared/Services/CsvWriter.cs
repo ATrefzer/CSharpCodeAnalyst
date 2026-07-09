@@ -29,14 +29,14 @@ public sealed class CsvWriter
     /// </summary>
     public string NumberFormat { get; set; } = "F3";
 
-    public void Process<T>(List<T> items, Action<string> writeLine)
+    private void Process<T>(List<T> items, Action<string> writeLine)
     {
         if (!items.Any())
         {
             return;
         }
 
-        var type = items.First().GetType();
+        var type = items.First()!.GetType();
 
         var propertyInfos = type.GetProperties();
         var names = propertyInfos.Select(pi => pi.Name).ToList();
@@ -47,7 +47,7 @@ public sealed class CsvWriter
 
     public string ToCsv<T>(List<T> items)
     {
-        if (items == null || !items.Any())
+        if (!items.Any())
         {
             return "";
         }
@@ -59,10 +59,8 @@ public sealed class CsvWriter
 
     public void ToCsv<T>(string filePath, List<T> items)
     {
-        using (var stream = new StreamWriter(filePath, false, Encoding.UTF8))
-        {
-            Process(items, line => stream.WriteLine(line));
-        }
+        using var stream = new StreamWriter(filePath, false, Encoding.UTF8);
+        Process(items, stream.WriteLine);
     }
 
     private bool IsNumberFormat(PropertyInfo propertyInfo)
@@ -88,7 +86,7 @@ public sealed class CsvWriter
 
     private void WriteItems<T>(PropertyInfo[] propertyInfos, Action<string> writeLine, List<T> items)
     {
-        if (items == null || !items.Any())
+        if (!items.Any())
         {
             return;
         }
@@ -108,7 +106,8 @@ public sealed class CsvWriter
                 }
                 else
                 {
-                    var str = value.ToString();
+                    // null values appear empty in csv output
+                    var str = value?.ToString() ?? string.Empty;
                     if (str.Any(c => c == ',' || c == ' ' || c == '\t'))
                     {
                         str = "\"" + str + "\"";

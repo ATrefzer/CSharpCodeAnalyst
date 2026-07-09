@@ -1210,7 +1210,7 @@ Do you want to overwrite it?</value>
       <value>Commits</value>
     </data>
     <data name="Knowledge_WeightSemantic" xml:space="preserve">
-      <value>Not applicable!</value>
+      <value>Main developer %</value>
     </data>
     
     
