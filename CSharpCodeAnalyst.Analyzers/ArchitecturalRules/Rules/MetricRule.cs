@@ -35,6 +35,11 @@ public abstract class MetricRule : RuleBase
     /// <summary>The keyword that introduces this rule in the rules text, e.g. "MAXCYCLICITY".</summary>
     public abstract string Keyword { get; }
 
+    public override string DisplayName
+    {
+        get => Keyword;
+    }
+
     /// <summary>Smallest / largest threshold that makes sense for this metric. Used to reject typos.</summary>
     public abstract double MinThreshold { get; }
 
@@ -42,8 +47,6 @@ public abstract class MetricRule : RuleBase
 
     /// <summary>Renders a value of this metric for the user, including its unit.</summary>
     public abstract string FormatValue(double value);
-
-    public abstract string CreateDescription();
 
     public virtual bool IsViolated(double actualValue)
     {

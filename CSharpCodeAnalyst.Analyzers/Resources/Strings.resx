@@ -162,9 +162,6 @@
   <data name="ArchitecturalRules_Metric_Max" xml:space="preserve">
     <value>max. {0}</value>
   </data>
-  <data name="ArchitecturalRules_MaxCyclicity_Description" xml:space="preserve">
-    <value>The cyclicity of the system must not exceed {0}</value>
-  </data>
   <data name="Analyzer_ArchitecturalRules_ElementMetricExceeded" xml:space="preserve">
     <value>{0} rule violated: {1} code element(s) exceed the limit of {2}.</value>
   </data>
@@ -173,9 +170,6 @@
   </data>
   <data name="ArchitecturalRules_Scope_Everything" xml:space="preserve">
     <value>(everything)</value>
-  </data>
-  <data name="ArchitecturalRules_MaxLines_Description" xml:space="preserve">
-    <value>A method must not have more than {0}</value>
   </data>
   <data name="ArchitecturalRules_MaxLines_Value" xml:space="preserve">
     <value>{0} lines</value>

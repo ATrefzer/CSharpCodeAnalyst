@@ -1,4 +1,4 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
@@ -149,7 +149,7 @@ public class RuleValidationTests
         var allRelationships = _codeGraph.GetAllRelationships();
 
         // Act
-        var violations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
+        var violations = restrictGroup.ValidateRule(sourceIds, [], allRelationships);
 
         // Assert
         Assert.That(violations.Count, Is.EqualTo(1)); // Only the Data dependency should violate
@@ -177,7 +177,7 @@ public class RuleValidationTests
         var allRelationships = _codeGraph.GetAllRelationships();
 
         // Act
-        var violations = restrictGroup.ValidateGroup(sourceIds, allRelationships);
+        var violations = restrictGroup.ValidateRule(sourceIds, [], allRelationships);
 
         // Assert
         Assert.That(violations.Count, Is.EqualTo(0));

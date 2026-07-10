@@ -123,8 +123,8 @@ public static class RuleEngine
 
             restrictGroup.AllowedTargetIds = allowedTargetIds;
 
-            // Use first rule in group as representative for violation
-            AddViolation(group.First(), restrictGroup.ValidateGroup(sourceIds, allRelationships));
+            // The group, not one of its rules, is what was validated - so it is what the violation names.
+            AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], allRelationships));
         }
 
         // Metric rules are not about single relationships, so ALLOW exceptions do not apply to them.

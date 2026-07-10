@@ -190,7 +190,7 @@ Dependency restrictions
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
 | DENY     | Forbids dependencies from source to target                   |
-| RESTRICT | Allows only specified dependencies. RESTRICT rules with the same source are aggregated. |
+| RESTRICT | Allows only specified dependencies. RESTRICT rules with the same source are aggregated and the permitted quantity increases. This is unique for the RESTRICT rule. |
 | ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed. |
 | ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
 
@@ -202,19 +202,23 @@ A metric rule limits a measured value instead of a dependency. It is written as 
 
 | Rule         | Meaning                                                      |
 | ------------ | ------------------------------------------------------------ |
-| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, MAXCYCLICITY = 15  (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
+| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, `MAXCYCLICITY = 15` (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
 
-**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern the rule applies to every element in the graph.
+When accepting a baseline a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
 
-| Rule     | Meaning                                                                                                                                                                                                                     |
-| -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| MAXLINES | Limits the size of a single method, in code lines (blantyk and comment-only lines excluded). <br />For example, MAXLINES: MyApp.Business.\*\* = 50 reports every method in the business layer that is longer than 50 lines. |
+**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern the rule applies to every element in the graph `RULE = value`.
+
+| Rule     | Meaning                                                      |
+| -------- | ------------------------------------------------------------ |
+| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES: MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
 
 An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected while importing a solution; if a project has none at all, the rule reports a warning instead of silently passing.
 
 Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES: MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule — the narrower rule does not grant it an exception.
 
-Accepting a baseline treats the two kinds differently. A system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place. A code element metric rule is left untouched: lifting its limit to the worst offender would repeal it for every other element, which is not a baseline but a repeal.
+When accepting a baseline, a code element metric rule remains untouched. Lifting its limit to the worst offender would repeal it for every other element. This is not a baseline but a repeal. This is different from the system metric rules.
+
+Lines of code for methods is just proof of concept I can use when meaningful metrics are collected.
 
 ### How patterns work
 

@@ -33,7 +33,7 @@ public static class ViolationsFormatter
             foreach (var violation in violations)
             {
                 sb.AppendLine();
-                sb.AppendLine(string.Format(Strings.Cmd_RuleTypeLine, violation.Rule));
+                sb.AppendLine(string.Format(Strings.Cmd_RuleTypeLine, violation.Rule.DisplayName));
 
                 if (violation.ViolatingRelationships.Count == 0)
                 {

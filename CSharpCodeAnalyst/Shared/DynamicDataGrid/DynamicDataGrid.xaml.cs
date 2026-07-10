@@ -244,6 +244,21 @@ public partial class DynamicDataGrid
         ShowEmptyState(!data.Any());
     }
 
+    /// <summary>
+    ///     Aligns the content of a cell with the top of its row. A cell may wrap over several lines (a
+    ///     rule listing all its targets, say) and stretch the whole row; the single-line cells beside it
+    ///     stay readable when they line up with its <em>first</em> line rather than float in the middle.
+    ///     <para>
+    ///         This has to be done on the content, not on the cell: the default <see cref="DataGridCell" />
+    ///         template is a Border around a ContentPresenter that does not template-bind
+    ///         <c>VerticalContentAlignment</c>, so setting that property on the cell has no effect at all.
+    ///     </para>
+    /// </summary>
+    private static void AlignContentToTop(FrameworkElementFactory contentFactory)
+    {
+        contentFactory.SetValue(VerticalAlignmentProperty, VerticalAlignment.Top);
+    }
+
     private DataGridColumn CreateDataGridColumn(TableColumnDefinition columnDef)
     {
         if (columnDef.IsExpandable)
@@ -296,9 +311,10 @@ public partial class DynamicDataGrid
                                      <ToggleButton DockPanel.Dock="Left"
                                                  Style="{StaticResource ExpandCollapseButtonStyle}"
                                                  IsChecked="{Binding IsExpanded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalAlignment="Top"
                                                  Margin="0,0,5,0" />
 
-                                     <StackPanel Orientation='Horizontal' VerticalAlignment='Center'>
+                                     <StackPanel Orientation='Horizontal' VerticalAlignment='Top'>
                                          <TextBlock Text='{Binding {{columnDef.PropertyName}}}' />
                                      </StackPanel>
                                  </DockPanel>
@@ -336,6 +352,12 @@ public partial class DynamicDataGrid
         {
             column.CellStyle = CreateRatingCellStyle(columnDef);
         }
+
+        // Applied to the TextBlock the column generates, so a single line lines up with the first line
+        // of a wrapping cell beside it. See AlignContentToTop for why this cannot be done on the cell.
+        var elementStyle = new Style(typeof(TextBlock));
+        elementStyle.Setters.Add(new Setter(VerticalAlignmentProperty, VerticalAlignment.Top));
+        column.ElementStyle = elementStyle;
 
         return column;
     }
@@ -387,6 +409,7 @@ public partial class DynamicDataGrid
         buttonFactory.SetValue(BackgroundProperty, Brushes.Transparent);
         buttonFactory.SetValue(HorizontalContentAlignmentProperty, HorizontalAlignment.Left);
         buttonFactory.SetValue(PaddingProperty, new Thickness(0));
+        AlignContentToTop(buttonFactory);
 
         // Style for underline
         var style = new Style(typeof(Button));
@@ -430,6 +453,7 @@ public partial class DynamicDataGrid
         factory.SetValue(HeightProperty, 16.0);
         factory.SetValue(WidthProperty, 16.0);
         factory.SetValue(Image.StretchProperty, Stretch.None);
+        AlignContentToTop(factory);
 
         cellTemplate.VisualTree = factory;
         column.CellTemplate = cellTemplate;
@@ -448,6 +472,7 @@ public partial class DynamicDataGrid
         var cellTemplate = new DataTemplate();
         var factory = new FrameworkElementFactory(typeof(ToggleButton));
         factory.SetBinding(ToggleButton.IsCheckedProperty, new Binding(columnDef.PropertyName));
+        AlignContentToTop(factory);
 
         if (columnDef.ClickCommand != null)
         {
@@ -567,8 +592,12 @@ public partial class DynamicDataGrid
                 //},
 
                 Binding = new Binding(prop.Name),
-                Width = new DataGridLength(1, DataGridLengthUnitType.Auto)
+                Width = new DataGridLength(1, DataGridLengthUnitType.Auto),
             };
+            
+            var style = new Style(typeof(TextBlock));
+            style.Setters.Add(new Setter(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Top));
+            column.ElementStyle = style;
 
             // Special formatting for certain types
             if (prop.PropertyType == typeof(DateTime))

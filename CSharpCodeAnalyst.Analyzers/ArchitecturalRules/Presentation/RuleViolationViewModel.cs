@@ -48,9 +48,7 @@ public class RuleViolationViewModel : TableRow
 
     private string GetRuleTypeDisplayName()
     {
-        return _violation.Rule is MetricRule metricRule
-            ? metricRule.Keyword
-            : _violation.Rule.GetType().Name.Replace("Rule", "").ToUpper();
+        return _violation.Rule.DisplayName;
     }
 
     private int GetViolationCount()
@@ -84,6 +82,9 @@ public class RuleViolationViewModel : TableRow
         return _violation.Rule switch
         {
             DenyRule denyRule => denyRule.Target,
+
+            // The whole allowed set, not the target of the first rule of the group.
+            RestrictRuleGroup restrictRuleGroup => string.Join("\n", restrictRuleGroup.Targets),
             RestrictRule restrictRule => restrictRule.Target,
             IsolateRule => "(isolated)",
             MetricRule metricRule =>

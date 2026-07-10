@@ -132,15 +132,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The cyclicity of the system must not exceed {0}.
-        /// </summary>
-        public static string ArchitecturalRules_MaxCyclicity_Description {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_MaxCyclicity_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to {0} rule violated: {1} code element(s) exceed the limit of {2}..
         /// </summary>
         public static string Analyzer_ArchitecturalRules_ElementMetricExceeded {
@@ -164,15 +155,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string ArchitecturalRules_Scope_Everything {
             get {
                 return ResourceManager.GetString("ArchitecturalRules_Scope_Everything", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to A method must not have more than {0}.
-        /// </summary>
-        public static string ArchitecturalRules_MaxLines_Description {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_MaxLines_Description", resourceCulture);
             }
         }
 

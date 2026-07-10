@@ -53,9 +53,7 @@ public class Violation
 
     private string GenerateDescription()
     {
-        var ruleType = Rule.GetType().Name.Replace("Rule", "").ToUpper();
         var count = ViolatingRelationships.Count;
-
-        return $"{ruleType} rule violated: {Rule.RuleText} ({count} violation{(count != 1 ? "s" : "")})";
+        return $"{Rule.DisplayName} rule violated: {Rule.RuleText} ({count} violation{(count != 1 ? "s" : "")})";
     }
 }

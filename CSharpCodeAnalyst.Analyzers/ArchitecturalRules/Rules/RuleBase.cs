@@ -10,5 +10,13 @@ public abstract class RuleBase
 {
     public string RuleText { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
-    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     The keyword this rule is known by in the rules text, used wherever a violation names its
+    ///     rule. Derived from the class name by default; override when the two differ.
+    /// </summary>
+    public virtual string DisplayName
+    {
+        get => GetType().Name.Replace("Rule", "").ToUpper();
+    }
 }

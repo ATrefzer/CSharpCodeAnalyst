@@ -45,9 +45,4 @@ public class MaxLinesRule : CodeElementMetricRule
     {
         return string.Format(Strings.ArchitecturalRules_MaxLines_Value, value.ToString("0.##", CultureInfo.InvariantCulture));
     }
-
-    public override string CreateDescription()
-    {
-        return string.Format(Strings.ArchitecturalRules_MaxLines_Description, FormatValue(Threshold));
-    }
 }

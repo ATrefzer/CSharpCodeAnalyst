@@ -1,5 +1,4 @@
 using System.Globalization;
-using CSharpCodeAnalyst.Analyzers.Resources;
 
 // Alias: the type name SystemMetrics collides with the CSharpCodeAnalyst.Analyzers.SystemMetrics namespace.
 using Metrics = CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
@@ -40,10 +39,5 @@ public class MaxCyclicityRule : SystemMetricRule
     public override string FormatValue(double value)
     {
         return $"{value.ToString("0.##", CultureInfo.InvariantCulture)} %";
-    }
-
-    public override string CreateDescription()
-    {
-        return string.Format(Strings.ArchitecturalRules_MaxCyclicity_Description, FormatValue(Threshold));
     }
 }

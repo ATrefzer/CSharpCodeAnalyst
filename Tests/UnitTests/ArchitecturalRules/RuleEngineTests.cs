@@ -1,5 +1,6 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 
@@ -281,6 +282,44 @@ public class RuleEngineTests
                              """);
 
         Assert.That(result.Violations, Is.Empty);
+    }
+
+    /// <summary>
+    ///     RESTRICT rules with the same source widen each other and are reported as one violation that
+    ///     names the whole allowed set - not as one violation per rule line.
+    /// </summary>
+    [Test]
+    public void Restrict_SameSource_ReportsOneViolationNamingAllTargets()
+    {
+        var controllers = _codeGraph.CreateNamespace("MyApp.Controllers");
+        var services = _codeGraph.CreateNamespace("MyApp.Services");
+        var dtos = _codeGraph.CreateNamespace("MyApp.Dtos");
+        var data = _codeGraph.CreateNamespace("MyApp.Data");
+
+        var controller = _codeGraph.CreateClass("OrderController", controllers);
+        var service = _codeGraph.CreateClass("OrderService", services);
+        var dto = _codeGraph.CreateClass("OrderDto", dtos);
+        var repository = _codeGraph.CreateClass("Repository", data);
+
+        // The first two are permitted by one rule each, only the repository is a violation.
+        controller.Relationships.Add(new Relationship(controller.Id, service.Id, RelationshipType.Uses));
+        controller.Relationships.Add(new Relationship(controller.Id, dto.Id, RelationshipType.Uses));
+        controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses));
+
+        var result = Execute("""
+                             RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+                             RESTRICT: MyApp.Controllers.** -> MyApp.Dtos.**
+                             """);
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        var violation = result.Violations[0];
+        Assert.That(violation.ViolatingRelationships, Has.Count.EqualTo(1));
+        Assert.That(violation.ViolatingRelationships[0].TargetId, Is.EqualTo(repository.Id));
+
+        var group = violation.Rule as RestrictRuleGroup;
+        Assert.That(group, Is.Not.Null);
+        Assert.That(group!.DisplayName, Is.EqualTo("RESTRICT"));
+        Assert.That(group.Targets, Is.EquivalentTo(new[] { "MyApp.Services.**", "MyApp.Dtos.**" }));
     }
 
     [Test]

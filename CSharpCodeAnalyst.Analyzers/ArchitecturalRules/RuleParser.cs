@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Analyzers.Resources;
@@ -65,8 +65,7 @@ public static class RuleParser
             {
                 RuleText = trimmedRule,
                 Source = denyMatch.Groups[1].Value.Trim(),
-                Target = denyMatch.Groups[2].Value.Trim(),
-                Description = $"Deny dependencies from {denyMatch.Groups[1].Value.Trim()} to {denyMatch.Groups[2].Value.Trim()}"
+                Target = denyMatch.Groups[2].Value.Trim()
             };
         }
 
@@ -78,8 +77,7 @@ public static class RuleParser
             {
                 RuleText = trimmedRule,
                 Source = restrictMatch.Groups[1].Value.Trim(),
-                Target = restrictMatch.Groups[2].Value.Trim(),
-                Description = $"Restrict {restrictMatch.Groups[1].Value.Trim()} to only depend on {restrictMatch.Groups[2].Value.Trim()}"
+                Target = restrictMatch.Groups[2].Value.Trim()
             };
         }
 
@@ -90,8 +88,7 @@ public static class RuleParser
             return new IsolateRule
             {
                 RuleText = trimmedRule,
-                Source = isolateMatch.Groups[1].Value.Trim(),
-                Description = $"Isolate {isolateMatch.Groups[1].Value.Trim()} from external dependencies"
+                Source = isolateMatch.Groups[1].Value.Trim()
             };
         }
 
@@ -103,8 +100,7 @@ public static class RuleParser
             {
                 RuleText = trimmedRule,
                 Source = allowMatch.Groups[1].Value.Trim(),
-                Target = allowMatch.Groups[2].Value.Trim(),
-                Description = $"Allow dependencies from {allowMatch.Groups[1].Value.Trim()} to {allowMatch.Groups[2].Value.Trim()} (exception)"
+                Target = allowMatch.Groups[2].Value.Trim()
             };
         }
 
@@ -154,7 +150,6 @@ public static class RuleParser
 
         rule.RuleText = ruleText;
         rule.Threshold = threshold;
-        rule.Description = rule.CreateDescription();
         return rule;
     }
 
