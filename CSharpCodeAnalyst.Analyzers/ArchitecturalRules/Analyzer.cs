@@ -321,6 +321,9 @@ public class Analyzer : IAnalyzer
 
                // Specific class restrictions
                DENY: MyApp.Models.User -> MyApp.Data.Database
+
+               // At most 15% of all types may sit inside a dependency cycle
+               MAXCYCLICITY = 0.15
                """;
     }
 

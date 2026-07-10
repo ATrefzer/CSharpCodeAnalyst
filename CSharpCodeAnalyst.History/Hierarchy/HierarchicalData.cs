@@ -19,7 +19,7 @@ namespace CSharpCodeAnalyst.History.Hierarchy
     /// NormalizeWeightMetrics, so data producers do not need to know about the color mapping.
     /// </summary>
     [Serializable]
-    public sealed class HierarchicalData : IHierarchicalData, IEnumerable<IHierarchicalData>
+    public sealed class HierarchicalData : IHierarchicalData
     {
         private const string PathSeparator = "/";
 

@@ -18,10 +18,10 @@ This desktop application helps you **explore, understand, and maintain** large C
 
 - **Full code graph analysis** of your Visual Studio solution
 - **Cycle detection & breaking**
-- **AI Advisor** – get refactoring suggestions how to break cycles from Claude.ai.
+- **AI Advisor** – get refactoring suggestions on how to break cycles from a large language model.
 - **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
 - **Simulated Refactoring** – test structural changes without touching your source code
-- **Architectural Rules** – define and validate DENY / RESTRICT / ISOLATE rules
+- **Architectural Rules** – define and validate allowed dependencies and metric thresholds.
 - **Advanced search & navigation**
 - **Export** to PlantUML, DGML, PNG/SVG, and more
 - **GIT History Analysis** - perform a hotspot or change coupling analysis on your GIT repository.
@@ -183,15 +183,22 @@ In the ribbon, go to Analyzers and then click "Architectural rules". If a projec
 
 ![](Documentation/Images/rule-configuration.png)
 
-There are four rules supported.
+### Supported rules
 
-**DENY**: Forbids dependencies from source to target
+Dependency restrictions
 
-**RESTRICT**: Allows only specified dependencies. RESTRICT rules with the same source are aggregated.
+| Rule     | Meaning                                                      |
+| -------- | ------------------------------------------------------------ |
+| DENY     | Forbids dependencies from source to target                   |
+| RESTRICT | Allows only specified dependencies. RESTRICT rules with the same source are aggregated. |
+| ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed. |
+| ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
 
-**ISOLATE**: Completely isolates the source from external dependencies. Only incoming dependencies are allowed.
+Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
-**ALLOW**: Defines an exception. An ALLOW rule never reports violations itself; it suppresses matching violations found by the other rules.
+| Rule         | Meaning                                                      |
+| ------------ | ------------------------------------------------------------ |
+| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, MAXCYCLICITY = 0.15  (a number between 0 and 1) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
 
 ### How patterns work
 
@@ -233,6 +240,9 @@ DENY: MyApp.Models.User -> MyApp.Data.Database
 // even though the Business layer as a whole may not
 DENY: MyApp.Business.** -> MyApp.Data.**
 ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+
+// At most 15% of all types may sit inside a dependency cycle
+MAXCYCLICITY = 0.15
 ```
 
 The result of the analysis is shown in the table output for analyzers.

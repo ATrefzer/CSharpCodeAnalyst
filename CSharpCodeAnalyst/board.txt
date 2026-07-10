@@ -22,5 +22,3 @@ BUGS
 MISSING TEST CASES
 ---------------------
 
-
-- Duplicated methods in Hotspot and HierachicalData

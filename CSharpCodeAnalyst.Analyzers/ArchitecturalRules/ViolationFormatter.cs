@@ -34,6 +34,13 @@ public static class ViolationsFormatter
             {
                 sb.AppendLine();
                 sb.AppendLine(string.Format(Strings.Cmd_RuleTypeLine, violation.Rule));
+
+                if (violation.ViolatingRelationships.Count == 0)
+                {
+                    // Metric rules have no relationships; the description carries the whole finding.
+                    sb.AppendLine(violation.Description);
+                }
+
                 foreach (var relationship in violation.ViolatingRelationships)
                 {
                     var sourceElement = graph.Nodes.GetValueOrDefault(relationship.SourceId);

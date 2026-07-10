@@ -71,6 +71,59 @@ public class RuleEngineTests
         Assert.That(result.Violations[0].ViolatingRelationships[0].SourceId, Is.EqualTo(orderLogic.Id));
     }
 
+    /// <summary>
+    ///     Two of the four types form a cycle, so the cyclicity of this graph is 0.5.
+    /// </summary>
+    private void CreateGraphWithCyclicityOfOneHalf()
+    {
+        var ns = _codeGraph.CreateNamespace("MyApp.Domain");
+
+        var a = _codeGraph.CreateClass("A", ns);
+        var b = _codeGraph.CreateClass("B", ns);
+        var c = _codeGraph.CreateClass("C", ns);
+        _codeGraph.CreateClass("D", ns);
+
+        a.Relationships.Add(new Relationship(a.Id, b.Id, RelationshipType.Uses));
+        b.Relationships.Add(new Relationship(b.Id, a.Id, RelationshipType.Uses));
+        c.Relationships.Add(new Relationship(c.Id, a.Id, RelationshipType.Uses));
+    }
+
+    [Test]
+    public void MaxCyclicity_CyclicityAboveThreshold_ReportsViolation()
+    {
+        CreateGraphWithCyclicityOfOneHalf();
+
+        var result = Execute("MAXCYCLICITY = 0.4");
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        Assert.That(result.Violations[0].ViolatingRelationships, Is.Empty);
+        Assert.That(result.Violations[0].MetricValue, Is.EqualTo(0.5));
+        Assert.That(result.Warnings, Is.Empty);
+    }
+
+    [Test]
+    public void MaxCyclicity_CyclicityEqualsThreshold_IsClean()
+    {
+        CreateGraphWithCyclicityOfOneHalf();
+
+        var result = Execute("MAXCYCLICITY = 0.5");
+
+        Assert.That(result.Violations, Is.Empty);
+    }
+
+    [Test]
+    public void MaxCyclicity_AllowRule_DoesNotSuppressMetricViolation()
+    {
+        CreateGraphWithCyclicityOfOneHalf();
+
+        var result = Execute("""
+                             MAXCYCLICITY = 0.1
+                             ALLOW: MyApp.Domain.** -> MyApp.Domain.**
+                             """);
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+    }
+
     [Test]
     public void Allow_SuppressesRestrictViolation()
     {

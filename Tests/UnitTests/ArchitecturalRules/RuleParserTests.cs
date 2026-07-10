@@ -77,6 +77,32 @@ public class RuleParserTests
         Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW: Business.**"));
     }
 
+    [TestCase("MAXCYCLICITY = 0.15", 0.15)]
+    [TestCase("maxcyclicity=0.5", 0.5)]
+    [TestCase("MAXCYCLICITY : 1", 1.0)]
+    [TestCase("MAXCYCLICITY = 0", 0.0)]
+    public void ParseMaxCyclicityRule_ValidSyntax_ShouldReturnMaxCyclicityRule(string ruleText, double expected)
+    {
+        // Act
+        var rule = RuleParser.ParseRule(ruleText);
+
+        // Assert
+        Assert.That(rule, Is.InstanceOf<MaxCyclicityRule>());
+        var maxCyclicityRule = (MaxCyclicityRule)rule;
+        Assert.That(maxCyclicityRule.MaxCyclicity, Is.EqualTo(expected));
+        Assert.That(maxCyclicityRule.RuleText, Is.EqualTo(ruleText));
+    }
+
+    // Out of range, wrong decimal separator, missing value.
+    [TestCase("MAXCYCLICITY = 1.5")]
+    [TestCase("MAXCYCLICITY = -0.1")]
+    [TestCase("MAXCYCLICITY = 0,15")]
+    [TestCase("MAXCYCLICITY")]
+    public void ParseMaxCyclicityRule_InvalidValue_ShouldThrow(string ruleText)
+    {
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule(ruleText));
+    }
+
     [Test]
     public void ParseRule_ConstructorMemberName_ShouldParse()
     {

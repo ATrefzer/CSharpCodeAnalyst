@@ -1,5 +1,7 @@
+using System.Globalization;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
@@ -10,6 +12,12 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 /// </summary>
 public static class RuleEngine
 {
+    /// <summary>
+    ///     Guards the threshold comparison of metric rules against floating point noise: a cyclicity of
+    ///     3/10 must not violate "MAXCYCLICITY = 0.3".
+    /// </summary>
+    private const double MetricTolerance = 1e-9;
+
     public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph)
     {
         var result = new RuleAnalysisResult();
@@ -29,6 +37,7 @@ public static class RuleEngine
         var isolateRules = rules.OfType<IsolateRule>().ToList();
         var restrictRules = rules.OfType<RestrictRule>().ToList();
         var allowRules = rules.OfType<AllowRule>().ToList();
+        var maxCyclicityRules = rules.OfType<MaxCyclicityRule>().ToList();
 
         var reportedWarnings = new HashSet<string>();
 
@@ -118,6 +127,30 @@ public static class RuleEngine
             AddViolation(group.First(), restrictGroup.ValidateGroup(sourceIds, allRelationships));
         }
 
+        // Process MAXCYCLICITY rules. They are not about single relationships but about the whole
+        // system, so ALLOW exceptions do not apply to them.
+        if (maxCyclicityRules.Count > 0)
+        {
+            var cyclicity = SystemMetricsAnalysis.Calculate(graph).Cyclicity;
+            foreach (var rule in maxCyclicityRules)
+            {
+                if (cyclicity > rule.MaxCyclicity + MetricTolerance)
+                {
+                    var description = string.Format(
+                        Strings.Analyzer_ArchitecturalRules_CyclicityExceeded,
+                        FormatCyclicity(cyclicity),
+                        FormatCyclicity(rule.MaxCyclicity));
+
+                    result.Violations.Add(new Violation(rule, cyclicity, description));
+                }
+            }
+        }
+
         return result;
+    }
+
+    internal static string FormatCyclicity(double value)
+    {
+        return value.ToString("P1", CultureInfo.InvariantCulture);
     }
 }

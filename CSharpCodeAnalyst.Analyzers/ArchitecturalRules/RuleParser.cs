@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Analyzers.Resources;
@@ -30,6 +31,12 @@ public static class RuleParser
 
     private static readonly Regex AllowRegex = new(
         $@"^\s*ALLOW\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // Metric rule. The threshold is always written with a dot as decimal separator, independent
+    // of the current culture, so that a rules file stays portable.
+    private static readonly Regex MaxCyclicityRegex = new(
+        @"^\s*MAXCYCLICITY\s*[:=]\s*(\d+(?:\.\d+)?)\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static RuleBase ParseRule(string ruleText)
@@ -92,11 +99,30 @@ public static class RuleParser
             };
         }
 
+        // Try MAXCYCLICITY rule (system-wide metric, no pattern)
+        var maxCyclicityMatch = MaxCyclicityRegex.Match(trimmedRule);
+        if (maxCyclicityMatch.Success)
+        {
+            var threshold = double.Parse(maxCyclicityMatch.Groups[1].Value, CultureInfo.InvariantCulture);
+            if (threshold > 1.0)
+            {
+                throw new FormatException($"Invalid cyclicity threshold '{maxCyclicityMatch.Groups[1].Value}'. Expected a value between 0 and 1.");
+            }
+
+            return new MaxCyclicityRule
+            {
+                RuleText = trimmedRule,
+                MaxCyclicity = threshold,
+                Description = $"Cyclicity of the system must not exceed {threshold.ToString(CultureInfo.InvariantCulture)}"
+            };
+        }
+
         throw new FormatException($"Invalid rule syntax: '{ruleText}'. Expected formats:\n" +
                                   "DENY: Source -> Target\n" +
                                   "RESTRICT: Source -> Target\n" +
                                   "ISOLATE: Source\n" +
-                                  "ALLOW: Source -> Target");
+                                  "ALLOW: Source -> Target\n" +
+                                  "MAXCYCLICITY = 0.15");
     }
 
     public static List<RuleBase> ParseRules(string rulesText)

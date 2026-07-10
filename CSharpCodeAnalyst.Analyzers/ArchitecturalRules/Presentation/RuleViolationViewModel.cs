@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Media;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
@@ -24,9 +25,11 @@ public class RuleViolationViewModel : TableRow
 
         // Table columns
         RuleType = GetRuleTypeDisplayName();
-        Source = _violation.Rule.Source;
+        Source = GetSourceDisplayValue();
         Target = GetTargetDisplayValue();
-        ViolationCount = _violation.ViolatingRelationships.Count;
+
+        // A metric rule is either violated or not - it has no violating relationships to count.
+        ViolationCount = _violation.Rule is MaxCyclicityRule ? 1 : _violation.ViolatingRelationships.Count;
 
         // Detail relationships
         RelationshipDetails = CreateRelationshipDetails();
@@ -50,6 +53,17 @@ public class RuleViolationViewModel : TableRow
         return _violation.Rule.GetType().Name.Replace("Rule", "").ToUpper();
     }
 
+    private string GetSourceDisplayValue()
+    {
+        // The metric rule has no pattern; show the measured value instead.
+        if (_violation.Rule is MaxCyclicityRule && _violation.MetricValue.HasValue)
+        {
+            return RuleEngine.FormatCyclicity(_violation.MetricValue.Value);
+        }
+
+        return _violation.Rule.Source;
+    }
+
     private string GetTargetDisplayValue()
     {
         return _violation.Rule switch
@@ -57,6 +71,8 @@ public class RuleViolationViewModel : TableRow
             DenyRule denyRule => denyRule.Target,
             RestrictRule restrictRule => restrictRule.Target,
             IsolateRule => "(isolated)",
+            MaxCyclicityRule maxCyclicityRule =>
+                string.Format(Strings.ArchitecturalRules_Cyclicity_Max, RuleEngine.FormatCyclicity(maxCyclicityRule.MaxCyclicity)),
             _ => ""
         };
     }

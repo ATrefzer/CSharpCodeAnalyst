@@ -13,9 +13,24 @@ public class Violation
         Description = GenerateDescription();
     }
 
+    /// <summary>
+    ///     A violation of a metric rule. It is not backed by relationships; <paramref name="metricValue" />
+    ///     is the measured value that broke the rule's threshold.
+    /// </summary>
+    public Violation(RuleBase rule, double metricValue, string description)
+    {
+        Rule = rule;
+        ViolatingRelationships = [];
+        MetricValue = metricValue;
+        Description = description;
+    }
+
     public RuleBase Rule { get; set; }
     public List<Relationship> ViolatingRelationships { get; set; }
     public string Description { get; set; }
+
+    /// <summary>Measured value for metric rules, <c>null</c> for relationship based rules.</summary>
+    public double? MetricValue { get; }
 
     private string GenerateDescription()
     {
