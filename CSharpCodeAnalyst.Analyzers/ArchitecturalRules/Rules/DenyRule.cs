@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     Denies dependencies from source to target patterns
 ///     Syntax: DENY: Source -> Target
 /// </summary>
-public class DenyRule : RuleBase
+public class DenyRule : DependencyRule
 {
     public string Target { get; set; } = string.Empty;
 

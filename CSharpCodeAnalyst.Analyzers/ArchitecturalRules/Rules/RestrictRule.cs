@@ -7,7 +7,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     Syntax: RESTRICT: Source -> Target
 ///     Note: Multiple RESTRICT rules with same source are grouped together
 /// </summary>
-public class RestrictRule : RuleBase
+public class RestrictRule : DependencyRule
 {
     public string Target { get; set; } = string.Empty;
 

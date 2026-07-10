@@ -8,9 +8,47 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 ///     Accepting the current state as a baseline lets a team introduce rules into an existing
 ///     code base: every current violation is frozen as an explicit exception, so only *new*
 ///     violations are reported from then on.
+///     A violated metric rule cannot be excepted; its threshold is relaxed to the measured value
+///     instead (see <see cref="RelaxMetricRules" />).
 /// </summary>
 public static class BaselineGenerator
 {
+    /// <summary>
+    ///     Rewrites every violated metric rule line in <paramref name="rulesText" /> so that its
+    ///     threshold accepts the currently measured value. Lines are matched by their exact rule text
+    ///     and replaced in place, so comments, blank lines and line endings survive untouched.
+    /// </summary>
+    public static string RelaxMetricRules(string rulesText, IReadOnlyList<Violation> violations)
+    {
+        var replacements = new Dictionary<string, string>();
+        foreach (var violation in violations)
+        {
+            if (violation.Rule is MetricRule metricRule && violation.MetricValue.HasValue)
+            {
+                var threshold = metricRule.CreateBaselineThreshold(violation.MetricValue.Value);
+                replacements[violation.Rule.RuleText] = metricRule.CreateRuleText(threshold);
+            }
+        }
+
+        if (replacements.Count == 0)
+        {
+            return rulesText;
+        }
+
+        var lines = rulesText.Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            // Keep any trailing '\r' of the original line ending.
+            var line = lines[i];
+            if (replacements.TryGetValue(line.Trim(), out var replacement))
+            {
+                lines[i] = line.EndsWith('\r') ? replacement + '\r' : replacement;
+            }
+        }
+
+        return string.Join("\n", lines);
+    }
+
     /// <summary>
     ///     Builds the ALLOW lines that suppress every given violation. Each violating relationship
     ///     becomes one exact "ALLOW: source -> target" line, grouped by the originating rule.

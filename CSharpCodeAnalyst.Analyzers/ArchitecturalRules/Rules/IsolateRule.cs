@@ -7,7 +7,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     For leaf nodes in the graph.
 ///     Syntax: ISOLATE: Source
 /// </summary>
-public class IsolateRule : RuleBase
+public class IsolateRule : DependencyRule
 {
     public override List<Relationship> ValidateRule(
         HashSet<string> sourceIds,

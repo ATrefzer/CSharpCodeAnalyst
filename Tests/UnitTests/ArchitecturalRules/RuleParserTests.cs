@@ -77,9 +77,10 @@ public class RuleParserTests
         Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW: Business.**"));
     }
 
-    [TestCase("MAXCYCLICITY = 0.15", 0.15)]
-    [TestCase("maxcyclicity=0.5", 0.5)]
-    [TestCase("MAXCYCLICITY : 1", 1.0)]
+    // The threshold is a percentage, like the value the system metrics analyzer displays.
+    [TestCase("MAXCYCLICITY = 15", 15.0)]
+    [TestCase("maxcyclicity=7.5", 7.5)]
+    [TestCase("MAXCYCLICITY : 100", 100.0)]
     [TestCase("MAXCYCLICITY = 0", 0.0)]
     public void ParseMaxCyclicityRule_ValidSyntax_ShouldReturnMaxCyclicityRule(string ruleText, double expected)
     {
@@ -89,18 +90,26 @@ public class RuleParserTests
         // Assert
         Assert.That(rule, Is.InstanceOf<MaxCyclicityRule>());
         var maxCyclicityRule = (MaxCyclicityRule)rule;
-        Assert.That(maxCyclicityRule.MaxCyclicity, Is.EqualTo(expected));
+        Assert.That(maxCyclicityRule.Threshold, Is.EqualTo(expected));
         Assert.That(maxCyclicityRule.RuleText, Is.EqualTo(ruleText));
     }
 
-    // Out of range, wrong decimal separator, missing value.
-    [TestCase("MAXCYCLICITY = 1.5")]
-    [TestCase("MAXCYCLICITY = -0.1")]
+    // Out of range, wrong decimal separator, missing value, unknown metric.
+    [TestCase("MAXCYCLICITY = 150")]
+    [TestCase("MAXCYCLICITY = -10")]
     [TestCase("MAXCYCLICITY = 0,15")]
     [TestCase("MAXCYCLICITY")]
-    public void ParseMaxCyclicityRule_InvalidValue_ShouldThrow(string ruleText)
+    [TestCase("MAXCOHESION = 15")]
+    public void ParseMetricRule_InvalidRule_ShouldThrow(string ruleText)
     {
         Assert.Throws<FormatException>(() => RuleParser.ParseRule(ruleText));
+    }
+
+    [Test]
+    public void ParseMetricRule_UnknownKeyword_ShouldNameTheKnownRules()
+    {
+        var ex = Assert.Throws<FormatException>(() => RuleParser.ParseRule("MAXDEPTH = 3"));
+        Assert.That(ex.Message, Contains.Substring(MaxCyclicityRule.RuleKeyword));
     }
 
     [Test]

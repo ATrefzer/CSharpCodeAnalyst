@@ -33,11 +33,19 @@ public static class RuleParser
         $@"^\s*ALLOW\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    // Metric rule. The threshold is always written with a dot as decimal separator, independent
-    // of the current culture, so that a rules file stays portable.
-    private static readonly Regex MaxCyclicityRegex = new(
-        @"^\s*MAXCYCLICITY\s*[:=]\s*(\d+(?:\.\d+)?)\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    // All metric rules share the shape "KEYWORD = value", so one regex plus the factory registry
+    // below is enough - a new metric rule costs a rule class and one entry, no parser change.
+    // The threshold is always written with a dot as decimal separator, independent of the current
+    // culture, so that a rules file stays portable.
+    private static readonly Regex MetricRegex = new(
+        @"^\s*([a-zA-Z]+)\s*[:=]\s*(\d+(?:\.\d+)?)\s*$",
+        RegexOptions.Compiled);
+
+    private static readonly Dictionary<string, Func<MetricRule>> MetricRuleFactories =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            [MaxCyclicityRule.RuleKeyword] = () => new MaxCyclicityRule()
+        };
 
     public static RuleBase ParseRule(string ruleText)
     {
@@ -99,22 +107,11 @@ public static class RuleParser
             };
         }
 
-        // Try MAXCYCLICITY rule (system-wide metric, no pattern)
-        var maxCyclicityMatch = MaxCyclicityRegex.Match(trimmedRule);
-        if (maxCyclicityMatch.Success)
+        // Try metric rules (system-wide, no pattern)
+        var metricMatch = MetricRegex.Match(trimmedRule);
+        if (metricMatch.Success)
         {
-            var threshold = double.Parse(maxCyclicityMatch.Groups[1].Value, CultureInfo.InvariantCulture);
-            if (threshold > 1.0)
-            {
-                throw new FormatException($"Invalid cyclicity threshold '{maxCyclicityMatch.Groups[1].Value}'. Expected a value between 0 and 1.");
-            }
-
-            return new MaxCyclicityRule
-            {
-                RuleText = trimmedRule,
-                MaxCyclicity = threshold,
-                Description = $"Cyclicity of the system must not exceed {threshold.ToString(CultureInfo.InvariantCulture)}"
-            };
+            return ParseMetricRule(trimmedRule, metricMatch.Groups[1].Value, metricMatch.Groups[2].Value);
         }
 
         throw new FormatException($"Invalid rule syntax: '{ruleText}'. Expected formats:\n" +
@@ -122,7 +119,30 @@ public static class RuleParser
                                   "RESTRICT: Source -> Target\n" +
                                   "ISOLATE: Source\n" +
                                   "ALLOW: Source -> Target\n" +
-                                  "MAXCYCLICITY = 0.15");
+                                  $"{MaxCyclicityRule.RuleKeyword} = 15");
+    }
+
+    private static MetricRule ParseMetricRule(string ruleText, string keyword, string value)
+    {
+        if (!MetricRuleFactories.TryGetValue(keyword, out var createRule))
+        {
+            var known = string.Join(", ", MetricRuleFactories.Keys);
+            throw new FormatException($"Unknown metric rule '{keyword}'. Known metric rules: {known}.");
+        }
+
+        var rule = createRule();
+        var threshold = double.Parse(value, CultureInfo.InvariantCulture);
+
+        if (threshold < rule.MinThreshold || threshold > rule.MaxThreshold)
+        {
+            throw new FormatException($"Invalid threshold '{value}' for {rule.Keyword}. " +
+                                      $"Expected a value between {rule.MinThreshold} and {rule.MaxThreshold}.");
+        }
+
+        rule.RuleText = ruleText;
+        rule.Threshold = threshold;
+        rule.Description = rule.CreateDescription();
+        return rule;
     }
 
     public static List<RuleBase> ParseRules(string rulesText)

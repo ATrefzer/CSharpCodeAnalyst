@@ -114,20 +114,29 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MAXCYCLICITY rule violated: the cyclicity of the system is {0}, at most {1} is allowed..
+        ///   Looks up a localized string similar to {0} rule violated: the measured value of the system is {1}, at most {2} is allowed..
         /// </summary>
-        public static string Analyzer_ArchitecturalRules_CyclicityExceeded {
+        public static string Analyzer_ArchitecturalRules_MetricExceeded {
             get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_CyclicityExceeded", resourceCulture);
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_MetricExceeded", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to max. {0}.
         /// </summary>
-        public static string ArchitecturalRules_Cyclicity_Max {
+        public static string ArchitecturalRules_Metric_Max {
             get {
-                return ResourceManager.GetString("ArchitecturalRules_Cyclicity_Max", resourceCulture);
+                return ResourceManager.GetString("ArchitecturalRules_Metric_Max", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The cyclicity of the system must not exceed {0}.
+        /// </summary>
+        public static string ArchitecturalRules_MaxCyclicity_Description {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_MaxCyclicity_Description", resourceCulture);
             }
         }
 

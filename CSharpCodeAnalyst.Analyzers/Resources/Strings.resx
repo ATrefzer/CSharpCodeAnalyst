@@ -156,11 +156,14 @@
     <data name="Analyzer_ArchitecturalRules_PatternNoMatch" xml:space="preserve">
     <value>Rule '{0}': the pattern '{1}' does not match any code element. The rule has no effect.</value>
   </data>
-  <data name="Analyzer_ArchitecturalRules_CyclicityExceeded" xml:space="preserve">
-    <value>MAXCYCLICITY rule violated: the cyclicity of the system is {0}, at most {1} is allowed.</value>
+  <data name="Analyzer_ArchitecturalRules_MetricExceeded" xml:space="preserve">
+    <value>{0} rule violated: the measured value of the system is {1}, at most {2} is allowed.</value>
   </data>
-  <data name="ArchitecturalRules_Cyclicity_Max" xml:space="preserve">
+  <data name="ArchitecturalRules_Metric_Max" xml:space="preserve">
     <value>max. {0}</value>
+  </data>
+  <data name="ArchitecturalRules_MaxCyclicity_Description" xml:space="preserve">
+    <value>The cyclicity of the system must not exceed {0}</value>
   </data>
   <data name="Analyzer_ArchitecturalRules_Cleanup_Removed" xml:space="preserve">
     <value>Removed {0} rule(s) that matched no code element.</value>

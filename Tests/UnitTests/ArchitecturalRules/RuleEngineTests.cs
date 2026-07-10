@@ -72,9 +72,9 @@ public class RuleEngineTests
     }
 
     /// <summary>
-    ///     Two of the four types form a cycle, so the cyclicity of this graph is 0.5.
+    ///     Two of the four types form a cycle, so the cyclicity of this graph is 50 percent.
     /// </summary>
-    private void CreateGraphWithCyclicityOfOneHalf()
+    private void CreateGraphWithCyclicityOfFiftyPercent()
     {
         var ns = _codeGraph.CreateNamespace("MyApp.Domain");
 
@@ -91,22 +91,22 @@ public class RuleEngineTests
     [Test]
     public void MaxCyclicity_CyclicityAboveThreshold_ReportsViolation()
     {
-        CreateGraphWithCyclicityOfOneHalf();
+        CreateGraphWithCyclicityOfFiftyPercent();
 
-        var result = Execute("MAXCYCLICITY = 0.4");
+        var result = Execute("MAXCYCLICITY = 40");
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
         Assert.That(result.Violations[0].ViolatingRelationships, Is.Empty);
-        Assert.That(result.Violations[0].MetricValue, Is.EqualTo(0.5));
+        Assert.That(result.Violations[0].MetricValue, Is.EqualTo(50.0));
         Assert.That(result.Warnings, Is.Empty);
     }
 
     [Test]
     public void MaxCyclicity_CyclicityEqualsThreshold_IsClean()
     {
-        CreateGraphWithCyclicityOfOneHalf();
+        CreateGraphWithCyclicityOfFiftyPercent();
 
-        var result = Execute("MAXCYCLICITY = 0.5");
+        var result = Execute("MAXCYCLICITY = 50");
 
         Assert.That(result.Violations, Is.Empty);
     }
@@ -114,14 +114,55 @@ public class RuleEngineTests
     [Test]
     public void MaxCyclicity_AllowRule_DoesNotSuppressMetricViolation()
     {
-        CreateGraphWithCyclicityOfOneHalf();
+        CreateGraphWithCyclicityOfFiftyPercent();
 
         var result = Execute("""
-                             MAXCYCLICITY = 0.1
+                             MAXCYCLICITY = 10
                              ALLOW: MyApp.Domain.** -> MyApp.Domain.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
+    }
+
+    /// <summary>
+    ///     Accepting the baseline must relax a violated metric rule to the measured value - and the
+    ///     re-validation of the rewritten text must then be clean.
+    /// </summary>
+    [Test]
+    public void MaxCyclicity_AcceptBaseline_RelaxesThresholdToMeasuredValue()
+    {
+        CreateGraphWithCyclicityOfFiftyPercent();
+
+        const string rulesText = "// A comment\nMAXCYCLICITY = 10\n";
+        var violations = Execute(rulesText).Violations;
+
+        var relaxed = BaselineGenerator.RelaxMetricRules(rulesText, violations);
+
+        Assert.That(relaxed, Is.EqualTo("// A comment\nMAXCYCLICITY = 50\n"));
+        Assert.That(Execute(relaxed).Violations, Is.Empty);
+    }
+
+    /// <summary>
+    ///     A measured value that is not representable in the precision of a rule line must be rounded
+    ///     up, otherwise the freshly written baseline rule is violated again.
+    /// </summary>
+    [Test]
+    public void MaxCyclicity_AcceptBaseline_RoundsThresholdUp()
+    {
+        var ns = _codeGraph.CreateNamespace("MyApp.Domain");
+        var a = _codeGraph.CreateClass("A", ns);
+        var b = _codeGraph.CreateClass("B", ns);
+        _codeGraph.CreateClass("C", ns);
+
+        // Two of three types are in a cycle: 66.666... percent.
+        a.Relationships.Add(new Relationship(a.Id, b.Id, RelationshipType.Uses));
+        b.Relationships.Add(new Relationship(b.Id, a.Id, RelationshipType.Uses));
+
+        const string rulesText = "MAXCYCLICITY = 10";
+        var relaxed = BaselineGenerator.RelaxMetricRules(rulesText, Execute(rulesText).Violations);
+
+        Assert.That(relaxed, Is.EqualTo("MAXCYCLICITY = 66.67"));
+        Assert.That(Execute(relaxed).Violations, Is.Empty);
     }
 
     [Test]

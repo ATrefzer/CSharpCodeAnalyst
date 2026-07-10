@@ -64,13 +64,13 @@ public static class RuleCleaner
     /// </summary>
     private static bool IsIneffective(RuleBase rule, CodeGraph.Graph.CodeGraph graph)
     {
-        if (rule is MaxCyclicityRule)
+        if (rule is not DependencyRule dependencyRule)
         {
             // A metric rule has no pattern, it always applies.
             return false;
         }
 
-        var sourceEmpty = PatternMatcher.ResolvePattern(rule.Source, graph).Count == 0;
+        var sourceEmpty = PatternMatcher.ResolvePattern(dependencyRule.Source, graph).Count == 0;
 
         return rule switch
         {

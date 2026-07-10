@@ -7,7 +7,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     violations itself; it suppresses matching violations reported by DENY / RESTRICT / ISOLATE rules.
 ///     Syntax: ALLOW: Source -> Target
 /// </summary>
-public class AllowRule : RuleBase
+public class AllowRule : DependencyRule
 {
     public string Target { get; set; } = string.Empty;
 

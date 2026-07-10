@@ -29,7 +29,7 @@ public class RuleViolationViewModel : TableRow
         Target = GetTargetDisplayValue();
 
         // A metric rule is either violated or not - it has no violating relationships to count.
-        ViolationCount = _violation.Rule is MaxCyclicityRule ? 1 : _violation.ViolatingRelationships.Count;
+        ViolationCount = _violation.Rule is MetricRule ? 1 : _violation.ViolatingRelationships.Count;
 
         // Detail relationships
         RelationshipDetails = CreateRelationshipDetails();
@@ -55,13 +55,13 @@ public class RuleViolationViewModel : TableRow
 
     private string GetSourceDisplayValue()
     {
-        // The metric rule has no pattern; show the measured value instead.
-        if (_violation.Rule is MaxCyclicityRule && _violation.MetricValue.HasValue)
+        // A metric rule has no pattern; show the measured value instead.
+        if (_violation.Rule is MetricRule metricRule && _violation.MetricValue.HasValue)
         {
-            return RuleEngine.FormatCyclicity(_violation.MetricValue.Value);
+            return metricRule.FormatValue(_violation.MetricValue.Value);
         }
 
-        return _violation.Rule.Source;
+        return _violation.Rule is DependencyRule dependencyRule ? dependencyRule.Source : "";
     }
 
     private string GetTargetDisplayValue()
@@ -71,8 +71,8 @@ public class RuleViolationViewModel : TableRow
             DenyRule denyRule => denyRule.Target,
             RestrictRule restrictRule => restrictRule.Target,
             IsolateRule => "(isolated)",
-            MaxCyclicityRule maxCyclicityRule =>
-                string.Format(Strings.ArchitecturalRules_Cyclicity_Max, RuleEngine.FormatCyclicity(maxCyclicityRule.MaxCyclicity)),
+            MetricRule metricRule =>
+                string.Format(Strings.ArchitecturalRules_Metric_Max, metricRule.FormatValue(metricRule.Threshold)),
             _ => ""
         };
     }

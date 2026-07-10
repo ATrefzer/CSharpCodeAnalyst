@@ -200,8 +200,9 @@ public class Analyzer : IAnalyzer
     }
 
     /// <summary>
-    ///     Freezes the violations of the last validation as ALLOW exceptions and appends them to
-    ///     the rules. Afterwards the rules are re-validated so the user sees the now-clean state.
+    ///     Freezes the violations of the last validation: dependency violations become ALLOW
+    ///     exceptions appended to the rules, metric rules get their threshold relaxed in place.
+    ///     Afterwards the rules are re-validated so the user sees the now-clean state.
     /// </summary>
     private void OnAcceptBaseline()
     {
@@ -210,15 +211,24 @@ public class Analyzer : IAnalyzer
             return;
         }
 
-        var baseline = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, _openDialog.RulesText);
+        var relaxed = BaselineGenerator.RelaxMetricRules(_openDialog.RulesText, _lastViolations);
+        var baseline = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, relaxed);
+
+        string newText;
         if (string.IsNullOrEmpty(baseline))
         {
-            return;
-        }
+            if (relaxed == _openDialog.RulesText)
+            {
+                return;
+            }
 
-        var existing = _openDialog.RulesText.TrimEnd();
-        var header = string.Format(Strings.ArchitecturalRules_Baseline_Header, DateTime.Now);
-        var newText = $"{existing}{Environment.NewLine}{Environment.NewLine}// {header}{Environment.NewLine}{baseline.TrimEnd()}{Environment.NewLine}";
+            newText = relaxed;
+        }
+        else
+        {
+            var header = string.Format(Strings.ArchitecturalRules_Baseline_Header, DateTime.Now);
+            newText = $"{relaxed.TrimEnd()}{Environment.NewLine}{Environment.NewLine}// {header}{Environment.NewLine}{baseline.TrimEnd()}{Environment.NewLine}";
+        }
 
         _openDialog.RulesText = newText;
 
@@ -322,8 +332,8 @@ public class Analyzer : IAnalyzer
                // Specific class restrictions
                DENY: MyApp.Models.User -> MyApp.Data.Database
 
-               // At most 15% of all types may sit inside a dependency cycle
-               MAXCYCLICITY = 0.15
+               // At most 15 percent of all types may sit inside a dependency cycle
+               MAXCYCLICITY = 15
                """;
     }
 

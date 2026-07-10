@@ -198,7 +198,9 @@ Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
 | Rule         | Meaning                                                      |
 | ------------ | ------------------------------------------------------------ |
-| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, MAXCYCLICITY = 0.15  (a number between 0 and 1) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
+| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, MAXCYCLICITY = 15  (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
+
+A metric rule has no source or target pattern, and `ALLOW` exceptions do not affect it. Accepting a baseline does not add an exception for it either — instead its threshold is raised to the currently measured value.
 
 ### How patterns work
 
@@ -242,7 +244,7 @@ DENY: MyApp.Business.** -> MyApp.Data.**
 ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
 
 // At most 15% of all types may sit inside a dependency cycle
-MAXCYCLICITY = 0.15
+MAXCYCLICITY = 15
 ```
 
 The result of the analysis is shown in the table output for analyzers.
