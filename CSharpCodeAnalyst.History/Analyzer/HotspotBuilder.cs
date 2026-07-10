@@ -1,5 +1,7 @@
 using System.Globalization;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.History.Config;
+using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
 
@@ -7,13 +9,13 @@ namespace CSharpCodeAnalyst.History.Analyzer;
 
 /// <summary>
 ///     Builds a hotspot tree (folder hierarchy, area = lines of code, weight = commits) from a flat
-///     artifact summary. Standalone on purpose - see the note on <see cref="HotspotNode" />.
+///     artifact summary.
 /// </summary>
 public sealed class HotspotBuilder : BuilderBase
 {
     private HotspotCalculator _hotspotCalculator = null!;
 
-    public HotspotNode Build(List<Artifact> artifacts, Dictionary<string, LinesOfCodeProvider.LinesOfCode> metrics)
+    public IHierarchicalData Build(List<Artifact> artifacts, Dictionary<string, LinesOfCodeProvider.LinesOfCode> metrics)
     {
         _hotspotCalculator = new HotspotCalculator(artifacts, metrics);
 
@@ -40,9 +42,9 @@ public sealed class HotspotBuilder : BuilderBase
     }
 
 
-    protected override HotspotNode CreateLeafNode(string leafName, Artifact item)
+    protected override HierarchicalData CreateLeafNode(string leafName, Artifact item)
     {
-        var leaf = new HotspotNode(leafName, GetArea(item), GetWeight(item))
+        var leaf = new HierarchicalData(leafName, GetArea(item), GetWeight(item))
         {
             Description = GetDescription(item),
             Tag = item.LocalPath

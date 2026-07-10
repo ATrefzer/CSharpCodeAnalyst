@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
-using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.Contracts;
 
 namespace CSharpCodeAnalyst.TreeMap.TreeMap
 {

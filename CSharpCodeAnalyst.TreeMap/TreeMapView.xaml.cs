@@ -2,6 +2,7 @@
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using CSharpCodeAnalyst.TreeMap.Drawing;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
 using CSharpCodeAnalyst.TreeMap.TreeMap;
 

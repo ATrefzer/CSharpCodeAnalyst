@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.TreeMap.Tools;
 
 namespace CSharpCodeAnalyst.TreeMap.Interfaces

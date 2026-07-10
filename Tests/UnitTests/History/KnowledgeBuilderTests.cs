@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.History.Analyzer;
 using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
@@ -38,8 +39,8 @@ public class KnowledgeBuilderTests
 
         var root = new KnowledgeBuilder().Build(summary, metrics, mainDeveloper);
 
-        var leaves = new List<HotspotNode>();
-        root.VisitAll(n =>
+        var leaves = new List<IHierarchicalData>();
+        root.TraverseTopDown(n =>
         {
             if (n.IsLeafNode)
             {
@@ -72,8 +73,8 @@ public class KnowledgeBuilderTests
 
         var root = new KnowledgeBuilder().Build(summary, metrics, mainDeveloper);
 
-        var leaves = new List<HotspotNode>();
-        root.VisitAll(n =>
+        var leaves = new List<IHierarchicalData>();
+        root.TraverseTopDown(n =>
         {
             if (n.IsLeafNode)
             {

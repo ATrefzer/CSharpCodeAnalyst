@@ -1,14 +1,16 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.History.Extensions;
+using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.History.Model;
 
 namespace CSharpCodeAnalyst.History.Analyzer;
 
 public abstract class BuilderBase
 {
-    protected abstract HotspotNode CreateLeafNode(string leafName, Artifact item);
+    protected abstract HierarchicalData CreateLeafNode(string leafName, Artifact item);
 
-    protected HotspotNode Build(List<Artifact> artifacts)
+    protected IHierarchicalData Build(List<Artifact> artifacts)
     {
         var data = BuildHierarchy(artifacts);
 
@@ -24,21 +26,21 @@ public abstract class BuilderBase
         catch (Exception ex)
         {
             Trace.WriteLine(ex.Message);
-            return HotspotNode.NoData();
+            return HierarchicalData.NoData();
         }
 
         return data.Shrink();
     }
 
-    private HotspotNode GetBranch(HotspotNode parent, string branch)
+    private HierarchicalData GetBranch(HierarchicalData parent, string branch)
     {
         var found = parent.Children.FirstOrDefault(child => child.Name == branch);
         if (found is not null)
         {
-            return found;
+            return (HierarchicalData) found;
         }
 
-        var newBranch = new HotspotNode(branch);
+        var newBranch = new HierarchicalData(branch);
         parent.AddChild(newBranch);
 
         // Only once the parent relation is set - GetPathToRoot needs it.
@@ -51,11 +53,11 @@ public abstract class BuilderBase
     ///     Each part of the file path becomes a branch node containing the remainder of the path. The
     ///     file name itself is a leaf node holding the weight and size.
     /// </summary>
-    private HotspotNode BuildHierarchy(List<Artifact> items)
+    private HierarchicalData BuildHierarchy(List<Artifact> items)
     {
         // Removed later if not needed. The empty root node makes sure the / appears in front of
         // every path.
-        var artificialRoot = new HotspotNode("");
+        var artificialRoot = new HierarchicalData("");
 
         foreach (var artifact in items)
         {
@@ -66,7 +68,7 @@ public abstract class BuilderBase
         if (artificialRoot.Children.Count == 1)
         {
             // Skip the artificial root node if the data provides its own single root.
-            var root = artificialRoot.Children[0];
+            var root = (HierarchicalData) artificialRoot.Children.First();
             root.Parent = null;
             return root;
         }
@@ -74,7 +76,7 @@ public abstract class BuilderBase
         return artificialRoot;
     }
 
-    private void Insert(HotspotNode parent, Artifact item, string[] parts)
+    private void Insert(HierarchicalData parent, Artifact item, string[] parts)
     {
         if (parts.Length == 1)
         {
@@ -86,7 +88,7 @@ public abstract class BuilderBase
         Insert(branch, item, parts.Subset(1));
     }
 
-    private void InsertLeaf(HotspotNode parent, Artifact item, string leafName)
+    private void InsertLeaf(HierarchicalData parent, Artifact item, string leafName)
     {
         if (!IsAccepted(item))
         {

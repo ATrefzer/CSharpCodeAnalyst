@@ -1,30 +1,22 @@
-﻿using System.Collections;
-using System.Diagnostics;
-using System.Text;
-using CSharpCodeAnalyst.TreeMap.Common;
-using CSharpCodeAnalyst.TreeMap.Interfaces;
-using CSharpCodeAnalyst.TreeMap.Utility;
+using System.Collections;
+using CSharpCodeAnalyst.Contracts;
 
-namespace CSharpCodeAnalyst.TreeMap.Data
+namespace CSharpCodeAnalyst.History.Hierarchy
 {
     /// <summary>
+    /// The one implementation of <see cref="IHierarchicalData" /> shared by the analyzers (which
+    /// build it) and the tree-map control (which renders it via the interface).
+    ///
     /// Coloring:
     /// For a leaf node:
     ///  - If a color key is set (not null) it is used for rendering
     ///  - If not the weight metric is used to derive a color
-    ///  - If the weight is 0 the default color (light gray) is used
-    /// For a non leaf node
-    ///  - Typically the weight is 0 here, so we render hierarchy
-    ///    with the default color. The weight is only set for leaf nodes.
+    /// For a non leaf node the weight is 0, so the hierarchy renders with the default color.
     /// Metrics:
-    /// If an area is not set explicitly it is NaN. This is in many algorithms used for folders.
-    /// If we remove leaf nodes and an inner node becomes a leaf now, its area is still NaN.
-    /// Now we can call RemoveLeafNodesWithoutArea to remove these nodes (recursively).
-    /// The AreaMeticSum however is initialized with 0.
-    /// 
-    /// Weights are always provided raw (e.g. commit counts). The tree-map view normalizes them
-    /// via NormalizeWeightMetrics - once when the data is loaded and again after every filter
-    /// change - so data producers do not need to know anything about the color mapping.
+    /// If an area is not set explicitly it is NaN (used for folders). If we remove leaf nodes and
+    /// an inner node becomes a leaf, its area is still NaN - RemoveLeafNodesWithoutArea removes it.
+    /// Weights are always provided raw (e.g. commit counts). The tree-map view normalizes them via
+    /// NormalizeWeightMetrics, so data producers do not need to know about the color mapping.
     /// </summary>
     [Serializable]
     public sealed class HierarchicalData : IHierarchicalData, IEnumerable<IHierarchicalData>
@@ -54,7 +46,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             AreaMetricSum = 0.0;
             WeightMetric = 0.0;
             NormalizedWeightMetric = 0.0;
-
         }
 
         public HierarchicalData(string name, double areaMetric, double weightMetric)
@@ -132,38 +123,10 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             return count;
         }
 
-        public string Dump()
-        {
-            var builder = new StringBuilder();
-            Dump(this, 0, builder);
-            return builder.ToString();
-        }
-
-
-        public Range<double> GetMinMaxArea()
-        {
-            var min = double.MaxValue;
-            var max = 0.0;
-
-            GetMinMaxArea(ref min, ref max);
-
-            return new Range<double>(min, max);
-        }
-
-        public Range<double> GetMinMaxWeight()
-        {
-            var min = double.MaxValue;
-            var max = 0.0;
-
-            GetMinMaxWeight(ref min, ref max);
-
-            return new Range<double>(min, max);
-        }
-
         public string GetPathToRoot()
         {
             var path = new List<string>();
-            IHierarchicalData current = this;
+            IHierarchicalData? current = this;
             while (current != null)
             {
                 path.Add(current.Name);
@@ -284,7 +247,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
                 return _children.First().Shrink();
             }
 
-            // Leaf node or more than one children.
+            // Leaf node or more than one child.
             return this;
         }
 
@@ -311,7 +274,7 @@ namespace CSharpCodeAnalyst.TreeMap.Data
 
             // Non leaf node
             var sum = 0.0;
-            foreach (var child in Children)
+            foreach (var child in _children)
             {
                 child.SumAreaMetrics();
                 sum += child.AreaMetricSum;
@@ -344,25 +307,16 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             }
         }
 
-        public void Verify()
-        {
-            TraverseBottomUp(x =>
-                             {
-                                 if (double.IsNaN(x.AreaMetricSum))
-                                 {
-                                     Debugger.Break();
-                                 }
-                             });
-        }
-
         private HierarchicalData Clone(HierarchicalData cloneThis)
         {
-            var newData = new HierarchicalData(cloneThis.Name, cloneThis.AreaMetric, cloneThis.WeightMetric);
-            newData.Description = cloneThis.Description;
-            newData.ColorKey = cloneThis.ColorKey;
-            newData.Tag = cloneThis.Tag;
-            newData.AreaMetricSum = cloneThis.AreaMetricSum;
-            newData.NormalizedWeightMetric = cloneThis.NormalizedWeightMetric;
+            var newData = new HierarchicalData(cloneThis.Name, cloneThis.AreaMetric, cloneThis.WeightMetric)
+                {
+                    Description = cloneThis.Description,
+                    ColorKey = cloneThis.ColorKey,
+                    Tag = cloneThis.Tag,
+                    AreaMetricSum = cloneThis.AreaMetricSum,
+                    NormalizedWeightMetric = cloneThis.NormalizedWeightMetric
+                };
 
             foreach (var child in cloneThis._children)
             {
@@ -370,46 +324,6 @@ namespace CSharpCodeAnalyst.TreeMap.Data
             }
 
             return newData;
-        }
-
-        private void Dump(IHierarchicalData item, int level, StringBuilder builder)
-        {
-            builder.AppendLine(new string(Enumerable.Repeat('\t', level).ToArray()) + item.Name);
-
-            foreach (var child in item.Children)
-            {
-                Dump(child, level + 1, builder);
-            }
-        }
-
-        private void GetMinMaxArea(ref double min, ref double max)
-        {
-            if (Children.Count == 0)
-            {
-                min = Math.Min(min, AreaMetric);
-                max = Math.Max(max, AreaMetric);
-            }
-
-            foreach (var hierarchicalData in Children)
-            {
-                var child = (HierarchicalData) hierarchicalData;
-                child.GetMinMaxArea(ref min, ref max);
-            }
-        }
-
-        private void GetMinMaxWeight(ref double min, ref double max)
-        {
-            if (Children.Count == 0)
-            {
-                min = Math.Min(min, WeightMetric);
-                max = Math.Max(max, WeightMetric);
-            }
-
-            foreach (var hierarchicalData in Children)
-            {
-                var child = (HierarchicalData) hierarchicalData;
-                child.GetMinMaxWeight(ref min, ref max);
-            }
         }
 
         private void CollectLeaves(List<HierarchicalData> leaves)

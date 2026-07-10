@@ -1,6 +1,6 @@
-﻿using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.Contracts;
 
-namespace CSharpCodeAnalyst.TreeMap.Data
+namespace CSharpCodeAnalyst.History.Hierarchy
 {
     public sealed class DecreasingByAreaMetricSumComparer : IComparer<IHierarchicalData>
     {

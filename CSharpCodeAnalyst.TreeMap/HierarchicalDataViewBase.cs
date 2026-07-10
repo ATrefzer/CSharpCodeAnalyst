@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CSharpCodeAnalyst.TreeMap.Data;
 using CSharpCodeAnalyst.TreeMap.Drawing;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
 using CSharpCodeAnalyst.TreeMap.Tools;
 using Application = System.Windows.Application;
@@ -48,6 +48,12 @@ public abstract class HierarchicalDataViewBase : UserControl
     /// </summary>
     private IHierarchicalData? _zoomLevel;
 
+    /// <summary>
+    ///     Supplied by the data context: creates the placeholder shown when a filter removes every
+    ///     node. The control only knows the interface, so it cannot build a concrete node itself.
+    /// </summary>
+    private Func<IHierarchicalData>? _createNoData;
+
     protected IBrushFactory? BrushFactory { get; set; }
 
     /// <summary>
@@ -82,6 +88,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
         BrushFactory = context.BrushFactory;
         _originalData = context.Data;
+        _createNoData = context.CreateNoData;
 
         InitializeTools(context.AreaSemantic, context.WeightSemantic);
 
@@ -137,7 +144,11 @@ public abstract class HierarchicalDataViewBase : UserControl
         }
         catch (Exception)
         {
-            data = HierarchicalData.NoData();
+            // The filter removed everything - show the producer-supplied placeholder.
+            if (_createNoData != null)
+            {
+                data = _createNoData();
+            }
         }
 
         // After we removed weights we have to normalize again.

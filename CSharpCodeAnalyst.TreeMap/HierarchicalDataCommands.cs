@@ -1,5 +1,5 @@
 ﻿using System.Windows.Controls;
-using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.Contracts;
 
 namespace CSharpCodeAnalyst.TreeMap
 {

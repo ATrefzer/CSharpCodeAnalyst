@@ -1,5 +1,5 @@
-using CSharpCodeAnalyst.TreeMap.Data;
-using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.History.Hierarchy;
 
 namespace CodeParserTests.UnitTests.TreeMap;
 

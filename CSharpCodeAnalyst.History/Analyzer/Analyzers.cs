@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.History.Metrics;
+﻿using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
 
 namespace CSharpCodeAnalyst.History.Analyzer;
@@ -14,7 +15,7 @@ public class Analyzers
         return sortedCouplings;
     }
 
-    public HotspotNode AnalyzeHotspots(ChangeSetHistory changeSets, Dictionary<string, LinesOfCodeProvider.LinesOfCode> linesOfCode)
+    public IHierarchicalData AnalyzeHotspots(ChangeSetHistory changeSets, Dictionary<string, LinesOfCodeProvider.LinesOfCode> linesOfCode)
     {
         // We process only files we have a metric for.        
         var filter = new FileFilter(linesOfCode.Keys);
@@ -26,7 +27,7 @@ public class Analyzers
         return builder.Build(summary, linesOfCode);
     }
 
-    public HotspotNode AnalyzeKnowledge(ChangeSetHistory changeSets, Dictionary<string, LinesOfCodeProvider.LinesOfCode> linesOfCode, Dictionary<string, Contribution> contribution)
+    public IHierarchicalData AnalyzeKnowledge(ChangeSetHistory changeSets, Dictionary<string, LinesOfCodeProvider.LinesOfCode> linesOfCode, Dictionary<string, Contribution> contribution)
     {
       
 

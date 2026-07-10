@@ -1,4 +1,6 @@
-﻿using CSharpCodeAnalyst.History.Metrics;
+﻿using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.History.Hierarchy;
+using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
 
 namespace CSharpCodeAnalyst.History.Analyzer;
@@ -22,7 +24,7 @@ public sealed class KnowledgeBuilder : BuilderBase
         _onlyThisDeveloper = developer;
     }
 
-    public HotspotNode Build(List<Artifact> summary,
+    public IHierarchicalData Build(List<Artifact> summary,
         Dictionary<string, LinesOfCodeProvider.LinesOfCode> metrics,
         Dictionary<string, MainDeveloper> mainDeveloper)
     {
@@ -35,12 +37,13 @@ public sealed class KnowledgeBuilder : BuilderBase
     }
 
 
-    protected override HotspotNode CreateLeafNode(string leafName, Artifact item)
+    protected override HierarchicalData CreateLeafNode(string leafName, Artifact item)
     {
         // Color comes from the main developer (ColorKey); the weight carries the ownership
         // percentage so the filter slider shows a meaningful value instead of NaN.
-        var leaf = new HotspotNode(leafName, GetArea(item), GetColorKey(item), GetMainDeveloper(item).Percent)
+        var leaf = new HierarchicalData(leafName, GetArea(item), GetMainDeveloper(item).Percent)
         {
+            ColorKey = GetColorKey(item),
             Description = GetDescription(item),
             Tag = item.LocalPath
         };

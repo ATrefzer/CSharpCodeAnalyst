@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.TreeMap.Interfaces;
+﻿using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.TreeMap.Interfaces;
 
 namespace CSharpCodeAnalyst.TreeMap
 {
@@ -20,10 +21,18 @@ namespace CSharpCodeAnalyst.TreeMap
             var clone = new HierarchicalDataContext(Data.Clone(), BrushFactory!)
                 {
                     WeightSemantic = WeightSemantic,
-                    AreaSemantic = AreaSemantic
+                    AreaSemantic = AreaSemantic,
+                    CreateNoData = CreateNoData
                 };
             return clone;
         }
+
+        /// <summary>
+        /// Factory for the placeholder shown when a filter removes every node. The data producer
+        /// supplies it because the tree-map control only knows the interface, not a concrete node
+        /// type it could instantiate itself.
+        /// </summary>
+        public Func<IHierarchicalData>? CreateNoData { get; init; }
 
         public HierarchicalDataContext(IHierarchicalData data)
         {

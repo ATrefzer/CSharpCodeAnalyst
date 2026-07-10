@@ -9,7 +9,6 @@ using System.Windows.Media.Imaging;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
-using CSharpCodeAnalyst.History.Analyzer;
 using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Git;
 using CSharpCodeAnalyst.History.Metrics;
@@ -18,10 +17,10 @@ using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
+using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.TreeMap;
 using CSharpCodeAnalyst.TreeMap.Bitmap;
-using CSharpCodeAnalyst.TreeMap.Data;
-using CSharpCodeAnalyst.TreeMap.Interfaces;
+using CSharpCodeAnalyst.Contracts;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -70,17 +69,15 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
         var brushFactory = new BrushFactory(GetDistinctColorKeys(result));
 
-        // Format to hierarchical (tree-map) data. The HotspotNode tree arrives cleaned
-        // (no empty branches, no leaves without area - see HotspotBuilder.Build) and with
-        // coloring as weights.
-        var root = ToHierarchicalData(result);
-        root.SumAreaMetrics();
+        // The analyzer already produced the tree-map data (IHierarchicalData); only the area sums
+        // must be computed here for the layout. Coloring is by main developer via the brush factory.
+        result.SumAreaMetrics();
 
-
-        var data = new HierarchicalDataContext(root, brushFactory)
+        var data = new HierarchicalDataContext(result, brushFactory)
         {
             AreaSemantic = Strings.Knowledge_AreaSemantic,
-            WeightSemantic = Strings.Knowledge_WeightSemantic
+            WeightSemantic = Strings.Knowledge_WeightSemantic,
+            CreateNoData = HierarchicalData.NoData
         };
 
         _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data));
@@ -211,22 +208,19 @@ internal class HistoryViewModel : INotifyPropertyChanged
         var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
         var result = analyzer.AnalyzeHotspots(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode);
 
-        // Format to hierarchical (tree-map) data. The HotspotNode tree arrives cleaned
-        // (no empty branches, no leaves without area - see HotspotBuilder.Build) and with
-        // raw weights (commit counts); normalizing them for coloring is owned by the
-        // tree-map view. Only the area sums must be computed here, because the conversion
-        // does not carry them over.
-        var root = ToHierarchicalData(result);
-        root.SumAreaMetrics();
+        // The analyzer already produced the tree-map data (IHierarchicalData); only the area sums
+        // must be computed here for the layout. Weights (commit counts) are normalized by the view.
+        result.SumAreaMetrics();
 
         var commands = new HierarchicalDataCommands();
         commands.Register(Strings.Menu_ShowFileContribution, OnShowFileContribution);
 
-        var data = new HierarchicalDataContext(root)
+        var data = new HierarchicalDataContext(result)
         {
             AreaSemantic = Strings.Hotspots_AreaSemantic,
             WeightSemantic = Strings.Hotspots_WeightSemantic,
-            Commands = commands
+            Commands = commands,
+            CreateNoData = HierarchicalData.NoData
         };
 
 
@@ -276,10 +270,10 @@ internal class HistoryViewModel : INotifyPropertyChanged
     }
 
 
-    private static List<string> GetDistinctColorKeys(HotspotNode root)
+    private static List<string> GetDistinctColorKeys(IHierarchicalData root)
     {
         var colorKeys = new HashSet<string>();
-        root.VisitAll(n =>
+        root.TraverseTopDown(n =>
         {
             // The color key is the main developer, NOT the file/folder name. The BrushFactory
             // must be keyed by exactly the ColorKeys the renderer later looks brushes up with.
@@ -291,30 +285,6 @@ internal class HistoryViewModel : INotifyPropertyChanged
         return colorKeys.ToList();
     }
 
-
-    /// <summary>
-    ///     Converts the UI-free <see cref="HotspotNode" /> tree from the analyzer into the TreeMap
-    ///     control's own <see cref="HierarchicalData" />. Areas and weights are carried over raw;
-    ///     only <see cref="HierarchicalData.SumAreaMetrics" /> needs to run again on the result
-    ///     (it also sorts children by descending area, which the renderer relies on).
-    /// </summary>
-    private static HierarchicalData ToHierarchicalData(HotspotNode node)
-    {
-        var data = node.IsLeafNode
-            ? new HierarchicalData(node.Name, node.AreaMetric, node.WeightMetric)
-            : new HierarchicalData(node.Name);
-
-        data.Description = node.Description;
-        data.ColorKey = node.ColorKey;
-        data.Tag = node.Tag;
-
-        foreach (var child in node.Children)
-        {
-            data.AddChild(ToHierarchicalData(child));
-        }
-
-        return data;
-    }
 
     private void OnChangeCoupling()
     {

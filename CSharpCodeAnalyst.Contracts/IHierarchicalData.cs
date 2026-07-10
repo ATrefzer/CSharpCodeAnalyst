@@ -1,5 +1,10 @@
-﻿namespace CSharpCodeAnalyst.TreeMap.Interfaces
+namespace CSharpCodeAnalyst.Contracts
 {
+    /// <summary>
+    ///     Contract for a node in a weighted hierarchy that a tree map renders. This is the only
+    ///     type the tree-map control needs from a data producer - the concrete implementation and
+    ///     all algorithms live in the producing library, not here.
+    /// </summary>
     public interface IHierarchicalData : IEnumerable<IHierarchicalData>
     {
         /// <summary>
