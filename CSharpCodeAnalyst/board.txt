@@ -18,7 +18,7 @@ UNHANDLED CASES
   => Not useful enough to implement.
 
 
-BUGS 
+BUGS
 ---------------------
 
 MISSING TEST CASES

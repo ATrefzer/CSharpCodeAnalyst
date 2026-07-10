@@ -173,11 +173,29 @@ Read the three columns together:
 Double-clicking a row (or right-click → *Show partitions*) opens the concrete groups in the
 *Partitions* tab, so you immediately see *which* members would go where.
 
+### When a god class still shows one partition
+
+A good example is a WPF/MVVM view model. Each observable property setter calls the same
+`OnPropertyChanged` helper, so all of them are linked through that one method. On top of that, most
+handlers read the same infrastructure fields — a message bus, a UI-notification service, a busy-state
+flag. Those shared members act as connectors among all features. The result: a 1000-line view model
+with a dozen unrelated commands can report a **single partition** even though it clearly does many
+separate things.
+
+So a single partition shows only high structural cohesion. This means no group of members is *structurally* disconnected and pervasive plumbing prevents that almost by design. When you know a class is
+large and does many unrelated things but shows one partition, suspect a hub. Look for a member that
+nearly everything calls (an `OnPropertyChanged`) or reads (a shared service).
+
+The partitioner measures connectivity in the member graph, not **conceptual relatedness**. A ‘God Object’ defined by centralizing shared infrastructure (a message bus, a UI notifier, busy state) appears coherent when assessed by a connectivity-cohesion metric. This is where the two perspectives diverge: conceptually low cohesion, structurally high connectivity via shared plumbing.
+
+Note that you can use the simulated Refactoring feature to eliminate hubs from the model before the analysis.
+
 ### Limitations
 
 - Only in-solution base classes are folded in; members inherited from framework types are not visible to the analysis.
 - Static utility classes and miscellaneous helper classes legitimately show many partitions — a high partition count is not automatically a defect, only a signal that the members do not interact.
 - Cohesion is structural: it sees which members touch the same state, not whether they belong together *conceptually*.
+- A single hub member — an `OnPropertyChanged` helper, a pervasive service field — connects otherwise-independent members and can collapse a genuine multi-responsibility class to one partition. See [When a god class still shows one partition](#when-a-god-class-still-shows-one-partition).
 
 ## Method Complexity
 
