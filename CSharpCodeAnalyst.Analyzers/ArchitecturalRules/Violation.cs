@@ -7,9 +7,14 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 /// <param name="Value">The measured value, in the unit of the rule.</param>
 public sealed record ElementMetricViolation(CodeElement Element, double Value);
 
+/// <summary>
+///     What a rule found. Depends on the kind of rule, and only one of the members
+///     below is ever filled - a dependency rule points at relationships, a system metric rule at the
+///     one value it measured, a code element metric rule at the elements that broke its threshold.
+/// </summary>
 public class Violation
 {
-
+    /// <summary>A violation of a dependency rule: the relationships that must not exist.</summary>
     public Violation(RuleBase rule, IEnumerable<Relationship> violatingRelationships)
     {
         Rule = rule;
@@ -18,13 +23,12 @@ public class Violation
     }
 
     /// <summary>
-    ///     A violation of a system metric rule. It is not backed by relationships;
-    ///     <paramref name="metricValue" /> is the one measured value that broke the rule's threshold.
+    ///     A violation of a system metric rule. <paramref name="metricValue" /> is the one measured
+    ///     value that broke the rule's threshold.
     /// </summary>
     public Violation(RuleBase rule, double metricValue, string description)
     {
         Rule = rule;
-        ViolatingRelationships = [];
         MetricValue = metricValue;
         Description = description;
     }
@@ -36,14 +40,19 @@ public class Violation
     public Violation(RuleBase rule, IEnumerable<ElementMetricViolation> violatingElements, string description)
     {
         Rule = rule;
-        ViolatingRelationships = [];
         ViolatingElements = violatingElements.ToList();
         Description = description;
     }
 
-    public RuleBase Rule { get; set; }
-    public List<Relationship> ViolatingRelationships { get; set; }
-    public string Description { get; set; }
+    public RuleBase Rule { get; }
+    
+    /// <summary>
+    /// Only for the CLI output.
+    /// </summary>
+    public string Description { get; }
+
+    /// <summary>Offending relationships of a dependency rule, empty for every other rule.</summary>
+    public List<Relationship> ViolatingRelationships { get; } = [];
 
     /// <summary>Measured value of a system metric rule, <c>null</c> for every other rule.</summary>
     public double? MetricValue { get; }

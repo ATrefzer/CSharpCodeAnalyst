@@ -3,6 +3,9 @@ using CSharpCodeAnalyst.Analyzers.Resources;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
+/// <summary>
+/// Outputs the analysis result for the CLI interface.
+/// </summary>
 public static class ViolationsFormatter
 {
     public static string Format(CodeGraph.Graph.CodeGraph graph, RuleAnalysisResult result)

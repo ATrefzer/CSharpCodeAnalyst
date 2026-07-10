@@ -32,7 +32,7 @@ public sealed class ChangeCouplingAnalyzer
 
             // Do you have uncommitted changes.
             // Do you have commit items not inside the base directory?
-            var missingFiles = itemIds.Select(id => idToLocalFile[id]).Where(file => !File.Exists(file));
+            // var missingFiles = itemIds.Select(id => idToLocalFile[id]).Where(file => !File.Exists(file));
             // Debug.Assert(!missingFiles.Any());
 
             IncrementCommitCount(itemIds);
@@ -173,8 +173,7 @@ public sealed class ChangeCouplingAnalyzer
     {
         var pairKey = OrderedPair.Key(item1, item2);
 
-        Coupling coupling;
-        if (_couplings.TryGetValue(pairKey, out coupling))
+        if (_couplings.TryGetValue(pairKey, out var coupling))
         {
             coupling.Couplings = coupling.Couplings + 1;
         }

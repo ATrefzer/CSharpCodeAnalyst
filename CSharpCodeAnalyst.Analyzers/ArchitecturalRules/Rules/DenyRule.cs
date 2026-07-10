@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
@@ -6,10 +6,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     Denies dependencies from source to target patterns
 ///     Syntax: DENY: Source -> Target
 /// </summary>
-public class DenyRule : DependencyRule
+public class DenyRule : TargetedDependencyRule
 {
-    public string Target { get; set; } = string.Empty;
-
     public override List<Relationship> ValidateRule(
         HashSet<string> sourceIds,
         HashSet<string> targetIds,

@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
@@ -7,10 +7,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     violations itself; it suppresses matching violations reported by DENY / RESTRICT / ISOLATE rules.
 ///     Syntax: ALLOW: Source -> Target
 /// </summary>
-public class AllowRule : DependencyRule
+public class AllowRule : TargetedDependencyRule
 {
-    public string Target { get; set; } = string.Empty;
-
     public override List<Relationship> ValidateRule(
         HashSet<string> sourceIds,
         HashSet<string> targetIds,

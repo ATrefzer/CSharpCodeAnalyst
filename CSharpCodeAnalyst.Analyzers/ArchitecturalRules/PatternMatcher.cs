@@ -50,8 +50,11 @@ public static class PatternMatcher
     private static IEnumerable<CodeElement> FindStartElements(string basePath, CodeGraph.Graph.CodeGraph codeGraph)
     {
         // All elements with an exact FullName match (more than one for overloaded members).
+        // The comparison is case-sensitive: C# identifiers are, so "MyApp.business" must not match
+        // "MyApp.Business" - otherwise a typo silently hits the wrong element instead of raising the
+        // no-match warning that is supposed to catch it.
         return codeGraph.Nodes.Values.Where(element =>
-            string.Equals(element.FullName, basePath, StringComparison.OrdinalIgnoreCase));
+            string.Equals(element.FullName, basePath, StringComparison.Ordinal));
     }
 
     private static void ApplyExpansion(CodeElement startElement, ExpansionMode mode, HashSet<string> matchingIds)

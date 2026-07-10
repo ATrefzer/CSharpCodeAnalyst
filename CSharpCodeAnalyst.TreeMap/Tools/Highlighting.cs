@@ -23,7 +23,7 @@ namespace CSharpCodeAnalyst.TreeMap.Tools
             var isNameMatching = false;
             if (isNameMatchingActive)
             {
-                isNameMatching = data.Name.ToLowerInvariant().Contains(_pattern);
+                isNameMatching = data.Name.ToLowerInvariant().Contains(_pattern!);
             }
 
             // Matching area and weight criteria is optional.

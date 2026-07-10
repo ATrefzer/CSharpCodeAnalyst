@@ -170,14 +170,22 @@ public class Analyzer : IAnalyzer
             return;
         }
 
-        // Execute analysis
         var result = RuleEngine.Execute(_rules, _currentGraph, _metricStore);
 
         // Remember the violations so the user can freeze them as a baseline.
         _lastViolations = result.Violations;
 
-        // The result table lives behind the modeless dialog, so every outcome also gets an inline
-        // status line - otherwise validating looks like it did nothing when only violations changed.
+        UpdateDialog(result);
+        ShowViolations(result, _currentGraph);
+    }
+
+    /// <summary>
+    ///     The result table lives behind the modeless dialog, so every outcome also gets an inline
+    ///     status line - otherwise validating looks like it did nothing when only violations changed.
+    ///     Warnings and a clean run additionally raise a notification.
+    /// </summary>
+    private void UpdateDialog(RuleAnalysisResult result)
+    {
         string status;
         if (result.Warnings.Count > 0)
         {
@@ -194,14 +202,18 @@ public class Analyzer : IAnalyzer
             status = Strings.Rules_Status_Clean;
         }
 
-        if (_openDialog != null)
+        if (_openDialog is null)
         {
-            _openDialog.HasViolations = result.Violations.Count > 0;
-            _openDialog.StatusText = status;
+            return;
         }
 
-        // Show violations in tabular format
-        var violationsViewModel = new RuleViolationsViewModel(result.Violations, _currentGraph, _messaging);
+        _openDialog.HasViolations = result.Violations.Count > 0;
+        _openDialog.StatusText = status;
+    }
+
+    private void ShowViolations(RuleAnalysisResult result, CodeGraph.Graph.CodeGraph graph)
+    {
+        var violationsViewModel = new RuleViolationsViewModel(result.Violations, graph, _messaging);
         _messaging.Publish(new ShowTabularDataRequest(Id, Name, violationsViewModel));
     }
 
@@ -217,29 +229,31 @@ public class Analyzer : IAnalyzer
             return;
         }
 
+        // A violated system metric rule is relaxed in place, the remaining violations become ALLOW lines.
         var relaxed = BaselineGenerator.RelaxMetricRules(_openDialog.RulesText, _lastViolations);
-        var baseline = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, relaxed);
+        var allowRules = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, relaxed);
 
-        string newText;
-        if (string.IsNullOrEmpty(baseline))
+        var nothingToFreeze = string.IsNullOrEmpty(allowRules) && relaxed == _openDialog.RulesText;
+        if (nothingToFreeze)
         {
-            if (relaxed == _openDialog.RulesText)
-            {
-                return;
-            }
+            return;
+        }
 
-            newText = relaxed;
-        }
-        else
-        {
-            var header = string.Format(Strings.ArchitecturalRules_Baseline_Header, DateTime.Now);
-            newText = $"{relaxed.TrimEnd()}{Environment.NewLine}{Environment.NewLine}// {header}{Environment.NewLine}{baseline.TrimEnd()}{Environment.NewLine}";
-        }
+        var newText = string.IsNullOrEmpty(allowRules) ? relaxed : Append(relaxed, allowRules);
 
         _openDialog.RulesText = newText;
 
         // Re-validate so the result table and the button state reflect the new baseline.
         OnValidateRules(newText);
+    }
+
+    /// <summary>Appends the generated rules below a dated header comment.</summary>
+    private static string Append(string rulesText, string generatedRules)
+    {
+        var newLine = Environment.NewLine;
+        var header = string.Format(Strings.ArchitecturalRules_Baseline_Header, DateTime.Now);
+
+        return $"{rulesText.TrimEnd()}{newLine}{newLine}// {header}{newLine}{generatedRules.TrimEnd()}{newLine}";
     }
 
     /// <summary>

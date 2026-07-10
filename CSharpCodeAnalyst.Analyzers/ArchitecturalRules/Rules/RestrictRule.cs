@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
@@ -7,10 +7,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     Syntax: RESTRICT: Source -> Target
 ///     Note: Multiple RESTRICT rules with same source are grouped together
 /// </summary>
-public class RestrictRule : DependencyRule
+public class RestrictRule : TargetedDependencyRule
 {
-    public string Target { get; set; } = string.Empty;
-
     public override List<Relationship> ValidateRule(
         HashSet<string> sourceIds,
         HashSet<string> targetIds,

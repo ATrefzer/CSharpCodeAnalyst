@@ -84,11 +84,12 @@ public static class RuleCleaner
             IsolateRule => sourceEmpty,
 
             // A RESTRICT with an unmatched target still restricts its source, so only an empty
-            // source makes it a no-op.
+            // source makes it a no-op. This case has to precede the targeted rules below.
             RestrictRule => sourceEmpty,
 
-            DenyRule deny => sourceEmpty || PatternMatcher.ResolvePattern(deny.Target, graph).Count == 0,
-            AllowRule allow => sourceEmpty || PatternMatcher.ResolvePattern(allow.Target, graph).Count == 0,
+            // DENY and ALLOW need both ends to match to have any effect.
+            TargetedDependencyRule targeted =>
+                sourceEmpty || PatternMatcher.ResolvePattern(targeted.Target, graph).Count == 0,
             _ => false
         };
     }

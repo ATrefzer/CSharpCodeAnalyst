@@ -81,11 +81,9 @@ public class RuleViolationViewModel : TableRow
     {
         return _violation.Rule switch
         {
-            DenyRule denyRule => denyRule.Target,
-
             // The whole allowed set, not the target of the first rule of the group.
             RestrictRuleGroup restrictRuleGroup => string.Join("\n", restrictRuleGroup.Targets),
-            RestrictRule restrictRule => restrictRule.Target,
+            TargetedDependencyRule targetedRule => targetedRule.Target,
             IsolateRule => "(isolated)",
             MetricRule metricRule =>
                 string.Format(Strings.ArchitecturalRules_Metric_Max, metricRule.FormatValue(metricRule.Threshold)),

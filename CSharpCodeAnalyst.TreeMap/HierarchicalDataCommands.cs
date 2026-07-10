@@ -21,7 +21,7 @@ namespace CSharpCodeAnalyst.TreeMap
                 // Detach context menu items from previous shown context menu (if any)
                 var parent = menuItem.Parent as ContextMenu;
                 parent?.Items.Clear();
-                menuItem.IsEnabled = data != null && data.IsLeafNode;
+                menuItem.IsEnabled = data is { IsLeafNode: true };
                 menuItem.Command = new DelegateCommand(() => OnMenuClick(menuItem, data));
                 menu.Items.Add(menuItem);
             }

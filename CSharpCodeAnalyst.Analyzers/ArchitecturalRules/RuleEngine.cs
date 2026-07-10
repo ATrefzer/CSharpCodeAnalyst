@@ -7,196 +7,239 @@ using CSharpCodeAnalyst.CodeGraph.Metrics;
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 /// <summary>
-///     Executes architectural rules against a code graph.
+///     Executes architectural rules against a code graph and metrics.
 ///     Shared by the interactive analyzer and the command-line validation.
 /// </summary>
-public static class RuleEngine
+public sealed class RuleEngine
 {
-    /// <param name="metricStore">
-    ///     The per-element source metrics that belong to <paramref name="graph" />. May be empty; code
-    ///     element metric rules then report a warning instead of silently passing.
-    /// </param>
-    public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph,
-        MetricStore metricStore)
-    {
-        var result = new RuleAnalysisResult();
+    private readonly List<(HashSet<string> SourceIds, HashSet<string> TargetIds)> _allowPairs = [];
 
+    /// <summary>The edges the rules are about: descriptive edges like Handles are not dependencies.</summary>
+    private readonly List<Relationship> _dependencies;
+
+    private readonly CodeGraph.Graph.CodeGraph _graph;
+    private readonly MetricStore _metricStore;
+    private readonly HashSet<string> _reportedWarnings = [];
+    private readonly RuleAnalysisResult _result = new();
+
+    private RuleEngine(CodeGraph.Graph.CodeGraph graph, MetricStore metricStore)
+    {
+        _graph = graph;
+        _metricStore = metricStore;
+        _dependencies = graph.GetAllRelationships().Where(r => r.Type.IsDependency()).ToList();
+    }
+    
+    public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph, MetricStore metricStore)
+    {
         if (rules.Count == 0)
         {
-            return result;
+            return new RuleAnalysisResult();
         }
 
-        // Only real dependencies are subject to architectural rules. Descriptive edges like Handles
-        // (event-handler wiring), and the non-dependency Containment / Bundled edges, are excluded
-        var allRelationships = graph.GetAllRelationships()
-            .Where(r => r.Type.IsDependency())
-            .ToList();
+        return new RuleEngine(graph, metricStore).Run(rules);
+    }
 
-        var denyRules = rules.OfType<DenyRule>().ToList();
-        var isolateRules = rules.OfType<IsolateRule>().ToList();
-        var restrictRules = rules.OfType<RestrictRule>().ToList();
-        var allowRules = rules.OfType<AllowRule>().ToList();
-        var systemMetricRules = rules.OfType<SystemMetricRule>().ToList();
-        var elementMetricRules = rules.OfType<CodeElementMetricRule>().ToList();
+    private RuleAnalysisResult Run(IReadOnlyCollection<RuleBase> rules)
+    {
+        // ALLOW rules never report violations themselves, they suppress the violations of the other
+        // rules - so they have to be resolved before anything is evaluated.
+        ResolveAllowExceptions(rules.OfType<AllowRule>());
 
-        var reportedWarnings = new HashSet<string>();
+        EvaluateDenyRules(rules.OfType<DenyRule>());
+        EvaluateIsolateRules(rules.OfType<IsolateRule>());
+        EvaluateRestrictRules(rules.OfType<RestrictRule>());
+        EvaluateSystemMetricRules(rules.OfType<SystemMetricRule>().ToList());
+        EvaluateElementMetricRules(rules.OfType<CodeElementMetricRule>());
 
-        HashSet<string> Resolve(string pattern, string ruleText)
-        {
-            var ids = PatternMatcher.ResolvePattern(pattern, graph);
-            if (ids.Count == 0)
-            {
-                var warning = string.Format(Strings.Analyzer_ArchitecturalRules_PatternNoMatch, ruleText, pattern);
-                if (reportedWarnings.Add(warning))
-                {
-                    result.Warnings.Add(warning);
-                }
-            }
+        return _result;
+    }
 
-            return ids;
-        }
-
-        // Resolve ALLOW rules first. They never report violations themselves;
-        // they suppress violations found by the other rules.
-        var allowPairs = new List<(HashSet<string> SourceIds, HashSet<string> TargetIds)>();
+    private void ResolveAllowExceptions(IEnumerable<AllowRule> allowRules)
+    {
         foreach (var allowRule in allowRules)
         {
             var sourceIds = Resolve(allowRule.Source, allowRule.RuleText);
             var targetIds = Resolve(allowRule.Target, allowRule.RuleText);
             if (sourceIds.Count > 0 && targetIds.Count > 0)
             {
-                allowPairs.Add((sourceIds, targetIds));
+                _allowPairs.Add((sourceIds, targetIds));
             }
         }
+    }
 
-        bool IsAllowed(Relationship relationship)
-        {
-            return allowPairs.Any(pair =>
-                pair.SourceIds.Contains(relationship.SourceId) &&
-                pair.TargetIds.Contains(relationship.TargetId));
-        }
-
-        // Applies the ALLOW exceptions before a violation is recorded so that the
-        // violation description reflects the final relationship count.
-        void AddViolation(RuleBase rule, List<Relationship> ruleViolations)
-        {
-            ruleViolations.RemoveAll(IsAllowed);
-            if (ruleViolations.Count > 0)
-            {
-                result.Violations.Add(new Violation(rule, ruleViolations));
-            }
-        }
-
-        // Process DENY rules (each is independent)
+    /// <summary>Each DENY rule is independent of the others.</summary>
+    private void EvaluateDenyRules(IEnumerable<DenyRule> denyRules)
+    {
         foreach (var denyRule in denyRules)
         {
             var sourceIds = Resolve(denyRule.Source, denyRule.RuleText);
             var targetIds = Resolve(denyRule.Target, denyRule.RuleText);
 
-            AddViolation(denyRule, denyRule.ValidateRule(sourceIds, targetIds, allRelationships));
+            AddViolation(denyRule, denyRule.ValidateRule(sourceIds, targetIds, _dependencies));
         }
+    }
 
-        // Process ISOLATE rules (each is independent)
+    /// <summary>Each ISOLATE rule is independent of the others. It has no target pattern.</summary>
+    private void EvaluateIsolateRules(IEnumerable<IsolateRule> isolateRules)
+    {
         foreach (var isolateRule in isolateRules)
         {
             var sourceIds = Resolve(isolateRule.Source, isolateRule.RuleText);
-            var emptyTargetIds = new HashSet<string>(); // Not used for ISOLATE
 
-            AddViolation(isolateRule, isolateRule.ValidateRule(sourceIds, emptyTargetIds, allRelationships));
+            AddViolation(isolateRule, isolateRule.ValidateRule(sourceIds, [], _dependencies));
         }
+    }
 
-        // Process RESTRICT rules (group by source)
-        var restrictGroups = restrictRules.GroupBy(r => r.Source).ToList();
-        foreach (var group in restrictGroups)
+    /// <summary>
+    ///     RESTRICT rules with the same source widen each other, so they are evaluated as one group
+    ///     against the union of their targets. The group, not one of its rules, names the violation.
+    /// </summary>
+    private void EvaluateRestrictRules(IEnumerable<RestrictRule> restrictRules)
+    {
+        foreach (var group in restrictRules.GroupBy(r => r.Source))
         {
             var restrictGroup = new RestrictRuleGroup(group.Key, group);
-            var sourceIds = Resolve(group.Key, group.First().RuleText);
+            var sourceIds = Resolve(group.Key, restrictGroup.RuleText);
 
-            // Collect all allowed target IDs from all rules in the group
-            // References inside the source pattern are always allowed implicitly(!).
+            // Dependencies inside the source pattern are always allowed implicitly(!).
             var allowedTargetIds = new HashSet<string>(sourceIds);
             foreach (var restrictRule in group)
             {
-                var targetIds = Resolve(restrictRule.Target, restrictRule.RuleText);
-                allowedTargetIds.UnionWith(targetIds);
+                allowedTargetIds.UnionWith(Resolve(restrictRule.Target, restrictRule.RuleText));
             }
 
             restrictGroup.AllowedTargetIds = allowedTargetIds;
 
-            // The group, not one of its rules, is what was validated - so it is what the violation names.
-            AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], allRelationships));
+            AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], _dependencies));
+        }
+    }
+
+    /// <summary>
+    ///     Metric rules are not about single relationships, so ALLOW exceptions do not apply to them.
+    ///     All system metric rules read the same metrics object, which is computed once and only when
+    ///     at least one such rule exists.
+    /// </summary>
+    private void EvaluateSystemMetricRules(IReadOnlyCollection<SystemMetricRule> systemMetricRules)
+    {
+        if (systemMetricRules.Count == 0)
+        {
+            return;
         }
 
-        // Metric rules are not about single relationships, so ALLOW exceptions do not apply to them.
-
-        // System metric rules all read the same metrics object, computed once.
-        if (systemMetricRules.Count > 0)
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+        foreach (var metricRule in systemMetricRules)
         {
-            var metrics = SystemMetricsAnalysis.Calculate(graph);
-            foreach (var metricRule in systemMetricRules)
+            var actualValue = metricRule.Measure(metrics);
+            if (!metricRule.IsViolated(actualValue))
             {
-                var actualValue = metricRule.Measure(metrics);
-                if (!metricRule.IsViolated(actualValue))
-                {
-                    continue;
-                }
-
-                var description = string.Format(
-                    Strings.Analyzer_ArchitecturalRules_MetricExceeded,
-                    metricRule.Keyword,
-                    metricRule.FormatValue(actualValue),
-                    metricRule.FormatValue(metricRule.Threshold));
-
-                result.Violations.Add(new Violation(metricRule, actualValue, description));
-            }
-        }
-
-        foreach (var metricRule in elementMetricRules)
-        {
-            if (metricStore.IsEmpty)
-            {
-                // Without metrics the rule cannot be checked. Saying nothing would look like a pass.
-                var warning = string.Format(Strings.Analyzer_ArchitecturalRules_NoSourceMetrics, metricRule.RuleText);
-                if (reportedWarnings.Add(warning))
-                {
-                    result.Warnings.Add(warning);
-                }
-
                 continue;
             }
 
-            // An empty pattern scopes the rule to the whole graph.
-            var scope = metricRule.Source.Length == 0
-                ? graph.Nodes.Keys.ToHashSet()
-                : Resolve(metricRule.Source, metricRule.RuleText);
+            var description = string.Format(
+                Strings.Analyzer_ArchitecturalRules_MetricExceeded,
+                metricRule.Keyword,
+                metricRule.FormatValue(actualValue),
+                metricRule.FormatValue(metricRule.Threshold));
 
-            var violatingElements = new List<ElementMetricViolation>();
-            foreach (var elementId in scope)
+            _result.Violations.Add(new Violation(metricRule, actualValue, description));
+        }
+    }
+
+    private void EvaluateElementMetricRules(IEnumerable<CodeElementMetricRule> elementMetricRules)
+    {
+        foreach (var metricRule in elementMetricRules)
+        {
+            if (_metricStore.IsEmpty)
             {
-                var element = graph.Nodes[elementId];
-
-                // No value means the rule cannot say anything about this element (an abstract method,
-                // say). That is neither compliant nor violating.
-                var actualValue = metricRule.Measure(element, metricStore);
-                if (actualValue.HasValue && metricRule.IsViolated(actualValue.Value))
-                {
-                    violatingElements.Add(new ElementMetricViolation(element, actualValue.Value));
-                }
+                // The whole graph has no source metrics (an interface-only solution, say), so the rule
+                // cannot be checked at all. Saying nothing would look like a pass. This is not the
+                // per-element "no metric for this element" case below, which is simply not applicable.
+                AddWarning(string.Format(Strings.Analyzer_ArchitecturalRules_NoSourceMetrics, metricRule.RuleText));
+                continue;
             }
 
-            if (violatingElements.Count > 0)
+            var violatingElements = FindViolatingElements(metricRule);
+            if (violatingElements.Count == 0)
             {
-                var description = string.Format(
-                    Strings.Analyzer_ArchitecturalRules_ElementMetricExceeded,
-                    metricRule.Keyword,
-                    violatingElements.Count,
-                    metricRule.FormatValue(metricRule.Threshold));
+                continue;
+            }
 
-                result.Violations.Add(new Violation(metricRule,
-                    violatingElements.OrderByDescending(v => v.Value), description));
+            var description = string.Format(
+                Strings.Analyzer_ArchitecturalRules_ElementMetricExceeded,
+                metricRule.Keyword,
+                violatingElements.Count,
+                metricRule.FormatValue(metricRule.Threshold));
+
+            _result.Violations.Add(new Violation(metricRule, violatingElements, description));
+        }
+    }
+
+    /// <summary>The offending elements, worst first.</summary>
+    private List<ElementMetricViolation> FindViolatingElements(CodeElementMetricRule metricRule)
+    {
+        // An empty pattern scopes the rule to the whole graph.
+        IEnumerable<string> scope = metricRule.Source.Length == 0
+            ? _graph.Nodes.Keys
+            : Resolve(metricRule.Source, metricRule.RuleText);
+
+        var violatingElements = new List<ElementMetricViolation>();
+        foreach (var elementId in scope)
+        {
+            var element = _graph.Nodes[elementId];
+
+            // No value means the rule cannot say anything about this element (an abstract method,
+            // say). That is neither compliant nor violating.
+            var actualValue = metricRule.Measure(element, _metricStore);
+            if (actualValue.HasValue && metricRule.IsViolated(actualValue.Value))
+            {
+                violatingElements.Add(new ElementMetricViolation(element, actualValue.Value));
             }
         }
 
-        return result;
+        return violatingElements.OrderByDescending(v => v.Value).ToList();
+    }
+
+    /// <summary>
+    ///     Resolves a pattern to code element ids, warning about a pattern that matches nothing - such a
+    ///     rule has no effect, and a silently dead rule is worse than none.
+    /// </summary>
+    private HashSet<string> Resolve(string pattern, string ruleText)
+    {
+        var ids = PatternMatcher.ResolvePattern(pattern, _graph);
+        if (ids.Count == 0)
+        {
+            AddWarning(string.Format(Strings.Analyzer_ArchitecturalRules_PatternNoMatch, ruleText, pattern));
+        }
+
+        return ids;
+    }
+
+    /// <summary>Reports a warning once, however many rules run into it.</summary>
+    private void AddWarning(string warning)
+    {
+        if (_reportedWarnings.Add(warning))
+        {
+            _result.Warnings.Add(warning);
+        }
+    }
+
+    /// <summary>
+    ///     Applies the ALLOW exceptions before the violation is recorded, so that its relationship count
+    ///     is the final one. A rule whose violations are all excepted does not appear in the result.
+    /// </summary>
+    private void AddViolation(RuleBase rule, List<Relationship> violatingRelationships)
+    {
+        violatingRelationships.RemoveAll(IsAllowed);
+        if (violatingRelationships.Count > 0)
+        {
+            _result.Violations.Add(new Violation(rule, violatingRelationships));
+        }
+    }
+
+    private bool IsAllowed(Relationship relationship)
+    {
+        return _allowPairs.Any(pair =>
+            pair.SourceIds.Contains(relationship.SourceId) &&
+            pair.TargetIds.Contains(relationship.TargetId));
     }
 }

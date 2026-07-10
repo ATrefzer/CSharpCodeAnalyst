@@ -108,14 +108,28 @@ public class PatternMatcherTests
     }
 
     [Test]
-    public void ResolvePattern_CaseInsensitive_ShouldMatch()
+    public void ResolvePattern_CaseMismatch_ShouldNotMatch()
     {
-        // Arrange
-        var businessNamespace = _codeGraph.CreateNamespace("MyApp.Business");
+        // C# identifiers are case-sensitive, so a pattern in the wrong case is a typo, not a match.
+        // It must resolve to nothing so the engine can raise its no-match warning.
+        _codeGraph.CreateNamespace("MyApp.Business");
         var pattern = "myapp.business";
 
         // Act
         var result = PatternMatcher.ResolvePattern(pattern, _codeGraph);
+
+        // Assert
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void ResolvePattern_ExactCase_ShouldMatch()
+    {
+        // Arrange
+        var businessNamespace = _codeGraph.CreateNamespace("MyApp.Business");
+
+        // Act
+        var result = PatternMatcher.ResolvePattern("MyApp.Business", _codeGraph);
 
         // Assert
         Assert.That(result.Count, Is.EqualTo(1));

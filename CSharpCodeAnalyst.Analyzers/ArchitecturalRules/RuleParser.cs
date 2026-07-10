@@ -48,80 +48,111 @@ public static class RuleParser
             [MaxLinesRule.RuleKeyword] = () => new MaxLinesRule()
         };
 
-    public static RuleBase ParseRule(string ruleText)
+    /// <summary>Tried in order. Group 1 of each regex is the source, group 2 the target if there is one.</summary>
+    private static readonly (Regex Regex, Func<DependencyRule> CreateRule)[] DependencyRuleFactories =
+    [
+        (DenyRegex, () => new DenyRule()),
+        (RestrictRegex, () => new RestrictRule()),
+        (IsolateRegex, () => new IsolateRule()),
+        (AllowRegex, () => new AllowRule())
+    ];
+
+    public static List<RuleBase> ParseRules(string rulesText)
     {
-        if (string.IsNullOrWhiteSpace(ruleText))
+        var rules = new List<RuleBase>();
+
+        if (string.IsNullOrWhiteSpace(rulesText))
         {
-            throw new ArgumentException(Strings.Analyzer_Empty_Rule, nameof(ruleText));
+            return rules;
         }
 
-        var trimmedRule = ruleText.Trim();
+        var lines = rulesText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-        // Try DENY rule
-        var denyMatch = DenyRegex.Match(trimmedRule);
-        if (denyMatch.Success)
+        for (var i = 0; i < lines.Length; i++)
         {
-            return new DenyRule
+            var line = lines[i].Trim();
+
+            // Skip comments and empty lines
+            if (string.IsNullOrEmpty(line) || line.StartsWith("//"))
             {
-                RuleText = trimmedRule,
-                Source = denyMatch.Groups[1].Value.Trim(),
-                Target = denyMatch.Groups[2].Value.Trim()
-            };
-        }
+                continue;
+            }
 
-        // Try RESTRICT rule
-        var restrictMatch = RestrictRegex.Match(trimmedRule);
-        if (restrictMatch.Success)
-        {
-            return new RestrictRule
+            try
             {
-                RuleText = trimmedRule,
-                Source = restrictMatch.Groups[1].Value.Trim(),
-                Target = restrictMatch.Groups[2].Value.Trim()
-            };
-        }
-
-        // Try ISOLATE rule
-        var isolateMatch = IsolateRegex.Match(trimmedRule);
-        if (isolateMatch.Success)
-        {
-            return new IsolateRule
+                var rule = ParseRule(line);
+                rules.Add(rule);
+            }
+            catch (Exception ex)
             {
-                RuleText = trimmedRule,
-                Source = isolateMatch.Groups[1].Value.Trim()
-            };
+                throw new FormatException($"Error parsing rule on line {i + 1}: {ex.Message}", ex);
+            }
         }
 
-        // Try ALLOW rule (exception to DENY / RESTRICT / ISOLATE)
-        var allowMatch = AllowRegex.Match(trimmedRule);
-        if (allowMatch.Success)
-        {
-            return new AllowRule
-            {
-                RuleText = trimmedRule,
-                Source = allowMatch.Groups[1].Value.Trim(),
-                Target = allowMatch.Groups[2].Value.Trim()
-            };
-        }
-
-        // Try metric rules
-        var metricMatch = MetricRegex.Match(trimmedRule);
-        if (metricMatch.Success)
-        {
-            return ParseMetricRule(trimmedRule, metricMatch.Groups[1].Value,
-                metricMatch.Groups[2].Value.Trim(), metricMatch.Groups[3].Value);
-        }
-
-        throw new FormatException($"Invalid rule syntax: '{ruleText}'. Expected formats:\n" +
-                                  "DENY: Source -> Target\n" +
-                                  "RESTRICT: Source -> Target\n" +
-                                  "ISOLATE: Source\n" +
-                                  "ALLOW: Source -> Target\n" +
-                                  $"{MaxCyclicityRule.RuleKeyword} = 15\n" +
-                                  $"{MaxLinesRule.RuleKeyword}: Source = 50");
+        return rules;
     }
 
-    private static MetricRule ParseMetricRule(string ruleText, string keyword, string pattern, string value)
+    public static RuleBase ParseRule(string ruleTextLine)
+    {
+        if (string.IsNullOrWhiteSpace(ruleTextLine))
+        {
+            throw new ArgumentException(Strings.Analyzer_Empty_Rule, nameof(ruleTextLine));
+        }
+
+        var trimmedRule = ruleTextLine.Trim();
+
+        return ParseDependencyRule(trimmedRule)
+               ?? (RuleBase?)ParseMetricRule(trimmedRule)
+               ?? throw new FormatException($"Invalid rule syntax: '{ruleTextLine}'. Expected formats:\n" +
+                                            "DENY: Source -> Target\n" +
+                                            "RESTRICT: Source -> Target\n" +
+                                            "ISOLATE: Source\n" +
+                                            "ALLOW: Source -> Target\n" +
+                                            $"{MaxCyclicityRule.RuleKeyword} = 15\n" +
+                                            $"{MaxLinesRule.RuleKeyword}: Source = 50");
+    }
+
+    /// <summary>
+    ///     All dependency rules have the shape "KEYWORD: Source [-> Target]". ISOLATE is the only one
+    ///     without a target, and its regex therefore leaves the second group empty.
+    /// </summary>
+    private static DependencyRule? ParseDependencyRule(string ruleText)
+    {
+        foreach (var (regex, createRule) in DependencyRuleFactories)
+        {
+            var match = regex.Match(ruleText);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            var rule = createRule();
+            rule.RuleText = ruleText;
+            rule.Source = match.Groups[1].Value.Trim();
+
+            if (rule is TargetedDependencyRule ruleWithTarget)
+            {
+                ruleWithTarget.Target = match.Groups[2].Value.Trim();
+            }
+
+            return rule;
+        }
+
+        return null;
+    }
+
+    private static MetricRule? ParseMetricRule(string ruleText)
+    {
+        var match = MetricRegex.Match(ruleText);
+        if (!match.Success)
+        {
+            return null;
+        }
+
+        return CreateMetricRule(ruleText, match.Groups[1].Value, match.Groups[2].Value.Trim(), match.Groups[3].Value);
+    }
+
+    private static MetricRule CreateMetricRule(string ruleText, string keyword, string pattern, string value)
     {
         if (!MetricRuleFactories.TryGetValue(keyword, out var createRule))
         {
@@ -151,36 +182,5 @@ public static class RuleParser
         rule.RuleText = ruleText;
         rule.Threshold = threshold;
         return rule;
-    }
-
-    public static List<RuleBase> ParseRules(string rulesText)
-    {
-        var rules = new List<RuleBase>();
-
-        if (string.IsNullOrWhiteSpace(rulesText))
-            return rules;
-
-        var lines = rulesText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-        for (var i = 0; i < lines.Length; i++)
-        {
-            var line = lines[i].Trim();
-
-            // Skip comments and empty lines
-            if (string.IsNullOrEmpty(line) || line.StartsWith("//"))
-                continue;
-
-            try
-            {
-                var rule = ParseRule(line);
-                rules.Add(rule);
-            }
-            catch (Exception ex)
-            {
-                throw new FormatException($"Error parsing rule on line {i + 1}: {ex.Message}", ex);
-            }
-        }
-
-        return rules;
     }
 }
