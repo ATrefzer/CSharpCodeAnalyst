@@ -33,18 +33,19 @@ public static class RuleParser
         $@"^\s*ALLOW\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    // All metric rules share the shape "KEYWORD = value", so one regex plus the factory registry
-    // below is enough - a new metric rule costs a rule class and one entry, no parser change.
-    // The threshold is always written with a dot as decimal separator, independent of the current
-    // culture, so that a rules file stays portable.
+    // All metric rules share the shape "KEYWORD = value", with an optional pattern that scopes the
+    // rule ("KEYWORD: Pattern = value"). One regex plus the factory registry below is enough - a new
+    // metric rule costs a rule class and one entry, no parser change. The threshold is always written
+    // with a dot as decimal separator, independent of the current culture, so a rules file stays portable.
     private static readonly Regex MetricRegex = new(
-        @"^\s*([a-zA-Z]+)\s*[:=]\s*(\d+(?:\.\d+)?)\s*$",
+        $@"^\s*([a-zA-Z]+)\s*(?::\s*({QualifiedName})\s*)?=\s*(\d+(?:\.\d+)?)\s*$",
         RegexOptions.Compiled);
 
     private static readonly Dictionary<string, Func<MetricRule>> MetricRuleFactories =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            [MaxCyclicityRule.RuleKeyword] = () => new MaxCyclicityRule()
+            [MaxCyclicityRule.RuleKeyword] = () => new MaxCyclicityRule(),
+            [MaxLinesRule.RuleKeyword] = () => new MaxLinesRule()
         };
 
     public static RuleBase ParseRule(string ruleText)
@@ -107,11 +108,12 @@ public static class RuleParser
             };
         }
 
-        // Try metric rules (system-wide, no pattern)
+        // Try metric rules
         var metricMatch = MetricRegex.Match(trimmedRule);
         if (metricMatch.Success)
         {
-            return ParseMetricRule(trimmedRule, metricMatch.Groups[1].Value, metricMatch.Groups[2].Value);
+            return ParseMetricRule(trimmedRule, metricMatch.Groups[1].Value,
+                metricMatch.Groups[2].Value.Trim(), metricMatch.Groups[3].Value);
         }
 
         throw new FormatException($"Invalid rule syntax: '{ruleText}'. Expected formats:\n" +
@@ -119,10 +121,11 @@ public static class RuleParser
                                   "RESTRICT: Source -> Target\n" +
                                   "ISOLATE: Source\n" +
                                   "ALLOW: Source -> Target\n" +
-                                  $"{MaxCyclicityRule.RuleKeyword} = 15");
+                                  $"{MaxCyclicityRule.RuleKeyword} = 15\n" +
+                                  $"{MaxLinesRule.RuleKeyword}: Source = 50");
     }
 
-    private static MetricRule ParseMetricRule(string ruleText, string keyword, string value)
+    private static MetricRule ParseMetricRule(string ruleText, string keyword, string pattern, string value)
     {
         if (!MetricRuleFactories.TryGetValue(keyword, out var createRule))
         {
@@ -137,6 +140,16 @@ public static class RuleParser
         {
             throw new FormatException($"Invalid threshold '{value}' for {rule.Keyword}. " +
                                       $"Expected a value between {rule.MinThreshold} and {rule.MaxThreshold}.");
+        }
+
+        switch (rule)
+        {
+            case CodeElementMetricRule elementRule:
+                // An empty pattern scopes the rule to the whole graph.
+                elementRule.Source = pattern;
+                break;
+            case SystemMetricRule when pattern.Length > 0:
+                throw new FormatException($"{rule.Keyword} applies to the whole system and cannot be scoped by the pattern '{pattern}'.");
         }
 
         rule.RuleText = ruleText;

@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+﻿using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
@@ -80,7 +80,7 @@ public class RuleParserTests
     // The threshold is a percentage, like the value the system metrics analyzer displays.
     [TestCase("MAXCYCLICITY = 15", 15.0)]
     [TestCase("maxcyclicity=7.5", 7.5)]
-    [TestCase("MAXCYCLICITY : 100", 100.0)]
+    [TestCase("MAXCYCLICITY = 100", 100.0)]
     [TestCase("MAXCYCLICITY = 0", 0.0)]
     public void ParseMaxCyclicityRule_ValidSyntax_ShouldReturnMaxCyclicityRule(string ruleText, double expected)
     {
@@ -103,6 +103,33 @@ public class RuleParserTests
     public void ParseMetricRule_InvalidRule_ShouldThrow(string ruleText)
     {
         Assert.Throws<FormatException>(() => RuleParser.ParseRule(ruleText));
+    }
+
+    [Test]
+    public void ParseMaxLinesRule_WithoutPattern_ScopesToTheWholeGraph()
+    {
+        var rule = RuleParser.ParseRule("MAXLINES = 50");
+
+        Assert.That(rule, Is.InstanceOf<MaxLinesRule>());
+        var maxLinesRule = (MaxLinesRule)rule;
+        Assert.That(maxLinesRule.Threshold, Is.EqualTo(50.0));
+        Assert.That(maxLinesRule.Source, Is.Empty);
+    }
+
+    [Test]
+    public void ParseMaxLinesRule_WithPattern_KeepsPattern()
+    {
+        var rule = (MaxLinesRule)RuleParser.ParseRule("MAXLINES: MyApp.Business.** = 50");
+
+        Assert.That(rule.Source, Is.EqualTo("MyApp.Business.**"));
+        Assert.That(rule.Threshold, Is.EqualTo(50.0));
+    }
+
+    [Test]
+    public void ParseSystemMetricRule_WithPattern_ShouldThrow()
+    {
+        // A system metric rule describes the whole code base, a pattern would be meaningless.
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("MAXCYCLICITY: MyApp.** = 15"));
     }
 
     [Test]

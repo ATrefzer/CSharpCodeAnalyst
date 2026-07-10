@@ -165,6 +165,21 @@
   <data name="ArchitecturalRules_MaxCyclicity_Description" xml:space="preserve">
     <value>The cyclicity of the system must not exceed {0}</value>
   </data>
+  <data name="Analyzer_ArchitecturalRules_ElementMetricExceeded" xml:space="preserve">
+    <value>{0} rule violated: {1} code element(s) exceed the limit of {2}.</value>
+  </data>
+  <data name="Analyzer_ArchitecturalRules_NoSourceMetrics" xml:space="preserve">
+    <value>Rule '{0}': no source metrics are available for this project. The rule cannot be checked.</value>
+  </data>
+  <data name="ArchitecturalRules_Scope_Everything" xml:space="preserve">
+    <value>(everything)</value>
+  </data>
+  <data name="ArchitecturalRules_MaxLines_Description" xml:space="preserve">
+    <value>A method must not have more than {0}</value>
+  </data>
+  <data name="ArchitecturalRules_MaxLines_Value" xml:space="preserve">
+    <value>{0} lines</value>
+  </data>
   <data name="Analyzer_ArchitecturalRules_Cleanup_Removed" xml:space="preserve">
     <value>Removed {0} rule(s) that matched no code element.</value>
   </data>

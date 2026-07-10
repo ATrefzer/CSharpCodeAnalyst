@@ -1,26 +1,21 @@
 using System.Globalization;
 
-// Alias: the type name SystemMetrics collides with the CSharpCodeAnalyst.Analyzers.SystemMetrics namespace.
-using Metrics = CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
-
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
-///     A rule that constrains a single measured value of the whole system rather than the
-///     dependencies between individual code elements. It has no source / target pattern, it always
-///     applies to the complete code base, and ALLOW exceptions do not affect it.
-///     Syntax: KEYWORD = value
+///     A rule that constrains a measured value rather than the dependencies between code elements.
+///     Syntax: KEYWORD = value, optionally scoped by a pattern (see <see cref="CodeElementMetricRule" />).
 ///     <para>
-///         All metric rules read their value from <see cref="Metrics.SystemMetrics" />, which the rule engine
-///         computes once per run. A future rule that constrains a metric <em>per code element</em>
-///         (e.g. "no class with more than 20 dependencies") does not belong here - it needs a pattern
-///         and reports element-level violations, so it would be a sibling of this class.
+///         There are two kinds: a <see cref="SystemMetricRule" /> constrains one value of the whole
+///         code base, a <see cref="CodeElementMetricRule" /> constrains a value of every matching code
+///         element. They differ in where the value comes from, whether they have a pattern, and in the
+///         shape of their violation - which is why they are separate classes.
 ///     </para>
 ///     <para>
-///         <b>Units:</b> <see cref="Threshold" /> and the value returned by <see cref="GetActualValue" />
-///         are expressed in the rule's own unit (percent for a cyclicity rule, for instance), so that
-///         the number the user writes is the number the rule compares. Conversion from the internal
-///         representation of the metric happens exactly once, in <see cref="GetActualValue" />.
+///         <b>Units:</b> <see cref="Threshold" /> and the measured value are expressed in the rule's own
+///         unit (percent for a cyclicity rule, lines for a size rule), so that the number the user writes
+///         is the number the rule compares. Conversion from the internal representation of the metric
+///         happens exactly once, where the rule reads it.
 ///     </para>
 /// </summary>
 public abstract class MetricRule : RuleBase
@@ -45,9 +40,6 @@ public abstract class MetricRule : RuleBase
 
     public abstract double MaxThreshold { get; }
 
-    /// <summary>The measured value, converted into the unit of <see cref="Threshold" />.</summary>
-    public abstract double GetActualValue(Metrics.SystemMetrics metrics);
-
     /// <summary>Renders a value of this metric for the user, including its unit.</summary>
     public abstract string FormatValue(double value);
 
@@ -70,8 +62,13 @@ public abstract class MetricRule : RuleBase
     }
 
     /// <summary>The rule line for a given threshold. Always culture invariant, so a rules file stays portable.</summary>
-    public string CreateRuleText(double threshold)
+    public virtual string CreateRuleText(double threshold)
     {
-        return $"{Keyword} = {threshold.ToString("0.##", CultureInfo.InvariantCulture)}";
+        return $"{Keyword} = {FormatThreshold(threshold)}";
+    }
+
+    protected static string FormatThreshold(double threshold)
+    {
+        return threshold.ToString("0.##", CultureInfo.InvariantCulture);
     }
 }

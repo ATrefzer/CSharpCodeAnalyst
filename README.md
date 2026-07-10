@@ -196,11 +196,25 @@ Dependency restrictions
 
 Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
+A metric rule limits a measured value instead of a dependency. It is written as `RULE = value`, and `ALLOW` exceptions never affect it. There are two kinds.
+
+**System metric rules** describe the code base as a whole. They take no pattern.
+
 | Rule         | Meaning                                                      |
 | ------------ | ------------------------------------------------------------ |
 | MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, MAXCYCLICITY = 15  (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
 
-A metric rule has no source or target pattern, and `ALLOW` exceptions do not affect it. Accepting a baseline does not add an exception for it either — instead its threshold is raised to the currently measured value.
+**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern the rule applies to every element in the graph.
+
+| Rule     | Meaning                                                                                                                                                                                                                     |
+| -------- |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MAXLINES | Limits the size of a single method, in code lines (blantyk and comment-only lines excluded). <br />For example, MAXLINES: MyApp.Business.\*\* = 50 reports every method in the business layer that is longer than 50 lines. |
+
+An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected while importing a solution; if a project has none at all, the rule reports a warning instead of silently passing.
+
+Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES: MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule — the narrower rule does not grant it an exception.
+
+Accepting a baseline treats the two kinds differently. A system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place. A code element metric rule is left untouched: lifting its limit to the worst offender would repeal it for every other element, which is not a baseline but a repeal.
 
 ### How patterns work
 
@@ -245,6 +259,9 @@ ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
 
 // At most 15% of all types may sit inside a dependency cycle
 MAXCYCLICITY = 15
+
+// No method in the business layer longer than 50 code lines
+MAXLINES: MyApp.Business.** = 50
 ```
 
 The result of the analysis is shown in the table output for analyzers.

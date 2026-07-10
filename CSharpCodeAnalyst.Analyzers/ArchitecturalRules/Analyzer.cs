@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -8,12 +8,17 @@ using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public class Analyzer : IAnalyzer
 {
     private readonly IPublisher _messaging;
+
+    /// <summary>Per-element source metrics, needed by the code element metric rules. May be empty.</summary>
+    private readonly MetricStore _metricStore;
+
     private readonly IUserNotification _userNotification;
     private CodeGraph.Graph.CodeGraph? _currentGraph;
     private bool _isDirty;
@@ -24,10 +29,11 @@ public class Analyzer : IAnalyzer
     // Violations of the last validation run - the source for "Accept Baseline".
     private List<Violation> _lastViolations = [];
 
-    public Analyzer(IPublisher messaging, IUserNotification userNotification)
+    public Analyzer(IPublisher messaging, IUserNotification userNotification, MetricStore metricStore)
     {
         _messaging = messaging;
         _userNotification = userNotification;
+        _metricStore = metricStore;
 
         // Subscribe to application exit event to close dialog
         if (Application.Current != null)
@@ -165,7 +171,7 @@ public class Analyzer : IAnalyzer
         }
 
         // Execute analysis
-        var result = RuleEngine.Execute(_rules, _currentGraph);
+        var result = RuleEngine.Execute(_rules, _currentGraph, _metricStore);
 
         // Remember the violations so the user can freeze them as a baseline.
         _lastViolations = result.Violations;
@@ -201,7 +207,7 @@ public class Analyzer : IAnalyzer
 
     /// <summary>
     ///     Freezes the violations of the last validation: dependency violations become ALLOW
-    ///     exceptions appended to the rules, metric rules get their threshold relaxed in place.
+    ///     exceptions appended to the rules, system metric rules get their threshold relaxed in place.
     ///     Afterwards the rules are re-validated so the user sees the now-clean state.
     /// </summary>
     private void OnAcceptBaseline()
@@ -301,10 +307,10 @@ public class Analyzer : IAnalyzer
     /// <summary>
     ///     Direct analysis with rules from file (for command-line use)
     /// </summary>
-    public RuleAnalysisResult Analyze(CodeGraph.Graph.CodeGraph graph, string fileToRules)
+    public RuleAnalysisResult Analyze(CodeGraph.Graph.CodeGraph graph, string fileToRules, MetricStore metricStore)
     {
         ParseAndStoreRules(File.ReadAllText(fileToRules));
-        return RuleEngine.Execute(_rules, graph);
+        return RuleEngine.Execute(_rules, graph, metricStore);
     }
 
     private static string GetSampleRules()
@@ -334,6 +340,11 @@ public class Analyzer : IAnalyzer
 
                // At most 15 percent of all types may sit inside a dependency cycle
                MAXCYCLICITY = 15
+
+               // No method in the business layer longer than 50 code lines.
+               // Every metric rule stands on its own - two MAXLINES rules whose patterns
+               // overlap are both checked, the narrower one does not override the wider one.
+               MAXLINES: MyApp.Business.** = 50
                """;
     }
 

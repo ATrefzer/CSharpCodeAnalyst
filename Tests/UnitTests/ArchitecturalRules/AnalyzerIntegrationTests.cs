@@ -1,6 +1,7 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
@@ -19,7 +20,7 @@ public class AnalyzerIntegrationTests
     private static List<Violation> ExecuteRulesAnalysis(string rulesText, CodeGraph graph)
     {
         var rules = RuleParser.ParseRules(rulesText);
-        return RuleEngine.Execute(rules, graph).Violations;
+        return RuleEngine.Execute(rules, graph, new MetricStore()).Violations;
     }
 
     [Test]

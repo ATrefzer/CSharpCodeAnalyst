@@ -95,6 +95,14 @@ Data flow, end to end:
 
 `SystemMetrics` is the smallest complete example to copy from (system-wide single values in a metric/value/description table).
 
+### Architectural rules (how to add one)
+
+Rules live in `CSharpCodeAnalyst.Analyzers/ArchitecturalRules/Rules/` under a two-level hierarchy. `DependencyRule` constrains relationships between code elements (`DENY` / `RESTRICT` / `ISOLATE` / `ALLOW`) and its violation is a set of relationships. `MetricRule` constrains a measured value; it splits into `SystemMetricRule` (one value for the whole graph, `Measure(SystemMetrics)`, violation carries that value) and `CodeElementMetricRule` (one value per element, `Measure(element, MetricStore)` returning `null` for "not applicable", violation carries the offending elements). Rules are immutable value objects parsed from one line of text — never give them a graph or a `MetricStore`; those belong to the run and are passed to `RuleEngine.Execute`.
+
+A new **metric** rule costs exactly two things: a class deriving from the right base, and one entry in `RuleParser.MetricRuleFactories`. The parser has a single regex for the whole family (`KEYWORD = value`, or `KEYWORD: Pattern = value` for element rules), so it needs no change. The base class supplies the range check via `MinThreshold` / `MaxThreshold`, the floating-point tolerance in `IsViolated`, and the baseline rewrite via `CreateBaselineThreshold` / `CreateRuleText`. Implement `Keyword`, the bounds, `Measure`, `FormatValue` (the value *with* its unit) and `CreateDescription`. Thresholds are expressed in the rule's own unit (percent, lines) — convert from the metric's internal representation exactly once, inside `Measure`. When writing a threshold back (baseline), round **up**, otherwise the rule you just wrote is violated again.
+
+Then wire up the edges: `RuleEngine.Execute` for the evaluation, `RuleViolationViewModel` for the table row and detail lines, `ViolationsFormatter` for the CLI output, `RuleCleaner` if the rule can be dead, `BaselineGenerator.RelaxMetricRules` if it can be baselined, and strings in `Resources/Strings.resx` **plus** its hand-maintained `Strings.Designer.cs`. Document the rule in the "Supported rules" tables of `README.md`. `MaxCyclicityRule` and `MaxLinesRule` are the reference implementations of the two kinds.
+
 ### AI Advisor
 `Features/Ai/AiClient.cs` talks to any OpenAI-compatible endpoint (including Anthropic, Ollama). Credentials are stored via `Configuration/AiCredentialStorage`. The service is stateless and is invoked from the cycle-group UI to summarize a cycle.
 

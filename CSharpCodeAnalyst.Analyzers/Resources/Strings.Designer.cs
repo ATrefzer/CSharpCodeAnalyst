@@ -141,6 +141,51 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: {1} code element(s) exceed the limit of {2}..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_ElementMetricExceeded {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_ElementMetricExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rule &apos;{0}&apos;: no source metrics are available for this project. The rule cannot be checked..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_NoSourceMetrics {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_NoSourceMetrics", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to (everything).
+        /// </summary>
+        public static string ArchitecturalRules_Scope_Everything {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Scope_Everything", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A method must not have more than {0}.
+        /// </summary>
+        public static string ArchitecturalRules_MaxLines_Description {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_MaxLines_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} lines.
+        /// </summary>
+        public static string ArchitecturalRules_MaxLines_Value {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_MaxLines_Value", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Validates your architectural constraints based on user-defined rules.
         /// </summary>
         public static string Analyzer_ArchitecturalRules_Tooltip {

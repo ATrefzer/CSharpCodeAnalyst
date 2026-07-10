@@ -10,6 +10,7 @@ using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
 using Microsoft.Extensions.Configuration;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 
@@ -48,8 +49,8 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
 
         // Parse solution and do analysis
         var settings = LoadAppSettings();
-        var graph = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
-        var analysisResult = RunAnalysis(rulesFile, graph);
+        var (graph, metricStore) = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
+        var analysisResult = RunAnalysis(rulesFile, graph, metricStore);
 
         // Write output
         var result = ViolationsFormatter.Format(graph, analysisResult);
@@ -78,21 +79,21 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return settings;
     }
 
-    private static RuleAnalysisResult RunAnalysis(string rulesFilePath, CodeGraph.Graph.CodeGraph graph)
+    private static RuleAnalysisResult RunAnalysis(string rulesFilePath, CodeGraph.Graph.CodeGraph graph, MetricStore metricStore)
     {
         var messaging = new MessageBus();
         var messageBox = new ConsoleUserNotification();
-        var analyzer = new Analyzer(messaging, messageBox);
+        var analyzer = new Analyzer(messaging, messageBox, metricStore);
 
-        return analyzer.Analyze(graph, rulesFilePath);
+        return analyzer.Analyze(graph, rulesFilePath, metricStore);
     }
 
-    private static async Task<CodeGraph.Graph.CodeGraph> ParseSolution(string solutionPath, AppSettings settings)
+    private static async Task<(CodeGraph.Graph.CodeGraph Graph, MetricStore MetricStore)> ParseSolution(string solutionPath, AppSettings settings)
     {
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);
         var parser = new Parser(new ParserConfig(filter, settings.IncludeExternalCode, settings.IncludeGeneratedCode, settings.SplitPropertyAccessors));
-        var graph = (await parser.ParseAsync(solutionPath).ConfigureAwait(false)).CodeGraph;
+        var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(false);
 
         var failures = parser.Diagnostics.FormatFailures();
         if (!string.IsNullOrEmpty(failures))
@@ -109,7 +110,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         }
 
         Trace.WriteLine("\n");
-        return graph;
+        return (parseResult.CodeGraph, parseResult.Metrics);
     }
 
     public bool CanExecute()

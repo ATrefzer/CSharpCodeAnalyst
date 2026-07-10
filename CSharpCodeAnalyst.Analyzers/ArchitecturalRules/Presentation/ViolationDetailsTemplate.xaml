@@ -6,10 +6,10 @@
               mc:Ignorable="d">
     <ItemsControl
         d:DataContext="{d:DesignInstance presentation:RuleViolationViewModel }"
-        ItemsSource="{Binding RelationshipDetails}">
+        ItemsSource="{Binding Details}">
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <Grid Margin="40 0 0 0" d:DataContext="{d:DesignInstance presentation:RelationshipViewModel }">
+                <Grid Margin="40 0 0 0" d:DataContext="{d:DesignInstance presentation:ViolationDetailViewModel }">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition />

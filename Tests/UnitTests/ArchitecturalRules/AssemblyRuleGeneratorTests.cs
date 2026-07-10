@@ -1,6 +1,7 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
@@ -105,7 +106,7 @@ public class AssemblyRuleGeneratorTests
         // New, not-yet-existing dependency.
         Depend(ClassIn(a, "A2"), ClassIn(c, "C1"));
 
-        var result = RuleEngine.Execute(RuleParser.ParseRules(generated), _codeGraph);
+        var result = RuleEngine.Execute(RuleParser.ParseRules(generated), _codeGraph, new MetricStore());
 
         Assert.That(result.Violations, Has.Count.EqualTo(1), "the new A -> C dependency must be reported");
     }
@@ -125,7 +126,7 @@ public class AssemblyRuleGeneratorTests
         Depend(ClassIn(b, "B2"), ClassIn(c, "C2"));
 
         var generated = AssemblyRuleGenerator.Generate(_codeGraph);
-        var result = RuleEngine.Execute(RuleParser.ParseRules(generated), _codeGraph);
+        var result = RuleEngine.Execute(RuleParser.ParseRules(generated), _codeGraph, new MetricStore());
 
         Assert.That(result.Violations, Is.Empty, "generated rules must not flag the current structure");
         Assert.That(result.Warnings, Is.Empty, "every generated pattern must match an assembly");

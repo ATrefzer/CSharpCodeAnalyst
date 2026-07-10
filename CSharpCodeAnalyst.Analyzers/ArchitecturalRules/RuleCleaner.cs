@@ -64,9 +64,16 @@ public static class RuleCleaner
     /// </summary>
     private static bool IsIneffective(RuleBase rule, CodeGraph.Graph.CodeGraph graph)
     {
+        // A scoped code element metric rule is dead when its pattern matches nothing.
+        if (rule is CodeElementMetricRule elementMetricRule)
+        {
+            return elementMetricRule.Source.Length > 0 &&
+                   PatternMatcher.ResolvePattern(elementMetricRule.Source, graph).Count == 0;
+        }
+
         if (rule is not DependencyRule dependencyRule)
         {
-            // A metric rule has no pattern, it always applies.
+            // A system metric rule has no pattern, it always applies.
             return false;
         }
 

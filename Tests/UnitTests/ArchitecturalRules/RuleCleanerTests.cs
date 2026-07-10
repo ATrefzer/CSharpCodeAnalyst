@@ -1,6 +1,7 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
@@ -121,10 +122,10 @@ public class RuleCleanerTests
             "DENY: MyApp.Nope.** -> MyApp.Data.**\n" +
             "ALLOW: MyApp.Ghost.** -> MyApp.Data.**";
 
-        var before = RuleEngine.Execute(RuleParser.ParseRules(rulesText), _codeGraph);
+        var before = RuleEngine.Execute(RuleParser.ParseRules(rulesText), _codeGraph, new MetricStore());
 
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(rulesText, _codeGraph);
-        var after = RuleEngine.Execute(RuleParser.ParseRules(cleaned), _codeGraph);
+        var after = RuleEngine.Execute(RuleParser.ParseRules(cleaned), _codeGraph, new MetricStore());
 
         Assert.That(removed, Is.EqualTo(2));
         Assert.That(after.Violations.Count, Is.EqualTo(before.Violations.Count));

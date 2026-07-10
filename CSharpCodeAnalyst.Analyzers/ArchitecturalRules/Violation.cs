@@ -3,6 +3,10 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
+/// <summary>A code element that broke the threshold of a code element metric rule.</summary>
+/// <param name="Value">The measured value, in the unit of the rule.</param>
+public sealed record ElementMetricViolation(CodeElement Element, double Value);
+
 public class Violation
 {
 
@@ -14,8 +18,8 @@ public class Violation
     }
 
     /// <summary>
-    ///     A violation of a metric rule. It is not backed by relationships; <paramref name="metricValue" />
-    ///     is the measured value that broke the rule's threshold.
+    ///     A violation of a system metric rule. It is not backed by relationships;
+    ///     <paramref name="metricValue" /> is the one measured value that broke the rule's threshold.
     /// </summary>
     public Violation(RuleBase rule, double metricValue, string description)
     {
@@ -25,12 +29,27 @@ public class Violation
         Description = description;
     }
 
+    /// <summary>
+    ///     A violation of a code element metric rule: every element whose measured value broke the
+    ///     rule's threshold, together with that value.
+    /// </summary>
+    public Violation(RuleBase rule, IEnumerable<ElementMetricViolation> violatingElements, string description)
+    {
+        Rule = rule;
+        ViolatingRelationships = [];
+        ViolatingElements = violatingElements.ToList();
+        Description = description;
+    }
+
     public RuleBase Rule { get; set; }
     public List<Relationship> ViolatingRelationships { get; set; }
     public string Description { get; set; }
 
-    /// <summary>Measured value for metric rules, <c>null</c> for relationship based rules.</summary>
+    /// <summary>Measured value of a system metric rule, <c>null</c> for every other rule.</summary>
     public double? MetricValue { get; }
+
+    /// <summary>Offending elements of a code element metric rule, empty for every other rule.</summary>
+    public List<ElementMetricViolation> ViolatingElements { get; } = [];
 
     private string GenerateDescription()
     {

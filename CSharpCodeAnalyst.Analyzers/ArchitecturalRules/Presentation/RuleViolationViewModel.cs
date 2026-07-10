@@ -13,8 +13,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 public class RuleViolationViewModel : TableRow
 {
     private readonly CodeGraph.Graph.CodeGraph _codeGraph;
-    private readonly Violation _violation;
     private readonly IPublisher _messaging;
+    private readonly Violation _violation;
 
     public RuleViolationViewModel(Violation violation, CodeGraph.Graph.CodeGraph codeGraph, IPublisher messaging)
     {
@@ -27,13 +27,11 @@ public class RuleViolationViewModel : TableRow
         RuleType = GetRuleTypeDisplayName();
         Source = GetSourceDisplayValue();
         Target = GetTargetDisplayValue();
+        ViolationCount = GetViolationCount();
 
-        // A metric rule is either violated or not - it has no violating relationships to count.
-        ViolationCount = _violation.Rule is MetricRule ? 1 : _violation.ViolatingRelationships.Count;
-
-        // Detail relationships
-        RelationshipDetails = CreateRelationshipDetails();
-        OpenSourceLocationCommand = new WpfCommand<RelationshipViewModel>(OnOpenSourceLocation);
+        // Detail rows
+        Details = CreateDetails();
+        OpenSourceLocationCommand = new WpfCommand<ViolationDetailViewModel>(OnOpenSourceLocation);
     }
 
     public ImageSource? ErrorIcon { get; set; }
@@ -45,23 +43,40 @@ public class RuleViolationViewModel : TableRow
     public int ViolationCount { get; }
 
     // Detail data
-    public ObservableCollection<RelationshipViewModel> RelationshipDetails { get; }
+    public ObservableCollection<ViolationDetailViewModel> Details { get; }
     public ICommand OpenSourceLocationCommand { get; }
 
     private string GetRuleTypeDisplayName()
     {
-        return _violation.Rule.GetType().Name.Replace("Rule", "").ToUpper();
+        return _violation.Rule is MetricRule metricRule
+            ? metricRule.Keyword
+            : _violation.Rule.GetType().Name.Replace("Rule", "").ToUpper();
+    }
+
+    private int GetViolationCount()
+    {
+        return _violation.Rule switch
+        {
+            // A system metric rule is either violated or not - there is nothing to count.
+            SystemMetricRule => 1,
+            CodeElementMetricRule => _violation.ViolatingElements.Count,
+            _ => _violation.ViolatingRelationships.Count
+        };
     }
 
     private string GetSourceDisplayValue()
     {
-        // A metric rule has no pattern; show the measured value instead.
-        if (_violation.Rule is MetricRule metricRule && _violation.MetricValue.HasValue)
+        return _violation.Rule switch
         {
-            return metricRule.FormatValue(_violation.MetricValue.Value);
-        }
-
-        return _violation.Rule is DependencyRule dependencyRule ? dependencyRule.Source : "";
+            // A system metric rule has no pattern; show the measured value instead.
+            SystemMetricRule systemMetricRule when _violation.MetricValue.HasValue =>
+                systemMetricRule.FormatValue(_violation.MetricValue.Value),
+            CodeElementMetricRule elementMetricRule => elementMetricRule.Source.Length > 0
+                ? elementMetricRule.Source
+                : Strings.ArchitecturalRules_Scope_Everything,
+            DependencyRule dependencyRule => dependencyRule.Source,
+            _ => ""
+        };
     }
 
     private string GetTargetDisplayValue()
@@ -77,9 +92,19 @@ public class RuleViolationViewModel : TableRow
         };
     }
 
-    private ObservableCollection<RelationshipViewModel> CreateRelationshipDetails()
+    private ObservableCollection<ViolationDetailViewModel> CreateDetails()
     {
-        var details = new ObservableCollection<RelationshipViewModel>();
+        var details = new ObservableCollection<ViolationDetailViewModel>();
+
+        if (_violation.Rule is CodeElementMetricRule elementMetricRule)
+        {
+            foreach (var (element, value) in _violation.ViolatingElements)
+            {
+                details.Add(new ViolationDetailViewModel(element, elementMetricRule.FormatValue(value)));
+            }
+
+            return details;
+        }
 
         foreach (var relationship in _violation.ViolatingRelationships)
         {
@@ -89,14 +114,14 @@ public class RuleViolationViewModel : TableRow
             // It can have multiple source locations.
             if (sourceElement != null && targetElement != null)
             {
-                RelationshipViewModel detailViewModel;
+                ViolationDetailViewModel detailViewModel;
                 if (relationship.SourceLocations.Count <= 1)
                 {
                     var sourceLocation = relationship.SourceLocations.Any()
                         ? relationship.SourceLocations.Single()
                         : sourceElement.SourceLocations.FirstOrDefault();
 
-                    detailViewModel = new RelationshipViewModel(sourceElement, targetElement, sourceLocation);
+                    detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, sourceLocation);
                     details.Add(detailViewModel);
                 }
                 else
@@ -105,7 +130,7 @@ public class RuleViolationViewModel : TableRow
                     for (var index = 0; index < relationship.SourceLocations.Count; index++)
                     {
                         var location = relationship.SourceLocations[index];
-                        detailViewModel = new RelationshipViewModel(sourceElement, targetElement, location, index + 1);
+                        detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, location, index + 1);
                         details.Add(detailViewModel);
                     }
                 }
@@ -115,7 +140,7 @@ public class RuleViolationViewModel : TableRow
         return details;
     }
 
-    private void OnOpenSourceLocation(RelationshipViewModel? detailViewModel)
+    private void OnOpenSourceLocation(ViolationDetailViewModel? detailViewModel)
     {
         if (detailViewModel?.SourceLocation is null)
         {

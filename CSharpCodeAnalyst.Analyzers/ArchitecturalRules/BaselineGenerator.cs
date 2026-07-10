@@ -14,16 +14,21 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 public static class BaselineGenerator
 {
     /// <summary>
-    ///     Rewrites every violated metric rule line in <paramref name="rulesText" /> so that its
+    ///     Rewrites every violated system metric rule line in <paramref name="rulesText" /> so that its
     ///     threshold accepts the currently measured value. Lines are matched by their exact rule text
     ///     and replaced in place, so comments, blank lines and line endings survive untouched.
+    ///     <para>
+    ///         Code element metric rules are deliberately left alone: raising their threshold to the
+    ///         worst offender would lift the limit for every element the rule covers, which is not a
+    ///         baseline but a repeal.
+    ///     </para>
     /// </summary>
     public static string RelaxMetricRules(string rulesText, IReadOnlyList<Violation> violations)
     {
         var replacements = new Dictionary<string, string>();
         foreach (var violation in violations)
         {
-            if (violation.Rule is MetricRule metricRule && violation.MetricValue.HasValue)
+            if (violation.Rule is SystemMetricRule metricRule && violation.MetricValue.HasValue)
             {
                 var threshold = metricRule.CreateBaselineThreshold(violation.MetricValue.Value);
                 replacements[violation.Rule.RuleText] = metricRule.CreateRuleText(threshold);

@@ -12,7 +12,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     analyzer displays.
 ///     Syntax: MAXCYCLICITY = 15
 /// </summary>
-public class MaxCyclicityRule : MetricRule
+public class MaxCyclicityRule : SystemMetricRule
 {
     public const string RuleKeyword = "MAXCYCLICITY";
 
@@ -31,7 +31,7 @@ public class MaxCyclicityRule : MetricRule
         get => 100.0;
     }
 
-    public override double GetActualValue(Metrics.SystemMetrics metrics)
+    public override double Measure(Metrics.SystemMetrics metrics)
     {
         // SystemMetrics reports the cyclicity as a share in [0,1], the rule speaks percent.
         return metrics.Cyclicity * 100.0;

@@ -41,6 +41,15 @@ public static class ViolationsFormatter
                     sb.AppendLine(violation.Description);
                 }
 
+                foreach (var (element, value) in violation.ViolatingElements)
+                {
+                    sb.AppendLine($"{element.FullName}: {value}");
+                    foreach (var location in element.SourceLocations)
+                    {
+                        sb.AppendLine($"  {location}");
+                    }
+                }
+
                 foreach (var relationship in violation.ViolatingRelationships)
                 {
                     var sourceElement = graph.Nodes.GetValueOrDefault(relationship.SourceId);

@@ -2,6 +2,7 @@ using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
@@ -11,7 +12,12 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 /// </summary>
 public static class RuleEngine
 {
-    public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph)
+    /// <param name="metricStore">
+    ///     The per-element source metrics that belong to <paramref name="graph" />. May be empty; code
+    ///     element metric rules then report a warning instead of silently passing.
+    /// </param>
+    public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph,
+        MetricStore metricStore)
     {
         var result = new RuleAnalysisResult();
 
@@ -30,7 +36,8 @@ public static class RuleEngine
         var isolateRules = rules.OfType<IsolateRule>().ToList();
         var restrictRules = rules.OfType<RestrictRule>().ToList();
         var allowRules = rules.OfType<AllowRule>().ToList();
-        var metricRules = rules.OfType<MetricRule>().ToList();
+        var systemMetricRules = rules.OfType<SystemMetricRule>().ToList();
+        var elementMetricRules = rules.OfType<CodeElementMetricRule>().ToList();
 
         var reportedWarnings = new HashSet<string>();
 
@@ -120,14 +127,15 @@ public static class RuleEngine
             AddViolation(group.First(), restrictGroup.ValidateGroup(sourceIds, allRelationships));
         }
 
-        // Process metric rules. They are not about single relationships but about the whole system,
-        // so ALLOW exceptions do not apply to them. All of them read the same metrics object.
-        if (metricRules.Count > 0)
+        // Metric rules are not about single relationships, so ALLOW exceptions do not apply to them.
+
+        // System metric rules all read the same metrics object, computed once.
+        if (systemMetricRules.Count > 0)
         {
             var metrics = SystemMetricsAnalysis.Calculate(graph);
-            foreach (var metricRule in metricRules)
+            foreach (var metricRule in systemMetricRules)
             {
-                var actualValue = metricRule.GetActualValue(metrics);
+                var actualValue = metricRule.Measure(metrics);
                 if (!metricRule.IsViolated(actualValue))
                 {
                     continue;
@@ -140,6 +148,52 @@ public static class RuleEngine
                     metricRule.FormatValue(metricRule.Threshold));
 
                 result.Violations.Add(new Violation(metricRule, actualValue, description));
+            }
+        }
+
+        foreach (var metricRule in elementMetricRules)
+        {
+            if (metricStore.IsEmpty)
+            {
+                // Without metrics the rule cannot be checked. Saying nothing would look like a pass.
+                var warning = string.Format(Strings.Analyzer_ArchitecturalRules_NoSourceMetrics, metricRule.RuleText);
+                if (reportedWarnings.Add(warning))
+                {
+                    result.Warnings.Add(warning);
+                }
+
+                continue;
+            }
+
+            // An empty pattern scopes the rule to the whole graph.
+            var scope = metricRule.Source.Length == 0
+                ? graph.Nodes.Keys.ToHashSet()
+                : Resolve(metricRule.Source, metricRule.RuleText);
+
+            var violatingElements = new List<ElementMetricViolation>();
+            foreach (var elementId in scope)
+            {
+                var element = graph.Nodes[elementId];
+
+                // No value means the rule cannot say anything about this element (an abstract method,
+                // say). That is neither compliant nor violating.
+                var actualValue = metricRule.Measure(element, metricStore);
+                if (actualValue.HasValue && metricRule.IsViolated(actualValue.Value))
+                {
+                    violatingElements.Add(new ElementMetricViolation(element, actualValue.Value));
+                }
+            }
+
+            if (violatingElements.Count > 0)
+            {
+                var description = string.Format(
+                    Strings.Analyzer_ArchitecturalRules_ElementMetricExceeded,
+                    metricRule.Keyword,
+                    violatingElements.Count,
+                    metricRule.FormatValue(metricRule.Threshold));
+
+                result.Violations.Add(new Violation(metricRule,
+                    violatingElements.OrderByDescending(v => v.Value), description));
             }
         }
 

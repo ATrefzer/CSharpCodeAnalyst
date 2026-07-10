@@ -1,6 +1,7 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CodeParserTests.UnitTests.ArchitecturalRules;
 
@@ -22,7 +23,7 @@ public class BaselineGeneratorTests
     private (RuleAnalysisResult result, string rulesText) Run(string rulesText)
     {
         var rules = RuleParser.ParseRules(rulesText);
-        return (RuleEngine.Execute(rules, _codeGraph), rulesText);
+        return (RuleEngine.Execute(rules, _codeGraph, new MetricStore()), rulesText);
     }
 
     [Test]

@@ -70,7 +70,7 @@ internal class AnalyzerManager : IAnalyzerManager
     {
         _analyzers.Clear();
 
-        IAnalyzer analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification);
+        IAnalyzer analyzer = new ArchitecturalRules.Analyzer(messaging, userNotification, metricStore);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
         
