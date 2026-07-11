@@ -262,6 +262,17 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
             // Foo passed/assigned/returned as a delegate (method group), not invoked.
             AddMethodGroupRelationship(sourceElement, methodSymbol, identifierSyntax.GetSyntaxLocation());
         }
+        else if (identifierSyntax is GenericNameSyntax && symbol is INamedTypeSymbol { IsGenericType: true } constructedType)
+        {
+            // A constructed generic type named in expression position (Registry<Token>.Instance):
+            // the member edge is normalized to Registry<T>, so the type arguments would be lost.
+            // In type positions the same edges are produced by the declaration handlers and merge.
+            var location = identifierSyntax.GetSyntaxLocation();
+            foreach (var typeArg in constructedType.TypeArguments)
+            {
+                AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
+            }
+        }
     }
 
     /// <summary>
@@ -464,25 +475,87 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     private void AddQueryOperatorRelationship(CodeElement sourceElement, SymbolInfo symbolInfo, SyntaxNode clause,
         RelationshipType operatorCallType)
     {
-        if (symbolInfo.Symbol is not IMethodSymbol operatorMethod)
+        if (symbolInfo.Symbol is IMethodSymbol operatorMethod)
         {
-            return;
+            AddSynthesizedCallRelationship(sourceElement, operatorMethod, clause, operatorCallType);
         }
+    }
 
-        // Same treatment as a spelled-out call (AddCallsRelationship): reduce extension methods,
-        // normalize generics, fall back to the containing type for externals (e.g. Enumerable).
-        var attributes = operatorMethod.IsExtensionMethod
+    /// <summary>
+    ///     Adds the edge for a compiler-synthesized method call that has no invocation syntax of its own:
+    ///     query-pattern operators, Deconstruct, foreach GetEnumerator. Same treatment as a spelled-out
+    ///     call (AddCallsRelationship): reduce extension methods, normalize generics, fall back to the
+    ///     containing type for externals.
+    /// </summary>
+    private void AddSynthesizedCallRelationship(CodeElement sourceElement, IMethodSymbol method, SyntaxNode node,
+        RelationshipType relationshipType)
+    {
+        var attributes = method.IsExtensionMethod
             ? RelationshipAttribute.IsExtensionMethodCall
             : RelationshipAttribute.None;
 
-        var methodSymbol = operatorMethod.ReducedFrom ?? operatorMethod;
+        var methodSymbol = method.ReducedFrom ?? method;
         if (FindInternalCodeElement(methodSymbol) is null)
         {
             methodSymbol = methodSymbol.NormalizeToOriginalDefinition();
         }
 
-        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, operatorCallType,
-            [clause.GetSyntaxLocation()], attributes);
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, relationshipType,
+            [node.GetSyntaxLocation()], attributes);
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeDeconstruction" />
+    /// </summary>
+    public void AnalyzeDeconstruction(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls)
+    {
+        // Only a simple assignment whose left side is a tuple ("(a, b) = ...") or a declaration
+        // ("var (x, y) = ...") can deconstruct.
+        if (!assignmentExpression.IsKind(SyntaxKind.SimpleAssignmentExpression) ||
+            assignmentExpression.Left is not (TupleExpressionSyntax or DeclarationExpressionSyntax))
+        {
+            return;
+        }
+
+        var deconstruction = semanticModel.GetDeconstructionInfo(assignmentExpression);
+        AddDeconstructionRelationships(sourceElement, deconstruction, assignmentExpression, relationshipType);
+    }
+
+    private void AddDeconstructionRelationships(CodeElement sourceElement, DeconstructionInfo deconstruction,
+        SyntaxNode node, RelationshipType relationshipType)
+    {
+        // Pure tuple deconstructions have no method; user-defined Deconstruct does.
+        if (deconstruction.Method is not null)
+        {
+            AddSynthesizedCallRelationship(sourceElement, deconstruction.Method, node, relationshipType);
+        }
+
+        // Nested deconstructions: var (a, (b, c)) = ...
+        foreach (var nested in deconstruction.Nested)
+        {
+            AddDeconstructionRelationships(sourceElement, nested, node, relationshipType);
+        }
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeForEachStatement" />
+    /// </summary>
+    public void AnalyzeForEachStatement(CodeElement sourceElement, CommonForEachStatementSyntax forEachSyntax,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls)
+    {
+        var info = semanticModel.GetForEachStatementInfo(forEachSyntax);
+        if (info.GetEnumeratorMethod is not null)
+        {
+            AddSynthesizedCallRelationship(sourceElement, info.GetEnumeratorMethod, forEachSyntax, relationshipType);
+        }
+
+        // foreach (var (x, y) in pairs) deconstructs each element.
+        if (forEachSyntax is ForEachVariableStatementSyntax forEachVariable)
+        {
+            var deconstruction = semanticModel.GetDeconstructionInfo(forEachVariable);
+            AddDeconstructionRelationships(sourceElement, deconstruction, forEachSyntax, relationshipType);
+        }
     }
 
     public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
@@ -647,6 +720,8 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         else if (symbol is INamedTypeSymbol typeSymbol)
         {
             AnalyzeInheritanceRelationships(element, typeSymbol);
+            AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
+            AnalyzePrimaryConstructorBaseArguments(solution, element, typeSymbol);
         }
         else if (symbol is IMethodSymbol methodSymbol)
         {
@@ -662,7 +737,84 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
 
         // For all type of symbols check if decorated with an attribute.
-        AnalyzeAttributeRelationships(element, symbol);
+        AnalyzeAttributeRelationships(solution, element, symbol);
+    }
+
+    /// <summary>
+    ///     Enum members are deliberately not code elements (references to them fall back to the enum
+    ///     type), so their initializer expressions ("Highest = Limits.Max") are walked here and the
+    ///     dependencies anchored on the enum element itself.
+    /// </summary>
+    private void AnalyzeEnumMemberInitializers(Solution solution, CodeElement enumElement, INamedTypeSymbol typeSymbol)
+    {
+        if (typeSymbol.TypeKind != TypeKind.Enum)
+        {
+            return;
+        }
+
+        foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is not EnumDeclarationSyntax enumDeclaration)
+            {
+                continue;
+            }
+
+            SemanticModel? semanticModel = null;
+            foreach (var member in enumDeclaration.Members)
+            {
+                if (member.EqualsValue is null)
+                {
+                    continue;
+                }
+
+                semanticModel ??= solution.GetDocument(enumDeclaration.SyntaxTree)?.GetSemanticModelAsync().Result;
+                if (semanticModel is null)
+                {
+                    break;
+                }
+
+                AnalyzeMethodBody(enumElement, member.EqualsValue, semanticModel);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     "class Derived() : Base(Helper.DefaultSize())". The primary constructor has no method element
+    ///     and type declarations have no body walk, so the base-call arguments are handled here, anchored
+    ///     on the type element (consistent with the primary-constructor parameter types). The call to the
+    ///     base constructor mirrors AnalyzeConstructorInitializer (explicit, internal constructors only).
+    /// </summary>
+    private void AnalyzePrimaryConstructorBaseArguments(Solution solution, CodeElement element, INamedTypeSymbol typeSymbol)
+    {
+        foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is not TypeDeclarationSyntax { BaseList: not null } typeDeclaration)
+            {
+                continue;
+            }
+
+            foreach (var baseType in typeDeclaration.BaseList.Types.OfType<PrimaryConstructorBaseTypeSyntax>())
+            {
+                var semanticModel = solution.GetDocument(baseType.SyntaxTree)?.GetSemanticModelAsync().Result;
+                if (semanticModel is null)
+                {
+                    continue;
+                }
+
+                if (semanticModel.GetSymbolInfo(baseType).Symbol is
+                    IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } baseConstructor)
+                {
+                    var normalizedConstructor = baseConstructor.NormalizeToOriginalDefinition();
+                    if (normalizedConstructor.IsExplicitConstructor() && FindInternalCodeElement(normalizedConstructor) is not null)
+                    {
+                        AddCallsRelationship(element, normalizedConstructor, baseType.GetSyntaxLocation(), RelationshipAttribute.IsBaseCall);
+                    }
+                }
+
+                // The argument expressions run at construction - normal body semantics.
+                AnalyzeMethodBody(element, baseType.ArgumentList, semanticModel);
+            }
+        }
     }
 
     private void AnalyzeGlobalStatementsForAssembly(Solution solution)
@@ -717,16 +869,30 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
     }
 
-    private void AnalyzeAttributeRelationships(CodeElement element, ISymbol symbol)
+    private void AnalyzeAttributeRelationships(Solution solution, CodeElement element, ISymbol symbol)
     {
         foreach (var attributeData in symbol.GetAttributes())
         {
             if (attributeData.AttributeClass != null)
             {
-                var location = attributeData.ApplicationSyntaxReference?.GetSyntax().GetSyntaxLocation();
+                var attributeSyntax = attributeData.ApplicationSyntaxReference?.GetSyntax();
+                var location = attributeSyntax?.GetSyntaxLocation();
 
                 element.Attributes.Add(attributeData.AttributeClass.Name);
                 AddTypeRelationship(element, attributeData.AttributeClass, RelationshipType.UsesAttribute, location);
+
+                // Attribute arguments (typeof(...), constants) are real dependencies. Method
+                // declarations are walked as a whole in AnalyzeMethodRelationships including their
+                // attribute lists, so only the other element kinds need the walk here.
+                if (symbol is not IMethodSymbol &&
+                    attributeSyntax is AttributeSyntax { ArgumentList: not null } attributeWithArguments)
+                {
+                    var semanticModel = solution.GetDocument(attributeWithArguments.SyntaxTree)?.GetSemanticModelAsync().Result;
+                    if (semanticModel is not null)
+                    {
+                        AnalyzeMethodBody(element, attributeWithArguments.ArgumentList, semanticModel);
+                    }
+                }
             }
         }
     }

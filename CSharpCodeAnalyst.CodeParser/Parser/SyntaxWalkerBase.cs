@@ -58,6 +58,9 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
         Analyzer.AnalyzeImplicitConversion(SourceElement, node.Right, SemanticModel, MemberReferenceType);
 
+        // "var (x, y) = point" calls the user-defined Deconstruct method.
+        Analyzer.AnalyzeDeconstruction(SourceElement, node, SemanticModel, MemberReferenceType);
+
         base.VisitAssignmentExpression(node);
     }
 
@@ -249,12 +252,24 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
     }
 
     /// <summary>
-    ///     foreach (Foo item in ...) — the iteration variable type.
+    ///     foreach (Foo item in ...) — the iteration variable type, plus the implicit
+    ///     GetEnumerator/GetAsyncEnumerator call of the enumeration pattern.
     /// </summary>
     public override void VisitForEachStatement(ForEachStatementSyntax node)
     {
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+        Analyzer.AnalyzeForEachStatement(SourceElement, node, SemanticModel, MemberReferenceType);
         base.VisitForEachStatement(node);
+    }
+
+    /// <summary>
+    ///     foreach (var (x, y) in pairs) — the deconstructing form: GetEnumerator plus the per-element
+    ///     Deconstruct call.
+    /// </summary>
+    public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+    {
+        Analyzer.AnalyzeForEachStatement(SourceElement, node, SemanticModel, MemberReferenceType);
+        base.VisitForEachVariableStatement(node);
     }
 
     /// <summary>
@@ -285,5 +300,34 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         }
 
         base.VisitArrayCreationExpression(node);
+    }
+
+    /// <summary>
+    ///     stackalloc Foo[n] — like array creation, the element type is the dependency. The expression
+    ///     type is Span&lt;Foo&gt; (or Foo*), which AddTypeRelationship resolves down to Foo.
+    /// </summary>
+    public override void VisitStackAllocArrayCreationExpression(StackAllocArrayCreationExpressionSyntax node)
+    {
+        var typeInfo = SemanticModel.GetTypeInfo(node);
+        if (typeInfo.Type != null)
+        {
+            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+        }
+
+        base.VisitStackAllocArrayCreationExpression(node);
+    }
+
+    /// <summary>
+    ///     stackalloc[] { a, b } — the implicit form; the element type is inferred.
+    /// </summary>
+    public override void VisitImplicitStackAllocArrayCreationExpression(ImplicitStackAllocArrayCreationExpressionSyntax node)
+    {
+        var typeInfo = SemanticModel.GetTypeInfo(node);
+        if (typeInfo.Type != null)
+        {
+            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+        }
+
+        base.VisitImplicitStackAllocArrayCreationExpression(node);
     }
 }

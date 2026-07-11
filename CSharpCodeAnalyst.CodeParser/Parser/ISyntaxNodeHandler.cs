@@ -134,4 +134,22 @@ public interface ISyntaxNodeHandler
     /// </summary>
     void AnalyzeQueryExpression(CodeElement sourceElement, QueryExpressionSyntax querySyntax,
         SemanticModel semanticModel, RelationshipType operatorCallType = RelationshipType.Calls);
+
+    /// <summary>
+    ///     Analyzes a deconstructing assignment ("var (x, y) = point;"). The compiler calls the
+    ///     user-defined Deconstruct method, which never appears as an invocation in the syntax tree.
+    ///     Pure tuple deconstructions ("(a, b) = (b, a)") bind no method and produce no edge.
+    /// </summary>
+    void AnalyzeDeconstruction(CodeElement sourceElement, AssignmentExpressionSyntax assignmentExpression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
+
+    /// <summary>
+    ///     Analyzes the enumeration pattern of a foreach statement. The compiler calls GetEnumerator
+    ///     (or GetAsyncEnumerator for "await foreach"), which never appears as an invocation in the
+    ///     syntax tree. Only the pattern entry point gets an edge - MoveNext/Current live on the
+    ///     enumerator type and would be noise. Covers the deconstructing form
+    ///     ("foreach (var (x, y) in pairs)") as well.
+    /// </summary>
+    void AnalyzeForEachStatement(CodeElement sourceElement, CommonForEachStatementSyntax forEachSyntax,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
 }
