@@ -13,7 +13,7 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 ///     | `IdentifierName`         | `AnalyzeIdentifier` (Calls)                    | `AnalyzeIdentifier` (**Uses**)          |
 ///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | inline Uses, **no** Event-Invoke     |
 ///     | `ObjectCreation`         | `AnalyzeObjectCreation` (** Creates**)         | `TrackObjectCreationAsUses` (** Uses**) |
-///     | nested Lambdas           | spawns `LambdaBodyWalker`                      | skipped(!)                              |
+///     | nested Lambdas           | spawns `LambdaBodyWalker`                      | walked with the same Uses semantics     |
 ///     | `ConstructorInitializer` | yes                                            | no (Lambdas have none)                  |
 /// </code>
 /// </summary>

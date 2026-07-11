@@ -44,6 +44,10 @@ Lambdas inside a method are treated specially. The method that creates the lambd
 However, method calls in the lambda are not considered. This is because I don't know when the lambda is actually invoked.
 That would mean to analyze the code flow.
 
+(Method and constructor *references* inside a lambda do get `Uses` edges - see *Object creation inside lambdas* below. Only a `Calls` edge is never asserted.)
+
+**Nested lambdas** (`() => () => Compute()`) are walked with the same `Uses` semantics: the inner body is "deferred twice", which is still deferred, so nothing changes for the modelling. They used to be skipped entirely, which silently lost every dependency inside the inner lambda.
+
 ## Constructors of generic types not detected
 
 The problem was that constructors are never generic in C#. 

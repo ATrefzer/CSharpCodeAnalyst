@@ -140,19 +140,8 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitElementBindingExpression(node);
     }
 
-    public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-    {
-        // Prevent nested lambdas from being analyzed
-        // Skip nested lambda
-    }
-
-    public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-    {
-        // Skip nested lambda
-    }
-
-    public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-    {
-        // Skip nested anonymous method
-    }
+    // Nested lambdas are deliberately NOT skipped: the body of an inner lambda is "deferred twice",
+    // which is still deferred - the Uses semantics of this walker apply unchanged, so the default
+    // traversal simply descends into it. (They used to be skipped, silently losing every dependency
+    // inside the inner lambda.)
 }
