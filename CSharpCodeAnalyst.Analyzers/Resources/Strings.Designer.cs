@@ -837,6 +837,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
                 return ResourceManager.GetString("Rules_SaveToFile", resourceCulture);
             }
         }
+
+        public static string Rules_CopyCommandLine {
+            get {
+                return ResourceManager.GetString("Rules_CopyCommandLine", resourceCulture);
+            }
+        }
+
+        public static string Rules_CopyCommandLine_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_CopyCommandLine_Tooltip", resourceCulture);
+            }
+        }
+
+        public static string Rules_CommandLineCopied {
+            get {
+                return ResourceManager.GetString("Rules_CommandLineCopied", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to No violations found..

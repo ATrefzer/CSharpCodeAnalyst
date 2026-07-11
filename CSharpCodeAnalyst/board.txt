@@ -1,7 +1,6 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Copy command line for architectural rules to clipboard once saved. Easy.
 - Track calls should add also Uses relationships. They are called black vs blue anyway.
   This way we see which method define a lambda.
 

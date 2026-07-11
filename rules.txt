@@ -1,0 +1,19 @@
+// Generated from the current assembly structure 10.07.2026 19:46:59. Review and adjust.
+
+RESTRICT: ApprovalTestTool.** -> CSharpCodeAnalyst.CodeGraph.**
+RESTRICT: ApprovalTestTool.** -> CSharpCodeAnalyst.CodeParser.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Analyzers.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.AnalyzerSdk.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.CodeGraph.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.CodeParser.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.Contracts.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.History.**
+RESTRICT: CSharpCodeAnalyst.** -> CSharpCodeAnalyst.TreeMap.**
+RESTRICT: CSharpCodeAnalyst.Analyzers.** -> CSharpCodeAnalyst.AnalyzerSdk.**
+
+RESTRICT: CSharpCodeAnalyst.AnalyzerSdk.** -> CSharpCodeAnalyst.CodeGraph.**
+ISOLATE: CSharpCodeAnalyst.CodeGraph.**
+RESTRICT: CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CodeGraph.**
+ISOLATE: CSharpCodeAnalyst.Contracts.**
+RESTRICT: CSharpCodeAnalyst.History.** -> CSharpCodeAnalyst.Contracts.**
+RESTRICT: CSharpCodeAnalyst.TreeMap.** -> CSharpCodeAnalyst.Contracts.**

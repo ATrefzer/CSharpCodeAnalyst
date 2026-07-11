@@ -17,6 +17,7 @@
     <ItemGroup>
         <Resource Include="Resources\blue-info_16.png"/>
         <Resource Include="Resources\error.png"/>
+        <Resource Include="Resources\clipboard_32.png"/>
     </ItemGroup>
 
     <ItemGroup>

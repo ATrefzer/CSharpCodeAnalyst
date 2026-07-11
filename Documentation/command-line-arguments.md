@@ -17,6 +17,11 @@ Validation of a C# solution against a rule file can be done via command line.
 CSharpCodeAnalyst -validate -sln:d:\Repositories\CSharpCodeAnalyst\CSharpCodeAnalyst.sln -rules:d:\rules.txt -log-console -out:d:\analysis-result.txt
 ```
 
+## Generating the command line
+
+The Architectural Rules dialog has a **Command line** button (clipboard icon) that copies a
+validation command line to the clipboard.
+
 ## Result Code
 
 | Code | Description                       |

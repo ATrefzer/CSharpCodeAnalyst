@@ -116,6 +116,15 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
 
     private const string RulesFileFilter = "Text files (*.txt)|*.txt|Rules files (*.rules)|*.rules|All files (*.*)|*.*";
 
+    // Placeholders used in the generated command line when the real path is unknown.
+    // The solution path is never known here; the rules path is known once the user saves or loads a file.
+    private const string SolutionPathPlaceholder = "<path-to-solution.sln>";
+    private const string RulesPathPlaceholder = "<path-to-rules.txt>";
+
+    // Last file the rules were saved to or loaded from - used as the -rules argument of the generated
+    // command line. Null until the user saves or loads once.
+    private string? _rulesFilePath;
+
     private void LoadFileButton_Click(object sender, RoutedEventArgs e)
     {
         var path = UserNotification?.ShowOpenFileDialog(RulesFileFilter, Strings.ArchitecturalRules_LoadDialog_Title,
@@ -128,6 +137,7 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         try
         {
             RulesText = File.ReadAllText(path);
+            _rulesFilePath = path;
         }
         catch (Exception ex)
         {
@@ -148,13 +158,39 @@ public partial class ArchitecturalRulesDialog : INotifyPropertyChanged
         try
         {
             File.WriteAllText(path, RulesText);
-            MessageBox.Show(Strings.ArchitecturalRules_SaveFileSuccess_Message, Strings.Success_Title,
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            _rulesFilePath = path;
+            // MessageBox.Show(Strings.ArchitecturalRules_SaveFileSuccess_Message, Strings.Success_Title,
+            //     MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
             MessageBox.Show(string.Format(Strings.ArchitecturalRules_SaveFileError_Message, ex.Message), Strings.Error_Title,
                 MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    /// <summary>
+    ///     Builds a ready-to-run validation command line for these rules and puts it on the clipboard.
+    ///     The -rules argument points at the file the rules were last saved to / loaded from; if there is
+    ///     none yet, a placeholder is inserted. The solution path is always a placeholder - it is not known
+    ///     here. See Documentation/command-line-arguments.md.
+    /// </summary>
+    private void CopyCommandLineButton_Click(object sender, RoutedEventArgs e)
+    {
+        var rulesArg = string.IsNullOrEmpty(_rulesFilePath) ? RulesPathPlaceholder : _rulesFilePath;
+
+        var commandLine =
+            $"CSharpCodeAnalyst.exe -validate -sln:\"{SolutionPathPlaceholder}\" -rules:\"{rulesArg}\" -log-console";
+
+        try
+        {
+            Clipboard.SetText(commandLine);
+            UserNotification?.ShowSuccess(Strings.Rules_CommandLineCopied);
+        }
+        catch (Exception ex)
+        {
+            // The clipboard can be locked by another process; surface it rather than failing silently.
+            MessageBox.Show(ex.Message, Strings.Error_Title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

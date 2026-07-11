@@ -372,6 +372,15 @@ Lower is better. 0% means the type graph is acyclic.</value>
     <data name="Rules_Clear" xml:space="preserve">
     <value>_Clear</value>
   </data>
+    <data name="Rules_CopyCommandLine" xml:space="preserve">
+    <value>Command line</value>
+  </data>
+    <data name="Rules_CopyCommandLine_Tooltip" xml:space="preserve">
+    <value>Copy a command line that validates a solution against these rules to the clipboard. Save the rules to a file first so the -rules argument points at it; otherwise a placeholder is inserted.</value>
+  </data>
+    <data name="Rules_CommandLineCopied" xml:space="preserve">
+    <value>Command line copied to clipboard</value>
+  </data>
     <data name="Rules_Status_Clean" xml:space="preserve">
     <value>No violations found.</value>
   </data>

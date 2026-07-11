@@ -50,8 +50,18 @@
                             Width="100" Height="25" Margin="0,0,10,0"
                             Click="SaveFileButton_Click" />
                     <Button x:Name="ClearButton" Content="{x:Static resources:Strings.Rules_Clear}"
-                            Width="100" Height="25"
+                            Width="100" Height="25" Margin="0,0,10,0"
                             Click="ClearButton_Click" />
+                    <Button x:Name="CopyCommandLineButton" Height="25"
+                            ToolTip="{x:Static resources:Strings.Rules_CopyCommandLine_Tooltip}"
+                            Click="CopyCommandLineButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/CSharpCodeAnalyst.AnalyzerSdk;component/Resources/clipboard_32.png"
+                                   Width="16" Height="16" Margin="2,0,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Static resources:Strings.Rules_CopyCommandLine}"
+                                       VerticalAlignment="Center" Margin="0,0,4,0" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
                 
                 <Image Style="{StaticResource InfoStyle}" DockPanel.Dock="Right"
