@@ -19,6 +19,11 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
     {
     }
 
+    /// <summary>
+    ///     Operator/conversion references in a lambda body are "Uses" like every other member reference.
+    /// </summary>
+    protected override RelationshipType MemberReferenceType => RelationshipType.Uses;
+
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
         TrackObjectCreationAsUses(node);

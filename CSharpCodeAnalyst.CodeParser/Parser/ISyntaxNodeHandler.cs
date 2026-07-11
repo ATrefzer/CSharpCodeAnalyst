@@ -105,4 +105,21 @@ public interface ISyntaxNodeHandler
     ///     (cast)
     /// </summary>
     void AnalyzeTypeSyntax(CodeElement sourceElement, SemanticModel semanticModel, TypeSyntax? node);
+
+    /// <summary>
+    ///     Analyzes an expression whose bound symbol may be a user-defined operator or conversion method:
+    ///     binary/unary expressions ("a + b", "-a"), compound assignments ("a += b") and explicit casts
+    ///     ("(double)c"). Built-in operators bind to no user-defined method and are ignored.
+    /// </summary>
+    void AnalyzeOperatorUsage(CodeElement sourceElement, ExpressionSyntax expression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
+
+    /// <summary>
+    ///     Analyzes the implicit conversion applied to an expression in its context ("Celsius c = 21.5;").
+    ///     Only user-defined conversions (op_Implicit) create an edge; identity, numeric and reference
+    ///     conversions have no method to point at. Called by the walkers at the positions where implicit
+    ///     conversions occur: initializers, assignment right sides, return values, arguments, arrow bodies.
+    /// </summary>
+    void AnalyzeImplicitConversion(CodeElement sourceElement, ExpressionSyntax expression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
 }

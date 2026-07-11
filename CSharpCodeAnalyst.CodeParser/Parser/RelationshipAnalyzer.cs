@@ -327,6 +327,46 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeOperatorUsage" />
+    /// </summary>
+    public void AnalyzeOperatorUsage(CodeElement sourceElement, ExpressionSyntax expression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls)
+    {
+        // Built-in operators (int +, string +, delegate +=, ...) bind to MethodKind.BuiltinOperator
+        // and are skipped; only user-defined operators and conversions are real code elements.
+        if (semanticModel.GetSymbolInfo(expression).Symbol is IMethodSymbol
+            {
+                MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion
+            } operatorMethod)
+        {
+            AddOperatorRelationship(sourceElement, operatorMethod, expression, relationshipType);
+        }
+    }
+
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeImplicitConversion" />
+    /// </summary>
+    public void AnalyzeImplicitConversion(CodeElement sourceElement, ExpressionSyntax expression,
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls)
+    {
+        var conversion = semanticModel.GetConversion(expression);
+        if (conversion is { IsUserDefined: true, MethodSymbol: not null })
+        {
+            AddOperatorRelationship(sourceElement, conversion.MethodSymbol, expression, relationshipType);
+        }
+    }
+
+    private void AddOperatorRelationship(CodeElement sourceElement, IMethodSymbol operatorMethod,
+        ExpressionSyntax expression, RelationshipType relationshipType)
+    {
+        // Operators of generic types (Money<T>) come back constructed; normalize like any other member.
+        // External operators (e.g. decimal arithmetic, DateTime -) fall back to their containing type.
+        var normalizedOperator = operatorMethod.NormalizeToOriginalDefinition();
+        AddRelationshipWithFallbackToContainingType(sourceElement, normalizedOperator, relationshipType,
+            [expression.GetSyntaxLocation()], RelationshipAttribute.None);
+    }
+
+    /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeElementAccess" />
     ///     An indexer access is a property access spelled with brackets, so it runs through the same
     ///     routing as AnalyzeIdentifier / AnalyzeMemberAccess: read/write classification, get/set accessor
@@ -808,7 +848,9 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                 var semanticModel = document?.GetSemanticModelAsync().Result;
                 if (semanticModel != null)
                 {
-                    AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer.Value, semanticModel, true);
+                    // The walk starts at the EqualsValueClause (not its value) so that an implicit
+                    // user-defined conversion of the initializer is captured (VisitEqualsValueClause).
+                    AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer, semanticModel, true);
                 }
             }
         }
@@ -1393,8 +1435,10 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
                     if (expressionBody != null)
                     {
-                        // An expression-bodied property/indexer is the getter.
-                        AnalyzeMethodBody(getElement, expressionBody.Expression, semanticModel);
+                        // An expression-bodied property/indexer is the getter. The walk starts at the
+                        // arrow clause (not its expression) so that an implicit user-defined conversion
+                        // of the result is captured (VisitArrowExpressionClause).
+                        AnalyzeMethodBody(getElement, expressionBody, semanticModel);
                     }
                     else if (basePropertyDeclaration.AccessorList != null)
                     {
@@ -1407,7 +1451,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
 
                             if (accessor.ExpressionBody != null)
                             {
-                                AnalyzeMethodBody(accessorElement, accessor.ExpressionBody.Expression, semanticModel);
+                                AnalyzeMethodBody(accessorElement, accessor.ExpressionBody, semanticModel);
                             }
                             else if (accessor.Body != null)
                             {
@@ -1423,7 +1467,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
                     // The initializer runs at construction, so it stays on the property container.
                     if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
                     {
-                        AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer.Value, semanticModel, true);
+                        AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer, semanticModel, true);
                     }
                 }
             }

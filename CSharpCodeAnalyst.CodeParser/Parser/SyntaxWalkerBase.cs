@@ -37,6 +37,13 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
     // Each walker overrides VisitIdentifierName with the appropriate RelationshipType parameter.
 
     /// <summary>
+    ///     Relationship type for member references (operators, conversions) found by the shared visits
+    ///     in this base class. Method bodies record real calls; the lambda walker overrides with "Uses"
+    ///     because lambda execution is deferred.
+    /// </summary>
+    protected virtual RelationshipType MemberReferenceType => RelationshipType.Calls;
+
+    /// <summary>
     ///     Event registration/unregistration (event += / -= handler). Identical for method and lambda
     ///     bodies: the registration itself is the same edge
     ///     Property/field access on either side is covered by the normal identifier/member-access traversal
@@ -45,6 +52,12 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
     public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
         Analyzer.AnalyzeEventRegistrationAssignment(SourceElement, node, SemanticModel);
+
+        // Compound assignments (a += b) bind to the user-defined binary operator; the right side of a
+        // simple assignment may carry an implicit user-defined conversion (celsius = 21.5).
+        Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
+        Analyzer.AnalyzeImplicitConversion(SourceElement, node.Right, SemanticModel, MemberReferenceType);
+
         base.VisitAssignmentExpression(node);
     }
 
@@ -91,6 +104,10 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
     {
         // (Foo)obj - Uses relationship to cast type
         Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, node.Type);
+
+        // A cast may invoke a user-defined conversion operator ("(double)celsius" -> op_Explicit).
+        Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
+
         base.VisitCastExpression(node);
     }
 
@@ -111,8 +128,71 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
                 Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
             }
         }
+        else
+        {
+            // "a + b", "a == b", ... may bind to a user-defined operator (op_Addition, op_Equality, ...).
+            Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
+        }
 
         base.VisitBinaryExpression(node);
+    }
+
+    /// <summary>
+    ///     "-a", "!a", "~a", "++a" may bind to a user-defined operator (op_UnaryNegation, ...).
+    /// </summary>
+    public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
+    {
+        Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
+        base.VisitPrefixUnaryExpression(node);
+    }
+
+    /// <summary>
+    ///     "a++", "a--" may bind to a user-defined operator (op_Increment / op_Decrement).
+    /// </summary>
+    public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
+    {
+        Analyzer.AnalyzeOperatorUsage(SourceElement, node, SemanticModel, MemberReferenceType);
+        base.VisitPostfixUnaryExpression(node);
+    }
+
+    /// <summary>
+    ///     Initializers ("Celsius c = 21.5;") may apply an implicit user-defined conversion to the value.
+    /// </summary>
+    public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
+    {
+        Analyzer.AnalyzeImplicitConversion(SourceElement, node.Value, SemanticModel, MemberReferenceType);
+        base.VisitEqualsValueClause(node);
+    }
+
+    /// <summary>
+    ///     "return 21.5;" in a Celsius-returning method applies an implicit user-defined conversion.
+    /// </summary>
+    public override void VisitReturnStatement(ReturnStatementSyntax node)
+    {
+        if (node.Expression is not null)
+        {
+            Analyzer.AnalyzeImplicitConversion(SourceElement, node.Expression, SemanticModel, MemberReferenceType);
+        }
+
+        base.VisitReturnStatement(node);
+    }
+
+    /// <summary>
+    ///     "Take(21.5)" with Take(Celsius) applies an implicit user-defined conversion to the argument.
+    /// </summary>
+    public override void VisitArgument(ArgumentSyntax node)
+    {
+        Analyzer.AnalyzeImplicitConversion(SourceElement, node.Expression, SemanticModel, MemberReferenceType);
+        base.VisitArgument(node);
+    }
+
+    /// <summary>
+    ///     Expression bodies ("=> 21.5") may apply an implicit user-defined conversion to the result.
+    /// </summary>
+    public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
+    {
+        Analyzer.AnalyzeImplicitConversion(SourceElement, node.Expression, SemanticModel, MemberReferenceType);
+        base.VisitArrowExpressionClause(node);
     }
 
     /// <summary>
