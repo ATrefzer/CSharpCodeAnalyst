@@ -108,6 +108,24 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         Visit(node.Expression);
     }
 
+    /// <summary>
+    ///     Indexer access in a lambda body: "Uses" like every other member reference in a lambda.
+    /// </summary>
+    public override void VisitElementAccessExpression(ElementAccessExpressionSyntax node)
+    {
+        Analyzer.AnalyzeElementAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitElementAccessExpression(node);
+    }
+
+    /// <summary>
+    ///     Conditional indexer access in a lambda body: store?[key].
+    /// </summary>
+    public override void VisitElementBindingExpression(ElementBindingExpressionSyntax node)
+    {
+        Analyzer.AnalyzeElementAccess(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitElementBindingExpression(node);
+    }
+
     public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
     {
         // Prevent nested lambdas from being analyzed

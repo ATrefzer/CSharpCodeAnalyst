@@ -55,6 +55,25 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     }
 
     /// <summary>
+    ///     Indexer access: store[key]. The receiver and the index arguments are covered by base.
+    /// </summary>
+    public override void VisitElementAccessExpression(ElementAccessExpressionSyntax node)
+    {
+        Analyzer.AnalyzeElementAccess(SourceElement, node, SemanticModel);
+        base.VisitElementAccessExpression(node);
+    }
+
+    /// <summary>
+    ///     Conditional indexer access: store?[key]. The "[key]" part is an ElementBindingExpressionSyntax,
+    ///     not an ElementAccessExpressionSyntax, so it needs its own visit.
+    /// </summary>
+    public override void VisitElementBindingExpression(ElementBindingExpressionSyntax node)
+    {
+        Analyzer.AnalyzeElementAccess(SourceElement, node, SemanticModel);
+        base.VisitElementBindingExpression(node);
+    }
+
+    /// <summary>
     ///     new() is ImplicitObjectCreationExpressionSyntax. So ObjectCreationExpressionSyntax does not detect it.
     /// </summary>
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)

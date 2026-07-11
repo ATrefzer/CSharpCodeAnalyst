@@ -49,6 +49,16 @@ public interface ISyntaxNodeHandler
     void AnalyzeMemberAccess(CodeElement sourceElement, MemberAccessExpressionSyntax memberAccessSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
 
+    /// <summary>
+    ///     Analyzes element access expressions that resolve to an indexer ("store[key]"). Covers both the
+    ///     direct form (ElementAccessExpressionSyntax) and the conditional form "store?[key]"
+    ///     (ElementBindingExpressionSyntax) - hence the common ExpressionSyntax parameter. Array element
+    ///     access yields no indexer symbol and is ignored. Like AnalyzeMemberAccess, the receiver and the
+    ///     argument expressions are handled by the walker's normal traversal.
+    /// </summary>
+    void AnalyzeElementAccess(CodeElement sourceElement, ExpressionSyntax elementAccessSyntax,
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
+
     void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel);
 

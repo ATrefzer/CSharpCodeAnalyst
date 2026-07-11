@@ -326,6 +326,23 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         // The walker's Visit(node.Expression) call handles nested member access automatically.
     }
 
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeElementAccess" />
+    ///     An indexer access is a property access spelled with brackets, so it runs through the same
+    ///     routing as AnalyzeIdentifier / AnalyzeMemberAccess: read/write classification, get/set accessor
+    ///     split and the fallback to the containing type for external indexers.
+    /// </summary>
+    public void AnalyzeElementAccess(CodeElement sourceElement, ExpressionSyntax elementAccessSyntax,
+        SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
+    {
+        // Array element access ("_data[i]") resolves to no symbol; only user-defined indexers matter here.
+        if (semanticModel.GetSymbolInfo(elementAccessSyntax).Symbol is IPropertySymbol { IsIndexer: true } indexerSymbol)
+        {
+            var location = elementAccessSyntax.GetSyntaxLocation();
+            AddPropertyAccessRelationship(sourceElement, indexerSymbol, elementAccessSyntax, propertyAccessType, location, semanticModel);
+        }
+    }
+
     public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel)
     {
