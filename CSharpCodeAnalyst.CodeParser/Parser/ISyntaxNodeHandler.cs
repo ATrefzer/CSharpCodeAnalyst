@@ -9,8 +9,15 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 /// </summary>
 public interface ISyntaxNodeHandler
 {
+    /// <summary>
+    ///     Analyzes a method invocation. In a method body (default, "Calls") the edge carries the
+    ///     call-style attributes (static/instance/base/...) and event invocations ("MyEvent?.Invoke()")
+    ///     are detected. In a lambda body ("Uses") the invocation is deferred: no call-style attributes
+    ///     (except the extension-method marker) and no event-invoke detection - referencing an event in
+    ///     a lambda does not assert that it fires.
+    /// </summary>
     void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
-        SemanticModel semanticModel);
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
 
     /// <summary>
     ///     Analyzes assignment expressions for event registration/unregistration.
@@ -79,19 +86,13 @@ public interface ISyntaxNodeHandler
         BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer);
 
     /// <summary>
-    ///     Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
+    ///     Adds a relationship to a type the walker has already resolved itself. Used by the visits that
+    ///     work with type info instead of a syntax name: is/as expressions, array and stackalloc
+    ///     creations, object creations in lambda bodies.
     /// </summary>
-    void AddTypeRelationshipPublic(CodeElement sourceElement, ITypeSymbol typeSymbol,
+    void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol,
         RelationshipType relationshipType,
         SourceLocation? location = null);
-
-    /// <summary>
-    ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
-    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external
-    ///     symbols.
-    /// </summary>
-    void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
-        RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes);
 
     /// <summary>
     ///     Records a "Uses" relationship to the constructor referenced by an object creation inside a lambda.

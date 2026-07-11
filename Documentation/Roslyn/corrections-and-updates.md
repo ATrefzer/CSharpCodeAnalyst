@@ -48,6 +48,8 @@ That would mean to analyze the code flow.
 
 **Nested lambdas** (`() => () => Compute()`) are walked with the same `Uses` semantics: the inner body is "deferred twice", which is still deferred, so nothing changes for the modelling. They used to be skipped entirely, which silently lost every dependency inside the inner lambda.
 
+**Invocations in lambdas** run through the same handler as method bodies (`AnalyzeInvocation`, with `Uses` instead of `Calls`); the lambda walker no longer has its own copy of the logic. Two deliberate differences remain: no call-style attributes (only the extension-method marker) and no event-invoke detection - referencing an event in a lambda does not assert that it fires. Side effect of the unification: the lambda path now reduces extension methods too, so `x => list.MyExtension()` targets the extension *method* instead of falling back to its containing static class (the old copy lacked the `ReducedFrom` handling, a symbol-key mismatch).
+
 ## Constructors of generic types not detected
 
 The problem was that constructors are never generic in C#. 

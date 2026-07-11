@@ -34,22 +34,32 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         walker.Visit(node);
     }
 
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeInvocation" />
+    /// </summary>
     public void AnalyzeInvocation(CodeElement sourceElement, InvocationExpressionSyntax invocationSyntax,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls)
     {
-        var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
-        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
-        {
-            // Skip local functions - they should not be part of the dependency graph
-            if (calledMethod.MethodKind == MethodKind.LocalFunction)
-            {
-                return;
-            }
+        var isDeferred = relationshipType != RelationshipType.Calls;
 
+        var symbolInfo = semanticModel.GetSymbolInfo(invocationSyntax);
+
+        // Skip local functions - they should not be part of the dependency graph.
+        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: not MethodKind.LocalFunction } calledMethod)
+        {
             var location = invocationSyntax.GetSyntaxLocation();
 
-            var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
-            _builder.AddCallsRelationship(sourceElement, calledMethod, location, attributes);
+            if (isDeferred)
+            {
+                // Lambda body: the invocation is deferred. Same plumbing as a synthesized call
+                // (extension reduction, normalization, external fallback), no call-style attributes.
+                _builder.AddSynthesizedCallRelationship(sourceElement, calledMethod, invocationSyntax, relationshipType);
+            }
+            else
+            {
+                var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
+                _builder.AddCallsRelationship(sourceElement, calledMethod, location, attributes);
+            }
 
             // Handle generic method invocations
             if (calledMethod.IsGenericMethod)
@@ -60,8 +70,9 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
                 }
             }
 
-            // Check if this is an event invocation using Invoke method
-            if (calledMethod.Name == "Invoke")
+            // Check if this is an event invocation using Invoke method. Not in lambda bodies:
+            // referencing an event there does not assert that it fires.
+            if (!isDeferred && calledMethod.Name == "Invoke")
             {
                 IEventSymbol? eventSymbol = null;
 
@@ -95,10 +106,13 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         // normal traversal into the argument expressions (AnalyzeIdentifier / AnalyzeMemberAccess).
 
         // Handle direct event invocations (if any)
-        var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
-        if (invokedSymbol is IEventSymbol symbol)
+        if (!isDeferred)
         {
-            AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
+            var invokedSymbol = semanticModel.GetSymbolInfo(invocationSyntax.Expression).Symbol;
+            if (invokedSymbol is IEventSymbol symbol)
+            {
+                AddEventInvocationRelationship(sourceElement, symbol, invocationSyntax.GetSyntaxLocation());
+            }
         }
     }
 
@@ -167,24 +181,13 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
-    ///     Public wrapper for AddTypeRelationship to allow access from LambdaBodyWalker
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AddTypeRelationship" />
     /// </summary>
-    public void AddTypeRelationshipPublic(CodeElement sourceElement, ITypeSymbol typeSymbol,
+    public void AddTypeRelationship(CodeElement sourceElement, ITypeSymbol typeSymbol,
         RelationshipType relationshipType,
         SourceLocation? location = null)
     {
         _builder.AddTypeRelationship(sourceElement, typeSymbol, relationshipType, location);
-    }
-
-    /// <summary>
-    ///     Public wrapper for AddRelationshipWithFallbackToContainingType to allow access from LambdaBodyWalker.
-    ///     Adds a relationship to a symbol (method, property, field, event), with fallback to containing type for external
-    ///     symbols.
-    /// </summary>
-    public void AddSymbolRelationshipPublic(CodeElement sourceElement, ISymbol targetSymbol,
-        RelationshipType relationshipType, List<SourceLocation>? locations, RelationshipAttribute attributes)
-    {
-        _builder.AddRelationshipWithFallbackToContainingType(sourceElement, targetSymbol, relationshipType, locations, attributes);
     }
 
     /// <summary>

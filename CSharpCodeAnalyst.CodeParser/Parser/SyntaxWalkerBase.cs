@@ -11,7 +11,7 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 ///     | Visit                    | Method                                         | Lambda                                  |
 ///     |--------------------------|------------------------------------------------|-----------------------------------------|
 ///     | `IdentifierName`         | `AnalyzeIdentifier` (Calls)                    | `AnalyzeIdentifier` (**Uses**)          |
-///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | inline Uses, **no** Event-Invoke     |
+///     | `Invocation`             | `AnalyzeInvocation` (Calls **+ Event-Invoke**) | `AnalyzeInvocation` (Uses, **no** Event-Invoke) |
 ///     | `ObjectCreation`         | `AnalyzeObjectCreation` (** Creates**)         | `TrackObjectCreationAsUses` (** Uses**) |
 ///     | nested Lambdas           | spawns `LambdaBodyWalker`                      | walked with the same Uses semantics     |
 ///     | `ConstructorInitializer` | yes                                            | no (Lambdas have none)                  |
@@ -128,7 +128,7 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
             if (typeInfo.Type != null)
             {
                 var location = node.Right.GetSyntaxLocation();
-                Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
+                Analyzer.AddTypeRelationship(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
             }
         }
         else
@@ -296,7 +296,7 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         var typeInfo = SemanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
         {
-            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+            Analyzer.AddTypeRelationship(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
         }
 
         base.VisitArrayCreationExpression(node);
@@ -311,7 +311,7 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         var typeInfo = SemanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
         {
-            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+            Analyzer.AddTypeRelationship(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
         }
 
         base.VisitStackAllocArrayCreationExpression(node);
@@ -325,7 +325,7 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         var typeInfo = SemanticModel.GetTypeInfo(node);
         if (typeInfo.Type != null)
         {
-            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
+            Analyzer.AddTypeRelationship(SourceElement, typeInfo.Type, RelationshipType.Uses, node.GetSyntaxLocation());
         }
 
         base.VisitImplicitStackAllocArrayCreationExpression(node);

@@ -48,46 +48,21 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         if (typeInfo.Type != null)
         {
             var location = node.GetSyntaxLocation();
-            Analyzer.AddTypeRelationshipPublic(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
+            Analyzer.AddTypeRelationship(SourceElement, typeInfo.Type, RelationshipType.Uses, location);
         }
 
         Analyzer.AddConstructorReferenceFromLambda(SourceElement, node, SemanticModel);
     }
 
+    /// <summary>
+    ///     Same handler as MethodBodyWalker, but with "Uses" semantics: the invocation is deferred, so
+    ///     no call-style attributes and no event-invoke detection (see AnalyzeInvocation).
+    /// </summary>
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
-        // Track method references with "Uses" relationship (not "Calls")
-        // We don't know when the lambda executes, but we know it references these methods
+        Analyzer.AnalyzeInvocation(SourceElement, node, SemanticModel, RelationshipType.Uses);
 
-        // Code is similar to MethodBodyWalker but does not capture event invocation.
-
-        var symbolInfo = SemanticModel.GetSymbolInfo(node);
-
-        // Skip local functions - they should not be part of the dependency graph.
-        // Only the relationship is skipped; base still visits the arguments below.
-        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: not MethodKind.LocalFunction } calledMethod)
-        {
-            var location = node.GetSyntaxLocation();
-
-            // Add "Uses" relationship to the method (with fallback to containing type)
-            Analyzer.AddSymbolRelationshipPublic(
-                SourceElement,
-                calledMethod,
-                RelationshipType.Uses,
-                [location],
-                RelationshipAttribute.None);
-
-            // Handle generic method invocations - track type arguments
-            if (calledMethod.IsGenericMethod)
-            {
-                foreach (var typeArg in calledMethod.TypeArguments)
-                {
-                    Analyzer.AddTypeRelationshipPublic(SourceElement, typeArg, RelationshipType.Uses, location);
-                }
-            }
-        }
-
-        // Added to capture x => Foo(Bar())
+        // Visit the arguments: x => Foo(Bar())
         base.VisitInvocationExpression(node);
     }
 
