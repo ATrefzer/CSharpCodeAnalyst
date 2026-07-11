@@ -35,10 +35,13 @@ public class Analyzer : IAnalyzer
         _userNotification = userNotification;
         _metricStore = metricStore;
 
-        // Subscribe to application exit event to close dialog
-        if (Application.Current != null)
+        // Subscribe to application exit event to close the dialog. This is a UI-only concern and
+        // must only be touched from the thread that owns the Application. The CLI validation path
+        // constructs the analyzer on a worker thread (after an awaited parse), where accessing
+        // Application.Exit would throw (Dispatcher VerifyAccess) - so guard on thread access too.
+        if (Application.Current is { } app && app.CheckAccess())
         {
-            Application.Current.Exit += OnApplicationExit;
+            app.Exit += OnApplicationExit;
         }
 
         _rulesText = GetSampleRules();
