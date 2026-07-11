@@ -194,6 +194,8 @@ Dependency restrictions are written as `RULE Source -> Target` (e.g. `DENY MyApp
 | ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed. |
 | ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
 
+RESTRICT and ISOLATE ignore dependencies to external code elements (framework types, NuGet packages) — using `System.*` is not an architecture violation. To forbid specific external usage, write an explicit DENY rule; DENY checks external targets too.
+
 Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
 A metric rule limits a measured value instead of a dependency. It is written as `RULE = value`, and `ALLOW` exceptions never affect it. There are two kinds.

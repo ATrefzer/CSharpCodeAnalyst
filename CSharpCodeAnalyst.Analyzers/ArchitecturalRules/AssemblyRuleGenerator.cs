@@ -15,9 +15,8 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 ///     </list>
 ///
 ///     The generated rules validate clean against the current graph; only *new* inter-assembly
-///     dependencies get reported afterwards. Only internal assemblies are considered. If external
-///     code was imported, ISOLATE / RESTRICT rules may additionally report framework usage - adjust
-///     them after generation.
+///     dependencies get reported afterwards. Only internal assemblies are considered. Imported
+///     external code is no concern: RESTRICT and ISOLATE ignore dependencies to external elements.
 /// </summary>
 public static class AssemblyRuleGenerator
 {

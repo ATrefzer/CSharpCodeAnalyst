@@ -392,6 +392,59 @@ public class RuleEngineTests
         Assert.That(result.Warnings, Is.Empty);
     }
 
+    /// <summary>
+    ///     Framework and NuGet usage is not an architecture violation: RESTRICT must not flag
+    ///     dependencies to external code elements, otherwise every call into System.* breaks the
+    ///     rule once external code is part of the graph.
+    /// </summary>
+    [Test]
+    public void Restrict_DependenciesToExternalCode_AreIgnored()
+    {
+        var controllers = _codeGraph.CreateNamespace("MyApp.Controllers");
+        _codeGraph.CreateNamespace("MyApp.Services");
+        var controller = _codeGraph.CreateClass("OrderController", controllers);
+        var externalString = _codeGraph.CreateExternalClass("System.String");
+
+        controller.Relationships.Add(new Relationship(controller.Id, externalString.Id, RelationshipType.Uses));
+
+        var result = Execute("RESTRICT MyApp.Controllers.** -> MyApp.Services.**");
+
+        Assert.That(result.Violations, Is.Empty);
+    }
+
+    [Test]
+    public void Isolate_DependenciesToExternalCode_AreIgnored()
+    {
+        var domain = _codeGraph.CreateNamespace("MyApp.Domain");
+        var order = _codeGraph.CreateClass("Order", domain);
+        var externalString = _codeGraph.CreateExternalClass("System.String");
+
+        order.Relationships.Add(new Relationship(order.Id, externalString.Id, RelationshipType.Uses));
+
+        var result = Execute("ISOLATE MyApp.Domain.**");
+
+        Assert.That(result.Violations, Is.Empty);
+    }
+
+    /// <summary>
+    ///     External usage can still be forbidden explicitly: DENY validates the full dependency
+    ///     list, external targets included.
+    /// </summary>
+    [Test]
+    public void Deny_ExternalTarget_IsStillReported()
+    {
+        var core = _codeGraph.CreateNamespace("MyApp.Core");
+        var startup = _codeGraph.CreateClass("Startup", core);
+        var httpClient = _codeGraph.CreateExternalClass("System.Net.HttpClient");
+
+        startup.Relationships.Add(new Relationship(startup.Id, httpClient.Id, RelationshipType.Uses));
+
+        var result = Execute("DENY MyApp.Core.** -> System.Net.HttpClient");
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        Assert.That(result.Violations[0].ViolatingRelationships[0].TargetId, Is.EqualTo(httpClient.Id));
+    }
+
     [Test]
     public void Allow_SuppressesIsolateViolation()
     {

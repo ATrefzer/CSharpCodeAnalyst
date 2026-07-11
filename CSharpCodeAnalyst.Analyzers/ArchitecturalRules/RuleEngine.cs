@@ -17,6 +17,14 @@ public sealed class RuleEngine
     /// <summary>The edges the rules are about: descriptive edges like Handles are not dependencies.</summary>
     private readonly List<Relationship> _dependencies;
 
+    /// <summary>
+    ///     The dependencies whose target is internal code. RESTRICT and ISOLATE validate against
+    ///     these: framework and NuGet usage is not an architecture violation, otherwise every call
+    ///     into System.* would break such a rule once external code is part of the graph. DENY keeps
+    ///     the full list, so specific external usage can still be forbidden explicitly.
+    /// </summary>
+    private readonly List<Relationship> _dependenciesToInternal;
+
     private readonly CodeGraph.Graph.CodeGraph _graph;
     private readonly MetricStore _metricStore;
     private readonly HashSet<string> _reportedWarnings = [];
@@ -27,6 +35,9 @@ public sealed class RuleEngine
         _graph = graph;
         _metricStore = metricStore;
         _dependencies = graph.GetAllRelationships().Where(r => r.Type.IsDependency()).ToList();
+        _dependenciesToInternal = _dependencies
+            .Where(r => graph.Nodes.TryGetValue(r.TargetId, out var target) && !target.IsExternal)
+            .ToList();
     }
     
     public static RuleAnalysisResult Execute(IReadOnlyCollection<RuleBase> rules, CodeGraph.Graph.CodeGraph graph, MetricStore metricStore)
@@ -86,7 +97,7 @@ public sealed class RuleEngine
         {
             var sourceIds = Resolve(isolateRule.Source, isolateRule.RuleText);
 
-            AddViolation(isolateRule, isolateRule.ValidateRule(sourceIds, [], _dependencies));
+            AddViolation(isolateRule, isolateRule.ValidateRule(sourceIds, [], _dependenciesToInternal));
         }
     }
 
@@ -109,7 +120,7 @@ public sealed class RuleEngine
 
             restrictGroup.AllowedTargetIds = allowedTargetIds;
 
-            AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], _dependencies));
+            AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], _dependenciesToInternal));
         }
     }
 

@@ -31,6 +31,14 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
+    /// <summary>A class from outside the solution (framework type, NuGet package).</summary>
+    public CodeElement CreateExternalClass(string id, CodeElement? parent = null)
+    {
+        var element = new CodeElement(id, CodeElementType.Class, id, id, parent) { IsExternal = true };
+        Link(parent, element);
+        return element;
+    }
+
     public CodeElement CreateRecord(string id, CodeElement? parent = null)
     {
         var element = new CodeElement(id, CodeElementType.Record, id, id, parent);
