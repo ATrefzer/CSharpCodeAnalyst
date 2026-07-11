@@ -415,6 +415,76 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         }
     }
 
+    /// <summary>
+    ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeQueryExpression" />
+    /// </summary>
+    public void AnalyzeQueryExpression(CodeElement sourceElement, QueryExpressionSyntax querySyntax,
+        SemanticModel semanticModel, RelationshipType operatorCallType = RelationshipType.Calls)
+    {
+        // A typed from clause ("from Foo x in xs") inserts a Cast<Foo>() call.
+        var fromClauseInfo = semanticModel.GetQueryClauseInfo(querySyntax.FromClause);
+        AddQueryOperatorRelationship(sourceElement, fromClauseInfo.CastInfo, querySyntax.FromClause, operatorCallType);
+
+        AnalyzeQueryBody(sourceElement, querySyntax.Body, semanticModel, operatorCallType);
+    }
+
+    private void AnalyzeQueryBody(CodeElement sourceElement, QueryBodySyntax body, SemanticModel semanticModel,
+        RelationshipType operatorCallType)
+    {
+        foreach (var clause in body.Clauses)
+        {
+            if (clause is OrderByClauseSyntax orderByClause)
+            {
+                // The operator (OrderBy/OrderByDescending/ThenBy/ThenByDescending) hangs on each
+                // ordering, not on the clause.
+                foreach (var ordering in orderByClause.Orderings)
+                {
+                    AddQueryOperatorRelationship(sourceElement, semanticModel.GetSymbolInfo(ordering), ordering, operatorCallType);
+                }
+            }
+            else
+            {
+                // where -> Where, let -> Select, join -> (Group)Join, from -> SelectMany, ...
+                var clauseInfo = semanticModel.GetQueryClauseInfo(clause);
+                AddQueryOperatorRelationship(sourceElement, clauseInfo.OperationInfo, clause, operatorCallType);
+                AddQueryOperatorRelationship(sourceElement, clauseInfo.CastInfo, clause, operatorCallType);
+            }
+        }
+
+        // select -> Select (absent for a degenerate "select x"), group -> GroupBy.
+        AddQueryOperatorRelationship(sourceElement, semanticModel.GetSymbolInfo(body.SelectOrGroup), body.SelectOrGroup, operatorCallType);
+
+        // "... into g ..." continues with a fresh clause list.
+        if (body.Continuation is not null)
+        {
+            AnalyzeQueryBody(sourceElement, body.Continuation.Body, semanticModel, operatorCallType);
+        }
+    }
+
+    private void AddQueryOperatorRelationship(CodeElement sourceElement, SymbolInfo symbolInfo, SyntaxNode clause,
+        RelationshipType operatorCallType)
+    {
+        if (symbolInfo.Symbol is not IMethodSymbol operatorMethod)
+        {
+            return;
+        }
+
+        // Same treatment as a spelled-out call (AddCallsRelationship): reduce extension methods,
+        // normalize generics, fall back to the containing type for externals (e.g. Enumerable).
+        var attributes = operatorMethod.IsExtensionMethod
+            ? RelationshipAttribute.IsExtensionMethodCall
+            : RelationshipAttribute.None;
+
+        var methodSymbol = operatorMethod.ReducedFrom ?? operatorMethod;
+        if (FindInternalCodeElement(methodSymbol) is null)
+        {
+            methodSymbol = methodSymbol.NormalizeToOriginalDefinition();
+        }
+
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, operatorCallType,
+            [clause.GetSyntaxLocation()], attributes);
+    }
+
     public void AnalyzeLocalDeclaration(CodeElement sourceElement, LocalDeclarationStatementSyntax localDeclaration,
         SemanticModel semanticModel)
     {

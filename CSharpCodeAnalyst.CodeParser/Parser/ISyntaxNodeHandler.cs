@@ -124,4 +124,14 @@ public interface ISyntaxNodeHandler
     /// </summary>
     void AnalyzeImplicitConversion(CodeElement sourceElement, ExpressionSyntax expression,
         SemanticModel semanticModel, RelationshipType relationshipType = RelationshipType.Calls);
+
+    /// <summary>
+    ///     Analyzes a LINQ query expression ("from x in xs where P(x) select F(x)"). Records the implicit
+    ///     query-pattern method calls the compiler synthesizes from the clauses (Where/Select/OrderBy/
+    ///     Join/Cast/...) - only for this query; sub-queries nested in clause expressions are reached by
+    ///     the lambda walker. The clause expressions themselves are NOT walked here: the walkers route
+    ///     them through the lambda semantics, because the compiler turns them into lambdas.
+    /// </summary>
+    void AnalyzeQueryExpression(CodeElement sourceElement, QueryExpressionSyntax querySyntax,
+        SemanticModel semanticModel, RelationshipType operatorCallType = RelationshipType.Calls);
 }

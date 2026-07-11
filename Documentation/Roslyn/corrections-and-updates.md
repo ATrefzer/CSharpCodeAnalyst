@@ -165,3 +165,34 @@ Method groups (`Register(HandleString)`) have been modelled for a long time: a `
 **Generic method groups are a different node type.** `Create<Widget>` is a `GenericNameSyntax`, not an `IdentifierNameSyntax`, so `VisitIdentifierName` never fired for it and a standalone generic method group produced no edge at all. `AnalyzeIdentifier` now takes the common base `SimpleNameSyntax` and the walkers visit generic names too. This is safe against double handling: generic names in type positions (`List<Foo> x`) resolve to a type symbol which `AnalyzeIdentifier` ignores, as invocation target (`Create<Widget>()`) the method-group guard rejects it, and the `.Name` of a member access is owned by `AnalyzeMemberAccess` and never visited separately. The type arguments of a generic method group (`Widget` in `Create<Widget>`) are recorded as `Uses`, mirroring the generic handling of invocations - for the qualified form (`Producer.Produce<Widget>`) as well, which previously lost them.
 
 **A method group converted to `System.Delegate` binds to no symbol.** For a `Func<...>`/`Action`-typed position (`Func<Widget> f = Create<Widget>;`) `GetSymbolInfo` returns the method. But when the target type is plain `System.Delegate` (or the conversion goes through the C# 10 natural function type), Roslyn reports `CandidateReason.OverloadResolutionFailure` with the group's members as candidates - **even though the code compiles without errors**. This affected non-generic method groups too (`Register(MakeWidget)` with a `Delegate` parameter silently produced no edge). When the symbol is null and there is exactly one method candidate, the reference is unambiguous and we use the candidate (`SingleMethodGroupCandidate`). A side benefit: in code with real overload-resolution errors (partially loaded solutions), a single-candidate reference now still yields its edge instead of nothing.
+
+## LINQ query syntax
+
+`from value in source where value > Threshold() select Shift(value)` is compiled into
+`source.Where(value => ...).Select(value => ...)` - method calls and lambdas that never appear in the
+syntax tree. No walker looked at query clauses, so two things were wrong: the implicit query-pattern
+calls (`Where`, `Select`, `OrderBy`, `Join`, `Cast`, ...) were never recorded, and the clause
+expressions ran through the normal method-body walker, giving `Threshold()`/`Shift(...)` a `Calls`
+edge even though they only execute if and when the query is enumerated.
+
+The modelling mirrors the compiler translation:
+
+- **The query-pattern methods get `Calls` edges** (with `IsExtensionMethodCall` when they bind to an
+  extension method). Building the query really does call `Where`/`Select` - deferred is only what
+  happens *inside* the resulting sequence. Roslyn exposes the bound methods per clause:
+  `GetQueryClauseInfo(clause).OperationInfo` (plus `.CastInfo` for a typed `from Foo x in ...`),
+  `GetSymbolInfo(ordering)` for each `orderby` ordering, `GetSymbolInfo(body.SelectOrGroup)` for the
+  final `select`/`group by` (empty for a degenerate `select x`), recursively through
+  `... into g ...` continuations.
+- **The clause expressions get lambda (`Uses`) semantics** - they are lambdas after translation. The
+  method-body walker hands the whole query body to a `LambdaBodyWalker`; only the source of the
+  *first* `from` clause keeps method-body semantics, because it is evaluated eagerly when the query
+  is built. (Simplification: the inner sequence of a `join` is also evaluated at build time but
+  currently gets `Uses` like the rest of the body.)
+- A query nested inside a lambda is deferred as a whole: there, the operator edges are `Uses` too.
+- Sub-queries nested in clause expressions are handled when the lambda walker reaches them, so their
+  operators are correctly `Uses`, never `Calls`.
+
+For the typical `IEnumerable` case the operators live in `System.Linq.Enumerable` (external →
+fallback `Uses` edge to the containing type when externals are enabled); for a custom query provider
+the edges point at the internal `Where`/`Select` implementations.

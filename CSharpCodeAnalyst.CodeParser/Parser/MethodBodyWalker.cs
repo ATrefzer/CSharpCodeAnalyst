@@ -140,4 +140,21 @@ internal class MethodBodyWalker : SyntaxWalkerBase
             lambdaWalker.Visit(node.Block);
         }
     }
+
+    /// <summary>
+    ///     LINQ query syntax. The implicit query-pattern calls (Where/Select/...) run when the query is
+    ///     built - real "Calls" of this method. The source of the first from clause is evaluated eagerly
+    ///     too, so it keeps method-body semantics. Everything else (clause expressions) is compiled into
+    ///     lambdas and gets the lambda "Uses" semantics. base is NOT called - the two visits below cover
+    ///     the whole query.
+    /// </summary>
+    public override void VisitQueryExpression(QueryExpressionSyntax node)
+    {
+        Analyzer.AnalyzeQueryExpression(SourceElement, node, SemanticModel);
+
+        Visit(node.FromClause.Expression);
+
+        var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
+        lambdaWalker.Visit(node.Body);
+    }
 }

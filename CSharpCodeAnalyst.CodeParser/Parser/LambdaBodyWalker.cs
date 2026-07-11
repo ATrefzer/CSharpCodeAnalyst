@@ -140,6 +140,17 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitElementBindingExpression(node);
     }
 
+    /// <summary>
+    ///     A query expression inside a lambda is deferred as a whole: the implicit query-pattern calls
+    ///     and the clause expressions are all "Uses". The default traversal already applies the right
+    ///     semantics to the clause expressions, so base is called normally.
+    /// </summary>
+    public override void VisitQueryExpression(QueryExpressionSyntax node)
+    {
+        Analyzer.AnalyzeQueryExpression(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitQueryExpression(node);
+    }
+
     // Nested lambdas are deliberately NOT skipped: the body of an inner lambda is "deferred twice",
     // which is still deferred - the Uses semantics of this walker apply unchanged, so the default
     // traversal simply descends into it. (They used to be skipped, silently losing every dependency
