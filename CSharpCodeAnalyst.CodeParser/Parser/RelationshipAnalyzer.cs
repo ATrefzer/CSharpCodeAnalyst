@@ -233,11 +233,11 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeIdentifier" />
     /// </summary>
-    public void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
+    public void AnalyzeIdentifier(CodeElement sourceElement, SimpleNameSyntax identifierSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls)
     {
         var symbolInfo = semanticModel.GetSymbolInfo(identifierSyntax);
-        var symbol = symbolInfo.Symbol;
+        var symbol = symbolInfo.Symbol ?? SingleMethodGroupCandidate(symbolInfo);
 
         // No guard needed - the walker ensures we only visit standalone identifiers
         // MemberAccess expressions handle their own identifiers explicitly
@@ -260,8 +260,41 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(identifierSyntax, methodSymbol))
         {
             // Foo passed/assigned/returned as a delegate (method group), not invoked.
-            var location = identifierSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            AddMethodGroupRelationship(sourceElement, methodSymbol, identifierSyntax.GetSyntaxLocation());
+        }
+    }
+
+    /// <summary>
+    ///     A method group converted to System.Delegate ("Register(Create&lt;Widget&gt;)" with a Delegate
+    ///     parameter) binds to no symbol: Roslyn reports OverloadResolutionFailure and puts the group's
+    ///     members into the candidates - even though the code compiles. With exactly one method candidate
+    ///     the reference is unambiguous, so we use it. (Func/Action-typed positions bind normally.)
+    /// </summary>
+    private static ISymbol? SingleMethodGroupCandidate(SymbolInfo symbolInfo)
+    {
+        if (symbolInfo is { CandidateReason: CandidateReason.OverloadResolutionFailure, CandidateSymbols: [IMethodSymbol candidate] })
+        {
+            return candidate;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///     Records the "Uses" edge (IsMethodGroup) for a method group reference. For a constructed generic
+    ///     method group (Create&lt;Widget&gt;) the type arguments are real dependencies too, mirroring the
+    ///     generic handling in AnalyzeInvocation.
+    /// </summary>
+    private void AddMethodGroupRelationship(CodeElement sourceElement, IMethodSymbol methodSymbol, SourceLocation location)
+    {
+        AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+
+        if (methodSymbol.IsGenericMethod)
+        {
+            foreach (var typeArg in methodSymbol.TypeArguments)
+            {
+                AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
+            }
         }
     }
 
@@ -298,7 +331,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
     {
         // Analyze the member being accessed (the right side of the dot)
         var symbolInfo = semanticModel.GetSymbolInfo(memberAccessSyntax);
-        var symbol = symbolInfo.Symbol;
+        var symbol = symbolInfo.Symbol ?? SingleMethodGroupCandidate(symbolInfo);
 
         if (symbol is IPropertySymbol propertySymbol)
         {
@@ -318,8 +351,7 @@ public class RelationshipAnalyzer : ISyntaxNodeHandler
         else if (symbol is IMethodSymbol methodSymbol && IsMethodGroupReference(memberAccessSyntax, methodSymbol))
         {
             // obj.Foo passed/assigned/returned as a delegate (method group), not invoked.
-            var location = memberAccessSyntax.GetSyntaxLocation();
-            AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Uses, [location], RelationshipAttribute.IsMethodGroup);
+            AddMethodGroupRelationship(sourceElement, methodSymbol, memberAccessSyntax.GetSyntaxLocation());
         }
 
         // Note: We don't recursively handle the Expression here.

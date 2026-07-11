@@ -28,14 +28,16 @@ public interface ISyntaxNodeHandler
         SemanticModel semanticModel);
 
     /// <summary>
-    ///     Analyzes standalone identifier references (fields, properties, etc.).
-    ///     Ownership: Handles ONLY standalone identifiers. Identifiers that are part of
-    ///     MemberAccessExpressions are NOT visited here - they're handled by AnalyzeMemberAccess.
+    ///     Analyzes standalone simple-name references (fields, properties, method groups, etc.).
+    ///     Covers both plain identifiers (IdentifierNameSyntax) and generic names (GenericNameSyntax,
+    ///     e.g. the method group "Create&lt;Widget&gt;") - hence the SimpleNameSyntax parameter.
+    ///     Ownership: Handles ONLY standalone names. Names that are part of MemberAccessExpressions are
+    ///     NOT visited here - they're handled by AnalyzeMemberAccess.
     ///     The propertyAccessType parameter controls whether property access creates "Calls" or "Uses" relationships.
     ///     Default is "Calls" for method bodies; lambda bodies should pass "Uses" because we don't know when/if the lambda
     ///     executes.
     /// </summary>
-    void AnalyzeIdentifier(CodeElement sourceElement, IdentifierNameSyntax identifierSyntax,
+    void AnalyzeIdentifier(CodeElement sourceElement, SimpleNameSyntax identifierSyntax,
         SemanticModel semanticModel, RelationshipType propertyAccessType = RelationshipType.Calls);
 
     /// <summary>

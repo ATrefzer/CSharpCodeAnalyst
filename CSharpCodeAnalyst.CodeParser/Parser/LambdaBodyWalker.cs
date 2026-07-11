@@ -102,6 +102,15 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         base.VisitIdentifierName(node);
     }
 
+    /// <summary>
+    ///     Standalone generic names (method group "Create&lt;Widget&gt;") - see MethodBodyWalker.
+    /// </summary>
+    public override void VisitGenericName(GenericNameSyntax node)
+    {
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel, RelationshipType.Uses);
+        base.VisitGenericName(node);
+    }
+
     public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
     {
         // Delegate to AnalyzeMemberAccess with "Uses" relationship type for lambdas.

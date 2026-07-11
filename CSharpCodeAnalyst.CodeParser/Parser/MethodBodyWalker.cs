@@ -27,6 +27,19 @@ internal class MethodBodyWalker : SyntaxWalkerBase
         base.VisitIdentifierName(node);
     }
 
+    /// <summary>
+    ///     Standalone generic names: the method group "Create&lt;Widget&gt;" is a GenericNameSyntax, not an
+    ///     IdentifierNameSyntax. Generic names in type positions (List&lt;Foo&gt; x) resolve to a type
+    ///     symbol and are ignored by AnalyzeIdentifier; as invocation target (Create&lt;Widget&gt;()) the
+    ///     method-group guard applies. The .Name of a member access is never visited (see
+    ///     VisitMemberAccessExpression), so there is no double handling.
+    /// </summary>
+    public override void VisitGenericName(GenericNameSyntax node)
+    {
+        Analyzer.AnalyzeIdentifier(SourceElement, node, SemanticModel);
+        base.VisitGenericName(node);
+    }
+
     public override void VisitInvocationExpression(InvocationExpressionSyntax node)
     {
         Analyzer.AnalyzeInvocation(SourceElement, node, SemanticModel);
