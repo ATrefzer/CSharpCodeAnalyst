@@ -1,25 +1,24 @@
 # Metrics
 
-This document explains the metrics computed by C# Code Analyst. 
+This guide explains the metrics that C# Code Analyst calculates.
 
-Rather than providing a large number of metrics, C# Code Analyst focuses on a small set that answers specific questions.
+Rather than providing many different metrics, C# Code Analyst focuses on a few that answer specific questions.
 
 C# Code Analyst provides four analyses:
 
 - **Type Dependencies** helps you find the most important and riskiest types in a solution.
 - **Type Cohesion** helps you find classes that are doing too many unrelated things and may need to be split.
 - **Method Complexity** helps you find the largest and most complicated methods.
-- **System Metrics** describes the code base as a whole with a single value per metric.
+- **System Metrics** describes the codebase as a whole with a single value per metric.
 
-Together, they help you understand an unfamiliar codebase and identify potential design issues.
+These analyses help you understand a new codebase and find possible design issues.
 
-Type Dependencies and Type Cohesion work at the type level, Method Complexity at the method level, and
-System Metrics at the level of the whole system. All are accessed from the *Analyzers* ribbon and their
-results appear in the Analyzer tab; cohesion additionally drills down into the Partitions tab.
+Type Dependencies and Type Cohesion focus on types, while Method Complexity examines methods.
+System Metrics looks at the entire system. You can access all these analyses from the *Analyzers* ribbon. Their results appear in a new tab, and for cohesion, you can see more details in the Partitions tab.
 
 ## Type Dependencies
 
-The goal of these metrics is to answer the questions you have when facing an unfamiliar codebase:
+The goal of these metrics is to answer common questions when you are working with an unfamiliar codebase:
 **Which types should I look at first?** And **how risky is it to change this one?**
 
 Available via *Analyzers → Type Dependencies*. The result is a sortable table with one row per type:
@@ -35,7 +34,7 @@ Available via *Analyzers → Type Dependencies*. The result is a sortable table 
 
 Types defined outside the analyzed solution (e.g., frameworks and NuGet packages) are excluded. Otherwise, ubiquitous types like `object` or `string` would dominate the Fan-in ranking.
 
-One note on how the dependencies are counted: If 10 methods in class `A` call 5 methods in class `B` and class `A` accesses one field in class `B`, we count one type dependency `A → B.` **Dependency is a yes/no fact in this context.** For the question "must I understand B in order to understand A?", the answer does not change whether A touches B in five places or fifty. A depends on B, full stop.
+Here's a quick note about counting dependencies: If 10 methods in class `A` call 5 methods in class `B`, and `A` also accesses a field in `B`, this still counts as one type dependency: `A → B`. **Dependency is simply yes or no here.** If you wonder, "Do I need to understand B to understand A?", the answer is the same whether A interacts with B five times or fifty. A depends on B, that's it.
 
 Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Implements`, `Overrides`, `UsesAttribute`, `Invokes`. You may have seen a `Handles` relationship in the code graph. This is ignored. It is a special relationship introduced to show which method handles an event. In terms of dependencies, this is the wrong direction. The dependency is recognized when the event is registered, however.
 
@@ -44,33 +43,33 @@ Relevant relationship types are `Calls`, `Creates`, `Uses`, `Inherits`, `Impleme
 - **Fan-in** = the number of distinct types that depend on this type. Also known as afferent coupling.
 - **Fan-out** = the number of distinct types this type depends on. Also known as efferent coupling.
 
-They answer two different questions, and both are worth reading:
+These metrics answer two different questions, and both are useful to consider:
 
-- **High Fan-in** → many things rest on this type. It is *foundational*. Changing it is risky (ripple effect), and it is usually worth understanding early.
-- **High Fan-out** → this type knows about many others. It is an *orchestrator* or a potential god-class. It is also a useful starting point, but for a different reason: it shows how behavior is coordinated across the system rather than which types form its foundation..
+- **High Fan-in** means many things rest on this type. It is *foundational*. Changing it is risky (with ripple effects), and it is usually worth understanding early.
+- **High Fan-out** means this type knows about many others. It acts as an *orchestrator* or could be a god-class. This makes it a good starting point for understanding how the system's behavior is coordinated, rather than which types are its foundation.
 
-The extremes are informative too:
+The extreme cases can also tell you a lot:
 
-- **Fan-in = 0** → nothing depends on this type. It is either an *entry point* (`Main`, a controller, a top-level command/handler) or *dead code*. Both are worth a look.
-- **Fan-out = 0** → this type depends on nothing in your solution. A *pure leaf*: a value type, enum or DTO, or a self-contained foundation. These are the stable bottom of the graph.
+- **Fan-in = 0** means nothing depends on this type. It could be an *entry point* (like `Main`, a controller, or a top-level command/handler) or just *dead code*. Either way, it's worth checking.
+- **Fan-out = 0** means this type doesn't depend on anything else in your solution. It's a *pure leaf*. Maybe a value type, enum, DTO, or a self-contained foundation. These types form the stable base of the graph.
 
 ### Blast radius
 
-**Blast radius** tells you how many other types may be affected when you change a type (transitive). The larger the number, the more carefully you should evaluate changes. Where Fan-in counts only the direct dependents, blast radius follows the incoming edges all the way out.
+**Blast radius** shows how many other types might be affected if you change a type (including indirect effects). The bigger the number, the more carefully you should consider making changes. While Fan-in only counts direct dependents, blast radius tracks all the way through the dependency chain.
 
-It answers a blunt, practical question: **how scared should I be to touch this?** A type with a blast radius of 3 is safer to refactor; one with a blast radius of 800 may ripple through most of the codebase.
+This metric answers a simple, practical question: **how risky is it to change this?** A type with a blast radius of 3 is much safer to refactor than one with a blast radius of 800, which could affect most of the codebase.
 
-Blast radius is a **flat count**: every type that can reach you counts as one, regardless of how important it is. That is the difference from Score — Score weights each dependent by its own importance while blast radius does not. A type used by 500 trivial leaves has a large blast radius but may have only a moderate Score. The type itself is never counted in its own blast radius.
+Blast radius is a **flat count**: every type that can reach you counts as one, regardless of its importance. That differs from Score — which weights each dependent by its importance. A type used by 500 trivial types has a large blast radius but only a moderate Score. The type itself is never counted in its own blast radius.
 
-Blast radius is always **≥ Fan-in** (the direct dependents are a subset of the transitive ones). When the two are far apart — small Fan-in, large blast radius — the type sits *deep*: few types touch it directly, but those few carry its influence across much of the codebase.
+Blast radius is always **≥ Fan-in** (direct dependents are a subset of transitive ones). When the two differ greatly — small Fan-in, large blast radius — the type sits *deep*: few types touch it directly, but those few carry its influence across much of the codebase.
 
 ### Score (PageRank)
 
-Fan-in alone has a blind spot: it treats every incoming dependency as equal. A logging utility used by 200 trivial classes gets a huge Fan-in, but it is not an architecturally important type — it is just ubiquitous. Conversely, a core domain type used by only a handful of *central* types can be more important than its raw Fan-in suggests.
+Fan-in, by itself, has a limitation: it treats every incoming dependency the same way. For example, a logging utility used by 200 simple classes will have a high Fan-in but is not actually important to the architecture—it's just used everywhere. On the other hand, a core domain type used by only a few key types can be more important than its Fan-in number shows.
 
 **Score** addresses this limitation by measuring *transitive* importance: a type is important when **important types depend on it**, not merely when many types do. This is the PageRank algorithm, the same idea Google originally used to rank web pages.
 
-(!) In everyday terms: on the web, PageRank estimates how likely you are to reach a page by following links; here it estimates how much of the rest of the codebase ultimately rests on a type — directly, and through the other types that rest on it. A high Score means a lot of your code leans on this type, so it is both what you most need to understand and what is riskiest to change.
+(!) In everyday terms: on the web, PageRank estimates how likely you are to reach a page by following links; here it estimates how much of the rest of the codebase rests on a type — directly and through other types that rest on it. A high Score means much of your code leans on this type, so it is both what you most need to understand and what is riskiest to change.
 
 Score is the PageRank value normalized so the **average type scores 1.0**:
 
@@ -80,11 +79,11 @@ Score is the PageRank value normalized so the **average type scores 1.0**:
 
 ### Reading the numbers
 
-1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry the most weight — the highest payoff to understand and the highest risk to change. That is not automatically where you start reading: it depends on your approach. Working bottom-up, these foundational types are the system's vocabulary and a natural starting point; working top-down, you may prefer to start with the orchestrators below and drill down into them.
+1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry the most weight — the highest payoff to understand and the highest risk to change. Working from the bottom up, these foundational types are the system's vocabulary and a natural starting point. Working top-down, you may prefer to start with the orchestrators below and drill down into them.
 2. Sort by **Fan-out** to find the major orchestrators — these often provide a good overview of how the system's behavior is coordinated.
 3. Sort by **Blast radius** before a refactoring — it tells you how far the ripples of a change to a type will reach.
-4. Watch for the disagreement between Fan-in and Score: a type with high Fan-in but modest Score is a widely-used utility (a logger, an extension-method holder); a type with modest Fan-in but high Score is a genuine architectural core. That gap is often the most informative signal in the table.
-5. **High Score together with high Fan-out** is the most dangerous combination: the type is both foundational (much rests on it) and an orchestrator (it knows everyone). Such types are often god classes you cannot change without touching a lot — the first candidate to break apart.
+4. Look for differences between Fan-in and Score. A type with high Fan-in but a modest Score is usually a widely used utility, such as a logger or an extension-method holder. A type with a modest Fan-in but a high Score is likely a true architectural core. This gap is often the most useful signal in the table.
+5. **High Score and high Fan-out together** is the riskiest combination. This type is both foundational (many things depend on it) and an orchestrator (it interacts with many others). These are often god classes that are hard to change without affecting a lot of code, so they are the first candidates to split up.
 
 ### How it is computed
 
@@ -96,7 +95,7 @@ PR(v) = (1 - d) / N  +  d · Σ  PR(u) / outdegree(u)
 ```
 
 - `N` = number of types, `d` = damping factor (0.85).
-- Edges are **not reversed.** Rank flows along `A → B` edges toward the depended-upon type `B`, so foundational types (base classes, interfaces, core services) accumulate rank and rise to the top.
+- Rank flows along `A → B` edges toward the depended-on type `B`, so foundational types (base classes, interfaces, core services) accumulate rank and rise to the top.
 
 The raw PageRank values form a **probability distribution**: they sum to 1 over all types, so on a large solution each value is tiny. The **Score** shown in the table is that value multiplied by `N` (the number of types), which rescales the average to exactly 1.0:
 
@@ -108,114 +107,100 @@ average Score = (1 / N) · N = 1
 
 - Metrics are structural only. They say nothing about code quality, correctness, or how hard a type is to read internally — only about its position in the dependency graph.
 - Dependencies are counted as yes/no; the strength or frequency of a coupling is not modeled.
-- External types are excluded, so a type whose real importance comes from being called by framework callbacks (e.g., a controller invoked only by ASP.NET) may rank lower than its runtime role. However, when counting externals at the type level, objects, strings, etc. would dominate immediately.
+- External types are excluded, so a type whose real importance comes from being called by framework callbacks (e.g., a controller invoked only by ASP.NET) may rank lower than its runtime role. However, counting externals at the type level would immediately let objects, strings, etc. dominate.
 
 
 ## Type Cohesion
 
-Where *Type Dependencies* looks at a class from the outside, **Type Cohesion** looks *inside* a class
-and answers a different question: **does this class contain multiple independent responsibilities — and if so, how many?**
+Where *Type Dependencies* looks at a class from the outside, **Type Cohesion** looks *inside* a class and answers a different question: **does this class contain multiple independent responsibilities and if so, how many?**
 
-Available via *Analyzers → Type Cohesion*. The result is a sortable table listing only the classes
-that are split candidates:
+Available via *Analyzers → Type Cohesion*. The result is a sortable table listing only the classes that are split candidates:
 
-| Column     | Meaning                                                                    |
-| ---------- | -------------------------------------------------------------------------- |
-| Class      | The fully qualified class name.                                            |
-| Partitions | Into how many independent groups the class's members fall.                 |
-| Members    | Number of direct members — size / priority context.                       |
-| Largest %  | Share of the members that sit in the biggest partition (see below).        |
+| Column     | Meaning                                                      |
+| ---------- | ------------------------------------------------------------ |
+| Class      | The full path to the class.                                  |
+| Partitions | Into how many independent groups the class's members fall.   |
+| Members    | Number of direct members in the partition — size / priority context. |
+| Largest %  | Share of the members that sit in the biggest partition (see below). |
 
 Double-click a row to open its partitions in the *Partitions* tab.
 
 ### What a partition is
 
-The members of a class (methods, fields, properties, …) are **connected** when one calls the other, or they access the same field. Members belong to the same *partition* when they work together. If two groups of members never interact, they end up in different *partitions*.
+The members of a class (methods, fields, properties, etc.) are **connected** when one calls another or they use the same field. Members are in the same *partition* when they work together. If two groups never interact, they end up in different *partitions*.
 
-Multiple partitions often indicate that a class contains multiple responsibilities..
+If a class has multiple partitions, it often means the class has several responsibilities.
 
 - **1 partition** → fully cohesive: everything is interconnected. (These classes are *not* listed.)
-- **N ≥ 2 partitions** → the class is really N separable units. It could be split into N smaller,
-  more focused classes.
+- **N ≥ 2 partitions** → the class is really N separable units. It could be split into N smaller, more focused classes.
 
 This is the connected-components view of cohesion (LCOM4).
 
-Only **classes** are analyzed (not structs, records or interfaces). Pure data holders are skipped: a class with fewer than two methods has too little behavior for cohesion to mean anything, and would otherwise show up as maximally "incohesive" (each field its own partition).
+Only **classes** are analyzed, not structs, records, or interfaces. Pure data holders are skipped. If a class has fewer than two methods, it doesn't have enough behavior for cohesion to matter, and would otherwise appear maximally "incohesive" (each field would be its own partition).
 
 ### Base classes are folded in
 
-Methods of a class may be linked together through base-class members. 
+Methods in a class can be linked through members inherited from a base class.
 
-Therefore, base-class members are pulled in as **connectors**: they link the class's own members that interact through inherited state or behavior, but are then **projected out** of the reported partitions — because a split concerns the members *this* class actually owns.  External base classes are ignored.
+So, base-class members are included as **connectors**: they link the class's own members that interact through inherited state or behavior. However, they are then **left out** of the reported partitions, since splitting only concerns the members that belong to this class. External base classes are ignored.
 
 ### Reading the numbers
 
-**Partitions** tells you *that* a class falls apart; **Largest %** tells you *whether it is worth splitting*. Two classes with the same partition count can be very different:
+**Partitions** shows you if a class can be split up, while **Largest %** tells you if it's worth splitting. Two classes with the same number of partitions can be very different:
 
 | Class | Partitions | Members | Largest % | Reading                                                      |
 | ----- | ---------- | ------- | --------- | ------------------------------------------------------------ |
 | X     | 2          | 19      | 53 %      | 10 vs 9 — a class that contains two distinct responsibilities. |
 | Y     | 2          | 19      | 95 %      | 18 vs 1 — one cohesive blob plus a stray helper.             |
 
-**Largest %** is the size of the biggest partition divided by all partitioned members:
+**Largest %** is the size of the biggest partition divided by the total number of members:
 
-- Near **100 %** → one dominant group plus a few strays. The "split" is trivial (shed one method). Low priority.
-- Near **1 / Partitions** (evenly divided) → the class breaks into balanced, separate responsibilities. A real refactoring candidate. High priority.
+- If **Largest %** is close to 100%, there is one main group and only a few outliers. Splitting is easy (just remove one method), so it's a low priority.
+- If **Largest %** is close to 1 divided by the number of partitions (evenly divided), the class splits into balanced, separate responsibilities. This is a strong candidate for refactoring and should be a high priority.
 
-Read the three columns together:
+Look at all three columns together:
 
 - **Many Partitions + many Members + low Largest %** → the worst offenders: a big class that genuinely breaks into several balanced, separate parts. Sort by **Largest % ascending** to bring these to the top, and use **Members** to pick the higher-priority candidates among them.
 - **High Partitions + high Largest %** → the opposite shape: one solid core and many tiny, unrelated helpers. You can peel these off one at a time rather than doing a big split.
-- **Few Members with ≥ 2 partitions** → low stakes. Technically incohesive, but too small to be worth acting on.
+- **Few Members with two or more partitions** means it's low stakes. The class is technically incoherent, but it's too small to worry about.
 
 ### Drilling into the partitions
 
-Double-clicking a row (or right-click → *Show partitions*) opens the concrete groups in the
-*Partitions* tab, so you immediately see *which* members would go where.
+Double-click a row (or right-click and choose *Show partitions*) to open the specific groups in the *Partitions* tab. This lets you see right away which members would go where.
 
 ### When a god class still shows one partition
 
-A good example is a WPF/MVVM view model. Each observable property setter calls the same
-`OnPropertyChanged` helper, so all of them are linked through that one method. On top of that, most
-handlers read the same infrastructure fields — a message bus, a UI-notification service, a busy-state
-flag. Those shared members act as connectors among all features. The result: a 1000-line view model
-with a dozen unrelated commands can report a **single partition** even though it clearly does many
-separate things.
+A good example is a WPF/MVVM view model. Each observable property setter calls the same 
+`OnPropertyChanged` helper, so all of them are linked through that one method. On top of that, most handlers read the same infrastructure fields — a message bus, a UI notification service, a busy state flag. Those shared members act as connectors among all features. The result: a 1000-line view model with a dozen unrelated commands can report a **single partition** even though it clearly does many separate things.
 
-So a single partition shows only high structural cohesion. This means no group of members is *structurally* disconnected and pervasive plumbing prevents that almost by design. When you know a class is
-large and does many unrelated things but shows one partition, suspect a hub. Look for a member that
-nearly everything calls (an `OnPropertyChanged`) or reads (a shared service).
+So, a single partition only shows high structural cohesion. This means no group of members is *structurally* disconnected and pervasive plumbing prevents that almost by design. When you know a class is large and does many unrelated things but still shows one partition, it's probably a hub. Look for a member that is called by almost everything (like `OnPropertyChanged`) or reads (like a shared service).
 
-The partitioner measures connectivity in the member graph, not **conceptual relatedness**. A ‘God Object’ defined by centralizing shared infrastructure (a message bus, a UI notifier, busy state) appears coherent when assessed by a connectivity-cohesion metric. This is where the two perspectives diverge: conceptually low cohesion, structurally high connectivity via shared plumbing.
+The partitioner measures how connected members are, not whether they are conceptually related. A 'God Object' that centralizes shared infrastructure (like a message bus, UI notifier, or busy state) can look cohesive by this metric. This is where the two views differ: conceptually, the class has low cohesion, but structurally, it appears highly connected due to shared infrastructure.
 
-Note that you can use the simulated Refactoring feature to eliminate hubs from the model before the analysis.
+Note that you can use the simulated Refactoring feature to eliminate hubs from the model before analysis.
 
 ### Limitations
 
 - Only in-solution base classes are folded in; members inherited from framework types are not visible to the analysis.
-- Static utility classes and miscellaneous helper classes legitimately show many partitions — a high partition count is not automatically a defect, only a signal that the members do not interact.
-- Cohesion is structural: it sees which members touch the same state, not whether they belong together *conceptually*.
-- A single hub member — an `OnPropertyChanged` helper, a pervasive service field — connects otherwise-independent members and can collapse a genuine multi-responsibility class to one partition. See [When a god class still shows one partition](#when-a-god-class-still-shows-one-partition).
+- Static utility classes and helper classes often have many partitions. A high partition count is not always a problem; it just means the members do not interact.
+- Cohesion here is structural: it checks which members use the same state, not whether they belong together *conceptually*.
 
 ## Method Complexity
 
-Where the other two analyses look at *types*, **Method Complexity** zooms in on individual **methods**
-and answers: **which methods are the largest and the most complicated**
+While the other two analyses focus on *types*, **Method Complexity** looks at individual **methods** and answers: **Which methods are the largest and most complicated?**
 
-Available via *Analyzers → Method Complexity*. Because the numbers come from the method bodies, they
-are **collected during import** of a C# solution and stored with the project. Graphs imported from
-other sources (e.g. jdeps or plain text) have no source metrics, and the analyzer tells you so.
+You can find this analysis in *Analyzers → Method Complexity*. The numbers come from the method bodies and are **collected during import** of a C# solution, then stored with the project. If you import graphs from other sources (like jdeps or plain text), there are no source metrics, and the analyzer will let you know.
 
 The result is a sortable table with one row per method:
 
-| Column     | Meaning                                                                      |
-| ---------- | ---------------------------------------------------------------------------- |
-| Method     | The fully qualified method name.                                            |
-| Code       | Lines that contain actual code (comment-only and blank lines excluded).      |
-| Statements | Number of executable statements — the size independent of formatting.        |
-| Comments   | Comment-only lines, including the `///` documentation comment above.          |
-| Comment %  | Comments ÷ (Code + Comments) — a rough documentation density.                |
-| Complexity | Cyclomatic complexity (see below).                                          |
+| Column     | Meaning                                                      |
+| ---------- | ------------------------------------------------------------ |
+| Method     | The fully qualified method name.                             |
+| Code       | Lines that contain actual code (comment-only and blank lines excluded). |
+| Statements | Number of executable statements — the size independent of formatting. |
+| Comments   | Comment-only lines, including the `///` documentation comment above. |
+| Comment %  | Comments ÷ (Code + Comments) — a rough documentation density. |
+| Complexity | Cyclomatic complexity (see below).                           |
 
 ### How the numbers are computed
 
@@ -226,30 +211,30 @@ All values are read straight from the method's syntax, no formatting assumptions
 - **Statements** count executable statements (wrapping `{ }` blocks are not counted). An expression-bodied method (`=> expr`) counts as one. Independent of how it is laid out.
 
 - **Complexity** is the McCabe cyclomatic complexity: `1` plus one for every decision point — `if`, `while`, `for`, `foreach`, `case`, `catch`, the `?:` operator and the `&&` / `||` / `??` operators. Compound conditions like `if (a && b || c)` are counted as multiple decision points because the short-circuit operators create extra branches. Here, various tools can vary.
-  This is roughly the number of independent paths through the method, i.e., the number of test cases required to cover it.
-  
+  This is roughly the number of independent paths through the method, or the number of test cases needed to cover it.
+
   Note: In graph theory, the metric is `V(G) = E − N + 2`. This is the number of linearly independent paths through the code. Most tools, however, use the simpler version `V(G) ≈ 1 + D`, where `D` is the number of decision points. Each decision point typically adds exactly one extra edge and one extra node, increasing complexity by 1. The approximation works well for structured code.
 
 ### Reading the table
 
 - Sort by **Complexity** (default) to find the branchiest methods — the ones most error-prone and hardest to reason about.  Some consensus guidelines:
-  
-  - Complexity ≤ 10: Good/simple
-  
-  - 11–20: Moderate
-  
-  - 21–50: Complex (should refactor)
-  
-  - 50: Very high risk
-  
-- Sort by **Code** or **Statements** to find methods that are unusually long. **Code** still varies with how the method is laid out — brace style (K&R vs. Allman), one statement per line versus several packed together — so two methods with identical logic can end up with different **Code** counts. **Statements** does not: it counts the syntactic units directly, independent of line breaks, which makes it the fairer size when comparing methods written in different layout styles.
 
-- **Comment %** is context, not a target: near-zero on a complex method may mean it is under-documented. A high value is not automatically good.
+  - Complexity ≤ 10: Good/simple
+
+  - 11–20: Moderate
+
+  - 21–50: Complex (should refactor)
+
+  - 50: Very high risk
+
+- Sort by **Code** or **Statements** to find unusually long methods. **Code** can vary depending on formatting, like brace style (K&R vs. Allman) or whether you put one statement per line or several together. So, two methods with the same logic might have different **Code** counts. **Statements** is more consistent because it counts the actual code units, not line breaks, making it a fairer way to compare methods with different layouts.
+
+- **Comment %** is just for context, not a target. If a complex method has almost no comments, it might be under-documented. But a high comment percentage is not always good either.
 
 ### Limitations
 
 - Metrics are collected when importing a C# solution and stored with the project. Graphs imported
-  from other sources (e.g. jdeps or plain text) have no source metrics.
+  from other sources (e.g. jdeps or simple text) have no source metrics.
 - The counts are structural, not semantic: they measure size and branching, not whether the logic is
   actually complicated or the comments are useful.
 - Complexity counts syntactic decision points; the exact set differs slightly between tools, so absolute
@@ -257,8 +242,7 @@ All values are read straight from the method's syntax, no formatting assumptions
 
 ## System Metrics
 
-Where the other analyses produce one row per type or method, **System Metrics** describes the code base
-*as a whole*: each metric is a single value. Available via *Analyzers → System Metrics*; the result is a
+While the other analyses give you one row per type or method, **System Metrics** summarizes the whole codebase with a single value for each metric. You can find these in *Analyzers → System Metrics*; the result is a
 small table with one row per metric.
 
 | Metric            | Meaning                                                      |
@@ -270,11 +254,10 @@ small table with one row per metric.
 
 ### Propagation cost
 
-Propagation cost answers a single, blunt question about the whole code base: **if I change a random
-type, how much of the rest of the system can the change ripple to on average?**
+Propagation cost answers a straightforward question about the whole code base: **if I change a random type, how much of the rest of the system can the change ripple to on average?**
 
 It is computed on the type-level dependency graph — the same graph the Type Dependencies analyzer uses:
-relationships are lifted to their containing type, deduplicated, and external types are excluded. On that
+Relationships are lifted to their containing type, deduplicated, and external types are excluded. On that
 graph we take the *transitive* reach of every type and average it:
 
 ```
@@ -288,15 +271,11 @@ So it is the density of the reachability ("who can reach whom") relation, expres
 - **0 %** → fully decoupled: no type can reach any other. Nothing ripples.
 - **100 %** → every type can reach every other type. A change can, in principle, touch everything.
 
-This is the classic *propagation cost* of MacCormack, Rusnak and Baldwin, and it is closely related to
-**blast radius**: blast radius is the transitive reach of a *single* type, propagation cost is the average
-of that reach over all types, normalized to a percentage.
+This is the classic *propagation cost* of MacCormack, Rusnak and Baldwin, and it is closely related to **blast radius**: blast radius is the transitive reach of a *single* type, propagation cost is the average of that reach over all types, normalized to a percentage.
 
-**How to read it:** Do **not** treat the absolute number as a grade — it depends heavily on the size and
-nature of the system, and there is no universal "good" threshold. Its value is as a **trend**: track it
-across imports. A propagation cost that climbs release over release means changes are getting harder to
-contain; one that falls means the architecture is decoupling. It pairs naturally with the cycle analysis —
-large cycles are one of the main drivers of a high propagation cost.
+**How to read it:** Do **not** treat the absolute number as a grade. It depends a lot on the size and
+nature of the system, and there is no universal "good" threshold. The real value is in the **trend**: track it over time. If propagation cost goes up with each release, it means changes are getting harder to
+contain. If it goes down, the architecture is becoming more decoupled. This metric works well with cycle analysis, since large cycles are a main cause of high propagation costs.
 
 ### Cyclicity
 
@@ -307,21 +286,16 @@ types that sit inside a cycle:
 cyclicity = (types that belong to a strongly connected component of ≥ 2 types) / N
 ```
 
-It runs on the same type-level graph as propagation cost. We compute the strongly connected components
-(SCCs) with the same Tarjan algorithm the cycle search uses; a type counts as "cyclic" when it sits in an
+It runs on the same type-level graph as propagation cost. We compute the strongly connected components (SCCs) with the same Tarjan algorithm the cycle search uses; a type counts as "cyclic" when it sits in an
 SCC of two or more types. A lone type is trivially its own SCC and does not count (self dependencies are
 ignored).
 
 - **0 %** → the type graph is acyclic — the ideal.
 - **100 %** → every type is part of one big knot.
 
-Unlike propagation cost, cyclicity *does* have a natural target: **lower is always better, and 0 % is a
-meaningful goal** at the type level. It is the single-number companion to the *Cycles* view: the Cycle
-Groups tab shows you *which* cycles exist, cyclicity tells you *how much* of the system they involve and
-whether that share is shrinking release over release.
+A **lower value is always better, and 0% is a meaningful goal** at the type level. This is the single-number companion to the *Cycles* view: the Cycle Groups tab shows you *which* cycles exist, while cyclicity tells you *how much* of the system they involve and whether that share is shrinking with each release.
 
-Note this is the system-wide figure. A per-namespace / per-assembly breakdown (which module is the most
-tangled) is a natural follow-up but is not computed yet.
+Note this is the system-wide figure. A per-namespace / per-assembly breakdown (which module is the most tangled) is a natural follow-up but has not been computed yet.
 
 ## Why not Robert C. Martin's package metrics?
 
@@ -330,4 +304,4 @@ Martin's package (component, here assembly) metrics are frequently cited: **Inst
 `D = |A + I − 1|`, where `Ca` / `Ce` are the afferent / efferent coupling of a *package*. I
 deliberately **do not** compute them. The reasons:
 
-While many books and articles mention these metrics, I can barely find anyone who actually uses them to improve anything. Even worse, abstractness is a shallow syntactic count. A is just *interfaces + abstract classes ÷ all types*. It confuses "number of interfaces" with genuine abstraction: extracting an interface to raise the score does not make a design more abstract, and optimizing for the number invites interface-for-its-own-sake churn. **Distance** is built on A and inherits this weakness. This is a common criticism in practice, and matches our own experience: the metric is quoted far more often than it is acted upon. I'm curious. If you use these metrics, please create an issue and let me know.
+Many books and articles mention these metrics, but I rarely see anyone actually use them to make improvements. Even worse, abstractness is just a simple count: A is *interfaces + abstract classes ÷ all types*. This confuses the "number of interfaces" with real meaningful abstraction. Creating interfaces just to raise the score does not make a design better, and focusing on the number can lead to unnecessary interfaces. **Distance** is based on A and has the same problem. This criticism is common in practice and matches my own experience: people quote the metric more often than they use it. If you use these metrics, please open an issue and let me know.
