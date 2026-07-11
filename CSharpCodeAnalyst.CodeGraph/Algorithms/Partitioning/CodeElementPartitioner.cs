@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;

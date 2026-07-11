@@ -56,4 +56,9 @@ public class Analyzer : IAnalyzer
     }
 
     public event EventHandler? DataChanged;
+
+    protected virtual void OnDataChanged()
+    {
+        DataChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

@@ -67,7 +67,25 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("AddParent", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add direct c_hildren.
+        /// </summary>
+        public static string AddDirectChildren {
+            get {
+                return ResourceManager.GetString("AddDirectChildren", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add direct children.
+        /// </summary>
+        public static string AddDirectChildren_DialogTitle {
+            get {
+                return ResourceManager.GetString("AddDirectChildren_DialogTitle", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Add parents.
         ///If code elements are selected, their parent is added. 

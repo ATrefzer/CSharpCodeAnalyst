@@ -33,9 +33,9 @@ internal class CycleGroupViewModel : TableRow
                 .Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Namespace;
         }
-        else if (CycleGroup.CodeGraph.Nodes.Values.Any(n => IsType(n.ElementType)))
+        else if (CycleGroup.CodeGraph.Nodes.Values.Any(n => n.IsType()))
         {
-            vms = nodes.Where(n => IsType(n.ElementType))
+            vms = nodes.Where(n => n.IsType())
                 .Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Type;
         }
@@ -94,15 +94,4 @@ internal class CycleGroupViewModel : TableRow
     public CycleLevel Level { get; }
 
     public CycleGroup CycleGroup { get; }
-
-    private static bool IsType(CodeElementType type)
-    {
-        return type is
-            CodeElementType.Class or
-            CodeElementType.Interface or
-            CodeElementType.Enum or
-            CodeElementType.Delegate or
-            CodeElementType.Struct or
-            CodeElementType.Record;
-    }
 }

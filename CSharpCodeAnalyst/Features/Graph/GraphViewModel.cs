@@ -97,6 +97,13 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithoutChildren, RemoveWithoutChildren, icon: removeWithoutChildren));
         _state.AddCommand(new CodeElementContextCommand(Strings.RemoveWithChildren, RemoveWithChildren, icon: removeWithChildren));
         _state.AddCommand(new CodeElementContextCommand(Strings.AddParent, OnAddParent, icon: addParent));
+
+        // Add direct children: offered on any type (class, struct, record, interface, enum, ...).
+        // Opens a small multi-select dialog listing the type's direct members so the user can pull
+        // selected ones onto the canvas without dragging them individually from the tree.
+        _state.AddCommand(new CodeElementContextCommand(Strings.AddDirectChildren, OnAddDirectChildren,
+            e => e.IsType()));
+
         _state.AddCommand(new SeparatorCommand());
 
 
@@ -535,6 +542,54 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     private void OnAddParent(CodeElement codeElement)
     {
         AddParents([codeElement.Id]);
+    }
+
+    /// <summary>
+    ///     Opens a dialog listing the direct children of the given type (from the full code graph,
+    ///     not just those already on the canvas) and adds the selected ones. The path is implicit:
+    ///     the children are added under the type the menu was invoked on. Cancel adds nothing.
+    /// </summary>
+    private void OnAddDirectChildren(CodeElement codeElement)
+    {
+        // Use the full-graph element so we offer every direct child, not only the ones that
+        // happen to be on the canvas already.
+        var fullElement = _explorer.GetElements([codeElement.Id]).FirstOrDefault();
+        if (fullElement is null)
+        {
+            return;
+        }
+
+        var children = fullElement.Children
+            .OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (children.Count == 0)
+        {
+            return;
+        }
+
+        var viewModel = new AddChildrenDialogViewModel(children);
+        var dialog = new AddChildrenDialog(viewModel)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var selected = viewModel.SelectedElements;
+        if (selected.Count == 0)
+        {
+            return;
+        }
+
+        // Adding an element already present is a no-op, so no need to filter the selection.
+        AddToGraph(selected, [], focusId: codeElement.Id);
+
+        // The type may be collapsed; expand it so the children we just added become visible.
+        // Both changes coalesce into a single (debounced) render, so the focus hint survives.
+        _state.Expand(codeElement.Id);
     }
 
     private void OnAddParents()

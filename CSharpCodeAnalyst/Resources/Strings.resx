@@ -125,6 +125,12 @@
     <data name="AddParent" xml:space="preserve">
     <value>Add _parent</value>
   </data>
+    <data name="AddDirectChildren" xml:space="preserve">
+    <value>Add direct c_hildren</value>
+  </data>
+    <data name="AddDirectChildren_DialogTitle" xml:space="preserve">
+    <value>Add direct children</value>
+  </data>
     <data name="AllIncomingRelationships" xml:space="preserve">
     <value>All in_coming relationships</value>
   </data>

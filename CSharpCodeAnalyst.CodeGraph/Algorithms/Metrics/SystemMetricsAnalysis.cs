@@ -42,7 +42,7 @@ public static class SystemMetricsAnalysis
         ArgumentNullException.ThrowIfNull(graph);
 
         var typeIds = graph.Nodes.Values
-            .Where(n => IsType(n) && !n.IsExternal)
+            .Where(n => n.IsType() && !n.IsExternal)
             .Select(n => n.Id)
             .ToHashSet();
 
@@ -140,19 +140,12 @@ public static class SystemMetricsAnalysis
     private static CodeElement? ContainingType(Graph.CodeGraph graph, string elementId)
     {
         var current = graph.TryGetCodeElement(elementId);
-        while (current is not null && !IsType(current))
+        while (current is not null && !current.IsType())
         {
             current = current.Parent;
         }
 
         return current;
-    }
-
-    private static bool IsType(CodeElement element)
-    {
-        return element.ElementType is CodeElementType.Class or CodeElementType.Interface
-            or CodeElementType.Struct or CodeElementType.Record or CodeElementType.Enum
-            or CodeElementType.Delegate;
     }
 
     /// <summary>
