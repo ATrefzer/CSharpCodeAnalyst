@@ -9,7 +9,6 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 public abstract class RuleBase
 {
     public string RuleText { get; set; } = string.Empty;
-    public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     ///     The keyword this rule is known by in the rules text, used wherever a violation names its

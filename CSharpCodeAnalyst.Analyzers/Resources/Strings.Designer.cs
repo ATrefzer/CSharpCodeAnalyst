@@ -123,6 +123,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: {1} ({2} violation(s)).
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_DependencyViolation {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_DependencyViolation", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to max. {0}.
         /// </summary>
         public static string ArchitecturalRules_Metric_Max {

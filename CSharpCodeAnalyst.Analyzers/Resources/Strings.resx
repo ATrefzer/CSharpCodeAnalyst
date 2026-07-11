@@ -159,6 +159,9 @@
   <data name="Analyzer_ArchitecturalRules_MetricExceeded" xml:space="preserve">
     <value>{0} rule violated: the measured value of the system is {1}, at most {2} is allowed.</value>
   </data>
+  <data name="Analyzer_ArchitecturalRules_DependencyViolation" xml:space="preserve">
+    <value>{0} rule violated: {1} ({2} violation(s))</value>
+  </data>
   <data name="ArchitecturalRules_Metric_Max" xml:space="preserve">
     <value>max. {0}</value>
   </data>

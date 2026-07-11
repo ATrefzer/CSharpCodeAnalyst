@@ -24,7 +24,10 @@ public class Analyzer : IAnalyzer
     private bool _isDirty;
     private ArchitecturalRulesDialog? _openDialog;
     private List<RuleBase> _rules = [];
-    private string _rulesText;
+
+    // Stays empty until the user validates or a saved project is loaded. The sample rules are
+    // only a dialog placeholder and must never be persisted as if the user had written them.
+    private string _rulesText = string.Empty;
 
     // Violations of the last validation run - the source for "Accept Baseline".
     private List<Violation> _lastViolations = [];
@@ -43,8 +46,6 @@ public class Analyzer : IAnalyzer
         {
             app.Exit += OnApplicationExit;
         }
-
-        _rulesText = GetSampleRules();
     }
 
     public void Analyze(CodeGraph.Graph.CodeGraph graph)

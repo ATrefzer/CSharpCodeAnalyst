@@ -1,4 +1,5 @@
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
+using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
@@ -62,7 +63,10 @@ public class Violation
 
     private string GenerateDescription()
     {
-        var count = ViolatingRelationships.Count;
-        return $"{Rule.DisplayName} rule violated: {Rule.RuleText} ({count} violation{(count != 1 ? "s" : "")})";
+        return string.Format(
+            Strings.Analyzer_ArchitecturalRules_DependencyViolation,
+            Rule.DisplayName,
+            Rule.RuleText,
+            ViolatingRelationships.Count);
     }
 }

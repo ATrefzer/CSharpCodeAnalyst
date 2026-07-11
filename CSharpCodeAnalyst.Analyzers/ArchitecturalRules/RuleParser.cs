@@ -66,7 +66,8 @@ public static class RuleParser
             return rules;
         }
 
-        var lines = rulesText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        // Keep empty entries so that the reported line numbers match the input text.
+        var lines = rulesText.Split('\n');
 
         for (var i = 0; i < lines.Length; i++)
         {
