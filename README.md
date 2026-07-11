@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/ATrefzer/CSharpCodeAnalyst)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/ATrefzer/CSharpCodeAnalyst)](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest)
 
-This desktop application helps you **explore, understand, and maintain** large C# codebases — especially when dealing with complex dependencies and architectural issues.
+This desktop app helps you explore, understand, and manage large C# codebases, especially when you face complex dependencies or architectural challenges.
 
 ![](Documentation/Images/quick-start.png)
 
@@ -18,13 +18,13 @@ This desktop application helps you **explore, understand, and maintain** large C
 
 - **Full code graph analysis** of your Visual Studio solution
 - **Cycle detection & breaking**
-- **AI Advisor** – get refactoring suggestions on how to break cycles from a large language model.
+- **AI Advisor** – get refactoring ideas for breaking cycles, powered by a large language model.
 - **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
-- **Simulated Refactoring** – test structural changes without touching your source code
+- **Simulated Refactoring** – try out structural changes without changing your source code
 - **Architectural Rules** – define and validate allowed dependencies and metric thresholds.
 - **Advanced search & navigation**
 - **Export** to PlantUML, DGML, PNG/SVG, and more
-- **GIT History Analysis** - perform a hotspot or change coupling analysis on your GIT repository.
+- **GIT History Analysis** - run hotspot or change coupling analysis on your GIT repository.
 
 ## Requirements
 
@@ -38,18 +38,18 @@ This desktop application helps you **explore, understand, and maintain** large C
 2. Extract the zip and run `CSharpCodeAnalyst.exe`
 3. Go to **Home → Import → Import Visual Studio solution**
 
-This builds a complete in-memory graph **model** of your solution (assemblies, namespaces, types, members and relationships).
+This builds a complete in-memory graph **model** of your solution including assemblies, namespaces, types, members, and relationships.
 
-> **Good to know:** The tool analyzes the code graph, not the file system — the source directory structure is ignored. External assemblies are excluded by default (opt in via settings). See [Limitations](#limitations) for details.
+> **Good to know:** The tool analyzes the code graph, not the file system. The source directory structure is ignored. External assemblies are excluded by default but can be included via settings. See [Limitations](#limitations) for details.
 
 ### What you can do from here
 
-- **[Find and break dependency cycles](#find-and-break-dependency-cycles)** — detect strongly connected components and get AI suggestions to break them
-- **[Explore your codebase](#explore-your-codebase)** — trace calls, expand inheritance trees, and follow relationships on an interactive canvas
+- **[Find and break dependency cycles](#find-and-break-dependency-cycles)** – detect strongly connected components and get AI suggestions for breaking them
+- **[Explore your codebase](#explore-your-codebase)** – trace calls, expand inheritance trees, and follow relationships on an interactive canvas
 - **[Export your graph](#export-your-graph)** — PlantUML, DGML, PNG/SVG, and more for documentation or further analysis
 - **[Validate architectural rules](#validate-architectural-rules)** — define DENY / RESTRICT / ISOLATE rules and check them, in the app or in CI
 
-Independent from the dependency graph tools, you can also analyze a GIT history using the **History Tool**
+Besides the dependency graph tools, you can also analyze GIT history with the **History Tool**.
 
 - **[Analyze a GIT repoository](#analyze-a-git-repository)** 
 
@@ -68,7 +68,7 @@ The cycle search always runs on the complete model.
 
 **Note:** The cycle search function finds strongly connected components in the code graph, not the elementary cycles.
 
-A strongly connected component is a sub-graph where a path exists between any two nodes. There may be more than one elementary cycle in the same strongly connected component.
+A strongly connected component is a subgraph where a path exists between any two nodes. There may be more than one elementary cycle in the same strongly connected component.
 
 The cycle search result is presented in the **Cycle Groups** Tab.
 
@@ -88,15 +88,15 @@ To use this feature, open **Settings** and enter your API endpoint and key. The 
 
 > **Use with care.** The AI suggestions are generated without any knowledge of your actual business domain, team conventions, or broader system constraints. They may be technically incorrect, impractical, or simply not applicable to your situation.
 
-That said, the feature can be genuinely useful for getting a first set of ideas when you are staring at a complex cycle and don't know where to begin. The AI often recognizes structural patterns — such as hidden abstractions, circular service dependencies, or missing interfaces — that are worth considering. The advice can be saved as a Markdown file for later reference.
+Still, this feature can be very helpful for getting initial ideas when you face a complex cycle and are unsure where to start. The AI often spots structural patterns, like hidden abstractions, circular service dependencies, or missing interfaces, that are worth considering. You can save the advice as a Markdown file for later.
 
 ![](Documentation/Images/ai-advise.png)
 
 ### Simulated refactoring
 
-The refactoring simulation feature is basic but useful. It helps you to explore how changes to the code structure affect cyclic dependencies without modifying the actual source code. A typical scenario involves identifying a large cyclic cluster, making adjustments in the source code, and re-importing the solution - only to find the cycle still unresolved. This process can be repetitive and time-consuming.
+The refactoring simulation feature is simple but helpful. It lets you see how changes to your code structure affect cyclic dependencies without changing your source code. Often, you might find a large cyclic cluster, make changes in the code, and re-import the solution, only to see the cycle still there. This can be repetitive and take a lot of time.
 
-To streamline this, the tree view includes a Refactoring context menu. It enables basic refactoring directly on the graph, bypassing the need to edit the source code.
+To streamline this, the tree view includes a Refactoring context menu that enables basic refactoring directly on the graph, bypassing the need to edit the source code.
 
 You can explore scenarios such as:
 
@@ -106,7 +106,7 @@ You can explore scenarios such as:
 
 After your modifications, you can rerun the cycle search to observe the impact.
 
-Keep in mind that this is a very basic feature, and you cannot undo modifications to the code graph. So, it's better to save your work before you start.
+Remember, this is a basic feature and you can't undo changes to the code graph. It's a good idea to save your work before you begin.
 
 ![](Documentation/Images/refactoring.png)
 
@@ -125,7 +125,7 @@ Additionally in the Code Explorer:
 
 ## Explore your codebase
 
-The **Code Explorer** is an interactive canvas where you can explore unfamiliar codebases — trace calls, expand inheritance trees, and follow relationships step by step.
+The **Code Explorer** is an interactive canvas where you can explore unfamiliar codebases. You can trace calls, expand inheritance trees, and follow relationships step by step.
 
 ![image-20240731123233438](Documentation/Images/code-explorer.png)
 
@@ -144,7 +144,7 @@ Here are some general examples of how to use the application to explore a code b
 
 ### Performance tips
 
-When the graph contains more than ~200 code elements, performance slows down. However, viewing so many elements at once is not helpful. You can collapse and expand container elements by double-clicking them to minimize the number of visible elements. When using the Advanced Search to add multiple code elements, consider adding them in a collapsed state to maintain focus and start with a smaller, faster graph.
+If your graph has more than about 200-300 code elements, it may slow down. But seeing that many elements at once usually isn't helpful. You can double-click container elements to collapse or expand them and reduce what's visible. When using Advanced Search to add several code elements, try adding them collapsed to keep things focused and the graph faster.
 
 ---
 
@@ -160,7 +160,7 @@ You can export your code graph (canvas) in various formats:
 
 ### PlantUML
 
-When you document code, a UML class diagram is often more helpful than a colored code graph. You can create a UML class diagram from the code elements in the graph. Note that all code elements are included in the diagram, even when collapsed and not visible.
+When documenting code, a UML class diagram is often more useful than a colored code graph. You can create a UML class diagram from the code elements in your graph. All code elements are included in the diagram, even if they're collapsed or not visible.
 
 Select "Copy to PlantUML class diagram" from the Export menu.
 
@@ -174,27 +174,25 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 
 ### Plain Text
 
-That sounds boring, but it’s actually useful. If you want an LLM to carry out a more extensive refactoring, you may find your tokens disappearing – and yet the result may still not be satisfactory. If you provide the LLM with the task and the structural information as a dependency graph in text, the results and token usage improve significantly. The LLM doesn’t even need a description of the graph.
+Plain text might sound boring, but it's actually useful. If you want an LLM to do more extensive refactoring, you might run out of tokens and still not get good results. Giving the LLM your task and the structure as a text-based dependency graph helps a lot with results and token usage. The LLM doesn't even need a description of the graph.
 
 ## Validate architectural rules
 
 You can define architectural rules and check if they are violated.
-In the ribbon, go to Analyzers and then click "Architectural rules". If a project is loaded, this opens a dialog where you can define the rules.
+In the ribbon, go to Analyzers and then click "Architectural rules". If a project is loaded, a dialog opens where you can define the rules.
 
 ![](Documentation/Images/rule-configuration.png)
 
 ### Supported rules
 
-Dependency restrictions are written as `RULE Source -> Target` (e.g. `DENY MyApp.Business.** -> MyApp.Data.**`). A colon after the keyword (`DENY: ...`) is the legacy form and still accepted.
+Dependency restrictions
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| DENY     | Forbids dependencies from source to target                   |
-| RESTRICT | Allows only specified dependencies. RESTRICT rules whose sources overlap (same pattern or nested, like `A.**` and `A.B.**`) are aggregated and the permitted set widens to the union of their targets. This is unique for the RESTRICT rule. |
-| ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed. |
+| DENY     | Forbids dependencies from source to target.<br />DENY is the only rule that can restrict access to external code. |
+| RESTRICT | Allows only specified dependencies. RESTRICT rules whose sources overlap (same pattern or nested, like `A.**` and `A.B.**`) are aggregated and the permitted set widens to the union of their targets. This is unique for the RESTRICT rule. <br />Dependencies to external code (e.g. System.*) are always allowed. |
+| ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed.<br />Dependencies to external code (e.g. System.*) are always allowed. |
 | ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
-
-RESTRICT and ISOLATE ignore dependencies to external code elements (framework types, NuGet packages) — using `System.*` is not an architecture violation. To forbid specific external usage, write an explicit DENY rule; DENY checks external targets too.
 
 Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
@@ -206,17 +204,17 @@ A metric rule limits a measured value instead of a dependency. It is written as 
 | ------------ | ------------------------------------------------------------ |
 | MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, `MAXCYCLICITY = 15` (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
 
-When accepting a baseline a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
+When accepting a baseline, a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
 
-**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE Pattern = value`; without a pattern the rule applies to every element in the graph `RULE = value`.
+**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern, the rule applies to every element in the graph `RULE = value`.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
+| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES: MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
 
-An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected while importing a solution; if a project has none at all, the rule reports a warning instead of silently passing.
+An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected during solution import; if a project has none, the rule reports a warning rather than silently passing.
 
-Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule — the narrower rule does not grant it an exception.
+Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES: MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule because the narrower rule does not grant an exception.
 
 When accepting a baseline, a code element metric rule remains untouched. Lifting its limit to the worst offender would repeal it for every other element. This is not a baseline but a repeal. This is different from the system metric rules.
 
@@ -224,7 +222,7 @@ Lines of code for methods is just proof of concept I can use when meaningful met
 
 ### How patterns work
 
-The source and target side of a rule is a **full path** in the analysis tree: it starts with the **assembly name**, followed by the namespaces and, optionally, a type or member. If the assembly is named like its root namespace, the name appears twice (e.g. `MyApp.MyApp.Business`) — this looks odd at first, but it is the correct path.
+The source and target side of a rule is a **full path** in the analysis tree. It starts with the **assembly name**, followed by namespaces and optionally a type or member. If the assembly is named like its root namespace, the name appears twice (e.g. `MyApp.MyApp.Business`). This looks odd at first but is the correct path.
 
 You don't have to type these paths by hand: right-click any element in the tree view or graph and choose **"Copy Full Path"** to copy it exactly as the rules expect it.
 
@@ -236,57 +234,57 @@ MyApp.MyApp.Business.* → element + direct children
 
 MyApp.MyApp.Business.** → element + all descendants
 
-The part before the wildcard is an **anchor**: it must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree — it collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp`, but nothing in a sibling assembly `MyApp.Utils`, because that assembly is a separate root in the tree and not a child of the anchor.
+The part before the wildcard is an **anchor**. It must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree. It collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp` but nothing in a sibling assembly `MyApp.Utils` because that assembly is a separate root in the tree and not a child of the anchor.
 
 ### Examples
 
-In these examples the assembly is called `MyApp` and contains the namespaces `Business`, `Data`, ... directly — so the paths start with `MyApp.Business`, not with a duplicated name.
+In these examples, the assembly is called `MyApp` and contains the namespaces `Business`, `Data`, ... directly — so the paths start with `MyApp.Business`, not with a duplicated name.
 
 ```
 // Business layer should not access the Data layer directly
-DENY MyApp.Business.** -> MyApp.Data.**
+DENY: MyApp.Business.** -> MyApp.Data.**
 
 // Controllers may only access Services
-RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
 
 // Core components may not depend on UI
-DENY MyApp.Core.** -> MyApp.UI.**
+DENY: MyApp.Core.** -> MyApp.UI.**
 
 // Keys should be completely isolated, use ALLOW to define exceptions.
-ISOLATE MyApp.Keys.**
+ISOLATE: MyApp.Keys.**
 
 // Specific class restrictions
-DENY MyApp.Models.User -> MyApp.Data.Database
+DENY: MyApp.Models.User -> MyApp.Data.Database
 
 // Exceptions: the reporting module may access the Data layer
 // even though the Business layer as a whole may not
-DENY MyApp.Business.** -> MyApp.Data.**
-ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
+DENY: MyApp.Business.** -> MyApp.Data.**
+ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
 
 // At most 15% of all types may sit inside a dependency cycle
 MAXCYCLICITY = 15
 
 // No method in the business layer longer than 50 code lines
-MAXLINES MyApp.Business.** = 50
+MAXLINES: MyApp.Business.** = 50
 ```
 
 The result of the analysis is shown in the table output for analyzers.
 
-If a pattern does not match any code element (for example due to a typo), the rule has no effect. The analysis reports a warning for every such pattern so that silently dead rules are visible.
+If a pattern does not match any code element (for example due to a typo), the rule has no effect. The analysis reports a warning for every such pattern, making silently dead rules visible.
 
 ![](Documentation/Images/rule-result.png)
 
 ### Accept a baseline
 
-Introducing rules into an existing code base is the hard part: the first check often reports hundreds of violations, and it is tempting to give up. The **Accept Baseline** button solves this. It becomes available once a validation has found violations. Clicking it freezes the *current* state: every violation is turned into an explicit `ALLOW` exception that is appended to your rules (grouped by the rule it came from). Afterwards the rules are re-validated, so you immediately see a clean result.
+Introducing rules into an existing codebase is hard. The first check often flags hundreds of violations, making it tempting to give up. The **Accept Baseline** button solves this. It becomes available once validation finds violations. Clicking it freezes the *current* state: every violation turns into an explicit `ALLOW` exception appended to your rules (grouped by the rule it came from). Afterward, the rules are re-validated so you immediately see a clean result.
 
-From that point on, only *new* violations are reported — the existing ones are accepted as technical debt you can pay down over time. This is what makes the feature practical for real projects rather than only greenfield code: you can adopt an architectural rule today without having to fix everything it flags first.
+After that, only new violations are reported. The existing ones are treated as technical debt you can fix over time. This makes the feature practical for real projects, not just new code. You can start using architectural rules right away without having to fix everything first.
 
 The exceptions are exact paths down to the member level, so a baseline freezes precisely what exists today. Overloaded methods (which share one path) are all covered by the single exception generated for them.
 
 ### Remove unused rules
 
-Over time — after refactorings, or once baselined elements are deleted — rules can end up matching nothing. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is deliberately conservative: it never removes a rule that still enforces something, so it can never weaken your checks.
+Over time, after refactoring or deleting baselined elements, some rules might not match anything anymore. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is careful: it never removes a rule that still enforces something, so your checks stay strong.
 
 ### Command-line
 
@@ -298,17 +296,17 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 ## Metrics
 
-C# Code Analyst can calculate a few but meaningful metrics.
+C# Code Analyst can calculate a few key metrics that matter.
 
 You can read more about the supported metrics here: [Metrics](Documentation/Metrics.md)
 
-All metrics are accessible via the Analyzer Ribbon, and the results are presented in a table on a separate tab
+All metrics are accessible via the Analyzer Ribbon, and the results are presented in a table on a separate tab.
 
 ![](Documentation/Images/metrics-example.png)
 
 ## Other languages
 
-The tool is written for C#, but you can also import jdeps output for basic visualization of Java code.
+The tool is built for C#, but you can also import Jdeps output to get a basic visualization of Java code.
 
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
@@ -316,7 +314,7 @@ jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 
 ## Analyze a GIT repository
 
-Years ago, I wrote a repository analyzer based on Adam Tornhill’s book “Your code as a crime scene.” Learn more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, but I added the most useful ones to C# Code Analyst. Change coupling is especially interesting since a static analyzer cannot capture it.
+A few years ago, I created a repository analyzer inspired by Adam Tornhill’s book “Your code as a crime scene.” You can read more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, but I included the most useful ones in C# Code Analyst. Change coupling is especially interesting because a static analyzer can't catch it.
 
 Two files are coupled when they often change together. For example, one class encodes a file, and another decodes it. You cannot change one without the other. Such hidden dependencies can be made visible, which fits perfectly into a dependency analyzer tool.
 
@@ -324,21 +322,21 @@ For example, in the first row, 93.1% of commits that contain **Item1** or **Item
 
 ![](Documentation/Images/change-coupling.png)
 
-The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is drawn as the area of a rectangle, and the number of changes is represented as color. The deeper the color, the more often a file was changed over time. Large files that often change are called hotspots and are good candidates to monitor.
+The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is shown by the area of a rectangle, and the number of changes is shown by color. The deeper the color, the more often a file changed over time. Large files that change a lot are called hotspots and are good to keep an eye on.
 
 ![](Documentation/Images/hotspot.png)
 
 Finally, you can analyze a developer's contribution to a file.
 
-That has nothing to do with dependency analysis, but it's helpful if you need to know who to ask for help or which area should be documented when a team member leaves the project.
+This isn't related to dependency analysis, but it's helpful if you need to know who to ask for help or which parts to document when someone leaves the team.
 
-The developer who contributed most to a file (based on a simple GIT blame) is denoted as the main developer, and the file is colored accordingly. That does not mean this developer has the best knowledge of the file. But it is a reasonable best guess.
+The developer who contributed most to a file (based on a simple GIT blame) is marked as the main developer, and the file is colored to match. This doesn't always mean that person knows the file best, but it's a good starting point.
 
 ![](Documentation/Images/knowledge.png)
 
 ## Limitations
 
-Please take note of the following issues:
+Please keep these points in mind:
 
 - The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. C# has a constantly growing language syntax.
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
