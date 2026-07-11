@@ -190,7 +190,7 @@ Dependency restrictions
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
 | DENY     | Forbids dependencies from source to target                   |
-| RESTRICT | Allows only specified dependencies. RESTRICT rules with the same source are aggregated and the permitted quantity increases. This is unique for the RESTRICT rule. |
+| RESTRICT | Allows only specified dependencies. RESTRICT rules whose sources overlap (same pattern or nested, like `A.**` and `A.B.**`) are aggregated and the permitted set widens to the union of their targets. This is unique for the RESTRICT rule. |
 | ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed. |
 | ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
 

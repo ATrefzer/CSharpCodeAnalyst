@@ -322,6 +322,76 @@ public class RuleEngineTests
         Assert.That(group.Targets, Is.EquivalentTo(new[] { "MyApp.Services.**", "MyApp.Dtos.**" }));
     }
 
+    /// <summary>
+    ///     RESTRICT rules are grouped on their resolved source sets, not the pattern text, so nested
+    ///     patterns like "A.**" and "A.B.**" widen each other - the outer rule must not report the
+    ///     inner rule's permitted dependencies as violations.
+    /// </summary>
+    [Test]
+    public void Restrict_OverlappingSources_WidenEachOther()
+    {
+        var controllers = _codeGraph.CreateNamespace("MyApp.Controllers");
+        var admin = _codeGraph.CreateNamespace("MyApp.Controllers.Admin", controllers);
+        var services = _codeGraph.CreateNamespace("MyApp.Services");
+        var auditing = _codeGraph.CreateNamespace("MyApp.Auditing");
+        var data = _codeGraph.CreateNamespace("MyApp.Data");
+
+        var controller = _codeGraph.CreateClass("OrderController", controllers);
+        var adminController = _codeGraph.CreateClass("UserController", admin);
+        var service = _codeGraph.CreateClass("OrderService", services);
+        var audit = _codeGraph.CreateClass("AuditLog", auditing);
+        var repository = _codeGraph.CreateClass("Repository", data);
+
+        // Permitted by the outer rule, permitted by the inner rule - and one real violation.
+        controller.Relationships.Add(new Relationship(controller.Id, service.Id, RelationshipType.Uses));
+        adminController.Relationships.Add(new Relationship(adminController.Id, audit.Id, RelationshipType.Uses));
+        controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses));
+
+        var result = Execute("""
+                             RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+                             RESTRICT: MyApp.Controllers.Admin.** -> MyApp.Auditing.**
+                             """);
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        var violation = result.Violations[0];
+        Assert.That(violation.ViolatingRelationships, Has.Count.EqualTo(1));
+        Assert.That(violation.ViolatingRelationships[0].TargetId, Is.EqualTo(repository.Id));
+
+        var group = violation.Rule as RestrictRuleGroup;
+        Assert.That(group, Is.Not.Null);
+        Assert.That(group!.Sources,
+            Is.EquivalentTo(new[] { "MyApp.Controllers.**", "MyApp.Controllers.Admin.**" }));
+    }
+
+    /// <summary>
+    ///     RESTRICT rules whose sources do not overlap must stay separate groups: each source is
+    ///     validated only against its own targets.
+    /// </summary>
+    [Test]
+    public void Restrict_DisjointSources_StaySeparateGroups()
+    {
+        var web = _codeGraph.CreateNamespace("MyApp.Web");
+        var jobs = _codeGraph.CreateNamespace("MyApp.Jobs");
+        _codeGraph.CreateNamespace("MyApp.Services");
+        var data = _codeGraph.CreateNamespace("MyApp.Data");
+
+        var webClass = _codeGraph.CreateClass("HomeController", web);
+        var jobClass = _codeGraph.CreateClass("CleanupJob", jobs);
+        var repository = _codeGraph.CreateClass("Repository", data);
+
+        // Both sources break their own rule - two violations, one per group.
+        webClass.Relationships.Add(new Relationship(webClass.Id, repository.Id, RelationshipType.Uses));
+        jobClass.Relationships.Add(new Relationship(jobClass.Id, repository.Id, RelationshipType.Uses));
+
+        var result = Execute("""
+                             RESTRICT: MyApp.Web.** -> MyApp.Services.**
+                             RESTRICT: MyApp.Jobs.** -> MyApp.Services.**
+                             """);
+
+        Assert.That(result.Violations, Has.Count.EqualTo(2));
+        Assert.That(result.Warnings, Is.Empty);
+    }
+
     [Test]
     public void Allow_SuppressesIsolateViolation()
     {

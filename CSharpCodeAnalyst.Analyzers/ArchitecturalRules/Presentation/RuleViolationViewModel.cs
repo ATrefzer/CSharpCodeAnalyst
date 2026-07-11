@@ -72,6 +72,9 @@ public class RuleViolationViewModel : TableRow
             CodeElementMetricRule elementMetricRule => elementMetricRule.Source.Length > 0
                 ? elementMetricRule.Source
                 : Strings.ArchitecturalRules_Scope_Everything,
+
+            // A group merges rules with overlapping sources; show every distinct source pattern.
+            RestrictRuleGroup restrictRuleGroup => string.Join("\n", restrictRuleGroup.Sources),
             DependencyRule dependencyRule => dependencyRule.Source,
             _ => ""
         };

@@ -47,7 +47,7 @@ public sealed class RuleEngine
 
         EvaluateDenyRules(rules.OfType<DenyRule>());
         EvaluateIsolateRules(rules.OfType<IsolateRule>());
-        EvaluateRestrictRules(rules.OfType<RestrictRule>());
+        EvaluateRestrictRules(rules.OfType<RestrictRule>().ToList());
         EvaluateSystemMetricRules(rules.OfType<SystemMetricRule>().ToList());
         EvaluateElementMetricRules(rules.OfType<CodeElementMetricRule>());
 
@@ -91,19 +91,18 @@ public sealed class RuleEngine
     }
 
     /// <summary>
-    ///     RESTRICT rules with the same source widen each other, so they are evaluated as one group
+    ///     RESTRICT rules with overlapping sources widen each other, so they are evaluated as one group
     ///     against the union of their targets. The group, not one of its rules, names the violation.
     /// </summary>
-    private void EvaluateRestrictRules(IEnumerable<RestrictRule> restrictRules)
+    private void EvaluateRestrictRules(IReadOnlyList<RestrictRule> restrictRules)
     {
-        foreach (var group in restrictRules.GroupBy(r => r.Source))
+        foreach (var (sourceIds, rules) in GroupOverlappingRestrictRules(restrictRules))
         {
-            var restrictGroup = new RestrictRuleGroup(group.Key, group);
-            var sourceIds = Resolve(group.Key, restrictGroup.RuleText);
+            var restrictGroup = new RestrictRuleGroup(rules);
 
-            // Dependencies inside the source pattern are always allowed implicitly(!).
+            // Dependencies inside the source patterns are always allowed implicitly(!).
             var allowedTargetIds = new HashSet<string>(sourceIds);
-            foreach (var restrictRule in group)
+            foreach (var restrictRule in rules)
             {
                 allowedTargetIds.UnionWith(Resolve(restrictRule.Target, restrictRule.RuleText));
             }
@@ -112,6 +111,56 @@ public sealed class RuleEngine
 
             AddViolation(restrictGroup, restrictGroup.ValidateRule(sourceIds, [], _dependencies));
         }
+    }
+
+    /// <summary>
+    ///     Merges RESTRICT rules whose resolved source sets intersect - into one group.
+    ///     Grouping on the resolved sets rather than the pattern text also catches nested patterns like
+    ///     "A.**" and "A.B.**". The resulting groups have pairwise disjoint source sets, and the rules
+    ///     of a group keep the order they were written in.
+    /// </summary>
+    private List<(HashSet<string> SourceIds, List<RestrictRule> Rules)> GroupOverlappingRestrictRules(
+        IReadOnlyList<RestrictRule> restrictRules)
+    {
+        var resolvedSources = restrictRules.Select(r => Resolve(r.Source, r.RuleText)).ToList();
+
+        // Merge the resolved source sets into disjoint partitions. Folding a new set into every
+        // partition it overlaps also merges partitions that only become connected through it.
+        var partitions = new List<HashSet<string>>();
+        foreach (var sourceIds in resolvedSources.Where(s => s.Count > 0))
+        {
+            var merged = new HashSet<string>(sourceIds);
+            for (var i = partitions.Count - 1; i >= 0; i--)
+            {
+                if (partitions[i].Overlaps(merged))
+                {
+                    merged.UnionWith(partitions[i]);
+                    partitions.RemoveAt(i);
+                }
+            }
+
+            partitions.Add(merged);
+        }
+
+        // Find the rules.
+        var groups = new List<(HashSet<string> SourceIds, List<RestrictRule> Rules)>();
+        foreach (var partition in partitions)
+        {
+            var rules = restrictRules.Where((_, i) => partition.Overlaps(resolvedSources[i])).ToList();
+            groups.Add((partition, rules));
+        }
+
+        // A rule whose source matches nothing forms an inert group of its own, so its target is
+        // still resolved - and warned about when dead - like any other rule's.
+        for (var i = 0; i < restrictRules.Count; i++)
+        {
+            if (resolvedSources[i].Count == 0)
+            {
+                groups.Add((resolvedSources[i], [restrictRules[i]]));
+            }
+        }
+
+        return groups;
     }
 
     /// <summary>

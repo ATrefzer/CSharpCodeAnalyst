@@ -140,7 +140,7 @@ public class RuleValidationTests
         controller.Relationships.Add(new Relationship(controller.Id, dataClass.Id, RelationshipType.Uses));
 
         var restrictRule = new RestrictRule { Source = "Controllers.**", Target = "Services.**" };
-        var restrictGroup = new RestrictRuleGroup("Controllers.**", [restrictRule])
+        var restrictGroup = new RestrictRuleGroup([restrictRule])
         {
             AllowedTargetIds = [service.Id] // Only service allowed
         };
@@ -168,7 +168,7 @@ public class RuleValidationTests
         controller.Relationships.Add(new Relationship(controller.Id, service.Id, RelationshipType.Uses));
 
         var restrictRule = new RestrictRule { Source = "Controllers.**", Target = "Services.**" };
-        var restrictGroup = new RestrictRuleGroup("Controllers.**", [restrictRule])
+        var restrictGroup = new RestrictRuleGroup([restrictRule])
             {
                 AllowedTargetIds = [service.Id]
             };

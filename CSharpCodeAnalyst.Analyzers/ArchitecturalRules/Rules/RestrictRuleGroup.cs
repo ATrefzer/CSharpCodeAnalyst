@@ -3,27 +3,39 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
-///     All RESTRICT rules with the same source pattern, evaluated as one rule. RESTRICT rules widen
+///     All RESTRICT rules whose source patterns overlap, evaluated as one rule. RESTRICT rules widen
 ///     each other: "A may only depend on B" and "A may only depend on C" together mean "A may only
 ///     depend on B or C". Checking them separately would make each rule report the other's permitted
 ///     dependencies as violations, so the group - not the single rule - is what gets validated and
 ///     what carries the resulting violation.
+///     <para>
+///         Overlap is decided on the <em>resolved</em> source sets, not the pattern text, so nested
+///         patterns like "A.**" and "A.B.**" widen each other too. The union is deliberately
+///         permissive: every element of the merged source set may use every target of the group,
+///         even elements only some of the rules cover.
+///     </para>
 /// </summary>
 public class RestrictRuleGroup : DependencyRule
 {
-    public RestrictRuleGroup(string source, IEnumerable<RestrictRule> rules)
+    public RestrictRuleGroup(IEnumerable<RestrictRule> rules)
     {
-        Source = source;
         Rules = rules.ToList();
+        Source = string.Join("; ", Sources);
         RuleText = string.Join("; ", Rules.Select(r => r.RuleText));
     }
 
     private List<RestrictRule> Rules { get; }
 
-    /// <summary>The union of the target patterns of all rules in the group.</summary>
+    /// <summary>The distinct source patterns of the rules in the group.</summary>
+    public IEnumerable<string> Sources
+    {
+        get => Rules.Select(r => r.Source).Distinct();
+    }
+
+    /// <summary>The distinct target patterns of the rules in the group.</summary>
     public IEnumerable<string> Targets
     {
-        get => Rules.Select(r => r.Target);
+        get => Rules.Select(r => r.Target).Distinct();
     }
 
     public HashSet<string> AllowedTargetIds { get; set; } = [];
