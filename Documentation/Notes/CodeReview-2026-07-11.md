@@ -21,8 +21,12 @@ DONE
 **e) Kleinigkeiten**
 
 - `RelationshipAnalyzer` ist nicht wiederverwendbar, sieht aber öffentlich so aus: `_externalCodeElementCache` und `_lastProgress` werden in `AnalyzeRelationships` nie zurückgesetzt. Ein zweiter Aufruf auf derselben Instanz würde externe Elemente des ersten Graphen in den zweiten leaken. `Parser` erzeugt zwar immer eine frische Instanz, aber die API erlaubt den Missbrauch.
+
 - `AnalyzeRelationships` gibt `Task` zurück, läuft aber komplett synchron (inkl. `GetSemanticModelAsync().Result` überall). Das ist kein Deadlock-Risiko (Roslyn nutzt intern `ConfigureAwait(false)`), aber die Signatur verspricht Asynchronität, die es nicht gibt — der Aufrufer blockiert seinen Thread für die gesamte Phase 2.
+
 - [Initializer.cs:39](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/Initializer.cs:39): Der Fallback kennt nur VS 2022 **Professional** — Community/Enterprise/BuildTools-Installationen scheitern, wenn `RegisterDefaults()` vorher schon geworfen hat.
+
+  DONE, auch rider ist mit aufgenommen.
 
 Die Thread-Sicherheit von Phase 2 habe ich gezielt geprüft und **keine** Race gefunden: alle Relationship-Mutationen (auch die Cross-Element-Fälle wie `AddImplementationsForInterfaceMember`, wo das Source-Element ein fremdes Element ist) laufen über das eine globale `_lock`; `element.Attributes` wird nur vom Thread des jeweiligen Elements angefasst; der External-Cache lockt selbst.
 
@@ -57,6 +61,26 @@ Sortiert nach Relevanz. Die dokumentierten, bewussten Entscheidungen (nameof, La
 - `symbolInfo.CandidateSymbols` wird nirgends genutzt — in Code mit Compile-Fehlern (teilweise geladene Solutions!) fällt die Abhängigkeit dann komplett aus, obwohl Roslyn Kandidaten liefert. Für ein Analyse-Tool, das auch unvollständige Solutions parst, wäre der beste Kandidat besser als nichts.
 
 Mein Vorschlag zur Priorisierung: (a) und (b) beheben — beides Fälle, in denen in Phase 1 angelegte Elemente systematisch verwaist sind; (d) und (e) danach. Und gemäß eurer eigenen CLAUDE.md-Regel gehört jede dieser Entscheidungen dann als Kapitel in `corrections-and-updates.md`.
+
+
+
+Erst mal die Tests: 13 neue Fixtures mit 42 Tests in `Tests/UnitTests/Parser`, davon **29 rot** (die Lücken) und **13 grün** (Premise-Guards, die belegen, dass nur die Nutzungs-Kanten fehlen, nicht die Deklarationen). Jede Lücke aus dem Review ist jetzt durch einen roten Test dokumentiert:
+
+| Fixture                                     | Rote Tests | Lücke                                                        |
+| :------------------------------------------ | :--------- | :----------------------------------------------------------- |
+| `IndexerUsageParseTests`                    | 4          | `store[i]` lesen/schreiben/`+=`/`?[i]` → keine Kante zu `this[]` |
+| `IndexerUsageSplitAccessorsParseTests`      | 3          | dito mit Split: Routing zu `get_Item`/`set_Item`             |
+| `OperatorUsageParseTests`                   | 4          | `a + b`, `-a`, `a == b`, `a += b` → keine Kante zu `op_*`    |
+| `ConversionOperatorUsageParseTests`         | 2          | implizite Konversion und expliziter Cast → `op_Implicit`/`op_Explicit` |
+| `QuerySyntaxParseTests`                     | 2          | implizite `Where`/`Select`-Calls fehlen; Klausel-Bodies sollten Lambda-Semantik (`Uses`) haben |
+| `NestedLambdaParseTests`                    | 2          | Abhängigkeiten in verschachtelten Lambdas gehen komplett verloren |
+| `PrimaryConstructorBaseArgumentsParseTests` | 1          | `class Derived() : Base(Helper.X())` — Argumente nie gewalkt (klassischer Ctor als grüner Kontrast) |
+| `EnumMemberInitializerParseTests`           | 1          | `Highest = Limits.Max` → Kante `Level -> Limits.Max` fehlt   |
+| `MethodGroups_GenericParseTests`            | 2          | freistehende generische Method-Group `Create<Widget>` (qualifizierte Form grün) |
+| `ConstructedGenericStaticMemberParseTests`  | 2          | `Registry<Token>.Instance` / `.CountItems()` verliert `Token` |
+| `AttributeArgumentsParseTests`              | 3          | `typeof(...)`-Attributargumente auf Klasse/Property/Feld (auf Methoden grün) |
+| `StackAllocParseTests`                      | 1          | `stackalloc Sample[2]` in Ausdrucksposition                  |
+| `ImplicitPatternCallsParseTests`            | 2          | `Deconstruct` bei Dekonstruktion, `GetEnumerator` bei `foreach` |
 
 ------
 
