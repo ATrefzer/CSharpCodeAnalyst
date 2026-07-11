@@ -69,10 +69,10 @@ public static class Initializer
             yield return sdkDirectory;
         }
 
-        // 2. Visual Studio, newest version first. "Insiders" is the 2026 preview channel; "BuildTools"
-        //    installs under Program Files (x86) even for the 64-bit studios, hence both roots.
-        string[] vsVersions = ["2026", "2022"];
-        string[] vsEditions = ["Enterprise", "Professional", "Community", "Insiders", "Preview", "BuildTools"];
+        // 2. Visual Studio, newest version first. VS 2026 installs under the major version
+        //    ("18"); "BuildTools" installs under Program Files (x86) even for the 64-bit studios, hence both roots.
+        string[] vsVersions = ["18", "2022"];
+        string[] vsEditions = ["Enterprise", "Professional", "Community", "BuildTools"];
         string[] vsRoots =
         [
             Path.Combine(programFiles, "Microsoft Visual Studio"),

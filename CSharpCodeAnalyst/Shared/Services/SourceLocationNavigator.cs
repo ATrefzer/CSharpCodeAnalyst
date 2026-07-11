@@ -11,7 +11,8 @@ public enum EditorType
 {
     Notepad,
     NotepadPlusPlus,
-    VisualStudio
+    VisualStudio,
+    Rider
 }
 
 /// <summary>
@@ -24,17 +25,58 @@ public static class SourceLocationNavigator
 {
 
     /// <summary>
-    ///     Hierarchy of preferred editors to try
+    ///     Hierarchy of preferred editors to try: Visual Studio (newest first), JetBrains Rider,
+    ///     Notepad++, plain Notepad as the last resort.
     /// </summary>
-    private static readonly List<(EditorType, string)> KnownEditors =
-    [
-        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\devenv.exe"),
-        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\devenv.exe"),
-        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\devenv.exe"),
-        (EditorType.VisualStudio, @"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"),
-        (EditorType.NotepadPlusPlus, @"C:\Program Files\Notepad++\notepad++.exe"),
-        (EditorType.Notepad, @"C:\Windows\notepad.exe")
-    ];
+    private static readonly List<(EditorType Type, string Path)> KnownEditors = BuildKnownEditors();
+
+    private static List<(EditorType, string)> BuildKnownEditors()
+    {
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        var editors = new List<(EditorType, string)>();
+
+        // Visual Studio, newest first. VS 2026 installs under the major version ("18"), older versions under the year.
+        string[] vsEditions = ["Enterprise", "Professional", "Community"];
+        foreach (var version in new[] { "18", "2022" })
+        {
+            foreach (var edition in vsEditions)
+            {
+                editors.Add((EditorType.VisualStudio,
+                    Path.Combine(programFiles, "Microsoft Visual Studio", version, edition, @"Common7\IDE\devenv.exe")));
+            }
+        }
+
+        // VS 2019 and older are 32-bit and live under Program Files (x86).
+        foreach (var edition in vsEditions)
+        {
+            editors.Add((EditorType.VisualStudio,
+                Path.Combine(programFilesX86, "Microsoft Visual Studio", "2019", edition, @"Common7\IDE\devenv.exe")));
+        }
+
+        // JetBrains Rider: the install folder name carries the version ("JetBrains Rider 2024.3")
+        // for the standalone installer, while the Toolbox app installs to a stable "Rider" folder
+        // under %LocalAppData%\Programs - hence the glob, newest version first.
+        foreach (var root in new[] { Path.Combine(programFiles, "JetBrains"), Path.Combine(localAppData, "Programs") })
+        {
+            if (!Directory.Exists(root))
+            {
+                continue;
+            }
+
+            var riderDirectories = Directory.EnumerateDirectories(root, "*Rider*")
+                .OrderByDescending(d => d, StringComparer.OrdinalIgnoreCase);
+            editors.AddRange(riderDirectories.Select(d => (EditorType.Rider, Path.Combine(d, @"bin\rider64.exe"))));
+        }
+
+        editors.Add((EditorType.NotepadPlusPlus, Path.Combine(programFiles, @"Notepad++\notepad++.exe")));
+        editors.Add((EditorType.Notepad,
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "notepad.exe")));
+
+        return editors;
+    }
 
     /// <summary>A code element can be jumped to if it is not a namespace and has one location.</summary>
     public static bool CanJump(CodeElement? element)
@@ -82,9 +124,7 @@ public static class SourceLocationNavigator
 
     public static void Open(string? filePath, int line, int column)
     {
-        var editor = KnownEditors.First(h => File.Exists(h.Item2));
-        var _editor = editor.Item1;
-        var _editorPath = editor.Item2;
+        var (editorType, editorPath) = KnownEditors.First(h => File.Exists(h.Path));
 
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -104,15 +144,15 @@ public static class SourceLocationNavigator
             return;
         }
 
-        if (!File.Exists(_editorPath))
+        if (!File.Exists(editorPath))
         {
-            throw new FileNotFoundException($"Editor executable not found: {_editorPath}", _editorPath);
+            throw new FileNotFoundException($"Editor executable not found: {editorPath}", editorPath);
         }
 
         // Default only open file
         var args = filePath;
 
-        switch (_editor)
+        switch (editorType)
         {
             case EditorType.Notepad:
                 // Notepad does not support line/column arguments
@@ -127,12 +167,17 @@ public static class SourceLocationNavigator
                 // Note: Jumping to a line is not possible if a Visual Studio instance is already running.
                 args = $"/Edit \"{filePath}\" /Command \"Edit.Goto {line}\"";
                 break;
+
+            case EditorType.Rider:
+                // Reuses a running Rider instance automatically.
+                args = $"--line {line} --column {column} \"{filePath}\"";
+                break;
         }
 
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
-            FileName = _editorPath,
+            FileName = editorPath,
             Arguments = args,
             UseShellExecute = false,
             RedirectStandardOutput = false,
@@ -158,9 +203,8 @@ public static class SourceLocationNavigator
 
     private static bool OpenFileInRunningVisualStudioInstance(string file, int line = 0)
     {
-        // "VisualStudio.DTE.17.0" (VS 2022),
-        // "VisualStudio.DTE.16.0" (VS 2019)
-        var progId = "VisualStudio.DTE.18.0";
+        // Newest first: 18.0 (VS 2026), 17.0 (VS 2022), 16.0 (VS 2019).
+        string[] progIds = ["VisualStudio.DTE.18.0", "VisualStudio.DTE.17.0", "VisualStudio.DTE.16.0"];
 
         object? obj = null;
         object? mainWindow = null;
@@ -168,7 +212,7 @@ public static class SourceLocationNavigator
 
         try
         {
-            obj = GetComObject(progId);
+            obj = progIds.Select(GetComObject).FirstOrDefault(o => o is not null);
             if (obj is null)
             {
                 return false;
