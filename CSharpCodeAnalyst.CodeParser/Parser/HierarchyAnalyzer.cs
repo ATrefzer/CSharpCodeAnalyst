@@ -148,9 +148,12 @@ public class HierarchyAnalyzer
 
     private bool ShouldAnalyzeProject(Project project)
     {
-        // Non-C# projects (.vbproj, .fsproj, ...) still yield a compilation; without this filter they
-        // would add an empty assembly node and leak their types into AllNamedTypesInSolution.
-        if (IsUnrecognizedProject(project.FilePath))
+        // Whitelist: only C# projects (.csproj) are analyzed. Other project types (.vbproj, .fsproj,
+        // .sqlproj, .esproj, ...) may still yield a compilation; without this filter they would add an
+        // empty assembly node and leak their types into AllNamedTypesInSolution.
+        // The in-memory pipeline (Parser.BuildAdhocSolution) relies on this and uses a synthetic
+        // ".csproj" project file name.
+        if (!IsCSharpProject(project.FilePath))
         {
             return false;
         }
@@ -542,22 +545,8 @@ public class HierarchyAnalyzer
         }
     }
 
-    private bool IsUnrecognizedProject(string? projectFilePath)
+    private static bool IsCSharpProject(string? projectFilePath)
     {
-        var unrecognized = new List<string>
-        {
-            ".vbproj",
-            ".fsproj",
-            ".vcxproj",
-            ".proj"
-        };
-
-        var ext = Path.GetExtension(projectFilePath);
-        if (ext == null)
-        {
-            return false;
-        }
-
-        return unrecognized.Contains(ext);
+        return string.Equals(Path.GetExtension(projectFilePath), ".csproj", StringComparison.OrdinalIgnoreCase);
     }
 }
