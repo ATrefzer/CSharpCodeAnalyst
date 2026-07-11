@@ -422,10 +422,10 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Four rules are supported:
         ///
-        ///DENY: Forbids dependencies from source to target
-        ///RESTRICT: Allows only specified dependencies
-        ///ISOLATE: Completely isolates the source from external dependencies
-        ///ALLOW: Defines an exception. Suppresses matching violations found by the other rules.        
+        ///DENY — Forbids dependencies from source to target
+        ///RESTRICT — Allows only specified dependencies
+        ///ISOLATE — Completely isolates the source from external dependencies
+        ///ALLOW — Defines an exception. Suppresses matching violations found by the other rules.
         ///
         ///Patterns:
         ///MyApp.Business → exact match
@@ -433,8 +433,8 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         ///MyApp.Business.** → element + all descendants
         ///
         ///Examples:
-        ///DENY: MyApp.Business.** -&gt; MyApp.Data.**
-        ///RESTRICT: MyApp.Controllers.** -&gt; [rest of string was truncated]&quot;;.
+        ///DENY MyApp.Business.** -&gt; MyApp.Data.**
+        ///RESTRICT MyApp.Controllers.** -&gt; [rest of string was truncated]&quot;;.
         /// </summary>
         public static string ArchitectureRules_Info {
             get {

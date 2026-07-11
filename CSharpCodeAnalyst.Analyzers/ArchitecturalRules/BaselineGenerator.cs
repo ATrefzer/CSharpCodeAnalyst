@@ -56,7 +56,7 @@ public static class BaselineGenerator
 
     /// <summary>
     ///     Builds the ALLOW lines that suppress every given violation. Each violating relationship
-    ///     becomes one exact "ALLOW: source -> target" line, grouped by the originating rule.
+    ///     becomes one exact "ALLOW source -> target" line, grouped by the originating rule.
     ///     ALLOW pairs already present in <paramref name="existingRulesText" /> are skipped, so
     ///     the operation is idempotent. Returns an empty string when there is nothing to add.
     /// </summary>
@@ -87,7 +87,7 @@ public static class BaselineGenerator
                     continue;
                 }
 
-                lines.Add($"ALLOW: {source.FullName} -> {target.FullName}");
+                lines.Add($"ALLOW {source.FullName} -> {target.FullName}");
             }
 
             if (lines.Count > 0)

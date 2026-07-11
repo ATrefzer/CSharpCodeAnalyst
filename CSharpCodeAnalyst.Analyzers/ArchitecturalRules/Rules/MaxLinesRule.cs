@@ -10,7 +10,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     excluded). Methods are the only elements we collect source metrics for today; the rule is
 ///     written against any element that has a <see cref="MemberMetrics.CodeLines" /> value, so it
 ///     widens automatically once more element kinds are measured.
-///     Syntax: MAXLINES = 50 | MAXLINES: MyApp.Business.** = 50
+///     Syntax: MAXLINES = 50 | MAXLINES MyApp.Business.** = 50
 /// </summary>
 public class MaxLinesRule : CodeElementMetricRule
 {

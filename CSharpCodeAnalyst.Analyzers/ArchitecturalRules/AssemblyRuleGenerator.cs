@@ -58,7 +58,7 @@ public static class AssemblyRuleGenerator
 
             if (deps.Count == 0)
             {
-                sb.AppendLine($"ISOLATE: {assembly.FullName}.**");
+                sb.AppendLine($"ISOLATE {assembly.FullName}.**");
                 continue;
             }
 
@@ -67,7 +67,7 @@ public static class AssemblyRuleGenerator
                 .OrderBy(t => t.FullName, StringComparer.OrdinalIgnoreCase);
             foreach (var target in targets)
             {
-                sb.AppendLine($"RESTRICT: {assembly.FullName}.** -> {target.FullName}.**");
+                sb.AppendLine($"RESTRICT {assembly.FullName}.** -> {target.FullName}.**");
             }
         }
 

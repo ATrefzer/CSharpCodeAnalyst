@@ -338,23 +338,23 @@ public class Analyzer : IAnalyzer
                // Lines starting with // are comments
 
                // Business layer should not access Data layer directly
-               DENY: MyApp.Business.** -> MyApp.Data.**
+               DENY MyApp.Business.** -> MyApp.Data.**
 
                // Exception: ALLOW never reports violations, it only suppresses
                // violations found by the other rules
-               ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+               ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
 
                // Controllers may only access Services
-               RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+               RESTRICT MyApp.Controllers.** -> MyApp.Services.**
 
                // Core components may not depend on UI
-               DENY: MyApp.Core.** -> MyApp.UI.**
+               DENY MyApp.Core.** -> MyApp.UI.**
 
                // Completely isolated, define exceptions with ALLOW
-               ISOLATE: MyApp.Meta.**
+               ISOLATE MyApp.Meta.**
 
                // Specific class restrictions
-               DENY: MyApp.Models.User -> MyApp.Data.Database
+               DENY MyApp.Models.User -> MyApp.Data.Database
 
                // At most 15 percent of all types may sit inside a dependency cycle
                MAXCYCLICITY = 15
@@ -362,7 +362,7 @@ public class Analyzer : IAnalyzer
                // No method in the business layer longer than 50 code lines.
                // Every metric rule stands on its own - two MAXLINES rules whose patterns
                // overlap are both checked, the narrower one does not override the wider one.
-               MAXLINES: MyApp.Business.** = 50
+               MAXLINES MyApp.Business.** = 50
                """;
     }
 

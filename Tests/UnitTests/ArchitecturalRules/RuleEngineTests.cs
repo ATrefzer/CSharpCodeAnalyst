@@ -42,8 +42,8 @@ public class RuleEngineTests
         reportGenerator.Relationships.Add(new Relationship(reportGenerator.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             DENY: MyApp.Business.** -> MyApp.Data.**
-                             ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+                             DENY MyApp.Business.** -> MyApp.Data.**
+                             ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
                              """);
 
         Assert.That(result.Violations, Is.Empty);
@@ -66,8 +66,8 @@ public class RuleEngineTests
         reportGenerator.Relationships.Add(new Relationship(reportGenerator.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             DENY: MyApp.Business.** -> MyApp.Data.**
-                             ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+                             DENY MyApp.Business.** -> MyApp.Data.**
+                             ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
@@ -122,7 +122,7 @@ public class RuleEngineTests
 
         var result = Execute("""
                              MAXCYCLICITY = 10
-                             ALLOW: MyApp.Domain.** -> MyApp.Domain.**
+                             ALLOW MyApp.Domain.** -> MyApp.Domain.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
@@ -227,7 +227,7 @@ public class RuleEngineTests
         var legacyMethod = _codeGraph.CreateMethod("Huge", legacyClass);
         _metricStore.Add(legacyMethod.Id, new MemberMetrics { CodeLines = 500 });
 
-        var result = Execute("MAXLINES: MyApp.Legacy.** = 50");
+        var result = Execute("MAXLINES MyApp.Legacy.** = 50");
 
         Assert.That(result.Violations[0].ViolatingElements, Has.Count.EqualTo(1));
         Assert.That(result.Violations[0].ViolatingElements[0].Element.Id, Is.EqualTo(legacyMethod.Id));
@@ -277,8 +277,8 @@ public class RuleEngineTests
         controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                             ALLOW: MyApp.Controllers.** -> MyApp.Data.**
+                             RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                             ALLOW MyApp.Controllers.** -> MyApp.Data.**
                              """);
 
         Assert.That(result.Violations, Is.Empty);
@@ -307,8 +307,8 @@ public class RuleEngineTests
         controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                             RESTRICT: MyApp.Controllers.** -> MyApp.Dtos.**
+                             RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                             RESTRICT MyApp.Controllers.** -> MyApp.Dtos.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
@@ -348,8 +348,8 @@ public class RuleEngineTests
         controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                             RESTRICT: MyApp.Controllers.Admin.** -> MyApp.Auditing.**
+                             RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                             RESTRICT MyApp.Controllers.Admin.** -> MyApp.Auditing.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
@@ -384,8 +384,8 @@ public class RuleEngineTests
         jobClass.Relationships.Add(new Relationship(jobClass.Id, repository.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             RESTRICT: MyApp.Web.** -> MyApp.Services.**
-                             RESTRICT: MyApp.Jobs.** -> MyApp.Services.**
+                             RESTRICT MyApp.Web.** -> MyApp.Services.**
+                             RESTRICT MyApp.Jobs.** -> MyApp.Services.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(2));
@@ -404,8 +404,8 @@ public class RuleEngineTests
         order.Relationships.Add(new Relationship(order.Id, valueObject.Id, RelationshipType.Uses));
 
         var result = Execute("""
-                             ISOLATE: MyApp.Domain.**
-                             ALLOW: MyApp.Domain.** -> MyApp.SharedKernel.**
+                             ISOLATE MyApp.Domain.**
+                             ALLOW MyApp.Domain.** -> MyApp.SharedKernel.**
                              """);
 
         Assert.That(result.Violations, Is.Empty);
@@ -422,7 +422,7 @@ public class RuleEngineTests
 
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var result = Execute("ALLOW: MyApp.Business.** -> MyApp.Data.**");
+        var result = Execute("ALLOW MyApp.Business.** -> MyApp.Data.**");
 
         Assert.That(result.Violations, Is.Empty);
         Assert.That(result.Warnings, Is.Empty);
@@ -438,7 +438,7 @@ public class RuleEngineTests
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
         // Typo in the source pattern - the rule silently matched nothing before.
-        var result = Execute("DENY: MyApp.Bussiness.** -> MyApp.Data.**");
+        var result = Execute("DENY MyApp.Bussiness.** -> MyApp.Data.**");
 
         Assert.That(result.Violations, Is.Empty);
         Assert.That(result.Warnings, Has.Count.EqualTo(1));
@@ -450,7 +450,7 @@ public class RuleEngineTests
     {
         _codeGraph.CreateNamespace("MyApp.Business");
 
-        var result = Execute("DENY: MyApp.Business.** -> MyApp.DoesNotExist.**");
+        var result = Execute("DENY MyApp.Business.** -> MyApp.DoesNotExist.**");
 
         Assert.That(result.Warnings, Has.Count.EqualTo(1));
         Assert.That(result.Warnings[0], Contains.Substring("MyApp.DoesNotExist.**"));
@@ -467,8 +467,8 @@ public class RuleEngineTests
 
         // The exception has a typo, so it must not suppress anything - and the user must be told.
         var result = Execute("""
-                             DENY: MyApp.Business.** -> MyApp.Data.**
-                             ALLOW: MyApp.Bussiness.** -> MyApp.Data.**
+                             DENY MyApp.Business.** -> MyApp.Data.**
+                             ALLOW MyApp.Bussiness.** -> MyApp.Data.**
                              """);
 
         Assert.That(result.Violations, Has.Count.EqualTo(1));
@@ -482,8 +482,8 @@ public class RuleEngineTests
         _codeGraph.CreateNamespace("MyApp.Business");
 
         var result = Execute("""
-                             DENY: MyApp.Business.** -> MyApp.DoesNotExist.**
-                             DENY: MyApp.Business.** -> MyApp.DoesNotExist.**
+                             DENY MyApp.Business.** -> MyApp.DoesNotExist.**
+                             DENY MyApp.Business.** -> MyApp.DoesNotExist.**
                              """);
 
         Assert.That(result.Warnings, Has.Count.EqualTo(1));
@@ -498,7 +498,7 @@ public class RuleEngineTests
         var repository = _codeGraph.CreateClass("Repository", data);
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var result = Execute("DENY: MyApp.Business.** -> MyApp.Data.**");
+        var result = Execute("DENY MyApp.Business.** -> MyApp.Data.**");
 
         Assert.That(result.Warnings, Is.Empty);
         Assert.That(result.Violations, Has.Count.EqualTo(1));

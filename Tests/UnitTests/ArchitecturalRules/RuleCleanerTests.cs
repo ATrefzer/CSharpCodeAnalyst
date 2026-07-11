@@ -32,7 +32,7 @@ public class RuleCleanerTests
     public void RemovesDeny_WithUnmatchedSource()
     {
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(
-            "DENY: MyApp.DoesNotExist.** -> MyApp.Data.**", _codeGraph);
+            "DENY MyApp.DoesNotExist.** -> MyApp.Data.**", _codeGraph);
 
         Assert.That(removed, Is.EqualTo(1));
         Assert.That(cleaned.Trim(), Is.Empty);
@@ -42,7 +42,7 @@ public class RuleCleanerTests
     public void RemovesDeny_WithUnmatchedTarget()
     {
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(
-            "DENY: MyApp.Business.** -> MyApp.Nope.**", _codeGraph);
+            "DENY MyApp.Business.** -> MyApp.Nope.**", _codeGraph);
 
         Assert.That(removed, Is.EqualTo(1));
         Assert.That(cleaned.Trim(), Is.Empty);
@@ -51,7 +51,7 @@ public class RuleCleanerTests
     [Test]
     public void RemovesIsolate_WithUnmatchedSource()
     {
-        var (_, removed) = RuleCleaner.RemoveUnusedRules("ISOLATE: MyApp.Nope.**", _codeGraph);
+        var (_, removed) = RuleCleaner.RemoveUnusedRules("ISOLATE MyApp.Nope.**", _codeGraph);
         Assert.That(removed, Is.EqualTo(1));
     }
 
@@ -59,7 +59,7 @@ public class RuleCleanerTests
     public void RemovesAllow_WithUnmatchedSide()
     {
         var (_, removed) = RuleCleaner.RemoveUnusedRules(
-            "ALLOW: MyApp.Business.** -> MyApp.Nope.**", _codeGraph);
+            "ALLOW MyApp.Business.** -> MyApp.Nope.**", _codeGraph);
         Assert.That(removed, Is.EqualTo(1));
     }
 
@@ -68,7 +68,7 @@ public class RuleCleanerTests
     {
         // A RESTRICT with an unmatched target still forbids all external dependencies of its
         // source, so it must NOT be removed (removing it would hide violations).
-        var rulesText = "RESTRICT: MyApp.Business.** -> MyApp.Nope.**";
+        var rulesText = "RESTRICT MyApp.Business.** -> MyApp.Nope.**";
 
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(rulesText, _codeGraph);
 
@@ -80,14 +80,14 @@ public class RuleCleanerTests
     public void RemovesRestrict_WithUnmatchedSource()
     {
         var (_, removed) = RuleCleaner.RemoveUnusedRules(
-            "RESTRICT: MyApp.Nope.** -> MyApp.Data.**", _codeGraph);
+            "RESTRICT MyApp.Nope.** -> MyApp.Data.**", _codeGraph);
         Assert.That(removed, Is.EqualTo(1));
     }
 
     [Test]
     public void KeepsMatchingRule()
     {
-        var rulesText = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var rulesText = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(rulesText, _codeGraph);
 
         Assert.That(removed, Is.EqualTo(0));
@@ -100,16 +100,16 @@ public class RuleCleanerTests
         var rulesText =
             "// a comment\n" +
             "\n" +
-            "DENY: MyApp.Nope.** -> MyApp.Data.**\n" +
+            "DENY MyApp.Nope.** -> MyApp.Data.**\n" +
             "this is not a valid rule\n" +
-            "DENY: MyApp.Business.** -> MyApp.Data.**";
+            "DENY MyApp.Business.** -> MyApp.Data.**";
 
         var (cleaned, removed) = RuleCleaner.RemoveUnusedRules(rulesText, _codeGraph);
 
         Assert.That(removed, Is.EqualTo(1));
         Assert.That(cleaned, Does.Contain("// a comment"));
         Assert.That(cleaned, Does.Contain("this is not a valid rule"));
-        Assert.That(cleaned, Does.Contain("DENY: MyApp.Business.** -> MyApp.Data.**"));
+        Assert.That(cleaned, Does.Contain("DENY MyApp.Business.** -> MyApp.Data.**"));
         Assert.That(cleaned, Does.Not.Contain("MyApp.Nope"));
     }
 
@@ -118,9 +118,9 @@ public class RuleCleanerTests
     {
         // Strong invariant: removing empty rules must leave the violation set identical.
         var rulesText =
-            "DENY: MyApp.Business.** -> MyApp.Data.**\n" +
-            "DENY: MyApp.Nope.** -> MyApp.Data.**\n" +
-            "ALLOW: MyApp.Ghost.** -> MyApp.Data.**";
+            "DENY MyApp.Business.** -> MyApp.Data.**\n" +
+            "DENY MyApp.Nope.** -> MyApp.Data.**\n" +
+            "ALLOW MyApp.Ghost.** -> MyApp.Data.**";
 
         var before = RuleEngine.Execute(RuleParser.ParseRules(rulesText), _codeGraph, new MetricStore());
 

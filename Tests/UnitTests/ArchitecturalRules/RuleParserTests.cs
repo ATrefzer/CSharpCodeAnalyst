@@ -10,7 +10,7 @@ public class RuleParserTests
     public void ParseDenyRule_ValidSyntax_ShouldReturnDenyRule()
     {
         // Arrange
-        var ruleText = "DENY: Business.** -> Data.**";
+        var ruleText = "DENY Business.** -> Data.**";
 
         // Act
         var rule = RuleParser.ParseRule(ruleText);
@@ -27,7 +27,7 @@ public class RuleParserTests
     public void ParseRestrictRule_ValidSyntax_ShouldReturnRestrictRule()
     {
         // Arrange
-        var ruleText = "RESTRICT: Controllers.** -> Services.**";
+        var ruleText = "RESTRICT Controllers.** -> Services.**";
 
         // Act
         var rule = RuleParser.ParseRule(ruleText);
@@ -43,7 +43,7 @@ public class RuleParserTests
     public void ParseIsolateRule_ValidSyntax_ShouldReturnIsolateRule()
     {
         // Arrange
-        var ruleText = "ISOLATE: Domain.**";
+        var ruleText = "ISOLATE Domain.**";
 
         // Act
         var rule = RuleParser.ParseRule(ruleText);
@@ -58,7 +58,7 @@ public class RuleParserTests
     public void ParseAllowRule_ValidSyntax_ShouldReturnAllowRule()
     {
         // Arrange
-        var ruleText = "ALLOW: Business.Reporting.** -> Data.**";
+        var ruleText = "ALLOW Business.Reporting.** -> Data.**";
 
         // Act
         var rule = RuleParser.ParseRule(ruleText);
@@ -74,7 +74,7 @@ public class RuleParserTests
     [Test]
     public void ParseAllowRule_MissingTarget_ShouldThrow()
     {
-        Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW: Business.**"));
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW Business.**"));
     }
 
     // The threshold is a percentage, like the value the system metrics analyzer displays.
@@ -119,7 +119,7 @@ public class RuleParserTests
     [Test]
     public void ParseMaxLinesRule_WithPattern_KeepsPattern()
     {
-        var rule = (MaxLinesRule)RuleParser.ParseRule("MAXLINES: MyApp.Business.** = 50");
+        var rule = (MaxLinesRule)RuleParser.ParseRule("MAXLINES MyApp.Business.** = 50");
 
         Assert.That(rule.Source, Is.EqualTo("MyApp.Business.**"));
         Assert.That(rule.Threshold, Is.EqualTo(50.0));
@@ -129,7 +129,7 @@ public class RuleParserTests
     public void ParseSystemMetricRule_WithPattern_ShouldThrow()
     {
         // A system metric rule describes the whole code base, a pattern would be meaningless.
-        Assert.Throws<FormatException>(() => RuleParser.ParseRule("MAXCYCLICITY: MyApp.** = 15"));
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("MAXCYCLICITY MyApp.** = 15"));
     }
 
     [Test]
@@ -143,7 +143,7 @@ public class RuleParserTests
     public void ParseRule_ConstructorMemberName_ShouldParse()
     {
         // Roslyn names constructors ".ctor", producing a double dot in the full path.
-        var ruleText = "ALLOW: MyApp.Features.AnalyzerManager.LoadAnalyzers -> MyApp.Rules.Analyzer..ctor";
+        var ruleText = "ALLOW MyApp.Features.AnalyzerManager.LoadAnalyzers -> MyApp.Rules.Analyzer..ctor";
 
         var rule = RuleParser.ParseRule(ruleText);
 
@@ -157,7 +157,7 @@ public class RuleParserTests
     public void ParseRule_StaticConstructorMemberName_ShouldParse()
     {
         // Static constructors are named ".cctor".
-        var rule = RuleParser.ParseRule("DENY: MyApp.A..cctor -> MyApp.B.SomeType");
+        var rule = RuleParser.ParseRule("DENY MyApp.A..cctor -> MyApp.B.SomeType");
 
         Assert.That(rule, Is.InstanceOf<DenyRule>());
         Assert.That(((DenyRule)rule).Source, Is.EqualTo("MyApp.A..cctor"));
@@ -167,7 +167,7 @@ public class RuleParserTests
     public void ParseRule_CaseInsensitive_ShouldWork()
     {
         // Arrange
-        var ruleText = "deny: business.** -> data.**";
+        var ruleText = "deny business.** -> data.**";
 
         // Act
         var rule = RuleParser.ParseRule(ruleText);
@@ -179,7 +179,7 @@ public class RuleParserTests
     [Test]
     public void ParseRule_WithExtraSpaces_ShouldTrimCorrectly()
     {
-        // Arrange
+        // Arrange - also exercises the legacy colon form with spaces around the colon.
         var ruleText = "  DENY  :  Business.**  ->  Data.**  ";
 
         // Act
@@ -189,6 +189,29 @@ public class RuleParserTests
         var denyRule = (DenyRule)rule;
         Assert.That(denyRule.Source, Is.EqualTo("Business.**"));
         Assert.That(denyRule.Target, Is.EqualTo("Data.**"));
+    }
+
+    /// <summary>
+    ///     The colon after the keyword is the legacy syntax. It must stay accepted so that existing
+    ///     rules files and saved projects keep loading.
+    /// </summary>
+    [TestCase("DENY: Business.** -> Data.**", typeof(DenyRule))]
+    [TestCase("RESTRICT: Controllers.** -> Services.**", typeof(RestrictRule))]
+    [TestCase("ISOLATE: Domain.**", typeof(IsolateRule))]
+    [TestCase("ALLOW: Business.Reporting.** -> Data.**", typeof(AllowRule))]
+    [TestCase("MAXLINES: MyApp.Business.** = 50", typeof(MaxLinesRule))]
+    public void ParseRule_LegacyColonSyntax_IsStillAccepted(string ruleText, Type expectedRuleType)
+    {
+        var rule = RuleParser.ParseRule(ruleText);
+
+        Assert.That(rule, Is.InstanceOf(expectedRuleType));
+    }
+
+    /// <summary>The keyword needs a separator: "DENYA" must not parse as DENY plus source "A".</summary>
+    [Test]
+    public void ParseRule_KeywordGluedToSource_ShouldThrow()
+    {
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("DENYBusiness.** -> Data.**"));
     }
 
     [Test]
@@ -208,10 +231,10 @@ public class RuleParserTests
         // Arrange
         var rulesText = """
                         // Comment line
-                        DENY: Business.** -> Data.**
+                        DENY Business.** -> Data.**
 
-                        RESTRICT: Controllers.** -> Services.**
-                        ISOLATE: Domain.**
+                        RESTRICT Controllers.** -> Services.**
+                        ISOLATE Domain.**
                         """;
 
         // Act
@@ -231,10 +254,10 @@ public class RuleParserTests
         var rulesText = """
                         // This is a comment
 
-                        DENY: Business.** -> Data.**
+                        DENY Business.** -> Data.**
                         // Another comment
 
-                        ISOLATE: Domain.**
+                        ISOLATE Domain.**
                         """;
 
         // Act
@@ -249,9 +272,9 @@ public class RuleParserTests
     {
         // Arrange
         var rulesText = """
-                        DENY: Business.** -> Data.**
+                        DENY Business.** -> Data.**
                         INVALID: Wrong syntax
-                        ISOLATE: Domain.**
+                        ISOLATE Domain.**
                         """;
 
         // Act & Assert

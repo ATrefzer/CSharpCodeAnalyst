@@ -57,9 +57,9 @@ public class AnalyzerIntegrationTests
 
         // Define rules that will detect these violations
         var rulesText = """
-                        DENY: MyApp.Business.** -> MyApp.Data.**
-                        RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                        ISOLATE: MyApp.Domain.**
+                        DENY MyApp.Business.** -> MyApp.Data.**
+                        RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                        ISOLATE MyApp.Domain.**
                         """;
 
         // Act - Execute the full analyzer workflow
@@ -102,7 +102,7 @@ public class AnalyzerIntegrationTests
 
         handlerClass.Relationships.Add(new Relationship(handlerClass.Id, clickEvent.Id, RelationshipType.Handles));
 
-        var rulesText = "DENY: MyApp.Business.** -> MyApp.UI.**";
+        var rulesText = "DENY MyApp.Business.** -> MyApp.UI.**";
 
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
@@ -121,7 +121,7 @@ public class AnalyzerIntegrationTests
 
         source.Relationships.Add(new Relationship(source.Id, target.Id, RelationshipType.Uses));
 
-        var rulesText = "DENY: MyApp.Business.** -> MyApp.UI.**";
+        var rulesText = "DENY MyApp.Business.** -> MyApp.UI.**";
 
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);
 
@@ -146,9 +146,9 @@ public class AnalyzerIntegrationTests
         orderEntity.Relationships.Add(new Relationship(orderEntity.Id, productEntity.Id, RelationshipType.Uses)); // Internal domain
 
         var rulesText = """
-                        DENY: MyApp.Business.** -> MyApp.Data.**
-                        RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                        ISOLATE: MyApp.Domain.**
+                        DENY MyApp.Business.** -> MyApp.Data.**
+                        RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                        ISOLATE MyApp.Domain.**
                         """;
 
         // Act
@@ -163,9 +163,9 @@ public class AnalyzerIntegrationTests
     {
         // Arrange
         var invalidRulesText = """
-                               DENY: Valid.** -> Rule.**
+                               DENY Valid.** -> Rule.**
                                INVALID: Wrong syntax here
-                               ISOLATE: Another.Valid.**
+                               ISOLATE Another.Valid.**
                                """;
 
         // Act & Assert
@@ -206,8 +206,8 @@ public class AnalyzerIntegrationTests
         controller.Relationships.Add(new Relationship(controller.Id, repository.Id, RelationshipType.Uses)); // Violation (not in either rule)
 
         var rulesText = """
-                        RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
-                        RESTRICT: MyApp.Controllers.** -> MyApp.Utilities.**
+                        RESTRICT MyApp.Controllers.** -> MyApp.Services.**
+                        RESTRICT MyApp.Controllers.** -> MyApp.Utilities.**
                         """;
 
         // Act
@@ -235,7 +235,7 @@ public class AnalyzerIntegrationTests
         orderService.Relationships.Add(new Relationship(orderService.Id, repository.Id, RelationshipType.Uses));
 
         // Test recursive pattern matching
-        var rulesText = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var rulesText = "DENY MyApp.Business.** -> MyApp.Data.**";
 
         // Act
         var results = ExecuteRulesAnalysis(rulesText, _codeGraph);

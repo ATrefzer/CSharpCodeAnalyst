@@ -4,7 +4,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 
 /// <summary>
 ///     Denies dependencies from source to target patterns
-///     Syntax: DENY: Source -> Target
+///     Syntax: DENY Source -> Target
 /// </summary>
 public class DenyRule : TargetedDependencyRule
 {

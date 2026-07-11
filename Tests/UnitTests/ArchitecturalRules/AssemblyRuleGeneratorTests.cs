@@ -49,8 +49,8 @@ public class AssemblyRuleGeneratorTests
 
         var lines = GenerateLines();
 
-        Assert.That(lines, Does.Contain("RESTRICT: AsmA.** -> AsmB.**"));
-        Assert.That(lines, Does.Contain("ISOLATE: AsmB.**"));
+        Assert.That(lines, Does.Contain("RESTRICT AsmA.** -> AsmB.**"));
+        Assert.That(lines, Does.Contain("ISOLATE AsmB.**"));
         Assert.That(lines, Has.Count.EqualTo(2));
     }
 
@@ -67,10 +67,10 @@ public class AssemblyRuleGeneratorTests
 
         var lines = GenerateLines();
 
-        Assert.That(lines, Does.Contain("RESTRICT: AsmA.** -> AsmB.**"));
-        Assert.That(lines, Does.Contain("RESTRICT: AsmA.** -> AsmC.**"));
-        Assert.That(lines, Does.Contain("ISOLATE: AsmB.**"));
-        Assert.That(lines, Does.Contain("ISOLATE: AsmC.**"));
+        Assert.That(lines, Does.Contain("RESTRICT AsmA.** -> AsmB.**"));
+        Assert.That(lines, Does.Contain("RESTRICT AsmA.** -> AsmC.**"));
+        Assert.That(lines, Does.Contain("ISOLATE AsmB.**"));
+        Assert.That(lines, Does.Contain("ISOLATE AsmC.**"));
         // No DENY / no implicit assumptions - just the current state.
         Assert.That(lines, Has.None.StartsWith("DENY"));
     }
@@ -87,8 +87,8 @@ public class AssemblyRuleGeneratorTests
 
         var lines = GenerateLines();
 
-        Assert.That(lines, Does.Contain("RESTRICT: AsmA.** -> AsmB.**"));
-        Assert.That(lines, Does.Contain("RESTRICT: AsmB.** -> AsmA.**"));
+        Assert.That(lines, Does.Contain("RESTRICT AsmA.** -> AsmB.**"));
+        Assert.That(lines, Does.Contain("RESTRICT AsmB.** -> AsmA.**"));
         Assert.That(lines, Has.Count.EqualTo(2));
     }
 
@@ -150,7 +150,7 @@ public class AssemblyRuleGeneratorTests
         var lines = GenerateLines();
 
         // A only depends on external code -> treated as no internal dependency -> ISOLATE.
-        Assert.That(lines, Does.Contain("ISOLATE: AsmA.**"));
+        Assert.That(lines, Does.Contain("ISOLATE AsmA.**"));
         Assert.That(lines, Has.None.Contains("System"));
     }
 

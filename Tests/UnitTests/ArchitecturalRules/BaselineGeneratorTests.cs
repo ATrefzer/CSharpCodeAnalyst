@@ -35,12 +35,12 @@ public class BaselineGeneratorTests
         var repository = _codeGraph.CreateClass("Repository", data);
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var (result, rulesText) = Run("DENY: MyApp.Business.** -> MyApp.Data.**");
+        var (result, rulesText) = Run("DENY MyApp.Business.** -> MyApp.Data.**");
 
         var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, rulesText);
 
         // The baseline freezes the exact full paths of the offending elements.
-        Assert.That(baseline, Contains.Substring($"ALLOW: {orderLogic.FullName} -> {repository.FullName}"));
+        Assert.That(baseline, Contains.Substring($"ALLOW {orderLogic.FullName} -> {repository.FullName}"));
     }
 
     [Test]
@@ -54,7 +54,7 @@ public class BaselineGeneratorTests
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
         reportLogic.Relationships.Add(new Relationship(reportLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var originalRules = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
         Assert.That(result.Violations, Has.Count.EqualTo(1), "sanity: one rule, two relationships");
 
@@ -77,7 +77,7 @@ public class BaselineGeneratorTests
         var repository = _codeGraph.CreateClass("Repository", data);
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var originalRules = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
         var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
         var newRulesText = originalRules + Environment.NewLine + baseline;
@@ -102,7 +102,7 @@ public class BaselineGeneratorTests
         var repository = _codeGraph.CreateClass("Repository", data);
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var originalRules = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
 
         var firstBaseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
@@ -123,12 +123,12 @@ public class BaselineGeneratorTests
         var repository = _codeGraph.CreateClass("Repository", data);
         orderLogic.Relationships.Add(new Relationship(orderLogic.Id, repository.Id, RelationshipType.Uses));
 
-        var originalRules = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
 
         var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
 
-        Assert.That(baseline, Contains.Substring("// DENY: MyApp.Business.** -> MyApp.Data.**"));
+        Assert.That(baseline, Contains.Substring("// DENY MyApp.Business.** -> MyApp.Data.**"));
     }
 
     [Test]
@@ -156,7 +156,7 @@ public class BaselineGeneratorTests
         overload1.Relationships.Add(new Relationship("m1", repository.Id, RelationshipType.Uses));
         overload2.Relationships.Add(new Relationship("m2", repository.Id, RelationshipType.Uses));
 
-        var originalRules = "DENY: MyApp.Business.** -> MyApp.Data.**";
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
         Assert.That(result.Violations.Sum(v => v.ViolatingRelationships.Count), Is.EqualTo(2),
             "sanity: both overloads violate");

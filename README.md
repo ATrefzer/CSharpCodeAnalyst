@@ -185,7 +185,7 @@ In the ribbon, go to Analyzers and then click "Architectural rules". If a projec
 
 ### Supported rules
 
-Dependency restrictions
+Dependency restrictions are written as `RULE Source -> Target` (e.g. `DENY MyApp.Business.** -> MyApp.Data.**`). A colon after the keyword (`DENY: ...`) is the legacy form and still accepted.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
@@ -206,15 +206,15 @@ A metric rule limits a measured value instead of a dependency. It is written as 
 
 When accepting a baseline a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
 
-**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern the rule applies to every element in the graph `RULE = value`.
+**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE Pattern = value`; without a pattern the rule applies to every element in the graph `RULE = value`.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES: MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
+| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
 
 An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected while importing a solution; if a project has none at all, the rule reports a warning instead of silently passing.
 
-Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES: MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule — the narrower rule does not grant it an exception.
+Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule — the narrower rule does not grant it an exception.
 
 When accepting a baseline, a code element metric rule remains untouched. Lifting its limit to the worst offender would repeal it for every other element. This is not a baseline but a repeal. This is different from the system metric rules.
 
@@ -242,30 +242,30 @@ In these examples the assembly is called `MyApp` and contains the namespaces `Bu
 
 ```
 // Business layer should not access the Data layer directly
-DENY: MyApp.Business.** -> MyApp.Data.**
+DENY MyApp.Business.** -> MyApp.Data.**
 
 // Controllers may only access Services
-RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+RESTRICT MyApp.Controllers.** -> MyApp.Services.**
 
 // Core components may not depend on UI
-DENY: MyApp.Core.** -> MyApp.UI.**
+DENY MyApp.Core.** -> MyApp.UI.**
 
 // Keys should be completely isolated, use ALLOW to define exceptions.
-ISOLATE: MyApp.Keys.**
+ISOLATE MyApp.Keys.**
 
 // Specific class restrictions
-DENY: MyApp.Models.User -> MyApp.Data.Database
+DENY MyApp.Models.User -> MyApp.Data.Database
 
 // Exceptions: the reporting module may access the Data layer
 // even though the Business layer as a whole may not
-DENY: MyApp.Business.** -> MyApp.Data.**
-ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+DENY MyApp.Business.** -> MyApp.Data.**
+ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
 
 // At most 15% of all types may sit inside a dependency cycle
 MAXCYCLICITY = 15
 
 // No method in the business layer longer than 50 code lines
-MAXLINES: MyApp.Business.** = 50
+MAXLINES MyApp.Business.** = 50
 ```
 
 The result of the analysis is shown in the table output for analyzers.

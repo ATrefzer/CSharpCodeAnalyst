@@ -5,7 +5,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 /// <summary>
 ///     Marks dependencies from source to target as allowed. An ALLOW rule never produces
 ///     violations itself; it suppresses matching violations reported by DENY / RESTRICT / ISOLATE rules.
-///     Syntax: ALLOW: Source -> Target
+///     Syntax: ALLOW Source -> Target
 /// </summary>
 public class AllowRule : TargetedDependencyRule
 {

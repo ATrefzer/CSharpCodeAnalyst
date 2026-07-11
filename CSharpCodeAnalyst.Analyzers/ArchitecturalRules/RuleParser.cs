@@ -17,28 +17,33 @@ public static class RuleParser
 
     private static readonly string QualifiedName = $@"{NameSegment}(?:\.{NameSegment})*(?:\.\*{{1,2}})?";
 
+    // Separates the keyword from what follows. Canonical syntax is plain whitespace
+    // ("DENY A -> B"); the colon form ("DENY: A -> B") is legacy syntax and still accepted,
+    // so existing rules files and saved projects keep loading.
+    private const string KeywordSeparator = @"(?:\s*:\s*|\s+)";
+
     private static readonly Regex DenyRegex = new(
-        $@"^\s*DENY\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        $@"^\s*DENY{KeywordSeparator}({QualifiedName})\s*->\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex RestrictRegex = new(
-        $@"^\s*RESTRICT\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        $@"^\s*RESTRICT{KeywordSeparator}({QualifiedName})\s*->\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex IsolateRegex = new(
-        $@"^\s*ISOLATE\s*:\s*({QualifiedName})\s*$",
+        $@"^\s*ISOLATE{KeywordSeparator}({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private static readonly Regex AllowRegex = new(
-        $@"^\s*ALLOW\s*:\s*({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        $@"^\s*ALLOW{KeywordSeparator}({QualifiedName})\s*->\s*({QualifiedName})\s*$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     // All metric rules share the shape "KEYWORD = value", with an optional pattern that scopes the
-    // rule ("KEYWORD: Pattern = value"). One regex plus the factory registry below is enough - a new
+    // rule ("KEYWORD Pattern = value"). One regex plus the factory registry below is enough - a new
     // metric rule costs a rule class and one entry, no parser change. The threshold is always written
     // with a dot as decimal separator, independent of the current culture, so a rules file stays portable.
     private static readonly Regex MetricRegex = new(
-        $@"^\s*([a-zA-Z]+)\s*(?::\s*({QualifiedName})\s*)?=\s*(\d+(?:\.\d+)?)\s*$",
+        $@"^\s*([a-zA-Z]+)(?:{KeywordSeparator}({QualifiedName})\s*)?\s*=\s*(\d+(?:\.\d+)?)\s*$",
         RegexOptions.Compiled);
 
     private static readonly Dictionary<string, Func<MetricRule>> MetricRuleFactories =
@@ -105,16 +110,16 @@ public static class RuleParser
         return ParseDependencyRule(trimmedRule)
                ?? (RuleBase?)ParseMetricRule(trimmedRule)
                ?? throw new FormatException($"Invalid rule syntax: '{ruleTextLine}'. Expected formats:\n" +
-                                            "DENY: Source -> Target\n" +
-                                            "RESTRICT: Source -> Target\n" +
-                                            "ISOLATE: Source\n" +
-                                            "ALLOW: Source -> Target\n" +
+                                            "DENY Source -> Target\n" +
+                                            "RESTRICT Source -> Target\n" +
+                                            "ISOLATE Source\n" +
+                                            "ALLOW Source -> Target\n" +
                                             $"{MaxCyclicityRule.RuleKeyword} = 15\n" +
-                                            $"{MaxLinesRule.RuleKeyword}: Source = 50");
+                                            $"{MaxLinesRule.RuleKeyword} Source = 50");
     }
 
     /// <summary>
-    ///     All dependency rules have the shape "KEYWORD: Source [-> Target]". ISOLATE is the only one
+    ///     All dependency rules have the shape "KEYWORD Source [-> Target]". ISOLATE is the only one
     ///     without a target, and its regex therefore leaves the second group empty.
     /// </summary>
     private static DependencyRule? ParseDependencyRule(string ruleText)

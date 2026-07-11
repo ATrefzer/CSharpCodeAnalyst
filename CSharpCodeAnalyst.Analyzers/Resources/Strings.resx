@@ -420,10 +420,10 @@ Lower is better. 0% means the type graph is acyclic.</value>
     <data name="ArchitectureRules_Info" xml:space="preserve">
     <value>Four rules are supported:
 
-DENY: Forbids dependencies from source to target
-RESTRICT: Allows only specified dependencies
-ISOLATE: Completely isolates the source from external dependencies
-ALLOW: Defines an exception. Suppresses matching violations found by the other rules.        
+DENY — Forbids dependencies from source to target
+RESTRICT — Allows only specified dependencies
+ISOLATE — Completely isolates the source from external dependencies
+ALLOW — Defines an exception. Suppresses matching violations found by the other rules.
 
 Patterns:
 MyApp.Business → exact match
@@ -431,10 +431,10 @@ MyApp.Business.* → element + direct children
 MyApp.Business.** → element + all descendants
 
 Examples:
-DENY: MyApp.Business.** -&gt; MyApp.Data.**
-RESTRICT: MyApp.Controllers.** -&gt; MyApp.Services.**
-ISOLATE: MyApp.Domain.**
-    
+DENY MyApp.Business.** -&gt; MyApp.Data.**
+RESTRICT MyApp.Controllers.** -&gt; MyApp.Services.**
+ISOLATE MyApp.Domain.**
+
 Note: The leading anchor part of a pattern must be an exact match.</value>
   </data>
     <data name="ArchitecturalRules_LoadDialog_Title" xml:space="preserve">

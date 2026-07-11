@@ -6,7 +6,7 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 /// <summary>
 ///     A metric rule that constrains a value of every matching code element. Its violation carries the
 ///     offending elements together with their measured values.
-///     Syntax: KEYWORD = value | KEYWORD: Pattern = value
+///     Syntax: KEYWORD = value | KEYWORD Pattern = value
 ///     <para>
 ///         The source metrics exist only for a subset of the graph - today only for methods with a body.
 ///         An element the rule cannot measure is <em>not applicable</em> rather than compliant or
@@ -46,6 +46,6 @@ public abstract class CodeElementMetricRule : MetricRule
     {
         return string.IsNullOrEmpty(Source)
             ? $"{Keyword} = {FormatThreshold(threshold)}"
-            : $"{Keyword}: {Source} = {FormatThreshold(threshold)}";
+            : $"{Keyword} {Source} = {FormatThreshold(threshold)}";
     }
 }
