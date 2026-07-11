@@ -77,6 +77,9 @@ public class ProjectSelectorTests
         AssertChosenTfm(new[] { "netstandard2.0", "net8.0" }, "net8.0");
         AssertChosenTfm(new[] { "netcoreapp3.1", "netstandard2.0" }, "netcoreapp3.1");
         AssertChosenTfm(new[] { "net48", "netstandard2.0" }, "netstandard2.0");
+
+        // net472 is 4.7.2, not 4.72 - net48 must win.
+        AssertChosenTfm(new[] { "net472", "net48" }, "net48");
     }
 
     [Test]

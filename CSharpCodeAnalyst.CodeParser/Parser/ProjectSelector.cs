@@ -17,6 +17,7 @@ internal record ProjectSelectionResult(
     List<string> Failures);
 
 /// <summary>
+///     TFM = target framework moniker = .net8.0 etc.
 ///     We can only keep one project per assembly name (the symbol key is built from the assembly name, so
 ///     two assemblies with the same name collide). Two situations lead here:
 ///     <list type="number">
@@ -41,14 +42,14 @@ internal static class ProjectSelector
         var failures = new List<string>();
 
         // Group by assembly name but keep a deterministic order so the chosen project is reproducible.
-        var groups = candidates
+        var groupsByAssemblyName = candidates
             .Select((candidate, index) => (candidate, index))
             .GroupBy(x => x.candidate.AssemblyName)
             .OrderBy(g => g.Min(x => x.index));
 
-        foreach (var group in groups)
+        foreach (var assemblyGroup in groupsByAssemblyName)
         {
-            var members = group.Select(x => x.candidate).ToList();
+            var members = assemblyGroup.Select(x => x.candidate).ToList();
             if (members.Count == 1)
             {
                 selected.Add(members[0]);
@@ -83,6 +84,7 @@ internal static class ProjectSelector
     /// <summary>
     ///     Multi-targeting means the very same project file appears more than once. If any file path is
     ///     missing we cannot prove that, so we treat it as a real collision (the louder diagnostic).
+    ///     If multi-targeting the .net version gets also part of the project name.
     /// </summary>
     private static bool IsMultiTargeting(IReadOnlyList<ProjectCandidate> members)
     {
@@ -130,12 +132,15 @@ internal static class ProjectSelector
             return (2, new Version(int.Parse(standard.Groups[1].Value), int.Parse(standard.Groups[2].Value)));
         }
 
-        // .NET Framework (net48, net472).
+        // .NET Framework (net48, net472). Each digit is its own version part: net472 is 4.7.2,
+        // not 4.72 - otherwise net472 would outrank net48 (72 > 8).
         var framework = Regex.Match(tfm, @"^net(\d)(\d)(\d?)$");
         if (framework.Success)
         {
-            var minor = framework.Groups[2].Value + framework.Groups[3].Value;
-            return (1, new Version(int.Parse(framework.Groups[1].Value), int.Parse(minor)));
+            var major = int.Parse(framework.Groups[1].Value);
+            var minor = int.Parse(framework.Groups[2].Value);
+            var build = framework.Groups[3].Value;
+            return (1, build.Length > 0 ? new Version(major, minor, int.Parse(build)) : new Version(major, minor));
         }
 
         return (0, new Version(0, 0));

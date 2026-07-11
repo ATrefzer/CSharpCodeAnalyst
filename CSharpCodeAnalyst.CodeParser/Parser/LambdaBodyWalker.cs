@@ -57,14 +57,11 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
         // Code is similar to MethodBodyWalker but does not capture event invocation.
 
         var symbolInfo = SemanticModel.GetSymbolInfo(node);
-        if (symbolInfo.Symbol is IMethodSymbol calledMethod)
-        {
-            // Skip local functions - they should not be part of the dependency graph
-            if (calledMethod.MethodKind == MethodKind.LocalFunction)
-            {
-                return;
-            }
 
+        // Skip local functions - they should not be part of the dependency graph.
+        // Only the relationship is skipped; base still visits the arguments below.
+        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: not MethodKind.LocalFunction } calledMethod)
+        {
             var location = node.GetSyntaxLocation();
 
             // Add "Uses" relationship to the method (with fallback to containing type)

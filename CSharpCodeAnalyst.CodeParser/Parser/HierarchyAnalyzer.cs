@@ -108,7 +108,7 @@ public class HierarchyAnalyzer
     {
         // We can only keep one project per assembly name (the symbol key is built from the assembly name).
         // The two reasons for duplicates - multi-targeting vs. a real name collision - are distinguished
-        // and reported in ProjectSelector; here we only map to/from the Roslyn Project type.
+        // and reported in ProjectSelector. Here we only map to/from the Roslyn Project type.
 
         var candidateToProject = new Dictionary<ProjectCandidate, Project>();
         var candidates = new List<ProjectCandidate>();
