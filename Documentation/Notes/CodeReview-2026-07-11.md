@@ -4,11 +4,19 @@
 
 **a) `LambdaBodyWalker` verschluckt Argumente bei Aufrufen lokaler Funktionen** — [LambdaBodyWalker.cs:63](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/LambdaBodyWalker.cs:63) Bei `MethodKind.LocalFunction` wird mit `return` die ganze Visit-Methode verlassen, **bevor** `base.VisitInvocationExpression(node)` läuft. Bei `x => LocalFunc(new Foo())` wird damit auch `new Foo()` nie besucht — die Abhängigkeit geht verloren. Der `MethodBodyWalker` macht es richtig: dort sitzt der Early-Return im Handler (`AnalyzeInvocation`), der Walker ruft `base` trotzdem auf. Fix: nur das Anlegen der Relationship überspringen, nicht die Traversierung.
 
+DONE
+
 **b) TFM-Ranking: `net472` schlägt `net48`** — [ProjectSelector.cs:134](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/ProjectSelector.cs:134) Die Regex `^net(\d)(\d)(\d?)$` macht aus `net472` → `Version(4, 72)` und aus `net48` → `Version(4, 8)`. Da 72 > 8, gewinnt bei einem Multi-Target `net472;net48` das falsche (ältere) Framework. Korrekt wäre `4.7.2` vs. `4.8`. Praktisch nur relevant, wenn ein Projekt ausschließlich alte Frameworks multi-targeted, aber das Ergebnis ist dann deterministisch falsch.
+
+DONE
 
 **c) Plausibilitätscheck ist tote Logik** — [CodeGraphPlausibilityChecks.cs:31](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/CodeGraphPlausibilityChecks.cs:31) `node.SourceLocations.Select(...).ToHashSet()` dedupliziert bereits — das anschließende `if (!hash.Add(location))` kann darum **nie** fehlschlagen. Der Check "Duplicate location found" feuert nie, egal wie viele Duplikate es gibt. Das `.ToHashSet()` muss weg (oder man vergleicht `list.Count != set.Count`). Betrifft nur DEBUG, aber die Prüfung, die du dir dort versprichst, existiert faktisch nicht.
 
+DONE
+
 **d) `IsUnrecognizedProject` ist case-sensitiv** — [HierarchyAnalyzer.cs:545](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/HierarchyAnalyzer.cs:545) `unrecognized.Contains(ext)` matcht `.Vbproj` nicht. Außerdem ist die Blacklist unvollständig (`.sqlproj`, `.esproj`, `.wapproj`, `.shproj`, `.dcproj` …). Robuster wäre eine Whitelist: alles außer `.csproj` ablehnen (der Adhoc-Pfad nutzt bewusst `"InMemory.csproj"`, bliebe also intakt). Nebenbei: die Liste wird bei jedem Aufruf neu alloziert — `static readonly` reicht.
+
+DONE
 
 **e) Kleinigkeiten**
 

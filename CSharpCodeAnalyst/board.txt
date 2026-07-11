@@ -8,6 +8,8 @@
 
 - Improve heuristic call tracking with instance calls.
 
+- Use same logic for msbuild fallback to open the editor.
+
 UNHANDLED CASES
 ---------------------
 

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.Build.Locator;
 
 namespace CSharpCodeAnalyst.CodeParser.Parser;
@@ -31,20 +31,112 @@ public static class Initializer
                 "Failed to register MSBuild path. Please ensure that MSBuild is installed and the path is correct.");
         }
 
+        Trace.WriteLine("Registering MSBuild manually: " + fallback);
         MSBuildLocator.RegisterMSBuildPath(fallback);
     }
 
+    /// <summary>
+    ///     Returns the first candidate directory that actually contains MSBuild, or an empty string.
+    /// </summary>
     private static string GetFallbackMsBuildPath()
     {
-        var fallbacks = new[] { @"C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin" };
-        foreach (var fallback in fallbacks)
+        return EnumerateMsBuildCandidates().FirstOrDefault(ContainsMsBuild) ?? string.Empty;
+    }
+
+    private static bool ContainsMsBuild(string directory)
+    {
+        // SDK installations ship MSBuild.dll, Visual Studio installations ship MSBuild.exe.
+        return File.Exists(Path.Combine(directory, "MSBuild.dll")) ||
+               File.Exists(Path.Combine(directory, "MSBuild.exe"));
+    }
+
+    /// <summary>
+    ///     Known MSBuild locations, best match first. Only used when
+    ///     <see cref="MSBuildLocator.RegisterDefaults" /> failed.
+    /// </summary>
+    private static IEnumerable<string> EnumerateMsBuildCandidates()
+    {
+        var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+        var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        // 1. .NET SDK. We run on .NET ourselves, so the SDK's MSBuild is the best match. This is what
+        //    RegisterDefaults would have chosen - trying it again covers failures like a broken PATH,
+        //    where the SDK directory still exists.
+        var sdkRoot = Path.Combine(programFiles, "dotnet", "sdk");
+        foreach (var sdkDirectory in EnumerateVersionDirectoriesDescending(sdkRoot))
         {
-            if (Directory.Exists(fallback))
+            yield return sdkDirectory;
+        }
+
+        // 2. Visual Studio, newest version first. "Insiders" is the 2026 preview channel; "BuildTools"
+        //    installs under Program Files (x86) even for the 64-bit studios, hence both roots.
+        string[] vsVersions = ["2026", "2022"];
+        string[] vsEditions = ["Enterprise", "Professional", "Community", "Insiders", "Preview", "BuildTools"];
+        string[] vsRoots =
+        [
+            Path.Combine(programFiles, "Microsoft Visual Studio"),
+            Path.Combine(programFilesX86, "Microsoft Visual Studio")
+        ];
+
+        foreach (var version in vsVersions)
+        {
+            foreach (var root in vsRoots)
             {
-                return fallback;
+                foreach (var edition in vsEditions)
+                {
+                    yield return Path.Combine(root, version, edition, "MSBuild", "Current", "Bin");
+                }
             }
         }
 
-        return string.Empty;
+        // 3. JetBrains Rider bundles MSBuild under tools\MSBuild\Current\Bin. The install folder name
+        //    carries the version ("JetBrains Rider 2024.3") for the standalone installer, while the
+        //    Toolbox app installs to a stable "Rider" folder under %LocalAppData%\Programs.
+        string[] riderRoots =
+        [
+            Path.Combine(programFiles, "JetBrains"),
+            Path.Combine(localAppData, "Programs")
+        ];
+
+        foreach (var root in riderRoots)
+        {
+            if (!Directory.Exists(root))
+            {
+                continue;
+            }
+
+            var riderDirectories = Directory.EnumerateDirectories(root, "*Rider*")
+                .OrderByDescending(d => d, StringComparer.OrdinalIgnoreCase);
+            foreach (var riderDirectory in riderDirectories)
+            {
+                yield return Path.Combine(riderDirectory, "tools", "MSBuild", "Current", "Bin");
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Subdirectories of <paramref name="root" /> whose names parse as a version, newest first.
+    ///     A pre-release suffix ("10.0.100-preview.5") is ignored for the comparison.
+    /// </summary>
+    private static IEnumerable<string> EnumerateVersionDirectoriesDescending(string root)
+    {
+        if (!Directory.Exists(root))
+        {
+            return [];
+        }
+
+        return Directory.EnumerateDirectories(root)
+            .Select(directory =>
+            {
+                var name = Path.GetFileName(directory);
+                var dash = name.IndexOf('-');
+                var isVersion = Version.TryParse(dash >= 0 ? name[..dash] : name, out var version);
+                return (Directory: directory, IsVersion: isVersion, Version: version, IsPreview: dash >= 0);
+            })
+            .Where(x => x.IsVersion)
+            .OrderByDescending(x => x.Version)
+            .ThenBy(x => x.IsPreview) // Same version: prefer the release over the preview.
+            .Select(x => x.Directory);
     }
 }
