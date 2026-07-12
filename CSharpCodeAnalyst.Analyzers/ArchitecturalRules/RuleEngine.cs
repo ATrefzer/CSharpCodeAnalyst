@@ -1,5 +1,6 @@
 using CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 using CSharpCodeAnalyst.Analyzers.Resources;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
@@ -59,6 +60,7 @@ public sealed class RuleEngine
         EvaluateDenyRules(rules.OfType<DenyRule>());
         EvaluateIsolateRules(rules.OfType<IsolateRule>());
         EvaluateRestrictRules(rules.OfType<RestrictRule>().ToList());
+        EvaluateNoCyclesRules(rules.OfType<NoCyclesRule>().ToList());
         EvaluateSystemMetricRules(rules.OfType<SystemMetricRule>().ToList());
         EvaluateElementMetricRules(rules.OfType<CodeElementMetricRule>());
 
@@ -175,6 +177,58 @@ public sealed class RuleEngine
     }
 
     /// <summary>
+    ///     NOCYCLES runs the same cycle search as the interactive Cycles view, so the rule enforces
+    ///     exactly what that view shows - including cycles that only exist between namespaces and
+    ///     are invisible on the plain type graph. The search runs once and only when at least one
+    ///     NOCYCLES rule exists; each violation is one cycle group. A cycle is a property of the
+    ///     whole group, not of a single edge, so ALLOW exceptions do not apply.
+    /// </summary>
+    private void EvaluateNoCyclesRules(IReadOnlyList<NoCyclesRule> noCyclesRules)
+    {
+        if (noCyclesRules.Count == 0)
+        {
+            return;
+        }
+
+        var cycleGroups = CycleFinder.FindCycleGroups(_graph);
+
+        foreach (var rule in noCyclesRules)
+        {
+            // The path always means the element and everything below it.
+            var subtree = ResolveSubtree(rule.Source, rule.RuleText);
+
+            foreach (var cycleGroup in cycleGroups.Where(g => ViolatesRule(g, subtree)))
+            {
+                var description = string.Format(
+                    Strings.Analyzer_ArchitecturalRules_CycleFound,
+                    rule.DisplayName,
+                    cycleGroup.Name,
+                    cycleGroup.Vertices.Count);
+
+                _result.Violations.Add(new Violation(rule, cycleGroup.Vertices, description, cycleGroup.Name));
+            }
+        }
+    }
+
+    /// <summary>Whether a cycle group violates a NOCYCLES rule covering the given subtree.</summary>
+    private static bool ViolatesRule(CycleGroup cycleGroup, HashSet<string> subtree)
+    {
+        // Mutual recursion between members of one type is a code pattern, not an architecture
+        // violation. The search graph lifts every edge to peer rank, so a member-level cycle
+        // group always lives inside a single type - only container cycles (types, namespaces)
+        // count for the rule.
+        if (cycleGroup.Vertices.All(v => CodeElementClassifier.GetContainerLevel(v.ElementType) == 0))
+        {
+            return false;
+        }
+
+        // The rule owns only the cycles that lie completely below its element. A cycle that is
+        // only partly below it belongs to a rule on a higher element or to the boundary rules
+        // (DENY / RESTRICT).
+        return cycleGroup.Vertices.All(v => subtree.Contains(v.Id));
+    }
+
+    /// <summary>
     ///     Metric rules are not about single relationships, so ALLOW exceptions do not apply to them.
     ///     All system metric rules read the same metrics object, which is computed once and only when
     ///     at least one such rule exists.
@@ -269,6 +323,18 @@ public sealed class RuleEngine
         if (ids.Count == 0)
         {
             AddWarning(string.Format(Strings.Analyzer_ArchitecturalRules_PatternNoMatch, ruleText, pattern));
+        }
+
+        return ids;
+    }
+
+    /// <summary>Like <see cref="Resolve" />, but the path always means the whole subtree (NOCYCLES).</summary>
+    private HashSet<string> ResolveSubtree(string path, string ruleText)
+    {
+        var ids = PatternMatcher.ResolveSubtree(path, _graph);
+        if (ids.Count == 0)
+        {
+            AddWarning(string.Format(Strings.Analyzer_ArchitecturalRules_PatternNoMatch, ruleText, path));
         }
 
         return ids;

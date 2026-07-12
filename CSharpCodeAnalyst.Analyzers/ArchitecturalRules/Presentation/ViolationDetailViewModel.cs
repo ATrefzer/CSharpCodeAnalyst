@@ -28,6 +28,13 @@ public class ViolationDetailViewModel
         Description = $"{element.FullName} ({formattedValue})";
     }
 
+    /// <summary>A code element participating in a dependency cycle.</summary>
+    public ViolationDetailViewModel(CodeElement element)
+    {
+        SourceLocation = element.SourceLocations.FirstOrDefault();
+        Description = element.FullName;
+    }
+
     public string Description { get; }
     public SourceLocation? SourceLocation { get; }
 }

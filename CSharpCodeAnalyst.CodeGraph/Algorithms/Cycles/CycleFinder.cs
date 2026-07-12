@@ -1,4 +1,6 @@
-﻿namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
+﻿using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
+
+namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 
 public static class CycleFinder
 {
@@ -25,10 +27,30 @@ public static class CycleFinder
             var vertices = scc.Vertices.ToList();
             var detailedGraph = CodeGraphBuilder.GenerateDetailedCodeGraph(vertices, originalGraph);
 
-            groups.Add(new CycleGroup(detailedGraph));
+            groups.Add(new CycleGroup(detailedGraph, vertices.Select(v => v.OriginalElement).ToList())
+            {
+                Name = CreateGroupName(detailedGraph)
+            });
         }
 
         return groups;
+    }
+
+    /// <summary>
+    ///     Names the group after its most central element (most incoming dependencies). The
+    ///     sequence keeps the name stable when dependencies are removed, so a cycle can be
+    ///     recognized across runs - and the same name links a NOCYCLES rule violation to the
+    ///     group in the Cycles view.
+    /// </summary>
+    private static string CreateGroupName(Graph.CodeGraph detailedGraph)
+    {
+        var metrics = DependencyMetrics.Calculate(detailedGraph);
+
+        return metrics
+            .OrderByDescending(m => m.Incoming)
+            .ThenByDescending(m => m.Outgoing)
+            .ThenBy(m => m.Element.Name)
+            .First().Element.Name;
     }
 
     /// <summary>

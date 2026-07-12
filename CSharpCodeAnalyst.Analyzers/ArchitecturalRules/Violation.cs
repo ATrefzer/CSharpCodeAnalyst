@@ -24,6 +24,20 @@ public class Violation
     }
 
     /// <summary>
+    ///     A violation of a NOCYCLES rule: one dependency cycle, carried as the participating
+    ///     elements on the lifted cycle level - the same elements the Cycles view counts. Nobody
+    ///     analyzes a cycle edge by edge in this table; the user identifies the group by name and
+    ///     participant count and continues in the Cycles view.
+    /// </summary>
+    public Violation(RuleBase rule, IEnumerable<CodeElement> cycleElements, string description, string cycleName)
+    {
+        Rule = rule;
+        CycleElements = cycleElements.ToList();
+        Description = description;
+        CycleName = cycleName;
+    }
+
+    /// <summary>
     ///     A violation of a system metric rule. <paramref name="metricValue" /> is the one measured
     ///     value that broke the rule's threshold.
     /// </summary>
@@ -54,6 +68,19 @@ public class Violation
 
     /// <summary>Offending relationships of a dependency rule, empty for every other rule.</summary>
     public List<Relationship> ViolatingRelationships { get; } = [];
+
+    /// <summary>
+    ///     Name of the violated cycle group, <c>null</c> for every rule but NOCYCLES. It is the same
+    ///     name the Cycles view stamps on the group, so the user can find the cycle there and
+    ///     analyze it further.
+    /// </summary>
+    public string? CycleName { get; }
+
+    /// <summary>
+    ///     Participants of a violated NOCYCLES rule on the lifted cycle level (namespaces, types),
+    ///     empty for every other rule.
+    /// </summary>
+    public List<CodeElement> CycleElements { get; } = [];
 
     /// <summary>Measured value of a system metric rule, <c>null</c> for every other rule.</summary>
     public double? MetricValue { get; }

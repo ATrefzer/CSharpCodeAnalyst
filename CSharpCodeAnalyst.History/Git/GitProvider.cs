@@ -96,12 +96,15 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
         // Verify first. If the scope drifted from the tracked files we get warnings here.
         VerifyScope(headNode);
 
+        var head = headNode!;
+        var scope = head.Scope!;
+
         // The scope may not contain every tracked file (see warnings above),
         // so we must not use GetId here. It would throw.
         var allTrackedFiles = GetAllTrackedFiles();
         var aliveIds = new HashSet<string>(allTrackedFiles
-            .Select(file => headNode.Scope.GetIdOrDefault(file))
-            .Where(id => id != null));
+            .Select(scope.GetIdOrDefault)
+            .Where(id => id != null)!);
 
         // Note we have to drop all Delete items from the history. This is safe.
         // A file can be deleted in one branch but maintained in another one.
@@ -261,7 +264,7 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
             var mergeInto = node.Parents[0];
             var mergeFromScopes = node.Parents.Skip(1).Select(parent => parent.Scope).ToList();
 
-            // We have to clone the merge scope. The same node may be processed later again as a parent node. Therefore we
+            // We have to clone the merge scope. The same node may be processed later again as a parent node. Therefore, we
             // have to keep its scope untouched.
             var mergeIntoScope = mergeInto.Scope.Clone();
 
@@ -542,9 +545,9 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
 
     private void VerifyScope(GraphNode? node)
     {
-        if (node == null || node.Scope == null)
+        if (node?.Scope == null)
         {
-            throw new Exception("Node has no scope assigned!");
+            throw new InvalidOperationException("Node has no scope assigned!");
         }
 
         var expectedServerPaths = GetAllTrackedFiles(node.CommitHash);

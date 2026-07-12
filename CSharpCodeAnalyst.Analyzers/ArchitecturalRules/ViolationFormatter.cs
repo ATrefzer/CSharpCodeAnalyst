@@ -40,8 +40,15 @@ public static class ViolationsFormatter
 
                 if (violation.ViolatingRelationships.Count == 0)
                 {
-                    // Metric rules have no relationships; the description carries the whole finding.
+                    // Metric and cycle rules have no relationships; the description carries the finding.
                     sb.AppendLine(violation.Description);
+                }
+
+                // Participants of a NOCYCLES violation: name and count identify the group in the
+                // Cycles view of the application.
+                foreach (var element in violation.CycleElements)
+                {
+                    sb.AppendLine(element.FullName);
                 }
 
                 foreach (var (element, value) in violation.ViolatingElements)

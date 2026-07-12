@@ -19,32 +19,30 @@ internal class CycleGroupViewModel : TableRow
 
         _name = cycleGroup.Name;
 
-        var nodes = CycleGroup.CodeGraph.Nodes.Values;
-        List<CodeElementLineViewModel> vms;
-        if (nodes.Any(c => c.ElementType == CodeElementType.Assembly))
+        // Level and element list come from the SCC vertices, the actual cycle participants.
+        // The detailed graph is the wrong source here: it additionally contains the concrete
+        // relationship endpoints and gap-filling containers (e.g. a nested namespace an endpoint
+        // lives in), which inflated the count - and it is what the NOCYCLES rule violations
+        // report, so both views now show the same number.
+        var vertices = cycleGroup.Vertices;
+        if (vertices.Any(v => v.ElementType == CodeElementType.Assembly))
         {
-            vms = nodes.Where(n => n.ElementType is CodeElementType.Assembly)
-                .Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Assembly;
         }
-        else if (CycleGroup.CodeGraph.Nodes.Values.Any(c => c.ElementType == CodeElementType.Namespace))
+        else if (vertices.Any(v => v.ElementType == CodeElementType.Namespace))
         {
-            vms = nodes.Where(n => n.ElementType is CodeElementType.Namespace)
-                .Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Namespace;
         }
-        else if (CycleGroup.CodeGraph.Nodes.Values.Any(n => n.IsType()))
+        else if (vertices.Any(v => v.IsType()))
         {
-            vms = nodes.Where(n => n.IsType())
-                .Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Type;
         }
         else
         {
-            vms = nodes.Select(e => new CodeElementLineViewModel(e)).ToList();
             Level = CycleLevel.Other;
         }
 
+        var vms = vertices.Select(e => new CodeElementLineViewModel(e)).ToList();
         vms.Sort(new Sorter());
 
         _highLevelElements = new ObservableCollection<CodeElementLineViewModel>(vms);

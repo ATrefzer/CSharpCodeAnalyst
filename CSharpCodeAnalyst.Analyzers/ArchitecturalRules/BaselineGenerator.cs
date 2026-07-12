@@ -71,6 +71,13 @@ public static class BaselineGenerator
 
         foreach (var violation in violations)
         {
+            // A cycle cannot be excepted edge by edge: ALLOW does not apply to NOCYCLES, so
+            // freezing its relationships would add dead exceptions and leave the rule violated.
+            if (violation.Rule is NoCyclesRule)
+            {
+                continue;
+            }
+
             var lines = new List<string>();
 
             foreach (var relationship in violation.ViolatingRelationships)

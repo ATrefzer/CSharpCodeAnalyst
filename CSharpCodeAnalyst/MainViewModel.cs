@@ -393,9 +393,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public IEnumerable<IAnalyzer> Analyzers
+    public List<IAnalyzer> Analyzers
     {
-        get => _analyzerManager.All;
+        get => _analyzerManager.All.ToList();
     }
 
     public ICommand CopyBitmapToClipboardCommand { get; set; }
@@ -722,25 +722,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             IsLoading = true;
             LoadMessage = Strings.SearchingCycles_Message;
-            await Task.Run(() =>
-            {
-                cycleGroups = CycleFinder.FindCycleGroups(_codeGraph);
-
-                // Find a useful name for the groups
-                foreach (var cycleGroup in cycleGroups)
-                {
-                    var metrics = DependencyMetrics.Calculate(cycleGroup.CodeGraph);
-
-                    // This sequence should keep the name stable when dependencies are removed.
-                    var sorted = metrics
-                        .OrderByDescending(m => m.Incoming)
-                        .ThenByDescending(m => m.Outgoing)
-                        .ThenBy(m => m.Element.Name);
-
-                    var name = sorted.First().Element.Name;
-                    cycleGroup.Name = name;
-                }
-            });
+            // The groups come back named after their most central element (see CycleFinder).
+            await Task.Run(() => { cycleGroups = CycleFinder.FindCycleGroups(_codeGraph); });
         }
         catch (Exception ex)
         {

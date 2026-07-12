@@ -132,6 +132,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: dependency cycle &apos;{1}&apos; between {2} code elements. The Cycles view shows the group under this name..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_CycleFound {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_CycleFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to max. {0}.
         /// </summary>
         public static string ArchitecturalRules_Metric_Max {

@@ -193,7 +193,7 @@ public class Analyzer : IAnalyzer
         string status;
         if (result.Warnings.Count > 0)
         {
-            _userNotification.ShowWarning(string.Join(Environment.NewLine, result.Warnings));
+            _userNotification.ShowErrorWarningDialog([], result.Warnings);
             status = string.Format(Strings.Rules_Status_Warnings, result.Warnings.Count, result.Violations.Count);
         }
         else if (result.Violations.Count > 0)
@@ -352,6 +352,10 @@ public class Analyzer : IAnalyzer
 
                // Completely isolated, define exceptions with ALLOW
                ISOLATE MyApp.Meta.**
+
+               // The domain - the element and everything below it - must be free of
+               // dependency cycles, including cycles that only exist between namespaces.
+               NOCYCLES MyApp.Domain
 
                // Specific class restrictions
                DENY MyApp.Models.User -> MyApp.Data.Database
