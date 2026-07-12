@@ -15,7 +15,11 @@ public static class RuleParser
     // dot in the full path (e.g. "MyClass..ctor" = "MyClass" + separator + ".ctor").
     private static readonly string NameSegment = $@"\.?{AllowedNameChars}";
 
-    private static readonly string QualifiedName = $@"{NameSegment}(?:\.{NameSegment})*(?:\.\*{{1,2}})?";
+    // A plain path without a wildcard suffix. NOCYCLES uses it exclusively: the rule always
+    // checks the element and everything below it, so a wildcard has nothing to select.
+    private static readonly string PlainQualifiedName = $@"{NameSegment}(?:\.{NameSegment})*";
+
+    private static readonly string QualifiedName = $@"{PlainQualifiedName}(?:\.\*{{1,2}})?";
 
     // Separates the keyword from what follows. Canonical syntax is plain whitespace
     // ("DENY A -> B"); the colon form ("DENY: A -> B") is legacy syntax and still accepted,
@@ -36,6 +40,18 @@ public static class RuleParser
 
     private static readonly Regex AllowRegex = new(
         $@"^\s*ALLOW{KeywordSeparator}({QualifiedName})\s*->\s*({QualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // NOCYCLES stands alone: no target like the dependency rules, no threshold like the metric
+    // rules, and its path takes no wildcard - the whole subtree is always meant.
+    private static readonly Regex NoCyclesRegex = new(
+        $@"^\s*{NoCyclesRule.RuleKeyword}{KeywordSeparator}({PlainQualifiedName})\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    // Recognizes a line that is meant to be a NOCYCLES rule but has the wrong shape (wildcard,
+    // missing path), so the error can explain the one supported form instead of listing all rules.
+    private static readonly Regex NoCyclesKeywordRegex = new(
+        $@"^\s*{NoCyclesRule.RuleKeyword}(\s|:|$)",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     // All metric rules share the shape "KEYWORD = value", with an optional pattern that scopes the
@@ -108,12 +124,14 @@ public static class RuleParser
         var trimmedRule = ruleTextLine.Trim();
 
         return ParseDependencyRule(trimmedRule)
+               ?? (RuleBase?)ParseNoCyclesRule(trimmedRule)
                ?? (RuleBase?)ParseMetricRule(trimmedRule)
                ?? throw new FormatException($"Invalid rule syntax: '{ruleTextLine}'. Expected formats:\n" +
                                             "DENY Source -> Target\n" +
                                             "RESTRICT Source -> Target\n" +
                                             "ISOLATE Source\n" +
                                             "ALLOW Source -> Target\n" +
+                                            $"{NoCyclesRule.RuleKeyword} Source\n" +
                                             $"{MaxCyclicityRule.RuleKeyword} = 15\n" +
                                             $"{MaxLinesRule.RuleKeyword} Source = 50");
     }
@@ -142,6 +160,28 @@ public static class RuleParser
             }
 
             return rule;
+        }
+
+        return null;
+    }
+
+    private static NoCyclesRule? ParseNoCyclesRule(string ruleText)
+    {
+        var match = NoCyclesRegex.Match(ruleText);
+        if (match.Success)
+        {
+            return new NoCyclesRule
+            {
+                RuleText = ruleText,
+                Source = match.Groups[1].Value.Trim()
+            };
+        }
+
+        if (NoCyclesKeywordRegex.IsMatch(ruleText))
+        {
+            throw new FormatException(
+                $"{NoCyclesRule.RuleKeyword} takes one path without wildcards and checks the element " +
+                $"and everything below it, e.g. '{NoCyclesRule.RuleKeyword} MyApp.Domain'.");
         }
 
         return null;

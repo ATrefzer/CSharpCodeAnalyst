@@ -8,8 +8,6 @@
 
 - Improve heuristic call tracking with instance calls.
 
-- Use same logic for msbuild fallback to open the editor.
-
 UNHANDLED CASES
 ---------------------
 
@@ -25,3 +23,6 @@ BUGS
 MISSING TEST CASES
 ---------------------
 
+CHECk
+-----
+FillGapsInHierarchy vs FillContainerGaps

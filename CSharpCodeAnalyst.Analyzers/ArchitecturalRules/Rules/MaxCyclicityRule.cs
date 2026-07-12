@@ -10,6 +10,11 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Rules;
 ///     dependency cycle. The threshold is given in percent, like the value the system metrics
 ///     analyzer displays.
 ///     Syntax: MAXCYCLICITY = 15
+///     <para>
+///         Measured on the plain type dependency graph. Cycles that only exist between namespaces
+///         (two namespaces referencing each other through otherwise acyclic types) do not count
+///         here - <see cref="NoCyclesRule" /> is the rule that sees those.
+///     </para>
 /// </summary>
 public class MaxCyclicityRule : SystemMetricRule
 {

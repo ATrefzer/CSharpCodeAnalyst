@@ -194,6 +194,12 @@ Dependency restrictions
 | ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed.<br />Dependencies to external code (e.g. System.*) are always allowed. |
 | ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
 
+Cycle rule
+
+| Rule     | Meaning                                                      |
+| -------- | ------------------------------------------------------------ |
+| NOCYCLES | `NOCYCLES MyApp.Domain` — the named element and everything below it must be free of dependency cycles. The path is written without a wildcard. The rule always checks the whole subtree. Uses the same detection as the interactive cycle search, so cycles that only exist between namespaces are found too — unlike MAXCYCLICITY, which measures the plain type graph. A violation reports the cycle group by name and participants — the same name and element count the Cycles view shows, which is the place to analyze the cycle further. A cycle that lies only partly below the named element is not reported by this rule; write the rule on a higher element to catch it. ALLOW exceptions do not apply, and violations are not baselined. |
+
 Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
 
 A metric rule limits a measured value instead of a dependency. It is written as `RULE = value`, and `ALLOW` exceptions never affect it. There are two kinds.
@@ -202,11 +208,11 @@ A metric rule limits a measured value instead of a dependency. It is written as 
 
 | Rule         | Meaning                                                      |
 | ------------ | ------------------------------------------------------------ |
-| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, `MAXCYCLICITY = 15` (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase. |
+| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, `MAXCYCLICITY = 15` (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase.<br />Measured on the type dependency graph — cycles that only exist between namespaces do not count here; use NOCYCLES for those. |
 
 When accepting a baseline, a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
 
-**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE: Pattern = value`; without a pattern, the rule applies to every element in the graph `RULE = value`.
+**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE Pattern = value`; without a pattern, the rule applies to every element in the graph `RULE = value`.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
@@ -242,30 +248,34 @@ In these examples, the assembly is called `MyApp` and contains the namespaces `B
 
 ```
 // Business layer should not access the Data layer directly
-DENY: MyApp.Business.** -> MyApp.Data.**
+DENY MyApp.Business.** -> MyApp.Data.**
 
 // Controllers may only access Services
-RESTRICT: MyApp.Controllers.** -> MyApp.Services.**
+RESTRICT MyApp.Controllers.** -> MyApp.Services.**
 
 // Core components may not depend on UI
-DENY: MyApp.Core.** -> MyApp.UI.**
+DENY MyApp.Core.** -> MyApp.UI.**
 
 // Keys should be completely isolated, use ALLOW to define exceptions.
-ISOLATE: MyApp.Keys.**
+ISOLATE MyApp.Keys.**
 
 // Specific class restrictions
-DENY: MyApp.Models.User -> MyApp.Data.Database
+DENY MyApp.Models.User -> MyApp.Data.Database
 
 // Exceptions: the reporting module may access the Data layer
 // even though the Business layer as a whole may not
-DENY: MyApp.Business.** -> MyApp.Data.**
-ALLOW: MyApp.Business.Reporting.** -> MyApp.Data.**
+DENY MyApp.Business.** -> MyApp.Data.**
+ALLOW MyApp.Business.Reporting.** -> MyApp.Data.**
 
 // At most 15% of all types may sit inside a dependency cycle
 MAXCYCLICITY = 15
 
+// The domain - the element and everything below it - must be free of
+// dependency cycles, including cycles that only exist between namespaces
+NOCYCLES MyApp.Domain
+
 // No method in the business layer longer than 50 code lines
-MAXLINES: MyApp.Business.** = 50
+MAXLINES MyApp.Business.** = 50
 ```
 
 The result of the analysis is shown in the table output for analyzers.

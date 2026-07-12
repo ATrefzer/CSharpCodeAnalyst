@@ -29,6 +29,21 @@ public static class PatternMatcher
         return matchingIds;
     }
 
+    /// <summary>
+    ///     Resolves a plain path (no wildcard) to the matching elements and all their descendants,
+    ///     i.e. "X" behaves like "X.**". For rules that always mean the whole subtree (NOCYCLES).
+    /// </summary>
+    public static HashSet<string> ResolveSubtree(string path, CodeGraph.Graph.CodeGraph codeGraph)
+    {
+        var matchingIds = new HashSet<string>();
+        foreach (var startElement in FindStartElements(path, codeGraph))
+        {
+            ApplyExpansion(startElement, ExpansionMode.Recursive, matchingIds);
+        }
+
+        return matchingIds;
+    }
+
     private static (string basePath, ExpansionMode mode) ParsePattern(string pattern)
     {
         if (pattern.EndsWith(".**"))

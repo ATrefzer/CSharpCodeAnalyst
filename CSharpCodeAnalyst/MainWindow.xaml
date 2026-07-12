@@ -148,6 +148,8 @@
 
                     <RibbonSplitButton Label="{x:Static resources:Strings.Analyzers_Label}"
                                        LargeImageSource="/Resources/analysis_32.png"
+                                       Command="{Binding ExecuteAnalyzerCommand}"
+                                       CommandParameter="{Binding Analyzers[0].Id}"
                                        ItemsSource="{Binding Analyzers}" KeyTip="AN">
 
                         <!-- Integrate analyzers -->

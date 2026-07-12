@@ -77,6 +77,28 @@ public class RuleParserTests
         Assert.Throws<FormatException>(() => RuleParser.ParseRule("ALLOW Business.**"));
     }
 
+    [Test]
+    public void ParseNoCyclesRule_ValidSyntax_KeepsPath()
+    {
+        var rule = RuleParser.ParseRule("NOCYCLES MyApp.Domain");
+
+        Assert.That(rule, Is.InstanceOf<NoCyclesRule>());
+        Assert.That(((NoCyclesRule)rule).Source, Is.EqualTo("MyApp.Domain"));
+    }
+
+    /// <summary>
+    ///     The rule always checks the whole subtree, so a wildcard has nothing to select and a
+    ///     missing path is meaningless. Both get a NOCYCLES-specific error, not the generic one.
+    /// </summary>
+    [TestCase("NOCYCLES")]
+    [TestCase("NOCYCLES MyApp.Domain.*")]
+    [TestCase("NOCYCLES MyApp.Domain.**")]
+    public void ParseNoCyclesRule_WildcardOrMissingPath_ShouldThrow(string ruleText)
+    {
+        var ex = Assert.Throws<FormatException>(() => RuleParser.ParseRule(ruleText));
+        Assert.That(ex.Message, Contains.Substring("NOCYCLES"));
+    }
+
     // The threshold is a percentage, like the value the system metrics analyzer displays.
     [TestCase("MAXCYCLICITY = 15", 15.0)]
     [TestCase("maxcyclicity=7.5", 7.5)]
@@ -199,6 +221,7 @@ public class RuleParserTests
     [TestCase("RESTRICT: Controllers.** -> Services.**", typeof(RestrictRule))]
     [TestCase("ISOLATE: Domain.**", typeof(IsolateRule))]
     [TestCase("ALLOW: Business.Reporting.** -> Data.**", typeof(AllowRule))]
+    [TestCase("NOCYCLES: MyApp.Domain", typeof(NoCyclesRule))]
     [TestCase("MAXLINES: MyApp.Business.** = 50", typeof(MaxLinesRule))]
     public void ParseRule_LegacyColonSyntax_IsStillAccepted(string ruleText, Type expectedRuleType)
     {

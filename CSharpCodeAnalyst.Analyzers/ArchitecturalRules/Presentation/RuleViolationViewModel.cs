@@ -10,6 +10,9 @@ using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules.Presentation;
 
+/// <summary>
+/// Single row in the architectural rule result table.
+/// </summary>
 public class RuleViolationViewModel : TableRow
 {
     private readonly CodeGraph.Graph.CodeGraph _codeGraph;
@@ -58,6 +61,10 @@ public class RuleViolationViewModel : TableRow
             // A system metric rule is either violated or not - there is nothing to count.
             SystemMetricRule => 1,
             CodeElementMetricRule => _violation.ViolatingElements.Count,
+
+            // The participants of the cycle - the same count the Cycles view shows as
+            // "Element Count", so the group can be identified there.
+            NoCyclesRule => _violation.CycleElements.Count,
             _ => _violation.ViolatingRelationships.Count
         };
     }
@@ -71,6 +78,9 @@ public class RuleViolationViewModel : TableRow
                 systemMetricRule.FormatValue(_violation.MetricValue.Value),
             CodeElementMetricRule elementMetricRule => elementMetricRule.Source.Length > 0
                 ? elementMetricRule.Source
+                : Strings.ArchitecturalRules_Scope_Everything,
+            NoCyclesRule noCyclesRule => noCyclesRule.Source.Length > 0
+                ? noCyclesRule.Source
                 : Strings.ArchitecturalRules_Scope_Everything,
 
             // A group merges rules with overlapping sources; show every distinct source pattern.
@@ -88,26 +98,32 @@ public class RuleViolationViewModel : TableRow
             RestrictRuleGroup restrictRuleGroup => string.Join("\n", restrictRuleGroup.Targets),
             TargetedDependencyRule targetedRule => targetedRule.Target,
             IsolateRule => "(isolated)",
+
+            // The cycle group's name - the Cycles view shows the group under the same name, so
+            // the user can find it there and analyze it further.
+            NoCyclesRule => _violation.CycleName ?? "(cycle)",
             MetricRule metricRule =>
                 string.Format(Strings.ArchitecturalRules_Metric_Max, metricRule.FormatValue(metricRule.Threshold)),
             _ => ""
         };
     }
 
+    /// <summary>
+    /// Expandable row details. Source locations of the violated rule.
+    /// </summary>
     private ObservableCollection<ViolationDetailViewModel> CreateDetails()
     {
-        var details = new ObservableCollection<ViolationDetailViewModel>();
-
-        if (_violation.Rule is CodeElementMetricRule elementMetricRule)
+        return _violation.Rule switch
         {
-            foreach (var (element, value) in _violation.ViolatingElements)
-            {
-                details.Add(new ViolationDetailViewModel(element, elementMetricRule.FormatValue(value)));
-            }
+            CodeElementMetricRule elementMetricRule => CreateDetailsForCodeElementMetricRule(elementMetricRule),
+            NoCyclesRule => CreateDetailsForNoCyclesRule(),
+            _ => CreateDetailsForViolatingRelationships()
+        };
+    }
 
-            return details;
-        }
-
+    private ObservableCollection<ViolationDetailViewModel> CreateDetailsForViolatingRelationships()
+    {
+        var details = new ObservableCollection<ViolationDetailViewModel>();
         foreach (var relationship in _violation.ViolatingRelationships)
         {
             var sourceElement = _codeGraph.Nodes.GetValueOrDefault(relationship.SourceId);
@@ -116,14 +132,13 @@ public class RuleViolationViewModel : TableRow
             // It can have multiple source locations.
             if (sourceElement != null && targetElement != null)
             {
-                ViolationDetailViewModel detailViewModel;
                 if (relationship.SourceLocations.Count <= 1)
                 {
                     var sourceLocation = relationship.SourceLocations.Any()
                         ? relationship.SourceLocations.Single()
                         : sourceElement.SourceLocations.FirstOrDefault();
 
-                    detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, sourceLocation);
+                    var detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, sourceLocation);
                     details.Add(detailViewModel);
                 }
                 else
@@ -132,11 +147,35 @@ public class RuleViolationViewModel : TableRow
                     for (var index = 0; index < relationship.SourceLocations.Count; index++)
                     {
                         var location = relationship.SourceLocations[index];
-                        detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, location, index + 1);
+                        var detailViewModel = new ViolationDetailViewModel(sourceElement, targetElement, location, index + 1);
                         details.Add(detailViewModel);
                     }
                 }
             }
+        }
+
+        return details;
+    }
+
+    private ObservableCollection<ViolationDetailViewModel> CreateDetailsForNoCyclesRule()
+    {
+        var details = new ObservableCollection<ViolationDetailViewModel>();
+        // The cycle participants, not the single edges: name and count identify the group
+        // in the Cycles view, which is the place to analyze the cycle further.
+        foreach (var element in _violation.CycleElements)
+        {
+            details.Add(new ViolationDetailViewModel(element));
+        }
+
+        return details;
+    }
+
+    private ObservableCollection<ViolationDetailViewModel> CreateDetailsForCodeElementMetricRule(CodeElementMetricRule elementMetricRule)
+    {
+        var details = new ObservableCollection<ViolationDetailViewModel>();
+        foreach (var (element, value) in _violation.ViolatingElements)
+        {
+            details.Add(new ViolationDetailViewModel(element, elementMetricRule.FormatValue(value)));
         }
 
         return details;

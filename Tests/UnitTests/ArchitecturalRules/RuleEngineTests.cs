@@ -464,6 +464,154 @@ public class RuleEngineTests
         Assert.That(result.Violations, Is.Empty);
     }
 
+    /// <summary>
+    ///     The case MAXCYCLICITY cannot see: no cycle on the type graph, but the two namespaces
+    ///     depend on each other. NOCYCLES runs on the same lifted search graph as the interactive
+    ///     cycle search and must report it.
+    /// </summary>
+    [Test]
+    public void NoCycles_NamespaceCycleInvisibleOnTypeGraph_IsReported()
+    {
+        var root = _codeGraph.CreateNamespace("MyApp");
+        var nsA = _codeGraph.CreateNamespace("MyApp.A", root);
+        var nsB = _codeGraph.CreateNamespace("MyApp.B", root);
+        var a1 = _codeGraph.CreateClass("A1", nsA);
+        var a2 = _codeGraph.CreateClass("A2", nsA);
+        var b1 = _codeGraph.CreateClass("B1", nsB);
+        var b2 = _codeGraph.CreateClass("B2", nsB);
+
+        // A1 -> B1 and B2 -> A2: acyclic between types, cyclic between the namespaces.
+        a1.Relationships.Add(new Relationship(a1.Id, b1.Id, RelationshipType.Uses));
+        b2.Relationships.Add(new Relationship(b2.Id, a2.Id, RelationshipType.Uses));
+
+        var result = Execute("""
+                             NOCYCLES MyApp
+                             MAXCYCLICITY = 0
+                             """);
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        var violation = result.Violations[0];
+        Assert.That(violation.Rule, Is.InstanceOf<NoCyclesRule>());
+
+        // The participants on the lifted cycle level: the two namespaces, not the classes.
+        Assert.That(violation.CycleElements.Select(e => e.Id), Is.EquivalentTo(new[] { nsA.Id, nsB.Id }));
+        Assert.That(result.Warnings, Is.Empty);
+    }
+
+    [Test]
+    public void NoCycles_TypeCycle_IsReported()
+    {
+        var domain = _codeGraph.CreateNamespace("MyApp.Domain");
+        var a = _codeGraph.CreateClass("A", domain);
+        var b = _codeGraph.CreateClass("B", domain);
+
+        a.Relationships.Add(new Relationship(a.Id, b.Id, RelationshipType.Uses));
+        b.Relationships.Add(new Relationship(b.Id, a.Id, RelationshipType.Uses));
+
+        var result = Execute("NOCYCLES MyApp.Domain");
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        Assert.That(result.Violations[0].CycleElements, Has.Count.EqualTo(2));
+
+        // The violation carries the cycle group's name (most central element, ties broken by
+        // name), so the user can find the same group in the Cycles view.
+        Assert.That(result.Violations[0].CycleName, Is.EqualTo("A"));
+    }
+
+    [Test]
+    public void NoCycles_CycleOutsideTheScope_IsIgnored()
+    {
+        _codeGraph.CreateNamespace("MyApp.Domain");
+        var legacy = _codeGraph.CreateNamespace("MyApp.Legacy");
+        var x = _codeGraph.CreateClass("X", legacy);
+        var y = _codeGraph.CreateClass("Y", legacy);
+
+        x.Relationships.Add(new Relationship(x.Id, y.Id, RelationshipType.Uses));
+        y.Relationships.Add(new Relationship(y.Id, x.Id, RelationshipType.Uses));
+
+        var result = Execute("NOCYCLES MyApp.Domain");
+
+        Assert.That(result.Violations, Is.Empty);
+        Assert.That(result.Warnings, Is.Empty);
+    }
+
+    /// <summary>
+    ///     A cycle crossing the scope boundary belongs to the enclosing scope, not to the scoped
+    ///     rule: the scoped rule cannot be fixed inside its own scope alone.
+    /// </summary>
+    [Test]
+    public void NoCycles_CycleCrossingTheScopeBoundary_BelongsToTheEnclosingScope()
+    {
+        var root = _codeGraph.CreateNamespace("MyApp");
+        var domain = _codeGraph.CreateNamespace("MyApp.Domain", root);
+        var legacy = _codeGraph.CreateNamespace("MyApp.Legacy", root);
+        var d = _codeGraph.CreateClass("D", domain);
+        var l = _codeGraph.CreateClass("L", legacy);
+
+        d.Relationships.Add(new Relationship(d.Id, l.Id, RelationshipType.Uses));
+        l.Relationships.Add(new Relationship(l.Id, d.Id, RelationshipType.Uses));
+
+        var scoped = Execute("NOCYCLES MyApp.Domain");
+        var enclosing = Execute("NOCYCLES MyApp");
+
+        Assert.That(scoped.Violations, Is.Empty);
+        Assert.That(enclosing.Violations, Has.Count.EqualTo(1));
+    }
+
+    /// <summary>
+    ///     Mutual recursion between members of one type is a code pattern, not an architecture
+    ///     violation - only cycles between containers (types, namespaces) count.
+    /// </summary>
+    [Test]
+    public void NoCycles_MutualRecursionInsideOneType_IsIgnored()
+    {
+        var domain = _codeGraph.CreateNamespace("MyApp.Domain");
+        var order = _codeGraph.CreateClass("Order", domain);
+        var m1 = _codeGraph.CreateMethod("M1", order);
+        var m2 = _codeGraph.CreateMethod("M2", order);
+
+        m1.Relationships.Add(new Relationship(m1.Id, m2.Id, RelationshipType.Calls));
+        m2.Relationships.Add(new Relationship(m2.Id, m1.Id, RelationshipType.Calls));
+
+        var result = Execute("NOCYCLES MyApp.Domain");
+
+        Assert.That(result.Violations, Is.Empty);
+    }
+
+    /// <summary>A NOCYCLES path that matches nothing is a dead rule and must be warned about.</summary>
+    [Test]
+    public void NoCycles_PathMatchesNothing_ProducesWarning()
+    {
+        _codeGraph.CreateNamespace("MyApp.Domain");
+
+        var result = Execute("NOCYCLES MyApp.Nope");
+
+        Assert.That(result.Violations, Is.Empty);
+        Assert.That(result.Warnings, Has.Count.EqualTo(1));
+        Assert.That(result.Warnings[0], Contains.Substring("MyApp.Nope"));
+    }
+
+    /// <summary>
+    ///     A cycle cannot be excepted edge by edge, so accepting a baseline must not turn cycle
+    ///     violations into ALLOW lines - they would be dead and the rule would stay violated.
+    /// </summary>
+    [Test]
+    public void NoCycles_AcceptBaseline_GeneratesNoAllowRules()
+    {
+        var domain = _codeGraph.CreateNamespace("MyApp.Domain");
+        var a = _codeGraph.CreateClass("A", domain);
+        var b = _codeGraph.CreateClass("B", domain);
+        a.Relationships.Add(new Relationship(a.Id, b.Id, RelationshipType.Uses));
+        b.Relationships.Add(new Relationship(b.Id, a.Id, RelationshipType.Uses));
+
+        var result = Execute("NOCYCLES MyApp.Domain");
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+
+        var allowRules = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, string.Empty);
+
+        Assert.That(allowRules, Is.Empty);
+    }
+
     [Test]
     public void Allow_AloneProducesNoViolations()
     {

@@ -71,6 +71,12 @@ public static class RuleCleaner
                    PatternMatcher.ResolvePattern(elementMetricRule.Source, graph).Count == 0;
         }
 
+        // A NOCYCLES rule is dead when its path matches no element.
+        if (rule is NoCyclesRule noCyclesRule)
+        {
+            return PatternMatcher.ResolveSubtree(noCyclesRule.Source, graph).Count == 0;
+        }
+
         if (rule is not DependencyRule dependencyRule)
         {
             // A system metric rule has no pattern, it always applies.

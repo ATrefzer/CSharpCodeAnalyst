@@ -64,6 +64,22 @@ public class RuleCleanerTests
     }
 
     [Test]
+    public void RemovesNoCycles_WithUnmatchedPattern()
+    {
+        var (_, removed) = RuleCleaner.RemoveUnusedRules("NOCYCLES MyApp.Nope", _codeGraph);
+        Assert.That(removed, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void KeepsNoCycles_WithMatchedPath()
+    {
+        var (cleaned, removed) = RuleCleaner.RemoveUnusedRules("NOCYCLES MyApp.Business", _codeGraph);
+
+        Assert.That(removed, Is.EqualTo(0));
+        Assert.That(cleaned, Is.EqualTo("NOCYCLES MyApp.Business"));
+    }
+
+    [Test]
     public void KeepsRestrict_WithUnmatchedTarget()
     {
         // A RESTRICT with an unmatched target still forbids all external dependencies of its

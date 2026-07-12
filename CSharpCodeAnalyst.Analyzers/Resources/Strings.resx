@@ -162,6 +162,9 @@
   <data name="Analyzer_ArchitecturalRules_DependencyViolation" xml:space="preserve">
     <value>{0} rule violated: {1} ({2} violation(s))</value>
   </data>
+  <data name="Analyzer_ArchitecturalRules_CycleFound" xml:space="preserve">
+    <value>{0} rule violated: dependency cycle '{1}' between {2} code elements. The Cycles view shows the group under this name.</value>
+  </data>
   <data name="ArchitecturalRules_Metric_Max" xml:space="preserve">
     <value>max. {0}</value>
   </data>
