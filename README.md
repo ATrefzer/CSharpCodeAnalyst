@@ -332,7 +332,7 @@ For example, in the first row, 93.1% of commits that contain **Item1** or **Item
 
 ![](Documentation/Images/change-coupling.png)
 
-The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is shown by the area of a rectangle, and the number of changes is shown by color. The deeper the color, the more often a file changed over time. Large files that change a lot are called hotspots and are good to keep an eye on.
+The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is shown by the area of a rectangle, and the number of changes is shown by color. The deeper the color, the more often a file changed over time. Large files that change a lot are called hotspots and are good to keep an eye on. A file only appears in this analysis if it was committed at least twice.
 
 ![](Documentation/Images/hotspot.png)
 
@@ -340,7 +340,7 @@ Finally, you can analyze a developer's contribution to a file.
 
 This isn't related to dependency analysis, but it's helpful if you need to know who to ask for help or which parts to document when someone leaves the team.
 
-The developer who contributed most to a file (based on a simple GIT blame) is marked as the main developer, and the file is colored to match. This doesn't always mean that person knows the file best, but it's a good starting point.
+The developer who contributed most to a file (based on a simple GIT blame) is marked as the main developer, and the file is colored to match. This doesn't always mean that person knows the file best, but it's a good starting point. A 
 
 ![](Documentation/Images/knowledge.png)
 
