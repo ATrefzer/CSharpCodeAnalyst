@@ -22,10 +22,32 @@ public enum RelationshipAttribute : uint
 
 public static class RelationshipAttributeExtensions
 {
+    /// <summary>The attributes that describe how a call is dispatched.</summary>
+    private const RelationshipAttribute CallKindMask =
+        RelationshipAttribute.IsBaseCall |
+        RelationshipAttribute.IsStaticCall |
+        RelationshipAttribute.IsThisCall |
+        RelationshipAttribute.IsInstanceCall |
+        RelationshipAttribute.IsExtensionMethodCall;
+
     private static readonly List<RelationshipAttribute> Flags = Enum.GetValues(typeof(RelationshipAttribute))
         .Cast<RelationshipAttribute>()
         .Where(r => r != RelationshipAttribute.None)
         .ToList();
+
+    /// <summary>
+    ///     Whether the call dispatches on the runtime type of the current "this" instance:
+    ///     implicit calls (no call-kind attribute at all), explicit "this" calls and "base" calls.
+    ///     Instance, static and extension method calls break the dispatch chain instead.
+    ///     The check masks out orthogonal attributes (e.g. IsMethodGroup), so a call carrying only
+    ///     those still counts as implicit - comparing against None would misclassify it.
+    /// </summary>
+    public static bool DispatchesOnCurrentInstance(this Relationship call)
+    {
+        var callKind = call.Attributes & CallKindMask;
+        return callKind == RelationshipAttribute.None ||
+               (callKind & (RelationshipAttribute.IsBaseCall | RelationshipAttribute.IsThisCall)) != 0;
+    }
 
     public static string FormatAttributes(this RelationshipAttribute attr)
     {

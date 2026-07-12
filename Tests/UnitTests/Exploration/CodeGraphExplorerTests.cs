@@ -109,6 +109,93 @@ public class CodeGraphExplorerTests
         Assert.That(ids, Is.EquivalentTo([method.Id]));
     }
 
+    /// <summary>
+    ///     Records inherit and implement like classes; leaving them out of the inheritance
+    ///     collection made FindFullInheritanceTree blind for record specializations - and with
+    ///     it the forbidden-hierarchy calculation of the call heuristic.
+    /// </summary>
+    [Test]
+    public void FindFullInheritanceTree_IncludesRecordSpecializations()
+    {
+        var baseClass = _graph.CreateClass("Base");
+        var derivedClass = _graph.CreateClass("DerivedClass");
+        var derivedRecord = _graph.CreateRecord("DerivedRecord");
+        Rel(derivedClass, baseClass, RelationshipType.Inherits);
+        Rel(derivedRecord, baseClass, RelationshipType.Inherits);
+
+        var result = _explorer.FindFullInheritanceTree(baseClass.Id);
+
+        Assert.That(result.Elements.Select(e => e.Id),
+            Is.EquivalentTo([baseClass.Id, derivedClass.Id, derivedRecord.Id]));
+    }
+
+    /// <summary>
+    ///     Implicit calls are calls without any call-kind attribute. An orthogonal attribute
+    ///     (e.g. IsMethodGroup) must not turn an implicit call into an instance call - the two
+    ///     places interpreting the attributes (IsCallAllowed / CreateContextForCaller) share
+    ///     this classification.
+    /// </summary>
+    [TestCase(RelationshipAttribute.None, true)]
+    [TestCase(RelationshipAttribute.IsThisCall, true)]
+    [TestCase(RelationshipAttribute.IsBaseCall, true)]
+    [TestCase(RelationshipAttribute.IsMethodGroup, true)]
+    [TestCase(RelationshipAttribute.IsInstanceCall, false)]
+    [TestCase(RelationshipAttribute.IsStaticCall, false)]
+    [TestCase(RelationshipAttribute.IsExtensionMethodCall, false)]
+    [TestCase(RelationshipAttribute.IsInstanceCall | RelationshipAttribute.IsMethodGroup, false)]
+    public void DispatchesOnCurrentInstance_ClassifiesByCallKindFlagsOnly(
+        RelationshipAttribute attributes, bool expected)
+    {
+        var call = new Relationship("source", "target", RelationshipType.Calls, attributes);
+
+        Assert.That(call.DispatchesOnCurrentInstance(), Is.EqualTo(expected));
+    }
+
+    /// <summary>
+    ///     Pins the result contract: only the start element, the involved elements and the
+    ///     containers connecting them belong to the result - descendants without any
+    ///     relationship stay out.
+    /// </summary>
+    [Test]
+    public void FindOutgoingRelationshipsDeep_OmitsUninvolvedChildren_AndFillsHierarchyToTheStart()
+    {
+        var ns = _graph.CreateNamespace("Ns");
+        var cls = _graph.CreateClass("Cls", ns);
+        var involved = _graph.CreateMethod("Involved", cls);
+        _graph.CreateMethod("Uninvolved", cls);
+        var other = _graph.CreateClass("Other");
+        var target = _graph.CreateMethod("Target", other);
+
+        var call = Rel(involved, target, RelationshipType.Calls);
+
+        var result = _explorer.FindOutgoingRelationshipsDeep(ns.Id);
+
+        Assert.That(result.Relationships, Is.EquivalentTo([call]));
+
+        // "Cls" connects the involved method to the start namespace; the uninvolved sibling
+        // method stays out, and the external target comes without its ancestors.
+        Assert.That(result.Elements.Select(e => e.Id),
+            Is.EquivalentTo([ns.Id, cls.Id, involved.Id, target.Id]));
+    }
+
+    [Test]
+    public void FindIncomingRelationshipsDeep_OmitsUninvolvedChildren()
+    {
+        var cls = _graph.CreateClass("Cls");
+        var involved = _graph.CreateMethod("Involved", cls);
+        _graph.CreateMethod("Uninvolved", cls);
+        var other = _graph.CreateClass("Other");
+        var caller = _graph.CreateMethod("Caller", other);
+
+        var call = Rel(caller, involved, RelationshipType.Calls);
+
+        var result = _explorer.FindIncomingRelationshipsDeep(cls.Id);
+
+        Assert.That(result.Relationships, Is.EquivalentTo([call]));
+        Assert.That(result.Elements.Select(e => e.Id),
+            Is.EquivalentTo([cls.Id, involved.Id, caller.Id]));
+    }
+
     [Test]
     public void FindParents_ReturnsDistinctParents()
     {
@@ -291,33 +378,36 @@ public class CodeGraphExplorerTests
         });
     }
 
+    /// <summary>
+    ///     A relationship between two descendants is internal - it crosses the boundary in
+    ///     neither direction and would otherwise be reported as outgoing AND incoming at once.
+    /// </summary>
     [Test]
-    public void FindOutgoingRelationshipsDeep_IncludesChildrenSources()
+    public void FindOutgoingRelationshipsDeep_OmitsInternalRelationships()
     {
         var cls = _graph.CreateClass("Cls");
         var m1 = _graph.CreateMethod("M1", cls);
         var m2 = _graph.CreateMethod("M2", cls);
         Rel(m1, m2, RelationshipType.Calls);
+
         var result = _explorer.FindOutgoingRelationshipsDeep(cls.Id);
-        // Elements should include class + its two methods
-        Assert.That(result.Elements.Any(e => e.Id == cls.Id));
-        Assert.That(result.Elements.Any(e => e.Id == m1.Id));
-        Assert.That(result.Elements.Any(e => e.Id == m2.Id));
-        Assert.That(result.Relationships.Count(), Is.EqualTo(1));
+
+        Assert.That(result.Relationships, Is.Empty);
+        Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([cls.Id]));
     }
 
     [Test]
-    public void FindIncomingRelationshipsDeep_IncludesChildrenTargets()
+    public void FindIncomingRelationshipsDeep_OmitsInternalRelationships()
     {
         var cls = _graph.CreateClass("Cls");
         var m1 = _graph.CreateMethod("M1", cls);
         var m2 = _graph.CreateMethod("M2", cls);
         Rel(m2, m1, RelationshipType.Calls);
+
         var result = _explorer.FindIncomingRelationshipsDeep(cls.Id);
-        // Should include both methods and relationship
-        Assert.That(result.Elements.Any(e => e.Id == m1.Id));
-        Assert.That(result.Elements.Any(e => e.Id == m2.Id));
-        Assert.That(result.Relationships.Count(), Is.EqualTo(1));
+
+        Assert.That(result.Relationships, Is.Empty);
+        Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([cls.Id]));
     }
 
     [Test]

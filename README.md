@@ -2,7 +2,7 @@
 
 [TOC]
 
-**Interactive dependency graph explorer for C# with cycle detection, simulated refactoring, and AI assistance.**
+**An interactive dependency graph explorer for C# that helps you find cycles, simulate refactorings, and get AI-powered refactoring advice**
 
 [![GitHub stars](https://img.shields.io/github/stars/ATrefzer/CSharpCodeAnalyst.svg)](https://github.com/ATrefzer/CSharpCodeAnalyst/stargazers)
 [![License](https://img.shields.io/github/license/ATrefzer/CSharpCodeAnalyst)](LICENSE)
@@ -16,15 +16,14 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 
 ## Features
 
-- **Full code graph analysis** of your Visual Studio solution
-- **Cycle detection & breaking**
-- **AI Advisor** – get refactoring ideas for breaking cycles, powered by a large language model.
-- **Interactive Code Explorer** – a visual canvas where you build and explore graphs step by step
-- **Simulated Refactoring** – try out structural changes without changing your source code
-- **Architectural Rules** – define and validate allowed dependencies and metric thresholds.
-- **Advanced search & navigation**
-- **Export** to PlantUML, DGML, PNG/SVG, and more
-- **GIT History Analysis** - run hotspot or change coupling analysis on your GIT repository.
+- **Deep Code Analysis** – Analyze your entire Visual Studio solution to map out a complete, precise code graph of your dependencies.
+- **Circular Dependency Detection** – Instantly pinpoint component cycles and mutual dependencies that break your clean layering and architectural boundaries.
+- **AI Refactoring Advisor** – Get intelligent refactoring suggestions to break complex cycles, powered by a Large Language Model (LLM).
+- **Incremental Graph Exploration** – Build the exact graph you need to understand a codebase or solve a task. Map out dependencies step by step on demand (e.g., "show all incoming relationships"), and easily filter out unrelated code elements to keep the graph free of visual clutter.
+- **Sandbox Code Refactoring** – Experiment with structural changes and simulate cycle-breaking strategies safely, without touching your actual source code.
+- **Architectural Guardrails** – Define custom dependency rules and metric thresholds to actively validate and enforce a clean codebase.
+- **Multi-Format Exports** – Share your architecture by exporting diagrams to PlantUML, DGML, PNG, SVG, and more.
+- **Git History Hotspots** – Uncover hidden technical debt by running hotspot or change-coupling analyses directly on your Git repository history.
 
 ## Requirements
 
@@ -40,18 +39,18 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 
 This builds a complete in-memory graph **model** of your solution including assemblies, namespaces, types, members, and relationships.
 
-> **Good to know:** The tool analyzes the code graph, not the file system. The source directory structure is ignored. External assemblies are excluded by default but can be included via settings. See [Limitations](#limitations) for details.
+> **Good to know:** The tool analyzes the actual code graph, not your file system – meaning the physical directory structure of your source code is completely ignored. Also, external assemblies (like NuGet packages) are excluded by default to keep things fast, but you can enable them in the settings. See [Limitations](#limitations) for details.
 
 ### What you can do from here
 
-- **[Find and break dependency cycles](#find-and-break-dependency-cycles)** – detect strongly connected components and get AI suggestions for breaking them
-- **[Explore your codebase](#explore-your-codebase)** – trace calls, expand inheritance trees, and follow relationships on an interactive canvas
-- **[Export your graph](#export-your-graph)** — PlantUML, DGML, PNG/SVG, and more for documentation or further analysis
-- **[Validate architectural rules](#validate-architectural-rules)** — define DENY / RESTRICT / ISOLATE rules and check them, in the app or in CI
+- **[Find and break dependency cycles](#find-and-break-dependency-cycles)** – detect strongly connected components and get AI suggestions to untangle them.
+- **[Explore your codebase interactively](#explore-your-codebase)** –trace method calls, expand inheritance trees, and follow relationships on a visual canvas.
+- **[Export your graph](#export-your-graph)** — generate PlantUML, DGML, or PNG/SVG diagrams for your documentation.
+- **[Validate architectural rules](#validate-architectural-rules)** —  define custom rules (like DENY or ISOLATE) and automatically check them in the app or your CI pipeline.
 
 Besides the dependency graph tools, you can also analyze GIT history with the **History Tool**.
 
-- **[Analyze a GIT repoository](#analyze-a-git-repository)** 
+- **[Analyze a GIT repository](#analyze-a-git-repository)** 
 
 ---
 
@@ -66,9 +65,7 @@ The cycle search always runs on the complete model.
 3. **Right-click** a cycle group → *Show in Code Explorer* to visualize it as a graph. The **Code Explorer** (or canvas) is your interactive working area — a whiteboard where you place only the elements you need right now.
 4. Optionally, click **AI Advisor** to get ideas on how to break the cycle
 
-**Note:** The cycle search function finds strongly connected components in the code graph, not the elementary cycles.
-
-A strongly connected component is a subgraph where a path exists between any two nodes. There may be more than one elementary cycle in the same strongly connected component.
+**Note:** Under the hood, the cycle search looks for "strongly connected components" (SCCs) rather than individual, elementary cycles. In plain English: it groups everything that is mutually reachable. A single group might contain multiple overlapping cycles, which is why they are bundled together in the UI.
 
 The cycle search result is presented in the **Cycle Groups** Tab.
 
@@ -84,9 +81,9 @@ The Code Explorer now offers a wide range of tools to analyze the cycle. A good 
 
 Once you have loaded a cycle group into the Code Explorer, the **AI Advisor** button in the toolbar sends the cycle to a configured LLM and asks it for ideas on how to resolve or break down the dependency cycle.
 
-To use this feature, open **Settings** and enter your API endpoint and key. The tool supports any OpenAI-compatible endpoint, including local models (e.g. Ollama) and Anthropic's API.
+To use this feature, open **Settings** and enter your API endpoint and key. The tool supports any OpenAI-compatible endpoint, including local models (e.g., Ollama) and Anthropic's API.
 
-> **Use with care.** The AI suggestions are generated without any knowledge of your actual business domain, team conventions, or broader system constraints. They may be technically incorrect, impractical, or simply not applicable to your situation.
+> Take the advice with a grain of salt. The LLM has no idea about your actual business domain, team conventions, or broader system constraints. It might suggest things that are technically incorrect or completely impractical for your specific architecture.
 
 Still, this feature can be very helpful for getting initial ideas when you face a complex cycle and are unsure where to start. The AI often spots structural patterns, like hidden abstractions, circular service dependencies, or missing interfaces, that are worth considering. You can save the advice as a Markdown file for later.
 
@@ -94,7 +91,7 @@ Still, this feature can be very helpful for getting initial ideas when you face 
 
 ### Simulated refactoring
 
-The refactoring simulation feature is simple but helpful. It lets you see how changes to your code structure affect cyclic dependencies without changing your source code. Often, you might find a large cyclic cluster, make changes in the code, and re-import the solution, only to see the cycle still there. This can be repetitive and take a lot of time.
+The refactoring simulation feature is simple but helpful. It lets you see how changes to your code structure affect cyclic dependencies without changing your source code. Often, you might find a large cyclic cluster, make changes in the code, and re-import the solution, only to see the cycle still there. This can be repetitive and time-consuming.
 
 To streamline this, the tree view includes a Refactoring context menu that enables basic refactoring directly on the graph, bypassing the need to edit the source code.
 
@@ -106,7 +103,7 @@ You can explore scenarios such as:
 
 After your modifications, you can rerun the cycle search to observe the impact.
 
-Remember, this is a basic feature and you can't undo changes to the code graph. It's a good idea to save your work before you begin.
+Remember, this is a basic feature, and you can't undo changes to the code graph. It's a good idea to save your work before you begin.
 
 ![](Documentation/Images/refactoring.png)
 
@@ -117,7 +114,7 @@ Context Menu Options:
 - **Set as movement parent** – Sets the current element as the parent for subsequent move operations.
 - **Move** – Once a movement parent is set, this option moves the selected element and all its children to the chosen parent.
 
-Additionally in the Code Explorer:
+Additionally, in the Code Explorer:
 
 - **Delete edge from model** – Deletes the relationships between two code elements. If the edge is bundled, multiple relationships get deleted.
 
@@ -129,10 +126,10 @@ The **Code Explorer** is an interactive canvas where you can explore unfamiliar 
 
 ![image-20240731123233438](Documentation/Images/code-explorer.png)
 
-1. Use the **Tree View** or **Advanced Search** tab to search for code elements to add the canvas. The search expression supports `type:class`, `type:method`, `source:intern` and ReSharper-style camel-case search (e.g. `SC` finds `ShoppingCart`).
+1. Use the **Tree View** or **Advanced Search** tab to search for code elements to add the canvas. The search expression supports `type:class`, `type:method`, `source:intern`, and ReSharper-style camel-case search (e.g. `SC` finds `ShoppingCart`).
 2. **Right-click** an element on the canvas to explore its relationships with its neighbors.
 3. Use the **tool buttons**  in the Code Explorer to perform operations on multiple selected elements.
-4. To keep the graph painless, use Hide filters (Ribbon), node collapsing (double-click), and focus on selected elements (tool buttons) or on incoming or outgoing edges (context menu).
+4. To keep the graph readable and prevent it from turning into a spaghetti monster, you can use the Hide filters in the ribbon, double-click container nodes to collapse them, or use the context menu to filter down to incoming/outgoing edges.
 
 ### Examples
 
@@ -144,7 +141,7 @@ Here are some general examples of how to use the application to explore a code b
 
 ### Performance tips
 
-If your graph has more than about 200-300 code elements, it may slow down. But seeing that many elements at once usually isn't helpful. You can double-click container elements to collapse or expand them and reduce what's visible. When using Advanced Search to add several code elements, try adding them collapsed to keep things focused and the graph faster.
+If your graph has more than about 200-300 code elements, it may slow down. But seeing that many elements at once usually isn't helpful. You can double-click container elements to collapse or expand them, reducing what's visible. When using Advanced Search to add several code elements, try adding them collapsed to keep things focused and the graph faster.
 
 ---
 
@@ -174,71 +171,68 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 
 ### Plain Text
 
-Plain text might sound boring, but it's actually useful. If you want an LLM to do more extensive refactoring, you might run out of tokens and still not get good results. Giving the LLM your task and the structure as a text-based dependency graph helps a lot with results and token usage. The LLM doesn't even need a description of the graph.
+Plain text might sound boring, but it's actually useful. If you feed a large language model your whole source code for refactoring, you’ll quickly run out of tokens or get garbage results. Instead, just give the LLM your prompt along with this text-based dependency graph. This greatly improves results and saves a massive amount of  tokens. The LLM doesn't even need a description of the graph.
 
 ## Validate architectural rules
 
-You can define architectural rules and check if they are violated.
-In the ribbon, go to Analyzers and then click "Architectural rules". If a project is loaded, a dialog opens where you can define the rules.
+Codebases tend to decay over time if no one monitors the boundaries. With Architectural Rules, you can define strict guardrails (like "UI must not touch the Data layer") and automatically check your solution for violations.
+
+To set them up, open the **Analyzers** tab in the ribbon and click **Architectural Rules**.
 
 ![](Documentation/Images/rule-configuration.png)
 
-### Supported rules
+### 1. Dependency Restrictions
 
-Dependency restrictions
+These rules control which parts of your application are allowed to talk to each other.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| DENY     | Forbids dependencies from source to target.<br />DENY is the only rule that can restrict access to external code. |
-| RESTRICT | Allows only specified dependencies. RESTRICT rules whose sources overlap (same pattern or nested, like `A.**` and `A.B.**`) are aggregated and the permitted set widens to the union of their targets. This is unique for the RESTRICT rule. <br />Dependencies to external code (e.g. System.*) are always allowed. |
+| DENY     | Forbids dependencies from source to target.<br />DENY is the only rule that can restrict access to external/third-party code. |
+| RESTRICT | Allows **only** the specified target dependencies<br /><br />If multiple `RESTRICT` rules overlap (like `A.**` and `A.B.**`), their allowed targets are merged together. The permitted set widens to the union of the targets. Dependencies to system libraries (like `System.*`) are always allowed automatically. |
 | ISOLATE  | Completely isolates the source from external dependencies. Only incoming dependencies are allowed.<br />Dependencies to external code (e.g. System.*) are always allowed. |
-| ALLOW    | Defines an exception. An ALLOW rule never reports violations itself; it suppresses violations matched by other rules. |
+| ALLOW    | Defines an architectural exception. An `ALLOW` rule never reports violations on its own. Instead, it suppresses violations triggered by a `DENY` or `RESTRICT` rule. |
 
-Cycle rule
+### 2. Cycles
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| NOCYCLES | `NOCYCLES MyApp.Domain` — the named element and everything below it must be free of dependency cycles. The path is written without a wildcard. The rule always checks the whole subtree. Uses the same detection as the interactive cycle search, so cycles that only exist between namespaces are found too — unlike MAXCYCLICITY, which measures the plain type graph. A violation reports the cycle group by name and participants — the same name and element count the Cycles view shows, which is the place to analyze the cycle further. A cycle that lies only partly below the named element is not reported by this rule; write the rule on a higher element to catch it. ALLOW exceptions do not apply, and violations are not baselined. |
+| NOCYCLES | `NOCYCLES MyApp.Domain`.  Enforces that the specified assembly/namespace and everything below is 100% free of dependency cycles. The path is written without a wildcard. <br /><br />This rule finds cycles that exist between namespaces, unlike MAXCYCLICITY, which measures the plain type graph. <br /><br />If a cycle is found, it reports the same group name as used in the Cycles view, where you can analyze it further. A cycle that lies only partly below the named element is not reported by this rule; write the rule on a higher element to catch it.<br /><br /> ALLOW exceptions do not apply, and violations are not baselined. |
 
-Metric-based restrictions. See also [Metrics](Documentation/Metrics.md)
+### 3. Metric-based restrictions
 
-A metric rule limits a measured value instead of a dependency. It is written as `RULE = value`, and `ALLOW` exceptions never affect it. There are two kinds.
+**See also [Metrics](Documentation/Metrics.md)**
+
+A metric rule limits a measured value instead of a dependency. It is written as `RULE = value`. `ALLOW` exceptions never affect it. There are two kinds.
 
 **System metric rules** describe the code base as a whole. They take no pattern.
 
 | Rule         | Meaning                                                      |
 | ------------ | ------------------------------------------------------------ |
-| MAXCYCLICITY | Limits the cyclicity of the whole system. <br />For example, `MAXCYCLICITY = 15` (a percentage between 0 and 100) allows at most 15% of the types to be entangled in cycles. This rule applies to the entire codebase.<br />Measured on the type dependency graph — cycles that only exist between namespaces do not count here; use NOCYCLES for those. |
+| MAXCYCLICITY | Limits the total percentage of types entangled in cycles.<br />`MAXCYCLICITY = 15` means at most 15% of all types can be part of a cycle. Measured strictly on the type graph, cycles that only exist between namespaces do not count here. Use NOCYCLES for those. |
 
 When accepting a baseline, a system metric rule gets its threshold raised to the currently measured value, so the rule line is rewritten in place.
 
-**Code element metric rules** limit a value of every code element they match. They may be scoped by a pattern, written as `RULE Pattern = value`; without a pattern, the rule applies to every element in the graph `RULE = value`.
+**Code element metric rules** limit a metric value of every code element they match.
 
 | Rule     | Meaning                                                      |
 | -------- | ------------------------------------------------------------ |
-| MAXLINES | Limits the size of a single method, in code lines (blank and comment-only lines excluded). <br />For example, <br />`MAXLINES: MyApp.Business.** = 50` reports every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines. |
+| MAXLINES | Limits the maximum lines of code (LOC) for a single method (excluding blanks/comments).  <br />For example, <br />`MAXLINES: MyApp.Business.** = 50` flags every method in the business layer that is longer than 50 lines.<br />`MAXLINES = 50` limits all methods in the system to 50 lines.<br /><br />*Note: The Lines of Code (LOC) metric for methods currently serves as a built-in example of how element-level metrics are enforced. More metrics will follow.* |
 
-An element the rule cannot measure is skipped rather than treated as compliant — an abstract method has no body, so a size limit says nothing about it. Source metrics are collected during solution import; if a project has none, the rule reports a warning rather than silently passing.
-
-Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES: MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule because the narrower rule does not grant an exception.
+Two metric rules of the same kind never override each other. If `MAXLINES = 50` and `MAXLINES MyApp.Legacy.** = 200` are both present, a 120-line legacy method violates the first rule.
 
 When accepting a baseline, a code element metric rule remains untouched. Lifting its limit to the worst offender would repeal it for every other element. This is not a baseline but a repeal. This is different from the system metric rules.
 
-Lines of code for methods is just proof of concept I can use when meaningful metrics are collected.
-
 ### How patterns work
 
-The source and target side of a rule is a **full path** in the analysis tree. It starts with the **assembly name**, followed by namespaces and optionally a type or member. If the assembly is named like its root namespace, the name appears twice (e.g. `MyApp.MyApp.Business`). This looks odd at first but is the correct path.
+The source and target side of a rule is a **full path** in the code graph. It starts with the **assembly name**, followed by namespaces, types etc. If the assembly is named like its root namespace, the name appears twice (e.g. `MyApp.MyApp.Business`). This is intentional and correct.
 
-You don't have to type these paths by hand: right-click any element in the tree view or graph and choose **"Copy Full Path"** to copy it exactly as the rules expect it.
+You don't have to type out long C# paths by hand. Just right-click any element in the tree view or canvas and select **"Copy Full Path"** to get the exact string the rules engine expects.
 
 A pattern can end with a wildcard suffix:
 
-MyApp.MyApp.Business → the element itself
-
-MyApp.MyApp.Business.* → element + direct children
-
-MyApp.MyApp.Business.** → element + all descendants
+- `MyApp.MyApp.Business` → Matches exactly this specific namespace element.
+- `MyApp.MyApp.Business.*` → Matches the element and its *direct* children.
+- `MyApp.MyApp.Business.**` → Matches the element and *all* deep descendants.
 
 The part before the wildcard is an **anchor**. It must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree. It collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp` but nothing in a sibling assembly `MyApp.Utils` because that assembly is a separate root in the tree and not a child of the anchor.
 
@@ -256,7 +250,7 @@ RESTRICT MyApp.Controllers.** -> MyApp.Services.**
 // Core components may not depend on UI
 DENY MyApp.Core.** -> MyApp.UI.**
 
-// Keys should be completely isolated, use ALLOW to define exceptions.
+// Keys should be completely isolated. Use ALLOW to define exceptions.
 ISOLATE MyApp.Keys.**
 
 // Specific class restrictions
@@ -294,7 +288,7 @@ The exceptions are exact paths down to the member level, so a baseline freezes p
 
 ### Remove unused rules
 
-Over time, after refactoring or deleting baselined elements, some rules might not match anything anymore. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is careful: it never removes a rule that still enforces something, so your checks stay strong.
+Over time, after refactoring or deleting baselined elements, some rules might no longer match anything. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is careful: it never removes a rule that still enforces something, so your checks stay strong.
 
 ### Command-line
 
@@ -324,7 +318,7 @@ jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 
 ## Analyze a GIT repository
 
-A few years ago, I created a repository analyzer inspired by Adam Tornhill’s book “Your code as a crime scene.” You can read more about the ideas behind this analysis here: https://github.com/ATrefzer/Insight. **Insight** has many more features, but I included the most useful ones in C# Code Analyst. Change coupling is especially interesting because a static analyzer can't catch it.
+Static analysis is great, but it misses how code evolves over time. Inspired by Adam Tornhill’s *Your Code as a Crime Scene*, this tool includes Git history analysis to uncover architectural patterns that no static analyzer can see – like change coupling and hotspots.  To read more about these ideas, see also my other repository: https://github.com/ATrefzer/Insight. 
 
 Two files are coupled when they often change together. For example, one class encodes a file, and another decodes it. You cannot change one without the other. Such hidden dependencies can be made visible, which fits perfectly into a dependency analyzer tool.
 
@@ -332,7 +326,7 @@ For example, in the first row, 93.1% of commits that contain **Item1** or **Item
 
 ![](Documentation/Images/change-coupling.png)
 
-The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is shown by the area of a rectangle, and the number of changes is shown by color. The deeper the color, the more often a file changed over time. Large files that change a lot are called hotspots and are good to keep an eye on. A file only appears in this analysis if it was committed at least twice.
+The second analysis is a hotspot analysis. You can see an example in the screenshot below. The size (LOC) of a file is shown by the area of a rectangle, and the number of changes is shown by color. The deeper the color, the more often a file changed over time. Large files that change frequently are called hotspots and are worth keeping an eye on. A file only appears in this analysis if it was committed at least twice.
 
 ![](Documentation/Images/hotspot.png)
 
@@ -340,7 +334,7 @@ Finally, you can analyze a developer's contribution to a file.
 
 This isn't related to dependency analysis, but it's helpful if you need to know who to ask for help or which parts to document when someone leaves the team.
 
-The developer who contributed most to a file (based on a simple GIT blame) is marked as the main developer, and the file is colored to match. This doesn't always mean that person knows the file best, but it's a good starting point. A 
+The developer who contributed most to a file (based on a simple Git blame) is marked as the main developer, and the file is colored accordingly. This doesn't always mean that person knows the file best, but it's a good starting point.
 
 ![](Documentation/Images/knowledge.png)
 
@@ -348,7 +342,7 @@ The developer who contributed most to a file (based on a simple GIT blame) is ma
 
 Please keep these points in mind:
 
-- The C# Roslyn part only focuses on the most common language constructs. However, even the supported language constructs may be incomplete. C# has a constantly growing language syntax.
+- The Roslyn-based parser covers the vast majority of the latest C# syntax. However, since C# syntax evolves rapidly with new versions, some cutting-edge features or edge cases might not yet map perfectly to the graph.
 - The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
 - Source locations are not extracted for all dependencies; only those that are easily extractable are included.
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.

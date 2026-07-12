@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
+﻿using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
@@ -77,6 +76,17 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, []);
     }
 
+    /// <summary>
+    ///     All relationships crossing the element's boundary outwards: the source is the element
+    ///     or one of its descendants, the target lies outside. Relationships between two
+    ///     descendants are internal and not part of the result.
+    ///     <see cref="FindAllRelationshipsDeep" /> shows those.
+    ///     The result contains the start element, the elements taking part in a found relationship
+    ///     and the containers connecting those to the start element. The reached targets come
+    ///     without their gaps filled. If the caller needs those, it runs
+    ///     <see cref="FindGapsInHierarchy" /> or <see cref="FindMissingTypesForLonelyTypeMembers" />
+    ///     on the result.
+    /// </summary>
     public SearchResult FindOutgoingRelationshipsDeep(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -86,15 +96,24 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return new SearchResult([], []);
         }
 
-        var sources = element.GetChildrenIncludingSelf();
-        var relationships = _codeGraph.GetAllRelationships().Where(r => sources.Contains(r.SourceId)).ToList();
-        var targets = relationships.Select(m => m.TargetId).ToList();
+        var subtree = element.GetChildrenIncludingSelf();
+        var relationships = _codeGraph.GetAllRelationships()
+            .Where(r => subtree.Contains(r.SourceId) && !subtree.Contains(r.TargetId)).ToList();
 
-        var elements = sources.Union(targets).Select(i => _codeGraph.Nodes[i]).ToHashSet();
-
-        return new SearchResult(elements, relationships);
+        return CollectDeepResult(element, relationships);
     }
 
+    /// <summary>
+    ///     All relationships crossing the element's boundary inwards: the target is the element
+    ///     or one of its descendants, the source lies outside. Relationships between two
+    ///     descendants are internal and not part of the result.
+    ///     <see cref="FindAllRelationshipsDeep" /> shows those.
+    ///     The result contains the start element, the elements taking part in a found relationship
+    ///     and the containers connecting those to the start element. The found sources come
+    ///     without their gaps filled. If the caller needs those, it runs
+    ///     <see cref="FindGapsInHierarchy" /> or <see cref="FindMissingTypesForLonelyTypeMembers" />
+    ///     on the result.
+    /// </summary>
     public SearchResult FindIncomingRelationshipsDeep(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -104,16 +123,17 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return new SearchResult([], []);
         }
 
-        var targetIds = element.GetChildrenIncludingSelf();
-        var relationships = _codeGraph.GetAllRelationships().Where(r => targetIds.Contains(r.TargetId)).ToList();
-        var sources = relationships.Select(d => d.SourceId);
-        var elements = sources.Union(targetIds).Select(i => _codeGraph.Nodes[i]).ToHashSet();
+        var subtree = element.GetChildrenIncludingSelf();
+        var relationships = _codeGraph.GetAllRelationships()
+            .Where(r => subtree.Contains(r.TargetId) && !subtree.Contains(r.SourceId)).ToList();
 
-        return new SearchResult(elements, relationships);
+        return CollectDeepResult(element, relationships);
     }
 
     public SearchResult FindParents(List<string> ids)
     {
+        ArgumentNullException.ThrowIfNull(ids);
+
         if (_codeGraph is null)
         {
             return new SearchResult([], []);
@@ -193,6 +213,12 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
 
+    /// <summary>
+    ///     Follows the direct "Calls" edges to the callers, transitively. Unlike
+    ///     <see cref="FollowIncomingCallsHeuristically" /> it does not follow abstractions
+    ///     (interface or base declarations) or event handling, so callers that reach the method
+    ///     through virtual dispatch or events are not found.
+    /// </summary>
     public SearchResult FindIncomingCallsRecursive(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -208,10 +234,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var foundCalls = new HashSet<Relationship>();
         var foundMethods = new HashSet<CodeElement>();
 
-        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
+        var callsByTarget = GetRelationships(d => d.Type == RelationshipType.Calls)
+            .ToLookup(call => call.TargetId);
 
         var processed = new HashSet<string>();
-        while (processingQueue.Any())
+        while (processingQueue.Count > 0)
         {
             var element = processingQueue.Dequeue();
             if (!processed.Add(element.Id))
@@ -219,7 +246,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 continue;
             }
 
-            var calls = allCalls.Where(call => call.TargetId == element.Id).ToArray();
+            var calls = callsByTarget[element.Id].ToArray();
             foundCalls.UnionWith(calls);
 
             var methods = calls.Select(d => _codeGraph.Nodes[d.SourceId]).ToArray();
@@ -253,11 +280,25 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         var graph = _codeGraph;
 
-        var allImplementsAndOverrides =
-            GetRelationships(d => d.Type is RelationshipType.Implements or RelationshipType.Overrides);
-        var allCalls = GetRelationships(d => d.Type == RelationshipType.Calls);
-        var allHandles = GetRelationships(d => d.Type == RelationshipType.Handles);
-        var allInvokes = GetRelationships(d => d.Type == RelationshipType.Invokes);
+        // One scan over the graph, then O(1) lookups: the loop below queries these sets once
+        // per visited element, and a linear search each time made the whole walk quadratic.
+        var allRelationships = graph.GetAllRelationships().ToList();
+        var implementsAndOverrides = allRelationships
+            .Where(d => d.Type is RelationshipType.Implements or RelationshipType.Overrides).ToList();
+        var abstractionsBySource = implementsAndOverrides.ToLookup(d => d.SourceId);
+        var specializationsByTarget = implementsAndOverrides.ToLookup(d => d.TargetId);
+        var callsByTarget = allRelationships
+            .Where(d => d.Type == RelationshipType.Calls).ToLookup(d => d.TargetId);
+        var handledEventsBySource = allRelationships
+            .Where(d => d.Type == RelationshipType.Handles).ToLookup(d => d.SourceId);
+        var invokersByTarget = allRelationships
+            .Where(d => d.Type == RelationshipType.Invokes).ToLookup(d => d.TargetId);
+
+        // The forbidden set depends only on the method's container, and computing it walks the
+        // whole inheritance structure - so it is cached per container for this search. The cached
+        // set is shared read-only between contexts; CreateContextForCaller clones before it unions.
+        var inheritanceByTarget = FindInheritsAndImplementsRelationships().ToLookup(r => r.TargetId);
+        var forbiddenByContainer = new Dictionary<string, HashSet<CodeElement>>();
 
         var processingQueue = new Queue<(CodeElement Element, Context Context)>();
         processingQueue.Enqueue((start, CreateContextForMethod(start)));
@@ -297,14 +338,14 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             {
                 // The event may be declared on a base type or an interface.
                 // The specialized events are the ones the publishers actually raise.
-                var specializedEvents = Collect(allImplementsAndOverrides.Where(d => d.TargetId == element.Id), d => d.SourceId);
+                var specializedEvents = Collect(specializationsByTarget[element.Id], d => d.SourceId);
                 AddToProcessingQueue(specializedEvents, context);
 
                 // The publisher side is unrelated to
                 // the subscriber's hierarchy, so continue as if the search started at the invoker.
                 // Raising the event does not use virtual dispatch on "this": the handlers were
                 // bound at registration time and are reached through the delegate's invocation list.
-                var invokers = Collect(allInvokes.Where(d => d.TargetId == element.Id), d => d.SourceId);
+                var invokers = Collect(invokersByTarget[element.Id], d => d.SourceId);
                 foreach (var invoker in invokers)
                 {
                     AddToProcessingQueue([invoker], CreateContextForMethod(invoker));
@@ -314,12 +355,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             // Properties take part in call chains like methods do:
             // accessor bodies are call sources and property accesses are modeled as calls.
             // When property accessors are split, the get_/set_ elements carry those calls instead.
-            if (element.ElementType is CodeElementType.Method or CodeElementType.Property
-                or CodeElementType.PropertyAccessor)
+            if (element.ElementType is CodeElementType.Method or CodeElementType.Property or CodeElementType.PropertyAccessor)
             {
                 // Follow the callers whose calls can dispatch to this element under the
                 // current restrictions. Each caller gets the context for its kind of call.
-                var calls = allCalls.Where(call => call.TargetId == element.Id && context.IsCallAllowed(call));
+                var calls = callsByTarget[element.Id].Where(context.IsCallAllowed);
                 foreach (var call in calls)
                 {
                     foundRelationships.Add(call);
@@ -330,11 +370,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
                 // The abstractions (interface or base declarations) may be called instead of
                 // the concrete element. Follow them with the current restrictions.
-                var abstractions = Collect(allImplementsAndOverrides.Where(d => d.SourceId == element.Id), d => d.TargetId);
+                var abstractions = Collect(abstractionsBySource[element.Id], d => d.TargetId);
                 AddToProcessingQueue(abstractions, context);
 
                 // If this element handles an event, the chain continues at the event.
-                var handledEvents = Collect(allHandles.Where(h => h.SourceId == element.Id), d => d.TargetId);
+                var handledEvents = Collect(handledEventsBySource[element.Id], d => d.TargetId);
                 AddToProcessingQueue(handledEvents, context);
             }
         }
@@ -362,21 +402,47 @@ public class CodeGraphExplorer : ICodeGraphExplorer
                 // A base call pins the runtime type to the caller's subtree.
                 // The caller's hierarchy restrictions apply in addition to the current ones.
                 var restricted = context.Clone();
-                restricted.ForbiddenCallSourcesInHierarchy.UnionWith(GetForbiddenCallSourcesInHierarchy(caller));
+                restricted.ForbiddenCallSourcesInHierarchy.UnionWith(GetForbiddenCallSources(caller));
                 return restricted;
             }
 
-            if (call.HasAttribute(RelationshipAttribute.IsStaticCall) ||
-                call.HasAttribute(RelationshipAttribute.IsExtensionMethodCall) ||
-                call.HasAttribute(RelationshipAttribute.IsInstanceCall))
+            if (!call.DispatchesOnCurrentInstance())
             {
-                // The call breaks the dispatch chain of the current "this" instance.
-                // Continue as if the search started at the caller, restricted to its hierarchy.
+                // An instance, static or extension method call breaks the dispatch chain of the
+                // current "this" instance. Continue as if the search started at the caller,
+                // restricted to its hierarchy.
                 return CreateContextForMethod(caller);
             }
 
             // Implicit and "this" calls stay within the current dispatch chain.
             return context;
+        }
+
+        // Creates the context for exploring the callers of the given method, as if the
+        // search started there.
+        Context CreateContextForMethod(CodeElement method)
+        {
+            return new Context(graph)
+            {
+                ForbiddenCallSourcesInHierarchy = GetForbiddenCallSources(method)
+            };
+        }
+
+        HashSet<CodeElement> GetForbiddenCallSources(CodeElement method)
+        {
+            var container = GetMethodContainer(method);
+            if (container is null)
+            {
+                return [];
+            }
+
+            if (!forbiddenByContainer.TryGetValue(container.Id, out var forbidden))
+            {
+                forbidden = GetForbiddenCallSourcesInHierarchy(container, inheritanceByTarget);
+                forbiddenByContainer[container.Id] = forbidden;
+            }
+
+            return forbidden;
         }
 
         void AddToProcessingQueue(IEnumerable<CodeElement> elementsToExplore, Context context)
@@ -426,61 +492,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return new SearchResult([], []);
         }
 
-        // For completeness add the start type.
-        var types = new HashSet<CodeElement> { type };
-
-        var relationships = new HashSet<Relationship>();
-        var processingQueue = new Queue<CodeElement>();
-        var processed = new HashSet<string>();
-
-        var inheritsAndImplements = FindInheritsAndImplementsRelationships();
-
-        // Find base classes recursive
-        processingQueue.Enqueue(type);
-        while (processingQueue.Any())
-        {
-            var typeToAnalyze = processingQueue.Dequeue();
-            if (!processed.Add(typeToAnalyze.Id))
-            {
-                continue;
-            }
-
-            // Case typeToAnalyze is subclass: typeToAnalyze implements X or inherits from Y
-            var abstractionsOfAnalyzedType =
-                typeToAnalyze.Relationships.Where(d =>
-                    d.Type is RelationshipType.Implements or RelationshipType.Inherits);
-            foreach (var abstraction in abstractionsOfAnalyzedType)
-            {
-                var baseType = _codeGraph.Nodes[abstraction.TargetId];
-                types.Add(baseType);
-                relationships.Add(abstraction);
-                processingQueue.Enqueue(baseType);
-            }
-        }
-
-        // Find subclasses recursively
-        processingQueue.Enqueue(type);
-        processed.Clear();
-        while (processingQueue.Any())
-        {
-            var typeToAnalyze = processingQueue.Dequeue();
-            if (!processed.Add(typeToAnalyze.Id))
-            {
-                continue;
-            }
-
-            // Case typeToAnalyze is base class: typeToAnalyze is implemented by X or Y inherits from it.
-            var specializationsOfAnalyzedType
-                = inheritsAndImplements.Where(d => typeToAnalyze.Id == d.TargetId);
-            foreach (var specialization in specializationsOfAnalyzedType)
-            {
-                var specializedType = _codeGraph.Nodes[specialization.SourceId];
-
-                types.Add(specializedType);
-                relationships.Add(specialization);
-                processingQueue.Enqueue(specializedType);
-            }
-        }
+        var inheritanceByTarget = FindInheritsAndImplementsRelationships().ToLookup(r => r.TargetId);
+        var (types, relationships) = CollectFullInheritanceTree(type, inheritanceByTarget);
 
         return new SearchResult(types, relationships);
     }
@@ -572,6 +585,97 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, relationships);
     }
 
+    public IReadOnlyList<string> GetWithPropertyAccessors(string id)
+    {
+        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element)
+                               || element.ElementType != CodeElementType.Property)
+        {
+            return [id];
+        }
+
+        var ids = new List<string> { id };
+        ids.AddRange(element.Children
+            .Where(c => c.ElementType == CodeElementType.PropertyAccessor)
+            .Select(c => c.Id));
+
+        return ids;
+    }
+
+    public SearchResult ExploreWithAccessors(string id, Func<string, SearchResult> explore)
+    {
+        var ids = GetWithPropertyAccessors(id);
+
+        var elements = new HashSet<CodeElement>();
+        var relationships = new HashSet<Relationship>();
+
+        // Always include the property and all its accessors as nodes so that
+        // any relationship touching them has a valid endpoint in the result.
+        foreach (var expandedId in ids)
+        {
+            if (_codeGraph?.Nodes.TryGetValue(expandedId, out var node) == true)
+            {
+                elements.Add(node);
+            }
+        }
+
+        foreach (var expandedId in ids)
+        {
+            var result = explore(expandedId);
+            elements.UnionWith(result.Elements);
+            relationships.UnionWith(result.Relationships);
+        }
+
+        return new SearchResult(elements, relationships);
+    }
+
+    /// <summary>
+    ///     Builds the result of the deep searches: the endpoints of the found relationships, the
+    ///     code elements filling the gaps to the start element, and the start element itself so the
+    ///     result is self-contained even when nothing was found.
+    /// </summary>
+    private SearchResult CollectDeepResult(CodeElement startElement, List<Relationship> relationships)
+    {
+        var relationshipElementIds = relationships
+            .SelectMany(r => new[] { r.SourceId, r.TargetId })
+            .ToHashSet();
+
+        // The involved elements can sit deep inside the start element; fill in the containers
+        // connecting them to it, so they are not added without their hierarchy.
+        var gapIds = FillGapsInHierarchy(relationshipElementIds.Union([startElement.Id]).ToHashSet());
+
+        var elements = relationshipElementIds
+            .Union(gapIds)
+            .Union([startElement.Id])
+            .Select(i => _codeGraph!.Nodes[i])
+            .ToHashSet();
+
+        return new SearchResult(elements, relationships);
+    }
+
+    /// <summary>
+    ///     The traversal behind <see cref="FindFullInheritanceTree" />. Callers that need the tree
+    ///     of many types (the forbidden-set calculation) pass the inheritance lookup in, so the
+    ///     graph is scanned once instead of once per type.
+    ///     Interfaces are included.
+    /// </summary>
+    private (HashSet<CodeElement> Types, HashSet<Relationship> Relationships) CollectFullInheritanceTree(CodeElement type, ILookup<string, Relationship> inheritanceByTarget)
+    {
+        // Include the interfaces.
+        var baseTypes = GetBaseTypesRecursive(type, true);
+        var derivedTypes = GetDerivedTypesRecursive(type, inheritanceByTarget, true);
+
+        var types = baseTypes.Union(derivedTypes).Union([type]).ToHashSet();
+        var typeIds = types.Select(t => t.Id).ToHashSet();
+
+        // Get the relationships
+        var relationships = _codeGraph!.GetAllRelationships()
+            .Where(r => r.Type is RelationshipType.Inherits or RelationshipType.Implements &&
+                        typeIds.Contains(r.SourceId) &&
+                        typeIds.Contains(r.TargetId)).ToHashSet();
+
+        return (types, relationships);
+    }
+
     /// <summary>
     ///     The method finds and returns the missing code elements in the hierarchy.
     /// </summary>
@@ -629,26 +733,22 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
     /// <summary>
     ///     Returns the classes that cannot be the source of an implicit, "this" or "base" call
-    ///     reaching the given method: the side branches of its class hierarchy.
+    ///     reaching a method of the given container: the side branches of its class hierarchy.
+    ///     The result depends only on the container, so callers cache it per container.
     /// </summary>
-    private HashSet<CodeElement> GetForbiddenCallSourcesInHierarchy(CodeElement method)
+    private HashSet<CodeElement> GetForbiddenCallSourcesInHierarchy(
+        CodeElement container, ILookup<string, Relationship> inheritanceByTarget)
     {
         if (_codeGraph is null)
         {
             return [];
         }
 
-        var container = GetMethodContainer(method);
-        if (container is null)
-        {
-            return [];
-        }
-
-        var baseClasses = GetBaseClassesRecursive(container);
+        var baseClasses = GetBaseTypesRecursive(container);
 
         // Non instance calls may originate from these classes.
         var allowedHierarchy = baseClasses
-            .Union(GetDerivedClassesRecursive(container))
+            .Union(GetDerivedTypesRecursive(container, inheritanceByTarget))
             .Union([container])
             .ToHashSet();
 
@@ -656,7 +756,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var expandedBaseClasses = new HashSet<CodeElement>();
         foreach (var baseClass in baseClasses)
         {
-            expandedBaseClasses.UnionWith(FindFullInheritanceTree(baseClass.Id).Elements);
+            expandedBaseClasses.UnionWith(CollectFullInheritanceTree(baseClass, inheritanceByTarget).Types);
         }
 
         // The inheritance tree also contains the interfaces of the base classes.
@@ -669,48 +769,82 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return forbiddenHierarchy;
     }
 
-    /// <summary>
-    ///     The given element is not included in the result.
-    /// </summary>
-    private HashSet<CodeElement> GetBaseClassesRecursive(CodeElement? element)
+    private HashSet<CodeElement> GetDerivedTypesRecursive(CodeElement? element, ILookup<string, Relationship> inheritanceByTarget, bool includeInterfaces = false)
     {
         if (_codeGraph is null || element is null)
         {
             return [];
         }
 
-        var baseClasses = new HashSet<CodeElement>();
-
+        var derivedTypes = new HashSet<CodeElement>();
         var queue = new Queue<CodeElement>();
         queue.Enqueue(element);
 
-        while (queue.Any())
+        while (queue.Count > 0)
         {
-            var currentElement = queue.Dequeue();
+            var current = queue.Dequeue();
 
-            var inheritsFrom = currentElement.Relationships
-                .Where(d => d.Type == RelationshipType.Inherits && d.SourceId == currentElement.Id)
-                .Select(m => _codeGraph.Nodes[m.TargetId]).ToList();
 
-            Debug.Assert(inheritsFrom.Count <= 1, "Only simple inheritance in C#");
+            var specializations = inheritanceByTarget[current.Id]
+                .Where(r => r.Type == RelationshipType.Inherits || includeInterfaces && r.Type == RelationshipType.Implements);
 
-            foreach (var baseClass in inheritsFrom)
+            foreach (var relation in specializations)
             {
-                if (baseClasses.Add(baseClass))
+                var derivedType = _codeGraph.Nodes[relation.SourceId];
+
+                // Nur in die Queue werfen, wenn wir das Element nicht schon besucht haben
+                if (derivedTypes.Add(derivedType))
                 {
-                    queue.Enqueue(baseClass);
+                    queue.Enqueue(derivedType);
                 }
             }
         }
 
-        return baseClasses;
+        return derivedTypes;
+    }
+
+    /// <summary>
+    ///     The given element is not included in the result.
+    /// </summary>
+    private HashSet<CodeElement> GetBaseTypesRecursive(CodeElement? element, bool includeInterfaces = false)
+    {
+        if (_codeGraph is null || element is null)
+        {
+            return [];
+        }
+
+        var baseTypes = new HashSet<CodeElement>();
+        var queue = new Queue<CodeElement>();
+        queue.Enqueue(element);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+
+            var targets = current.Relationships
+                .Where(d => d.SourceId == current.Id &&
+                            (d.Type == RelationshipType.Inherits || includeInterfaces && d.Type == RelationshipType.Implements))
+                .Select(m => _codeGraph.Nodes[m.TargetId]);
+
+            // The parser models interface-to-interface inheritance as Implements; Inherits comes
+            // only from a type's BaseType, and C# allows a single base class.
+
+            foreach (var baseType in targets)
+            {
+                if (baseTypes.Add(baseType))
+                {
+                    queue.Enqueue(baseType);
+                }
+            }
+        }
+
+        return baseTypes;
     }
 
     public static CodeElement? GetMethodContainer(CodeElement method)
     {
         var element = method;
-        while (element.ElementType is not (CodeElementType.Class or CodeElementType.Struct
-               or CodeElementType.Interface or CodeElementType.Record))
+        while (element.ElementType is not (CodeElementType.Class or CodeElementType.Struct or CodeElementType.Interface or CodeElementType.Record))
         {
             if (element.Parent is null)
             {
@@ -724,92 +858,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 
 
-    private HashSet<CodeElement> GetDerivedClassesRecursive(CodeElement element)
-    {
-        if (_codeGraph is null)
-        {
-            return [];
-        }
 
-        var result = new HashSet<CodeElement>();
-
-        var queue = new Queue<CodeElement>();
-        queue.Enqueue(element);
-
-        while (queue.Any())
-        {
-            var currentElement = queue.Dequeue();
-
-            var derivedClasses =
-                GetRelationships(d => d.Type == RelationshipType.Inherits && d.TargetId == currentElement.Id)
-                    .Select(m => _codeGraph.Nodes[m.SourceId]).ToList();
-
-            foreach (var derived in derivedClasses)
-            {
-                if (result.Add(derived))
-                {
-                    queue.Enqueue(derived);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    ///     Creates the context for exploring the callers of the given method, as if the
-    ///     search started there.
-    /// </summary>
-    private Context CreateContextForMethod(CodeElement method)
-    {
-        return new Context(_codeGraph!)
-        {
-            ForbiddenCallSourcesInHierarchy = GetForbiddenCallSourcesInHierarchy(method)
-        };
-    }
-
-    public IReadOnlyList<string> GetWithPropertyAccessors(string id)
-    {
-        if (_codeGraph is null || !_codeGraph.Nodes.TryGetValue(id, out var element)
-            || element.ElementType != CodeElementType.Property)
-        {
-            return [id];
-        }
-
-        var ids = new List<string> { id };
-        ids.AddRange(element.Children
-            .Where(c => c.ElementType == CodeElementType.PropertyAccessor)
-            .Select(c => c.Id));
-
-        return ids;
-    }
-
-    public SearchResult ExploreWithAccessors(string id, Func<string, SearchResult> explore)
-    {
-        var ids = GetWithPropertyAccessors(id);
-
-        var elements = new HashSet<CodeElement>();
-        var relationships = new HashSet<Relationship>();
-
-        // Always include the property and all its accessors as nodes so that
-        // any relationship touching them has a valid endpoint in the result.
-        foreach (var expandedId in ids)
-        {
-            if (_codeGraph?.Nodes.TryGetValue(expandedId, out var node) == true)
-            {
-                elements.Add(node);
-            }
-        }
-
-        foreach (var expandedId in ids)
-        {
-            var result = explore(expandedId);
-            elements.UnionWith(result.Elements);
-            relationships.UnionWith(result.Relationships);
-        }
-
-        return new SearchResult(elements, relationships);
-    }
 
     private List<Relationship> GetRelationships(Func<Relationship, bool> filter)
     {
@@ -834,7 +883,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         void Collect(CodeElement c)
         {
-            if (c.ElementType is not (CodeElementType.Class or CodeElementType.Interface or CodeElementType.Struct))
+            if (c.ElementType is not (CodeElementType.Class or CodeElementType.Interface or CodeElementType.Struct or CodeElementType.Record))
             {
                 return;
             }
@@ -850,7 +899,11 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 }
 
-public readonly record struct SearchResult
+/// <summary>
+///     A class, not a struct: a defaulted struct instance would carry null lists and blow up
+///     at the consumer instead of at the source.
+/// </summary>
+public sealed class SearchResult
 {
     public SearchResult(IEnumerable<CodeElement> elements, IEnumerable<Relationship> relationships)
     {

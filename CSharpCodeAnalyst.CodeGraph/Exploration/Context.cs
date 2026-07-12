@@ -15,9 +15,9 @@ internal class Context(Graph.CodeGraph codeGraph)
 
         // Implicit calls, "this" calls and "base" calls dispatch on the runtime type of "this",
         // which is always within the caller's own hierarchy. Check hierarchy restrictions.
-        if (call.Attributes == RelationshipAttribute.None ||
-            call.HasAttribute(RelationshipAttribute.IsBaseCall) ||
-            call.HasAttribute(RelationshipAttribute.IsThisCall))
+        // The same classification decides in CreateContextForCaller whether the context is
+        // passed on - both places must agree on what an implicit call is.
+        if (call.DispatchesOnCurrentInstance())
         {
             var sourceMethod = codeGraph.Nodes[call.SourceId];
             var sourceClass = CodeGraphExplorer.GetMethodContainer(sourceMethod);
