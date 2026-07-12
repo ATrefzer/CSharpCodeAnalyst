@@ -734,7 +734,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     /// <summary>
     ///     Returns the classes that cannot be the source of an implicit, "this" or "base" call
     ///     reaching a method of the given container: the side branches of its class hierarchy.
-    ///     The result depends only on the container, so callers cache it per container.
     /// </summary>
     private HashSet<CodeElement> GetForbiddenCallSourcesInHierarchy(
         CodeElement container, ILookup<string, Relationship> inheritanceByTarget)
@@ -899,10 +898,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     }
 }
 
-/// <summary>
-///     A class, not a struct: a defaulted struct instance would carry null lists and blow up
-///     at the consumer instead of at the source.
-/// </summary>
 public sealed class SearchResult
 {
     public SearchResult(IEnumerable<CodeElement> elements, IEnumerable<Relationship> relationships)

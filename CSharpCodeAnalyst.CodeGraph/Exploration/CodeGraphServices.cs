@@ -20,22 +20,28 @@ public class GraphResult
 
 public static class CodeGraphServices
 {
+
+    public static GraphResult FocusOnIncomingEdges(Graph.CodeGraph graph, CodeElement element)
+    {
+        return FocusOnCrossingEdges(graph, element, false);
+    }
+
+    public static GraphResult FocusOnOutgoingEdges(Graph.CodeGraph graph, CodeElement element)
+    {
+        return FocusOnCrossingEdges(graph, element, true);
+    }
+
     /// <summary>
     ///     Reduces the canvas to the relationships that cross the boundary of the clicked container in
     ///     one direction. For <paramref name="outgoing" /> only edges that start somewhere inside the
-    ///     container (any descendant, including itself) and end outside it survive; for incoming the
+    ///     container (any descendant, including itself) and end outside survive. For incoming the
     ///     reverse. Only the endpoints of those edges remain - everything that does not participate in a
     ///     crossing edge is removed. Lets you break a large dependency cycle down into "what does this
     ///     part reach out to" / "who reaches into it".
     /// </summary>
-    public static GraphResult FocusOnIncomingEdges(Graph.CodeGraph graph, CodeElement element, bool outgoing)
+    public static GraphResult FocusOnCrossingEdges(Graph.CodeGraph graph, CodeElement element, bool outgoing)
     {
-        if (!graph.Nodes.TryGetValue(element.Id, out var node))
-        {
-            return GraphResult.Failure();
-        }
-
-        var inside = node.GetChildrenIncludingSelf();
+        var inside = element.GetChildrenIncludingSelf();
 
         bool CrossesBoundary(Relationship relationship)
         {
@@ -44,7 +50,7 @@ public static class CodeGraphServices
             return outgoing ? sourceInside && !targetInside : !sourceInside && targetInside;
         }
 
-        var idsToKeep = new HashSet<string>();
+        var idsToKeep = new HashSet<string> { element.Id };
         foreach (var relationship in graph.GetAllRelationships())
         {
             if (CrossesBoundary(relationship))
@@ -64,15 +70,9 @@ public static class CodeGraphServices
             }
         }
 
-        if (idsToKeep.Count == 0)
-        {
-            // Nothing crosses the boundary in this direction - leave the canvas untouched.
-            return GraphResult.Failure();
-        }
-
         var newGraph = graph.Clone(CrossesBoundary, idsToKeep);
         var removedIds = graph.Nodes.Keys.Except(idsToKeep).ToHashSet();
 
-        return new GraphResult { NewGraph = newGraph, RemovedIds = removedIds, Success = true};
+        return new GraphResult { NewGraph = newGraph, RemovedIds = removedIds, Success = true };
     }
 }

@@ -723,7 +723,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     {
         var graph = _state.CodeGraph;
 
-        var result = CodeGraphServices.FocusOnIncomingEdges(graph, element, outgoing);
+        var result = CodeGraphServices.FocusOnCrossingEdges(graph, element, outgoing);
         if (!result.Success || result.NewGraph is null)
         {
             return;
