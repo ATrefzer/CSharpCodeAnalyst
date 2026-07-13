@@ -138,6 +138,11 @@ internal class HistoryViewModel : INotifyPropertyChanged
                 // Write file
                 var options = new JsonSerializerOptions { WriteIndented = false };
                 var json = JsonSerializer.Serialize(dto, options);
+
+                if (!HasJsonExtension(_lastOutputFilePath))
+                {
+                    _lastOutputFilePath += ".json";
+                }
                 File.WriteAllText(_lastOutputFilePath, json);
             });
 
@@ -162,6 +167,8 @@ internal class HistoryViewModel : INotifyPropertyChanged
             _ui.ShowErrorWarningDialog([], gitWarnings.Select(w => $"{w.Commit}: {w.Warning}").ToList());
         }
     }
+
+    private static bool HasJsonExtension(string path) => Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase);
 
     private void OnLoad()
     {
