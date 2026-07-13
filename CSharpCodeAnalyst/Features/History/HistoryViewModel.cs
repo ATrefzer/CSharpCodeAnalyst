@@ -43,6 +43,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
         HotspotsCommand = new WpfCommand(OnHotspots);
         ChangeCouplingCommand = new WpfCommand(OnChangeCoupling);
         KnowledgeCommand = new WpfCommand(OnKnowledge);
+        EditAliasCommand = new WpfCommand(OnEditAlias);
     }
 
     public ICommand CollectCommand { get; }
@@ -53,6 +54,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     public ICommand ChangeCouplingCommand { get; }
     public ICommand KnowledgeCommand { get; }
+    public ICommand EditAliasCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -65,7 +67,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
         }
 
         var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
-        var result = analyzer.AnalyzeKnowledge(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode, _lastHistory.History.Contributions);
+        var result = analyzer.AnalyzeKnowledge(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode, _lastHistory.History.Contributions, GetAliasMapping());
 
         var brushFactory = new BrushFactory(GetDistinctColorKeys(result));
 
@@ -81,6 +83,143 @@ internal class HistoryViewModel : INotifyPropertyChanged
         };
 
         _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data));
+    }
+
+    private void OnEditAlias()
+    {
+        if (_lastHistory is null || _lastHistory.History is null)
+        {
+            ToastManager.ShowWarning(Strings.History_NoDataLoaded);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_lastOutputFilePath))
+        {
+            // Should not happen: both collecting and loading set the path. Guard anyway so we
+            // never silently drop a change that cannot be persisted.
+            _ui.ShowWarning(Strings.History_NoDataLoaded);
+            return;
+        }
+
+        // Bring old histories (saved before this feature) up to date and fill in developers that
+        // appeared after the mapping was last edited.
+        EnsureAliasMapping(_lastHistory);
+
+        var developers = CollectDevelopers(_lastHistory.History);
+        var dialogViewModel = new EditAliasDialogViewModel(developers, _lastHistory.AliasMapping!);
+        var dialog = new EditAliasDialog(dialogViewModel) { Owner = Application.Current.MainWindow };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var updated = dialogViewModel.GetMapping();
+        if (AreEqual(_lastHistory.AliasMapping!, updated))
+        {
+            return;
+        }
+
+        _lastHistory.AliasMapping = updated;
+        SaveHistory(_lastOutputFilePath, _lastHistory, Strings.History_AliasSaved);
+    }
+    
+    private void SaveHistory(string path, HistoryDto dto, string? successMessage = null)
+    {
+        try
+        {
+            var options = new JsonSerializerOptions { WriteIndented = false };
+            var json = JsonSerializer.Serialize(dto, options);
+            File.WriteAllText(path, json);
+            
+            if (!string.IsNullOrEmpty(successMessage))
+            {
+                _ui.ShowSuccess(successMessage);
+            }
+        }
+        catch (Exception e)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, e.Message));
+            Trace.WriteLine($"Failed {nameof(SaveHistory)} {e}");
+        }
+    }
+
+    private IAliasMapping GetAliasMapping()
+    {
+        return _lastHistory?.AliasMapping is { } mapping
+            ? new DictionaryAliasMapping(mapping)
+            : new NullAliasMapping();
+    }
+
+    private static Dictionary<string, string> CreateDefaultAliasMapping(CSharpCodeAnalyst.History.Git.History history)
+    {
+        return CollectDevelopers(history).ToDictionary(developer => developer, developer => developer);
+    }
+
+    /// <summary>
+    ///     Ensures every developer in the history has an entry (mapped to himself when missing) and
+    ///     initializes the mapping for histories saved before the alias feature existed.
+    /// </summary>
+    private static void EnsureAliasMapping(HistoryDto dto)
+    {
+        if (dto.History is null)
+        {
+            return;
+        }
+
+        dto.AliasMapping ??= new Dictionary<string, string>();
+        foreach (var developer in CollectDevelopers(dto.History))
+        {
+            dto.AliasMapping.TryAdd(developer, developer);
+        }
+    }
+
+    /// <summary>
+    ///     Distinct developer names found in the history, both as commit authors and as file
+    ///     contributors.
+    /// </summary>
+    private static HashSet<string> CollectDevelopers(CSharpCodeAnalyst.History.Git.History history)
+    {
+        var developers = new HashSet<string>();
+
+        foreach (var changeSet in history.ChangeSets.ChangeSets)
+        {
+            if (!string.IsNullOrWhiteSpace(changeSet.Committer))
+            {
+                developers.Add(changeSet.Committer);
+            }
+        }
+
+        foreach (var contribution in history.Contributions.Values)
+        {
+            foreach (var developer in contribution.DeveloperToContribution.Keys)
+            {
+                if (!string.IsNullOrWhiteSpace(developer))
+                {
+                    developers.Add(developer);
+                }
+            }
+        }
+
+        return developers;
+    }
+
+    private static bool AreEqual(IReadOnlyDictionary<string, string> a, IReadOnlyDictionary<string, string> b)
+    {
+        if (a.Count != b.Count)
+        {
+            return false;
+        }
+
+        foreach (var pair in a)
+        {
+            if (!b.TryGetValue(pair.Key, out var value) || value != pair.Value)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private async void OnCollect()
@@ -134,6 +273,11 @@ internal class HistoryViewModel : INotifyPropertyChanged
                 var trackedFilesFilter = new FileFilter(trackedFiles);
                 var metricProvider = new LinesOfCodeProvider(progress);
                 dto.LinesOfCode = metricProvider.AnalyzeDirectory(_lastRepositoryPath, trackedFilesFilter);
+
+                // Every developer found in the freshly extracted history is mapped to himself by
+                // default. The user can later regroup developers (e.g. onto teams) via the
+                // "Edit Alias" dialog, which re-saves this file.
+                dto.AliasMapping = CreateDefaultAliasMapping(dto.History);
 
                 // Write file
                 var options = new JsonSerializerOptions { WriteIndented = false };
@@ -349,5 +493,12 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
         public Dictionary<string, LinesOfCodeProvider.LinesOfCode>? LinesOfCode { get; set; }
         public List<string>? SupportedFilesExtensions { get; set; }
+
+        /// <summary>
+        ///     Developer name -> alias. Persisted with the history. A developer not present here
+        ///     maps to himself. Used to run the analyses per alias (e.g. per team) instead of per
+        ///     developer.
+        /// </summary>
+        public Dictionary<string, string>? AliasMapping { get; set; }
     }
 }

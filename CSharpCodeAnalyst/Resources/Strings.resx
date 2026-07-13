@@ -1203,6 +1203,33 @@ Do you want to overwrite it?</value>
     <data name="Hotspots_WeightSemantic" xml:space="preserve">
       <value>Commits</value>
     </data>
+    <data name="EditAlias_Label" xml:space="preserve">
+      <value>Edit Alias</value>
+    </data>
+    <data name="EditAlias_Tooltip" xml:space="preserve">
+      <value>Assign an alias to each developer, for example to group developers onto teams. Developers that share an alias are treated as one in the Knowledge analysis. Changes are saved back to the history file.</value>
+    </data>
+    <data name="EditAlias_Title" xml:space="preserve">
+      <value>Edit Developer Aliases</value>
+    </data>
+    <data name="EditAlias_Description" xml:space="preserve">
+      <value>Assign an alias to each developer. Developers sharing the same alias are treated as one entity (e.g. a team) in the Knowledge analysis, which colors each file by its main developer. The default alias is the developer's own name.</value>
+    </data>
+    <data name="EditAlias_ResetButton" xml:space="preserve">
+      <value>Reset all</value>
+    </data>
+    <data name="EditAlias_ResetTooltip" xml:space="preserve">
+      <value>Reset every alias back to the developer's own name. Takes effect when you confirm with OK.</value>
+    </data>
+    <data name="EditAlias_DeveloperColumn" xml:space="preserve">
+      <value>Developer</value>
+    </data>
+    <data name="EditAlias_AliasColumn" xml:space="preserve">
+      <value>Alias</value>
+    </data>
+    <data name="History_AliasSaved" xml:space="preserve">
+      <value>Alias mapping saved.</value>
+    </data>
     <data name="Knowledge_Label" xml:space="preserve">
       <value>Knowledge</value>
     </data>

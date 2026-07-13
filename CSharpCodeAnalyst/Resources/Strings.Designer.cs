@@ -1752,6 +1752,87 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit Alias.
+        /// </summary>
+        public static string EditAlias_Label {
+            get {
+                return ResourceManager.GetString("EditAlias_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Assign an alias to each developer....
+        /// </summary>
+        public static string EditAlias_Tooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Developer Aliases.
+        /// </summary>
+        public static string EditAlias_Title {
+            get {
+                return ResourceManager.GetString("EditAlias_Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Assign an alias to each developer....
+        /// </summary>
+        public static string EditAlias_Description {
+            get {
+                return ResourceManager.GetString("EditAlias_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reset all.
+        /// </summary>
+        public static string EditAlias_ResetButton {
+            get {
+                return ResourceManager.GetString("EditAlias_ResetButton", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reset every alias back to the developer's own name....
+        /// </summary>
+        public static string EditAlias_ResetTooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_ResetTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Developer.
+        /// </summary>
+        public static string EditAlias_DeveloperColumn {
+            get {
+                return ResourceManager.GetString("EditAlias_DeveloperColumn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alias.
+        /// </summary>
+        public static string EditAlias_AliasColumn {
+            get {
+                return ResourceManager.GetString("EditAlias_AliasColumn", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alias mapping saved.
+        /// </summary>
+        public static string History_AliasSaved {
+            get {
+                return ResourceManager.GetString("History_AliasSaved", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Knowledge.
         /// </summary>
         public static string Knowledge_Label {

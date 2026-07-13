@@ -350,6 +350,8 @@
                         </RibbonButton.ToolTip>
                     </RibbonButton>
 
+                 
+
                     <RibbonButton Label="{x:Static resources:Strings.Hotspots_Label}"
                                   LargeImageSource="/Resources/hotspot_32.png"
                                   Command="{Binding History.HotspotsCommand}"
@@ -374,6 +376,15 @@
                                   KeyTip="CC">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Knowledge_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                    
+                    <RibbonButton Label="{x:Static resources:Strings.EditAlias_Label}"
+                                  LargeImageSource="/Resources/alias_32.png"
+                                  Command="{Binding History.EditAliasCommand}"
+                                  KeyTip="EA">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.EditAlias_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
                 </RibbonGroup>

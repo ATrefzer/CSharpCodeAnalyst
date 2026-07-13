@@ -20,7 +20,7 @@ public sealed class ChangeSetHistory
     /// <summary>
     ///     Returns a flat summary of all artifacts found in the commit history.
     /// </summary>
-    public List<Artifact> GetArtifactSummary(IFilter filter, IAliasMapping aliasMapping)
+    public List<Artifact> GetArtifactSummary(IFilter filter)
     {
         // Item id -> artifact
         var artifacts = new Dictionary<string, Artifact>();
@@ -79,11 +79,10 @@ public sealed class ChangeSetHistory
                 }
 
                 var artifact = artifacts[id];
-                var committerAlias = aliasMapping.GetAlias(changeset.Committer);
 
                 // Aggregate information from earlier commits (for example number of commits etc)
                 ApplyCommits(artifact);
-                ApplyCommitter(artifact, committerAlias);
+                ApplyCommitter(artifact, changeset.Committer);
             }
         }
 

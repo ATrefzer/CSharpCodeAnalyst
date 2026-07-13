@@ -124,6 +124,8 @@
         <Resource Include="Resources\knowledge_32.png" />
         <None Remove="Resources\clipboard_32.png" />
         <Resource Include="Resources\clipboard_32.png" />
+        <None Remove="Resources\alias_32.png" />
+        <Resource Include="Resources\alias_32.png" />
     </ItemGroup>
 
 
