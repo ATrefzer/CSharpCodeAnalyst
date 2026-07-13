@@ -80,7 +80,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     ///     All relationships crossing the element's boundary outwards: the source is the element
     ///     or one of its descendants, the target lies outside. Relationships between two
     ///     descendants are internal and not part of the result.
-    ///     <see cref="FindAllRelationshipsDeep" /> shows those.
     ///     The result contains the start element, the elements taking part in a found relationship
     ///     and the containers connecting those to the start element. The reached targets come
     ///     without their gaps filled. If the caller needs those, it runs
@@ -107,7 +106,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     ///     All relationships crossing the element's boundary inwards: the target is the element
     ///     or one of its descendants, the source lies outside. Relationships between two
     ///     descendants are internal and not part of the result.
-    ///     <see cref="FindAllRelationshipsDeep" /> shows those.
     ///     The result contains the start element, the elements taking part in a found relationship
     ///     and the containers connecting those to the start element. The found sources come
     ///     without their gaps filled. If the caller needs those, it runs
@@ -167,19 +165,51 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return GetRelationships(d => ids.Contains(d.SourceId) && ids.Contains(d.TargetId));
     }
 
-    public SearchResult FindAllRelationshipsDeep(HashSet<string> ids)
+    /// <summary>
+    ///     All relationships crossing the root element's boundary inwards or outwards.
+    ///     The result however is limited to be contained in the given roots
+    ///     The result contains the start element, the elements taking part in a found relationship
+    ///     and the gap filling elements.
+    /// 
+    ///     FindIncomingRelationshipsDeep / FindOutgoingRelationshipsDeep have an open result. Here,
+    ///     all new nodes are descendants of the root elements.
+    /// </summary>
+    public SearchResult FindAllRelationshipsDeep(HashSet<string> rootIds)
     {
         if (_codeGraph is null)
         {
             return new SearchResult([], []);
         }
 
-        var expandedIds = ids
-            .Where(_codeGraph.Nodes.ContainsKey)
-            .SelectMany(id => _codeGraph.Nodes[id].GetChildrenIncludingSelf())
-            .ToHashSet();
+        // Expanded set per id
+        // To which selected root does an element belong. This may be more than one since
+        // the roots may be nested (e.g. class and namespace are selected. Both contain same method.)
+        var rootsByElement = new Dictionary<string, HashSet<string>>();
+        foreach (var rootId in rootIds.Where(_codeGraph.Nodes.ContainsKey))
+        {
+            foreach (var id in _codeGraph.Nodes[rootId].GetChildrenIncludingSelf())
+            {
+                if (!rootsByElement.TryGetValue(id, out var roots))
+                {
+                    roots = [];
+                    rootsByElement[id] = roots;
+                }
 
-        var relationships = FindAllRelationships(expandedIds).ToList();
+                roots.Add(rootId);
+            }
+        }
+
+        // Are there a source root s and a target root t that are different?” That is exactly the definition of a crossing edge.
+        bool CrossesRoots(Relationship r)
+        {
+            return rootsByElement.TryGetValue(r.SourceId, out var sourceRoots) &&
+                   rootsByElement.TryGetValue(r.TargetId, out var targetRoots) &&
+                   sourceRoots.Any(s => targetRoots.Any(t => s != t));
+        }
+
+        var relationships = _codeGraph.GetAllRelationships().Where(CrossesRoots).ToHashSet();
+
+        // We collected all edges.
         var relationshipElementIds = relationships
             .SelectMany(r => new[] { r.SourceId, r.TargetId })
             .ToHashSet();
@@ -187,10 +217,12 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         // Found elements can be deep inside the given roots (e.g. two methods buried in two
         // selected assemblies). Fill in the namespaces/classes connecting them to a root that is
         // already known, so they don't end up added without their hierarchy.
-        var gapIds = FillGapsInHierarchy(ids.Union(relationshipElementIds).ToHashSet());
+        var gapIds = FillGapsInHierarchy(rootIds.Union(relationshipElementIds).ToHashSet());
 
         var elements = relationshipElementIds
             .Union(gapIds)
+            .Union(rootIds) // to be self-contained
+            .Where(_codeGraph.Nodes.ContainsKey)
             .Select(id => _codeGraph.Nodes[id])
             .ToHashSet();
 
@@ -260,7 +292,6 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         return new SearchResult(foundMethods, foundCalls);
     }
-
 
     /// <summary>
     ///     This gives a heuristic only.
@@ -646,6 +677,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         var elements = relationshipElementIds
             .Union(gapIds)
             .Union([startElement.Id])
+            .Where(_codeGraph!.Nodes.ContainsKey)
             .Select(i => _codeGraph!.Nodes[i])
             .ToHashSet();
 

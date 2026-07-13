@@ -326,7 +326,7 @@ public class CodeGraphExplorerTests
         Assert.Multiple(() =>
         {
             Assert.That(result.Relationships, Is.EquivalentTo(new[] { callAtoB, callBtoA }));
-            Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([methodA.Id, methodB.Id]));
+            Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo([methodA.Id, methodB.Id, classA.Id, classB.Id]));
         });
     }
 
@@ -372,9 +372,40 @@ public class CodeGraphExplorerTests
             Assert.That(result.Relationships, Is.EquivalentTo(new[] { call }));
 
             // The methods themselves plus the namespaces and classes connecting them to their
-            // (already known) assembly must be included - the assemblies themselves must not.
+            // (already known) assembly must be included
             Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo(
-                new[] { nsA.Id, classA.Id, methodA.Id, nsB.Id, classB.Id, methodB.Id }));
+                new[] { nsA.Id, classA.Id, methodA.Id, nsB.Id, classB.Id, methodB.Id, asmA.Id, asmB.Id }));
+        });
+    }
+
+    /// <summary>
+    ///     Nested/overlapping roots: a class and one of its own methods are both selected.
+    ///     The default "complete deep" command selects every element on the canvas, so a
+    ///     container and its children are roots at the same time - this is the normal case,
+    ///     not an edge case.
+    ///     An element that is a root in its own right must be treated as distinct from the
+    ///     outer root it also sits in. Therefore, MethodA1 -> MethodA2 counts as crossing
+    ///     (from the MethodA1 root into the ClassA root) even though both methods live in
+    ///     ClassA. Without this, an edge from a separately shown child would be swallowed
+    ///     as "internal" and never surface.
+    /// </summary>
+    [Test]
+    public void FindAllRelationshipsDeep_WithNestedRoots_ReportsEdgeFromInnerRootToItsSibling()
+    {
+        var classA = _graph.CreateClass("ClassA");
+        var methodA1 = _graph.CreateMethod("MethodA1", classA);
+        var methodA2 = _graph.CreateMethod("MethodA2", classA);
+        var call = Rel(methodA1, methodA2, RelationshipType.Calls);
+
+        // ClassA and its own MethodA1 are both roots (MethodA1 sits inside ClassA's subtree).
+        var roots = new HashSet<string> { classA.Id, methodA1.Id };
+        var result = _explorer.FindAllRelationshipsDeep(roots);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.Relationships, Is.EquivalentTo(new[] { call }));
+            Assert.That(result.Elements.Select(e => e.Id),
+                Is.EquivalentTo([classA.Id, methodA1.Id, methodA2.Id]));
         });
     }
 
