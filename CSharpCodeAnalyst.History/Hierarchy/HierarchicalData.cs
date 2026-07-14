@@ -1,387 +1,398 @@
 using System.Collections;
 using CSharpCodeAnalyst.Contracts;
 
-namespace CSharpCodeAnalyst.History.Hierarchy
+namespace CSharpCodeAnalyst.History.Hierarchy;
+
+/// <summary>
+///     The one implementation of <see cref="IHierarchicalData" /> shared by the analyzers (which
+///     build it) and the tree-map control (which renders it via the interface).
+/// 
+///     Coloring:
+///     For a leaf node:
+///     - If a color key is set (not null) it is used for rendering
+///     - If not the weight metric is used to derive a color
+///     For a non leaf node the weight is 0, so the hierarchy renders with the default color.
+///     Metrics:
+///     If an area is not set explicitly it is NaN (used for folders). If we remove leaf nodes and
+///     an inner node becomes a leaf, its area is still NaN - RemoveLeafNodesWithoutArea removes it.
+///     Weights are always provided raw (e.g. commit counts). The tree-map view normalizes them via
+///     NormalizeWeightMetrics, so data producers do not need to know about the color mapping.
+/// </summary>
+[Serializable]
+public sealed class HierarchicalData : IHierarchicalData
 {
-    /// <summary>
-    /// The one implementation of <see cref="IHierarchicalData" /> shared by the analyzers (which
-    /// build it) and the tree-map control (which renders it via the interface).
-    ///
-    /// Coloring:
-    /// For a leaf node:
-    ///  - If a color key is set (not null) it is used for rendering
-    ///  - If not the weight metric is used to derive a color
-    /// For a non leaf node the weight is 0, so the hierarchy renders with the default color.
-    /// Metrics:
-    /// If an area is not set explicitly it is NaN (used for folders). If we remove leaf nodes and
-    /// an inner node becomes a leaf, its area is still NaN - RemoveLeafNodesWithoutArea removes it.
-    /// Weights are always provided raw (e.g. commit counts). The tree-map view normalizes them via
-    /// NormalizeWeightMetrics, so data producers do not need to know about the color mapping.
-    /// </summary>
-    [Serializable]
-    public sealed class HierarchicalData : IHierarchicalData
+    private const string PathSeparator = "/";
+
+    private readonly List<HierarchicalData> _children = new();
+
+    public HierarchicalData(string name)
     {
-        private const string PathSeparator = "/";
+        Name = name;
+        Description = Name;
+        AreaMetric = double.NaN;
+        AreaMetricSum = 0.0;
+        WeightMetric = 0.0;
+        NormalizedWeightMetric = 0.0;
+    }
 
-        private readonly List<HierarchicalData> _children = new List<HierarchicalData>();
+    /// <summary>
+    ///     Leaf node must provide an area metric.
+    /// </summary>
+    public HierarchicalData(string name, double areaMetric)
+    {
+        Name = name;
+        Description = Name;
+        AreaMetric = areaMetric;
+        AreaMetricSum = 0.0;
+        WeightMetric = 0.0;
+        NormalizedWeightMetric = 0.0;
+    }
 
-        public HierarchicalData(string name)
+    public HierarchicalData(string name, double areaMetric, double weightMetric)
+    {
+        Name = name;
+        Description = Name;
+        AreaMetric = areaMetric;
+        AreaMetricSum = 0.0;
+        WeightMetric = weightMetric;
+        NormalizedWeightMetric = 0.0;
+    }
+
+    public double AreaMetric { get; }
+
+    public double AreaMetricSum { get; private set; }
+
+    public IReadOnlyCollection<IHierarchicalData> Children
+    {
+        get => _children.AsReadOnly();
+    }
+
+    public string? ColorKey { get; set; }
+
+    public string Description { get; set; }
+
+    public bool IsLeafNode
+    {
+        get => Children.Count == 0;
+    }
+
+    public string Name { get; }
+
+    public double NormalizedWeightMetric { get; private set; }
+
+    public IHierarchicalData? Parent { get; set; }
+
+    /// <summary>
+    ///     Needs to be serializable
+    /// </summary>
+    public object? Tag { get; set; }
+
+    public double WeightMetric { get; }
+
+    /// <summary>
+    ///     No layout information!
+    /// </summary>
+    public IHierarchicalData Clone()
+    {
+        var root = Clone(this);
+        return root;
+    }
+
+    /// <summary>
+    ///     Returns the number of all tree nodes in the sub tree.
+    /// </summary>
+    public int CountLeafNodes()
+    {
+        if (IsLeafNode)
         {
-            Name = name;
-            Description = Name;
-            AreaMetric = double.NaN;
-            AreaMetricSum = 0.0;
-            WeightMetric = 0.0;
-            NormalizedWeightMetric = 0.0;
+            return 1;
         }
 
-        /// <summary>
-        /// Leaf node must provide an area metric.
-        /// </summary>
-        public HierarchicalData(string name, double areaMetric)
+        var count = 0;
+        foreach (var child in Children)
         {
-            Name = name;
-            Description = Name;
-            AreaMetric = areaMetric;
-            AreaMetricSum = 0.0;
-            WeightMetric = 0.0;
-            NormalizedWeightMetric = 0.0;
+            count += child.CountLeafNodes();
         }
 
-        public HierarchicalData(string name, double areaMetric, double weightMetric)
+        return count;
+    }
+
+    public string GetPathToRoot()
+    {
+        var path = new List<string>();
+        IHierarchicalData? current = this;
+        while (current != null)
         {
-            Name = name;
-            Description = Name;
-            AreaMetric = areaMetric;
-            AreaMetricSum = 0.0;
-            WeightMetric = weightMetric;
-            NormalizedWeightMetric = 0.0;
+            path.Add(current.Name);
+            current = current.Parent;
         }
 
-        public double AreaMetric { get; }
+        path.Reverse();
 
-        public double AreaMetricSum { get; private set; }
-
-        public IReadOnlyCollection<IHierarchicalData> Children => _children.AsReadOnly();
-
-        public string? ColorKey { get; set; }
-
-        public string Description { get; set; }
-
-        public bool IsLeafNode => Children.Count == 0;
-
-        public string Name { get; }
-
-        public double NormalizedWeightMetric { get; private set; }
-
-        public IHierarchicalData? Parent { get; set; }
-
-        /// <summary>
-        /// Needs to be serializable
-        /// </summary>
-        public object? Tag { get; set; }
-
-        public double WeightMetric { get; }
-
-
-        public static HierarchicalData NoData()
+        // Note that an artificial root node with name "" takes automatically care
+        // that the path starts with a /. But we want to do so in all cases.
+        var description = string.Join(PathSeparator, path);
+        if (!description.StartsWith(PathSeparator, StringComparison.InvariantCulture))
         {
-            return new HierarchicalData("NO DATA", 1);
+            description = PathSeparator + description;
         }
 
-        public void AddChild(HierarchicalData child)
+        return description;
+    }
+
+
+    /// <summary>
+    ///     The weight metric is normalized only across the leaf nodes, using a rank-based
+    ///     (percentile) mapping: weights like commit counts are heavily skewed, so with min-max
+    ///     a single outlier gets all the color and almost every other leaf is compressed into
+    ///     the bottom of the color scale. With percentiles the median leaf sits in the middle
+    ///     of the color ramp. Ties share the same percentile (average rank), so equal weights
+    ///     always get equal colors - including the all-equal case (0.5), which min-max cannot
+    ///     handle at all (division by zero).
+    /// </summary>
+    public void NormalizeWeightMetrics()
+    {
+        var leaves = new List<HierarchicalData>();
+        CollectLeaves(leaves);
+
+        if (leaves.Count == 0)
         {
-            _children.Add(child);
-            child.Parent = this;
+            return;
         }
 
-        /// <summary>
-        /// No layout information!
-        /// </summary>
-        public IHierarchicalData Clone()
+        if (leaves.Count == 1)
         {
-            var root = Clone(this);
-            return root;
+            // Degenerate case of "all weights equal": middle of the scale.
+            leaves[0].NormalizedWeightMetric = 0.5;
+            return;
         }
 
-        /// <summary>
-        /// Returns the number of all tree nodes in the sub tree.
-        /// </summary>
-        public int CountLeafNodes()
+        leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
+
+
+        // Damped min max mapping (keep proportions)
+        var min = leaves.Min(l => l.WeightMetric);
+        var max = leaves.Max(l => l.WeightMetric);
+        var range = max - min;
+        foreach (var leaf in leaves)
         {
-            if (IsLeafNode)
+            leaf.NormalizedWeightMetric = range <= double.Epsilon
+                ? 0.5
+                : Math.Sqrt((leaf.WeightMetric - min) / range);
+        }
+
+        // Alternative 1
+        //Math.Sqrt keeps real distances but compresses the outliers; for very skewed data
+        //the logarithm dampens harder:
+        //    Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
+
+
+        // Alternative 2
+        // Rank based (percentile method)
+        // The rank-based mapping below encodes only the ORDER of the leaves -
+        // distances are lost (the 2nd hottest leaf looks almost as red as the hottest, even
+        // if it has a fraction of the weight). If the proportions matter more than the
+        // ordering, replace everything below with a dampened min-max mapping instead:
+        //
+        // var count = leaves.Count;
+        // var index = 0;
+        // while (index < count)
+        // {
+        //     // Find the run of leaves sharing the same weight and give all of them the
+        //     // percentile of their average rank.
+        //     var last = index;
+        //     while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
+        //     {
+        //         last++;
+        //     }
+        //
+        //     var averageRank = (index + last) / 2.0;
+        //     var percentile = averageRank / (count - 1);
+        //     for (var i = index; i <= last; i++)
+        //     {
+        //         leaves[i].NormalizedWeightMetric = percentile;
+        //     }
+        //
+        //     index = last + 1;
+        // }
+    }
+
+    /// <summary>
+    ///     Note that during the process new leaf nodes may arise.
+    ///     Call RemoveLeafNodesWithoutArea to remove them.
+    /// </summary>
+    public void RemoveLeafNodes(Func<IHierarchicalData, bool> removePredicate)
+    {
+        RemoveLeafNodes(this, removePredicate);
+    }
+
+    /// <summary>
+    ///     Removes leaf node where area is not set.
+    ///     If new leaf nodes arise during the process they are also removed!
+    /// </summary>
+    public void RemoveLeafNodesWithoutArea()
+    {
+        RemoveLeafNodesWithoutArea(this);
+
+        if (IsLeafNode && double.IsNaN(AreaMetric))
+        {
+            throw new Exception("Hierarchical data is not valid. Singular root node does not have an area.");
+        }
+    }
+
+    public IHierarchicalData Shrink()
+    {
+        if (_children.Count == 1)
+        {
+            return _children.First().Shrink();
+        }
+
+        // Leaf node or more than one child.
+        return this;
+    }
+
+    /// <summary>
+    ///     Updates the area metrics from the children up to the root node.
+    /// </summary>
+    public void SumAreaMetrics()
+    {
+        if (IsLeafNode)
+        {
+            if (double.IsNaN(AreaMetric))
             {
-                return 1;
+                throw new ArgumentException("Area metric is unknown for leaf node");
             }
 
-            var count = 0;
-            foreach (var child in Children)
+            if (Math.Abs(AreaMetric) < double.Epsilon)
             {
-                count += child.CountLeafNodes();
+                throw new ArgumentException("Area metric is 0. This is not allowed.");
             }
 
-            return count;
+            AreaMetricSum = AreaMetric;
+            return;
         }
 
-        public string GetPathToRoot()
+        // Non leaf node
+        var sum = 0.0;
+        foreach (var child in _children)
         {
-            var path = new List<string>();
-            IHierarchicalData? current = this;
-            while (current != null)
-            {
-                path.Add(current.Name);
-                current = current.Parent;
-            }
-
-            path.Reverse();
-
-            // Note that an artificial root node with name "" takes automatically care
-            // that the path starts with a /. But we want to do so in all cases.
-            var description = string.Join(PathSeparator, path);
-            if (!description.StartsWith(PathSeparator, StringComparison.InvariantCulture))
-            {
-                description = PathSeparator + description;
-            }
-
-            return description;
+            child.SumAreaMetrics();
+            sum += child.AreaMetricSum;
         }
 
+        AreaMetricSum = sum;
 
-        /// <summary>
-        /// The weight metric is normalized only across the leaf nodes, using a rank-based
-        /// (percentile) mapping: weights like commit counts are heavily skewed, so with min-max
-        /// a single outlier gets all the color and almost every other leaf is compressed into
-        /// the bottom of the color scale. With percentiles the median leaf sits in the middle
-        /// of the color ramp. Ties share the same percentile (average rank), so equal weights
-        /// always get equal colors - including the all-equal case (0.5), which min-max cannot
-        /// handle at all (division by zero).
-        /// </summary>
-        public void NormalizeWeightMetrics()
+        // Treemap algorithm works best if processed in decreasing order
+        _children.Sort(new DecreasingByAreaMetricSumComparer());
+    }
+
+    public void TraverseBottomUp(Action<IHierarchicalData> action)
+    {
+        foreach (var child in Children)
         {
-            var leaves = new List<HierarchicalData>();
-            CollectLeaves(leaves);
-
-            if (leaves.Count == 0)
-            {
-                return;
-            }
-
-            if (leaves.Count == 1)
-            {
-                // Degenerate case of "all weights equal": middle of the scale.
-                leaves[0].NormalizedWeightMetric = 0.5;
-                return;
-            }
-
-            // Tuning point. The rank-based mapping below encodes only the ORDER of the leaves -
-            // distances are lost (the 2nd hottest leaf looks almost as red as the hottest, even
-            // if it has a fraction of the weight). If the proportions matter more than the
-            // ordering, replace everything below with a dampened min-max mapping instead:
-            //
-            //     var min = leaves.Min(l => l.WeightMetric);
-            //     var max = leaves.Max(l => l.WeightMetric);
-            //     var range = max - min;
-            //     foreach (var leaf in leaves)
-            //     {
-            //         leaf.NormalizedWeightMetric = range <= double.Epsilon
-            //             ? 0.5
-            //             : Math.Sqrt((leaf.WeightMetric - min) / range);
-            //     }
-            //
-            // Math.Sqrt keeps real distances but compresses the outliers; for very skewed data
-            // the logarithm dampens harder:
-            //     Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
-
-            leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
-
-            var count = leaves.Count;
-            var index = 0;
-            while (index < count)
-            {
-                // Find the run of leaves sharing the same weight and give all of them the
-                // percentile of their average rank.
-                var last = index;
-                while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
-                {
-                    last++;
-                }
-
-                var averageRank = (index + last) / 2.0;
-                var percentile = averageRank / (count - 1);
-                for (var i = index; i <= last; i++)
-                {
-                    leaves[i].NormalizedWeightMetric = percentile;
-                }
-
-                index = last + 1;
-            }
+            child.TraverseBottomUp(action);
         }
 
-        /// <summary>
-        /// Note that during the process new leaf nodes may arise.
-        /// Call RemoveLeafNodesWithoutArea to remove them.
-        /// </summary>
-        public void RemoveLeafNodes(Func<IHierarchicalData, bool> removePredicate)
+        // First children, then the parent nodes
+        action(this);
+    }
+
+    public void TraverseTopDown(Action<IHierarchicalData> action)
+    {
+        action(this);
+
+        foreach (var child in Children)
         {
-            RemoveLeafNodes(this, removePredicate);
+            child.TraverseTopDown(action);
         }
+    }
 
-        /// <summary>
-        /// Removes leaf node where area is not set.
-        /// If new leaf nodes arise during the process they are also removed!
-        /// </summary>
-        public void RemoveLeafNodesWithoutArea()
+    public IEnumerator<IHierarchicalData> GetEnumerator()
+    {
+        var queue = new Queue<IHierarchicalData>();
+        queue.Enqueue(this);
+
+        while (queue.Any())
         {
-            RemoveLeafNodesWithoutArea(this);
-
-            if (IsLeafNode && double.IsNaN(AreaMetric))
+            var node = queue.Dequeue();
+            foreach (var child in node.Children)
             {
-                throw new Exception("Hierarchical data is not valid. Singular root node does not have an area.");
+                queue.Enqueue(child);
             }
-        }
 
-        public IHierarchicalData Shrink()
+            yield return node;
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+
+    public static HierarchicalData NoData()
+    {
+        return new HierarchicalData("NO DATA", 1);
+    }
+
+    public void AddChild(HierarchicalData child)
+    {
+        _children.Add(child);
+        child.Parent = this;
+    }
+
+    private HierarchicalData Clone(HierarchicalData cloneThis)
+    {
+        var newData = new HierarchicalData(cloneThis.Name, cloneThis.AreaMetric, cloneThis.WeightMetric)
         {
-            if (_children.Count == 1)
-            {
-                return _children.First().Shrink();
-            }
+            Description = cloneThis.Description,
+            ColorKey = cloneThis.ColorKey,
+            Tag = cloneThis.Tag,
+            AreaMetricSum = cloneThis.AreaMetricSum,
+            NormalizedWeightMetric = cloneThis.NormalizedWeightMetric
+        };
 
-            // Leaf node or more than one child.
-            return this;
-        }
-
-        /// <summary>
-        /// Updates the area metrics from the children up to the root node.
-        /// </summary>
-        public void SumAreaMetrics()
+        foreach (var child in cloneThis._children)
         {
-            if (IsLeafNode)
-            {
-                if (double.IsNaN(AreaMetric))
-                {
-                    throw new ArgumentException("Area metric is unknown for leaf node");
-                }
-
-                if (Math.Abs(AreaMetric) < double.Epsilon)
-                {
-                    throw new ArgumentException("Area metric is 0. This is not allowed.");
-                }
-
-                AreaMetricSum = AreaMetric;
-                return;
-            }
-
-            // Non leaf node
-            var sum = 0.0;
-            foreach (var child in _children)
-            {
-                child.SumAreaMetrics();
-                sum += child.AreaMetricSum;
-            }
-
-            AreaMetricSum = sum;
-
-            // Treemap algorithm works best if processed in decreasing order
-            _children.Sort(new DecreasingByAreaMetricSumComparer());
+            newData.AddChild(Clone(child));
         }
 
-        public void TraverseBottomUp(Action<IHierarchicalData> action)
+        return newData;
+    }
+
+    private void CollectLeaves(List<HierarchicalData> leaves)
+    {
+        if (IsLeafNode)
         {
-            foreach (var child in Children)
-            {
-                child.TraverseBottomUp(action);
-            }
-
-            // First children, then the parent nodes
-            action(this);
+            leaves.Add(this);
         }
 
-        public void TraverseTopDown(Action<IHierarchicalData> action)
+        foreach (var hierarchicalData in Children)
         {
-            action(this);
-
-            foreach (var child in Children)
-            {
-                child.TraverseTopDown(action);
-            }
+            var child = (HierarchicalData)hierarchicalData;
+            child.CollectLeaves(leaves);
         }
+    }
 
-        private HierarchicalData Clone(HierarchicalData cloneThis)
+    private void RemoveLeafNodes(HierarchicalData root, Func<IHierarchicalData, bool> removePredicate)
+    {
+        foreach (var hierarchicalData in root.Children)
         {
-            var newData = new HierarchicalData(cloneThis.Name, cloneThis.AreaMetric, cloneThis.WeightMetric)
-                {
-                    Description = cloneThis.Description,
-                    ColorKey = cloneThis.ColorKey,
-                    Tag = cloneThis.Tag,
-                    AreaMetricSum = cloneThis.AreaMetricSum,
-                    NormalizedWeightMetric = cloneThis.NormalizedWeightMetric
-                };
-
-            foreach (var child in cloneThis._children)
-            {
-                newData.AddChild(Clone(child));
-            }
-
-            return newData;
+            var child = (HierarchicalData)hierarchicalData;
+            RemoveLeafNodes(child, removePredicate);
         }
 
-        private void CollectLeaves(List<HierarchicalData> leaves)
+        root._children.RemoveAll(x => x.IsLeafNode && removePredicate(x));
+    }
+
+    private void RemoveLeafNodesWithoutArea(HierarchicalData data)
+    {
+        foreach (var child in data._children)
         {
-            if (IsLeafNode)
-            {
-                leaves.Add(this);
-            }
-
-            foreach (var hierarchicalData in Children)
-            {
-                var child = (HierarchicalData) hierarchicalData;
-                child.CollectLeaves(leaves);
-            }
+            RemoveLeafNodesWithoutArea(child);
         }
 
-        private void RemoveLeafNodes(HierarchicalData root, Func<IHierarchicalData, bool> removePredicate)
-        {
-            foreach (var hierarchicalData in root.Children)
-            {
-                var child = (HierarchicalData) hierarchicalData;
-                RemoveLeafNodes(child, removePredicate);
-            }
-
-            root._children.RemoveAll(x => x.IsLeafNode && removePredicate(x));
-        }
-
-        private void RemoveLeafNodesWithoutArea(HierarchicalData data)
-        {
-            foreach (var child in data._children)
-            {
-                RemoveLeafNodesWithoutArea(child);
-            }
-
-            // During the recursive process new empty nodes may arise. So bottom to top.
-            data._children.RemoveAll(x => x.IsLeafNode && (double.IsNaN(x.AreaMetric) || Math.Abs(x.AreaMetric) <= 0));
-        }
-
-        public IEnumerator<IHierarchicalData> GetEnumerator()
-        {
-            var queue = new Queue<IHierarchicalData>();
-            queue.Enqueue(this);
-
-            while (queue.Any())
-            {
-                var node = queue.Dequeue();
-                foreach (var child in node.Children)
-                {
-                    queue.Enqueue(child);
-                }
-
-                yield return node;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        // During the recursive process new empty nodes may arise. So bottom to top.
+        data._children.RemoveAll(x => x.IsLeafNode && (double.IsNaN(x.AreaMetric) || Math.Abs(x.AreaMetric) <= 0));
     }
 }
