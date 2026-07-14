@@ -33,6 +33,15 @@
     <data name="HighlightPattern" xml:space="preserve">
         <value>Highlight</value>
     </data>
+    <data name="WeightColoring" xml:space="preserve">
+        <value>Weight coloring</value>
+    </data>
+    <data name="WeightColoring_Percentile" xml:space="preserve">
+        <value>Percentile (rank)</value>
+    </data>
+    <data name="WeightColoring_Proportional" xml:space="preserve">
+        <value>Proportional (sqrt)</value>
+    </data>
     <data name="ToolsTitle" xml:space="preserve">
         <value />
     </data>

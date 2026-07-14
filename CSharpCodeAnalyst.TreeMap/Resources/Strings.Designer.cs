@@ -69,6 +69,33 @@ namespace CSharpCodeAnalyst.TreeMap.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Weight coloring.
+        /// </summary>
+        public static string WeightColoring {
+            get {
+                return ResourceManager.GetString("WeightColoring", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Percentile (rank).
+        /// </summary>
+        public static string WeightColoring_Percentile {
+            get {
+                return ResourceManager.GetString("WeightColoring_Percentile", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Proportional (sqrt).
+        /// </summary>
+        public static string WeightColoring_Proportional {
+            get {
+                return ResourceManager.GetString("WeightColoring_Proportional", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Maximum.
         /// </summary>
         public static string Maximum {

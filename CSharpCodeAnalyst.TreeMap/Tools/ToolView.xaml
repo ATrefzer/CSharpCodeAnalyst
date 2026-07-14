@@ -81,6 +81,15 @@
             </StackPanel>
         </GroupBox>
 
+        <!-- How raw weights are mapped onto the color ramp. -->
+        <GroupBox Header="{x:Static resources:Strings.WeightColoring}" Margin="0 10 0 0" Padding="8 4 8 8">
+            <ComboBox ItemsSource="{Binding WeightNormalizationOptions}"
+                      DisplayMemberPath="Name"
+                      SelectedValuePath="Strategy"
+                      SelectedValue="{Binding WeightNormalization}"
+                      Margin="0 4 0 0"/>
+        </GroupBox>
+
         <Button Content="{x:Static resources:Strings.Reset}"
                 Command="{Binding ResetCommand}"
                 Width="100"

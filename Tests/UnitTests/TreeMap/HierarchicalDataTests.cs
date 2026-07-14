@@ -69,7 +69,7 @@ public class HierarchicalDataTests
         root.AddChild(c);
         root.AddChild(d);
 
-        root.NormalizeWeightMetrics();
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.RankPercentile);
 
         Assert.That(a.NormalizedWeightMetric, Is.EqualTo(0.0));
         Assert.That(b.NormalizedWeightMetric, Is.EqualTo(1.0 / 3).Within(1e-12));
@@ -90,7 +90,7 @@ public class HierarchicalDataTests
         root.AddChild(c);
         root.AddChild(d);
 
-        root.NormalizeWeightMetrics();
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.RankPercentile);
 
         // The three tied leaves share the percentile of their average rank (0+1+2)/3 = 1.
         Assert.That(a.NormalizedWeightMetric, Is.EqualTo(1.0 / 3).Within(1e-12));
@@ -109,7 +109,7 @@ public class HierarchicalDataTests
         root.AddChild(a);
         root.AddChild(b);
 
-        root.NormalizeWeightMetrics();
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.RankPercentile);
 
         Assert.That(a.NormalizedWeightMetric, Is.EqualTo(0.5));
         Assert.That(b.NormalizedWeightMetric, Is.EqualTo(0.5));
@@ -123,9 +123,50 @@ public class HierarchicalDataTests
         var a = new HierarchicalData("a.cs", 10, 42);
         root.AddChild(a);
 
-        root.NormalizeWeightMetrics();
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.RankPercentile);
 
         Assert.That(a.NormalizedWeightMetric, Is.EqualTo(0.5));
+    }
+
+    [Test]
+    public void NormalizeWeightMetrics_ProportionalSqrt_KeepsProportionsAndDampensOutlier()
+    {
+        // Same skewed data as the percentile test. Unlike the rank mapping, sqrt keeps the real
+        // distances: min maps to 0, max to 1, and the small values stay near the bottom - but the
+        // sqrt lifts them off zero more than a plain min-max would.
+        var root = new HierarchicalData("root");
+        var a = new HierarchicalData("a.cs", 10, 1);
+        var b = new HierarchicalData("b.cs", 10, 2);
+        var c = new HierarchicalData("c.cs", 10, 3);
+        var d = new HierarchicalData("d.cs", 10, 1000);
+        root.AddChild(a);
+        root.AddChild(b);
+        root.AddChild(c);
+        root.AddChild(d);
+
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.ProportionalSqrt);
+
+        // range = 1000 - 1 = 999; value = sqrt((w - 1) / 999)
+        Assert.That(a.NormalizedWeightMetric, Is.EqualTo(0.0).Within(1e-12));
+        Assert.That(b.NormalizedWeightMetric, Is.EqualTo(Math.Sqrt(1.0 / 999)).Within(1e-12));
+        Assert.That(c.NormalizedWeightMetric, Is.EqualTo(Math.Sqrt(2.0 / 999)).Within(1e-12));
+        Assert.That(d.NormalizedWeightMetric, Is.EqualTo(1.0).Within(1e-12));
+    }
+
+    [Test]
+    public void NormalizeWeightMetrics_ProportionalSqrt_AllWeightsEqual_MapsToMidpointInsteadOfNaN()
+    {
+        // range 0 must not divide by zero.
+        var root = new HierarchicalData("root");
+        var a = new HierarchicalData("a.cs", 10, 7);
+        var b = new HierarchicalData("b.cs", 10, 7);
+        root.AddChild(a);
+        root.AddChild(b);
+
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.ProportionalSqrt);
+
+        Assert.That(a.NormalizedWeightMetric, Is.EqualTo(0.5));
+        Assert.That(b.NormalizedWeightMetric, Is.EqualTo(0.5));
     }
 
     // -------------------------------------------------------------------
@@ -187,7 +228,7 @@ public class HierarchicalDataTests
         var leaf = new HierarchicalData("f.cs", 10, 3) { Description = "desc", ColorKey = "dev", Tag = "tag" };
         root.AddChild(leaf);
         root.SumAreaMetrics();
-        root.NormalizeWeightMetrics();
+        root.NormalizeWeightMetrics(WeightNormalizationStrategy.RankPercentile);
 
         var cloneLeaf = root.Clone().Children.Single();
 

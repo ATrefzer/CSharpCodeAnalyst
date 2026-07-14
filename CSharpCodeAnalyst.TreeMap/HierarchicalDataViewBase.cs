@@ -49,6 +49,12 @@ public abstract class HierarchicalDataViewBase : UserControl
     private IHierarchicalData? _zoomLevel;
 
     /// <summary>
+    ///     The weight-to-color mapping currently applied. Chosen in the tool window; kept on the view
+    ///     (which is reused across tabs) so the choice persists while the app runs.
+    /// </summary>
+    private WeightNormalizationStrategy _weightNormalization = WeightNormalizationStrategy.RankPercentile;
+
+    /// <summary>
     ///     Supplied by the data context: creates the placeholder shown when a filter removes every
     ///     node. The control only knows the interface, so it cannot build a concrete node itself.
     /// </summary>
@@ -94,7 +100,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
         // Weights arrive raw - the view owns the normalization. DoFilter re-normalizes
         // whenever leaves are removed by a filter change.
-        _originalData.NormalizeWeightMetrics();
+        _originalData.NormalizeWeightMetrics(_weightNormalization);
 
         // Initially no filtering so skip removing nodes.
         ZoomLevelChanged(_originalData);
@@ -153,7 +159,7 @@ public abstract class HierarchicalDataViewBase : UserControl
 
         // After we removed weights we have to normalize again.
         data.SumAreaMetrics(); // Only TreeMapView
-        data.NormalizeWeightMetrics();
+        data.NormalizeWeightMetrics(_weightNormalization);
 
         return data;
     }
@@ -227,12 +233,29 @@ public abstract class HierarchicalDataViewBase : UserControl
         _toolViewModel = new ToolViewModel(areaList, weightList)
         {
             AreaSemantic = areaSemantic,
-            WeightSemantic = weightSemantic
+            WeightSemantic = weightSemantic,
+            WeightNormalization = _weightNormalization
         };
 
         _toolViewModel.FilterChanged += OnToolFilterChanged;
         _toolViewModel.HighlightPatternChanged += OnToolHighlightPatternChanged;
         _toolViewModel.Reset += OnToolReset;
+        _toolViewModel.WeightNormalizationChanged += OnToolWeightNormalizationChanged;
+    }
+
+    private void OnToolWeightNormalizationChanged(object? sender, EventArgs e)
+    {
+        if (_toolViewModel is null || _originalData is null)
+        {
+            return;
+        }
+
+        _weightNormalization = _toolViewModel.WeightNormalization;
+
+        // Re-map the untouched original (so a later Reset shows the new coloring too), then rebuild
+        // the currently displayed - possibly filtered - view with the same zoom preserved.
+        _originalData.NormalizeWeightMetrics(_weightNormalization);
+        OnToolFilterChanged(sender, e);
     }
 
     private void OnToolReset(object? sender, EventArgs e)

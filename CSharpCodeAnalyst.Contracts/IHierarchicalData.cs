@@ -25,7 +25,7 @@ namespace CSharpCodeAnalyst.Contracts
         IHierarchicalData Clone();
         int CountLeafNodes();
         string GetPathToRoot();
-        void NormalizeWeightMetrics();
+        void NormalizeWeightMetrics(WeightNormalizationStrategy strategy);
         void RemoveLeafNodes(Func<IHierarchicalData, bool> removePredicate);
         void RemoveLeafNodesWithoutArea();
         IHierarchicalData Shrink();

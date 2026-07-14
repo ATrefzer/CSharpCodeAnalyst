@@ -1,9 +1,14 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.TreeMap.Resources;
 
 namespace CSharpCodeAnalyst.TreeMap.Tools
 {
+    /// <summary>Display wrapper for a <see cref="WeightNormalizationStrategy" /> in the combo box.</summary>
+    public sealed record WeightNormalizationOption(string Name, WeightNormalizationStrategy Strategy);
+
     public sealed class ToolViewModel : INotifyPropertyChanged
     {
         /// <summary>
@@ -29,6 +34,33 @@ namespace CSharpCodeAnalyst.TreeMap.Tools
         private int _maxWeightIndex;
 
         private bool _noFilteringJustHightlight;
+
+        private WeightNormalizationStrategy _weightNormalization = WeightNormalizationStrategy.RankPercentile;
+
+        /// <summary>Selectable weight-to-color mappings shown in the tool window.</summary>
+        public IReadOnlyList<WeightNormalizationOption> WeightNormalizationOptions { get; } =
+        [
+            new WeightNormalizationOption(Strings.WeightColoring_Percentile, WeightNormalizationStrategy.RankPercentile),
+            new WeightNormalizationOption(Strings.WeightColoring_Proportional, WeightNormalizationStrategy.ProportionalSqrt)
+        ];
+
+        /// <summary>
+        /// The weight-to-color mapping to use. Changing it re-normalizes and re-renders (via
+        /// <see cref="WeightNormalizationChanged" />) without touching the filter ranges.
+        /// </summary>
+        public WeightNormalizationStrategy WeightNormalization
+        {
+            get => _weightNormalization;
+            set
+            {
+                if (_weightNormalization != value)
+                {
+                    _weightNormalization = value;
+                    OnPropertyChanged();
+                    WeightNormalizationChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
 
         /// <summary>
         /// Min area for user feedback.
@@ -77,6 +109,7 @@ namespace CSharpCodeAnalyst.TreeMap.Tools
         public event EventHandler? Reset;
         public event EventHandler? FilterChanged;
         public event EventHandler? HighlightPatternChanged;
+        public event EventHandler? WeightNormalizationChanged;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
