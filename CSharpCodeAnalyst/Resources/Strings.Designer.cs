@@ -1788,6 +1788,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Clear the search.
+        /// </summary>
+        public static string EditAlias_ClearSearchTooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_ClearSearchTooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Reset all.
         /// </summary>
         public static string EditAlias_ResetButton {

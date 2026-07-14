@@ -1215,6 +1215,9 @@ Do you want to overwrite it?</value>
     <data name="EditAlias_Description" xml:space="preserve">
       <value>Assign an alias to each developer. Developers sharing the same alias are treated as one entity (e.g. a team) in the Knowledge analysis, which colors each file by its main developer. The default alias is the developer's own name.</value>
     </data>
+    <data name="EditAlias_ClearSearchTooltip" xml:space="preserve">
+      <value>Clear the search.</value>
+    </data>
     <data name="EditAlias_ResetButton" xml:space="preserve">
       <value>Reset all</value>
     </data>

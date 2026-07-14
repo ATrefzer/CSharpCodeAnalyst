@@ -15,6 +15,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
             <RowDefinition Height="*" />
             <RowDefinition Height="15" />
             <RowDefinition Height="Auto" />
@@ -24,9 +26,25 @@
                    Text="{x:Static resources:Strings.EditAlias_Description}"
                    TextWrapping="Wrap" />
 
-        <DataGrid Grid.Row="2"
+        <!-- Search box (same LightYellow look as the other views); filters as you type. -->
+        <DockPanel Grid.Row="2" Background="LightYellow">
+            <Button DockPanel.Dock="Right"
+                    Width="22" Height="22" Margin="2,0,0,0"
+                    Click="ClearSearchButton_Click"
+                    ToolTip="{x:Static resources:Strings.EditAlias_ClearSearchTooltip}">
+                <Image Source="/Resources/clear_32.png" />
+            </Button>
+            <TextBox x:Name="SearchTextBox"
+                     Height="22"
+                     Background="LightYellow"
+                     FontSize="12"
+                     VerticalContentAlignment="Center"
+                     TextChanged="SearchTextBox_TextChanged" />
+        </DockPanel>
+
+        <DataGrid Grid.Row="4"
                   x:Name="AliasGrid"
-                  ItemsSource="{Binding Rows}"
+                  ItemsSource="{Binding RowsView}"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
@@ -60,7 +78,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="6">
             <Button Content="{x:Static resources:Strings.EditAlias_ResetButton}"
                     HorizontalAlignment="Left"
                     MinWidth="75"

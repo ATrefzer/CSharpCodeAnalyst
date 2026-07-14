@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -11,6 +12,8 @@ namespace CSharpCodeAnalyst.Features.History;
 /// </summary>
 public sealed class EditAliasDialogViewModel
 {
+    private string _searchText = string.Empty;
+
     public EditAliasDialogViewModel(IEnumerable<string> developers, IReadOnlyDictionary<string, string> currentMapping)
     {
         var rows = developers
@@ -28,13 +31,42 @@ public sealed class EditAliasDialogViewModel
             row.PropertyChanged += OnRowChanged;
         }
 
+        RowsView = CollectionViewSource.GetDefaultView(Rows);
+        RowsView.Filter = FilterRow;
+
         RefreshAliasSuggestions();
     }
 
     public ObservableCollection<AliasRow> Rows { get; }
 
+    /// <summary>Filtered / ordered view over <see cref="Rows" /> bound by the data grid.</summary>
+    public ICollectionView RowsView { get; }
+
+    /// <summary>Simple substring search over developer and alias; empty shows everything.</summary>
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            _searchText = value ?? string.Empty;
+            RowsView.Refresh();
+        }
+    }
+
     /// <summary>Already assigned aliases, offered as suggestions in the editable alias combo box.</summary>
     public ObservableCollection<string> AliasSuggestions { get; } = new();
+
+    private bool FilterRow(object item)
+    {
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            return true;
+        }
+
+        var row = (AliasRow)item;
+        return row.Developer.Contains(_searchText, StringComparison.OrdinalIgnoreCase)
+               || row.Alias.Contains(_searchText, StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>Resets every developer's alias back to the default: his own name.</summary>
     public void ResetToDefaults()
@@ -71,15 +103,29 @@ public sealed class EditAliasDialogViewModel
 
     private void RefreshAliasSuggestions()
     {
-        var distinct = Rows
+        // Aliases the user actually assigned (they differ from the developer's own name) are the
+        // useful team names to reuse, so they head the drop-down. The plain self-name defaults are
+        // just noise and go to the bottom. Each group stays alphabetical.
+        var custom = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var row in Rows)
+        {
+            var alias = row.Alias?.Trim();
+            if (!string.IsNullOrEmpty(alias) && !string.Equals(alias, row.Developer, StringComparison.Ordinal))
+            {
+                custom.Add(alias);
+            }
+        }
+
+        var ordered = Rows
             .Select(row => row.Alias?.Trim())
             .Where(alias => !string.IsNullOrEmpty(alias))
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(alias => alias, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(alias => custom.Contains(alias!))
+            .ThenBy(alias => alias, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         AliasSuggestions.Clear();
-        foreach (var alias in distinct)
+        foreach (var alias in ordered)
         {
             AliasSuggestions.Add(alias!);
         }

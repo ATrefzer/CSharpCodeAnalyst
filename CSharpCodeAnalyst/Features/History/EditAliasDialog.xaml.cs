@@ -30,6 +30,26 @@ public partial class EditAliasDialog : Window
         ((EditAliasDialogViewModel)DataContext).ResetToDefaults();
     }
 
+    private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (DataContext is EditAliasDialogViewModel viewModel)
+        {
+            // Commit a pending grid edit first: refreshing the view during an open edit
+            // transaction (user was editing an alias, then clicked into the search box) would throw.
+            AliasGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+            AliasGrid.CommitEdit(DataGridEditingUnit.Row, true);
+
+            viewModel.SearchText = SearchTextBox.Text;
+        }
+    }
+
+    private void ClearSearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Clearing the text raises TextChanged, which resets the filter and restores all rows.
+        SearchTextBox.Clear();
+        SearchTextBox.Focus();
+    }
+
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;
