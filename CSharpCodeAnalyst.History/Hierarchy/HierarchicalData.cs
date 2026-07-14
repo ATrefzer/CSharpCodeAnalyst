@@ -170,51 +170,51 @@ public sealed class HierarchicalData : IHierarchicalData
         leaves.Sort((a, b) => a.WeightMetric.CompareTo(b.WeightMetric));
 
 
-        // Damped min max mapping (keep proportions)
-        var min = leaves.Min(l => l.WeightMetric);
-        var max = leaves.Max(l => l.WeightMetric);
-        var range = max - min;
-        foreach (var leaf in leaves)
-        {
-            leaf.NormalizedWeightMetric = range <= double.Epsilon
-                ? 0.5
-                : Math.Sqrt((leaf.WeightMetric - min) / range);
-        }
+        // Damped min max mapping with sqrt (keep proportions)
+        // var min = leaves.Min(l => l.WeightMetric);
+        // var max = leaves.Max(l => l.WeightMetric);
+        // var range = max - min;
+        // foreach (var leaf in leaves)
+        // {
+        //     leaf.NormalizedWeightMetric = range <= double.Epsilon
+        //         ? 0.5
+        //         : Math.Sqrt((leaf.WeightMetric - min) / range);
+        // }
 
-        // Alternative 1
-        //Math.Sqrt keeps real distances but compresses the outliers; for very skewed data
-        //the logarithm dampens harder:
-        //    Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
+        // Damped min max mapping with log (keep proportions)
+        // Math.Sqrt keeps real distances but compresses the outliers; for very skewed data
+        // the logarithm dampens harder:
+        // Math.Log(leaf.WeightMetric - min + 1) / Math.Log(range + 1)
 
 
-        // Alternative 2
+       
         // Rank based (percentile method)
         // The rank-based mapping below encodes only the ORDER of the leaves -
         // distances are lost (the 2nd hottest leaf looks almost as red as the hottest, even
         // if it has a fraction of the weight). If the proportions matter more than the
         // ordering, replace everything below with a dampened min-max mapping instead:
-        //
-        // var count = leaves.Count;
-        // var index = 0;
-        // while (index < count)
-        // {
-        //     // Find the run of leaves sharing the same weight and give all of them the
-        //     // percentile of their average rank.
-        //     var last = index;
-        //     while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
-        //     {
-        //         last++;
-        //     }
-        //
-        //     var averageRank = (index + last) / 2.0;
-        //     var percentile = averageRank / (count - 1);
-        //     for (var i = index; i <= last; i++)
-        //     {
-        //         leaves[i].NormalizedWeightMetric = percentile;
-        //     }
-        //
-        //     index = last + 1;
-        // }
+        
+        var count = leaves.Count;
+        var index = 0;
+        while (index < count)
+        {
+            // Find the run of leaves sharing the same weight and give all of them the
+            // percentile of their average rank.
+            var last = index;
+            while (last + 1 < count && leaves[last + 1].WeightMetric.Equals(leaves[index].WeightMetric))
+            {
+                last++;
+            }
+        
+            var averageRank = (index + last) / 2.0;
+            var percentile = averageRank / (count - 1);
+            for (var i = index; i <= last; i++)
+            {
+                leaves[i].NormalizedWeightMetric = percentile;
+            }
+        
+            index = last + 1;
+        }
     }
 
     /// <summary>
