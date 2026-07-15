@@ -73,54 +73,26 @@ public static class TypeDependencyAnalysis
             return [];
         }
 
-        // Lift every relationship to the (source type, target type) level and deduplicate.
-        // Self edges (a type depending on itself) carry no coupling signal and are dropped.
-        var typeEdges = new HashSet<(string Source, string Target)>();
-        foreach (var relationship in graph.GetAllRelationships())
+        // Shared, deduplicated type-level graph: relationships are lifted to their containing type,
+        // self edges and external endpoints dropped. Fan-out / fan-in are its out / in degrees.
+        var typeGraph = TypeGraph.Build(graph);
+        foreach (var info in results.Values)
         {
-            if (!relationship.Type.IsDependency())
-            {
-                continue;
-            }
-
-            var source = ContainingType(graph, relationship.SourceId);
-            var target = ContainingType(graph, relationship.TargetId);
-
-            if (source is null || target is null || source.Id == target.Id)
-            {
-                continue;
-            }
-
-            if (!results.ContainsKey(source.Id) || !results.ContainsKey(target.Id))
-            {
-                continue; // Endpoint is external or otherwise not a ranked type.
-            }
-
-            typeEdges.Add((source.Id, target.Id));
-        }
-
-        // Deduplicated degrees plus the outgoing / incoming adjacency used below.
-        var outgoing = results.Keys.ToDictionary(id => id, _ => new List<string>());
-        var incoming = results.Keys.ToDictionary(id => id, _ => new List<string>());
-        foreach (var (source, target) in typeEdges)
-        {
-            results[source].FanOut += 1;
-            results[target].FanIn += 1;
-            outgoing[source].Add(target);
-            incoming[target].Add(source);
+            info.FanOut = typeGraph.Out[info.Type.Id].Count;
+            info.FanIn = typeGraph.In[info.Type.Id].Count;
         }
 
         var nodes = results.Keys.ToList();
 
         // Travels against the edges and counts affected types.
-        var blastRadius = CalculateBlastRadius(nodes, incoming);
+        var blastRadius = CalculateBlastRadius(nodes, typeGraph.In);
         foreach (var (id, radius) in blastRadius)
         {
             results[id].BlastRadius = radius;
         }
 
         // Travels along the edges and accumulates rank.
-        var pageRank = CalculatePageRank(nodes, outgoing);
+        var pageRank = CalculatePageRank(nodes, typeGraph.Out);
         var count = results.Count;
         foreach (var (id, rank) in pageRank)
         {
@@ -149,7 +121,7 @@ public static class TypeDependencyAnalysis
     /// </summary>
     private static Dictionary<string, int> CalculateBlastRadius(
         List<string> nodes,
-        Dictionary<string, List<string>> incoming)
+        IReadOnlyDictionary<string, HashSet<string>> incoming)
     {
         var result = new Dictionary<string, int>(nodes.Count);
         var visited = new HashSet<string>();
@@ -188,7 +160,7 @@ public static class TypeDependencyAnalysis
     /// </summary>
     private static Dictionary<string, double> CalculatePageRank(
         List<string> nodes,
-        Dictionary<string, List<string>> outgoing)
+        IReadOnlyDictionary<string, HashSet<string>> outgoing)
     {
         var count = nodes.Count;
         var rank = nodes.ToDictionary(id => id, _ => 1.0 / count);
@@ -226,20 +198,5 @@ public static class TypeDependencyAnalysis
         }
 
         return rank;
-    }
-
-    /// <summary>
-    ///     Returns the type that contains the given element (a type element maps to itself),
-    ///     or null if the element sits above the type level (namespace, assembly).
-    /// </summary>
-    private static CodeElement? ContainingType(Graph.CodeGraph graph, string elementId)
-    {
-        var current = graph.TryGetCodeElement(elementId);
-        while (current is not null && !current.IsType())
-        {
-            current = current.Parent;
-        }
-
-        return current;
     }
 }

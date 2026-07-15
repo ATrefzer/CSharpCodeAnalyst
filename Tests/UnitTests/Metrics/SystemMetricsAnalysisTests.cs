@@ -148,4 +148,51 @@ public class SystemMetricsAnalysisTests
         Assert.That(metrics.TypeCount, Is.EqualTo(4));
         Assert.That(metrics.Cyclicity, Is.EqualTo(0.5).Within(1e-9));
     }
+
+    [Test]
+    public void AcyclicChain_HasZeroFeedbackDensity()
+    {
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        Depend(a, b);
+        Depend(b, c);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.FeedbackDensity, Is.EqualTo(0.0));
+    }
+
+    [Test]
+    public void FullCycle_HasFeedbackDensityOneThird()
+    {
+        // A -> B -> C -> A: one of the three edges must point backward.
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        Depend(a, b);
+        Depend(b, c);
+        Depend(c, a);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.FeedbackDensity, Is.EqualTo(1.0 / 3.0).Within(1e-9));
+    }
+
+    [Test]
+    public void PartialCycle_FeedbackDensityCountsOnlyTheBackEdge()
+    {
+        // A <-> B (2 edges, one backward) plus acyclic D -> C. 1 of 3 edges is feedback.
+        var a = Type("A");
+        var b = Type("B");
+        var c = Type("C");
+        var d = Type("D");
+        Depend(a, b);
+        Depend(b, a);
+        Depend(d, c);
+
+        var metrics = SystemMetricsAnalysis.Calculate(_graph);
+
+        Assert.That(metrics.FeedbackDensity, Is.EqualTo(1.0 / 3.0).Within(1e-9));
+    }
 }

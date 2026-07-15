@@ -1,5 +1,9 @@
 # Metrics
 
+[TOC]
+
+
+
 This guide explains the metrics that C# Code Analyst calculates.
 
 Rather than providing many different metrics, C# Code Analyst focuses on a few that answer specific questions.
@@ -245,12 +249,22 @@ All values are read straight from the method's syntax, no formatting assumptions
 While the other analyses give you one row per type or method, **System Metrics** summarizes the whole codebase with a single value for each metric. You can find these in *Analyzers → System Metrics*; the result is a
 small table with one row per metric.
 
-| Metric            | Meaning                                                      |
-| ----------------- | ------------------------------------------------------------ |
-| Propagation cost  | How far a change ripples through the system on average (see below). |
-| Cyclicity         | Share of types that sit inside a dependency cycle (see below). |
-| Types analyzed    | Number of internal types the metrics are based on (the *N* of the analysis).<br />Class, Interface, Struct, Record, Enum, Delegate |
+| Metric            | Meaning                                                                                                                                                                   |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Propagation cost  | How far a change ripples through the system on average (see below).                                                                                                       |
+| Cyclicity         | Share of types that sit inside a dependency cycle (see below).                                                                                                            |
+| Types analyzed    | Number of internal types the metrics are based on (the *N* of the analysis).<br />Class, Interface, Struct, Record, Enum, Delegate                                        |
 | Type dependencies | Distinct directed type-to-type dependencies (deduplicated, self edges dropped).<br />Nested types (nested classes/enums) are separate nodes and are counted individually. |
+| *Feedback density | *Share of dependencies that point backward against the best possible layering (see below).                                                                                |
+
+### Why not Robert C. Martin's package metrics?
+
+Martin's package (component, here assembly) metrics are frequently cited: **Instability** `I = Ce / (Ca + Ce)`,
+**Abstractness** `A = abstract types ÷ all types`, and **Distance from the main sequence**
+`D = |A + I − 1|`, where `Ca` / `Ce` are the afferent / efferent coupling of a *package*. I
+deliberately **do not** compute them. The reasons:
+
+Many books and articles mention these metrics, but I rarely see anyone actually use them to make improvements. Even worse, abstractness is just a simple count: A is *interfaces + abstract classes ÷ all types*. This confuses the "number of interfaces" with real meaningful abstraction. Creating interfaces just to raise the score does not make a design better, and focusing on the number can lead to unnecessary interfaces. **Distance** is based on A and has the same problem. This criticism is common in practice and matches my own experience: people quote the metric more often than they use it. If you use these metrics, please open an issue and let me know.
 
 ### Propagation cost
 
@@ -297,11 +311,57 @@ A **lower value is always better, and 0% is a meaningful goal** at the type leve
 
 Note this is the system-wide figure. A per-namespace / per-assembly breakdown (which module is the most tangled) is a natural follow-up but has not been computed yet.
 
-## Why not Robert C. Martin's package metrics?
+## Experimental System Metrics
 
-Martin's package (component, here assembly) metrics are frequently cited: **Instability** `I = Ce / (Ca + Ce)`,
-**Abstractness** `A = abstract types ÷ all types`, and **Distance from the main sequence**
-`D = |A + I − 1|`, where `Ca` / `Ce` are the afferent / efferent coupling of a *package*. I
-deliberately **do not** compute them. The reasons:
+When you visualize a codebase as a dependency graph, you can apply countless network algorithms to describe how entangled the system is. The metrics below are an experiment in capturing those complex relationships—I want to see which of them might be useful.
 
-Many books and articles mention these metrics, but I rarely see anyone actually use them to make improvements. Even worse, abstractness is just a simple count: A is *interfaces + abstract classes ÷ all types*. This confuses the "number of interfaces" with real meaningful abstraction. Creating interfaces just to raise the score does not make a design better, and focusing on the number can lead to unnecessary interfaces. **Distance** is based on A and has the same problem. This criticism is common in practice and matches my own experience: people quote the metric more often than they use it. If you use these metrics, please open an issue and let me know.
+### Feedback density
+
+Feedback density answers: **if you laid the whole system out in layers, what fraction of dependencies would still point the wrong way?**
+
+Imagine sorting all types into a single line so that, as much as possible, every dependency points forward — a base type before the types that use it, and so on. This is the same as sorting the dependency matrix (DSM) so that its entries fall below the diagonal. A cleanly layered system becomes perfectly triangular; nothing is left above the diagonal. A tangled one cannot be sorted this way, and the dependencies that remain **backward** are the ones that break the layering:
+
+```
+feedback density = (dependencies that point backward in the best ordering) / (all dependencies)
+```
+
+- **0 %** → the type graph is a **cleanly layered DAG**: there is an order in which every dependency points forward. The ideal.
+- **higher** → more of the system's dependencies fight any layering; the system is more tangled.
+
+Backward edges only ever occur **inside cycles** — a dependency between two types that are not in a common cycle can always be made to point forward. So feedback density is, in effect, the size of an approximate **minimum feedback arc set** (the smallest set of dependencies you would have to cut or reverse to make the whole system acyclic), expressed as a share of all dependencies.
+
+Finding the exact minimum is NP-hard, so we use the classic Eades-Lin-Smyth greedy ordering (1993): repeatedly peel off types that depend on nothing remaining (sinks) and types nothing remaining depends on (sources), and when only cyclic types are left, take the one with the largest surplus of outgoing over incoming dependencies. This runs in near-linear time and is close enough for a system-level trend metric.
+
+#### A dependency counts once, no matter how often it is used
+
+Like every other metric here, feedback density counts a dependency as **yes or no**, not by how often it occurs. If a method references another type five times, that is still **one** backward edge, not five. The share is taken over *distinct* dependencies, not over call sites.
+
+There is an honest counter-argument, and it is worth stating. The *effort* to actually remove a coupling does grow with how often it is used: a logger called from 500 places is genuinely far more expensive to untangle than a type touched once. Under an "effort to disentangle" reading, it would be entirely justified for such a heavily-used dependency to dominate the number — the work really is that much larger.
+
+We deliberately keep the metric structural anyway. The decisive reason is a data one:
+
+- **The reference count is not even reliable.** The parser records source locations *opportunistically* — only where a syntax node makes them cheap to capture. Several kinds of relationship are added with no location at all, so the number of stored source locations is a lower bound on the real number of references, not an exact count. Weighting a headline metric by a figure that is known to be incomplete would give a false sense of precision.
+
+Two softer reasons point the same way:
+
+- **Trend stability.** The whole suite (cyclicity, propagation cost, type dependencies) is yes/no. A weighted feedback density would jump whenever someone adds or removes a single call, even though the architecture did not change — which defeats its purpose as a release-over-release trend.
+- **Call count is a poor proxy for architectural effort.** Breaking a cycle is rarely "delete the call sites"; it is usually one structural change — extract an interface, invert a dependency, move a class. Five call sites can be a single refactoring.
+
+Where multiplicity might still help is *per edge*, not in the system-wide number: seeing that the back edge `C → A` is exercised from many places is a rough **priority** hint when you decide which cycle to break first. Even there it is only an approximation — the stored source-location count is a lower bound — so it belongs at most in a future DSM / detail view as a hint, never in the single headline figure.
+
+#### Feedback density vs. Cyclicity
+
+These two look similar but answer different questions, and it is worth reading them together:
+
+| | Cyclicity | Feedback density |
+| --- | --- | --- |
+| Counts | **types** in a cycle | **dependencies** that break the layering |
+| Question | *How much* of the system is entangled? | *How hard* is it to disentangle? |
+| A single big cycle of *k* types | jumps to a large share at once | stays small — one back edge per cycle is enough |
+
+A worked example: take one strongly connected component of 20 types arranged as a ring `T1 → T2 → … → T20 → T1`. **Cyclicity** reports all 20 types as cyclic — a big number. **Feedback density** reports just the *one* edge `T20 → T1` as backward out of 20 — a small number. Both are correct: the 20 types really are all entangled, but you only need to cut a single dependency to break the ring. Cyclicity tells you the *extent* of the tangle; feedback density tells you the *effort* to remove it. A high cyclicity with a low feedback density means a large but "thin" knot (easy to unpick); a high feedback density means the cycles are densely cross-linked (genuinely hard to layer).
+
+Like the others, read this as a **trend**, not a grade: watch whether it climbs or falls across releases.
+
+
+
