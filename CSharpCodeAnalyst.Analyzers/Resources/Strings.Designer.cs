@@ -958,7 +958,7 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ** Feedback density.
+        ///   Looks up a localized string similar to Feedback density.
         /// </summary>
         public static string SystemMetrics_FeedbackDensity_Name {
             get {

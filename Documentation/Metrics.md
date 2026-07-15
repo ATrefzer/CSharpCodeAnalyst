@@ -311,10 +311,6 @@ A **lower value is always better, and 0% is a meaningful goal** at the type leve
 
 Note this is the system-wide figure. A per-namespace / per-assembly breakdown (which module is the most tangled) is a natural follow-up but has not been computed yet.
 
-## Experimental System Metrics
-
-When you visualize a codebase as a dependency graph, you can apply countless network algorithms to describe how entangled the system is. The metrics below are an experiment in capturing those complex relationships—I want to see which of them might be useful.
-
 ### Feedback density
 
 Feedback density answers: **if you laid the whole system out in layers, what fraction of dependencies would still point the wrong way?**
@@ -332,13 +328,11 @@ Backward edges only ever occur **inside cycles** — a dependency between two ty
 
 Finding the exact minimum is NP-hard, so we use the classic Eades-Lin-Smyth greedy ordering (1993): repeatedly peel off types that depend on nothing remaining (sinks) and types nothing remaining depends on (sources), and when only cyclic types are left, take the one with the largest surplus of outgoing over incoming dependencies. This runs in near-linear time and is close enough for a system-level trend metric.
 
-#### A dependency counts once, no matter how often it is used
-
-Like every other metric here, feedback density counts a dependency as **yes or no**, not by how often it occurs. If a method references another type five times, that is still **one** backward edge, not five. The share is taken over *distinct* dependencies, not over call sites.
+Like every other system metric here, feedback density counts a dependency as **yes or no**, not by how often it occurs. If a method references another type five times, that is still **one** backward edge, not five. The share is taken over *distinct* dependencies, not over call sites.
 
 There is an honest counter-argument, and it is worth stating. The *effort* to actually remove a coupling does grow with how often it is used: a logger called from 500 places is genuinely far more expensive to untangle than a type touched once. Under an "effort to disentangle" reading, it would be entirely justified for such a heavily-used dependency to dominate the number — the work really is that much larger.
 
-We deliberately keep the metric structural anyway. The decisive reason is a data one:
+I deliberately keep the metric structural anyway. The decisive reason is a data one:
 
 - **The reference count is not even reliable.** The parser records source locations *opportunistically* — only where a syntax node makes them cheap to capture. Several kinds of relationship are added with no location at all, so the number of stored source locations is a lower bound on the real number of references, not an exact count. Weighting a headline metric by a figure that is known to be incomplete would give a false sense of precision.
 
@@ -346,8 +340,6 @@ Two softer reasons point the same way:
 
 - **Trend stability.** The whole suite (cyclicity, propagation cost, type dependencies) is yes/no. A weighted feedback density would jump whenever someone adds or removes a single call, even though the architecture did not change — which defeats its purpose as a release-over-release trend.
 - **Call count is a poor proxy for architectural effort.** Breaking a cycle is rarely "delete the call sites"; it is usually one structural change — extract an interface, invert a dependency, move a class. Five call sites can be a single refactoring.
-
-Where multiplicity might still help is *per edge*, not in the system-wide number: seeing that the back edge `C → A` is exercised from many places is a rough **priority** hint when you decide which cycle to break first. Even there it is only an approximation — the stored source-location count is a lower bound — so it belongs at most in a future DSM / detail view as a hint, never in the single headline figure.
 
 #### Feedback density vs. Cyclicity
 

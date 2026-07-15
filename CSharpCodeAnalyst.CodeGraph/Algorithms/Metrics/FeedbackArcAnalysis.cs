@@ -65,8 +65,10 @@ public static class FeedbackArcAnalysis
     {
         ArgumentNullException.ThrowIfNull(graph);
 
+        // The heart of the algorithm
         var order = OrderByEadesLinSmyth(graph.Vertices, graph.Out, graph.In);
 
+        // Count back edges
         var position = new Dictionary<string, int>(order.Count);
         for (var i = 0; i < order.Count; i++)
         {
@@ -91,7 +93,7 @@ public static class FeedbackArcAnalysis
 
     /// <summary>
     ///     Greedy vertex sequencing (Eades, Lin, Smyth 1993). Builds the order from both ends: sinks are
-    ///     appended to the right block, sources prepended to the left block, and when the remaining graph
+    ///     appended to the right block, sources appended to the left block, and when the remaining graph
     ///     has neither, the vertex maximizing (out-degree - in-degree) among the remaining vertices is
     ///     placed on the left. Degrees are tracked incrementally as vertices are removed.
     /// </summary>
@@ -149,7 +151,14 @@ public static class FeedbackArcAnalysis
                 var u = sinks.Dequeue();
                 if (!remaining.Contains(u) || outDeg[u] != 0)
                 {
-                    continue; // stale queue entry
+                    // stale queue entry - why
+                    // A source has inDeg 0, but its outDeg is still greater than 0. As its outgoing neighbors are gradually removed,
+                    // its outDeg decreases until it reaches 0. Then the source becomes a sink and is queued a second time,
+                    // this time in `sinks`. Now the same node is in both queues.
+                    // The first processing step removes it (`remaining.Remove`), while the second encounters a ghost.
+                    // It is cheaper to monitor it here instead of keeping the queues up-to-date.
+                    
+                    continue; 
                 }
 
                 right.Add(u);

@@ -255,7 +255,7 @@ Lower is better. Focus on the trend across imports rather than the absolute valu
 Lower is better. 0% means the type graph is acyclic.</value>
   </data>
     <data name="SystemMetrics_FeedbackDensity_Name" xml:space="preserve">
-    <value>** Feedback density</value>
+    <value>Feedback density</value>
   </data>
     <data name="SystemMetrics_FeedbackDensity_Description" xml:space="preserve">
     <value>Share of dependencies that point backward against the best possible layering (an approximate minimum feedback arc set).
