@@ -17,6 +17,10 @@
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.6.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="5.6.0" />
         <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="5.6.0" />
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.8.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
@@ -28,7 +32,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1"/>
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.8.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
 </Project>

@@ -21,7 +21,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.7.1"/>
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.8.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.8.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
 </Project>

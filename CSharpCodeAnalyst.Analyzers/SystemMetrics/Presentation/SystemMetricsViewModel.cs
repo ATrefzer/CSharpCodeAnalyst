@@ -26,6 +26,11 @@ internal class SystemMetricsViewModel : Table
                 Strings.SystemMetrics_Cyclicity_Description),
 
             new SystemMetricRowViewModel(
+                Strings.SystemMetrics_FeedbackDensity_Name,
+                metrics.FeedbackDensity.ToString("P1", CultureInfo.InvariantCulture),
+                Strings.SystemMetrics_FeedbackDensity_Description),
+
+            new SystemMetricRowViewModel(
                 Strings.SystemMetrics_TypesAnalyzed_Name,
                 metrics.TypeCount.ToString(CultureInfo.InvariantCulture),
                 Strings.SystemMetrics_TypesAnalyzed_Description),

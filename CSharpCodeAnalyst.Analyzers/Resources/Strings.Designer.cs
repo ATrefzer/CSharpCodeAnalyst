@@ -78,6 +78,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: dependency cycle &apos;{1}&apos; between {2} code elements. The Cycles view shows the group under this name..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_CycleFound {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_CycleFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: {1} ({2} violation(s)).
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_DependencyViolation {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_DependencyViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: {1} code element(s) exceed the limit of {2}..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_ElementMetricExceeded {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_ElementMetricExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Architectural rules.
         /// </summary>
         public static string Analyzer_ArchitecturalRules_Label {
@@ -87,11 +114,29 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} rule violated: the measured value of the system is {1}, at most {2} is allowed..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_MetricExceeded {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_MetricExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No rule violations found!.
         /// </summary>
         public static string Analyzer_ArchitecturalRules_NoData {
             get {
                 return ResourceManager.GetString("Analyzer_ArchitecturalRules_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rule &apos;{0}&apos;: no source metrics are available for this project. The rule cannot be checked..
+        /// </summary>
+        public static string Analyzer_ArchitecturalRules_NoSourceMetrics {
+            get {
+                return ResourceManager.GetString("Analyzer_ArchitecturalRules_NoSourceMetrics", resourceCulture);
             }
         }
         
@@ -113,78 +158,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to {0} rule violated: the measured value of the system is {1}, at most {2} is allowed..
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_MetricExceeded {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_MetricExceeded", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} rule violated: {1} ({2} violation(s)).
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_DependencyViolation {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_DependencyViolation", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} rule violated: dependency cycle &apos;{1}&apos; between {2} code elements. The Cycles view shows the group under this name..
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_CycleFound {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_CycleFound", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to max. {0}.
-        /// </summary>
-        public static string ArchitecturalRules_Metric_Max {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_Metric_Max", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} rule violated: {1} code element(s) exceed the limit of {2}..
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_ElementMetricExceeded {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_ElementMetricExceeded", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Rule &apos;{0}&apos;: no source metrics are available for this project. The rule cannot be checked..
-        /// </summary>
-        public static string Analyzer_ArchitecturalRules_NoSourceMetrics {
-            get {
-                return ResourceManager.GetString("Analyzer_ArchitecturalRules_NoSourceMetrics", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to (everything).
-        /// </summary>
-        public static string ArchitecturalRules_Scope_Everything {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_Scope_Everything", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to {0} lines.
-        /// </summary>
-        public static string ArchitecturalRules_MaxLines_Value {
-            get {
-                return ResourceManager.GetString("ArchitecturalRules_MaxLines_Value", resourceCulture);
-            }
-        }
-
         /// <summary>
         ///   Looks up a localized string similar to Validates your architectural constraints based on user-defined rules.
         /// </summary>
@@ -393,6 +366,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} lines.
+        /// </summary>
+        public static string ArchitecturalRules_MaxLines_Value {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_MaxLines_Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to max. {0}.
+        /// </summary>
+        public static string ArchitecturalRules_Metric_Max {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Metric_Max", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Save rules.
         /// </summary>
         public static string ArchitecturalRules_SaveDialog_Title {
@@ -420,6 +411,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (everything).
+        /// </summary>
+        public static string ArchitecturalRules_Scope_Everything {
+            get {
+                return ResourceManager.GetString("ArchitecturalRules_Scope_Everything", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Architectural rules configuration.
         /// </summary>
         public static string ArchitecturalRules_Title {
@@ -443,7 +443,7 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         ///
         ///Examples:
         ///DENY MyApp.Business.** -&gt; MyApp.Data.**
-        ///RESTRICT MyApp.Controllers.** -&gt; [rest of string was truncated]&quot;;.
+        ///RESTRICT MyApp.Controllers.** -&gt; MyApp [rest of string was truncated]&quot;;.
         /// </summary>
         public static string ArchitectureRules_Info {
             get {
@@ -785,6 +785,33 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Command line copied to clipboard.
+        /// </summary>
+        public static string Rules_CommandLineCopied {
+            get {
+                return ResourceManager.GetString("Rules_CommandLineCopied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command line.
+        /// </summary>
+        public static string Rules_CopyCommandLine {
+            get {
+                return ResourceManager.GetString("Rules_CopyCommandLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy a command line that validates a solution against these rules to the clipboard. Save the rules to a file first so the -rules argument points at it; otherwise a placeholder is inserted..
+        /// </summary>
+        public static string Rules_CopyCommandLine_Tooltip {
+            get {
+                return ResourceManager.GetString("Rules_CopyCommandLine_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Generate rules.
         /// </summary>
         public static string Rules_Generate {
@@ -855,24 +882,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
                 return ResourceManager.GetString("Rules_SaveToFile", resourceCulture);
             }
         }
-
-        public static string Rules_CopyCommandLine {
-            get {
-                return ResourceManager.GetString("Rules_CopyCommandLine", resourceCulture);
-            }
-        }
-
-        public static string Rules_CopyCommandLine_Tooltip {
-            get {
-                return ResourceManager.GetString("Rules_CopyCommandLine_Tooltip", resourceCulture);
-            }
-        }
-
-        public static string Rules_CommandLineCopied {
-            get {
-                return ResourceManager.GetString("Rules_CommandLineCopied", resourceCulture);
-            }
-        }
         
         /// <summary>
         ///   Looks up a localized string similar to No violations found..
@@ -935,6 +944,25 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         public static string SystemMetrics_Cyclicity_Name {
             get {
                 return ResourceManager.GetString("SystemMetrics_Cyclicity_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Share of dependencies that point backward against the best possible layering (an approximate minimum feedback arc set).
+        ///Lower is better. 0% means the system is a cleanly layered, acyclic graph..
+        /// </summary>
+        public static string SystemMetrics_FeedbackDensity_Description {
+            get {
+                return ResourceManager.GetString("SystemMetrics_FeedbackDensity_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feedback density.
+        /// </summary>
+        public static string SystemMetrics_FeedbackDensity_Name {
+            get {
+                return ResourceManager.GetString("SystemMetrics_FeedbackDensity_Name", resourceCulture);
             }
         }
         

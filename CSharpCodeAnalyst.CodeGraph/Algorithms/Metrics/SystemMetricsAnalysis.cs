@@ -1,6 +1,5 @@
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
-using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 
@@ -28,12 +27,21 @@ public class SystemMetrics
     ///     connected component of two or more types). 0 = fully acyclic, 1 = every type is entangled.
     /// </summary>
     public double Cyclicity { get; init; }
+
+    /// <summary>
+    ///     Feedback density in [0,1]: the share of type dependencies that end up pointing backward against the best possible
+    ///     layering of the type graph (an approximate minimum feedback arc set).
+    ///     0 = the type graph is a cleanly layered DAG, 1 = every dependency fights the layering.
+    ///     Finer-grained companion to <see cref="Cyclicity" />: cyclicity counts the entangled
+    ///     <em>types</em>, feedback density counts the <em>edges</em> one would cut to break the cycles.
+    /// </summary>
+    public double FeedbackDensity { get; init; }
 }
 
 /// <summary>
-///     Computes <see cref="SystemMetrics" /> on the type-level dependency graph. The type graph is
-///     built exactly like <see cref="TypeDependencyAnalysis" />: relationships are lifted to their
-///     containing type, deduplicated, self edges and external types are dropped.
+///     Computes <see cref="SystemMetrics" /> on the shared type-level dependency graph
+///     (<see cref="TypeGraph" />). The graph is built once and every metric stage reuses it, so the
+///     lift-to-type and deduplication work is not repeated per metric.
 /// </summary>
 public static class SystemMetricsAnalysis
 {
@@ -41,52 +49,37 @@ public static class SystemMetricsAnalysis
     {
         ArgumentNullException.ThrowIfNull(graph);
 
-        var typeIds = graph.Nodes.Values
-            .Where(n => n.IsType() && !n.IsExternal)
-            .Select(n => n.Id)
-            .ToHashSet();
-
-        var n = typeIds.Count;
-        var outgoing = typeIds.ToDictionary(id => id, _ => new List<string>());
+        var typeGraph = TypeGraph.Build(graph);
+        var n = typeGraph.VertexCount;
 
         if (n < 2)
         {
             return new SystemMetrics { TypeCount = n, TypeDependencyCount = 0, PropagationCost = 0.0 };
         }
 
-        var edges = new HashSet<(string Source, string Target)>();
-        foreach (var relationship in graph.GetAllRelationships())
+        return new SystemMetrics
         {
-            if (!relationship.Type.IsDependency())
-            {
-                continue;
-            }
+            TypeCount = n,
+            TypeDependencyCount = typeGraph.EdgeCount,
+            PropagationCost = CalculatePropagationCost(typeGraph),
+            Cyclicity = CalculateCyclicity(typeGraph),
+            FeedbackDensity = FeedbackArcAnalysis.Analyze(typeGraph).FeedbackDensity
+        };
+    }
 
-            var source = ContainingType(graph, relationship.SourceId);
-            var target = ContainingType(graph, relationship.TargetId);
-            if (source is null || target is null || source.Id == target.Id)
-            {
-                continue;
-            }
+    /// <summary>
+    ///     For each type, count how many OTHER types it can transitively reach and average that over all
+    ///     types. Mirrors TypeDependencyAnalysis.CalculateBlastRadius (same transitive closure, following
+    ///     the outgoing edges instead of the incoming ones).
+    /// </summary>
+    private static double CalculatePropagationCost(TypeGraph graph)
+    {
+        var n = graph.VertexCount;
 
-            if (!typeIds.Contains(source.Id) || !typeIds.Contains(target.Id))
-            {
-                continue; // Endpoint is external or otherwise not a counted type.
-            }
-
-            if (edges.Add((source.Id, target.Id)))
-            {
-                outgoing[source.Id].Add(target.Id);
-            }
-        }
-
-        // For each type, count how many OTHER types it can transitively reach. Mirrors
-        // TypeDependencyAnalysis.CalculateBlastRadius (same transitive closure, following the
-        // outgoing edges instead of the incoming ones).
         long reachablePairs = 0;
         var reached = new HashSet<string>();
         var queue = new Queue<string>(); // Bfs
-        foreach (var start in typeIds)
+        foreach (var start in graph.Vertices)
         {
             reached.Clear();
             queue.Enqueue(start);
@@ -95,7 +88,7 @@ public static class SystemMetricsAnalysis
             // added to "reached" (guarded below to survive cycles).
             while (queue.Count > 0)
             {
-                foreach (var next in outgoing[queue.Dequeue()])
+                foreach (var next in graph.Out[queue.Dequeue()])
                 {
                     if (next == start || !reached.Add(next))
                     {
@@ -109,15 +102,7 @@ public static class SystemMetricsAnalysis
             reachablePairs += reached.Count;
         }
 
-        var propagationCost = (double)reachablePairs / ((long)n * (n - 1));
-
-        return new SystemMetrics
-        {
-            TypeCount = n,
-            TypeDependencyCount = edges.Count,
-            PropagationCost = propagationCost,
-            Cyclicity = CalculateCyclicity(typeIds, outgoing, n)
-        };
+        return (double)reachablePairs / ((long)n * (n - 1));
     }
 
     /// <summary>
@@ -125,57 +110,44 @@ public static class SystemMetricsAnalysis
     ///     graph and count the types that sit in a strongly connected component of two or more types
     ///     (a single type is trivially its own SCC and does not count; self edges were already dropped).
     /// </summary>
-    private static double CalculateCyclicity(HashSet<string> typeIds, Dictionary<string, List<string>> outgoing, int n)
+    private static double CalculateCyclicity(TypeGraph graph)
     {
-        var graph = new AdjacencyGraph(typeIds, outgoing);
-        var sccs = Tarjan.FindStronglyConnectedComponents(graph);
+        var sccs = Tarjan.FindStronglyConnectedComponents(new AdjacencyGraph(graph));
 
         var typesInCycles = sccs
             .Where(scc => scc.Vertices.Count >= 2)
             .Sum(scc => scc.Vertices.Count);
 
-        return (double)typesInCycles / n;
-    }
-
-    private static CodeElement? ContainingType(Graph.CodeGraph graph, string elementId)
-    {
-        var current = graph.TryGetCodeElement(elementId);
-        while (current is not null && !current.IsType())
-        {
-            current = current.Parent;
-        }
-
-        return current;
+        return (double)typesInCycles / graph.VertexCount;
     }
 
     /// <summary>
-    ///     Minimal adapter that exposes the already-built type graph (vertices + outgoing adjacency)
-    ///     to the shared <see cref="Tarjan" /> algorithm. Only <see cref="GetVertices" /> and
+    ///     Minimal adapter that exposes the shared <see cref="TypeGraph" /> (vertices + outgoing
+    ///     adjacency) to the shared <see cref="Tarjan" /> algorithm. Only <see cref="GetVertices" /> and
     ///     <see cref="GetNeighbors" /> are used by Tarjan; the rest satisfies the interface.
     /// </summary>
-    private sealed class AdjacencyGraph(HashSet<string> vertices, Dictionary<string, List<string>> outgoing)
-        : IGraphRepresentation<string>
+    private sealed class AdjacencyGraph(TypeGraph graph) : IGraphRepresentation<string>
     {
-        public uint VertexCount => (uint)vertices.Count;
+        public uint VertexCount => (uint)graph.VertexCount;
 
         public IReadOnlyCollection<string> GetVertices()
         {
-            return vertices;
+            return graph.Vertices;
         }
 
         public IReadOnlyCollection<string> GetNeighbors(string vertex)
         {
-            return outgoing[vertex];
+            return graph.Out[vertex];
         }
 
         public bool IsVertex(string vertex)
         {
-            return vertices.Contains(vertex);
+            return graph.Vertices.Contains(vertex);
         }
 
         public bool IsEdge(string source, string target)
         {
-            return outgoing.TryGetValue(source, out var neighbors) && neighbors.Contains(target);
+            return graph.Out.TryGetValue(source, out var neighbors) && neighbors.Contains(target);
         }
     }
 }
