@@ -137,6 +137,42 @@ public class CodeGraphToDsmModelBuilderTests
     }
 
     [Test]
+    public void Build_AcyclicChain_IsOrderedSoAllDependenciesSitOnOneSide()
+    {
+        // A -> B -> C, added in an order that is not the dependency order. Partitioning has to fix that,
+        // otherwise an acyclic structure does not look acyclic in the matrix.
+        var b = _graph.CreateClass("B");
+        var c = _graph.CreateClass("C");
+        var a = _graph.CreateClass("A");
+        Rel(a, b, RelationshipType.Uses);
+        Rel(b, c, RelationshipType.Uses);
+
+        Build();
+
+        // The matrix reads cell[row][column] as "column depends on row", so a provider must come after its
+        // consumer for the weight to land below the diagonal.
+        var order = _dsmModel.RootElement.Children.Select(e => e.Name).ToList();
+        Assert.That(order.IndexOf("A"), Is.LessThan(order.IndexOf("B")));
+        Assert.That(order.IndexOf("B"), Is.LessThan(order.IndexOf("C")));
+    }
+
+    [Test]
+    public void Build_SortsWithinAParentOnly_HierarchyIsPreserved()
+    {
+        var assembly = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", assembly);
+        var x = _graph.CreateClass("X", ns);
+        var y = _graph.CreateClass("Y", ns);
+        Rel(x, y, RelationshipType.Uses);
+
+        Build();
+
+        var nsElement = _dsmModel.GetElementByFullname("Asm.Ns");
+        Assert.That(nsElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "X", "Y" }),
+            "partitioning must reorder siblings, never move them out of their parent");
+    }
+
+    [Test]
     public void Build_CalledTwice_DoesNotAccumulate()
     {
         _graph.CreateClass("A");

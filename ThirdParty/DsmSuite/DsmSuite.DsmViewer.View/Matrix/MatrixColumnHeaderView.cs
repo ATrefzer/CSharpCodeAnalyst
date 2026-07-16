@@ -8,6 +8,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
 {
     public class MatrixColumnHeaderView : MatrixFrameworkElement
     {
+        /// <summary>Added 2026-07 for CSharpCodeAnalyst: distance from the top of the header to the first
+        /// character of a column label, see OnRender.</summary>
+        private const double TextTopMargin = 6.0;
+
+        /// <summary>Added 2026-07 for CSharpCodeAnalyst: gap between the element order and the name.</summary>
+        private const double OrderNameGap = 8.0;
+
         private MatrixViewModel _viewModel;
         private readonly MatrixTheme _theme;
         private Rect _rect;
@@ -27,6 +34,27 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseMove += OnMouseMove;
             MouseDown += OnMouseDown;
             MouseLeave += OnMouseLeave;
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: width of the column the element order is right aligned in,
+        /// taken from the longest order on screen so that every name starts at the same offset. Element
+        /// order runs from 1 to the number of elements in the whole tree, so it is regularly four digits
+        /// and up, and the widths do differ.
+        /// </summary>
+        private double MeasureOrderFieldWidth(int matrixSize)
+        {
+            double widest = 0.0;
+            for (int column = 0; column < matrixSize; column++)
+            {
+                double width = MeasureText(_viewModel.ColumnElementIds[column].ToString());
+                if (width > widest)
+                {
+                    widest = width;
+                }
+            }
+
+            return widest;
         }
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -80,6 +108,7 @@ namespace DsmSuite.DsmViewer.View.Matrix
             if (_viewModel != null)
             {
                 int matrixSize = _viewModel.MatrixSize;
+                double orderFieldWidth = MeasureOrderFieldWidth(matrixSize);
                 for (int column = 0; column < matrixSize; column++)
                 {
                     _rect.X = _offset + column * _pitch;
@@ -92,12 +121,30 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
                     dc.DrawRectangle(background, null, _rect);
 
-                    string content = _viewModel.ColumnElementIds[column].ToString();
+                    // Changed 2026-07 for CSharpCodeAnalyst: this used to draw the element order alone,
+                    // anchored at the bottom of the header. The order made every column a lookup into the
+                    // row headers, and the anchoring was broken for anything longer: the draw origin was
+                    //     MatrixHeaderHeight - 10 - textWidth
+                    // so a label as wide as the header started above y=0 and lost its leading characters,
+                    // while DrawText clipped the tail at maxWidth at the same time. Text was cut off at
+                    // both ends. It never showed upstream, where the header only ever held a short number
+                    // that always fit.
+                    //
+                    // Order and name are now drawn as two columns, the way a numbered list is set: the
+                    // order right aligned in a field as wide as the longest one, the name always starting
+                    // at the same offset. Anchoring at the top is what makes an overlong name lose its
+                    // tail instead of its head, and drawing the two separately is what keeps the names
+                    // aligned even though the order is variable width (1 vs 1234).
+                    string order = _viewModel.ColumnElementIds[column].ToString();
+                    string name = _viewModel.ColumnElementNames[column];
 
-                    double textWidth = MeasureText(content);
+                    double orderStart = TextTopMargin + orderFieldWidth - MeasureText(order);
+                    DrawRotatedText(dc, order, new Point(_rect.X + 10.0, -orderStart), _theme.TextColor,
+                        orderFieldWidth);
 
-                    Point location = new Point(_rect.X + 10.0, _rect.Y - _rect.Height + textWidth + 10.0);
-                    DrawRotatedText(dc, content, location, _theme.TextColor, _theme.MatrixHeaderHeight - _theme.SpacingWidth);
+                    double nameStart = TextTopMargin + orderFieldWidth + OrderNameGap;
+                    DrawRotatedText(dc, name, new Point(_rect.X + 10.0, -nameStart), _theme.TextColor,
+                        _theme.MatrixHeaderHeight - nameStart - _theme.SpacingWidth);
                 }
 
                 Height = _theme.MatrixHeaderHeight + _theme.SpacingWidth;

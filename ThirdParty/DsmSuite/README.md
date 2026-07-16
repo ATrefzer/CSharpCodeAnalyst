@@ -30,6 +30,11 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Removed `SqlImporter` and its callers (`AsyncImportSqlModel`, `ImportSqlModel`, the `.sql` case) | `Application`, `ViewModel` | the `.sql` import is not offered; drops the Dapper and Microsoft.Data.Sqlite dependencies |
 | Added `MainViewModel.ShowInMemoryModel(title)` | `ViewModel/Main/MainViewModel.cs` | show a model built in memory, with no file round trip |
 | `DsmElementModel.Clear()` now also clears `_elementsByName` | `Model/Core/DsmElementModel.cs` | **bug fix**, see below |
+| Removed the row header and cell context menus | `Matrix/MatrixView.xaml` | their commands edit the DSM model or open the viewer's dialog windows; neither fits a read-only view onto a parsed code graph |
+| Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
+| Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
+
+Not a change to their code, but worth knowing when reading it: everything the matrix draws (colours, cell size, header height) is resolved by key via `FindResource` / `StaticResource`. `Features/DsmMatrix/DsmMatrixTheme.xaml` overrides those keys from our side, merged last in `App.xaml`. Restyling therefore needs no edit in here — prefer that route.
 
 ## Bugs found in the vendored code
 
@@ -41,7 +46,14 @@ Neither is fixed beyond what we needed; both are worth reporting upstream.
    because every import runs against a freshly constructed model. **Fixed here**, since our builder
    calls `Clear()`.
 
-2. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+2. **`MatrixColumnHeaderView` anchored header text at the bottom of the header.** The draw origin was
+   `MatrixHeaderHeight - 10 - MeasureText(content)`, so the label grew upwards and one as wide as the
+   header started above `y = 0` and lost its leading characters — while `DrawText` clipped the tail at
+   `maxWidth` at the same time. Text was cut off at *both* ends. Invisible upstream, where the header only
+   ever held a short number that always fit. **Fixed here** by anchoring at the top, which our headers need
+   because they carry names; it also lines the element orders up across columns.
+
+3. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model

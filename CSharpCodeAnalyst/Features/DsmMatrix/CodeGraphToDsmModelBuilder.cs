@@ -1,5 +1,6 @@
 ﻿using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using DsmSuite.DsmViewer.Application.Sorting;
 using DsmSuite.DsmViewer.Model.Interfaces;
 
 namespace CSharpCodeAnalyst.Features.DsmMatrix;
@@ -48,8 +49,30 @@ public sealed class CodeGraphToDsmModelBuilder
 
         AddRelations(typeGraph);
 
+        Partition(_dsmModel.RootElement);
         _dsmModel.AssignElementOrder();
         return typeGraph.VertexCount;
+    }
+
+    /// <summary>
+    ///     Orders the children of every element so that dependencies line up on one side of the diagonal.
+    /// </summary>
+    /// <remarks>
+    ///     Without this the rows sit in whatever order the elements were added, which for us is the iteration
+    ///     order of a hash set — so an acyclic structure looks just as scattered as a tangled one. The
+    ///     partitioning is what turns "no cycles" into the triangular shape that makes it visible. Sorting is
+    ///     per parent: children are only ever reordered among their siblings, so the hierarchy is untouched.
+    ///     Mirrors ImporterBase.Partition, which we cannot reuse (protected, and tied to the DSI import).
+    /// </remarks>
+    private void Partition(IDsmElement element)
+    {
+        var algorithm = SortAlgorithmFactory.CreateAlgorithm(_dsmModel, element, PartitionSortAlgorithm.AlgorithmName);
+        _dsmModel.ReorderChildren(element, algorithm.Sort());
+
+        foreach (var child in element.Children)
+        {
+            Partition(child);
+        }
     }
 
     /// <summary>

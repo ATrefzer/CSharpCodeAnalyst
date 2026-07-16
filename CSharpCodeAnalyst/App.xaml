@@ -19,6 +19,9 @@
                     DarkThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/DarkTheme.xaml"
                     PastelThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/PastelTheme.xaml"
                     LightThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/LightTheme.xaml" />
+
+                <!-- Our restyling of the matrix. Must stay last: it wins by overriding the keys above. -->
+                <ResourceDictionary Source="Features/DsmMatrix/DsmMatrixTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

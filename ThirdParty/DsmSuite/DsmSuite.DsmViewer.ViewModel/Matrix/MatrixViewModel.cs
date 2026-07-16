@@ -42,6 +42,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         private List<List<int>> _cellWeights;
         private List<MatrixColor> _columnColors;
         private List<int> _columnElementIds;
+        // Added 2026-07 for CSharpCodeAnalyst: see ColumnElementNames.
+        private List<string> _columnElementNames;
         private List<string> _metrics;
         private const int _nrWeightBuckets = 10; // Number of buckets (quantiles) for grouping cell weights.
         private List<List<double>> _weightPercentiles;  // The weight bucket for every cell as a percentile
@@ -154,6 +156,12 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
         public IReadOnlyList<MatrixColor> ColumnColors => _columnColors;
         public IReadOnlyList<int> ColumnElementIds => _columnElementIds;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: the column headers only carried the element order, which
+        /// forced the reader to look every column up in the row headers to learn what it is.
+        /// </summary>
+        public IReadOnlyList<string> ColumnElementNames => _columnElementNames;
         public IReadOnlyList<IList<MatrixColor>> CellColors => _cellColors;
         public IReadOnlyList<IReadOnlyList<int>> CellWeights => _cellWeights;
         /// <summary>
@@ -552,9 +560,12 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         private void DefineColumnContent()
         {
             _columnElementIds = new List<int>();
+            _columnElementNames = new List<string>();
             foreach (ElementTreeItemViewModel provider in _elementViewModelLeafs)
             {
                 _columnElementIds.Add(provider.Element.Order);
+                // Added 2026-07 for CSharpCodeAnalyst, see ColumnElementNames.
+                _columnElementNames.Add(provider.Element.Name);
             }
         }
 
