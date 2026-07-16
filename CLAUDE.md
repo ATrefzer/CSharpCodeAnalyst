@@ -117,6 +117,8 @@ Then wire up the edges: `RuleEngine.Execute` for the evaluation, `RuleViolationV
 ### Vendored DsmSuite (the DSM tab)
 The matrix on the DSM tab is not ours: `ThirdParty/DsmSuite/` is a modified subset of [DsmSuite](https://github.com/ernstaii/dsmsuite.sourcecode), pinned to a commit recorded in `ThirdParty/DsmSuite/README.md`, GPL-3.0-or-later (originally MIT). Our side is `Features/DsmMatrix/`: `CodeGraphToDsmModelBuilder` fills a DsmSuite `IDsmModel` straight from the `TypeGraph` — explicit `parentId`, no DSI file, no name splitting — and `DsmMatrixView` hosts their `MatrixView`.
 
+**`ThirdParty/DsmSuite/Dsm.md` is the reference for what the matrix actually draws** — axes (row = provider, column = consumer), the depth-coloured blocks, the two row indicator bars, the weight deciles, and what the builder feeds in. Read it before changing anything about the view's semantics, and keep it in sync: it exists because none of that is discoverable from the UI and it otherwise has to be re-derived from the drawing code.
+
 **Every change under `ThirdParty/DsmSuite/` costs two things, and neither is optional:** (1) a `Changed <YYYY-MM> for CSharpCodeAnalyst` comment at the site explaining *why*, and (2) a row in the change table in `ThirdParty/DsmSuite/README.md`. GPL §5(a) requires stating what was modified, and that table is the map for ever diffing against upstream again — an undocumented change silently becomes indistinguishable from upstream code. Same rule for the bug list in that README when you find (or fix) a defect in their code.
 
 Two traps that are already documented there and worth knowing before you write code against their API:

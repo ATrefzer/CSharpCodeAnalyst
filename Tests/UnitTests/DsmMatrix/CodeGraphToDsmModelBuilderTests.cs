@@ -173,6 +173,71 @@ public class CodeGraphToDsmModelBuilderTests
     }
 
     [Test]
+    public void Build_NamespaceChainWithoutOwnTypes_IsDropped()
+    {
+        // The real shape: the parser makes one element per namespace segment, so an assembly whose root
+        // namespace repeats its own name produces a chain of levels that hold nothing.
+        var assembly = _graph.CreateAssembly("CSharpCodeAnalyst.CodeGraph");
+        var outer = _graph.CreateNamespace("ns-outer", assembly);
+        var inner = _graph.CreateNamespace("ns-inner", outer);
+        var graphNs = _graph.CreateNamespace("ns-graph", inner);
+        var algorithms = _graph.CreateNamespace("ns-algorithms", inner);
+        _graph.CreateClass("CodeElement", graphNs);
+        _graph.CreateClass("TypeGraph", algorithms);
+
+        Build();
+
+        // "outer" has a single namespace child and goes; "inner" branches and stays.
+        var assemblyElement = _dsmModel.GetElementByFullname("CSharpCodeAnalyst.CodeGraph");
+        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "ns-inner" }),
+            "the pass-through level must not sit between the assembly and the branching namespace");
+    }
+
+    [Test]
+    public void Build_NamespaceWithSeveralChildren_IsKept()
+    {
+        var assembly = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", assembly);
+        _graph.CreateClass("A", ns);
+        _graph.CreateClass("B", ns);
+
+        Build();
+
+        Assert.That(_dsmModel.GetElementByFullname("Asm.Ns"), Is.Not.Null);
+    }
+
+    [Test]
+    public void Build_NamespaceWithASingleType_IsKept()
+    {
+        // One child, but it is a type: the namespace does carry content and has to stay.
+        var assembly = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", assembly);
+        _graph.CreateClass("Only", ns);
+
+        Build();
+
+        Assert.That(_dsmModel.GetElementByFullname("Asm.Ns.Only"), Is.Not.Null);
+    }
+
+    [Test]
+    public void Build_NamespaceBranchesOnlyIntoExcludedTypes_CountsAsPassThrough()
+    {
+        // Two children in the code graph, but one is external and never reaches the model. What matters is
+        // what the matrix ends up showing, so this is a pass-through despite the code graph branching.
+        var assembly = _graph.CreateAssembly("Asm");
+        var outer = _graph.CreateNamespace("Outer", assembly);
+        var inner = _graph.CreateNamespace("Inner", outer);
+        _graph.CreateExternalClass("Ext", outer);
+        _graph.CreateClass("A", inner);
+        _graph.CreateClass("B", inner);
+
+        Build();
+
+        var assemblyElement = _dsmModel.GetElementByFullname("Asm");
+        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "Inner" }));
+    }
+
+    [Test]
     public void Build_CalledTwice_DoesNotAccumulate()
     {
         _graph.CreateClass("A");

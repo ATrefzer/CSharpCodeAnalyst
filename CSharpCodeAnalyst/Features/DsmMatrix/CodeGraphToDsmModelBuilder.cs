@@ -25,6 +25,9 @@ public sealed class CodeGraphToDsmModelBuilder
     /// <summary>Maps a code element id to the DSM element created for it.</summary>
     private readonly Dictionary<string, IDsmElement> _dsmElementsByCodeElementId = [];
 
+    /// <summary>Namespaces left out of the model, see <see cref="FindPassThroughNamespaces" />.</summary>
+    private HashSet<string> _passThroughNamespaces = [];
+
     public CodeGraphToDsmModelBuilder(IDsmModel dsmModel, CodeGraph.Graph.CodeGraph codeGraph)
     {
         _dsmModel = dsmModel;
@@ -41,6 +44,7 @@ public sealed class CodeGraphToDsmModelBuilder
         _dsmElementsByCodeElementId.Clear();
 
         var typeGraph = TypeGraph.Build(_codeGraph);
+        _passThroughNamespaces = FindPassThroughNamespaces(typeGraph);
 
         foreach (var typeId in typeGraph.Vertices)
         {
@@ -52,6 +56,70 @@ public sealed class CodeGraphToDsmModelBuilder
         Partition(_dsmModel.RootElement);
         _dsmModel.AssignElementOrder();
         return typeGraph.VertexCount;
+    }
+
+    /// <summary>
+    ///     The namespaces that carry no structure of their own: exactly one child, and that child another
+    ///     namespace. They are left out, so their child hangs off the nearest ancestor that does say something.
+    /// </summary>
+    /// <remarks>
+    ///     The parser creates one element per namespace segment, so a project whose root namespace repeats its
+    ///     assembly name produces a chain of pass-throughs: assembly "A.B" holds namespace "A" holds namespace
+    ///     "B" holds the real ones. Every one of those is a row and a column in the matrix, and they all read
+    ///     the same. Dropping them is a view concern, which is why this lives here rather than in the parser,
+    ///     whose hierarchy is right and is what the tree view wants.
+    ///     <para>
+    ///         "Exactly one child" has to be counted over what actually reaches the model, not over the code
+    ///         graph: a namespace holding two types of which one is external is a pass-through here even
+    ///         though the code graph shows it branching.
+    ///     </para>
+    /// </remarks>
+    private HashSet<string> FindPassThroughNamespaces(TypeGraph typeGraph)
+    {
+        // Everything the model will hold: the types, plus every ancestor they hang from.
+        var included = new HashSet<string>();
+        foreach (var typeId in typeGraph.Vertices)
+        {
+            var current = _codeGraph.Nodes[typeId];
+            while (current is not null && included.Add(current.Id))
+            {
+                current = current.Parent;
+            }
+        }
+
+        var childrenByParent = new Dictionary<string, List<CodeElement>>();
+        foreach (var element in included.Select(id => _codeGraph.Nodes[id]))
+        {
+            if (element.Parent is null)
+            {
+                continue;
+            }
+
+            if (!childrenByParent.TryGetValue(element.Parent.Id, out var siblings))
+            {
+                siblings = [];
+                childrenByParent[element.Parent.Id] = siblings;
+            }
+
+            siblings.Add(element);
+        }
+
+        var passThrough = new HashSet<string>();
+        foreach (var element in included.Select(id => _codeGraph.Nodes[id]))
+        {
+            if (element.ElementType is not CodeElementType.Namespace)
+            {
+                continue;
+            }
+
+            if (childrenByParent.TryGetValue(element.Id, out var children) &&
+                children is [{ ElementType: CodeElementType.Namespace }])
+            {
+                passThrough.Add(element.Id);
+            }
+        }
+
+        return passThrough;
     }
 
     /// <summary>
@@ -77,10 +145,17 @@ public sealed class CodeGraphToDsmModelBuilder
 
     /// <summary>
     ///     Returns the DSM element for a code element, creating it and every missing ancestor first. Walking up
-    ///     before creating keeps a parent's id available by the time the child needs it.
+    ///     before creating keeps a parent's id available by the time the child needs it. For a pass-through
+    ///     namespace it returns the nearest kept ancestor instead, which is what drops it from the model.
     /// </summary>
-    private IDsmElement AddWithAncestors(string codeElementId)
+    private IDsmElement? AddWithAncestors(string codeElementId)
     {
+        if (_passThroughNamespaces.Contains(codeElementId))
+        {
+            var skipped = _codeGraph.Nodes[codeElementId].Parent;
+            return skipped is null ? null : AddWithAncestors(skipped.Id);
+        }
+
         if (_dsmElementsByCodeElementId.TryGetValue(codeElementId, out var existing))
         {
             return existing;
