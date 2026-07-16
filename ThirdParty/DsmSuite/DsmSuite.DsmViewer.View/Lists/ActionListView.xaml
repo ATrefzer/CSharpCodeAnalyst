@@ -1,0 +1,39 @@
+﻿<Window x:Class="DsmSuite.DsmViewer.View.Lists.ActionListView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Width="800"
+        Loaded="ActionListView_OnLoaded"        
+        Style="{StaticResource FixedHeightDialogStyle}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource TitleHeight}" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="{StaticResource BottomRowHeight}" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogTitle}" Text="{Binding Title}" Margin="5"/>
+        <ListView Name="actionList" Grid.Row="1" SelectionMode="Single" ItemsSource="{Binding Actions}" Style="{StaticResource DialogListView}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Index" Width="20" DisplayMemberBinding="{Binding Index}" />
+                    <GridViewColumn Header="Action" Width="200" DisplayMemberBinding="{Binding Title}" />
+                    <GridViewColumn Header="Details" Width="600" DisplayMemberBinding="{Binding Details}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <DockPanel Grid.Row="2">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" HorizontalAlignment="Left" >
+                <Button Style="{StaticResource DialogButton}" Content="Clear all" ToolTip="Clear action list" Command="{Binding ClearCommand}"/>
+                <Button Style="{StaticResource DialogButton}" Content="Copy all" ToolTip="Copy action list to clipboard" Command="{Binding CopyToClipboardCommand}"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button Style="{StaticResource DialogButton}" Content="Goto" ToolTip="Undo up to the selected action"
+                        Command="{Binding GotoCommand}"
+                        CommandParameter="{Binding ElementName=actionList,Path=SelectedItem}"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="manages user actions">
+    <Position X="1.8" Y="2.025" Height="0.325" Width="1.45" />
+  </Comment>
+  <Comment CommentText="Saves/restores user actions to/from the model">
+    <Position X="5.683" Y="3.225" Height="0.5" Width="1.7" />
+  </Comment>
+  <Class Name="DsmSuite.DsmViewer.Application.Core.DsmApplication" Collapsed="true">
+    <Position X="5.5" Y="1.5" Width="1.5" />
+    <AssociationLine Name="_dsmModel" Type="DsmSuite.DsmViewer.Model.Interfaces.IDsmModel" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="6.938" Y="2.062" />
+        <Point X="6.938" Y="2.26" />
+        <Point X="8.844" Y="2.26" />
+        <Point X="8.844" Y="2.5" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="_actionManager" Type="DsmSuite.DsmViewer.Application.Actions.Management.ActionManager">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-1.357" Y="0.793" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>ApE2RAoAJoyQBAiDABIbREkhoIhohYCFRlAgBIUAQIA=</HashCode>
+      <FileName>Core\DsmApplication.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_dsmModel" />
+      <Field Name="_actionManager" />
+      <Field Name="_actionStore" />
+      <Field Name="_queries" />
+      <Field Name="_metrics" />
+      <Property Name="RootElement" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.957" />
+  </Class>
+  <Class Name="DsmSuite.DsmViewer.Application.Actions.Management.ActionManager" Collapsed="true">
+    <Position X="0.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIQAAQABACABASAAIAgEAIBAAAAAAAAECACAAFAAIA=</HashCode>
+      <FileName>Actions\Management\ActionManager.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Orientation="Right" Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="DsmSuite.DsmViewer.Application.Actions.Management.ActionStore" Collapsed="true">
+    <Position X="5.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAhAAAEAAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Actions\Management\ActionStore.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DsmSuite.DsmViewer.Application.Metrics.DsmMetrics" Collapsed="true">
+    <Position X="8.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Metrics\DsmMetrics.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DsmSuite.DsmViewer.Application.Queries.DsmQueries" Collapsed="true">
+    <Position X="8.5" Y="1.5" Width="1.5" />
+    <AssociationLine Name="_model" Type="DsmSuite.DsmViewer.Model.Interfaces.IDsmModel">
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="-0.84" Y="0.135" />
+      </MemberNameLabel>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAAABAAgAACAAAgAEggACAAAAAAAQAAAA=</HashCode>
+      <FileName>Queries\DsmQueries.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="_model" />
+    </ShowAsAssociation>
+  </Class>
+  <Interface Name="DsmSuite.DsmViewer.Model.Interfaces.IDsmModel" Collapsed="true">
+    <Position X="8.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier />
+  </Interface>
+  <Interface Name="DsmSuite.DsmViewer.Application.Actions.Management.IActionManager" Collapsed="true">
+    <Position X="2.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAACAAAQAAIAAAAAAAAAAAAAAACAAAABAAAA=</HashCode>
+      <FileName>Actions\Management\IActionManager.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="DsmSuite.DsmViewer.Application.Interfaces.IAction" Collapsed="true">
+    <Position X="0.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgBEAAAAgAAAAACAAAABAAAQAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IAction.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="DsmSuite.DsmViewer.Model.Interfaces.IDsmElement" Collapsed="true">
+    <Position X="3.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier />
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

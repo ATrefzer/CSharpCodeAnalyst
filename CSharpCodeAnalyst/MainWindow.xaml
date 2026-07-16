@@ -8,6 +8,7 @@
                      mc:Ignorable="d"
                      xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
                      xmlns:dynamicDataGrid1="clr-namespace:CSharpCodeAnalyst.Shared.DynamicDataGrid"
+                     xmlns:dsmMatrix="clr-namespace:CSharpCodeAnalyst.Features.DsmMatrix"
                      xmlns:tree="clr-namespace:CSharpCodeAnalyst.Features.Tree"
                      xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
                      xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
@@ -560,6 +561,10 @@
 
                 <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
+                </TabItem>
+
+                <TabItem Header="DSM">
+                    <dsmMatrix:DsmMatrixView x:Name="DsmMatrix" />
                 </TabItem>
 
                 <!-- Analyzer / Partitions / hierarchical (tree-map) results: dynamic tabs, one per

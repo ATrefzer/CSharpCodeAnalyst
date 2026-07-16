@@ -370,6 +370,10 @@ https://github.com/punker76/gong-wpf-dragdrop
 - Markdown rendering in the AI Advisor window is powered by **Markdig.Wpf** and **Markdig**.
 Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
 https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
+- The dependency structure matrix on the DSM tab is the viewer from **DsmSuite**, licensed under
+GPL-3.0-or-later (same as this project) and originally MIT-licensed by jmuijsenberg. A modified
+subset of it is vendored under [ThirdParty/DsmSuite](ThirdParty/DsmSuite/).
+https://github.com/ernstaii/dsmsuite.sourcecode / https://github.com/dsmsuite/dsmsuite.sourcecode
 
 For complete third-party license information, see the [ThirdPartyNotices](ThirdPartyNotices/) folder.
 

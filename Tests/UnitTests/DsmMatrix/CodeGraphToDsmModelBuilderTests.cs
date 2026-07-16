@@ -1,0 +1,150 @@
+using System.Reflection;
+using CodeParserTests.Helper;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.Features.DsmMatrix;
+using DsmSuite.DsmViewer.Model.Core;
+using DsmSuite.DsmViewer.Model.Interfaces;
+
+namespace CodeParserTests.UnitTests.DsmMatrix;
+
+[TestFixture]
+public class CodeGraphToDsmModelBuilderTests
+{
+    [SetUp]
+    public void SetUp()
+    {
+        _graph = new TestCodeGraph();
+        _dsmModel = new DsmModel("Test", Assembly.GetExecutingAssembly());
+    }
+
+    private TestCodeGraph _graph = null!;
+    private IDsmModel _dsmModel = null!;
+
+    private static void Rel(CodeElement source, CodeElement target, RelationshipType type)
+    {
+        source.Relationships.Add(new Relationship(source.Id, target.Id, type));
+    }
+
+    private int Build()
+    {
+        return new CodeGraphToDsmModelBuilder(_dsmModel, _graph).Build();
+    }
+
+    /// <summary>Elements in the model, without the implicit root that DsmModel always carries.</summary>
+    private int AddedElementCount()
+    {
+        return _dsmModel.GetElementCount() - 1;
+    }
+
+    [Test]
+    public void Build_EmptyGraph_AddsNothing()
+    {
+        Assert.That(Build(), Is.EqualTo(0));
+        Assert.That(AddedElementCount(), Is.EqualTo(0));
+    }
+
+    [Test]
+    public void Build_TypeUnderNamespace_RecreatesHierarchyFromParentChain()
+    {
+        var assembly = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", assembly);
+        _graph.CreateClass("A", ns);
+
+        Build();
+
+        // The full name must come from the parent chain, not from splitting a dotted name.
+        var element = _dsmModel.GetElementByFullname("Asm.Ns.A");
+        Assert.That(element, Is.Not.Null);
+        Assert.That(element.Type, Is.EqualTo(CodeElementType.Class.ToString()));
+    }
+
+    [Test]
+    public void Build_TypeNameContainsDots_StaysASingleElement()
+    {
+        // This is what the DSI detour cannot do: a name with dots would become a hierarchy there.
+        var assembly = _graph.CreateAssembly("Asm");
+        _graph.CreateClass("Weird", assembly, "Asm.Weird");
+        _graph.Nodes["Weird"].Parent!.Children.Add(_graph.Nodes["Weird"]);
+
+        Build();
+
+        Assert.That(AddedElementCount(), Is.EqualTo(2), "assembly plus one type, no split");
+    }
+
+    [Test]
+    public void Build_MethodCallsBetweenTypes_LiftedToOneTypeRelation()
+    {
+        var a = _graph.CreateClass("A");
+        var m1 = _graph.CreateMethod("A.M1", a);
+        var m2 = _graph.CreateMethod("A.M2", a);
+        var b = _graph.CreateClass("B");
+        var bm = _graph.CreateMethod("B.M", b);
+
+        Rel(m1, bm, RelationshipType.Calls);
+        Rel(m2, bm, RelationshipType.Calls);
+
+        Assert.That(Build(), Is.EqualTo(2));
+
+        var consumer = _dsmModel.GetElementByFullname("A");
+        var provider = _dsmModel.GetElementByFullname("B");
+        Assert.Multiple(() =>
+        {
+            Assert.That(_dsmModel.GetRelationCount(consumer, provider), Is.EqualTo(1), "two calls, one edge");
+            Assert.That(_dsmModel.GetRelationCount(provider, consumer), Is.EqualTo(0));
+        });
+    }
+
+    [Test]
+    public void Build_MethodsAndFields_AreNotAddedAsElements()
+    {
+        var a = _graph.CreateClass("A");
+        _graph.CreateMethod("A.M", a);
+        _graph.CreateField("A.F", a);
+
+        Assert.That(Build(), Is.EqualTo(1));
+        Assert.That(AddedElementCount(), Is.EqualTo(1), "only the type itself");
+    }
+
+    [Test]
+    public void Build_ExternalType_IsExcluded()
+    {
+        var a = _graph.CreateClass("A");
+        var external = _graph.CreateExternalClass("Ext");
+        Rel(a, external, RelationshipType.Uses);
+
+        Assert.That(Build(), Is.EqualTo(1));
+        Assert.That(_dsmModel.GetElementByFullname("Ext"), Is.Null);
+    }
+
+    [Test]
+    public void Build_MutualDependency_KeepsBothDirections()
+    {
+        // The case the matrix paints black, so both directions have to survive.
+        var a = _graph.CreateClass("A");
+        var b = _graph.CreateClass("B");
+        Rel(a, b, RelationshipType.Uses);
+        Rel(b, a, RelationshipType.Uses);
+
+        Build();
+
+        var elementA = _dsmModel.GetElementByFullname("A");
+        var elementB = _dsmModel.GetElementByFullname("B");
+        Assert.Multiple(() =>
+        {
+            Assert.That(_dsmModel.GetRelationCount(elementA, elementB), Is.EqualTo(1));
+            Assert.That(_dsmModel.GetRelationCount(elementB, elementA), Is.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void Build_CalledTwice_DoesNotAccumulate()
+    {
+        _graph.CreateClass("A");
+
+        Build();
+        var countAfterFirst = AddedElementCount();
+        Build();
+
+        Assert.That(AddedElementCount(), Is.EqualTo(countAfterFirst));
+    }
+}

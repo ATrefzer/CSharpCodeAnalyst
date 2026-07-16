@@ -1,0 +1,21 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:valueConverters="clr-namespace:DsmSuite.DsmViewer.View.ValueConverters">
+    <valueConverters:SearchStateToColorConverter x:Key="SearchStateToColorConverter" 
+                    NoMatchBrush="{StaticResource SearchNoMatchTextColor}"
+                    MatchBrush="{StaticResource SearchMatchTextColor}" 
+                    MultipleMatchesBrush="{StaticResource SearchMultipleMatchesTextColor}" />
+    <valueConverters:SearchStateOffToVisibilityConverter x:Key="SearchStateOffToVisibilityConverter" />
+    <valueConverters:SearchStateNotOffToVisibilityConverter x:Key="SearchStateNotOffToVisibilityConverter" />
+    <valueConverters:SearchElementFoundToVisibilityConverter x:Key="SearchElementFoundToVisibilityConverter" />
+    <valueConverters:SearchElementNotFoundToVisibilityConverter x:Key="SearchElementNotFoundToVisibilityConverter" />
+    <valueConverters:MetricsExpandedToButtonContentConverter x:Key="MetricsExpandedToButtonContentConverter" />
+    <valueConverters:MetricsExpandedToViewWidthConverter x:Key="MetricsExpandedToViewWidthConverter" 
+                    ViewWidth="120"/>
+    <valueConverters:MatrixSizeToVisbilityConverter x:Key="MatrixSizeToVisbilityConverter" />
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+    <valueConverters:BookmarkIndicatorModeToVisibilityConverter x:Key="BookmarkIndicatorModeToVisibilityConverter" />
+    <valueConverters:DefaultIndicatorModeToVisibilityConverter x:Key="DefaultIndicatorModeToVisibilityConverter" />
+    <valueConverters:SearchIndicatorModeToVisibilityConverter x:Key="SearchIndicatorModeToVisibilityConverter" />
+</ResourceDictionary>

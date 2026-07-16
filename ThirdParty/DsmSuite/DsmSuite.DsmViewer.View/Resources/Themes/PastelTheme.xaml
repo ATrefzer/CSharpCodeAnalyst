@@ -1,0 +1,35 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options" 
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="TextColor" po:Freeze="True">#000000</SolidColorBrush>
+    <SolidColorBrush x:Key="ErrorTextColor" po:Freeze="True">#ff0000</SolidColorBrush>
+    <SolidColorBrush x:Key="SearchNoMatchTextColor" po:Freeze="True">#ff0000</SolidColorBrush>
+    <SolidColorBrush x:Key="SearchMatchTextColor" po:Freeze="True">#000000</SolidColorBrush>
+    <SolidColorBrush x:Key="SearchMultipleMatchesTextColor" po:Freeze="True">#888888</SolidColorBrush>
+    
+    <SolidColorBrush x:Key="BackgroundColor" po:Freeze="True">#ffffff</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundHoverColor" po:Freeze="True">#D9E7F6</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundPressedColor" po:Freeze="True">#888888</SolidColorBrush>
+    <SolidColorBrush x:Key="BackgroundControlColor" po:Freeze="True">#ffffff</SolidColorBrush>
+    <SolidColorBrush x:Key="ForegroundHoverColor" po:Freeze="True">#000000</SolidColorBrush>
+    <SolidColorBrush x:Key="ForegroundAccentedColor" po:Freeze="True">#202020</SolidColorBrush>
+    <SolidColorBrush x:Key="ForegroundStandardColor" po:Freeze="True">#404040</SolidColorBrush>
+    <SolidColorBrush x:Key="ForegroundDisabledColor" po:Freeze="True">#a0a0a0</SolidColorBrush>
+
+    <SolidColorBrush x:Key="MatrixColorBackground" po:Freeze="True">#f0f0f0</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor1" po:Freeze="True">#D9E7F6</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor2" po:Freeze="True">#F6E7D9</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor3" po:Freeze="True">#F4D9F6</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor4" po:Freeze="True">#daf5e7</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorCycle" po:Freeze="True">#fdfd7d</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorConsumer" po:Freeze="True">#e79bc3</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorProvider" po:Freeze="True">#9bc0e7</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorMatch" po:Freeze="True">#ff0000</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorBookmark" po:Freeze="True">#00ff00</SolidColorBrush>
+
+    <SolidColorBrush x:Key="CellWeightColor" po:Freeze="True">#606060</SolidColorBrush>
+
+    <sys:Double x:Key="HighlightFactorHovered" >1.1</sys:Double>
+    <sys:Double x:Key="HighlightFactorSelected" >1.2</sys:Double>
+</ResourceDictionary>

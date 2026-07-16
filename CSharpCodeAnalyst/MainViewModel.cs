@@ -861,7 +861,14 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateStatistics(codeGraph);
+        CodeGraphLoaded?.Invoke(this, codeGraph);
     }
+
+    /// <summary>
+    ///     Raised after a new code graph was loaded. Used by views that are not driven by a view model of
+    ///     their own, currently only the DSM matrix tab.
+    /// </summary>
+    public event EventHandler<CodeGraph.Graph.CodeGraph>? CodeGraphLoaded;
 
     private void UpdateStatistics(CodeGraph.Graph.CodeGraph codeGraph)
     {

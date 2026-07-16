@@ -37,6 +37,7 @@ public partial class MainWindow
         if (DataContext is MainViewModel mainVm)
         {
             InitializeDynamicTabs(mainVm);
+            mainVm.CodeGraphLoaded += (_, codeGraph) => DsmMatrix.Show(codeGraph);
         }
     }
 

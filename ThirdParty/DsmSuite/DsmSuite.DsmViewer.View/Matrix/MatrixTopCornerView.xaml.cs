@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+using DsmSuite.DsmViewer.ViewModel.Matrix;
+using System.Windows;
+
+
+namespace DsmSuite.DsmViewer.View.Matrix
+{
+    /// <summary>
+    /// Interaction logic for MatrixTopCornerView.xaml
+    /// </summary>
+    public partial class MatrixTopCornerView
+    {
+        private MatrixViewModel _viewModel;
+
+        public MatrixTopCornerView()
+        {
+            InitializeComponent();
+
+            DataContextChanged += OnDataContextChanged;
+        }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _viewModel = DataContext as MatrixViewModel;
+        }
+
+        private void OnClearSelection(object sender, RoutedEventArgs e)
+        {
+            _viewModel.SelectCell(null, null);
+            _viewModel.SelectTreeItem(null);
+        }
+    }
+}

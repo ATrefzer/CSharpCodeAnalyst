@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ApplicationIcon>Resources/DSM.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\DSM.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DsmSuite.Common.Util\DsmSuite.Common.Util.csproj" />
+    <ProjectReference Include="..\DsmSuite.DsmViewer.Application\DsmSuite.DsmViewer.Application.csproj" />
+    <ProjectReference Include="..\DsmSuite.DsmViewer.Model\DsmSuite.DsmViewer.Model.csproj" />
+    <ProjectReference Include="..\DsmSuite.DsmViewer.ViewModel\DsmSuite.DsmViewer.ViewModel.csproj" />
+  </ItemGroup>
+
+</Project>

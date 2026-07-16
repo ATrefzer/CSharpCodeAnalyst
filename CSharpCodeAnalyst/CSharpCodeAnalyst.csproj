@@ -158,6 +158,10 @@
         <ProjectReference Include="..\CSharpCodeAnalyst.History\CSharpCodeAnalyst.History.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.TreeMap\CSharpCodeAnalyst.TreeMap.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.Contracts\CSharpCodeAnalyst.Contracts.csproj" />
+        <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.View\DsmSuite.DsmViewer.View.csproj" />
+        <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.ViewModel\DsmSuite.DsmViewer.ViewModel.csproj" />
+        <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.Application\DsmSuite.DsmViewer.Application.csproj" />
+        <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.Model\DsmSuite.DsmViewer.Model.csproj" />
     </ItemGroup>
 
 
