@@ -234,17 +234,30 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
             }
         }
 
+        /// <summary>
+        /// The leaf a row or column index addresses, or null if it addresses none.
+        /// </summary>
+        /// <remarks>
+        /// Added 2026-07 for CSharpCodeAnalyst. The views derive an index from a mouse position by plain
+        /// division, without bounding it against the current matrix (see MatrixCellsView.GetHoveredRow), so
+        /// every caller has to cope with an index that is out of range. GetRowCoord and GetColumnCoord did
+        /// check, but only against the upper bound, and UpdateCellTooltip / UpdateColumnHeaderTooltip did
+        /// not check at all and threw. Routing all four through here is what keeps the check in one place.
+        /// </remarks>
+        private ElementTreeItemViewModel LeafAt(int? index)
+        {
+            return index is int i && i >= 0 && i < _elementViewModelLeafs.Count
+                ? _elementViewModelLeafs[i]
+                : null;
+        }
+
         private MatrixViewModelCoordinate GetRowCoord(int? row)
         {
-            ElementTreeItemViewModel vm = null;
-
             if (row == null)
                 return null;
 
-            if (row is int therow  &&  therow < _elementViewModelLeafs.Count)
-            {
-                vm = _elementViewModelLeafs[therow];
-            }
+            // Changed 2026-07 for CSharpCodeAnalyst: bounds check moved into LeafAt.
+            ElementTreeItemViewModel vm = LeafAt(row);
 
             return new()
             {
@@ -280,15 +293,11 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
         private MatrixViewModelCoordinate GetColumnCoord(int? column)
         {
-            IDsmElement consumer = null;
-
             if (column == null)
                 return null;
 
-            if (column is int thecol  &&  thecol < _elementViewModelLeafs.Count)
-            {
-                consumer = _elementViewModelLeafs[thecol].Element;
-            }
+            // Changed 2026-07 for CSharpCodeAnalyst: bounds check moved into LeafAt.
+            IDsmElement consumer = LeafAt(column)?.Element;
 
             return new()
             {
@@ -626,29 +635,27 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
  
         private void UpdateColumnHeaderTooltip(int? column)
         {
-            if (column.HasValue)
+            // Changed 2026-07 for CSharpCodeAnalyst: indexed _elementViewModelLeafs directly on HasValue
+            // alone and threw on an out of range column. See LeafAt.
+            IDsmElement element = LeafAt(column)?.Element;
+            if (element != null)
             {
-                IDsmElement element = _elementViewModelLeafs[column.Value].Element;
-                if (element != null)
-                {
-                    ColumnHeaderToolTipViewModel = new ElementToolTipViewModel(element, _application);
-                }
+                ColumnHeaderToolTipViewModel = new ElementToolTipViewModel(element, _application);
             }
         }
 
         private void UpdateCellTooltip(int? row, int? column)
         {
-            if (row.HasValue && column.HasValue)
-            {
-                IDsmElement consumer = _elementViewModelLeafs[column.Value].Element;
-                IDsmElement provider = _elementViewModelLeafs[row.Value].Element;
+            // Changed 2026-07 for CSharpCodeAnalyst: indexed _elementViewModelLeafs directly on HasValue
+            // alone. Hovering a cell while the matrix resized under the pointer threw here. See LeafAt.
+            IDsmElement consumer = LeafAt(column)?.Element;
+            IDsmElement provider = LeafAt(row)?.Element;
 
-                if ((consumer != null) && (provider != null))
-                {
-                    int weight = _application.GetDependencyWeight(consumer, provider);
-                    CycleType cycleType = _application.IsCyclicDependency(consumer, provider);
-                    CellToolTipViewModel = new CellToolTipViewModel(consumer, provider, weight, cycleType);
-                }
+            if ((consumer != null) && (provider != null))
+            {
+                int weight = _application.GetDependencyWeight(consumer, provider);
+                CycleType cycleType = _application.IsCyclicDependency(consumer, provider);
+                CellToolTipViewModel = new CellToolTipViewModel(consumer, provider, weight, cycleType);
             }
         }
 

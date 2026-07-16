@@ -32,6 +32,7 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | `DsmElementModel.Clear()` now also clears `_elementsByName` | `Model/Core/DsmElementModel.cs` | **bug fix**, see below |
 | Removed the row header and cell context menus | `Matrix/MatrixView.xaml` | their commands edit the DSM model or open the viewer's dialog windows; neither fits a read-only view onto a parsed code graph |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
+| Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
 
 Not a change to their code, but worth knowing when reading it: everything the matrix draws (colours, cell size, header height) is resolved by key via `FindResource` / `StaticResource`. `Features/DsmMatrix/DsmMatrixTheme.xaml` overrides those keys from our side, merged last in `App.xaml`. Restyling therefore needs no edit in here — prefer that route.
@@ -53,7 +54,17 @@ Neither is fixed beyond what we needed; both are worth reporting upstream.
    ever held a short number that always fit. **Fixed here** by anchoring at the top, which our headers need
    because they carry names; it also lines the element orders up across columns.
 
-3. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+3. **`MatrixViewModel` indexed its leaves with an unbounded index from the mouse position.** The views turn
+   a mouse position into a row/column by plain division and never bound it against the matrix
+   (`MatrixCellsView.GetHoveredRow`), so every consumer has to cope with an out of range index.
+   `GetRowCoord` / `GetColumnCoord` did check — but only against the upper bound, never against a negative
+   — while `UpdateCellTooltip` and `UpdateColumnHeaderTooltip` checked only `HasValue` and threw an
+   `ArgumentOutOfRangeException`. Reachable upstream too (hover a cell, then shrink the matrix under the
+   pointer with the toolbar zoom), just far easier to hit with a wheel zoom, where the pointer is over the
+   cells by definition. **Fixed here** via `LeafAt`, which all four now share; the two tooltip methods
+   already null-checked their result, so the null it returns is enough.
+
+4. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model
