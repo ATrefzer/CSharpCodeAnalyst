@@ -36,10 +36,20 @@ public class DistinctColorPaletteTests
     [Test]
     public void GetColors_PairwisePerceptualDistanceStaysAboveFloor()
     {
-        // Thresholds calibrated against the implementation (measured: 47.1 for n=16,
-        // 30.9 for n=32) with a safety margin. dE >= 25 is comfortably distinguishable.
+        // Thresholds calibrated against the implementation (measured: 43.9 for n=16,
+        // 32.4 for n=32) with a safety margin. dE >= 25 is comfortably distinguishable.
         Assert.That(MinPairwiseDistance(DistinctColorPalette.GetColors(16)), Is.GreaterThan(40));
         Assert.That(MinPairwiseDistance(DistinctColorPalette.GetColors(32)), Is.GreaterThan(25));
+    }
+
+    [Test]
+    public void GetColors_SmallSetsAreStronglySeparated()
+    {
+        // Regression guard for the "red + pink at n=3" defect: using yellow as an FPS repulsion
+        // anchor pushed the whole sequence away from the yellow-green region, so green could not
+        // be chosen early and the red-blue gap was filled with pink (dE ~ 90). With yellow as a
+        // pure exclusion zone the first three colors are blue/green/red, all far apart.
+        Assert.That(MinPairwiseDistance(DistinctColorPalette.GetColors(3)), Is.GreaterThan(120));
     }
 
     [Test]

@@ -14,10 +14,12 @@ namespace CSharpCodeAnalyst.TreeMap.Common
     /// Algorithm (farthest point sampling): candidates are a grid over the sRGB cube, converted
     /// to the CIELAB color space, where Euclidean distance approximates the PERCEIVED color
     /// difference. Each new color is the candidate whose minimum distance to all previously
-    /// chosen colors is largest. White, black, light gray (default tile color) and yellow
-    /// (highlight color) act as pre-chosen anchors, so the sequence automatically keeps its
-    /// distance from backgrounds, borders and the hover highlight. Candidates close to black or
-    /// white are excluded entirely via a lightness window.
+    /// chosen colors is largest. White, black and light gray (default tile color) act as
+    /// pre-chosen anchors, so the sequence automatically keeps its distance from backgrounds and
+    /// borders. The yellow hover-highlight is deliberately NOT an anchor: as a repulsion anchor it
+    /// would push the whole sequence away from the entire yellow-green region and produce poor
+    /// small-n sets (e.g. red + pink at n=3). Instead a small neighborhood around it is excluded
+    /// outright, just like the near-black / near-white lightness window.
     ///
     /// The more colors are requested, the smaller the pairwise distances become - that is
     /// inherent to the problem, but every prefix is close to the best possible choice for its
@@ -29,6 +31,12 @@ namespace CSharpCodeAnalyst.TreeMap.Common
         // a light background with black borders/text.
         private const double MinLightness = 25.0;
         private const double MaxLightness = 92.0;
+
+        // The hover-highlight is yellow. Candidates within this CIELAB radius of it are excluded
+        // so no palette color reads as "highlighted". This is an exclusion zone rather than a
+        // repulsion anchor on purpose: an anchor would bias the whole sequence away from the
+        // yellow-green region and produce poor small-n sets (red + pink at n=3).
+        private const double HighlightExclusion = 30.0;
 
         // Grid resolution of the sRGB candidate cube. Step 15 gives 18^3 = 5832 candidates,
         // fine enough that the greedy selection is not limited by the grid.
@@ -89,16 +97,18 @@ namespace CSharpCodeAnalyst.TreeMap.Common
 
         private static List<Candidate> CreateCandidates()
         {
-            // Reserved colors the sequence must keep its distance from: white (background),
-            // black (borders, text), light gray (DefaultDrawingPrimitives.DefaultColor) and
-            // yellow (DefaultDrawingPrimitives.HighlightBrush).
+            // Achromatic reserved colors the sequence must keep its distance from: white
+            // (background), black (borders, text) and light gray (DefaultDrawingPrimitives.DefaultColor).
             var anchors = new[]
             {
                 ToLab(255, 255, 255),
                 ToLab(0, 0, 0),
-                ToLab(211, 211, 211),
-                ToLab(255, 255, 0)
+                ToLab(211, 211, 211)
             };
+
+            // The hover highlight (DefaultDrawingPrimitives.HighlightBrush, yellow) is an exclusion
+            // zone, not an anchor - see HighlightExclusion.
+            var highlight = ToLab(255, 255, 0);
 
             var candidates = new List<Candidate>();
             for (var r = 0; r <= 255; r += GridStep)
@@ -109,6 +119,11 @@ namespace CSharpCodeAnalyst.TreeMap.Common
                     {
                         var lab = ToLab(r, g, b);
                         if (lab.L is < MinLightness or > MaxLightness)
+                        {
+                            continue;
+                        }
+
+                        if (Distance(lab, highlight) < HighlightExclusion)
                         {
                             continue;
                         }
