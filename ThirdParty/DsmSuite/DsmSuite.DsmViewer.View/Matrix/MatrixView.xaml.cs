@@ -28,20 +28,41 @@ namespace DsmSuite.DsmViewer.View.Matrix
             Canvas.SetTop(RowMetricsView, -e.VerticalOffset);
         }
 
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: how far shift+wheel scrolls sideways per notch. Matches
+        /// what a ScrollViewer does vertically for one notch: three lines of 16.
+        /// </summary>
+        private const double HorizontalWheelScrollAmount = 48.0;
+
         // Pass mouse wheel events on to the ScrollViewer, so that the user can scroll using
         // the wheel even when the mouse cursor is not over the matrix cells, but on the headers.
         private void HandlePreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (!e.Handled)
+            if (e.Handled)
+            {
+                return;
+            }
+
+            ScrollViewer cells = (ScrollViewer) FindName("ScrolledCellsView");
+
+            // Added 2026-07 for CSharpCodeAnalyst: shift+wheel scrolls sideways. A plain ScrollViewer only
+            // handles the wheel vertically, so the horizontal scroll bar was the only way across — and that
+            // bar sits inside the scaled grid, so zooming out shrinks it until it cannot be grabbed. This
+            // makes it unnecessary rather than fixing its width.
+            if (Keyboard.Modifiers == ModifierKeys.Shift)
             {
                 e.Handled = true;
-                var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
-                eventArg.RoutedEvent = UIElement.MouseWheelEvent;
-                eventArg.Source = sender;
-                ScrollViewer cells = (ScrollViewer) FindName("ScrolledCellsView");
-                eventArg.Source = cells;
-                cells.RaiseEvent(eventArg);
+                cells.ScrollToHorizontalOffset(
+                    cells.HorizontalOffset - Math.Sign(e.Delta) * HorizontalWheelScrollAmount);
+                return;
             }
+
+            e.Handled = true;
+            var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
+            eventArg.RoutedEvent = UIElement.MouseWheelEvent;
+            eventArg.Source = sender;
+            eventArg.Source = cells;
+            cells.RaiseEvent(eventArg);
         }
     }
 }

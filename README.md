@@ -167,11 +167,11 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 
 ![](Documentation/Images/example-uml.png)
 
----
-
 ### Plain Text
 
 Plain text might sound boring, but it's actually useful. If you feed a large language model your whole source code for refactoring, you’ll quickly run out of tokens or get garbage results. Instead, just give the LLM your prompt along with this text-based dependency graph. This greatly improves results and saves a massive amount of  tokens. The LLM doesn't even need a description of the graph.
+
+---
 
 ## Validate architectural rules
 
@@ -298,6 +298,25 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 ---
 
+## Dependency Structure Matrix (DSM)
+
+A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row).
+
+To learn how to read the matrix and spot architectural patterns, you can refer to the [DSM Suite Overview](https://dsmsuite.github.io/dsm_overview). Getting used to this view may require a bit of practice.
+
+> **Note:** The matrix does not show the entire raw codebase, but rather the type graph. For example, dependencies between individual methods are lifted to their corresponding types (this is the exact same graph used to calculate our system metrics). This abstraction keeps the DSM focused and clean.
+
+![](Documentation/Images/dsm-suite.png)
+
+- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0). Plain wheel scrolls.
+- **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, the headers
+  included. Worth knowing because the scroll bars sit *inside* the scaled grid, so zooming out shrinks them
+  along with everything else until they are too thin to grab.
+- **Click the arrow** in a row header to expand or collapse; hold **shift** and it
+  works recursively.
+
+---
+
 ## Metrics
 
 C# Code Analyst can calculate a few key metrics that matter.
@@ -308,6 +327,7 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ![](Documentation/Images/metrics-example.png)
 
+
 ## Other languages
 
 The tool is built for C#, but you can also import Jdeps output to get a basic visualization of Java code.
@@ -315,6 +335,8 @@ The tool is built for C#, but you can also import Jdeps output to get a basic vi
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 ```
+
+---
 
 ## Analyze a GIT repository
 
@@ -337,20 +359,6 @@ This isn't related to dependency analysis, but it's helpful if you need to know 
 The developer who contributed most to a file (based on a simple Git blame) is marked as the main developer, and the file is colored accordingly. This doesn't always mean that person knows the file best, but it's a good starting point.
 
 ![](Documentation/Images/knowledge.png)
-
-## Dependency Structure Matrix (DSM)
-
-A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row).
-
-To learn how to read the matrix and spot architectural patterns, you can refer to the [DSM Suite Overview](https://dsmsuite.github.io/dsm_overview). Getting used to this view may require a bit of practice.
-
-> **Note:** The matrix does not show the entire raw codebase, but rather the type graph. For example, dependencies between individual methods are lifted to their corresponding types (this is the exact same graph used to calculate our system metrics). This abstraction keeps the DSM focused and clean.
-
-![](Documentation/Images/dsm-suite.png)
-
-- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0). Plain wheel scrolls.
-- **Click the arrow** in a row header to expand or collapse; hold **shift** and it
-  works recursively.
 
 ## Limitations
 

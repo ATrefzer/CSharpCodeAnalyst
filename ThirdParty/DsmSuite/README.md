@@ -39,6 +39,7 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Removed the left hand indicator and the flags behind it (`IsConsumerIn` / `IsProviderIn`, `FindLeaves`) | `Matrix/MatrixRowHeaderItemView.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `ViewModel/Matrix/ElementTreeItemViewModel.cs` | Confusing to read, and quadratic per selection. Right hand indicator is untouched. |
 | Added `MatrixFrameworkElement.Ellipsize`; row and column labels are ellipsized instead of cut, and the row label's width is derived from the order actually drawn | `Matrix/MatrixFrameworkElement.cs`, `Matrix/MatrixRowHeaderItemView.cs`, `Matrix/MatrixColumnHeaderView.cs` | **bug fix**: a long row name ran through the order number, see below |
 | Dropped `Weight` and `CycleType` (and the `Legend` list) from the cell tooltip | `ViewModel/Matrix/CellToolTipViewModel.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `Matrix/MatrixView.xaml` | the cell draws the weight as its number and a cycle as its colour, so the tooltip repeated what the pointer is on; it also spares a `GetDependencyWeight` and an `IsCyclicDependency` per mouse move |
+| Shift + wheel scrolls horizontally | `Matrix/MatrixView.xaml.cs` | a ScrollViewer only handles the wheel vertically, so the horizontal bar was the only way across — and the bars are inside the scaled grid, so zooming out makes them too thin to grab. See below. |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
@@ -68,6 +69,24 @@ resolve, so the panel is hidden rather than explained.
 
 The panel is collapsed, not deleted; bringing back a single metric (element counts, ingoing/outgoing
 relations — the ones that do not clash) is a one line change in `MatrixView.xaml`.
+
+## The scroll bars scale with the zoom
+
+`MatrixView`'s `ScaleTransform` sits on the outer grid, and the `ScrollViewer` is inside it, so zooming out
+shrinks the scroll bars along with the matrix — at 0.04 the bar is well under a pixel wide.
+
+Moving the `ScrollViewer` out of the transform is not the small fix it looks like: the row and column headers
+have to scale *with* the cells or the row heights stop lining up, the 400px header column and the header
+height scale with them today, and the scroll synchronisation (`Canvas.SetLeft(ColumnHeaderView,
+-e.HorizontalOffset)`) works in the scaled coordinate space.
+
+Instead the wheel was made sufficient — plain for vertical (upstream already forwards it from anywhere in
+the matrix), shift for horizontal (added). The wheel moves by a fixed number of content units, so it covers
+the same couple of cells at any zoom. The thin bar stays as a cosmetic wart.
+
+If it ever needs fixing properly: a counter-scaling `LayoutTransform` on the scroll bars, from an implicit
+`Style TargetType="ScrollBar"` inside `<ScrollViewer.Resources>` — scoped there, so it would not leak into
+the host application the way an unkeyed style at application scope would.
 
 ## Bugs found in the vendored code
 

@@ -146,7 +146,11 @@ in [README.md](README.md).
 
 ## Controls
 
-- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0). Plain wheel scrolls.
+- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0).
+- **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, the headers
+  included. Worth knowing because the scroll bars sit *inside* the scaled grid, so zooming out shrinks them
+  along with everything else until they are too thin to grab. The wheel is unaffected: it moves by a fixed
+  number of content units, which is the same couple of cells at any zoom.
 - **Click a row header** to select it — this is what drives the indicator bars. Clicking a column header
   selects the column but clears them.
 - **Click the arrow** in a row header (the top-left 20×24 px) to expand or collapse; hold **shift** and it
