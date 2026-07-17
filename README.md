@@ -31,6 +31,11 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 - **.NET 10 Runtime** (to run the application)
 - **.NET SDK or Visual Studio** (provides MSBuild to load your solution)
 
+The solution you analyze must load with the **.NET SDK's MSBuild**. SDK-style projects work out of
+the box; some legacy .NET Framework projects (notably old-style WPF) may fail to load even though
+they build in Visual Studio. See **[Supported projects and solutions](Documentation/supported-projects.md)**
+for the details.
+
 ## Download & Quick Start
 
 1. Download the latest release from the [Releases page](https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest)
@@ -348,6 +353,7 @@ Please keep these points in mind:
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
 - A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.
 - Primary constructors of records do not create the properties in the code graph.
+- Projects must be loadable by the **.NET SDK's MSBuild**. Legacy non-SDK .NET Framework projects — especially old-style WPF (`net472`) — may fail to load even though they build in Visual Studio. See [Supported projects and solutions](Documentation/supported-projects.md).
 
 ## Thank you
 
