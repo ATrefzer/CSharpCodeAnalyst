@@ -32,6 +32,9 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | `DsmElementModel.Clear()` now also clears `_elementsByName` | `Model/Core/DsmElementModel.cs` | **bug fix**, see below |
 | Removed the row header and cell context menus | `Matrix/MatrixView.xaml` | their commands edit the DSM model or open the viewer's dialog windows; neither fits a read-only view onto a parsed code graph |
 | Hid the metrics panel and the button that expands it | `Matrix/MatrixView.xaml`, `Matrix/MatrixTopCornerView.xaml` | its numbers contradict the application's own system metrics — see below |
+| Removed the weight bar in the cells, and the decile bucketing behind it (`WeightPercentiles`) | `Matrix/MatrixCellsView.cs`, `ViewModel/Matrix/MatrixViewModel.cs` | the number states the weight already; the bar is degenerate for our data — see below |
+| Cell weights are drawn at font size 10 and centred; `DrawText` / `MeasureText` / `CenteredTextBaseline` take an optional font size | `Matrix/MatrixCellsView.cs`, `Matrix/MatrixFrameworkElement.cs` | **bug fix**: four digits did not fit and were silently truncated, see below |
+| The infinity sign above 9999 became `>9K` | `Matrix/MatrixCellsView.cs` | it claimed a weight was infinite when it only meant it did not fit; `>9K` states what is known and names the bound |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
@@ -63,6 +66,24 @@ resolve, so the panel is hidden rather than explained.
 The panel is collapsed, not deleted; bringing back a single metric (element counts, ingoing/outgoing
 relations — the ones that do not clash) is a one line change in `MatrixView.xaml`.
 
+## Why the weight bar is gone
+
+Each populated cell used to carry a small dark bar under the number, its width the weight's decile among
+all populated cells. It was removed because for our data it cannot say anything:
+
+- **Fully expanded, every weight is 1.** `TypeGraph` deduplicates, so there is exactly one edge per pair of
+  types, and the builder writes it with `weight: 1`. `DsmRelationModel.AddWeights` sums a relation's weight
+  along both ancestor chains, so aggregation only happens above the leaves. At leaf level the cell is
+  therefore 0 or 1 — which the cell colour already tells you — and every bar came out the same length.
+- **Under ten populated cells the deciles collapse.** `stepSize = sortedWeights.Count / 10` is 0, every
+  bucket lands on the smallest weight, and every populated cell draws a 90 % bar.
+
+The bucketing that fed it (`_weightPercentiles`, `_nrWeightBuckets`) went with it rather than staying as
+dead work: it allocated a `double` per cell, i.e. `matrixSize²`, on a view where `matrixSize` is already
+the thing that hurts.
+
+The numbers still carry information **above** the leaves, where they are sums over the subtrees.
+
 ## Bugs found in the vendored code
 
 Neither is fixed beyond what we needed; both are worth reporting upstream.
@@ -90,7 +111,17 @@ Neither is fixed beyond what we needed; both are worth reporting upstream.
    cells by definition. **Fixed here** via `LeafAt`, which all four now share; the two tooltip methods
    already null-checked their result, so the null it returns is enough.
 
-4. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+4. **A cell weight of four digits was silently drawn as a different number.** `DrawText` tests the running
+   width *before* each glyph, so a glyph is kept whenever the text so far is still under `maxWidth` — and
+   dropped without a trace once it is not. A cell leaves 22px, a digit at the shared font size of 14 is
+   7.55px, so the fourth digit always fell off the end: **1000 was drawn as `100`, 9999 as `999`**. Not an
+   overflow, not an exception — a wrong number. The infinity sign above 9999 shows the author knew about
+   the width bound but put it an order of magnitude too high; three digits is the real limit. Also why
+   `455` looked like it leaked into its neighbour: at 22.64px it does fit, with 0.7px to spare on each
+   side. **Fixed here** by drawing the cells at font size 10, where four digits take 21.6px and three get
+   3.9px of air.
+
+5. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model

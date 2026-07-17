@@ -18,7 +18,32 @@ namespace DsmSuite.DsmViewer.View.Matrix
         private int? _hoveredColumn;
         private readonly double _pitch;     // Distance between the same points in neighbouring cells
         private readonly double _offset;    // Distance between header and first cell (hor/ver)
-        private readonly double _verticalTextOffset = 12.0; // Distance between top of cell and baseline of text
+        private readonly double _verticalTextOffset; // Distance between top of cell and baseline of text
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: the weight is drawn smaller than the rest of the matrix.
+        /// </summary>
+        /// <remarks>
+        /// At the shared font size of 14 a digit is 7.55px wide, so only three of them fit the 22px a cell
+        /// leaves. DrawText tests the width *before* each glyph, so a fourth digit was silently dropped
+        /// rather than overflowing: 1000 was drawn as "100" and 9999 as "999" — a wrong number, with
+        /// nothing to hint at it. At 10 the four digits take 21.6px, and three digits get 3.9px of air
+        /// instead of 0.7px, which is what made them look like they leaked into the neighbouring cell.
+        /// </remarks>
+        private const double CellFontSize = 10.0;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: above this the weight does not fit and is labelled
+        /// <see cref="TooLargeLabel"/>.
+        /// </summary>
+        private const int LargestDrawableWeight = 9999;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: replaces the upstream infinity sign, which claimed a weight
+        /// was infinite when it only meant it did not fit. This states what is actually known, and names
+        /// the bound instead of leaving the reader to guess it. 18.0px at CellFontSize, so it fits.
+        /// </summary>
+        private const string TooLargeLabel = ">9K";
 
         public MatrixCellsView()
         {
@@ -28,6 +53,12 @@ namespace DsmSuite.DsmViewer.View.Matrix
             _hoveredColumn = null;
             _pitch = _theme.MatrixCellSize + _theme.SpacingWidth;
             _offset = _theme.SpacingWidth / 2;
+
+            // Changed 2026-07 for CSharpCodeAnalyst: was a fixed 12.0, which put the baseline exactly on
+            // the middle of the cell so that the number sat in the upper half, above the weight bar. The
+            // bar is gone, so the number is centred instead. Horizontally it already was: _offset plus
+            // half a cell equals half a pitch.
+            _verticalTextOffset = _offset + CenteredTextBaseline(_theme.MatrixCellSize, CellFontSize);
 
             DataContextChanged += OnDataContextChanged;
             MouseMove += OnMouseMove;
@@ -90,9 +121,8 @@ namespace DsmSuite.DsmViewer.View.Matrix
         {
             if (_viewModel != null)
             {
-                SolidColorBrush weightBrush = _theme.CellWeightColor;
-                Rect weightRect = new Rect(0, 0, _theme.MatrixCellSize, 0.5 * _theme.MatrixCellSize);
-
+                // Removed 2026-07 for CSharpCodeAnalyst: weightBrush and weightRect, only the weight bar
+                // used them.
                 int matrixSize = _viewModel.MatrixSize;
                 for (int row = 0; row < matrixSize; row++)
                 {
@@ -111,24 +141,27 @@ namespace DsmSuite.DsmViewer.View.Matrix
                         int weight = _viewModel.CellWeights[row][column];
                         if (weight > 0)
                         {
-                            //---- Weight as a filled block
-                            weightRect.X = _rect.X;
-                            weightRect.Y = _rect.Y + 0.5 * _rect.Height;
-                            weightRect.Width = _theme.MatrixCellSize * _viewModel.WeightPercentiles[row][column];
-                            dc.DrawRectangle(weightBrush, null, weightRect);
+                            // Removed 2026-07 for CSharpCodeAnalyst: the weight was also drawn as a small
+                            // filled bar across the lower half of the cell, its width the weight's decile
+                            // among all populated cells. The number states it already, and the bar was
+                            // misleading more often than not: the deciles all collapse onto one bucket
+                            // when fewer than ten cells are populated, and with the tree fully expanded
+                            // every weight is 1 (we feed one deduplicated edge per pair of types), so
+                            // every bar came out the same length regardless.
 
                             //---- Weight as a number
-                            char infinity = '\u221E';
-                            string content = weight > 9999 ? infinity.ToString() : weight.ToString();
+                            // Changed 2026-07 for CSharpCodeAnalyst: was the infinity sign above 9999, see
+                            // TooLargeLabel, and drawn at the shared font size, see CellFontSize.
+                            string content = weight > LargestDrawableWeight ? TooLargeLabel : weight.ToString();
 
-                            double textWidth = MeasureText(content);
+                            double textWidth = MeasureText(content, CellFontSize);
 
                             Point location = new Point
                             {
                                 X = (column * _pitch) + (_pitch - textWidth) / 2,
                                 Y = (row * _pitch) + _verticalTextOffset
                             };
-                            DrawText(dc, content, location, _theme.TextColor, _rect.Width - _theme.SpacingWidth);
+                            DrawText(dc, content, location, _theme.TextColor, _rect.Width - _theme.SpacingWidth, CellFontSize);
                         }
                     }
                 }

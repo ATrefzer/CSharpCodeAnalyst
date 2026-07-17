@@ -44,6 +44,32 @@ namespace DsmSuite.DsmViewer.View.Matrix
             TextTransform = new RotateTransform { Angle = 90 };
         }
 
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: the baseline offset, measured from the top of a box
+        /// <paramref name="boxHeight"/> tall, that puts a line of digits in its vertical middle.
+        /// </summary>
+        /// <remarks>
+        /// A glyph run is positioned by its baseline, and digits sit on the baseline and rise by the cap
+        /// height, so their middle is half a cap height above it. Derived from the font rather than tuned
+        /// by hand, so it survives a change of MatrixCellSize or of the font size.
+        /// </remarks>
+        protected static double CenteredTextBaseline(double boxHeight, double? fontSize = null)
+        {
+            double capHeight = GlyphTypeface.CapsHeight * (fontSize ?? FontSize);
+            return (boxHeight + capHeight) / 2;
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: <see cref="MGlyphInfoTable"/> caches every advance width at
+        /// <see cref="FontSize"/>. Advance widths scale linearly with the size, so a caller that wants a
+        /// different one gets it by scaling. Returns 1.0 for the standard size, i.e. for every caller that
+        /// does not ask.
+        /// </summary>
+        private static double SizeScale(double? fontSize)
+        {
+            return fontSize.HasValue ? fontSize.Value / FontSize : 1.0;
+        }
+
         protected void DrawRotatedText(DrawingContext dc, string text, Point location, SolidColorBrush color, double maxWidth)
         {
             Point rotatedLocation = new Point(-location.Y, -location.X);
@@ -52,11 +78,17 @@ namespace DsmSuite.DsmViewer.View.Matrix
             dc.Pop();
         }
 
-        protected void DrawText(DrawingContext dc, string text, Point location, SolidColorBrush color, double maxWidth)
+        /// <param name="fontSize">
+        /// Added 2026-07 for CSharpCodeAnalyst: null draws at the standard <see cref="FontSize"/>, which is
+        /// what every caller but the matrix cells wants. The cells need a smaller one to fit a four digit
+        /// weight, see MatrixCellsView.
+        /// </param>
+        protected void DrawText(DrawingContext dc, string text, Point location, SolidColorBrush color, double maxWidth, double? fontSize = null)
         {
             if (text.Length > 0)
             {
                 double totalWidth = 0;
+                double scale = SizeScale(fontSize);
 
                 MGlyphIndexesList.Clear();
                 MAdvanceWidthsList.Clear();
@@ -66,16 +98,17 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     if (totalWidth < maxWidth)
                     {
                         var info = MGlyphInfoTable[c];
+                        double width = info.Width * scale;
                         MGlyphIndexesList.Add(info.Index);
-                        MAdvanceWidthsList.Add(info.Width);
+                        MAdvanceWidthsList.Add(width);
 
-                        totalWidth += info.Width;
+                        totalWidth += width;
                     }
                 }
 
                 if (MGlyphIndexesList.Count > 0)
                 {
-                    GlyphRun glyphRun = new GlyphRun(GlyphTypeface, 0, false, FontSize, PixelsPerDip,
+                    GlyphRun glyphRun = new GlyphRun(GlyphTypeface, 0, false, fontSize ?? FontSize, PixelsPerDip,
                         MGlyphIndexesList.ToArray(), location, MAdvanceWidthsList.ToArray(),
                         null, null, null, null, null, null);
 
@@ -83,14 +116,18 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 }
             }
         }
-        protected double MeasureText(string text)
+        /// <param name="fontSize">
+        /// Added 2026-07 for CSharpCodeAnalyst: has to match what the text is drawn at, see DrawText.
+        /// </param>
+        protected double MeasureText(string text, double? fontSize = null)
         {
             double totalWidth = 0;
+            double scale = SizeScale(fontSize);
 
             foreach (char c in text)
             {
                 var info = MGlyphInfoTable[c];
-                totalWidth += info.Width;
+                totalWidth += info.Width * scale;
             }
             return totalWidth;
         }

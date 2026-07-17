@@ -68,23 +68,24 @@ That is a genuine mutual dependency, and it is *inside* the TreeMap block, so it
 Hovering or selecting a row/column multiplies the cell colour by 1.1 / 1.2 (`MatrixTheme.GetHighlightBrush`)
 to draw the crosshair.
 
-## Inside a cell: the number and the bar
+## Inside a cell: the number
 
-The **number** is the dependency weight — for us, the count of distinct type-level edges (see the builder).
-Above `9999` it is replaced by `∞`, not because it is infinite but because it would not fit.
+The **number** is the dependency weight: the count of distinct type-level edges aggregated under the two
+elements. Above `9999` it reads `>9K`, because that is the widest that fits — the exact value is in the
+cell's tooltip.
 
-The **small dark bar** in the lower half is that weight's **decile rank**, not its absolute size. All
-non-zero weights in the *currently visible* matrix are sorted and split into 10 buckets; the bar is
-`bucketIndex / 10` of the cell width. A long bar means "among the heaviest dependencies on screen right
-now" — it re-scales when you expand or collapse.
+It is drawn smaller than the rest of the matrix (font size 10 against 14). That is not decoration: at 14 a
+cell only has room for three digits, and upstream silently dropped the fourth, drawing `1000` as `100`. See
+[README.md](README.md).
 
-Two quirks worth knowing:
+> **Fully expanded, every populated cell reads `1`.** `TypeGraph` deduplicates, so there is exactly one
+> edge per pair of types, and we write it with `weight: 1`. `DsmRelationModel.AddWeights` sums along both
+> ancestor chains, so aggregation only happens *above* the leaves. At leaf level the number therefore says
+> nothing the cell colour does not already say — it earns its keep only on collapsed elements, where it is
+> a sum over their subtrees.
 
-- Bucket 0 is reserved for weight 0 (`if (i == 0) i = 1`), so every non-zero weight gets at least 1/10 of a
-  bar.
-- `stepSize = sortedWeights.Count / 10` becomes **0** when fewer than 10 cells are populated. All buckets
-  then collapse onto the smallest weight and every populated cell draws a 90% bar. On small matrices the
-  bars are meaningless — read the numbers.
+Upstream also drew the weight as a small bar under the number, sized by its decile among all populated
+cells. We removed it; see [README.md](README.md) for why it could not work on our data.
 
 ## The coloured bars beside the row headers
 
