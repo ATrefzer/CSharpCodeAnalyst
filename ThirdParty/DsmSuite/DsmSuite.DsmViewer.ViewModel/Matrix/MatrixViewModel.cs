@@ -611,9 +611,10 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
             if ((consumer != null) && (provider != null))
             {
-                int weight = _application.GetDependencyWeight(consumer, provider);
-                CycleType cycleType = _application.IsCyclicDependency(consumer, provider);
-                CellToolTipViewModel = new CellToolTipViewModel(consumer, provider, weight, cycleType);
+                // Changed 2026-07 for CSharpCodeAnalyst: also asked GetDependencyWeight and
+                // IsCyclicDependency here, on every mouse move across the cells, to fill tooltip entries
+                // that repeated what the cell itself draws. See CellToolTipViewModel.
+                CellToolTipViewModel = new CellToolTipViewModel(consumer, provider);
             }
         }
 

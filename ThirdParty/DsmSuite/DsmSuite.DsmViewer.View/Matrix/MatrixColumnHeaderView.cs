@@ -142,9 +142,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     DrawRotatedText(dc, order, new Point(_rect.X + 10.0, -orderStart), _theme.TextColor,
                         orderFieldWidth);
 
+                    // Changed 2026-07 for CSharpCodeAnalyst: ellipsized, see Ellipsize. Without it a name
+                    // longer than the header was simply cut, so two types whose names share a prefix ended
+                    // up with identical column labels.
                     double nameStart = TextTopMargin + orderFieldWidth + OrderNameGap;
-                    DrawRotatedText(dc, name, new Point(_rect.X + 10.0, -nameStart), _theme.TextColor,
-                        _theme.MatrixHeaderHeight - nameStart - _theme.SpacingWidth);
+                    double nameBudget = _theme.MatrixHeaderHeight - nameStart - _theme.SpacingWidth;
+                    DrawRotatedText(dc, Ellipsize(name, nameBudget), new Point(_rect.X + 10.0, -nameStart),
+                        _theme.TextColor, nameBudget);
                 }
 
                 Height = _theme.MatrixHeaderHeight + _theme.SpacingWidth;

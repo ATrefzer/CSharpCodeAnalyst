@@ -37,6 +37,8 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Cell weights are drawn at font size 10 and centred; `DrawText` / `MeasureText` / `CenteredTextBaseline` take an optional font size | `Matrix/MatrixCellsView.cs`, `Matrix/MatrixFrameworkElement.cs` | **bug fix**: four digits did not fit and were silently truncated, see below |
 | The infinity sign above 9999 became `>9K` | `Matrix/MatrixCellsView.cs` | it claimed a weight was infinite when it only meant it did not fit; `>9K` states what is known and names the bound |
 | Removed the left hand indicator and the flags behind it (`IsConsumerIn` / `IsProviderIn`, `FindLeaves`) | `Matrix/MatrixRowHeaderItemView.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `ViewModel/Matrix/ElementTreeItemViewModel.cs` | confusing to read, and quadratic per selection — see below |
+| Added `MatrixFrameworkElement.Ellipsize`; row and column labels are ellipsized instead of cut, and the row label's width is derived from the order actually drawn | `Matrix/MatrixFrameworkElement.cs`, `Matrix/MatrixRowHeaderItemView.cs`, `Matrix/MatrixColumnHeaderView.cs` | **bug fix**: a long row name ran through the order number, see below |
+| Dropped `Weight` and `CycleType` (and the `Legend` list) from the cell tooltip | `ViewModel/Matrix/CellToolTipViewModel.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `Matrix/MatrixView.xaml` | the cell draws the weight as its number and a cycle as its colour, so the tooltip repeated what the pointer is on; it also spares a `GetDependencyWeight` and an `IsCyclicDependency` per mouse move |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
@@ -142,7 +144,19 @@ Neither is fixed beyond what we needed; both are worth reporting upstream.
    side. **Fixed here** by drawing the cells at font size 10, where four digits take 21.6px and three get
    3.9px of air.
 
-5. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+5. **A long row header name was drawn straight through the element order.** The label got a fixed budget of
+   `ActualWidth - 70`, which reserves room for a *three digit* order — the same three digit assumption as
+   bug 4, in a second place. Order counts up to the number of elements in the whole tree, so four digits are
+   the normal case, and the name then overlapped the number. It only shows on an indented row, where
+   `ActualWidth` is the full column minus the indent: at 344px with order `1010` the overlap is 7.1px, at
+   the full 400px there is none. **Fixed here** by deriving the budget from the order that is actually
+   drawn (`OrderLeftEdge`), with a gap.
+
+   Related, and fixed with it: neither the row nor the column labels had an ellipsis. `DrawText` just stops
+   emitting glyphs, so `CodeElementFactory` and `CodeElementFilter` both end up reading `CodeElement` with
+   nothing to say a cut happened. `Ellipsize` makes it visible.
+
+6. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model

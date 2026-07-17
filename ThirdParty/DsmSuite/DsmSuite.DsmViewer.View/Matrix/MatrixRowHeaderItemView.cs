@@ -10,6 +10,9 @@ namespace DsmSuite.DsmViewer.View.Matrix
 {
     public class MatrixRowHeaderItemView : MatrixFrameworkElement
     {
+        /// <summary>Added 2026-07 for CSharpCodeAnalyst: clearance between the name and the order.</summary>
+        private const double LabelOrderGap = 8.0;
+
         private readonly MatrixViewModel _matrixViewModel;
         private readonly MatrixTheme _theme;
         private ElementTreeItemViewModel _viewModel;
@@ -79,8 +82,11 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
                 if (_viewModel.IsExpanded)
                 {
+                    // Changed 2026-07 for CSharpCodeAnalyst: ellipsized, see Ellipsize. This is the vertical
+                    // strip of an expanded element, where the name is regularly longer than the strip.
+                    double stripBudget = backgroundRect.Height - 20.0;
                     Point textLocation = new Point(backgroundRect.X + 8.0, backgroundRect.Y - 20.0);
-                    DrawRotatedText(dc, content, textLocation, _theme.TextColor, backgroundRect.Height - 20.0);
+                    DrawRotatedText(dc, Ellipsize(content, stripBudget), textLocation, _theme.TextColor, stripBudget);
                 }
                 else
                 {
@@ -114,18 +120,25 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     // being there, is more puzzle than help. The flags behind it (IsConsumerIn /
                     // IsProviderIn) went with it, see MatrixViewModel.UpdateRelationFlags.
 
-                    //---- Element Label
-                    if (ActualWidth > 70.0)
-                    {
-                        Point contentTextLocation = new Point(backgroundRect.X + 20.0, backgroundRect.Y + 16.0);
-                        DrawText(dc, content, contentTextLocation, _theme.TextColor, ActualWidth - 70.0);
-                    }
-
                     //---- Element number
                     string order = _viewModel.Order.ToString();
                     double textWidth = MeasureText(order);
 
-                    Point orderTextLocation = new Point(backgroundRect.X - 25.0 + backgroundRect.Width - textWidth, backgroundRect.Y + 16.0);
+                    //---- Element Label
+                    // Changed 2026-07 for CSharpCodeAnalyst: the label was given a fixed budget of
+                    // ActualWidth - 70, which reserves room for a three digit order. Element order counts up
+                    // to the number of elements in the whole tree, so four digits are normal, and the name
+                    // then ran straight through the number. The budget is now derived from the order that is
+                    // actually there, and the name is ellipsized rather than cut mid-word.
+                    double labelStart = backgroundRect.X + 20.0;
+                    double labelBudget = OrderLeftEdge(backgroundRect, textWidth) - LabelOrderGap - labelStart;
+                    if (labelBudget > 0)
+                    {
+                        Point contentTextLocation = new Point(labelStart, backgroundRect.Y + 16.0);
+                        DrawText(dc, Ellipsize(content, labelBudget), contentTextLocation, _theme.TextColor, labelBudget);
+                    }
+
+                    Point orderTextLocation = new Point(OrderLeftEdge(backgroundRect, textWidth), backgroundRect.Y + 16.0);
                     if (orderTextLocation.X > 0)
                     {
                         DrawText(dc, order, orderTextLocation, _theme.TextColor, ActualWidth - 25.0);
@@ -135,6 +148,16 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 Point expanderLocation = new Point(backgroundRect.X + 1.0, backgroundRect.Y + 1.0);
                 DrawExpander(dc, expanderLocation);
             }
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: where the right aligned element order starts. Extracted so
+        /// that the label and the order derive their geometry from the same expression instead of from two
+        /// constants that have to be kept in step.
+        /// </summary>
+        private static double OrderLeftEdge(Rect backgroundRect, double orderWidth)
+        {
+            return backgroundRect.X - 25.0 + backgroundRect.Width - orderWidth;
         }
 
         /// <summary>

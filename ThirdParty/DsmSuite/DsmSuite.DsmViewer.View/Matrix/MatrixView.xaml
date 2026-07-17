@@ -54,6 +54,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="10" />
                 </Grid.ColumnDefinitions>
+                <!-- Changed 2026-07 for CSharpCodeAnalyst: rows 7 to 11 held the Weight and Cyclicity
+                     entries and their spacing; both are gone, see below. -->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="10" />
@@ -61,11 +63,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="10" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -86,14 +83,10 @@
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="1" Text="ProviderName"/>
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="2" Text=":"/>
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="3" Text="{Binding ProviderName}"/>
-                
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="8" Grid.Column="1" Text="Weight"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="8" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="8" Grid.Column="3" Text="{Binding Weight}"/>
-                
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="9" Grid.Column="1" Text="Cyclicity"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="9" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="9" Grid.Column="3" Text="{Binding CycleType}"/>
+
+                <!-- Removed 2026-07 for CSharpCodeAnalyst: the Weight and Cyclicity entries. The cell shows
+                     the weight as its number and a cycle as its colour, so the tooltip only repeated what
+                     the pointer is already on. -->
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
