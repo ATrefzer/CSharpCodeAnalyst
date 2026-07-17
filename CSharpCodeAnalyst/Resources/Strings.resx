@@ -1257,5 +1257,17 @@ Do you want to overwrite it?</value>
     <data name="ImageViewer_Title" xml:space="preserve">
       <value>Image Viewer</value>
     </data>
+    <data name="Dsm_Label" xml:space="preserve">
+      <value>DSM</value>
+    </data>
+    <data name="Dsm_Tooltip" xml:space="preserve">
+      <value>Shows the whole solution as a dependency structure matrix, on the type graph: one row and column per type, dependencies lifted to the containing type, external types left out.</value>
+    </data>
+    <data name="Dsm_TabHeader" xml:space="preserve">
+      <value>DSM</value>
+    </data>
+    <data name="BuildingDsm_Message" xml:space="preserve">
+      <value>Building dependency structure matrix ...</value>
+    </data>
 
 </root>

@@ -3400,5 +3400,41 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("WebView_TabHeader", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DSM.
+        /// </summary>
+        public static string Dsm_Label {
+            get {
+                return ResourceManager.GetString("Dsm_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shows the whole solution as a dependency structure matrix, on the type graph: one row and column per type, dependencies lifted to the containing type, external types left out.
+        /// </summary>
+        public static string Dsm_Tooltip {
+            get {
+                return ResourceManager.GetString("Dsm_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to DSM.
+        /// </summary>
+        public static string Dsm_TabHeader {
+            get {
+                return ResourceManager.GetString("Dsm_TabHeader", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Building dependency structure matrix ....
+        /// </summary>
+        public static string BuildingDsm_Message {
+            get {
+                return ResourceManager.GetString("BuildingDsm_Message", resourceCulture);
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ using CSharpCodeAnalyst.Features.AdvancedSearch;
 using CSharpCodeAnalyst.Features.Ai;
 using CSharpCodeAnalyst.Features.Analyzers;
 using CSharpCodeAnalyst.Features.CycleGroups;
+using CSharpCodeAnalyst.Features.DsmMatrix;
 using CSharpCodeAnalyst.Features.Export;
 using CSharpCodeAnalyst.Features.Gallery;
 using CSharpCodeAnalyst.Features.Graph;
@@ -47,11 +48,17 @@ using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
 using CSharpCodeAnalyst.TreeMap;
 
+// Both this application and DsmSuite have a MainViewModel.
+using DsmMainViewModel = DsmSuite.DsmViewer.ViewModel.Main.MainViewModel;
+
 namespace CSharpCodeAnalyst;
 
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
+    /// <summary>There is only ever one matrix tab, it always shows the whole graph.</summary>
+    private const string DsmTabId = "Dsm";
+
     private readonly AiAdvisorService _aiAdvisorService = new();
     private readonly AnalyzerManager _analyzerManager;
 
@@ -146,6 +153,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         GraphRefitCommand = new WpfCommand(OnGraphRefit);
         StopRenderingCommand = new WpfCommand(OnStopRendering);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
+        ShowDsmCommand = new WpfCommand(OnShowDsm);
         AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
 
@@ -270,6 +278,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
     public ICommand FindCyclesCommand { get; }
+    public ICommand ShowDsmCommand { get; }
     public ICommand AiAdviseCommand { get; }
     public ICommand ExportToDsiCommand { get; }
     public ICommand SearchCommand { get; }
@@ -710,6 +719,66 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         DynamicTabActivated?.Invoke(tab);
     }
 
+    /// <summary>
+    ///     Same as <see cref="ShowDynamicTab" />, but for the dependency structure matrix. There is only ever
+    ///     one of it — it always shows the whole graph — so the id is fixed.
+    /// </summary>
+    private void ShowDsmTab(DsmMainViewModel matrix)
+    {
+        var tab = DynamicTabs.OfType<DsmTabViewModel>().FirstOrDefault(t => t.Id == DsmTabId);
+        if (tab is null)
+        {
+            tab = new DsmTabViewModel(DsmTabId, Strings.Dsm_TabHeader, matrix);
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            DynamicTabs.Add(tab);
+        }
+        else
+        {
+            tab.Matrix = matrix;
+        }
+
+        DynamicTabActivated?.Invoke(tab);
+    }
+
+    /// <summary>
+    ///     Builds the dependency structure matrix over the whole graph and shows it in its own tab.
+    /// </summary>
+    /// <remarks>
+    ///     Off the UI thread with a progress indicator, because the cost is quadratic in the number of types:
+    ///     the matrix holds a weight and a colour per cell. See <see cref="DsmMatrixFactory" /> for why
+    ///     building the view model in the background is safe.
+    /// </remarks>
+    private async void OnShowDsm()
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        DsmMainViewModel? matrix = null;
+        var codeGraph = _codeGraph;
+        try
+        {
+            IsLoading = true;
+            LoadMessage = Strings.BuildingDsm_Message;
+            await Task.Run(() => { matrix = DsmMatrixFactory.Create(codeGraph); });
+        }
+        catch (Exception ex)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+
+        if (matrix is not null)
+        {
+            ShowDsmTab(matrix);
+        }
+    }
+
     private async void OnFindCycles()
     {
         if (_codeGraph is null)
@@ -861,14 +930,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateStatistics(codeGraph);
-        CodeGraphLoaded?.Invoke(this, codeGraph);
     }
-
-    /// <summary>
-    ///     Raised after a new code graph was loaded. Used by views that are not driven by a view model of
-    ///     their own, currently only the DSM matrix tab.
-    /// </summary>
-    public event EventHandler<CodeGraph.Graph.CodeGraph>? CodeGraphLoaded;
 
     private void UpdateStatistics(CodeGraph.Graph.CodeGraph codeGraph)
     {

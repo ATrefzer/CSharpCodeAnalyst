@@ -54,6 +54,12 @@
                                      UserCommands="{Binding Commands}"/>
             </DataTemplate>
 
+            <!-- DsmMatrixView hosts DsmSuite's MatrixView, which wants their MainViewModel as its
+                 DataContext - hence the rebind onto Matrix. -->
+            <DataTemplate x:Key="DynamicDsmTabContentTemplate">
+                <dsmMatrix:DsmMatrixView DataContext="{Binding Matrix}" />
+            </DataTemplate>
+
         </ResourceDictionary>
     </Window.Resources>
 
@@ -130,6 +136,16 @@
                     <RibbonButton Label="{x:Static resources:Strings.SaveProject_Label}"
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" KeyTip="SA" />
+
+                    <!-- Sits with File rather than Tools because it shows the whole graph, not a
+                         selection. Opens a dynamic tab, see MainViewModel.OnShowDsm. -->
+                    <RibbonButton Label="{x:Static resources:Strings.Dsm_Label}"
+                                  LargeImageSource="/Resources/unstructured-data_32.png"
+                                  Command="{Binding ShowDsmCommand}" KeyTip="DS">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Dsm_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
 
                 </RibbonGroup>
 
@@ -561,10 +577,6 @@
 
                 <TabItem Header="{x:Static resources:Strings.Statistics_TabHeader}">
                     <dynamicDataGrid1:DynamicDataGrid SelfDescribingData="{Binding Statistics}" />
-                </TabItem>
-
-                <TabItem Header="DSM">
-                    <dsmMatrix:DsmMatrixView x:Name="DsmMatrix" />
                 </TabItem>
 
                 <!-- Analyzer / Partitions / hierarchical (tree-map) results: dynamic tabs, one per
