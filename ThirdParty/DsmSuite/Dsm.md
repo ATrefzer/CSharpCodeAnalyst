@@ -3,13 +3,9 @@
 What the matrix on the **DSM** tab draws and how to read it. Almost none of this is discoverable from the
 UI — the legend at the bottom covers three of the colours and nothing else — and the rest is spread over
 `MatrixCellsView.OnRender`, `MatrixRowHeaderItemView.OnRender` and `MatrixViewModel.DefineCellColors`.
-Written down here so it does not have to be re-read out of the drawing code every time.
 
 For what we feed in, see `Features/DsmMatrix/CodeGraphToDsmModelBuilder.cs`; for our changes to the viewer
 itself, see [README.md](README.md).
-
-The examples below all refer to one screenshot of this repository's own code graph, expanded to the
-namespace level.
 
 ## The axes
 
@@ -22,12 +18,7 @@ int weight = _application.GetDependencyWeight(consumer, provider);
 _cellWeights[row].Add(weight);
 ```
 
-This trips people up, so here is the sanity check: `CSharpCodeAnalyst.CodeGraph` sits at the bottom with a
-full row (`1  148  85  11  47`) and an empty column. It is the foundation everything depends on. If rows
-were consumers, that picture would mean CodeGraph depends on everything.
-
-Both axes carry the same elements in the same order, so the matrix is square and symmetric in layout, not
-in content.
+**Note that this is the opposite convention of tools like NDepend.**
 
 ### The order number
 
@@ -46,10 +37,6 @@ This is the single most useful reading aid in the whole view:
 
 > **Inside the square = internal to that assembly or namespace. Outside = crosses its boundary.**
 
-A cycle inside the square is an internal tangle of that component. A cycle outside it is one that crosses a
-component boundary — the expensive kind. In the screenshot the `CSharpCodeAnalyst.TreeMap` block is the
-large square, and the `TreeMap`↔`Common` cycle sits inside it.
-
 The block is drawn once from its top-left corner (`parent.Children[0] == child`); the root gets none
 (`Depth > 0`).
 
@@ -62,8 +49,6 @@ The block is drawn once from its top-left corner (`parent.Children[0] == child`)
 | `MatrixColorCycle` (warm orange) | **the two elements depend on each other** |
 
 The cycle colour overwrites everything else, which is why it is the loudest colour in our palette. In the
-screenshot `TreeMap` (421) and `Common` (427) are orange in both directions — `2` one way, `4` the other.
-That is a genuine mutual dependency, and it is *inside* the TreeMap block, so it is TreeMap's own problem.
 
 Hovering or selecting a row/column multiplies the cell colour by 1.1 / 1.2 (`MatrixTheme.GetHighlightBrush`)
 to draw the crosshair.
@@ -80,14 +65,12 @@ cell only has room for three digits, and upstream silently dropped the fourth, d
 
 > **Fully expanded, every populated cell reads `1`.** `TypeGraph` deduplicates, so there is exactly one
 > edge per pair of types, and we write it with `weight: 1`. `DsmRelationModel.AddWeights` sums along both
-> ancestor chains, so aggregation only happens *above* the leaves. At leaf level the number therefore says
-> nothing the cell colour does not already say — it earns its keep only on collapsed elements, where it is
-> a sum over their subtrees.
+> ancestor chains, so aggregation only happens *above* the leaves.
 
 Upstream also drew the weight as a small bar under the number, sized by its decile among all populated
-cells. We removed it; see [README.md](README.md) for why it could not work on our data.
+cells. We removed it; see [README.md](README.md).
 
-## The coloured bar beside the row headers
+## The colored bar beside the row headers
 
 The bar at the right edge of a row header, against the matrix, is **relative to the currently selected
 row**. It answers "how does this row relate to the thing I clicked", not "what is this row".
@@ -103,13 +86,6 @@ there are none at all.
 | Green | `IsConsumer` | this row **uses** the selected element |
 | Blue | `IsProvider` | this row **is used by** the selected element |
 | Orange | both | **mutual — a cycle** |
-
-These three are what the legend at the bottom of the tab names (Consumer / Provider / Cyclic). Two other
-modes replace this bar entirely: search (`MatrixColorMatch`) and bookmarks (`MatrixColorBookmark`).
-
-Note the axis flip: green here means the row *consumes*, while in the grid a row is the *provider*. The bar
-describes a role relative to the selection; the grid describes an axis. The same row can be green, blue or
-orange depending on what you select.
 
 Upstream also drew a second bar at the *left* edge, an addition of this fork, marking the leaves of an
 expanded selection that had relations reaching outside it. We removed it; see [README.md](README.md).
@@ -134,9 +110,7 @@ From `CodeGraphToDsmModelBuilder`:
 
 DsmSuite has a metrics column between the row headers and the cells, reachable through the arrow in the top
 left corner. Both are hidden — its numbers contradict the application's own system metrics. The reasoning is
-in [README.md](README.md); the short version is that its "Total Cyclicity" counts mutually dependent sibling
-pairs over internal relations while ours counts types inside a strongly connected component, and that its
-cycle detection cannot see a cycle longer than two.
+in [README.md](README.md)
 
 ## Controls
 

@@ -338,6 +338,20 @@ The developer who contributed most to a file (based on a simple Git blame) is ma
 
 ![](Documentation/Images/knowledge.png)
 
+## Dependency Structure Matrix (DSM)
+
+A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row). **Note that this is the opposite convention of tools like NDepend.**
+
+To learn how to read the matrix and spot architectural patterns, you can refer to the [DSM Suite Overview](https://dsmsuite.github.io/dsm_overview). Getting used to this view may require a bit of practice.
+
+> **Note:** The matrix does not show the entire raw codebase, but rather the type graph. For example, dependencies between individual methods are lifted to their corresponding types (this is the exact same graph used to calculate our system metrics). This abstraction keeps the DSM focused and clean.
+
+![](Documentation/Images/dsm-suite.png)
+
+- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0). Plain wheel scrolls.
+- **Click the arrow** in a row header to expand or collapse; hold **shift** and it
+  works recursively.
+
 ## Limitations
 
 Please keep these points in mind:
