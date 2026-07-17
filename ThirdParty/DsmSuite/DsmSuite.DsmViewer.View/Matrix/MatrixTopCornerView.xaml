@@ -7,6 +7,8 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
         <Button Style="{StaticResource ArrowButton}" Width="50" Height="50" Click="OnClearSelection"/>
-        <Button Content="{Binding IsMetricsViewExpanded, Converter={StaticResource MetricsExpandedToButtonContentConverter}}" Style="{StaticResource ArrowButton}" ToolTip="Expand/collapse metrics view" Command="{Binding ToggleMetricsViewExpandedCommand}"/>
+        <!-- Changed 2026-07 for CSharpCodeAnalyst: hidden, it toggles the metrics panel which is itself
+             hidden. See MatrixView.xaml for why. -->
+        <Button Content="{Binding IsMetricsViewExpanded, Converter={StaticResource MetricsExpandedToButtonContentConverter}}" Visibility="Collapsed" Style="{StaticResource ArrowButton}" ToolTip="Expand/collapse metrics view" Command="{Binding ToggleMetricsViewExpandedCommand}"/>
     </StackPanel>
 </UserControl>

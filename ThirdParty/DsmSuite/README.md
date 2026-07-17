@@ -31,11 +31,37 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Added `MainViewModel.ShowInMemoryModel(title)` | `ViewModel/Main/MainViewModel.cs` | show a model built in memory, with no file round trip |
 | `DsmElementModel.Clear()` now also clears `_elementsByName` | `Model/Core/DsmElementModel.cs` | **bug fix**, see below |
 | Removed the row header and cell context menus | `Matrix/MatrixView.xaml` | their commands edit the DSM model or open the viewer's dialog windows; neither fits a read-only view onto a parsed code graph |
+| Hid the metrics panel and the button that expands it | `Matrix/MatrixView.xaml`, `Matrix/MatrixTopCornerView.xaml` | its numbers contradict the application's own system metrics — see below |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
 
 Not a change to their code, but worth knowing when reading it: everything the matrix draws (colours, cell size, header height) is resolved by key via `FindResource` / `StaticResource`. `Features/DsmMatrix/DsmMatrixTheme.xaml` overrides those keys from our side, merged last in `App.xaml`. Restyling therefore needs no edit in here — prefer that route.
+
+## Why the metrics panel is hidden
+
+DsmSuite's metrics column answers questions that sound like the ones our own `SystemMetricsAnalysis`
+answers, with different definitions and the same unit. For "Total Cyclicity" on this repository it showed
+**0.489 %** against our **1.4 %**:
+
+| | CSharpCodeAnalyst | DsmSuite |
+|---|---|---|
+| Question | what share of **types** is entangled? | what share of **relations** is a mutual pair? |
+| Numerator | types in an SCC of size ≥ 2 (Tarjan) | count of mutually dependent **sibling pairs** |
+| Denominator | all types | internal relations |
+| Cycle length seen | any | **2 only** |
+
+Not the same quantity computed differently — a different numerator over a different denominator, both
+printed as a percentage.
+
+The last row is the important one. `DsmRelationModel.IsCyclicDependency` only ever checks `a -> b` and
+`b -> a`, and `CountCycles` only ever compares siblings under a common parent. **A cycle of three or more
+is invisible to it**, so its cyclicity is not a weaker estimate of ours, it is blind to most of what we
+report. Two contradicting answers to "how cyclic is this" in one application is not something a user can
+resolve, so the panel is hidden rather than explained.
+
+The panel is collapsed, not deleted; bringing back a single metric (element counts, ingoing/outgoing
+relations — the ones that do not clash) is a one line change in `MatrixView.xaml`.
 
 ## Bugs found in the vendored code
 

@@ -107,7 +107,9 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="{Binding IsMetricsViewExpanded, Converter={StaticResource MetricsExpandedToViewWidthConverter}}" />
+            <!-- Changed 2026-07 for CSharpCodeAnalyst: was bound to IsMetricsViewExpanded. The metrics
+                 panel is hidden, see the views in column 2 below. -->
+            <ColumnDefinition Width="0" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -131,8 +133,23 @@
         <GridSplitter x:Name="Splitter" Background="Transparent" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Stretch" ShowsPreview="True" Width="5" Style="{StaticResource GridSplitterStyle}"/>
 
         <!--  colomn 2 matrix metrics -->
-        <matrix:MatrixMetricsSelectorView x:Name="MatrixMetricsSelectorView" Grid.Column="2" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <Canvas Grid.Column="2" Grid.Row="1" Height="Auto" HorizontalAlignment="Stretch" ClipToBounds="True">
+        <!--
+          Changed 2026-07 for CSharpCodeAnalyst: the metrics panel is hidden (it was reachable through the
+          arrow in the top left corner, which is hidden too, see MatrixTopCornerView).
+
+          The application computes its own system metrics, and DsmSuite's answer the same-sounding questions
+          differently: their "Total Cyclicity" is cyclic sibling PAIRS over internal RELATIONS, ours is the
+          share of TYPES inside a strongly connected component. Different numerator, different denominator,
+          both printed as a percentage. Worse, their cycle detection is pairwise only (IsCyclicDependency
+          checks a<->b in both directions), so it cannot see a -> b -> c -> a at all. Two contradicting
+          numbers for "how cyclic is this" in one application is not something a user can resolve.
+
+          Collapsed rather than deleted: the elements stay alive, so the code-behind (UsedWidth,
+          CellsViewOnScrollChanged) still resolves them, and bringing a single metric back is a one line
+          change. See Dsm.md.
+        -->
+        <matrix:MatrixMetricsSelectorView x:Name="MatrixMetricsSelectorView" Grid.Column="2" Grid.Row="0" Visibility="Collapsed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+        <Canvas Grid.Column="2" Grid.Row="1" Height="Auto" Visibility="Collapsed" HorizontalAlignment="Stretch" ClipToBounds="True">
             <matrix:MatrixRowMetricsView x:Name="RowMetricsView" Height="Auto" HorizontalAlignment="Stretch"/>
         </Canvas>
 

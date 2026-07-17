@@ -152,6 +152,14 @@ From `CodeGraphToDsmModelBuilder`:
 - **All weights are currently 1** per distinct type-level edge, not the number of underlying relationships.
   The numbers you see on a collapsed element are sums of those.
 
+## The metrics panel is hidden
+
+DsmSuite has a metrics column between the row headers and the cells, reachable through the arrow in the top
+left corner. Both are hidden — its numbers contradict the application's own system metrics. The reasoning is
+in [README.md](README.md); the short version is that its "Total Cyclicity" counts mutually dependent sibling
+pairs over internal relations while ours counts types inside a strongly connected component, and that its
+cycle detection cannot see a cycle longer than two.
+
 ## Controls
 
 - **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0). Plain wheel scrolls.
