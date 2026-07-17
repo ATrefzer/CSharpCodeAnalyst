@@ -173,24 +173,58 @@ public class CodeGraphToDsmModelBuilderTests
     }
 
     [Test]
-    public void Build_NamespaceChainWithoutOwnTypes_IsDropped()
+    public void Build_NamespaceChainWithoutOwnTypes_IsMergedIntoOneLevel()
     {
         // The real shape: the parser makes one element per namespace segment, so an assembly whose root
         // namespace repeats its own name produces a chain of levels that hold nothing.
         var assembly = _graph.CreateAssembly("CSharpCodeAnalyst.CodeGraph");
-        var outer = _graph.CreateNamespace("ns-outer", assembly);
-        var inner = _graph.CreateNamespace("ns-inner", outer);
-        var graphNs = _graph.CreateNamespace("ns-graph", inner);
-        var algorithms = _graph.CreateNamespace("ns-algorithms", inner);
+        var outer = _graph.CreateNamespace("CSharpCodeAnalyst", assembly);
+        var inner = _graph.CreateNamespace("CodeGraph", outer);
+        var graphNs = _graph.CreateNamespace("Graph", inner);
+        var algorithms = _graph.CreateNamespace("Algorithms", inner);
         _graph.CreateClass("CodeElement", graphNs);
         _graph.CreateClass("TypeGraph", algorithms);
 
         Build();
 
-        // "outer" has a single namespace child and goes; "inner" branches and stays.
+        // "CSharpCodeAnalyst" has a single namespace child and does not become a level of its own; "CodeGraph"
+        // branches and does. The merged label is the namespace that actually exists.
         var assemblyElement = _dsmModel.GetElementByFullname("CSharpCodeAnalyst.CodeGraph");
-        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "ns-inner" }),
+        Assert.That(assemblyElement.Children.Select(e => e.Name),
+            Is.EquivalentTo(new[] { "CSharpCodeAnalyst.CodeGraph" }),
             "the pass-through level must not sit between the assembly and the branching namespace");
+    }
+
+    [Test]
+    public void Build_ChainOfSeveralPassThroughs_MergesAllOfTheirNames()
+    {
+        // A -> B -> C where only C branches: one level named after all three.
+        var assembly = _graph.CreateAssembly("Asm");
+        var a = _graph.CreateNamespace("A", assembly);
+        var b = _graph.CreateNamespace("B", a);
+        var c = _graph.CreateNamespace("C", b);
+        _graph.CreateClass("X", c);
+        _graph.CreateClass("Y", c);
+
+        Build();
+
+        var assemblyElement = _dsmModel.GetElementByFullname("Asm");
+        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "A.B.C" }));
+    }
+
+    [Test]
+    public void Build_TypeUnderMergedNamespace_KeepsItsOwnName()
+    {
+        // Only namespaces are ever merged: the parent of a type holds a type, so it is not a pass-through.
+        var assembly = _graph.CreateAssembly("Asm");
+        var a = _graph.CreateNamespace("A", assembly);
+        var b = _graph.CreateNamespace("B", a);
+        _graph.CreateClass("X", b);
+        _graph.CreateClass("Y", b);
+
+        Build();
+
+        Assert.That(_dsmModel.GetElementByFullname("Asm.A.B.X"), Is.Not.Null);
     }
 
     [Test]
@@ -234,7 +268,7 @@ public class CodeGraphToDsmModelBuilderTests
         Build();
 
         var assemblyElement = _dsmModel.GetElementByFullname("Asm");
-        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "Inner" }));
+        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "Outer.Inner" }));
     }
 
     [Test]

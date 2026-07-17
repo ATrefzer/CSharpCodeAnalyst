@@ -18,7 +18,16 @@ int weight = _application.GetDependencyWeight(consumer, provider);
 _cellWeights[row].Add(weight);
 ```
 
-**Note that this is the opposite convention of tools like NDepend.**
+This is **not** the opposite of NDepend, which is the easy assumption to make. Their documentation says
+verbatim: *"Blue cell means that the element in column uses the element in row"* — the same convention. What
+NDepend adds is the mirror: *"Green cell means that the element in row uses the element in column"*, so every
+dependency appears twice, blue below the diagonal and green above it, and a mutual pair is black in both.
+That is why their layered example has "all blue cells in the lower-left triangle and all green cells in the
+upper-right".
+
+Here each dependency is drawn **once**, so only one reading direction is populated: top to left. The mirror
+would cost the cell colour, which is spent on nesting depth (see below) — NDepend spends it on direction and
+has no depth-coloured blocks.
 
 ### The order number
 
@@ -40,6 +49,21 @@ This is the single most useful reading aid in the whole view:
 The block is drawn once from its top-left corner (`parent.Children[0] == child`); the root gets none
 (`Depth > 0`).
 
+**There are only four depth colours, and they cycle:**
+
+```csharp
+public static MatrixColor GetColor(int depth)
+{
+    switch (depth % 4) { ... }   // Color1 .. Color4
+}
+```
+
+So the shade is not the depth, it is the depth modulo four — nest five levels deep and the innermost block
+is painted like the outermost. That makes the ramp a scarce resource: every nesting level that carries no
+structure of its own still burns one of the four, shifts the rest, and brings the wrap-around one level
+closer. It is the main reason the builder drops pass-through namespaces (see below), and worth remembering
+before adding a level to the hierarchy we feed in.
+
 ## Cell colours
 
 | Colour | Meaning |
@@ -48,7 +72,7 @@ The block is drawn once from its top-left corner (`parent.Children[0] == child`)
 | Depth ramp `MatrixColor1..4` | inside an expanded element's block, shade = nesting depth |
 | `MatrixColorCycle` (warm orange) | **the two elements depend on each other** |
 
-The cycle colour overwrites everything else, which is why it is the loudest colour in our palette. In the
+The cycle colour overwrites everything else, which is why it is the loudest colour in our palette.
 
 Hovering or selecting a row/column multiplies the cell colour by 1.1 / 1.2 (`MatrixTheme.GetHighlightBrush`)
 to draw the crosshair.
@@ -98,9 +122,17 @@ From `CodeGraphToDsmModelBuilder`:
   containing type and deduplicated; external types and self edges are dropped (`TypeGraph`).
 - **The hierarchy comes from the code graph's parent chain**, not from splitting dotted names. Assembly
   names keep their dots.
-- **Pass-through namespaces are dropped** — a namespace with exactly one child, itself a namespace, holds no
-  types, so its row and column are an exact duplicate of its child's. Note the consequence: a row then reads
-  `History` where the real namespace is `CSharpCodeAnalyst.History`.
+- **Pass-through namespaces are merged into one level** — a namespace whose only child is another namespace
+  holds no types of its own. The parser creates one element per namespace *segment*, so every project whose
+  root namespace repeats its assembly name grows such a chain: assembly `CSharpCodeAnalyst.CodeGraph` holds
+  namespace `CSharpCodeAnalyst` holds namespace `CodeGraph` holds the real ones. Without this, eight
+  assemblies gave eight rows all reading `CSharpCodeAnalyst`. Each level costs an expand that reveals a
+  single row carrying the same numbers as before, a vertical strip, and one of the only four depth colours.
+
+  The chain becomes one element carrying all of their names, so the row reads `CSharpCodeAnalyst.CodeGraph`
+  — the namespace that exists — rather than `CodeGraph`, which names nothing. A label is always the namespace
+  path relative to the element it sits in: one segment where nothing was collapsed (`Algorithms` inside
+  `CSharpCodeAnalyst.CodeGraph`), the whole collapsed chain where something was.
 - **Rows and columns are partitioned** (`PartitionSortAlgorithm`) so an acyclic structure actually comes out
   triangular. Without it the order is meaningless and a layered design looks as tangled as a knot.
 - **All weights are currently 1** per distinct type-level edge, not the number of underlying relationships.
@@ -110,7 +142,7 @@ From `CodeGraphToDsmModelBuilder`:
 
 DsmSuite has a metrics column between the row headers and the cells, reachable through the arrow in the top
 left corner. Both are hidden — its numbers contradict the application's own system metrics. The reasoning is
-in [README.md](README.md)
+in [README.md](README.md).
 
 ## Controls
 

@@ -60,14 +60,37 @@ public sealed class CodeGraphToDsmModelBuilder
 
     /// <summary>
     ///     The namespaces that carry no structure of their own: exactly one child, and that child another
-    ///     namespace. They are left out, so their child hangs off the nearest ancestor that does say something.
+    ///     namespace. They do not become elements; their name is merged into the first descendant that does
+    ///     (see <see cref="MergedName" />), so the level disappears while the label stays a real namespace.
     /// </summary>
     /// <remarks>
     ///     The parser creates one element per namespace segment, so a project whose root namespace repeats its
     ///     assembly name produces a chain of pass-throughs: assembly "A.B" holds namespace "A" holds namespace
-    ///     "B" holds the real ones. Every one of those is a row and a column in the matrix, and they all read
-    ///     the same. Dropping them is a view concern, which is why this lives here rather than in the parser,
-    ///     whose hierarchy is right and is what the tree view wants.
+    ///     "B" holds the real ones. Collapsing them is a view concern, which is why this lives here rather than
+    ///     in the parser, whose hierarchy is right and is what the tree view wants.
+    ///     <para>
+    ///         What such a level costs, given that it holds nothing:
+    ///     </para>
+    ///     <list type="number">
+    ///         <item>
+    ///             An expand that reveals nothing. Expanding the element yields exactly one row, carrying the
+    ///             same numbers as before — weights aggregate over the children and there is only one child —
+    ///             so it takes another click to see anything.
+    ///         </item>
+    ///         <item>
+    ///             A vertical strip down the left of the matrix, taking width and saying nothing.
+    ///         </item>
+    ///         <item>
+    ///             One of only four depth colours. MatrixColorConverter.GetColor computes
+    ///             <c>depth % 4</c>, so an empty level shifts the whole ramp and brings it round sooner,
+    ///             costing the depth-coloured blocks the contrast they read by. That is the matrix' main
+    ///             reading aid: inside the block is internal, outside crosses the boundary.
+    ///         </item>
+    ///     </list>
+    ///     <para>
+    ///         Note it is not about duplicate rows: rows are the collapsed elements, expanded ones become the
+    ///         vertical strips, so a level and its child are never on screen as rows at the same time.
+    ///     </para>
     ///     <para>
     ///         "Exactly one child" has to be counted over what actually reaches the model, not over the code
     ///         graph: a namespace holding two types of which one is external is a pass-through here even
@@ -165,7 +188,7 @@ public sealed class CodeGraphToDsmModelBuilder
         var parent = codeElement.Parent is null ? null : AddWithAncestors(codeElement.Parent.Id);
 
         var dsmElement = _dsmModel.AddElement(
-            codeElement.Name,
+            MergedName(codeElement),
             codeElement.ElementType.ToString(),
             parent?.Id,
             null,
@@ -173,6 +196,37 @@ public sealed class CodeGraphToDsmModelBuilder
 
         _dsmElementsByCodeElementId[codeElementId] = dsmElement;
         return dsmElement;
+    }
+
+    /// <summary>
+    ///     The element's name, prefixed with the pass-through ancestors that were dropped, so that
+    ///     <c>A -> B -> C</c> with A and B pass-through becomes one element named <c>A.B.C</c>.
+    /// </summary>
+    /// <remarks>
+    ///     Dropping a pass-through level and dropping its name are separate decisions, and only the first one
+    ///     buys anything: the tree has the same shape whether the name is merged in or thrown away. Merging
+    ///     keeps the invariant that a label is the namespace path relative to the element it sits in — one
+    ///     segment where nothing was collapsed, the collapsed chain where something was. Throwing the name
+    ///     away breaks it: the row under assembly "CSharpCodeAnalyst.CodeGraph" would read "CodeGraph", which
+    ///     names nothing, where it now reads "CSharpCodeAnalyst.CodeGraph", which is the namespace. Assembly
+    ///     names keep their dots for the same reason.
+    ///     <para>
+    ///         Types are never affected: a namespace holding a type has a non-namespace child and is
+    ///         therefore not a pass-through, so the parent of a type is never dropped.
+    ///     </para>
+    /// </remarks>
+    private string MergedName(CodeElement element)
+    {
+        var parts = new List<string> { element.Name };
+
+        var current = element.Parent;
+        while (current is not null && _passThroughNamespaces.Contains(current.Id))
+        {
+            parts.Insert(0, current.Name);
+            current = current.Parent;
+        }
+
+        return string.Join(".", parts);
     }
 
     private void AddRelations(TypeGraph typeGraph)

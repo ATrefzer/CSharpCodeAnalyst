@@ -340,7 +340,7 @@ The developer who contributed most to a file (based on a simple Git blame) is ma
 
 ## Dependency Structure Matrix (DSM)
 
-A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row). **Note that this is the opposite convention of tools like NDepend.**
+A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row).
 
 To learn how to read the matrix and spot architectural patterns, you can refer to the [DSM Suite Overview](https://dsmsuite.github.io/dsm_overview). Getting used to this view may require a bit of practice.
 
