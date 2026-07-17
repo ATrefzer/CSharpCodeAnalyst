@@ -145,3 +145,7 @@ cycle detection cannot see a cycle longer than two.
   selects the column but clears them.
 - **Click the arrow** in a row header (the top-left 20×24 px) to expand or collapse; hold **shift** and it
   works recursively.
+
+The view is read-only. Everything upstream offers that edits the DSM model — the context menus, dragging a
+row header onto another to re-parent it — is removed, because the model here is a projection of a parsed
+code graph and an edited row would no longer say anything about the code. See [README.md](README.md).

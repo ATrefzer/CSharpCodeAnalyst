@@ -11,7 +11,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
     {
         private readonly List<ElementTreeItemViewModel> _children;
         private ElementTreeItemViewModel _parent;
-        private bool _isDropTarget;
         private MatrixColor _color;
 
         public ElementTreeItemViewModel(IMainViewModel mainViewModel, IMatrixViewModel matrixViewModel, IDsmApplication application, IDsmElement element, int depth)
@@ -22,7 +21,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
             Depth = depth;
             UpdateColor();
 
-            MoveCommand = matrixViewModel.ChangeElementParentCommand;
+            // Removed 2026-07 for CSharpCodeAnalyst: MoveCommand (= ChangeElementParentCommand), which only
+            // the drag and drop drop handler executed. See MatrixRowHeaderItemView.
             MoveUpElementCommand = matrixViewModel.MoveUpElementCommand;
             MoveDownElementCommand = matrixViewModel.MoveDownElementCommand;
             SortElementCommand = matrixViewModel.SortElementCommand;
@@ -37,11 +37,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         public ElementToolTipViewModel ToolTipViewModel { get; }
         public IDsmElement Element { get; }
 
-        public bool IsDropTarget
-        {
-            get { return _isDropTarget; }
-            set { _isDropTarget = value; UpdateColor(); RaisePropertyChanged(); }
-        }
+        // Removed 2026-07 for CSharpCodeAnalyst: IsDropTarget, which coloured a row while it was hovered
+        // during a drag. Drag and drop is gone, see MatrixRowHeaderItemView.
 
         public MatrixColor Color
         {
@@ -65,7 +62,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
         public string Fullname => Element.Fullname;
 
-        public ICommand MoveCommand { get; }
         public ICommand MoveUpElementCommand { get; }
         public ICommand MoveDownElementCommand { get; }
         public ICommand SortElementCommand { get; }
@@ -123,16 +119,11 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
             }
         }
 
+        // Changed 2026-07 for CSharpCodeAnalyst: the drop target case is gone with drag and drop, so the
+        // colour is only ever the nesting depth now.
         private void UpdateColor()
         {
-            if (_isDropTarget)
-            {
-                Color = MatrixColor.Cycle;
-            }
-            else
-            {
-                Color = MatrixColorConverter.GetColor(Depth);
-            }
+            Color = MatrixColorConverter.GetColor(Depth);
         }
     }
 }

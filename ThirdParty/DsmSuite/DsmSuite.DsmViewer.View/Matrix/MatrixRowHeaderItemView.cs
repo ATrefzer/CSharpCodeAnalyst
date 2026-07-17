@@ -11,7 +11,6 @@ namespace DsmSuite.DsmViewer.View.Matrix
     public class MatrixRowHeaderItemView : MatrixFrameworkElement
     {
         private readonly MatrixViewModel _matrixViewModel;
-        private static readonly string DataObjectName = "Element";
         private readonly MatrixTheme _theme;
         private ElementTreeItemViewModel _viewModel;
         private readonly int _indicatorWidth = 7;
@@ -22,105 +21,17 @@ namespace DsmSuite.DsmViewer.View.Matrix
             _matrixViewModel.PropertyChanged += OnMatrixViewModelPropertyChanged;
             _theme = theme;
 
-            AllowDrop = true;
-
             DataContextChanged += OnDataContextChanged;
         }
 
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            base.OnMouseMove(e);
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                DataObject data = new DataObject();
-                data.SetData(DataObjectName, _viewModel);
-                DragDrop.DoDragDrop(this, data, DragDropEffects.Move);
-            }
-        }
-
-        protected override void OnGiveFeedback(GiveFeedbackEventArgs e)
-        {
-            base.OnGiveFeedback(e);
-
-            Mouse.SetCursor(e.Effects.HasFlag(DragDropEffects.Move) ? Cursors.Pen : Cursors.Arrow);
-            e.Handled = true;
-        }
-
-        protected override void OnDragEnter(DragEventArgs e)
-        {
-            if (IsValidDropTarget(e))
-            {
-                _viewModel.IsDropTarget = true;
-            }
-        }
-
-        protected override void OnDragLeave(DragEventArgs e)
-        {
-            _viewModel.IsDropTarget = false;
-        }
-
-        protected override void OnDragOver(DragEventArgs e)
-        {
-            base.OnDragOver(e);
-
-            e.Effects = IsValidDropTarget(e) ? DragDropEffects.Move : DragDropEffects.None;
-
-            e.Handled = true;
-        }
-
-        protected override void OnDrop(DragEventArgs e)
-        {
-            base.OnDrop(e);
-
-            if (e.Data.GetDataPresent(DataObjectName))
-            {
-                ElementTreeItemViewModel dragged = (ElementTreeItemViewModel)e.Data.GetData(DataObjectName);
-                ElementTreeItemViewModel dropTarget = _viewModel;
-
-                if ((dragged != null) &&
-                    (dropTarget != null) &&
-                    (dragged != dropTarget))
-                {
-                    int index = GetDropAtIndex(e);
-                    Tuple<IDsmElement, IDsmElement, int> moveParameter = new Tuple<IDsmElement, IDsmElement, int>(dragged.Element, dropTarget.Element, index);
-                    _viewModel.MoveCommand.Execute(moveParameter);
-                }
-
-                e.Effects = DragDropEffects.Move;
-            }
-            _viewModel.IsDropTarget = false;
-            e.Handled = true;
-        }
-
-        private bool IsValidDropTarget(DragEventArgs e)
-        {
-            bool isValidDropTarget = false;
-
-            if (e.Data.GetDataPresent(DataObjectName))
-            {
-                ElementTreeItemViewModel dragged = (ElementTreeItemViewModel)e.Data.GetData(DataObjectName);
-                ElementTreeItemViewModel dropTarget = _viewModel;
-
-                if ((dragged != null) &&
-                    (dropTarget != null) &&
-                    (!dropTarget.Element.IsRecursiveChildOf(dragged.Element)))
-                {
-                    isValidDropTarget = true;
-                }
-            }
-
-            return isValidDropTarget;
-        }
-
-        private int GetDropAtIndex(DragEventArgs e)
-        {
-            Point point = e.GetPosition(this);
-
-            double pitch = _theme.MatrixCellSize + 2.0;
-
-            int index = (int)(point.Y / pitch);
-            return index;
-        }
+        // Removed 2026-07 for CSharpCodeAnalyst: dragging a row header onto another one re-parented the
+        // dragged element (OnMouseMove started the drag, OnDrop ran ElementTreeItemViewModel.MoveCommand,
+        // which is MatrixViewModel.ChangeElementParentCommand). That edits the DSM model, exactly like the
+        // context menus that were removed for the same reason: this is a read-only view onto a parsed code
+        // graph, and a re-parented row would no longer say anything about the code. Gone with it:
+        // AllowDrop, OnGiveFeedback, OnDragEnter, OnDragLeave, OnDragOver, OnDrop, IsValidDropTarget,
+        // GetDropAtIndex, the DataObjectName key, and the IsDropTarget / MoveCommand flags on
+        // ElementTreeItemViewModel that had no other reader.
 
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
