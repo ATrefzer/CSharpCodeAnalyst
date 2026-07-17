@@ -195,22 +195,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
                             break;
                     }
 
-                    //---- Left hand indicator
-                    indicatorRect = new Rect(_viewModel.IsExpandable ? 12.0 : 1.0,
-                            1.0, _indicatorWidth, ActualHeight - _theme.SpacingWidth);
-                    if (_viewModel.IsConsumerIn  &&  _viewModel.IsProviderIn)
-                    {
-                        Rect top = new Rect(indicatorRect.X, indicatorRect.Y,
-                                indicatorRect.Width, indicatorRect.Height/2);
-                        Rect bottom = new Rect(indicatorRect.X, top.Bottom,
-                                indicatorRect.Width, indicatorRect.Height/2);
-                        dc.DrawRectangle(_theme.MatrixColorProvider, null, top);
-                        dc.DrawRectangle(_theme.MatrixColorConsumer, null, bottom);
-                    }
-                    else if (_viewModel.IsConsumerIn)
-                        dc.DrawRectangle(_theme.MatrixColorConsumer, null, indicatorRect);
-                    else if (_viewModel.IsProviderIn)
-                        dc.DrawRectangle(_theme.MatrixColorProvider, null, indicatorRect);
+                    // Removed 2026-07 for CSharpCodeAnalyst: the left hand indicator, an addition of this
+                    // fork. Selecting an expanded element marked every leaf beneath it that had a relation
+                    // reaching outside the selection, in the same green and blue as the right hand
+                    // indicator but with a different meaning, and its real signal was the *absence* of a
+                    // bar. Two bars in the same colours saying different things, one of which speaks by not
+                    // being there, is more puzzle than help. The flags behind it (IsConsumerIn /
+                    // IsProviderIn) went with it, see MatrixViewModel.UpdateRelationFlags.
 
                     //---- Element Label
                     if (ActualWidth > 70.0)

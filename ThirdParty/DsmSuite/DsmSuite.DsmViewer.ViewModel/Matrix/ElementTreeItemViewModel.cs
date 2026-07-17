@@ -57,10 +57,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         public bool IsConsumer { get; set; }
         /// <summary>True iff this is a provider for the selected tree item.</summary>
         public bool IsProvider { get; set; }
-        /// <summary>True iff this is a consumer in an external relation of the selected tree item.</summary>
-        public bool IsConsumerIn {get; set; }
-        /// <summary>True iff this is a provider in an external relation of the selected tree item.</summary>
-        public bool IsProviderIn {get; set; }
+        // Removed 2026-07 for CSharpCodeAnalyst: IsConsumerIn / IsProviderIn, which only ever fed the left
+        // hand indicator. See MatrixRowHeaderItemView and MatrixViewModel.UpdateRelationFlags.
         public bool IsMatch => Element.IsMatch;
         public bool IsBookmarked => Element.IsBookmarked;
         public string Name => Element.IsRoot ? "Root" : Element.Name;

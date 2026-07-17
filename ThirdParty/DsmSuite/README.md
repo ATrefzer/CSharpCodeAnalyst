@@ -35,6 +35,7 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Removed the weight bar in the cells, and the decile bucketing behind it (`WeightPercentiles`) | `Matrix/MatrixCellsView.cs`, `ViewModel/Matrix/MatrixViewModel.cs` | the number states the weight already; the bar is degenerate for our data — see below |
 | Cell weights are drawn at font size 10 and centred; `DrawText` / `MeasureText` / `CenteredTextBaseline` take an optional font size | `Matrix/MatrixCellsView.cs`, `Matrix/MatrixFrameworkElement.cs` | **bug fix**: four digits did not fit and were silently truncated, see below |
 | The infinity sign above 9999 became `>9K` | `Matrix/MatrixCellsView.cs` | it claimed a weight was infinite when it only meant it did not fit; `>9K` states what is known and names the bound |
+| Removed the left hand indicator and the flags behind it (`IsConsumerIn` / `IsProviderIn`, `FindLeaves`) | `Matrix/MatrixRowHeaderItemView.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `ViewModel/Matrix/ElementTreeItemViewModel.cs` | confusing to read, and quadratic per selection — see below |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
@@ -83,6 +84,25 @@ dead work: it allocated a `double` per cell, i.e. `matrixSize²`, on a view wher
 the thing that hurts.
 
 The numbers still carry information **above** the leaves, where they are sums over the subtrees.
+
+## Why the left hand indicator is gone
+
+This fork added a second bar to the row headers, at the left edge. Selecting an *expanded* element marked
+every leaf beneath it that had a relation reaching outside the selection: green for consuming outwards,
+blue for being consumed from outside, split for both. Its actual signal was the **absence** of a bar — a
+leaf without one is used only inside the subtree.
+
+It reads badly. It uses the same two colours as the right hand indicator with a different meaning, sits on
+the opposite edge of the same row, and the one thing it is good at only registers if you notice something
+that is not drawn. Two bars in the same colours saying different things, one of which speaks by not being
+there, is more puzzle than help.
+
+It was also expensive: `UpdateRelationFlags` ran `GetDependencyWeight` for every leaf of the selection
+against every leaf outside it, on every selection. One click on a row header of a fully expanded tree cost
+a quadratic sweep. The flags (`IsConsumerIn` / `IsProviderIn`) and `FindLeaves` had no other reader, so they
+went too.
+
+The right hand indicator — consumer / provider / cyclic, the one the legend explains — is untouched.
 
 ## Bugs found in the vendored code
 

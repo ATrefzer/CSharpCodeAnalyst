@@ -215,19 +215,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
             return null;
         }
 
-        /// <summary>
-        /// Add the leaf viewmodels strictly under a given element to leaves.
-        /// </summary>
-        private void FindLeaves(ElementTreeItemViewModel element,  List<ElementTreeItemViewModel> leaves)
-        {
-            foreach (ElementTreeItemViewModel vm in element.Children)
-            {
-                if (vm.IsExpanded)
-                    FindLeaves(vm, leaves);
-                else
-                    leaves.Add(vm);
-            }
-        }
+        // Removed 2026-07 for CSharpCodeAnalyst: FindLeaves, whose only caller was the left hand indicator
+        // block in UpdateRelationFlags.
 
         /// <summary>
         /// The leaf a row or column index addresses, or null if it addresses none.
@@ -633,6 +622,12 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         /// Set the <c>IsConsumer, IsProvider</c> properties of the view model leaves with respect to
         /// the <c>SelectedRow</c>.
         /// </summary>
+        /// <remarks>
+        /// Changed 2026-07 for CSharpCodeAnalyst: this also maintained IsConsumerIn / IsProviderIn for the
+        /// left hand indicator, which is gone (see MatrixRowHeaderItemView). Their block ran on every
+        /// selection and asked GetDependencyWeight for every leaf of the selection against every leaf
+        /// outside it, so on a fully expanded tree a single click on a row header cost a quadratic sweep.
+        /// </remarks>
         private void UpdateRelationFlags()
         {
             if (SelectedRow?.Element == null)
@@ -641,8 +636,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
                 {
                     row.IsConsumer = false;
                     row.IsProvider = false;
-                    row.IsConsumerIn = false;
-                    row.IsProviderIn = false;
                 }
             }
             else
@@ -651,25 +644,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
                 {
                     row.IsConsumer = _application.GetDependencyWeight(row.Element, SelectedRow.Element) > 0;
                     row.IsProvider = _application.GetDependencyWeight(SelectedRow.Element, row.Element) > 0;
-                    row.IsConsumerIn = false;
-                    row.IsProviderIn = false;
                 }
             }
-
-            if (SelectedRow?.Element?.IsExpanded == true)
-            {
-                List<ElementTreeItemViewModel> leaves = new();
-                FindLeaves(FindElementViewModel(SelectedRow.Element), leaves);
-                List<ElementTreeItemViewModel> others = new(_elementViewModelLeafs.Except(leaves));
-
-                foreach (ElementTreeItemViewModel leaf in leaves)
-                {
-                    leaf.IsProviderIn = others
-                            .Any(x => _application.GetDependencyWeight(x.Element, leaf.Element) > 0);
-                    leaf.IsConsumerIn = others
-                            .Any(x => _application.GetDependencyWeight(leaf.Element, x.Element) > 0);
-                }
-             }
         }
 
         #endregion

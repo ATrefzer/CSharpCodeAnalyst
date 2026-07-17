@@ -87,16 +87,14 @@ cell only has room for three digits, and upstream silently dropped the fourth, d
 Upstream also drew the weight as a small bar under the number, sized by its decile among all populated
 cells. We removed it; see [README.md](README.md) for why it could not work on our data.
 
-## The coloured bars beside the row headers
+## The coloured bar beside the row headers
 
-There are **two** indicator bars per row, and both are **relative to the currently selected row**. They
-answer "how does this row relate to the thing I clicked", not "what is this row".
+The bar at the right edge of a row header, against the matrix, is **relative to the currently selected
+row**. It answers "how does this row relate to the thing I clicked", not "what is this row".
 
 It has to be a **row**: `UpdateRelationFlags` reads `SelectedRow`, and `SelectColumn` sets `SelectedRow` to
-null. Clicking a column header therefore draws the crosshair but clears every bar. With nothing selected
-there are no bars at all.
-
-### Right bar — at the right edge, against the matrix
+null. Clicking a column header therefore draws the crosshair but clears the bars. With nothing selected
+there are none at all.
 
 `MatrixRowHeaderItemView.GetIndicatorColor()`:
 
@@ -113,29 +111,8 @@ Note the axis flip: green here means the row *consumes*, while in the grid a row
 describes a role relative to the selection; the grid describes an axis. The same row can be green, blue or
 orange depending on what you select.
 
-### Left bar — at the left edge, this fork's own addition
-
-Appears only when the selected element is **expanded** (`SelectedRow?.Element?.IsExpanded == true`) — that
-is, one of the vertical strips down the left side. Every leaf beneath it then gets a bar describing its
-relations to the rows *outside* the selection:
-
-| Colour | Flag | Meaning |
-|---|---|---|
-| Green | `IsConsumerIn` | this leaf depends on something outside the selected subtree |
-| Blue | `IsProviderIn` | something outside the selected subtree depends on this leaf |
-| Split, blue over green | both | both directions cross the boundary |
-
-The signal is in the **absence**:
-
-> **A leaf with no left bar has no relation crossing the boundary at all — it is used only inside the
-> selected subtree.**
-
-Select an expanded assembly and you read off its public surface (blue) versus its internals (no bar) in one
-glance.
-
-Note that the fork's own README describes this as "when a collapsed (vertical) element is selected". The
-code says `IsExpanded == true`; "vertical" is the giveaway — an element is drawn as a vertical strip
-precisely *because* it is expanded and its children occupy the rows.
+Upstream also drew a second bar at the *left* edge, an addition of this fork, marking the leaves of an
+expanded selection that had relations reaching outside it. We removed it; see [README.md](README.md).
 
 ## What we put into it
 
