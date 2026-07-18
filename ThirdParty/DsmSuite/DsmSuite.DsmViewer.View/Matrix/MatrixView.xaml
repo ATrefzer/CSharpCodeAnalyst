@@ -60,17 +60,19 @@
 
                 <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="{Binding Title}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="Consumer"/>
-                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="2" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding ConsumerName}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="0" Text="Consumer"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="2" Grid.Column="1" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="2" Text="{Binding ConsumerName}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="Provider"/>
-                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding ProviderName}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="0" Text="Provider"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="3" Grid.Column="1" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="2" Text="{Binding ProviderName}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="1" Text="Weight"/>
-                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="5" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="3" Text="{Binding Weight}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="0" Text="Weight"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="5" Grid.Column="1" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="2" Text="{Binding Weight}"/>
+                
+                <Image Grid.Row="2" Grid.RowSpan="2" Grid.Column="3" Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/left-arrow.png"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>

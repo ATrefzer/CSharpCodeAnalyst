@@ -16,6 +16,8 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\DSM.ico" />
+    <None Remove="Resources\left-arrow.png" />
+    <Resource Include="Resources\left-arrow.png" />
   </ItemGroup>
 
   <ItemGroup>
