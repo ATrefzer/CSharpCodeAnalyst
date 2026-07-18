@@ -40,6 +40,13 @@
     <Style x:Key="RichToolTipPropertiesStyle" TargetType="TextBlock">
         <Setter Property="FontStyle" Value="Normal" />
     </Style>
+    
+    <Style x:Key="RichToolTipColonStyle" TargetType="TextBlock">
+        <Setter Property="FontStyle" Value="Normal" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="3,0,3,0" />
+        
+    </Style>
 
     <!-- Legend styles -->
     <Style x:Key="LegendRectangleStyle" TargetType="Rectangle">

@@ -12,50 +12,43 @@
     <UserControl.Resources>
         <DataTemplate DataType="{x:Type matrix1:ElementToolTipViewModel}">
             <Grid>
+                <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="10" />
-                    <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+                <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="10" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="10" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Title}"/>
-                
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="Id"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding Id}"/>
+                <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="{Binding Title}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="Name"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding Name}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="Name"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="2" Grid.Column="2" Text=":" />
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding Name}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="4" Grid.Column="1" Text="Type"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="4" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="4" Grid.Column="3" Text="{Binding Type}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="Type"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding Type}"/>
             </Grid>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type matrix1:CellToolTipViewModel}">
             <Grid>
+                <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="10" />
-                    <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <!-- Changed 2026-07 for CSharpCodeAnalyst: rows 7 to 11 held the Weight and Cyclicity
-                     entries and their spacing; both are gone, see below. -->
+                <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="10" />
@@ -63,30 +56,21 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="10" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding Title}"/>
+                <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="{Binding Title}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="ConsumerId"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding ConsumerId}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="ConsumerName"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="2" Grid.Column="2" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding ConsumerName}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="ConsumerName"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding ConsumerName}"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="ProviderName"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding ProviderName}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="1" Text="ProviderId"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="3" Text="{Binding ProviderId}"/>
-
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="1" Text="ProviderName"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="2" Text=":"/>
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="6" Grid.Column="3" Text="{Binding ProviderName}"/>
-
-                <!-- Removed 2026-07 for CSharpCodeAnalyst: the Weight and Cyclicity entries. The cell shows
-                     the weight as its number and a cycle as its colour, so the tooltip only repeated what
-                     the pointer is already on. -->
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="1" Text="Weight"/>
+                <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="5" Grid.Column="2" Text=":"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="3" Text="{Binding Weight}"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>

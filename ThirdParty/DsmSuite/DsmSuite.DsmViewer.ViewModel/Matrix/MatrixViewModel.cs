@@ -611,10 +611,14 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
             if ((consumer != null) && (provider != null))
             {
-                // Changed 2026-07 for CSharpCodeAnalyst: also asked GetDependencyWeight and
-                // IsCyclicDependency here, on every mouse move across the cells, to fill tooltip entries
-                // that repeated what the cell itself draws. See CellToolTipViewModel.
-                CellToolTipViewModel = new CellToolTipViewModel(consumer, provider);
+                // Changed 2026-07 for CSharpCodeAnalyst: also asked IsCyclicDependency here, on every mouse
+                // move across the cells, for a tooltip entry that repeats the cell's own colour. The weight
+                // is asked for again rather than read out of _cellWeights: that list is rebuilt a few lines
+                // after _elementViewModelLeafs in Reload, so an index the leaves accept is not in itself an
+                // index the weights accept. One lookup per cell change is not worth that coupling.
+                // See CellToolTipViewModel.
+                CellToolTipViewModel = new CellToolTipViewModel(consumer, provider,
+                    _application.GetDependencyWeight(consumer, provider));
             }
         }
 

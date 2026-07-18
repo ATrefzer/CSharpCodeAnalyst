@@ -7,10 +7,14 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 {
     public class ElementToolTipViewModel : ViewModelBase
     {
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: dropped Id, DsmSuite's own element numbering. It
+        /// identifies nothing outside the DSM model - the code graph keys on its own ids - so it was a
+        /// number the reader could do nothing with. Same reasoning as in CellToolTipViewModel.
+        /// </summary>
         public ElementToolTipViewModel(IDsmElement element, IDsmApplication application)
         {
             Title = $"Element {element.Name}";
-            Id = element.Id;
             Name = element.Fullname;
             Type = element.Type;
 
@@ -23,7 +27,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         }
 
         public string Title { get; }
-        public int Id { get; }
         public string Name { get; }
         public string Type { get; }
         public List<LegendViewModel> Legend { get; }

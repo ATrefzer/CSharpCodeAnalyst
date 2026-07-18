@@ -83,6 +83,10 @@ The **number** is the dependency weight: the count of distinct type-level edges 
 elements. Above `9999` it reads `>9K`, because that is the widest that fits — the exact value is in the
 cell's tooltip.
 
+Below roughly a third of full zoom the number stops fitting the cell altogether and is not drawn. A
+populated cell and an empty one then look the same, and the tooltip is the only thing that still tells
+them apart — which is why it carries the weight.
+
 It is drawn smaller than the rest of the matrix (font size 10 against 14). That is not decoration: at 14 a
 cell only has room for three digits, and upstream silently dropped the fourth, drawing `1000` as `100`. See
 [README.md](README.md).
@@ -155,6 +159,9 @@ in [README.md](README.md).
   selects the column but clears them.
 - **Click the arrow** in a row header (the top-left 20×24 px) to expand or collapse; hold **shift** and it
   works recursively.
+- **Hover a cell** for the consumer's and the provider's full names plus the weight; **hover a row or
+  column header** for the element's full name and type. Neither shows an element id: DsmSuite numbers its
+  own model elements, and that number means nothing outside it.
 
 The view is read-only. Everything upstream offers that edits the DSM model — the context menus, dragging a
 row header onto another to re-parent it — is removed, because the model here is a projection of a parsed
