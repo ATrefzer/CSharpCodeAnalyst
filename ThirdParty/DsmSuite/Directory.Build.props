@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <!--
+      Deliberately does NOT import the repository root Directory.Build.props.
+
+      MSBuild stops searching upwards at the first Directory.Build.props it finds, so this
+      file shields the vendored DsmSuite projects from the root one. That is intentional:
+
+      - The root file injects Microsoft.Build.Framework / Microsoft.NET.StringTools for the
+        Roslyn/MSBuildLocator setup. DsmSuite needs neither.
+      - The root file stamps Copyright/Authors of CSharpCodeAnalyst onto every assembly.
+        Applying that to third party GPL code would misattribute it.
+    -->
+    <PropertyGroup>
+        <Product>DsmSuite</Product>
+        <!-- Named as they name themselves: the MIT notice reads "Copyright (c) 2019 jmuijsenberg",
+             and ernstaii authors the fork's commits under that account name. -->
+        <Authors>jmuijsenberg, ernstaii and contributors</Authors>
+        <Copyright>Copyright (C) DsmSuite contributors. Licensed under GPL-3.0-or-later.</Copyright>
+        <Description>Vendored subset of DsmSuite (https://github.com/ernstaii/dsmsuite.sourcecode).</Description>
+    </PropertyGroup>
+</Project>

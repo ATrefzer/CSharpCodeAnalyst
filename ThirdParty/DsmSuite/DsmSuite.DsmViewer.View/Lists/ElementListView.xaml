@@ -1,0 +1,36 @@
+﻿<Window x:Class="DsmSuite.DsmViewer.View.Lists.ElementListView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Height="600"
+        Width="800"
+        Loaded="ElementListView_OnLoaded"
+        Style="{StaticResource FixedHeightDialogStyle}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource TitleHeight}" />
+            <RowDefinition Height="{StaticResource SubTitleHeight}" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="{StaticResource BottomRowHeight}" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogTitle}" Text="{Binding Title}"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogSubTitle}" Text="{Binding SubTitle}"/>
+        <ListView Grid.Row="2" ItemsSource="{Binding Elements}" SelectedItem="{Binding SelectedElement}" Style="{StaticResource DialogListView}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Index" Width="40" DisplayMemberBinding="{Binding Index}" />
+                    <GridViewColumn Header="Element path" Width="auto" DisplayMemberBinding="{Binding ElementPath}" />
+                    <GridViewColumn Header="Element name" Width="auto" DisplayMemberBinding="{Binding ElementName}" />
+                    <GridViewColumn Header="Element type" Width="auto" DisplayMemberBinding="{Binding ElementType}" />
+                    <GridViewColumn Header="Weight"       Width="auto" DisplayMemberBinding="{Binding Weight}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource DialogButton}" Content="Copy" ToolTip="Copy element list to clipboard" Command="{Binding CopyToClipboardCommand}"/>
+        </StackPanel>        
+    </Grid>
+</Window>

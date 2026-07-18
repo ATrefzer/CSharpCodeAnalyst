@@ -1,0 +1,274 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+using DsmSuite.DsmViewer.ViewModel.Matrix;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+
+namespace DsmSuite.DsmViewer.View.Matrix
+{
+    /// <summary>
+    /// The view for the square block of cells in a matrix.
+    /// </summary>
+    public class MatrixCellsView : MatrixFrameworkElement
+    {
+        private MatrixViewModel _viewModel;
+        private readonly MatrixTheme _theme;
+        private Rect _rect;     // Area of the cell that is being rendered (reused)
+        private int? _hoveredRow;
+        private int? _hoveredColumn;
+        private readonly double _pitch;     // Distance between the same points in neighbouring cells
+        private readonly double _offset;    // Distance between header and first cell (hor/ver)
+        private readonly double _verticalTextOffset; // Distance between top of cell and baseline of text
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: the weight is drawn smaller than the rest of the matrix.
+        /// </summary>
+        /// <remarks>
+        /// At the shared font size of 14 a digit is 7.55px wide, so only three of them fit the 22px a cell
+        /// leaves. DrawText tests the width *before* each glyph, so a fourth digit was silently dropped
+        /// rather than overflowing: 1000 was drawn as "100" and 9999 as "999" — a wrong number, with
+        /// nothing to hint at it. At 10 the four digits take 21.6px, and three digits get 3.9px of air
+        /// instead of 0.7px, which is what made them look like they leaked into the neighbouring cell.
+        /// </remarks>
+        private const double CellFontSize = 10.0;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: above this the weight does not fit and is labelled
+        /// <see cref="TooLargeLabel"/>.
+        /// </summary>
+        private const int LargestDrawableWeight = 9999;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: replaces the upstream infinity sign, which claimed a weight
+        /// was infinite when it only meant it did not fit. This states what is actually known, and names
+        /// the bound instead of leaving the reader to guess it. 18.0px at CellFontSize, so it fits.
+        /// </summary>
+        private const string TooLargeLabel = ">9K";
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: smallest on screen font size at which a cell weight is
+        /// still worth drawing, in device pixels. Below it the cells switch to presence, see
+        /// <see cref="DrawWeightsAtCurrentZoom"/>. At CellFontSize 10 this puts the switch at zoom 0.7.
+        /// </summary>
+        private const double MinReadableFontSize = 7.0;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: what the last OnRender decided about the weights. Null
+        /// until the first render, which is why a zoom before that always redraws once.
+        /// </summary>
+        private bool? _weightsDrawn;
+
+        public MatrixCellsView()
+        {
+            _theme = new MatrixTheme(this);
+            _rect = new Rect(new Size(_theme.MatrixCellSize, _theme.MatrixCellSize));
+            _hoveredRow = null;
+            _hoveredColumn = null;
+            _pitch = _theme.MatrixCellSize + _theme.SpacingWidth;
+            _offset = _theme.SpacingWidth / 2;
+
+            // Changed 2026-07 for CSharpCodeAnalyst: was a fixed 12.0, which put the baseline exactly on
+            // the middle of the cell so that the number sat in the upper half, above the weight bar. The
+            // bar is gone, so the number is centred instead. Horizontally it already was: _offset plus
+            // half a cell equals half a pitch.
+            _verticalTextOffset = _offset + CenteredTextBaseline(_theme.MatrixCellSize, CellFontSize);
+
+            DataContextChanged += OnDataContextChanged;
+            MouseMove += OnMouseMove;
+            MouseDown += OnMouseDown;
+            MouseLeave += OnMouseLeave;
+        }
+
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model.
+        /// </summary>
+        /// <remarks>
+        /// Upstream only ever subscribed. The matrix sits in a TabControl, which keeps one content
+        /// presenter and rebuilds the tab's visual tree on every switch, while the view model survives on
+        /// the tab's own view model. So switching away and back left the discarded MatrixCellsView
+        /// subscribed to the live view model — and reachable from it, so it stayed alive. Its DataContext
+        /// was gone by then, hence _viewModel null, and the next hover raised CellToolTipViewModel into
+        /// OnPropertyChanged, which dereferences _viewModel. That was the NullReferenceException on
+        /// hovering; it hit hardest zoomed out, where a single mouse move crosses many cells and so
+        /// re-raises the tooltip almost continuously.
+        /// </remarks>
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is MatrixViewModel oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnPropertyChanged;
+            }
+
+            _viewModel = DataContext as MatrixViewModel;
+            if (_viewModel != null)
+            {
+                _viewModel.PropertyChanged += OnPropertyChanged;
+                InvalidateVisual();
+            }
+        }
+
+        private void OnMouseMove(object sender, MouseEventArgs e)
+        {
+            int row = GetHoveredRow(e.GetPosition(this));
+            int column = GetHoveredColumn(e.GetPosition(this));
+            if ((_hoveredRow != row) || (_hoveredColumn != column))
+            {
+                _hoveredRow = row;
+                _hoveredColumn = column;
+                _viewModel.HoverCell(row, column);
+            }
+        }
+
+        private void OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            _viewModel.HoverCell(null, null);
+        }
+
+        private void OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            int row = GetHoveredRow(e.GetPosition(this));
+            int column = GetHoveredColumn(e.GetPosition(this));
+            _viewModel.SelectCell(row, column);
+        }
+
+        private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            // Added 2026-07 for CSharpCodeAnalyst: every other member guards this, OnRender and the mouse
+            // handlers included, so a null view model is a state the class already expects. See
+            // OnDataContextChanged for how it came about.
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            if (e.PropertyName == nameof(MatrixViewModel.CellToolTipViewModel))
+            {
+                ToolTip = _viewModel.CellToolTipViewModel;
+            }
+
+            // Added 2026-07 for CSharpCodeAnalyst: zooming reaches OnRender, but only where it changes the
+            // outcome. The LayoutTransform above us scales the visual we already produced, so the zoom
+            // enters the drawing through exactly one boolean - see DrawWeightsAtCurrentZoom. Redrawing on
+            // every zoom step instead froze the application: OnRender walks matrixSize squared cells, one
+            // wheel spin is a dozen steps, and each of them rebuilt every cell of the matrix for a picture
+            // that had not changed.
+            if (e.PropertyName == nameof(MatrixViewModel.ZoomLevel))
+            {
+                if (DrawWeightsAtCurrentZoom() != _weightsDrawn)
+                {
+                    InvalidateVisual();
+                }
+
+                return;
+            }
+
+            if ((e.PropertyName == nameof(MatrixViewModel.MatrixSize)) ||
+                (e.PropertyName == nameof(MatrixViewModel.HoveredRow)) ||
+                (e.PropertyName == nameof(MatrixViewModel.SelectedRow)) ||
+                (e.PropertyName == nameof(MatrixViewModel.HoveredColumn)) ||
+                (e.PropertyName == nameof(MatrixViewModel.SelectedColumn)))
+            {
+                InvalidateVisual();
+            }
+        }
+
+        protected override void OnRender(DrawingContext dc)
+        {
+            if (_viewModel != null)
+            {
+                // Removed 2026-07 for CSharpCodeAnalyst: weightBrush and weightRect, only the weight bar
+                // used them.
+
+                // Added 2026-07 for CSharpCodeAnalyst: below this the cells are painted by presence
+                // instead, see DrawWeightsAtCurrentZoom. Remembered so that a zoom step which does not
+                // cross the threshold costs nothing, see OnPropertyChanged.
+                bool drawWeights = DrawWeightsAtCurrentZoom();
+                _weightsDrawn = drawWeights;
+
+                int matrixSize = _viewModel.MatrixSize;
+                for (int row = 0; row < matrixSize; row++)
+                {
+                    for (int column = 0; column < matrixSize; column++)
+                    {
+                        _rect.X = _offset + column * _pitch;
+                        _rect.Y = _offset + row * _pitch;
+
+                        bool isHovered = row == _viewModel.HoveredRow?.Index  ||  column == _viewModel.HoveredColumn?.Index;
+                        bool isSelected = row == _viewModel.SelectedRow?.Index  ||  column == _viewModel.SelectedColumn?.Index;
+                        MatrixColor color = _viewModel.CellColors[row][column];
+                        int weight = _viewModel.CellWeights[row][column];
+
+                        // Added 2026-07 for CSharpCodeAnalyst: once the weight is too small to read, a
+                        // populated cell says so by being filled instead. Cycles keep their own colour,
+                        // which outranks both.
+                        bool paintPresence = !drawWeights && (weight > 0) && (color != MatrixColor.Cycle);
+                        SolidColorBrush background = paintPresence
+                            ? _theme.GetPresenceBackground(isHovered, isSelected)
+                            : _theme.GetBackground(color, isHovered, isSelected);
+
+                        dc.DrawRectangle(background, null, _rect);
+
+                        if (drawWeights && (weight > 0))
+                        {
+                            // Removed 2026-07 for CSharpCodeAnalyst: the weight was also drawn as a small
+                            // filled bar across the lower half of the cell, its width the weight's decile
+                            // among all populated cells. The number states it already, and the bar was
+                            // misleading more often than not: the deciles all collapse onto one bucket
+                            // when fewer than ten cells are populated, and with the tree fully expanded
+                            // every weight is 1 (we feed one deduplicated edge per pair of types), so
+                            // every bar came out the same length regardless.
+
+                            //---- Weight as a number
+                            // Changed 2026-07 for CSharpCodeAnalyst: was the infinity sign above 9999, see
+                            // TooLargeLabel, and drawn at the shared font size, see CellFontSize.
+                            string content = weight > LargestDrawableWeight ? TooLargeLabel : weight.ToString();
+
+                            double textWidth = MeasureText(content, CellFontSize);
+
+                            Point location = new Point
+                            {
+                                X = (column * _pitch) + (_pitch - textWidth) / 2,
+                                Y = (row * _pitch) + _verticalTextOffset
+                            };
+                            DrawText(dc, content, location, _theme.TextColor, _rect.Width - _theme.SpacingWidth, CellFontSize);
+                        }
+                    }
+                }
+                Height = Width = _pitch * matrixSize;
+            }
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: whether the weight can still be read at the current zoom.
+        /// </summary>
+        /// <remarks>
+        /// The zoom is a LayoutTransform on the grid above us, so it scales the cell and its number by the
+        /// same factor: the number always fits, it just gets smaller. Fit is therefore not a criterion that
+        /// can ever fire, and nothing in this view's own geometry changes when zooming - the only thing
+        /// that tells us the matrix has become unreadable is the zoom level itself.
+        /// <para>
+        /// Below the threshold the number is dropped and the cell is painted by presence instead. It is a
+        /// hard switch because there is nothing gradual to be had: the last legible size is followed by an
+        /// illegible one. Leaving the number in was worse than dropping it - an unreadable glyph still
+        /// tints its cell, so a populated cell read as a slightly different shade rather than as full,
+        /// which is the one thing you are looking for at this zoom.
+        /// </para>
+        /// </remarks>
+        private bool DrawWeightsAtCurrentZoom()
+        {
+            return _viewModel.ZoomLevel * CellFontSize >= MinReadableFontSize;
+        }
+
+        private int GetHoveredRow(Point location)
+        {
+            double row = (location.Y - _offset) / _pitch;
+            return (int)row;
+        }
+
+        private int GetHoveredColumn(Point location)
+        {
+            double column = (location.X - _offset) / _pitch;
+            return (int)column;
+        }
+    }
+}

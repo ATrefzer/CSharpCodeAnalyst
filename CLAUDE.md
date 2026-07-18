@@ -52,6 +52,8 @@ Five projects wired together in `CSharpCodeAnalyst.sln`:
 - **`Tests/`** (project name `CodeParserTests`) — NUnit suite. `ApprovalTests/` parses the `TestSuite/` C# solution once per fixture and asserts on the resulting graph; `UnitTests/` covers cycles, exploration, export, search, architectural rules, etc.
 - **`ApprovalTestTool/`** — standalone console app that clones external repos listed in `Repositories.txt`, parses each at a pinned commit, hashes the graph dump, and diffs against references. Used to catch parser regressions on real codebases; not part of the CI test run.
 
+`ThirdParty/DsmSuite/` holds a vendored subset (7 of ~38 projects) of the GPL-licensed DsmSuite, which provides the matrix view on the DSM tab. It is foreign code with its own rules — see **Vendored DsmSuite** below before touching anything in there.
+
 `TestSuite/` is a handcrafted C# solution used purely as parser input for the approval tests. Do not consume it from production code — it is intentionally full of odd language constructs. `ReferencedAssemblies/` contains the MSAGL DLLs referenced directly by `CSharpCodeAnalyst.csproj` and `Tests.csproj` (MSAGL is not on NuGet for the versions used here).
 
 ## Architectural notes worth knowing before editing
@@ -111,6 +113,19 @@ Then wire up the edges: `RuleEngine.Execute` for the evaluation, `RuleViolationV
 
 ### Refactoring simulation is destructive
 `Features/Refactoring/` mutates the in-memory `CodeGraph` directly (move / delete elements, cut edges) and there is no undo. Any code path that offers these operations should save or warn first — see existing command handlers before adding new ones.
+
+### Vendored DsmSuite (the DSM tab)
+The matrix on the DSM tab is not ours: `ThirdParty/DsmSuite/` is a modified subset of [DsmSuite](https://github.com/ernstaii/dsmsuite.sourcecode), pinned to a commit recorded in `ThirdParty/DsmSuite/README.md`, GPL-3.0-or-later (originally MIT). Our side is `Features/DsmMatrix/`: `CodeGraphToDsmModelBuilder` fills a DsmSuite `IDsmModel` straight from the `TypeGraph` — explicit `parentId`, no DSI file, no name splitting — and `DsmMatrixView` hosts their `MatrixView`.
+
+**The two documents in `ThirdParty/DsmSuite/` have different jobs — keep them apart.** `Dsm.md` is the reader's guide: what you see and how to operate it (axes — row = provider, column = consumer; the depth-coloured blocks; the row indicator bar; the presence map when zoomed out; keyboard and wheel). No class names, no rationale for our changes. `README.md` is the record against upstream: the change table, why each change was made, and the bug list. Read `Dsm.md` before changing anything about the view's semantics and keep it in sync — none of it is discoverable from the UI — but put the reasoning in `README.md`.
+
+**Every change under `ThirdParty/DsmSuite/` costs two things, and neither is optional:** (1) a `Changed <YYYY-MM> for CSharpCodeAnalyst` comment at the site explaining *why*, and (2) a row in the change table in `ThirdParty/DsmSuite/README.md`. GPL §5(a) requires stating what was modified, and that table is the map for ever diffing against upstream again — an undocumented change silently becomes indistinguishable from upstream code. Same rule for the bug list in that README when you find (or fix) a defect in their code.
+
+Two traps that are already documented there and worth knowing before you write code against their API:
+- **`DsmApplication` binds `DsmQueries` to the model it is constructed with and never rebinds.** Populate the model *first*, then construct `DsmApplication`. Calling their `LoadModel` (i.e. the file-based import path) leaves every query running against the previous model. This is why `DsmMatrixView.Show` builds everything from scratch.
+- **Their `MainViewModel` is the DataContext**, including its editing commands. Those mutate the DSM model only, never the `CodeGraph`, so they cannot corrupt a parse result — but they are live in the context menus.
+
+Their resource dictionaries are merged in `App.xaml` at application scope because their controls resolve them via `StaticResource`. Everything in there is keyed; if you pull in more of their XAML, check for implicit (unkeyed) styles first — those would restyle the whole application.
 
 ## Code style
 

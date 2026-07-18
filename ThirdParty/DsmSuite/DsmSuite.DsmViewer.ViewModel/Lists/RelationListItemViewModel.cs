@@ -1,0 +1,80 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+using DsmSuite.DsmViewer.Application.Interfaces;
+using DsmSuite.DsmViewer.Model.Interfaces;
+using DsmSuite.DsmViewer.ViewModel.Common;
+
+namespace DsmSuite.DsmViewer.ViewModel.Lists
+{
+    public class RelationListItemViewModel : ViewModelBase, IComparable
+    {
+        public RelationListItemViewModel(IDsmApplication application, IDsmRelation relation)
+        {
+            Relation = relation;
+
+            ConsumerPath = relation.Consumer.Parent.Fullname;
+            ConsumerName = relation.Consumer.Name;
+            ConsumerType = relation.Consumer.Type;
+            ProviderPath = relation.Provider.Parent.Fullname;
+            ProviderName = relation.Provider.Name;
+            ProviderType = relation.Provider.Type;
+            RelationType = relation.Type;
+            RelationWeight = relation.Weight;
+            Properties = relation.Properties;
+
+            CycleType cycleType = application.IsCyclicDependency(relation.Consumer, relation.Provider);
+            switch (cycleType)
+            {
+                case CycleType.Hierarchical:
+                    Cyclic = "Hierarchical";
+                    break;
+                case CycleType.System:
+                    Cyclic = "System";
+                    break;
+                case CycleType.None:
+                default:
+                    Cyclic = "";
+                    break;
+            }
+        }
+
+        public IDsmRelation Relation { get; set; }
+
+        public int Index { get; set; }
+
+        public string ConsumerPath { get; }
+        public string ConsumerName { get; }
+        public string ConsumerType { get; }
+        public string ProviderPath { get; }
+        public string ProviderName { get; }
+        public string ProviderType { get; }
+        public string RelationType { get; }
+        public int RelationWeight { get; }
+        public string Cyclic { get; }
+        public IDictionary<string, string> Properties { get; }
+
+        public IEnumerable<string> DiscoveredRelationPropertyNames()
+        {
+            return Relation.DiscoveredRelationPropertyNames();
+        }
+
+        public int CompareTo(object obj)
+        {
+            int res;
+            RelationListItemViewModel other = obj as RelationListItemViewModel;
+
+            res = string.Compare(ConsumerPath, other?.ConsumerPath, StringComparison.Ordinal);
+            if (res == 0)
+                res = string.Compare(ConsumerName, other?.ConsumerName, StringComparison.Ordinal);
+            if (res == 0)
+                res = string.Compare(ProviderPath, other?.ProviderPath, StringComparison.Ordinal);
+            if (res == 0)
+                res = string.Compare(ProviderName, other.ProviderName, StringComparison.Ordinal);
+            if (res == 0)
+                res = RelationWeight.CompareTo(other?.RelationWeight);
+            if (res == 0)
+                res = RelationType.CompareTo(other?.RelationType);
+
+            return res;
+        }
+    }
+}

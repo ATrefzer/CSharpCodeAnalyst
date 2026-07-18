@@ -1,0 +1,106 @@
+﻿<Window x:Class="DsmSuite.DsmViewer.View.Editing.RelationEditDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:usercontrols="clr-namespace:DsmSuite.DsmViewer.View.UserControls"        
+             mc:Ignorable="d" 
+        Height="750" 
+        Width="650"
+        Style="{StaticResource DialogStyle}">
+    <StackPanel FocusManager.FocusedElement="{Binding ElementName=NameTextBox}" VerticalAlignment="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
+        <TextBlock Style="{StaticResource DialogTitle}" Text="{Binding Title}"/>
+        <TextBlock Style="{StaticResource DialogSubTitle}" Text="Consumer"/>
+        <Grid Margin="10" DataContext="{Binding Path=ConsumerSearchViewModel}" Visibility="{Binding SearchState, Converter={StaticResource SearchStateOffToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Name" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DialogTextBlock}" Text="{Binding SearchText}"/>
+        </Grid>
+        <Grid Margin="10" DataContext="{Binding Path=ConsumerSearchViewModel}" Visibility="{Binding SearchState, Converter={StaticResource SearchStateNotOffToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Type filter"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Style="{StaticResource DialogComboBox}" ItemsSource="{Binding ElementTypes, Mode=OneWay}" SelectedItem="{Binding SelectedElementType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Label Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Search path" />
+            <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource DialogLabel}"  Content="{Binding SearchPath}" />
+            <Label Grid.Row="2" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Name" />
+            <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource DialogStackPanel}">
+                <usercontrols:ElementSearchBox/>
+            </StackPanel>
+            <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource DialogTextBlock}" Text="{Binding SearchResult}"/>
+        </Grid>
+        <TextBlock Style="{StaticResource DialogSubTitle}" Text="Provider"/>
+        <Grid Margin="10" DataContext="{Binding Path=ProviderSearchViewModel}" Visibility="{Binding SearchState, Converter={StaticResource SearchStateOffToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Name" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource DialogTextBlock}" Text="{Binding SearchText}"/>
+        </Grid>
+        <Grid Margin="10" DataContext="{Binding Path=ProviderSearchViewModel}" Visibility="{Binding SearchState, Converter={StaticResource SearchStateNotOffToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Type filter"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Style="{StaticResource DialogComboBox}" ItemsSource="{Binding ElementTypes, Mode=OneWay}" SelectedItem="{Binding SelectedElementType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Label Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Search path" />
+            <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource DialogLabel}"  Content="{Binding SearchPath}" />
+            <Label Grid.Row="2" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Name"/>
+            <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource DialogStackPanel}">
+                <usercontrols:ElementSearchBox/>
+            </StackPanel>
+            <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource DialogTextBlock}" Text="{Binding SearchResult}"/>
+        </Grid>
+        <TextBlock Style="{StaticResource DialogSubTitle}" Text="Relation"/>
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Type"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" Style="{StaticResource DialogComboBox}" ItemsSource="{Binding RelationTypes, Mode=OneWay}" Text="{Binding SelectedRelationType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="TypeTextBox"/>
+            <Label Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Weight"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource DialogTextBox}" Text="{Binding Weight, UpdateSourceTrigger=PropertyChanged}" PreviewTextInput="NumberValidationTextBox" Name="WeightTextBox"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource DialogTextBlock}" Text="{Binding Help, UpdateSourceTrigger=PropertyChanged}" Name="HelpTextBlock" Foreground="Red"/>
+            <StackPanel Grid.Row="3"  Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource DialogButton}" Content="Ok" Click="OnOkButtonClicked" Command="{Binding AcceptChangeCommand}" IsDefault="True"/>
+                <Button Style="{StaticResource DialogButton}" Content="Cancel" IsCancel="True" />
+            </StackPanel>
+        </Grid>
+    </StackPanel>
+</Window>

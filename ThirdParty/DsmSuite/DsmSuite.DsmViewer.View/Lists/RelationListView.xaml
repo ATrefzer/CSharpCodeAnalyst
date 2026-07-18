@@ -1,0 +1,49 @@
+﻿<Window x:Class="DsmSuite.DsmViewer.View.Lists.RelationListView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{Binding Title}" 
+        Height="600" 
+        Width="800"
+        Loaded="RelationListView_OnLoaded"
+        Style="{StaticResource FixedHeightDialogStyle}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource TitleHeight}" />
+            <RowDefinition Height="{StaticResource SubTitleHeight}" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="{StaticResource BottomRowHeight}" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogTitle}" Text="{Binding Title}" Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogSubTitle}" Text="{Binding SubTitle}" Margin="5"/>
+        <ListView Grid.Row="2" ItemsSource="{Binding Relations}" SelectedItem="{Binding SelectedRelation}" Style="{StaticResource DialogListView}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Index" Width="40" DisplayMemberBinding="{Binding Path=Index}" />
+                    <GridViewColumn Header="Consumer path" Width="auto" DisplayMemberBinding="{Binding Path=ConsumerPath}" />
+                    <GridViewColumn Header="Consumer name" Width="auto" DisplayMemberBinding="{Binding Path=ConsumerName}" />
+                    <GridViewColumn Header="Consumer type" Width="auto" DisplayMemberBinding="{Binding Path=ConsumerType}" />
+                    <GridViewColumn Header="Provider path" Width="auto" DisplayMemberBinding="{Binding Path=ProviderPath}" />
+                    <GridViewColumn Header="Provider name" Width="auto" DisplayMemberBinding="{Binding Path=ProviderName}" />
+                    <GridViewColumn Header="Provider type" Width="auto" DisplayMemberBinding="{Binding Path=ProviderType}" />
+                    <GridViewColumn Header="Relation type" Width="auto" DisplayMemberBinding="{Binding Path=RelationType}" />
+                    <GridViewColumn Header="Relation weight" Width="auto" DisplayMemberBinding="{Binding Path=RelationWeight}" />
+                    <GridViewColumn Header="Cyclic" Width="auto" DisplayMemberBinding="{Binding Path=Cyclic}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <DockPanel Grid.Row="3">
+            <StackPanel DockPanel.Dock="Left" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Style="{StaticResource DialogButton}" Content="Delete" ToolTip="Delete selected relation" Command="{Binding DeleteRelationCommand}"/>
+                <Button Style="{StaticResource DialogButton}" Content="Edit" ToolTip="Edit selected relation" Command="{Binding EditRelationCommand}"/>
+                <Button Style="{StaticResource DialogButton}" Content="Add" ToolTip="Add relation" Command="{Binding AddRelationCommand}"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Left" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource DialogButton}" Content="Copy" ToolTip="Copy relation list to clipboard" Command="{Binding CopyToClipboardCommand}"/>
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

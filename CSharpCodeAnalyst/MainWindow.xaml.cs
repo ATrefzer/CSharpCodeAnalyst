@@ -49,6 +49,7 @@ public partial class MainWindow
         var headerTemplate = (DataTemplate)Resources["DynamicTabHeaderTemplate"];
         var tabularContentTemplate = (DataTemplate)Resources["DynamicTabContentTemplate"];
         var hierarchicalContentTemplate = (DataTemplate)Resources["DynamicHierarchicalTabContentTemplate"];
+        var dsmContentTemplate = (DataTemplate)Resources["DynamicDsmTabContentTemplate"];
 
         mainVm.DynamicTabs.CollectionChanged += (_, e) =>
         {
@@ -56,7 +57,12 @@ public partial class MainWindow
             {
                 foreach (ITabViewModel tab in e.NewItems!)
                 {
-                    var contentTemplate = tab is HierarchicalTabViewModel ? hierarchicalContentTemplate : tabularContentTemplate;
+                    var contentTemplate = tab switch
+                    {
+                        HierarchicalTabViewModel => hierarchicalContentTemplate,
+                        DsmTabViewModel => dsmContentTemplate,
+                        _ => tabularContentTemplate
+                    };
                     WorkingArea.Items.Add(new TabItem
                     {
                         Header = tab,

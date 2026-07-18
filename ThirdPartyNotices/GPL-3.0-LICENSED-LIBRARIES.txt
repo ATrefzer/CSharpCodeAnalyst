@@ -15,5 +15,31 @@ CSharpCodeAnalyst/Features/WebGraph/Web/lib/cytoscape-svg.js.
 
 Licensed under the GNU General Public License v3.0.
 
+
+2. DSMSUITE
+================================================================================
+
+https://github.com/ernstaii/dsmsuite.sourcecode
+https://github.com/dsmsuite/dsmsuite.sourcecode (upstream)
+
+Dependency Structure Matrix viewer. A subset of the source is vendored under
+ThirdParty/DsmSuite and provides the matrix view shown on the DSM tab. The
+sources were modified; see ThirdParty/DsmSuite/README.md for the list of changes.
+
+Licensed under the GNU General Public License v3.0 or later. The full text as
+shipped with the original is in ThirdParty/DsmSuite/LICENSE.
+
+DsmSuite began as MIT-licensed software and was relicensed under the GPL by the
+fork above. The original MIT notice is preserved and applies to the code it
+covers:
+
+    MIT License
+    Copyright (c) 2019 jmuijsenberg
+
+The full MIT text is in ThirdParty/DsmSuite/LICENSE-jmuijsenberg.
+
+
+================================================================================
+
 This project itself is licensed under the GNU General Public License v3.0; the
 full license text is in the LICENSE file at the repository root.

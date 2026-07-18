@@ -12,7 +12,6 @@ using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
-using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
@@ -23,6 +22,7 @@ using CSharpCodeAnalyst.Features.AdvancedSearch;
 using CSharpCodeAnalyst.Features.Ai;
 using CSharpCodeAnalyst.Features.Analyzers;
 using CSharpCodeAnalyst.Features.CycleGroups;
+using CSharpCodeAnalyst.Features.DsmMatrix;
 using CSharpCodeAnalyst.Features.Export;
 using CSharpCodeAnalyst.Features.Gallery;
 using CSharpCodeAnalyst.Features.Graph;
@@ -30,12 +30,12 @@ using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Features.History;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
-using CSharpCodeAnalyst.Features.Statistics;
 using CSharpCodeAnalyst.Features.Partitions;
+using CSharpCodeAnalyst.Features.Refactoring;
+using CSharpCodeAnalyst.Features.Statistics;
+using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Persistence.Contracts;
 using CSharpCodeAnalyst.Persistence.Dto;
-using CSharpCodeAnalyst.Features.Refactoring;
-using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Contracts;
@@ -46,9 +46,10 @@ using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
 using CSharpCodeAnalyst.TreeMap;
+// Both this application and DsmSuite have a MainViewModel.
+using DsmMainViewModel = DsmSuite.DsmViewer.ViewModel.Main.MainViewModel;
 
 namespace CSharpCodeAnalyst;
-
 
 internal sealed class MainViewModel : INotifyPropertyChanged
 {
@@ -62,13 +63,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly Importer _importer;
 
     private readonly MessageBus _messaging;
-    private readonly IProjectService _projectService;
+    private readonly MetricStore _metricStore;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
+    private readonly IProjectService _projectService;
     private readonly RefactoringService _refactoringService;
-    private readonly MetricStore _metricStore;
     private readonly IUserNotification _ui;
-    private UserPreferences _userSettings;
     private AppSettings _applicationSettings;
     private CodeGraph.Graph.CodeGraph? _codeGraph;
 
@@ -84,9 +84,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private AdvancedSearchViewModel? _searchViewModel;
 
     private TreeViewModel? _treeViewModel;
-    
-    
-    public HistoryViewModel History { get; private set; } 
+    private UserPreferences _userSettings;
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
@@ -146,6 +144,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         GraphRefitCommand = new WpfCommand(OnGraphRefit);
         StopRenderingCommand = new WpfCommand(OnStopRendering);
         FindCyclesCommand = new WpfCommand(OnFindCycles);
+        ShowDsmCommand = new WpfCommand(OnShowDsm);
         AiAdviseCommand = new WpfCommand(OnAiAdvise);
         ExecuteAnalyzerCommand = new WpfCommand<string>(OnExecuteAnalyzer);
 
@@ -169,6 +168,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     }
 
 
+    public HistoryViewModel History { get; private set; }
+
+
     public WpfCommand ExportPlainTextCommand { get; set; }
 
     public ObservableCollection<Mru> RecentFiles { get; } = [];
@@ -181,9 +183,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     ///     working-area TabControl; see <see cref="DynamicTabActivated" /> for bringing one to the front.
     /// </summary>
     public ObservableCollection<ITabViewModel> DynamicTabs { get; } = [];
-
-    /// <summary>Raised when a dynamic tab should become the active one (new or updated result).</summary>
-    public event Action<ITabViewModel>? DynamicTabActivated;
 
     public Table? Cycles
     {
@@ -270,10 +269,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand ExportToPlantUmlCommand { get; }
     public ICommand ExportToSvgCommand { get; set; }
     public ICommand FindCyclesCommand { get; }
+    public ICommand ShowDsmCommand { get; }
     public ICommand AiAdviseCommand { get; }
     public ICommand ExportToDsiCommand { get; }
     public ICommand SearchCommand { get; }
     public ICommand ExportToPngCommand { get; }
+
     public bool IsLegendOpen
     {
         get;
@@ -297,6 +298,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             }
         }
     }
+
     public ICommand ExecuteAnalyzerCommand { get; set; }
     public ICommand SnapshotCommand { get; }
     public ICommand RestoreCommand { get; }
@@ -444,6 +446,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>Raised when a dynamic tab should become the active one (new or updated result).</summary>
+    public event Action<ITabViewModel>? DynamicTabActivated;
+
     private void OnBusyStateChanged(BusyState state)
     {
         IsLoading = state.IsLoading;
@@ -454,7 +459,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         if (_analyzerManager.IsDirty())
         {
-            _projectService.MarkDirty(false);
+            _projectService.MarkDirty();
         }
     }
 
@@ -543,7 +548,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         void RemoveSession(GraphSession session)
         {
             _gallery.Sessions.Remove(session);
-            _projectService.MarkDirty(false);
+            _projectService.MarkDirty();
         }
 
         void PreviewSession(GraphSession session)
@@ -563,7 +568,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             var session = _graphViewModel.GetSession();
             session.Name = name;
             _gallery.AddSession(session);
-            _projectService.MarkDirty(false);
+            _projectService.MarkDirty();
             return session;
         }
     }
@@ -658,12 +663,12 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public void HandleShowTabularData(ShowTabularDataRequest tabularDataRequest)
     {
-        ShowDynamicTab(tabularDataRequest.Id, tabularDataRequest.Title, tabularDataRequest.Table);
+        ShowTabularDataTab(tabularDataRequest.Id, tabularDataRequest.Title, tabularDataRequest.Table);
     }
 
     public void HandleShowHierarchicalData(ShowHierarchicalDataRequest hierarchicalDataRequest)
     {
-        ShowHierarchicalTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data);
+        ShowHierarchicalDataTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data);
     }
 
     /// <summary>
@@ -671,7 +676,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     ///     it in place, so re-running the same analyzer replaces its own tab instead of piling up
     ///     duplicates. Either way the tab is brought to the front.
     /// </summary>
-    private void ShowDynamicTab(string id, string title, Table table)
+    private void ShowTabularDataTab(string id, string title, Table table)
     {
         var tab = DynamicTabs.OfType<DynamicTabViewModel>().FirstOrDefault(t => t.Id == id);
         if (tab is null)
@@ -690,9 +695,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Same as <see cref="ShowDynamicTab" />, but for tree-map style hierarchical results.
+    ///     Same as <see cref="ShowTabularDataTab" />, but for tree-map style hierarchical results.
     /// </summary>
-    private void ShowHierarchicalTab(string id, string title, HierarchicalDataContext data)
+    private void ShowHierarchicalDataTab(string id, string title, HierarchicalDataContext data)
     {
         var tab = DynamicTabs.OfType<HierarchicalTabViewModel>().FirstOrDefault(t => t.Id == id);
         if (tab is null)
@@ -708,6 +713,62 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
 
         DynamicTabActivated?.Invoke(tab);
+    }
+
+    /// <summary>
+    ///     Same as <see cref="ShowTabularDataTab" />, but for the dependency structure matrix. There is only ever
+    ///     one of it — it always shows the whole graph — so the id is fixed.
+    /// </summary>
+    private void ShowDsmTab(string id, string title, DsmMainViewModel matrix)
+    {
+        var tab = DynamicTabs.OfType<DsmTabViewModel>().FirstOrDefault(t => t.Id == id);
+        if (tab is null)
+        {
+            tab = new DsmTabViewModel(id, title, matrix);
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            DynamicTabs.Add(tab);
+        }
+        else
+        {
+            tab.Title = title;
+            tab.Matrix = matrix;
+        }
+
+        DynamicTabActivated?.Invoke(tab);
+    }
+
+    /// <summary>
+    ///     Builds the dependency structure matrix over the whole type graph and shows it in its own tab.
+    /// </summary>
+    private async void OnShowDsm()
+    {
+        if (_codeGraph is null)
+        {
+            return;
+        }
+
+        DsmMainViewModel? matrix = null;
+        var codeGraph = _codeGraph;
+        try
+        {
+            IsLoading = true;
+            LoadMessage = Strings.BuildingDsm_Message;
+            await Task.Run(() => { matrix = DsmMatrixFactory.Create(codeGraph); });
+        }
+        catch (Exception ex)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+
+        if (matrix is not null)
+        {
+            ShowDsmTab("dsm_id", Strings.Dsm_TabHeader, matrix);
+        }
     }
 
     private async void OnFindCycles()
@@ -880,7 +941,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AskUserToSaveProject();
 
-            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode, _applicationSettings.SplitPropertyAccessors);
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode,
+                _applicationSettings.SplitPropertyAccessors);
 
             if (result.IsCanceled)
             {
@@ -1099,7 +1161,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Partitions get their own tab per type, keyed by id, so drilling in from the Type Cohesion
         // analyzer (or the tree) for different classes does not overwrite each other.
         var title = string.Format(Strings.Partitions_TabHeader, originalCodeElement.Name);
-        ShowDynamicTab($"Partitions:{originalCodeElement.Id}", title, partitionsVm);
+        ShowTabularDataTab($"Partitions:{originalCodeElement.Id}", title, partitionsVm);
     }
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)

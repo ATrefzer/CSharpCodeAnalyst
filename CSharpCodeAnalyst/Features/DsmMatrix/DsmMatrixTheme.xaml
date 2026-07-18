@@ -1,0 +1,86 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options">
+    <!--
+      Overrides for the vendored DsmSuite matrix (ThirdParty/DsmSuite). Everything the matrix draws is
+      resolved by key through FindResource / StaticResource, so restyling it needs no change to their
+      code at all: this dictionary is merged last in App.xaml and therefore wins.
+
+      One constraint the values here have to respect: MatrixColor1..4 are not semantic —
+      MatrixColorConverter.GetColor(depth) maps them to nesting depth. They should read as an ordered
+      ramp, not as four unrelated colours.
+
+      There used to be a second one: the hover and selected variants were built by multiplying the colour,
+      so anything above roughly 210 clamped and stopped reacting. That is gone — the highlight is a fixed
+      darkening now, see HighlightFactorHovered below — and colours here can be chosen freely.
+    -->
+
+    <!--
+      Hover and selection crosshair. These are no longer multiplication factors but the number of channel
+      steps the cell is darkened by - see MatrixTheme.GetHighlightBrush for why the multiplication was
+      replaced. 26 and 45 are visible on every step of the ramp below and on the empty cell alike; the
+      crossing cell gets both, so 71.
+    -->
+    <sys:Double x:Key="HighlightFactorHovered">26</sys:Double>
+    <sys:Double x:Key="HighlightFactorSelected">45</sys:Double>
+
+    <!-- Text. Near-black rather than pure black; less harsh against the light cells. -->
+    <SolidColorBrush x:Key="TextColor" po:Freeze="True">#1F2933</SolidColorBrush>
+
+    <!-- Empty cells. Light and neutral so that anything filled reads as foreground. -->
+    <SolidColorBrush x:Key="MatrixColorBackground" po:Freeze="True">#E4E7EA</SolidColorBrush>
+
+    <!--
+      Nesting depth, 1..4. A single cool ramp that darkens with depth, so the eye reads "deeper" without
+      a legend. The original four (#f1d9cf, #cfd1cc, #bab8b7, #ced3de) sat at nearly the same lightness
+      in three different hues, which is why the levels were hard to tell apart.
+
+      The range is wider than the cell weights would like. Black on #748C9E is 4.2:1, which is poor for a
+      10px digit, and a narrower ramp (tried: #CDD6DE .. #9AA9B7, 6.1:1 at the deep end) does measurably
+      better by that count. It was rejected anyway: the nested blocks stopped separating, and telling the
+      levels apart is the whole job of these four colours. Contrast the digits can spare, structure they
+      cannot - the tooltip carries the exact weight in any case.
+
+      This is also why there is only one ramp and not a second, weaker one for small zoom levels. The
+      near-black presence fill drawn zoomed out is a whole cell, not a glyph, and 4.2:1 across an area
+      that size is plenty - the constraint that motivated weakening it simply does not apply there.
+    -->
+    <SolidColorBrush x:Key="MatrixColor1" po:Freeze="True">#D3DCE3</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor2" po:Freeze="True">#B4C3CE</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor3" po:Freeze="True">#93A8B7</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColor4" po:Freeze="True">#748C9E</SolidColorBrush>
+
+    <!--
+      Cycles. The one thing you actually hunt for in a DSM, and it overwrites every other cell colour,
+      so it has to win the page. Warm against the cool ramp above, and kept off the red/green axis that
+      the consumer/provider indicators use. The original mustard (#ffdb58) had neither the contrast nor
+      the headroom for the highlight multiply.
+    -->
+    <SolidColorBrush x:Key="MatrixColorCycle" po:Freeze="True">#CF5C3C</SolidColorBrush>
+
+    <!-- Consumer / provider indicator bars. Kept on their conventional green/blue, just less muddy. -->
+    <SolidColorBrush x:Key="MatrixColorConsumer" po:Freeze="True">#6FA84B</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorProvider" po:Freeze="True">#4A8DC4</SolidColorBrush>
+
+    <!-- Search match and bookmark. Were pure #ff0000 / #00ff00; these stay loud but stop shouting. -->
+    <SolidColorBrush x:Key="MatrixColorMatch" po:Freeze="True">#C2185B</SolidColorBrush>
+    <SolidColorBrush x:Key="MatrixColorBookmark" po:Freeze="True">#7B3FA0</SolidColorBrush>
+
+    <!--
+      Misleading key: it used to paint the weight bar inside a cell, which is gone (see README.md in
+      ThirdParty/DsmSuite). Its only remaining reader is the 1px separator before the selected pair in
+      LegendView, so this is a rule colour, not a cell colour.
+    -->
+    <SolidColorBrush x:Key="CellWeightColor" po:Freeze="True">#37474F</SolidColorBrush>
+
+    <!--
+      Header height. 60 was sized for the element order alone; the column headers now carry the name too,
+      and this is the width DrawText clips a rotated label at. 240 fits the longest assembly level label
+      ("464 CSharpCodeAnalyst.CodeGraph" is roughly 230px in Segoe UI 14).
+
+      This is the one number to turn if the headers feel too tall: labels are anchored at the top, so the
+      element order stays readable at any height and only the tail of a long name is lost.
+    -->
+    <sys:Double x:Key="MatrixHeaderHeight">240</sys:Double>
+</ResourceDictionary>

@@ -1,7 +1,28 @@
 ﻿<Application x:Class="CSharpCodeAnalyst.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:themes="clr-namespace:DsmSuite.DsmViewer.View.Resources.Themes;assembly=DsmSuite.DsmViewer.View">
     <Application.Resources>
-      
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                  Resources of the vendored DsmSuite matrix view (see ThirdParty/DsmSuite). Its controls
+                  resolve these via StaticResource, so they have to live at application scope. Every style
+                  in here is keyed, so nothing bleeds into the rest of the application.
+                -->
+                <ResourceDictionary Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/LightTheme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Converters.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Icons.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/ControlTemplates.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Style.xaml" />
+                <themes:ThemeResourceDictionary
+                    DarkThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/DarkTheme.xaml"
+                    PastelThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/PastelTheme.xaml"
+                    LightThemeSource="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/Themes/LightTheme.xaml" />
+
+                <!-- Our restyling of the matrix. Must stay last: it wins by overriding the keys above. -->
+                <ResourceDictionary Source="Features/DsmMatrix/DsmMatrixTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

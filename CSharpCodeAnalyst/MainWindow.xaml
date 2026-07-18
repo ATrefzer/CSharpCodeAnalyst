@@ -8,6 +8,7 @@
                      mc:Ignorable="d"
                      xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
                      xmlns:dynamicDataGrid1="clr-namespace:CSharpCodeAnalyst.Shared.DynamicDataGrid"
+                     xmlns:dsmMatrix="clr-namespace:CSharpCodeAnalyst.Features.DsmMatrix"
                      xmlns:tree="clr-namespace:CSharpCodeAnalyst.Features.Tree"
                      xmlns:advancedSearch="clr-namespace:CSharpCodeAnalyst.Features.AdvancedSearch"
                      xmlns:info="clr-namespace:CSharpCodeAnalyst.Features.Info"
@@ -51,6 +52,12 @@
             <DataTemplate x:Key="DynamicHierarchicalTabContentTemplate">
                 <treeMap:TreeMapView DataContext="{Binding Data}"
                                      UserCommands="{Binding Commands}"/>
+            </DataTemplate>
+
+            <!-- DsmMatrixView hosts DsmSuite's MatrixView, which wants their MainViewModel as its
+                 DataContext - hence the rebind onto Matrix. -->
+            <DataTemplate x:Key="DynamicDsmTabContentTemplate">
+                <dsmMatrix:DsmMatrixView DataContext="{Binding Matrix}" />
             </DataTemplate>
 
         </ResourceDictionary>
@@ -129,6 +136,16 @@
                     <RibbonButton Label="{x:Static resources:Strings.SaveProject_Label}"
                                   LargeImageSource="/Resources/save_project.png"
                                   Command="{Binding SaveProjectCommand}" KeyTip="SA" />
+
+                    <!-- Sits with File rather than Tools because it shows the whole graph, not a
+                         selection. Opens a dynamic tab, see MainViewModel.OnShowDsm. -->
+                    <RibbonButton Label="{x:Static resources:Strings.Dsm_Label}"
+                                  LargeImageSource="/Resources/unstructured-data_32.png"
+                                  Command="{Binding ShowDsmCommand}" KeyTip="DS">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Dsm_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
 
                 </RibbonGroup>
 
