@@ -254,10 +254,14 @@ public class CodeGraphToDsmModelBuilderTests
     }
 
     [Test]
-    public void Build_NamespaceBranchesOnlyIntoExcludedTypes_CountsAsPassThrough()
+    public void Build_NamespaceBranchesIntoAnExternalType_IsNotCollapsed()
     {
-        // Two children in the code graph, but one is external and never reaches the model. What matters is
-        // what the matrix ends up showing, so this is a pass-through despite the code graph branching.
+        // Children are counted on the code graph, not on what reaches the model, so a namespace that
+        // branches only into an external type keeps its level even though the matrix shows a single child.
+        // The parser cannot produce this shape - ExternalCodeElementCache gives external elements their own
+        // hierarchy up to the assembly and never hangs them under an internal namespace - so the case is
+        // constructed here rather than observed. Pinned as the deliberate bound of the cheap check: if the
+        // parser ever does mix the two, this is the behaviour that changes.
         var assembly = _graph.CreateAssembly("Asm");
         var outer = _graph.CreateNamespace("Outer", assembly);
         var inner = _graph.CreateNamespace("Inner", outer);
@@ -268,7 +272,7 @@ public class CodeGraphToDsmModelBuilderTests
         Build();
 
         var assemblyElement = _dsmModel.GetElementByFullname("Asm");
-        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "Outer.Inner" }));
+        Assert.That(assemblyElement.Children.Select(e => e.Name), Is.EquivalentTo(new[] { "Outer" }));
     }
 
     [Test]

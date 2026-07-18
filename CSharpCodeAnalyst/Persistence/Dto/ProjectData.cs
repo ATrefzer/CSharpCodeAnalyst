@@ -69,7 +69,8 @@ public class ProjectData
     {
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
-                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes))
+                new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes,
+                    n.IsExternal))
             .ToList();
 
         // We iterate over children, so we expect to have a parent
@@ -96,7 +97,8 @@ public class ProjectData
             var element = new CodeElement(se.Id, se.ElementType, se.Name, se.FullName, null!)
             {
                 SourceLocations = se.SourceLocations,
-                Attributes = se.Attributes
+                Attributes = se.Attributes,
+                IsExternal = se.IsExternal
             };
             codeStructure.Nodes.Add(element.Id, element);
         }

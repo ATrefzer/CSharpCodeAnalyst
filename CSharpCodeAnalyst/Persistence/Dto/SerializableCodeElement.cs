@@ -9,7 +9,8 @@ public class SerializableCodeElement(
     string fullName,
     CodeElementType elementType,
     List<SourceLocation> sourceLocations,
-    HashSet<string> attributes)
+    HashSet<string> attributes,
+    bool isExternal = false)
 {
     public string Id { get; set; } = id;
     public string Name { get; set; } = name;
@@ -17,4 +18,9 @@ public class SerializableCodeElement(
     public CodeElementType ElementType { get; set; } = elementType;
     public List<SourceLocation> SourceLocations { get; set; } = sourceLocations;
     public HashSet<string> Attributes { get; set; } = attributes;
+
+    /// <summary>
+    ///     Whether the element belongs to a referenced assembly rather than the parsed solution.
+    /// </summary>
+    public bool IsExternal { get; set; } = isExternal;
 }
