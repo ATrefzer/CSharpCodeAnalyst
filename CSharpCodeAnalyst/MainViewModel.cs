@@ -668,7 +668,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public void HandleShowHierarchicalData(ShowHierarchicalDataRequest hierarchicalDataRequest)
     {
-        ShowHierarchicalDataTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data);
+        ShowHierarchicalDataTab(hierarchicalDataRequest.Id, hierarchicalDataRequest.Title, hierarchicalDataRequest.Data, hierarchicalDataRequest.OpenMode);
     }
 
     /// <summary>
@@ -697,11 +697,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Same as <see cref="ShowTabularDataTab" />, but for tree-map style hierarchical results.
     /// </summary>
-    private void ShowHierarchicalDataTab(string id, string title, HierarchicalDataContext data)
+    private void ShowHierarchicalDataTab(string id, string title, HierarchicalDataContext data, RequestOpenMode openMode = RequestOpenMode.Normal)
     {
         var tab = DynamicTabs.OfType<HierarchicalTabViewModel>().FirstOrDefault(t => t.Id == id);
         if (tab is null)
         {
+            if (openMode == RequestOpenMode.UpdateOnly)
+            {
+                return;
+            }
+
             tab = new HierarchicalTabViewModel(id, title, data);
             tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
             DynamicTabs.Add(tab);

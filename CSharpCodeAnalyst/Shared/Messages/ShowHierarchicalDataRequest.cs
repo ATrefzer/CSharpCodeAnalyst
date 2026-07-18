@@ -1,6 +1,8 @@
+using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.TreeMap;
 
 namespace CSharpCodeAnalyst.Shared.Messages;
+
 
 /// <summary>
 ///     Requests a dynamic tree-map tab. <see cref="Id" /> keys the tab: publishing again under the
@@ -12,4 +14,7 @@ public class ShowHierarchicalDataRequest(string id, string title, HierarchicalDa
     public string Id { get; } = id;
     public string Title { get; } = title;
     public HierarchicalDataContext Data { get; } = data;
+    
+    public RequestOpenMode OpenMode { get; init; } = RequestOpenMode.Normal;
 }
+

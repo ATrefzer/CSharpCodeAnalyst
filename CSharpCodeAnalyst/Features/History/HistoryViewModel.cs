@@ -9,18 +9,18 @@ using System.Windows.Media.Imaging;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
+using CSharpCodeAnalyst.Contracts;
 using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Git;
+using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;
-using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.UI;
-using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.TreeMap;
 using CSharpCodeAnalyst.TreeMap.Bitmap;
-using CSharpCodeAnalyst.Contracts;
+using Strings = CSharpCodeAnalyst.Resources.Strings;
 
 namespace CSharpCodeAnalyst.Features.History;
 
@@ -66,6 +66,20 @@ internal class HistoryViewModel : INotifyPropertyChanged
             return;
         }
 
+        var data = BuildKnowledgeData();
+        if (data != null)
+        {
+            _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data));
+        }
+    }
+
+    private HierarchicalDataContext? BuildKnowledgeData()
+    {
+        if (_lastHistory?.History is null || _lastHistory.LinesOfCode is null)
+        {
+            return null;
+        }
+
         var analyzer = new CSharpCodeAnalyst.History.Analyzer.Analyzers();
         var result = analyzer.AnalyzeKnowledge(_lastHistory.History.ChangeSets, _lastHistory.LinesOfCode, _lastHistory.History.Contributions, GetAliasMapping());
 
@@ -81,8 +95,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
             WeightSemantic = Strings.Knowledge_WeightSemantic,
             CreateNoData = HierarchicalData.NoData
         };
-
-        _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data));
+        return data;
     }
 
     private void OnEditAlias()
@@ -122,8 +135,18 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
         _lastHistory.AliasMapping = updated;
         SaveHistory(_lastOutputFilePath, _lastHistory, Strings.History_AliasSaved);
+
+        // Finally update the knowledge if already open.
+        var data = BuildKnowledgeData();
+        if (data != null)
+        {
+            _messaging.Publish(new ShowHierarchicalDataRequest("ID_Knowledge", Strings.Knowledge_Tab_Title, data)
+            {
+                OpenMode = RequestOpenMode.UpdateOnly
+            });
+        }
     }
-    
+
     private void SaveHistory(string path, HistoryDto dto, string? successMessage = null)
     {
         try
@@ -131,7 +154,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
             var options = new JsonSerializerOptions { WriteIndented = false };
             var json = JsonSerializer.Serialize(dto, options);
             File.WriteAllText(path, json);
-            
+
             if (!string.IsNullOrEmpty(successMessage))
             {
                 _ui.ShowSuccess(successMessage);
@@ -146,7 +169,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
     private IAliasMapping GetAliasMapping()
     {
-        return _lastHistory?.AliasMapping is { } mapping
+        return _lastHistory?.AliasMapping is {} mapping
             ? new DictionaryAliasMapping(mapping)
             : new NullAliasMapping();
     }
@@ -287,6 +310,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
                 {
                     _lastOutputFilePath += ".json";
                 }
+
                 File.WriteAllText(_lastOutputFilePath, json);
             });
 
@@ -312,7 +336,10 @@ internal class HistoryViewModel : INotifyPropertyChanged
         }
     }
 
-    private static bool HasJsonExtension(string path) => Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase);
+    private static bool HasJsonExtension(string path)
+    {
+        return Path.GetExtension(path).Equals(".json", StringComparison.OrdinalIgnoreCase);
+    }
 
     private void OnLoad()
     {
@@ -395,7 +422,7 @@ internal class HistoryViewModel : INotifyPropertyChanged
 
             // Path may come from the persistence and points to somewhere else than _lastRepositoryPath
             var gitProvider = new GitProvider(_lastHistory.ProjectBase);
-            
+
             // Annotate
             var workByDeveloper = gitProvider.CalculateDeveloperWork(fileToAnalyze);
 
