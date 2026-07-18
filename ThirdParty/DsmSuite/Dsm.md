@@ -1,164 +1,132 @@
 # Reading the DSM
 
-What the matrix on the **DSM** tab draws and how to read it. Almost none of this is discoverable from the
-UI — the legend at the bottom covers three of the colours and nothing else — and the rest is spread over
-`MatrixCellsView.OnRender`, `MatrixRowHeaderItemView.OnRender` and `MatrixViewModel.DefineCellColors`.
+How to read and operate the matrix on the **DSM** tab. Almost none of it is discoverable from the UI — the
+legend at the bottom covers three colours and nothing else.
 
-For what we feed in, see `Features/DsmMatrix/CodeGraphToDsmModelBuilder.cs`; for our changes to the viewer
-itself, see [README.md](README.md).
+This file is about what you see. For how it is built and why it differs from stock DsmSuite, see
+[README.md](README.md) and `Features/DsmMatrix/CodeGraphToDsmModelBuilder.cs`.
 
 ## The axes
 
-> **Row = provider. Column = consumer.** A number at (row R, column C) means: **C depends on R.**
+> **Row = provider. Column = consumer.**
+> A number at (row R, column C) means: **C depends on R.**
 
-```csharp
-IDsmElement consumer = _elementViewModelLeafs[column].Element;
-IDsmElement provider = _elementViewModelLeafs[row].Element;
-int weight = _application.GetDependencyWeight(consumer, provider);
-_cellWeights[row].Add(weight);
-```
+Every dependency appears **once**, so only one half of the matrix fills up: reading from a column at the
+top to a row on the left.
 
-This is **not** the opposite of NDepend, which is the easy assumption to make. Their documentation says
-verbatim: *"Blue cell means that the element in column uses the element in row"* — the same convention. What
-NDepend adds is the mirror: *"Green cell means that the element in row uses the element in column"*, so every
-dependency appears twice, blue below the diagonal and green above it, and a mutual pair is black in both.
-That is why their layered example has "all blue cells in the lower-left triangle and all green cells in the
-upper-right".
-
-Here each dependency is drawn **once**, so only one reading direction is populated: top to left. The mirror
-would cost the cell colour, which is spent on nesting depth (see below) — NDepend spends it on direction and
-has no depth-coloured blocks.
+This is the same convention NDepend uses. The difference is that NDepend also draws the mirror image in a
+second colour, so each dependency shows up twice and its triangles look symmetric. Here the second
+direction is left empty, and the colour it would have cost is spent on nesting depth instead.
 
 ### The order number
 
-Every row shows a number, and every column header repeats it. It is `IDsmElement.Order`, assigned 1..N
-across the whole flattened tree — that is the cross reference between a column and its row. It is not
-stable across runs: expanding or collapsing re-assigns it.
+Every row carries a number, and every column header repeats it. It is the cross reference between a column
+and its row — find the number at the top of a column, look for the same number on the left, and you have
+the element that column stands for.
 
-## The diagonal and the darker squares
+It is numbered straight through the tree as it currently stands, so **it changes whenever you expand or
+collapse something**. Do not write it down or use it to refer to an element later.
 
-Expanding an element paints the square block on the diagonal that spans all of its leaves in that element's
-**nesting depth colour** (`MatrixColorConverter.GetColor(depth)`, our ramp in
-`Features/DsmMatrix/DsmMatrixTheme.xaml`, darker with depth). The diagonal cell of each leaf gets the same
-treatment.
+## The blocks on the diagonal
 
-This is the single most useful reading aid in the whole view:
+Expanding an element paints a square block on the diagonal covering everything inside it. This is the most
+useful reading aid in the view:
 
-> **Inside the square = internal to that assembly or namespace. Outside = crosses its boundary.**
+> **Inside the square = internal to that assembly or namespace.
+> Outside it = crosses the boundary.**
 
-The block is drawn once from its top-left corner (`parent.Children[0] == child`); the root gets none
-(`Depth > 0`).
-
-**There are only four depth colours, and they cycle:**
-
-```csharp
-public static MatrixColor GetColor(int depth)
-{
-    switch (depth % 4) { ... }   // Color1 .. Color4
-}
-```
-
-So the shade is not the depth, it is the depth modulo four — nest five levels deep and the innermost block
-is painted like the outermost. That makes the ramp a scarce resource: every nesting level that carries no
-structure of its own still burns one of the four, shifts the rest, and brings the wrap-around one level
-closer. It is the main reason the builder drops pass-through namespaces (see below), and worth remembering
-before adding a level to the hierarchy we feed in.
+The shade tells you the nesting depth — deeper elements are darker. **There are four shades and they
+repeat**: the fifth level down looks like the first. On a deeply nested tree, check where a block actually
+starts and ends rather than trusting the shade alone.
 
 ## Cell colours
 
 | Colour | Meaning |
 |---|---|
-| Background (light neutral) | no relation, and not inside an expanded block |
-| Depth ramp `MatrixColor1..4` | inside an expanded element's block, shade = nesting depth |
-| `MatrixColorCycle` (warm orange) | **the two elements depend on each other** |
+| light neutral | no dependency, and not inside an expanded block |
+| blue-grey ramp, 4 shades | inside an expanded block, darker = deeper |
+| **warm orange** | **the two elements depend on each other — a cycle** |
 
-The cycle colour overwrites everything else, which is why it is the loudest colour in our palette.
+Orange overwrites every other colour, so it is never hidden by a block. It is what you scan for.
 
-Hovering or selecting a row/column multiplies the cell colour by 1.1 / 1.2 (`MatrixTheme.GetHighlightBrush`)
-to draw the crosshair.
+Hovering or selecting a row or column darkens it into a crosshair, so you can follow a cell back to the
+two elements it belongs to.
 
-## Inside a cell: the number
+## The number in a cell
 
-The **number** is the dependency weight: the count of distinct type-level edges aggregated under the two
-elements. Above `9999` it reads `>9K`, because that is the widest that fits — the exact value is in the
-cell's tooltip.
+The number is the **dependency weight**: how many distinct type-to-type dependencies are aggregated under
+those two elements. Above `9999` it reads `>9K`; the exact value is always in the cell's tooltip.
 
-It is drawn smaller than the rest of the matrix (font size 10 against 14). That is not decoration: at 14 a
-cell only has room for three digits, and upstream silently dropped the fourth, drawing `1000` as `100`. See
-[README.md](README.md).
+> **Fully expanded, every populated cell reads `1`.** One type depending on another is counted once, no
+> matter how many calls or field accesses are behind it. The larger numbers you see on a collapsed row are
+> the sums of the cells inside it.
 
-> **Fully expanded, every populated cell reads `1`.** `TypeGraph` deduplicates, so there is exactly one
-> edge per pair of types, and we write it with `weight: 1`. `DsmRelationModel.AddWeights` sums along both
-> ancestor chains, so aggregation only happens *above* the leaves.
+So the number answers "how much of this is there", not "how strong is this one call".
 
-Upstream also drew the weight as a small bar under the number, sized by its decile among all populated
-cells. We removed it; see [README.md](README.md).
+## Zoomed out
 
-## The colored bar beside the row headers
+Below roughly a third of full size the numbers are too small to read, so they are dropped and the cells
+say only whether they are populated:
 
-The bar at the right edge of a row header, against the matrix, is **relative to the currently selected
-row**. It answers "how does this row relate to the thing I clicked", not "what is this row".
+| | |
+|---|---|
+| empty cell | light, as always |
+| **populated cell** | **filled near-black** |
+| cycle | keeps its orange |
 
-It has to be a **row**: `UpdateRelationFlags` reads `SelectedRow`, and `SelectColumn` sets `SelectedRow` to
-null. Clicking a column header therefore draws the crosshair but clears the bars. With nothing selected
-there are none at all.
+The blocks keep their normal shades, so structure and dependencies stay readable together. This is the
+view for questions like "where are the dependencies at all", "is this layered or tangled", "does anything
+sit far off the diagonal". Zoom back in for the numbers, or hover a cell — the tooltip carries the exact
+weight at any zoom.
 
-`MatrixRowHeaderItemView.GetIndicatorColor()`:
+## The coloured bar beside the row headers
 
-| Colour | Flag | Meaning |
-|---|---|---|
-| Green | `IsConsumer` | this row **uses** the selected element |
-| Blue | `IsProvider` | this row **is used by** the selected element |
-| Orange | both | **mutual — a cycle** |
+The bar at the right edge of each row header is **relative to the row you last clicked**. It answers "how
+does this row relate to the thing I selected", not "what is this row".
 
-Upstream also drew a second bar at the *left* edge, an addition of this fork, marking the leaves of an
-expanded selection that had relations reaching outside it. We removed it; see [README.md](README.md).
+| Colour | Meaning |
+|---|---|
+| Green | this row **uses** the selected element |
+| Blue | this row **is used by** the selected element |
+| Orange | both — **mutual, a cycle** |
 
-## What we put into it
+It needs a **row** selection. Clicking a column header draws the crosshair but clears the bars, and with
+nothing selected there are none at all.
 
-From `CodeGraphToDsmModelBuilder`:
+## What is in the matrix
 
-- **One vertex per internal type.** Fine-grained relationships (calls, field access, ...) are lifted to the
-  containing type and deduplicated; external types and self edges are dropped (`TypeGraph`).
-- **The hierarchy comes from the code graph's parent chain**, not from splitting dotted names. Assembly
-  names keep their dots.
-- **Pass-through namespaces are merged into one level** — a namespace whose only child is another namespace
-  holds no types of its own. The parser creates one element per namespace *segment*, so every project whose
-  root namespace repeats its assembly name grows such a chain: assembly `CSharpCodeAnalyst.CodeGraph` holds
-  namespace `CSharpCodeAnalyst` holds namespace `CodeGraph` holds the real ones. Without this, eight
-  assemblies gave eight rows all reading `CSharpCodeAnalyst`. Each level costs an expand that reveals a
-  single row carrying the same numbers as before, a vertical strip, and one of the only four depth colours.
+- **One row per type.** Methods, fields and properties are not shown; their dependencies are counted
+  towards the type that contains them. Types from outside the solution are left out entirely.
+- **Namespaces that hold nothing but a single other namespace are merged into one row**, so a row can read
+  `CSharpCodeAnalyst.CodeGraph` rather than forcing you through two expands that show one line each. A row
+  label is always the namespace path relative to the element it sits in.
+- **Rows and columns are ordered so dependencies fall to one side of the diagonal.** This is what makes
+  layering visible: a clean layered design comes out triangular, and anything above the diagonal is a
+  dependency pointing back up.
 
-  The chain becomes one element carrying all of their names, so the row reads `CSharpCodeAnalyst.CodeGraph`
-  — the namespace that exists — rather than `CodeGraph`, which names nothing. A label is always the namespace
-  path relative to the element it sits in: one segment where nothing was collapsed (`Algorithms` inside
-  `CSharpCodeAnalyst.CodeGraph`), the whole collapsed chain where something was.
-- **Rows and columns are partitioned** (`PartitionSortAlgorithm`) so an acyclic structure actually comes out
-  triangular. Without it the order is meaningless and a layered design looks as tangled as a knot.
-- **All weights are currently 1** per distinct type-level edge, not the number of underlying relationships.
-  The numbers you see on a collapsed element are sums of those.
+## Reading it
 
-## The metrics panel is hidden
-
-DsmSuite has a metrics column between the row headers and the cells, reachable through the arrow in the top
-left corner. Both are hidden — its numbers contradict the application's own system metrics. The reasoning is
-in [README.md](README.md).
+| Question | What to look for |
+|---|---|
+| Is this layered? | Everything on one side of the diagonal. Cells on the wrong side are the back edges. |
+| Where are the cycles? | Orange cells. They sit symmetrically around the diagonal. |
+| Is a module self-contained? | Expand it. Numbers inside its block, few outside its rows and columns. |
+| What does this element drag along? | Click its row header, then read the green and blue bars down the side. |
+| Who is a bottleneck? | A row with many populated columns is used by many; a column with many populated rows uses many. |
 
 ## Controls
 
-- **Ctrl + mouse wheel** zooms the whole matrix (0.04 – 4.0).
-- **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, the headers
-  included. Worth knowing because the scroll bars sit *inside* the scaled grid, so zooming out shrinks them
-  along with everything else until they are too thin to grab. The wheel is unaffected: it moves by a fixed
-  number of content units, which is the same couple of cells at any zoom.
+- **Ctrl + mouse wheel** zooms the whole matrix.
+- **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, headers
+  included. Worth knowing, because the scroll bars scale with the matrix and get too thin to grab once you
+  zoom out. The wheel keeps working the same at any zoom.
 - **Click a row header** to select it — this is what drives the indicator bars. Clicking a column header
   selects the column but clears them.
-- **Click the arrow** in a row header (the top-left 20×24 px) to expand or collapse; hold **shift** and it
-  works recursively.
-- **Hover a cell** for the consumer's and the provider's full names plus the weight; **hover a row or
-  column header** for the element's full name and type. Neither shows an element id: DsmSuite numbers its
-  own model elements, and that number means nothing outside it.
+- **Click the arrow** in a row header to expand or collapse; hold **shift** to do it recursively.
+- **Hover a cell** for the consumer and provider names plus the weight; **hover a row or column header**
+  for the element's full name and type.
 
-The view is read-only. Everything upstream offers that edits the DSM model — the context menus, dragging a
-row header onto another to re-parent it — is removed, because the model here is a projection of a parsed
-code graph and an edited row would no longer say anything about the code. See [README.md](README.md).
+The view is **read-only**. Everything the original viewer offered for editing the matrix has been removed:
+what you see is a projection of the parsed code, and an edited row would no longer say anything about it.
+The metrics column the original shows next to the row headers is hidden for the same kind of reason — the
+application computes its own metrics, and the two answer similar-sounding questions differently.

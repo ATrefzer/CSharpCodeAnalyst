@@ -39,7 +39,10 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Removed the left hand indicator and the flags behind it (`IsConsumerIn` / `IsProviderIn`, `FindLeaves`) | `Matrix/MatrixRowHeaderItemView.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `ViewModel/Matrix/ElementTreeItemViewModel.cs` | Confusing to read, and quadratic per selection. Right hand indicator is untouched. |
 | Added `MatrixFrameworkElement.Ellipsize`; row and column labels are ellipsized instead of cut, and the row label's width is derived from the order actually drawn | `Matrix/MatrixFrameworkElement.cs`, `Matrix/MatrixRowHeaderItemView.cs`, `Matrix/MatrixColumnHeaderView.cs` | **bug fix**: a long row name ran through the order number, see below |
 | Dropped `CycleType` (and the `Legend` list) from the cell tooltip | `ViewModel/Matrix/CellToolTipViewModel.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `Matrix/MatrixView.xaml` | a cycle is the cell's colour, so the entry repeated what the pointer is on; it also spares an `IsCyclicDependency` per mouse move. `Weight` went too and came back — see the next row |
-| Dropped the element ids from both tooltips (`ConsumerId` / `ProviderId`, `Id`); kept `Weight` in the cell tooltip; the label column of both tooltip grids is `Auto` instead of a fixed 100 | `ViewModel/Matrix/CellToolTipViewModel.cs`, `ViewModel/Matrix/ElementToolTipViewModel.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `Matrix/MatrixView.xaml` | the ids are DsmSuite's own numbering and identify nothing outside the DSM model. The weight has to stay because the cell stops drawing it once zoomed out far enough, which is where the tooltip becomes the only way to tell a populated cell from an empty one. The fixed 100 was wider than any remaining label, leaving the colons stranded mid-tooltip |
+| Below zoom 0.7 the cell weights are not drawn and a populated cell is filled near-black instead; added `GetPresenceBackground` and four brush slots for it; `ZoomLevel` triggers a redraw, but only when it crosses that threshold | `Matrix/MatrixCellsView.cs`, `Matrix/MatrixTheme.cs` | the number scales with the zoom, so it never stops fitting — it just stops being legible, and an illegible glyph only tints its cell, which hides the one thing worth seeing zoomed out: where the dependencies are. Redrawing on every zoom step instead froze the application: `OnRender` walks `matrixSize²` cells and one wheel spin is a dozen steps. See `Dsm.md` |
+| The hover / selection crosshair darkens the cell by a fixed number of channel steps instead of multiplying it; `HighlightFactorHovered` / `HighlightFactorSelected` now carry those steps (26 / 45), and the combined variant adds them | `Matrix/MatrixTheme.cs`, and our `Features/DsmMatrix/DsmMatrixTheme.xaml` | **bug fix**, see below |
+| Brushes derived at runtime are frozen | `Matrix/MatrixTheme.cs` | **bug fix**, see below |
+| Dropped the element ids from both tooltips (`ConsumerId` / `ProviderId`, `Id`); kept `Weight` in the cell tooltip; in both tooltip grids the label column is `Auto` instead of a fixed 100 and the value column is star instead of `Auto` | `ViewModel/Matrix/CellToolTipViewModel.cs`, `ViewModel/Matrix/ElementToolTipViewModel.cs`, `ViewModel/Matrix/MatrixViewModel.cs`, `Matrix/MatrixView.xaml` | the ids are DsmSuite's own numbering and identify nothing outside the DSM model. The weight has to stay because the cell stops drawing it below zoom 0.7, which is where the tooltip becomes the only way to tell a populated cell from an empty one. On the layout: the fixed 100 was wider than any remaining label, and the title spans the columns and is wider than any data row — WPF hands that surplus to the `Auto` columns inside the span, which pushed the values away from their colons. A star column absorbs it instead |
 | Shift + wheel scrolls horizontally | `Matrix/MatrixView.xaml.cs` | a ScrollViewer only handles the wheel vertically, so the horizontal bar was the only way across — and the bars are inside the scaled grid, so zooming out makes them too thin to grab. See below. |
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
@@ -92,7 +95,9 @@ the host application the way an unkeyed style at application scope would.
 
 ## Bugs found in the vendored code
 
-Neither is fixed beyond what we needed
+Each says whether it is fixed here. Nothing is fixed beyond what we needed — several of these are
+unreachable upstream, where the viewer owns its own window, keeps one matrix for the lifetime of the
+process, and ships palettes that happen to sidestep them.
 
 1. **`DsmElementModel.Clear()` did not clear `_elementsByName`.** `AddElement` resolves through
    `FindElementByFullname`, so after a `Clear` it returned stale elements from the previous
@@ -163,7 +168,33 @@ Neither is fixed beyond what we needed
    that `CreateChildViews` calls before it clears its children, and the three `OnPropertyChanged` handlers
    return early on a null view model, matching what the rest of each class already assumes.
 
-7. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+7. **Brushes derived at runtime were never frozen.** `GetHighlightBrush` builds the hover and selected
+   variants with `new SolidColorBrush(...)` and puts them straight into the cache. Every use of a *mutable*
+   `Freezable` in a `DrawingContext` costs WPF a change subscription, and `MatrixCellsView.OnRender` issues
+   one `DrawRectangle` per cell — so a brush that lands on the bulk of the matrix is used `matrixSize²`
+   times. The brushes that come from the resource dictionaries are all declared `po:Freeze="True"`, so the
+   omission is in the derived ones only, and those normally reach just the hovered and selected row and
+   column — `2 × matrixSize` cells. It surfaced while a weakened depth ramp was being tried for small zoom
+   levels: that gave *every* cell a derived brush, and the application stopped responding — not slowly, but
+   in the way hundreds of thousands of change subscriptions stop an application. **Fixed here**: everything
+   derived goes through `Frozen` before it is cached.
+
+   Note the ramp was then dropped for unrelated, visual reasons, so freezing is latent again rather than
+   load-bearing. It stays because it is free and because it turns "derive a brush that covers many cells"
+   from a trap into an ordinary thing to do.
+
+8. **The crosshair was a multiplication, so its strength depended on the cell it crossed.**
+   `Color.Multiply(colour, 1.1)` moves a colour proportionally to how bright it already is. On the deepest
+   step of our depth ramp (`#748C9E`) the hover moved the channels by 11 to 15, which is barely visible;
+   on the empty cell (`#E4E7EA`), which is most of the matrix, green and blue hit the 255 ceiling
+   immediately, so the cell did not get brighter — it got *warmer*, a hue shift where contrast was
+   intended. Raising the factor makes both worse: it clips the light end sooner while still under-moving
+   the dark one. Upstream is exposed to this too but hides it, because its own palettes sit in a narrow
+   band of lightness where a proportional step happens to be roughly uniform. **Fixed here** by darkening
+   a fixed number of channel steps instead. It also removed a constraint the palette had been living
+   under: colours no longer have to stay below roughly 210 to keep reacting to hover.
+
+9. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model

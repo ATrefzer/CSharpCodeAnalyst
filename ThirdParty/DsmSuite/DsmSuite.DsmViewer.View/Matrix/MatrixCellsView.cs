@@ -45,6 +45,19 @@ namespace DsmSuite.DsmViewer.View.Matrix
         /// </summary>
         private const string TooLargeLabel = ">9K";
 
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: smallest on screen font size at which a cell weight is
+        /// still worth drawing, in device pixels. Below it the cells switch to presence, see
+        /// <see cref="DrawWeightsAtCurrentZoom"/>. At CellFontSize 10 this puts the switch at zoom 0.7.
+        /// </summary>
+        private const double MinReadableFontSize = 7.0;
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: what the last OnRender decided about the weights. Null
+        /// until the first render, which is why a zoom before that always redraws once.
+        /// </summary>
+        private bool? _weightsDrawn;
+
         public MatrixCellsView()
         {
             _theme = new MatrixTheme(this);
@@ -133,6 +146,22 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 ToolTip = _viewModel.CellToolTipViewModel;
             }
 
+            // Added 2026-07 for CSharpCodeAnalyst: zooming reaches OnRender, but only where it changes the
+            // outcome. The LayoutTransform above us scales the visual we already produced, so the zoom
+            // enters the drawing through exactly one boolean - see DrawWeightsAtCurrentZoom. Redrawing on
+            // every zoom step instead froze the application: OnRender walks matrixSize squared cells, one
+            // wheel spin is a dozen steps, and each of them rebuilt every cell of the matrix for a picture
+            // that had not changed.
+            if (e.PropertyName == nameof(MatrixViewModel.ZoomLevel))
+            {
+                if (DrawWeightsAtCurrentZoom() != _weightsDrawn)
+                {
+                    InvalidateVisual();
+                }
+
+                return;
+            }
+
             if ((e.PropertyName == nameof(MatrixViewModel.MatrixSize)) ||
                 (e.PropertyName == nameof(MatrixViewModel.HoveredRow)) ||
                 (e.PropertyName == nameof(MatrixViewModel.SelectedRow)) ||
@@ -149,6 +178,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
             {
                 // Removed 2026-07 for CSharpCodeAnalyst: weightBrush and weightRect, only the weight bar
                 // used them.
+
+                // Added 2026-07 for CSharpCodeAnalyst: below this the cells are painted by presence
+                // instead, see DrawWeightsAtCurrentZoom. Remembered so that a zoom step which does not
+                // cross the threshold costs nothing, see OnPropertyChanged.
+                bool drawWeights = DrawWeightsAtCurrentZoom();
+                _weightsDrawn = drawWeights;
+
                 int matrixSize = _viewModel.MatrixSize;
                 for (int row = 0; row < matrixSize; row++)
                 {
@@ -160,12 +196,19 @@ namespace DsmSuite.DsmViewer.View.Matrix
                         bool isHovered = row == _viewModel.HoveredRow?.Index  ||  column == _viewModel.HoveredColumn?.Index;
                         bool isSelected = row == _viewModel.SelectedRow?.Index  ||  column == _viewModel.SelectedColumn?.Index;
                         MatrixColor color = _viewModel.CellColors[row][column];
-                        SolidColorBrush background = _theme.GetBackground(color, isHovered, isSelected);
+                        int weight = _viewModel.CellWeights[row][column];
+
+                        // Added 2026-07 for CSharpCodeAnalyst: once the weight is too small to read, a
+                        // populated cell says so by being filled instead. Cycles keep their own colour,
+                        // which outranks both.
+                        bool paintPresence = !drawWeights && (weight > 0) && (color != MatrixColor.Cycle);
+                        SolidColorBrush background = paintPresence
+                            ? _theme.GetPresenceBackground(isHovered, isSelected)
+                            : _theme.GetBackground(color, isHovered, isSelected);
 
                         dc.DrawRectangle(background, null, _rect);
 
-                        int weight = _viewModel.CellWeights[row][column];
-                        if (weight > 0)
+                        if (drawWeights && (weight > 0))
                         {
                             // Removed 2026-07 for CSharpCodeAnalyst: the weight was also drawn as a small
                             // filled bar across the lower half of the cell, its width the weight's decile
@@ -193,6 +236,27 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 }
                 Height = Width = _pitch * matrixSize;
             }
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: whether the weight can still be read at the current zoom.
+        /// </summary>
+        /// <remarks>
+        /// The zoom is a LayoutTransform on the grid above us, so it scales the cell and its number by the
+        /// same factor: the number always fits, it just gets smaller. Fit is therefore not a criterion that
+        /// can ever fire, and nothing in this view's own geometry changes when zooming - the only thing
+        /// that tells us the matrix has become unreadable is the zoom level itself.
+        /// <para>
+        /// Below the threshold the number is dropped and the cell is painted by presence instead. It is a
+        /// hard switch because there is nothing gradual to be had: the last legible size is followed by an
+        /// illegible one. Leaving the number in was worse than dropping it - an unreadable glyph still
+        /// tints its cell, so a populated cell read as a slightly different shade rather than as full,
+        /// which is the one thing you are looking for at this zoom.
+        /// </para>
+        /// </remarks>
+        private bool DrawWeightsAtCurrentZoom()
+        {
+            return _viewModel.ZoomLevel * CellFontSize >= MinReadableFontSize;
         }
 
         private int GetHoveredRow(Point location)
