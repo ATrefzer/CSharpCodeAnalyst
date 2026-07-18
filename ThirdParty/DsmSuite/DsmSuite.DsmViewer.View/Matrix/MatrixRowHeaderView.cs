@@ -22,8 +22,17 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseLeave += OnMouseLeave;
         }
 
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model, see
+        /// MatrixCellsView.OnDataContextChanged.
+        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            if (e.OldValue is MatrixViewModel oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnPropertyChanged;
+            }
+
             _matrixViewModel = DataContext as MatrixViewModel;
             if (_matrixViewModel != null)
             {
@@ -97,6 +106,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
         private void CreateChildViews()
         {
             double y = 0.0;
+
+            // Added 2026-07 for CSharpCodeAnalyst: this is the only place the items are discarded, so it
+            // is the place they have to be detached. See MatrixRowHeaderItemView.Detach.
+            foreach (var child in Children)
+            {
+                (child as MatrixRowHeaderItemView)?.Detach();
+            }
 
             Children.Clear();
             if (_matrixViewModel?.ElementViewModelTree != null)

@@ -66,8 +66,26 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseLeave += OnMouseLeave;
         }
 
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model.
+        /// </summary>
+        /// <remarks>
+        /// Upstream only ever subscribed. The matrix sits in a TabControl, which keeps one content
+        /// presenter and rebuilds the tab's visual tree on every switch, while the view model survives on
+        /// the tab's own view model. So switching away and back left the discarded MatrixCellsView
+        /// subscribed to the live view model — and reachable from it, so it stayed alive. Its DataContext
+        /// was gone by then, hence _viewModel null, and the next hover raised CellToolTipViewModel into
+        /// OnPropertyChanged, which dereferences _viewModel. That was the NullReferenceException on
+        /// hovering; it hit hardest zoomed out, where a single mouse move crosses many cells and so
+        /// re-raises the tooltip almost continuously.
+        /// </remarks>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            if (e.OldValue is MatrixViewModel oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnPropertyChanged;
+            }
+
             _viewModel = DataContext as MatrixViewModel;
             if (_viewModel != null)
             {
@@ -102,6 +120,14 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
         private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            // Added 2026-07 for CSharpCodeAnalyst: every other member guards this, OnRender and the mouse
+            // handlers included, so a null view model is a state the class already expects. See
+            // OnDataContextChanged for how it came about.
+            if (_viewModel == null)
+            {
+                return;
+            }
+
             if (e.PropertyName == nameof(MatrixViewModel.CellToolTipViewModel))
             {
                 ToolTip = _viewModel.CellToolTipViewModel;

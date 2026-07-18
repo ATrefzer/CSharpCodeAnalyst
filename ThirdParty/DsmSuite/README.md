@@ -43,6 +43,7 @@ Every change is marked in the source with a `Changed 2026-07 for CSharpCodeAnaly
 | Added `MatrixViewModel.ColumnElementNames` | `ViewModel/Matrix/MatrixViewModel.cs` | the column headers only had the element order, so every column was a lookup into the row headers |
 | Added `MatrixViewModel.LeafAt`, routed the four row/column index lookups through it | `ViewModel/Matrix/MatrixViewModel.cs` | **bug fix**, see below |
 | Column headers draw the order right aligned plus the name, anchored at the top of the header | `Matrix/MatrixColumnHeaderView.cs` | show the name, and keep the names aligned across columns although the order is variable width; the anchoring is a **bug fix**, see below |
+| Every `OnDataContextChanged` unsubscribes from the previous view model; added `MatrixRowHeaderItemView.Detach`, called from `MatrixRowHeaderView.CreateChildViews`; the three `OnPropertyChanged` handlers return early on a null view model | `Matrix/MatrixCellsView.cs`, `Matrix/MatrixColumnHeaderView.cs`, `Matrix/MatrixRowMetricsView.cs`, `Matrix/MatrixRowHeaderView.cs`, `Matrix/MatrixRowHeaderItemView.cs` | **bug fix**: discarded views stayed subscribed, so hovering threw a `NullReferenceException` and the row header items leaked, see below |
 
 Not a change to their code, but worth knowing when reading it: everything the matrix draws (colours, cell size, header height) is resolved by key via `FindResource` / `StaticResource`. `Features/DsmMatrix/DsmMatrixTheme.xaml` overrides those keys from our side, merged last in `App.xaml`. Restyling therefore needs no edit in here — prefer that route.
 
@@ -136,7 +137,32 @@ Neither is fixed beyond what we needed
    emitting glyphs, so `CodeElementFactory` and `CodeElementFilter` both end up reading `CodeElement` with
    nothing to say a cut happened. `Ellipsize` makes it visible.
 
-6. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
+6. **The matrix views subscribe to their view model's `PropertyChanged` and never unsubscribe.** Every view
+   under `Matrix/` attaches in `OnDataContextChanged` (`MatrixRowHeaderItemView` in its constructor) and
+   has no matching detach. Two consequences, both real here:
+
+   *It crashes.* Our matrix sits in a `TabControl`, which keeps one content presenter and rebuilds the
+   tab's visual tree on every switch, while the view model lives on the tab's own view model and survives.
+   Switching away and back therefore leaves the discarded view subscribed to the live view model — and
+   reachable from it, so it is not collected. Its `DataContext` is gone by then, so its `_viewModel` is
+   null, and `OnPropertyChanged` is the one member of these classes that dereferences it without a guard
+   (`OnRender` and the mouse handlers all check). The next hover raises `CellToolTipViewModel`, the stale
+   handler runs, `NullReferenceException`. Same defect in `MatrixColumnHeaderView` via the column header
+   tooltip, and in `MatrixRowMetricsView`, which only escapes it because the metrics panel is collapsed.
+   Zooming out makes it near certain rather than occasional: cells are a few pixels wide, so one mouse
+   move crosses many of them and re-raises the tooltip almost continuously.
+
+   *It leaks.* `MatrixRowHeaderView.CreateChildViews` builds a fresh `MatrixRowHeaderItemView` per row on
+   every size change and every tree change, and each one had subscribed to the long lived matrix view
+   model in its constructor. All generations stayed alive and kept redrawing themselves on hover.
+
+   Invisible upstream: the viewer owns a single window that holds one matrix for the lifetime of the
+   process, so no view is ever discarded while its view model lives on. **Fixed here** — every
+   `OnDataContextChanged` detaches from `e.OldValue` first, `MatrixRowHeaderItemView` gained a `Detach`
+   that `CreateChildViews` calls before it clears its children, and the three `OnPropertyChanged` handlers
+   return early on a null view model, matching what the rest of each class already assumes.
+
+7. **`DsmApplication.LoadModel` does not rebind `DsmQueries`.** `_queries` is readonly and bound to
    the model passed to the constructor, but `LoadModel` swaps `_dsmModel` underneath it. After
    opening a file, every query routed through `_queries` (the "list consumers/providers" commands)
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model

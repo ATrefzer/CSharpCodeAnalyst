@@ -19,6 +19,13 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 public class Parser(ParserConfig config, IProgress<string>? progress = null)
 {
 
+    /// <summary>
+    ///     A small, curated set of framework reference assemblies, resolved once from the runtime
+    ///     directory. Covers the common BCL surface (incl. LINQ) so typical snippets compile; types defined
+    ///     in the snippet itself resolve regardless. Callers needing more can extend this later.
+    /// </summary>
+    private static readonly MetadataReference[] FrameworkReferences = BuildFrameworkReferences();
+
     private readonly ParserDiagnostics _diagnostics = new();
 
     public IParserDiagnostics Diagnostics
@@ -143,13 +150,6 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
             SourceText.From(code), filePath: documentPath);
     }
 
-    /// <summary>
-    ///     A small, curated set of framework reference assemblies, resolved once from the runtime
-    ///     directory. Covers the common BCL surface (incl. LINQ) so typical snippets compile; types defined
-    ///     in the snippet itself resolve regardless. Callers needing more can extend this later.
-    /// </summary>
-    private static readonly MetadataReference[] FrameworkReferences = BuildFrameworkReferences();
-
     private static MetadataReference[] BuildFrameworkReferences()
     {
         var coreDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
@@ -262,7 +262,7 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
 
                 var id = Guid.NewGuid().ToString();
                 var fullName = assembly.FullName + "." + global;
-                var globalNs = new CodeElement(id, CodeElementType.Namespace, global, fullName, assembly);
+                var globalNs = new CodeElement(id, CodeElementType.Namespace, global, fullName, assembly) { IsExternal = assembly.IsExternal };
                 newGlobalNamespaces.Add(globalNs);
 
                 assembly.Children.Add(globalNs);

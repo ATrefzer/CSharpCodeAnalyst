@@ -20,10 +20,11 @@ public sealed class CodeGraphToDsmModelBuilder
     private const string RelationType = "Dependency";
 
     private readonly CodeGraph.Graph.CodeGraph _codeGraph;
-    private readonly IDsmModel _dsmModel;
 
     /// <summary>Maps a code element id to the DSM element created for it.</summary>
     private readonly Dictionary<string, IDsmElement> _dsmElementsByCodeElementId = [];
+
+    private readonly IDsmModel _dsmModel;
 
     /// <summary>Namespaces left out of the model, see <see cref="FindPassThroughNamespaces" />.</summary>
     private HashSet<string> _passThroughNamespaces = [];
@@ -44,7 +45,7 @@ public sealed class CodeGraphToDsmModelBuilder
         _dsmElementsByCodeElementId.Clear();
 
         var typeGraph = TypeGraph.Build(_codeGraph);
-        _passThroughNamespaces = FindPassThroughNamespaces(typeGraph);
+        _passThroughNamespaces = FindPassThroughNamespaces();
 
         foreach (var typeId in typeGraph.Vertices)
         {
@@ -59,99 +60,44 @@ public sealed class CodeGraphToDsmModelBuilder
     }
 
     /// <summary>
-    ///     The namespaces that carry no structure of their own: exactly one child, and that child another
-    ///     namespace. They do not become elements; their name is merged into the first descendant that does
-    ///     (see <see cref="MergedName" />), so the level disappears while the label stays a real namespace.
+    ///     Finds all passthrough namespaces in the type graph. All namespaces that have only a single child, another
+    ///     namespace.
+    ///     These namespaces are merged for the view.
+    ///     For example "A" -> "B" -> "C" -> "Type" gets to "A.B.C" -> "Type"
+    ///     Counting the children on the code graph is enough, the type graph was built from the code graph.
     /// </summary>
     /// <remarks>
-    ///     The parser creates one element per namespace segment, so a project whose root namespace repeats its
-    ///     assembly name produces a chain of pass-throughs: assembly "A.B" holds namespace "A" holds namespace
-    ///     "B" holds the real ones. Collapsing them is a view concern, which is why this lives here rather than
-    ///     in the parser, whose hierarchy is right and is what the tree view wants.
-    ///     <para>
-    ///         What such a level costs, given that it holds nothing:
-    ///     </para>
     ///     <list type="number">
     ///         <item>
     ///             An expand that reveals nothing. Expanding the element yields exactly one row, carrying the
-    ///             same numbers as before — weights aggregate over the children and there is only one child —
-    ///             so it takes another click to see anything.
+    ///             same numbers as before. So it takes another click to see anything.
     ///         </item>
     ///         <item>
     ///             A vertical strip down the left of the matrix, taking width and saying nothing.
     ///         </item>
     ///         <item>
-    ///             One of only four depth colours. MatrixColorConverter.GetColor computes
+    ///             One of only four depth colors. MatrixColorConverter.GetColor computes
     ///             <c>depth % 4</c>, so an empty level shifts the whole ramp and brings it round sooner,
-    ///             costing the depth-coloured blocks the contrast they read by. That is the matrix' main
+    ///             costing the depth-colored blocks the contrast they read by. That is the matrix's main
     ///             reading aid: inside the block is internal, outside crosses the boundary.
     ///         </item>
     ///     </list>
-    ///     <para>
-    ///         Note it is not about duplicate rows: rows are the collapsed elements, expanded ones become the
-    ///         vertical strips, so a level and its child are never on screen as rows at the same time.
-    ///     </para>
-    ///     <para>
-    ///         "Exactly one child" has to be counted over what actually reaches the model, not over the code
-    ///         graph: a namespace holding two types of which one is external is a pass-through here even
-    ///         though the code graph shows it branching.
-    ///     </para>
     /// </remarks>
-    private HashSet<string> FindPassThroughNamespaces(TypeGraph typeGraph)
+    private HashSet<string> FindPassThroughNamespaces()
     {
-        // Everything the model will hold: the types, plus every ancestor they hang from.
-        var included = new HashSet<string>();
-        foreach (var typeId in typeGraph.Vertices)
-        {
-            var current = _codeGraph.Nodes[typeId];
-            while (current is not null && included.Add(current.Id))
-            {
-                current = current.Parent;
-            }
-        }
-
-        var childrenByParent = new Dictionary<string, List<CodeElement>>();
-        foreach (var element in included.Select(id => _codeGraph.Nodes[id]))
-        {
-            if (element.Parent is null)
-            {
-                continue;
-            }
-
-            if (!childrenByParent.TryGetValue(element.Parent.Id, out var siblings))
-            {
-                siblings = [];
-                childrenByParent[element.Parent.Id] = siblings;
-            }
-
-            siblings.Add(element);
-        }
-
-        var passThrough = new HashSet<string>();
-        foreach (var element in included.Select(id => _codeGraph.Nodes[id]))
-        {
-            if (element.ElementType is not CodeElementType.Namespace)
-            {
-                continue;
-            }
-
-            if (childrenByParent.TryGetValue(element.Id, out var children) &&
-                children is [{ ElementType: CodeElementType.Namespace }])
-            {
-                passThrough.Add(element.Id);
-            }
-        }
-
-        return passThrough;
+        return _codeGraph.Nodes.Values
+            .Where(element => element is { ElementType: CodeElementType.Namespace, IsExternal: false } &&
+                              element.Children.Count == 1 &&
+                              element.Children.First().ElementType is CodeElementType.Namespace)
+            .Select(element => element.Id)
+            .ToHashSet();
     }
 
     /// <summary>
     ///     Orders the children of every element so that dependencies line up on one side of the diagonal.
     /// </summary>
     /// <remarks>
-    ///     Without this the rows sit in whatever order the elements were added, which for us is the iteration
-    ///     order of a hash set — so an acyclic structure looks just as scattered as a tangled one. The
-    ///     partitioning is what turns "no cycles" into the triangular shape that makes it visible. Sorting is
+    ///     The partitioning is what turns "no cycles" into the triangular shape that makes it visible. Sorting is
     ///     per parent: children are only ever reordered among their siblings, so the hierarchy is untouched.
     ///     Mirrors ImporterBase.Partition, which we cannot reuse (protected, and tied to the DSI import).
     /// </remarks>
@@ -167,9 +113,8 @@ public sealed class CodeGraphToDsmModelBuilder
     }
 
     /// <summary>
-    ///     Returns the DSM element for a code element, creating it and every missing ancestor first. Walking up
-    ///     before creating keeps a parent's id available by the time the child needs it. For a pass-through
-    ///     namespace it returns the nearest kept ancestor instead, which is what drops it from the model.
+    ///     Returns the DSM element for a code element, creating it and every missing ancestor first.
+    ///     For a pass-through namespace it returns the nearest kept ancestor instead, which is what drops it from the model.
     /// </summary>
     private IDsmElement? AddWithAncestors(string codeElementId)
     {
@@ -201,20 +146,9 @@ public sealed class CodeGraphToDsmModelBuilder
     /// <summary>
     ///     The element's name, prefixed with the pass-through ancestors that were dropped, so that
     ///     <c>A -> B -> C</c> with A and B pass-through becomes one element named <c>A.B.C</c>.
+    ///     Types are never affected: a namespace holding a type has a non-namespace child and is
+    ///     therefore not a pass-through, so the parent of a type is never dropped.
     /// </summary>
-    /// <remarks>
-    ///     Dropping a pass-through level and dropping its name are separate decisions, and only the first one
-    ///     buys anything: the tree has the same shape whether the name is merged in or thrown away. Merging
-    ///     keeps the invariant that a label is the namespace path relative to the element it sits in — one
-    ///     segment where nothing was collapsed, the collapsed chain where something was. Throwing the name
-    ///     away breaks it: the row under assembly "CSharpCodeAnalyst.CodeGraph" would read "CodeGraph", which
-    ///     names nothing, where it now reads "CSharpCodeAnalyst.CodeGraph", which is the namespace. Assembly
-    ///     names keep their dots for the same reason.
-    ///     <para>
-    ///         Types are never affected: a namespace holding a type has a non-namespace child and is
-    ///         therefore not a pass-through, so the parent of a type is never dropped.
-    ///     </para>
-    /// </remarks>
     private string MergedName(CodeElement element)
     {
         var parts = new List<string> { element.Name };

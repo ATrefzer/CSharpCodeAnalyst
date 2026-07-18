@@ -36,8 +36,41 @@ namespace DsmSuite.DsmViewer.View.Matrix
         // GetDropAtIndex, the DataObjectName key, and the IsDropTarget / MoveCommand flags on
         // ElementTreeItemViewModel that had no other reader.
 
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: drops both subscriptions, to be called before the item is
+        /// removed from its parent.
+        /// </summary>
+        /// <remarks>
+        /// The constructor subscribes to the matrix view model and nothing ever unsubscribed, while
+        /// MatrixRowHeaderView.CreateChildViews builds a fresh item per row on every size change and on
+        /// every tree change. Each generation stayed reachable from the long lived view model's event, so
+        /// the discarded items accumulated for as long as the matrix was open — one per row per resize,
+        /// each still redrawing itself on hover. Same root cause as the crash described in
+        /// MatrixCellsView.OnDataContextChanged, but it leaks rather than throws: this handler only calls
+        /// InvalidateVisual and never touches a field that has gone null.
+        /// </remarks>
+        public void Detach()
+        {
+            _matrixViewModel.PropertyChanged -= OnMatrixViewModelPropertyChanged;
+
+            if (_viewModel != null)
+            {
+                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                _viewModel = null;
+            }
+        }
+
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous element, see
+        /// <see cref="Detach"/>.
+        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            if (e.OldValue is ElementTreeItemViewModel oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            }
+
             _viewModel = e.NewValue as ElementTreeItemViewModel;
             if (_viewModel != null)
             {

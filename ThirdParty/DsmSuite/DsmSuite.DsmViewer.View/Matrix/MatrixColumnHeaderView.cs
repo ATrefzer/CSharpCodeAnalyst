@@ -57,8 +57,18 @@ namespace DsmSuite.DsmViewer.View.Matrix
             return widest;
         }
 
+        /// <summary>
+        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model, see
+        /// MatrixCellsView.OnDataContextChanged for the leak and the crash it caused. Same defect here,
+        /// reached by hovering the column headers instead of the cells.
+        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            if (e.OldValue is MatrixViewModel oldViewModel)
+            {
+                oldViewModel.PropertyChanged -= OnPropertyChanged;
+            }
+
             _viewModel = DataContext as MatrixViewModel;
             if (_viewModel != null)
             {
@@ -90,6 +100,12 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
         private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            // Added 2026-07 for CSharpCodeAnalyst, see MatrixCellsView.OnPropertyChanged.
+            if (_viewModel == null)
+            {
+                return;
+            }
+
             if (e.PropertyName == nameof(MatrixViewModel.ColumnHeaderToolTipViewModel))
             {
                 ToolTip = _viewModel.ColumnHeaderToolTipViewModel;
