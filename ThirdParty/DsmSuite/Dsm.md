@@ -83,10 +83,6 @@ The **number** is the dependency weight: the count of distinct type-level edges 
 elements. Above `9999` it reads `>9K`, because that is the widest that fits — the exact value is in the
 cell's tooltip.
 
-Below roughly a third of full zoom the number stops fitting the cell altogether and is not drawn. A
-populated cell and an empty one then look the same, and the tooltip is the only thing that still tells
-them apart — which is why it carries the weight.
-
 It is drawn smaller than the rest of the matrix (font size 10 against 14). That is not decoration: at 14 a
 cell only has room for three digits, and upstream silently dropped the fourth, drawing `1000` as `100`. See
 [README.md](README.md).

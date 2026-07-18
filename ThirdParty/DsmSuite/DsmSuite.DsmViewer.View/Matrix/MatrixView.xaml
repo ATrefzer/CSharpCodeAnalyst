@@ -60,11 +60,11 @@
 
                 <TextBlock Style="{StaticResource RichToolTipTitleStyle}" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="{Binding Title}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="ConsumerName"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="1" Text="Consumer"/>
                 <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="2" Grid.Column="2" Text=":"/>
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="2" Grid.Column="3" Text="{Binding ConsumerName}"/>
 
-                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="ProviderName"/>
+                <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="1" Text="Provider"/>
                 <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="3" Grid.Column="2" Text=":"/>
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="3" Grid.Column="3" Text="{Binding ProviderName}"/>
 
