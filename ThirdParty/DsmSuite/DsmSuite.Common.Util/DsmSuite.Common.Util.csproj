@@ -5,9 +5,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <GitRemote>github</GitRemote>
-    </PropertyGroup>
+    <!--
+        Changed 2026-07 for CSharpCodeAnalyst: removed <GitRemote>github</GitRemote>.
+        Upstream read the repository url from a remote named "github"; this fork is cloned with the
+        default remote name, so GitInfo could not find it and emitted "warning GI002: Could not
+        retrieve repository url for remote 'github'" on every build (and on every solution import,
+        where MSBuildWorkspace surfaces it as a diagnostic). GitInfo defaults GitRemote to "origin"
+        (GitInfo.targets), so dropping the property is what makes it work for a normal clone.
+    -->
 
     <ItemGroup>
       <PackageReference Include="GitInfo" Version="3.6.0">
