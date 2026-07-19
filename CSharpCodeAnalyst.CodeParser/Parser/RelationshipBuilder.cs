@@ -44,12 +44,12 @@ internal class RelationshipBuilder
         CodeElement target,
         List<SourceLocation> sourceLocations, RelationshipAttribute attributes)
     {
+        // Look the edge up through Relationship's own equality - which is exactly the triple (SourceId, TargetId, Type)
+        var probe = new Relationship(source.Id, target.Id, type);
+
         lock (_lock)
         {
-            var existingRelationship = source.Relationships.FirstOrDefault(d =>
-                d.TargetId == target.Id && d.Type == type);
-
-            if (existingRelationship != null)
+            if (source.Relationships.TryGetValue(probe, out var existingRelationship))
             {
                 // Note we may read some relationships more than once through different ways but that's fine.
                 // For example identifier and member access of field.
@@ -57,15 +57,15 @@ internal class RelationshipBuilder
                 existingRelationship.SourceLocations.AddRange(newLocations);
 
                 // We may get different attributes from different calls.
+                // Safe inside the set: the hash is built from the id/type triple only.
                 existingRelationship.Attributes |= attributes;
             }
             else
             {
-                var newRelationship = new Relationship(source.Id, target.Id, type);
-                newRelationship.SourceLocations.AddRange(sourceLocations);
-                newRelationship.Attributes = attributes;
+                probe.SourceLocations.AddRange(sourceLocations);
+                probe.Attributes = attributes;
 
-                source.Relationships.Add(newRelationship);
+                source.Relationships.Add(probe);
             }
         }
     }

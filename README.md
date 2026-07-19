@@ -241,6 +241,13 @@ A pattern can end with a wildcard suffix:
 
 The part before the wildcard is an **anchor**. It must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree. It collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp` but nothing in a sibling assembly `MyApp.Utils` because that assembly is a separate root in the tree and not a child of the anchor.
 
+The `global` namespace is optional in a pattern
+Both spellings therefore resolve to the same element:
+
+```
+RESTRICT MyApp.Business.** -> MyApp.Data.**
+RESTRICT MyApp.global.Business.** -> MyApp.global.Data.**
+```
 ### Examples
 
 In these examples, the assembly is called `MyApp` and contains the namespaces `Business`, `Data`, ... directly — so the paths start with `MyApp.Business`, not with a duplicated name.

@@ -251,7 +251,7 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
     /// </summary>
     private static void InsertGlobalNamespaceIfUsed(CodeGraph.Graph.CodeGraph codeGraph)
     {
-        const string global = "global";
+        const string global = CodeElement.GlobalNamespaceName;
         var assemblies = codeGraph.GetRoots();
         Debug.Assert(assemblies.All(a => a.ElementType == CodeElementType.Assembly));
         var isGlobalNsUsed = assemblies.Any(a => a.Children.Any(c => c.ElementType != CodeElementType.Namespace));

@@ -109,6 +109,12 @@ Die Assembly ist insgesamt in gutem Zustand; die Algorithmen habe ich gegen ihre
 
 **b) `RelationshipBuilder.AddRelationship`: linearer Scan unter dem globalen Lock — obwohl ein O(1)-Lookup bereitliegt.** `CodeElement.Relationships` ist inzwischen ein `HashSet<Relationship>`, dessen Gleichheit exakt das Tripel (Source, Target, Type) ist. Der `FirstOrDefault`-Scan ([RelationshipBuilder.cs:49](../../CSharpCodeAnalyst.CodeParser/Parser/RelationshipBuilder.cs)) kann durch `Relationships.TryGetValue(probe, out existing)` ersetzt werden — das entschärft nebenbei den in Review 2 notierten Serialisierungspunkt von Phase 2, ohne am Locking etwas zu ändern.
 
+DONE — **aber die Performance-Begründung war falsch, und das ist die interessantere Erkenntnis.** A/B auf dieser Solution (je 3 Läufe, Phase 2 isoliert über die Trace-Ausgabe gemessen): alt 1,94 / 1,19 / 1,08 s, neu 1,90 / 1,20 / 1,08 s — **kein messbarer Unterschied**. Grund: Der Graph hat im Schnitt nur **4,1 Kanten pro Element** (Maximum 124). Über vier Einträge ist ein linearer Scan mindestens so schnell wie ein Hash-Lookup; die Datenstruktur war nie der Engpass. Der in Review 2 vermutete Serialisierungspunkt liegt also nicht im Scan, sondern schlicht darin, dass Phase 2 überhaupt ein globales Lock hat — falls Phase 2 je zu langsam wird, ist feineres Locking der Hebel, nicht der Lookup.
+
+Die Änderung ist trotzdem drin, aber mit ehrlicher Begründung: Sie nutzt die Gleichheitsdefinition von `Relationship` selbst, statt sie im Prädikat (`TargetId` + `Type`) zu duplizieren. Der alte Scan war nur deshalb korrekt, weil jede in einem Knoten gespeicherte Relationship diesen Knoten als Source hat — eine ungeschriebene Invariante, auf die der Code sich nicht mehr verlässt. (Nachgemessen: 0 von 22 014 Relationships liegen in einem fremden Knoten, die Invariante gilt heute tatsächlich.)
+
+Methodischer Nachtrag: Der erste A/B-Vergleich zeigte 22 011 statt 22 014 Kanten — ein scheinbarer Verhaltensunterschied. Ursache war Selbstbezug: Der Parser analysiert die eigene Solution, und die drei fehlenden Kanten lagen alle in `AddRelationship` selbst, dessen Quelltext ich gerade geändert hatte (`d.TargetId` / `d.Type` kommen im neuen Code nicht mehr vor). Alle 5 Diff-Zeilen lagen in dieser einen Methode; außerhalb ist der Graph identisch.
+
 **c) Tarjan ist rekursiv.** Die DFS-Rekursionstiefe entspricht dem längsten Pfad im Suchgraphen; der enthält alle Member. Bei sehr großen Solutions (lange Call-Ketten) droht ein `StackOverflowException`, gegen die man sich nicht wehren kann. Eine iterative Variante (expliziter Stack) wäre die robuste Form — betrifft `Tarjan.FindStronglyConnectedComponents`, das auch `SystemMetricsAnalysis.CalculateCyclicity` nutzt (dort nur Typ-Ebene, unkritischer).
 
 **d) Kleinigkeiten:**
@@ -124,3 +130,19 @@ Die Assembly ist insgesamt in gutem Zustand; die Algorithmen habe ich gegen ihre
 ------
 
 **TL;DR:** Vier verifizierte Fehler, alle im Parser-Umfeld: (a) Member-Implements-Kanten fehlen bei **allen** generischen Interfaces (Key-Mismatch in der Phase-1-Map **plus** falsches Symbol an Roslyns `FindImplementationForInterfaceMember` — die TestSuite enthält kein einziges generisches Interface, darum unbemerkt); (b) bei partiellen Methoden wird der Body nur analysiert, wenn der Implementierungsteil zufällig zuerst kommt — reihenfolgeabhängiger Verlust ganzer Abhängigkeitssätze, systematisch bei Source-Generatoren; (c) Default-Interface-Methoden bekommen eine Implements-Selbstkante; (d) das FullName-Format aller Elemente kippt, sobald die erste Assembly den globalen Namespace nutzt — stille Sollbruchstelle für Architekturregeln und Baselines. Die CodeGraph-Assembly ist fachlich sauber; dort lohnen sich die geteilten Relationship-Instanzen der Zyklengruppen, der O(1)-Lookup in `AddRelationship` und ein iterativer Tarjan.
+
+------
+## Nachtrag: 1a-1c umgesetzt
+
+## Nachtrag: 1d umgesetzt (Toleranz statt Formatänderung)
+
+Das Einfügen des `global`-Namespace bleibt wie es ist — es ist eine bewusste Modellierungsentscheidung (kein Element direkt unter der Assembly, einfachere Zyklensuche). Robust gemacht wurde stattdessen die **Nutzerseite**: `PatternMatcher` findet das Ankerelement jetzt flexibel. Der geschriebene Pfad wird zuerst exakt gesucht; matcht er nichts, wird die äquivalente Schreibweise mit umgeschaltetem `global`-Segment probiert — in beide Richtungen, damit auch bestehende Regeldateien und Baselines überleben, wenn das letzte Top-Level-Statement-Projekt verschwindet.
+
+Details der Umsetzung:
+
+- **Exact-match-wins:** Die Fallback-Auflösung läuft nur, wenn die geschriebene Form nichts trifft. Damit kann eine Regel nie mehr treffen als das, was dasteht (kein Over-Matching, wenn beide Schreibweisen real existieren), und Tippfehler lösen weiterhin die No-Match-Warnung aus.
+- **Assembly aus dem Graphen, nicht per String-Split:** Assembly-Namen enthalten selbst Punkte (`MyApp.Business.Core`), das `global`-Segment sitzt also nicht an fester Position. Der Präfix kommt aus den Wurzelelementen.
+- **Generatoren unverändert:** `BaselineGenerator`/`AssemblyRuleGenerator` schreiben weiter den exakten `FullName`. Der matcht immer, und kippt die Graph-Form später, fängt der Fallback es ab. Das vermeidet zugleich, die Idempotenz-Prüfung gegen bestehende ALLOW-Zeilen zu brechen.
+- Das dreifach gestreute Literal `"global"` ist jetzt `CodeElement.GlobalNamespaceName`.
+
+Tests: `PatternMatcherGlobalNamespaceTests` (13 Fälle — beide Richtungen, tiefe Elemente, punktierter Assembly-Name, `global` als eigenes Ziel, Exact-match-wins, Tippfehler/Case bleiben No-Match, `ResolveSubtree` für NOCYCLES). Dokumentiert im README unter „How patterns work".

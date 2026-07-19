@@ -5,6 +5,14 @@ namespace CSharpCodeAnalyst.CodeGraph.Graph;
 [DebuggerDisplay("{ElementType}: {Name} {(IsExternal ? \"(External)\" : \"\")}")]
 public class CodeElement(string id, CodeElementType elementType, string name, string fullName, CodeElement? parent)
 {
+    /// <summary>
+    ///     Name of the synthetic namespace the parser inserts directly below an assembly for code that
+    ///     lives in no namespace (see Parser.InsertGlobalNamespaceIfUsed). It is a modelling decision -
+    ///     no element should sit directly under an assembly, which also keeps cycle detection simple -
+    ///     so anything that takes paths from the user (architectural rules) must tolerate its absence.
+    /// </summary>
+    public const string GlobalNamespaceName = "global";
+
     public List<SourceLocation> SourceLocations { get; set; } = [];
 
     /// <summary>
@@ -68,7 +76,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         bool IsGlobalNamespace(CodeElement codeElement)
         {
             return codeElement.Parent?.ElementType == CodeElementType.Assembly
-                   && codeElement is { ElementType: CodeElementType.Namespace, Name: "global" };
+                   && codeElement is { ElementType: CodeElementType.Namespace, Name: GlobalNamespaceName };
         }
     }
 
