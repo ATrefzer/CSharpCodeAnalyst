@@ -46,7 +46,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="32" />
                 </Grid.ColumnDefinitions>
                 <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.RowDefinitions>
@@ -72,7 +72,7 @@
                 <TextBlock Style="{StaticResource RichToolTipColonStyle}" Grid.Row="5" Grid.Column="1" Text=":"/>
                 <TextBlock Style="{StaticResource RichToolTipPropertiesStyle}" Grid.Row="5" Grid.Column="2" Text="{Binding Weight}"/>
                 
-                <Image Grid.Row="2" Grid.RowSpan="2" Grid.Column="3" Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/left-arrow.png"/>
+                <Image Grid.Row="2" Grid.RowSpan="2" Grid.Column="3" Margin="5 0 0 0" Source="pack://application:,,,/DsmSuite.DsmViewer.View;component/Resources/left-arrow.png"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
