@@ -87,14 +87,23 @@ public class HierarchyAnalyzer
             // AllInterfaces also includes interfaces implemented in a base type - same as the old scan.
             foreach (var interfaceSymbol in type.AllInterfaces)
             {
-                var interfaceKey = interfaceSymbol.Key();
+                // AllInterfaces holds the CONSTRUCTED interfaces (IHandler<Item>), but phase 2 looks the
+                // map up with the interface member's containing type, which is the DEFINITION
+                // (IHandler<T>). Key the map by the definition, otherwise closed generic implementations
+                // are never found and their member Implements edges are lost.
+                var interfaceKey = interfaceSymbol.OriginalDefinition.Key();
                 if (!map.TryGetValue(interfaceKey, out var implementingTypes))
                 {
                     implementingTypes = [];
                     map[interfaceKey] = implementingTypes;
                 }
 
-                implementingTypes.Add(type);
+                // A type implementing several constructions of the same generic interface
+                // (IHandler<A>, IHandler<B>) would be added once per construction under the same key.
+                if (implementingTypes.Count == 0 || !ReferenceEquals(implementingTypes[^1], type))
+                {
+                    implementingTypes.Add(type);
+                }
             }
         }
 

@@ -227,12 +227,15 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
 
         foreach (var (elementId, symbol) in artifacts.ElementIdToSymbolMap)
         {
-            if (symbol is not IMethodSymbol)
+            if (symbol is not IMethodSymbol methodSymbol)
             {
                 continue;
             }
 
-            var syntax = symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            // For a partial method measure the implementation part - the stored symbol may be the
+            // body-less definition part (declaration order decides which one phase 1 kept).
+            var bodySymbol = methodSymbol.PartialImplementationPart ?? methodSymbol;
+            var syntax = bodySymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
             if (syntax is not null && SourceMetricsCollector.HasBody(syntax))
             {
                 metrics.Add(elementId, SourceMetricsCollector.ComputeForMethodDeclaration(syntax));

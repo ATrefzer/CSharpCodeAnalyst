@@ -2,8 +2,6 @@
 
 [TOC]
 
-
-
 This guide explains the metrics that C# Code Analyst calculates.
 
 Rather than providing many different metrics, C# Code Analyst focuses on a few that answer specific questions.
@@ -83,7 +81,7 @@ Score is the PageRank value normalized so the **average type scores 1.0**:
 
 ### Reading the numbers
 
-1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry the most weight — the highest payoff to understand and the highest risk to change. Working from the bottom up, these foundational types are the system's vocabulary and a natural starting point. Working top-down, you may prefer to start with the orchestrators below and drill down into them.
+1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry the most weight — the highest payoff to understand and the highest risk to change. These foundational types are the system's vocabulary and a natural starting point.
 2. Sort by **Fan-out** to find the major orchestrators — these often provide a good overview of how the system's behavior is coordinated.
 3. Sort by **Blast radius** before a refactoring — it tells you how far the ripples of a change to a type will reach.
 4. Look for differences between Fan-in and Score. A type with high Fan-in but a modest Score is usually a widely used utility, such as a logger or an extension-method holder. A type with a modest Fan-in but a high Score is likely a true architectural core. This gap is often the most useful signal in the table.

@@ -218,3 +218,60 @@ A consequence worth knowing (observed on the Jellyfin reference repo, accepted d
 **stackalloc.** `stackalloc Sample[2]` in expression position (e.g. as an argument) had no handler; the element type is now recorded like an array creation (the expression type `Span<Sample>`/`Sample*` resolves down to the element type). Covers the implicit form `stackalloc[] { ... }` too.
 
 **Compiler-invoked pattern methods.** A deconstruction (`var (x, y) = point;`, including nested patterns and the `foreach (var (x, y) in ...)` form) calls the user-defined `Deconstruct`; a `foreach` calls `GetEnumerator` (or `GetAsyncEnumerator` for `await foreach`). Neither appears as an invocation in the syntax tree; Roslyn exposes them via `GetDeconstructionInfo` and `GetForEachStatementInfo`. Both now get `Calls` edges (`Uses` in lambda bodies). Deliberately **not** recorded: `MoveNext`/`Current`/`Dispose` of the enumeration pattern - they live on the enumerator type and would be noise; the `GetEnumerator` entry point carries the dependency. Pure tuple deconstructions (`(a, b) = (b, a)`) bind no method and produce no edge. All of these route through the same helper as the query-pattern operators (`AddSynthesizedCallRelationship`): extension methods are reduced, generics normalized, externals fall back to the containing type.
+## Member implementations of generic interfaces
+
+The type-level `Implements` edge (`ItemHandler -> IHandler`) always worked, but the member-level
+edges (`ItemHandler.Handle -> IHandler<T>.Handle`) were silently missing for **every** generic
+interface - closed (`ItemHandler : IHandler<Item>`) and open (`GenHandler<T> : IHandler<T>`)
+implementations alike. Two independent causes, both in the resolution of "who implements this
+interface member":
+
+**The interface map was keyed by the constructed interface.** `AllInterfaces` returns the
+*constructed* interfaces (`IHandler<Item>`), while phase 2 looks the precomputed
+interface-key -> implementing-types map up with the interface member's containing type, which is the
+*definition* (`IHandler<T>`). The keys never matched for closed constructions, so no implementing
+type was found at all. The map is now keyed by `OriginalDefinition.Key()`.
+
+**Roslyn's `FindImplementationForInterfaceMember` demands the member of the constructed interface.**
+Our phase-1 symbol is the member of the interface *definition*. Handing that to
+`FindImplementationForInterfaceMember` only works when the interface is not generic (definition and
+construction coincide); for a generic interface it returns null - even for
+`GenHandler<T> : IHandler<T>`, where the interface is constructed with the class's own type
+parameter. The definition member is now first mapped onto each matching construction in the
+implementing type's `AllInterfaces` (matched via `OriginalDefinition.Key()`), and Roslyn is asked
+with that constructed member.
+
+Two consequences of the new resolution:
+
+- A type implementing several constructions of the same generic interface
+  (`DualHandler : IHandler<A>, IHandler<B>`) yields one `Implements` edge per construction - each
+  overload of `Handle` implements `IHandler<T>.Handle`.
+- The key-based matching is compilation-independent (string keys), so an interface defined in a
+  different project resolves directly. The previous `FindCorrespondingSymbol` /
+  `FindCompilation` cross-compilation fallback became dead code and was removed.
+
+## Default interface methods: no self implementation
+
+For a class that only *inherits* a default interface method (`class Greeter : IGreeter` where
+`IGreeter.Greet` has a body), Roslyn's `FindImplementationForInterfaceMember` returns the interface
+member itself as the implementation. That used to become an `Implements` **self edge**
+(`IGreeter.Greet -> IGreeter.Greet`). Such an implementation is now skipped: the inheriting class
+adds nothing of its own, so there is nothing to connect. A class that *overrides* the default
+implementation gets its normal member `Implements` edge. The body of the default implementation is
+walked like any method body (the interface method is a regular code element).
+
+## Partial methods and properties: two symbols, one element
+
+The definition part (`public partial void Hook();`) and the implementation part
+(`public partial void Hook() { ... }`) of a partial method are **two different `IMethodSymbol`s**
+with the same symbol key. Phase 1 therefore creates one element and stores whichever symbol it saw
+first (this is also what the "Found element with multiple symbols" trace warning fires on). Phase 2
+walked only the stored symbol's `DeclaringSyntaxReferences` - and the definition part has no body,
+so with the definition first (declaration order in the source!) all dependencies of the
+implementation body were silently lost. Systematic for source generators, where the user writes the
+definition part and the generator supplies the body.
+
+Phase 2 now walks the declarations of **both** parts
+(`GetDeclaringSyntaxReferencesIncludingPartial`, using `PartialImplementationPart` /
+`PartialDefinitionPart`), for methods and for partial properties (C# 13) alike. The source metrics
+measure the implementation part. Partial *events* (C# 14) are not special-cased yet.

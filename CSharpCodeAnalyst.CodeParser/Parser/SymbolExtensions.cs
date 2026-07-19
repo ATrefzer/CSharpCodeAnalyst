@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -13,14 +12,6 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 /// </summary>
 public static class SymbolExtensions
 {
-    private static readonly SymbolDisplayFormat MetadataNameFormat = new(
-        SymbolDisplayGlobalNamespaceStyle.Omitted,
-        SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-        SymbolDisplayGenericsOptions.IncludeTypeParameters,
-        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
-                              SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
-    );
-
     public static string BuildSymbolName(this ISymbol symbol)
     {
         var parts = GetSymbolChain(symbol);
@@ -42,16 +33,6 @@ public static class SymbolExtensions
 
         var parts = GetSymbolChain(symbol);
         return string.Join(".", parts.Select(GetKeyInternal));
-    }
-
-
-    /// <summary>
-    ///     Returns a key for the symbol only without the parent chain.
-    ///     This key can identify the overrides of a symbol in a class hierarchy
-    /// </summary>
-    private static string KeySymbolOnly(this ISymbol symbol)
-    {
-        return GetKeyInternal(symbol);
     }
 
 
@@ -190,76 +171,37 @@ public static class SymbolExtensions
         return result;
     }
 
-    private static string GetMetadataName(this ISymbol symbol)
-    {
-        // Note: ISymbol.MetaDataName is not sufficient. It contains for example just the interface name.
-        // Compilation.GetTypeByMetadataName is very picky about the given format.
-        return symbol.ToDisplayString(MetadataNameFormat);
-    }
-
     public static bool IsFromSource(this ISymbol symbol)
     {
         return symbol.Locations.Any(loc => loc.IsInSource);
     }
 
     /// <summary>
-    ///     Finds the corresponding symbol in the target compilation.
-    ///     TODO Does this work for generics, too? See GetMetadataName.
+    ///     A partial method has two symbols (definition part and implementation part) that share one
+    ///     code element (same <see cref="Key" />); phase 1 stores whichever it saw first. Walking only
+    ///     that symbol's declarations would lose the body of the other part - declaration order in the
+    ///     source decides which one, so dependencies would silently depend on file layout. Returns the
+    ///     declaring syntax references of both parts.
     /// </summary>
-    public static ISymbol? FindCorrespondingSymbol(this ISymbol originalSymbol, Compilation targetCompilation)
+    public static IEnumerable<SyntaxReference> GetDeclaringSyntaxReferencesIncludingPartial(this IMethodSymbol method)
     {
-        // Warning: 
-        // SymbolDisplayFormat.FullyQualifiedFormat is not sufficient to find the types via GetTypeByMetadataName!
-
-        ISymbol? correspondingSymbol = null;
-        switch (originalSymbol)
-        {
-            case INamedTypeSymbol:
-
-                // Note: ISymbol.MetadataName is not sufficient.
-                var metaDataName = originalSymbol.GetMetadataName();
-                correspondingSymbol = targetCompilation.GetTypeByMetadataName(metaDataName);
-                break;
-
-            case IMethodSymbol:
-            case IPropertySymbol:
-            case IEventSymbol:
-                if (FindCorrespondingSymbol(originalSymbol.ContainingType, targetCompilation) is INamedTypeSymbol
-                    containingType)
-                {
-                    correspondingSymbol = containingType.GetMembers(originalSymbol.Name)
-                        .FirstOrDefault(m => m.KeySymbolOnly() == originalSymbol.KeySymbolOnly());
-                }
-
-                break;
-            default:
-                Debug.Assert(false);
-                break;
-
-            // Add cases for other symbol types as needed (e.g., IFieldSymbol, IPropertySymbol, etc.)
-        }
-
-        return correspondingSymbol;
+        var otherPart = (ISymbol?)method.PartialImplementationPart ?? method.PartialDefinitionPart;
+        return otherPart is null
+            ? method.DeclaringSyntaxReferences
+            : method.DeclaringSyntaxReferences.Concat(otherPart.DeclaringSyntaxReferences);
     }
 
-    public static Compilation FindCompilation(this ISymbol symbol)
+    /// <summary>
+    ///     <inheritdoc cref="GetDeclaringSyntaxReferencesIncludingPartial(IMethodSymbol)" />
+    ///     Same for partial properties (C# 13).
+    /// </summary>
+    public static IEnumerable<SyntaxReference> GetDeclaringSyntaxReferencesIncludingPartial(this IPropertySymbol property)
     {
-        while (true)
-        {
-            if (symbol is INamespaceSymbol { ContainingCompilation: not null } ns)
-            {
-                return ns.ContainingCompilation;
-            }
-
-            if (symbol is ISourceAssemblySymbol { Compilation: not null } sas)
-            {
-                return sas.Compilation;
-            }
-
-            symbol = symbol.ContainingSymbol ?? throw new Exception("No compilation");
-        }
+        var otherPart = (ISymbol?)property.PartialImplementationPart ?? property.PartialDefinitionPart;
+        return otherPart is null
+            ? property.DeclaringSyntaxReferences
+            : property.DeclaringSyntaxReferences.Concat(otherPart.DeclaringSyntaxReferences);
     }
-
 
     /// <summary>
     ///     Returns true if the ctor is explicit and has a body. False if  implicit or primary ctor.

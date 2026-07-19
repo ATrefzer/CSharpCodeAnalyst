@@ -263,8 +263,10 @@ internal class DeclarationAnalyzer
             }
         }
 
-        // Analyze method body for object creations and method calls
-        foreach (var syntaxReference in methodSymbol.DeclaringSyntaxReferences)
+        // Analyze method body for object creations and method calls.
+        // For a partial method both parts are walked - the stored symbol may be the body-less
+        // definition part (see GetDeclaringSyntaxReferencesIncludingPartial).
+        foreach (var syntaxReference in methodSymbol.GetDeclaringSyntaxReferencesIncludingPartial())
         {
             var syntax = syntaxReference.GetSyntax();
             var document = solution.GetDocument(syntax.SyntaxTree);
@@ -297,45 +299,73 @@ internal class DeclarationAnalyzer
             // Note: We may get a positive answer for all implementing types even if we expect exactly one type to implement it.
             // That's ok the relationship is established only once. It is always the same implementation that is found.
 
-            var implementingSymbol = FindImplementationForInterfaceMember(symbol, implementingType);
-            if (implementingSymbol != null)
+            foreach (var implementingSymbol in FindImplementationsForInterfaceMember(symbol, implementingType))
             {
                 var implementingElement = _builder.FindInternalCodeElement(implementingSymbol);
-                if (implementingElement != null)
+                if (implementingElement is null)
                 {
                     // Note: Implementations for external methods are not in our map
-                    var locations = implementingSymbol.GetSymbolLocations();
-                    _builder.AddRelationship(implementingElement, RelationshipType.Implements, element, locations, RelationshipAttribute.None);
+                    continue;
                 }
+
+                if (ReferenceEquals(implementingElement, element))
+                {
+                    // A class that inherits a default interface method reports the interface member
+                    // itself as the implementation - that must not become an Implements self edge.
+                    continue;
+                }
+
+                var locations = implementingSymbol.GetSymbolLocations();
+                _builder.AddRelationship(implementingElement, RelationshipType.Implements, element, locations, RelationshipAttribute.None);
             }
         }
     }
 
     /// <summary>
-    ///     For methods and events.
-    ///     Searches the whole hierarchy of the implementing type.
-    ///     Returns the symbol (method for example) that is the first implementation of the interface member.
-    ///     The later overrides are ignored here.
+    ///     For methods, properties (accessors) and events. Searches the whole hierarchy of the
+    ///     implementing type and returns the symbols implementing the given interface member - one per
+    ///     construction of the interface (DualHandler : IHandler&lt;A&gt;, IHandler&lt;B&gt; implements
+    ///     IHandler&lt;T&gt;.Handle with two different methods). Later overrides are ignored here.
+    ///     Roslyn trap: <see cref="INamedTypeSymbol.FindImplementationForInterfaceMember" /> must be
+    ///     called with the member of the CONSTRUCTED interface the type actually implements. Our phase-1
+    ///     symbol is the member of the interface DEFINITION - it only works directly when the interface is
+    ///     not generic (definition and construction coincide). So the definition member is first mapped
+    ///     onto every matching construction in AllInterfaces. The key comparison also bridges
+    ///     compilations, so an interface defined in another project resolves without extra mapping.
     /// </summary>
-    private static ISymbol? FindImplementationForInterfaceMember(ISymbol symbol,
+    private static IEnumerable<ISymbol> FindImplementationsForInterfaceMember(ISymbol symbol,
         INamedTypeSymbol implementingType)
     {
-        var implementingSymbol = implementingType.FindImplementationForInterfaceMember(symbol);
-        if (implementingSymbol is null)
+        // symbol is from phase 1. It is a definition, nothing constructed.
+        var results = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+
+        var definition = symbol.OriginalDefinition;
+        var definitionKey = definition.Key();
+        var interfaceKey = definition.ContainingType.Key();
+
+        foreach (var constructedInterface in implementingType.AllInterfaces)
         {
-            // If the symbol is from a different compilation than the implementing type we may have to go deeper.
-            var typeCompilation = implementingType.FindCompilation();
-            var symbolCompilation = symbol.FindCompilation();
-            if (!ReferenceEquals(typeCompilation, symbolCompilation))
+            if (constructedInterface.OriginalDefinition.Key() != interfaceKey)
             {
-                if (symbol.FindCorrespondingSymbol(typeCompilation) is { } mappedSymbol)
-                {
-                    implementingSymbol = implementingType.FindImplementationForInterfaceMember(mappedSymbol);
-                }
+                // Not the requested interface.
+                continue;
+            }
+
+            var constructedMember = constructedInterface.GetMembers(symbol.Name)
+                .FirstOrDefault(m => m.OriginalDefinition.Key() == definitionKey);
+            if (constructedMember is null)
+            {
+                continue;
+            }
+
+            var implementation = implementingType.FindImplementationForInterfaceMember(constructedMember);
+            if (implementation is not null)
+            {
+                results.Add(implementation);
             }
         }
 
-        return implementingSymbol;
+        return results;
     }
 
     /// <summary>
@@ -567,7 +597,9 @@ internal class DeclarationAnalyzer
             ? _builder.FindInternalCodeElement(propertySymbol.SetMethod) ?? propertyElement
             : propertyElement;
 
-        foreach (var syntaxReference in propertySymbol.DeclaringSyntaxReferences)
+        // For a partial property both parts are walked - the stored symbol may be the body-less
+        // definition part (see GetDeclaringSyntaxReferencesIncludingPartial).
+        foreach (var syntaxReference in propertySymbol.GetDeclaringSyntaxReferencesIncludingPartial())
         {
             var syntax = syntaxReference.GetSyntax();
 
