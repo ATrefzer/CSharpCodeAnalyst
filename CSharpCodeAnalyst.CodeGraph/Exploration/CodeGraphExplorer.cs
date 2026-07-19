@@ -823,7 +823,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             {
                 var derivedType = _codeGraph.Nodes[relation.SourceId];
 
-                // Nur in die Queue werfen, wenn wir das Element nicht schon besucht haben
+                // Only enqueue an element we have not visited yet.
                 if (derivedTypes.Add(derivedType))
                 {
                     queue.Enqueue(derivedType);

@@ -180,9 +180,19 @@ public class DgmlFileBuilder
         writer.WriteEndDocument();
     }
 
-    private static bool IsNonPrintableCharacter(char candidate)
+    /// <summary>
+    ///     Characters XML attribute cannot carry: the C0 control characters except tab, line feed and carriage
+    ///     return, plus the two non-characters. Other characters get escaped by the xml writer.
+    /// </summary>
+    private static bool IsInvalidXmlCharacter(char candidate)
     {
-        return candidate < 0x20 || candidate > 127;
+        // These Unicode characters crash the XML parser
+        if (candidate is '\uFFFE' or '\uFFFF')
+        {
+            return true;
+        }
+        
+        return (candidate < 0x20 && candidate is not ('\t' or '\n' or '\r'));
     }
 
     private static void WriteGroupNode(XmlWriter writer, Group group)
@@ -205,13 +215,15 @@ public class DgmlFileBuilder
         writer.WriteStartElement("Node");
         writer.WriteAttributeString("Id", id);
 
-        var escaped = node.Name;
-        if (node.Name.Any(IsNonPrintableCharacter))
+        var name = node.Name;
+        if (name.Any(IsInvalidXmlCharacter))
         {
-            escaped = "Cryptic_" + node.Name;
+            // The offending characters have to go, not just be flagged: XmlWriter throws on them,
+            // so prefixing the name alone would still fail to write the file.
+            name = "Cryptic_" + new string(name.Where(c => !IsInvalidXmlCharacter(c)).ToArray());
         }
 
-        writer.WriteAttributeString("Label", escaped);
+        writer.WriteAttributeString("Label", name);
 
         if (node.HasCategory)
         {

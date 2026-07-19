@@ -46,7 +46,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <!-- Changed 2026-07 for CSharpCodeAnalyst: Tooltip layout -->
                 <Grid.RowDefinitions>

@@ -127,6 +127,17 @@ Methodischer Nachtrag: Der erste A/B-Vergleich zeigte 22 011 statt 22 014 Kanten
 - Ein deutscher Kommentar in [CodeGraphExplorer.cs:826](../../CSharpCodeAnalyst.CodeGraph/Exploration/CodeGraphExplorer.cs) („Nur in die Queue werfen, …") — der Rest der Datei ist englisch.
 - `IncompleteLogicException` wird nirgends mehr geworfen — kann weg.
 
+DONE — mit **einer Ausnahme: der PlantUML-Punkt war falsch und wurde zurückgenommen.** PlantUML wendet innerhalb eines Labels Creole-/HTML-Markup an; ein compilergenerierter Name wie `<Main>$` oder `<>c__DisplayClass0_0` würde in Anführungszeichen als Tag gelesen. Die Ersetzung schützt also genau in dem Fall, in dem die Zeichen überhaupt vorkommen — gewöhnliche C#-Bezeichner enthalten keines davon (im geparsten Graphen dieser Solution: kein einziger Name mit `<`, `>`, Komma, Leerzeichen oder Bindestrich). Drei Tests in `PlantUmlExportTests` kodierten das Verhalten bereits bewusst („The underscore in the class name is sanitized"); sie an eine Verschlechterung anzupassen wäre der falsche Weg gewesen. Statt der Änderung steht dort jetzt ein Kommentar, der die Absicht festhält — damit der Punkt im nächsten Review nicht erneut aufschlägt.
+
+Die übrigen fünf sind umgesetzt:
+
+- `IsNonPrintableCharacter` → `IsInvalidXmlCharacter`: nur noch C0-Steuerzeichen (außer Tab/CR/LF) und die beiden BMP-Nichtzeichen. Nebenbefund: Der alte Code hat die gefundenen Zeichen gar nicht entfernt, sondern nur `Cryptic_` vorangestellt — bei einem echten Steuerzeichen hätte `XmlWriter` weiterhin geworfen. Sie werden jetzt entfernt.
+- `CodeGraph.Nodes` → `{ get; init; }` (nicht `get`-only: `JdepsReader` setzt es per Objekt-Initialisierer).
+- `DeleteRelationships` nimmt `IReadOnlyCollection<Relationship>`, baut intern ein `HashSet` und läuft einmal pro betroffenem Quellknoten statt einmal pro Relationship. Ein Aufruf mit unbekanntem Quellelement warf vorher eine `KeyNotFoundException` und wird jetzt übersprungen.
+- Deutscher Kommentar übersetzt, `IncompleteLogicException` gelöscht.
+
+Beide verhaltensändernden Stellen hatten **keine Testabdeckung** — das ist der Grund, warum die Fehler so lange unbemerkt blieben. Nachgeholt: `DgmlFileBuilderTests` (Umlaute/CJK bleiben unverändert, Steuerzeichen wird entfernt, Surrogat-Paar bleibt intakt) und `CodeGraphDeleteRelationshipsTests` (6 Fälle inkl. unbekanntem Quellknoten). `InsertGlobalNamespaceIfUsed` (quadratisches `MoveTo`) ist noch offen.
+
 ------
 
 **TL;DR:** Vier verifizierte Fehler, alle im Parser-Umfeld: (a) Member-Implements-Kanten fehlen bei **allen** generischen Interfaces (Key-Mismatch in der Phase-1-Map **plus** falsches Symbol an Roslyns `FindImplementationForInterfaceMember` — die TestSuite enthält kein einziges generisches Interface, darum unbemerkt); (b) bei partiellen Methoden wird der Body nur analysiert, wenn der Implementierungsteil zufällig zuerst kommt — reihenfolgeabhängiger Verlust ganzer Abhängigkeitssätze, systematisch bei Source-Generatoren; (c) Default-Interface-Methoden bekommen eine Implements-Selbstkante; (d) das FullName-Format aller Elemente kippt, sobald die erste Assembly den globalen Namespace nutzt — stille Sollbruchstelle für Architekturregeln und Baselines. Die CodeGraph-Assembly ist fachlich sauber; dort lohnen sich die geteilten Relationship-Instanzen der Zyklengruppen, der O(1)-Lookup in `AddRelationship` und ein iterativer Tarjan.

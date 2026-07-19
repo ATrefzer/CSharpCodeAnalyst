@@ -108,6 +108,10 @@ public class PlantUmlExport
 
     private static void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
     {
+        // The display name is sanitized although it is written inside quotes, and that is deliberate:
+        // PlantUML applies creole/HTML markup inside a quoted label, so a compiler-generated name like
+        // "<Main>$" or "<>c__DisplayClass0_0" would be read as a tag. Ordinary C# identifiers contain
+        // none of the replaced characters, so nothing legible is lost.
         var typeDisplayName = SanitizeName(node.Name, false);
         var alias = SanitizeName(node.FullName, true);
 

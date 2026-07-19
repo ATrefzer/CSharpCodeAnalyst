@@ -6,7 +6,7 @@ public record IntegrationResult(CodeElement CodeElement, bool IsAdded);
 
 public class CodeGraph : IGraphRepresentation<CodeElement>
 {
-    public Dictionary<string, CodeElement> Nodes = new();
+    public Dictionary<string, CodeElement> Nodes { get; init; } = new();
 
     public uint VertexCount
     {
@@ -144,13 +144,20 @@ public class CodeGraph : IGraphRepresentation<CodeElement>
                string.Join("\n", relationshipNames.OrderBy(x => x));
     }
 
-    public bool DeleteRelationships(List<Relationship> relationships)
+    public bool DeleteRelationships(IReadOnlyCollection<Relationship> relationships)
     {
+        // One pass per affected source node, with a set lookup per relationship. The previous version
+        // ran RemoveWhere once per relationship - so once per relationship of the same node - and each
+        // RemoveWhere scanned the given list linearly.
+        var toDelete = relationships as HashSet<Relationship> ?? [..relationships];
+
         var removed = 0;
-        foreach (var relationship in relationships)
+        foreach (var sourceId in toDelete.Select(r => r.SourceId).Distinct())
         {
-            var sourceNode = Nodes[relationship.SourceId];
-            removed += sourceNode.Relationships.RemoveWhere(relationships.Contains);
+            if (Nodes.TryGetValue(sourceId, out var sourceNode))
+            {
+                removed += sourceNode.Relationships.RemoveWhere(toDelete.Contains);
+            }
         }
 
         return removed > 0;
