@@ -45,7 +45,7 @@ namespace DsmSuite.DsmViewer.View.Matrix
         /// MatrixRowHeaderView.CreateChildViews builds a fresh item per row on every size change and on
         /// every tree change. Each generation stayed reachable from the long lived view model's event, so
         /// the discarded items accumulated for as long as the matrix was open — one per row per resize,
-        /// each still redrawing itself on hover. Same root cause as the crash described in
+        /// each still redrawing itself on every selection change. Same root cause as the crash described in
         /// MatrixCellsView.OnDataContextChanged, but it leaks rather than throws: this handler only calls
         /// InvalidateVisual and never touches a field that has gone null.
         /// </remarks>
@@ -86,8 +86,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
         private void OnMatrixViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if ((e.PropertyName == nameof(MatrixViewModel.SelectedRow)) ||
-                (e.PropertyName == nameof(MatrixViewModel.HoveredRow)))
+            // Changed 2026-07 for CSharpCodeAnalyst: HoveredRow no longer invalidates the row header,
+            // matching the column header. Hovering a cell changes the hovered row on every mouse move, and
+            // every row header item redrew on each of those - a chunk of the residual hover cost, and it
+            // also left the row header highlighting the hovered row while the column header (which had the
+            // highlight removed already) did not. The crosshair overlay marks the hovered row in the cells;
+            // selection still highlights the header.
+            if (e.PropertyName == nameof(MatrixViewModel.SelectedRow))
             {
                 InvalidateVisual();
             }
@@ -105,9 +110,10 @@ namespace DsmSuite.DsmViewer.View.Matrix
         {
             if ((_viewModel != null) && (ActualWidth > _theme.SpacingWidth) && (ActualHeight > _theme.SpacingWidth))
             {
-                bool isHovered = _matrixViewModel.HoveredRow?.Element == _viewModel.Element;
+                // Changed 2026-07 for CSharpCodeAnalyst: no hover highlight in the header anymore, see
+                // OnMatrixViewModelPropertyChanged. The hovered row is marked by the crosshair overlay.
                 bool isSelected = _matrixViewModel.SelectedRow?.Element == _viewModel.Element;
-                SolidColorBrush background = _theme.GetBackground(_viewModel.Color, isHovered, isSelected);
+                SolidColorBrush background = _theme.GetBackground(_viewModel.Color, false, isSelected);
                 Rect backgroundRect = new Rect(1.0, 1.0, ActualWidth - _theme.SpacingWidth, ActualHeight - _theme.SpacingWidth);
                 dc.DrawRectangle(background, null, backgroundRect);
 

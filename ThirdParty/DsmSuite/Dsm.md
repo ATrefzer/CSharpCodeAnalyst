@@ -124,7 +124,8 @@ nothing selected there are none at all.
 - **Ctrl + mouse wheel** zooms the whole matrix.
 - **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, headers
   included. Worth knowing, because the scroll bars scale with the matrix and get too thin to grab once you
-  zoom out. The wheel keeps working the same at any zoom.
+  zoom out. The wheel step grows with the zoom, so panning stays quick even when you have zoomed right in
+  and the matrix no longer fits.
 - **Click a row header** to select it — this is what drives the indicator bars. Clicking a column header
   selects the column but clears them.
 - **Click the arrow** in a row header to expand or collapse; hold **shift** to do it recursively.

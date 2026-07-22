@@ -29,13 +29,23 @@ namespace DsmSuite.DsmViewer.View.Matrix
         }
 
         /// <summary>
-        /// Added 2026-07 for CSharpCodeAnalyst: how far shift+wheel scrolls sideways per notch. Matches
-        /// what a ScrollViewer does vertically for one notch: three lines of 16.
+        /// Added 2026-07 for CSharpCodeAnalyst: how much of the visible area one wheel notch scrolls. Tying
+        /// the step to the viewport rather than to a fixed content distance makes it feel the same at every
+        /// zoom. The scroll offset is in the matrix's pre-zoom coordinates (the ScaleTransform is a
+        /// LayoutTransform above the ScrollViewer) and the viewport shrinks as the zoom grows, so a fixed
+        /// content step moved almost nothing on screen when zoomed out — a couple of rows out of hundreds —
+        /// and a screenful when zoomed in. A fraction of the viewport is the same fraction of the screen at
+        /// any zoom, because viewport × zoom is the on-screen size.
         /// </summary>
-        private const double HorizontalWheelScrollAmount = 48.0;
+        private const double WheelScrollViewportFraction = 0.15;
 
-        // Pass mouse wheel events on to the ScrollViewer, so that the user can scroll using
-        // the wheel even when the mouse cursor is not over the matrix cells, but on the headers.
+        // Handle the wheel ourselves so scrolling works from anywhere in the matrix, headers included. Plain
+        // wheel scrolls vertically, shift+wheel horizontally.
+        //
+        // Changed 2026-07 for CSharpCodeAnalyst: shift+wheel scrolls sideways (a plain ScrollViewer only
+        // handles the wheel vertically, and the horizontal bar sits inside the scaled grid, so zooming out
+        // shrinks it until it cannot be grabbed — this makes it unnecessary). The vertical axis is explicit
+        // too, and both steps are a fraction of the viewport, see WheelScrollViewportFraction.
         private void HandlePreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Handled)
@@ -44,25 +54,18 @@ namespace DsmSuite.DsmViewer.View.Matrix
             }
 
             ScrollViewer cells = (ScrollViewer) FindName("ScrolledCellsView");
+            int direction = Math.Sign(e.Delta);
+            e.Handled = true;
 
-            // Added 2026-07 for CSharpCodeAnalyst: shift+wheel scrolls sideways. A plain ScrollViewer only
-            // handles the wheel vertically, so the horizontal scroll bar was the only way across — and that
-            // bar sits inside the scaled grid, so zooming out shrinks it until it cannot be grabbed. This
-            // makes it unnecessary rather than fixing its width.
             if (Keyboard.Modifiers == ModifierKeys.Shift)
             {
-                e.Handled = true;
                 cells.ScrollToHorizontalOffset(
-                    cells.HorizontalOffset - Math.Sign(e.Delta) * HorizontalWheelScrollAmount);
+                    cells.HorizontalOffset - direction * WheelScrollViewportFraction * cells.ViewportWidth);
                 return;
             }
 
-            e.Handled = true;
-            var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
-            eventArg.RoutedEvent = UIElement.MouseWheelEvent;
-            eventArg.Source = sender;
-            eventArg.Source = cells;
-            cells.RaiseEvent(eventArg);
+            cells.ScrollToVerticalOffset(
+                cells.VerticalOffset - direction * WheelScrollViewportFraction * cells.ViewportHeight);
         }
     }
 }

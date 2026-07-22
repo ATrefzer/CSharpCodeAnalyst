@@ -120,8 +120,12 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 ToolTip = _viewModel.ColumnHeaderToolTipViewModel;
             }
 
+            // Changed 2026-07 for CSharpCodeAnalyst: HoveredColumn no longer invalidates the header. Hovering
+            // a cell changes the hovered column on every mouse move, and redrawing the header (matrixSize
+            // rotated glyph runs, re-rasterised at the current zoom) on each of those was a big part of what
+            // made hovering the matrix crawl. The crosshair overlay already marks the hovered column in the
+            // cells; the header no longer highlights it. Selection stays - it is click-driven and rare.
             if ((e.PropertyName == nameof(MatrixViewModel.MatrixSize)) ||
-                (e.PropertyName == nameof(MatrixViewModel.HoveredColumn)) ||
                 (e.PropertyName == nameof(MatrixViewModel.SelectedColumn)) ||
                 // Added 2026-07 for CSharpCodeAnalyst: the toggle changes what OnRender draws and how tall
                 // the header is, so it has to redraw.
@@ -155,10 +159,11 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     _rect.X = _offset + column * _pitch;
                     _rect.Y = 0;
 
-                    bool isHovered = column == _viewModel.HoveredColumn?.Index;
+                    // Changed 2026-07 for CSharpCodeAnalyst: no hover highlight in the header anymore, see
+                    // OnPropertyChanged. The hovered column is marked by the crosshair overlay over the cells.
                     bool isSelected = column == _viewModel.SelectedColumn?.Index;
                     MatrixColor color = _viewModel.ColumnColors[column];
-                    SolidColorBrush background = _theme.GetBackground(color, isHovered, isSelected);
+                    SolidColorBrush background = _theme.GetBackground(color, false, isSelected);
 
                     dc.DrawRectangle(background, null, _rect);
 

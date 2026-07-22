@@ -162,14 +162,27 @@ namespace DsmSuite.DsmViewer.View.Matrix
                 return;
             }
 
-            if ((e.PropertyName == nameof(MatrixViewModel.MatrixSize)) ||
-                (e.PropertyName == nameof(MatrixViewModel.HoveredRow)) ||
-                (e.PropertyName == nameof(MatrixViewModel.SelectedRow)) ||
-                (e.PropertyName == nameof(MatrixViewModel.HoveredColumn)) ||
-                (e.PropertyName == nameof(MatrixViewModel.SelectedColumn)))
+            // Changed 2026-07 for CSharpCodeAnalyst: hover and selection no longer invalidate the cells -
+            // the crosshair moved to MatrixCrosshairView, which redraws itself instead. That is the whole
+            // point of the overlay: a mouse move must not force a re-raster of the scaled matrix. Only a
+            // size change still rebuilds the cells.
+            if (e.PropertyName == nameof(MatrixViewModel.MatrixSize))
             {
                 InvalidateVisual();
             }
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: a bounds-only hit test. The cells render matrixSize² filled
+        /// rectangles into one drawing, and WPF's default geometry hit test walks them on every mouse move
+        /// (MilUtility_PolygonHitTest / HitTestFiguresFill in the profiler). We only need to know the point
+        /// is over the view; the row and column are derived arithmetically in OnMouseMove. This is O(1).
+        /// </summary>
+        protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
+        {
+            return new Rect(RenderSize).Contains(hitTestParameters.HitPoint)
+                ? new PointHitTestResult(this, hitTestParameters.HitPoint)
+                : null;
         }
 
         protected override void OnRender(DrawingContext dc)
@@ -193,18 +206,21 @@ namespace DsmSuite.DsmViewer.View.Matrix
                         _rect.X = _offset + column * _pitch;
                         _rect.Y = _offset + row * _pitch;
 
-                        bool isHovered = row == _viewModel.HoveredRow?.Index  ||  column == _viewModel.HoveredColumn?.Index;
-                        bool isSelected = row == _viewModel.SelectedRow?.Index  ||  column == _viewModel.SelectedColumn?.Index;
                         MatrixColor color = _viewModel.CellColors[row][column];
                         int weight = _viewModel.CellWeights[row][column];
 
                         // Added 2026-07 for CSharpCodeAnalyst: once the weight is too small to read, a
                         // populated cell says so by being filled instead. Cycles keep their own colour,
                         // which outranks both.
+                        //
+                        // Changed 2026-07 for CSharpCodeAnalyst: the cells no longer carry the hover /
+                        // selection highlight - it is a translucent overlay now (MatrixCrosshairView), so a
+                        // mouse move does not re-render (and the composition thread does not re-rasterise)
+                        // the whole scaled matrix. Hence the fixed false / false here.
                         bool paintPresence = !drawWeights && (weight > 0) && (color != MatrixColor.Cycle);
                         SolidColorBrush background = paintPresence
-                            ? _theme.GetPresenceBackground(isHovered, isSelected)
-                            : _theme.GetBackground(color, isHovered, isSelected);
+                            ? _theme.GetPresenceBackground(false, false)
+                            : _theme.GetBackground(color, false, false);
 
                         dc.DrawRectangle(background, null, _rect);
 

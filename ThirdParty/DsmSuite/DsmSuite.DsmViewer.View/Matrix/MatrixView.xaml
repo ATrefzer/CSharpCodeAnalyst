@@ -142,10 +142,18 @@
             <matrix:MatrixColumnHeaderView x:Name="ColumnHeaderView"  Height="{StaticResource MatrixHeaderHeight}" Width="Auto" />
         </Canvas>
         <ScrollViewer x:Name="ScrolledCellsView" Grid.Column="3" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ScrollChanged="CellsViewOnScrollChanged">
-            <matrix:MatrixCellsView x:Name="CellsView" Height="Auto" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,20,20">
-                <!-- Removed 2026-07 for CSharpCodeAnalyst: the cell context menu, same reasoning as the
-                     row header menu above. -->
-            </matrix:MatrixCellsView>
+            <!-- Changed 2026-07 for CSharpCodeAnalyst: the cells and a crosshair overlay share this cell.
+                 The hover / selection highlight used to be baked into every cell, so one mouse move
+                 re-rendered the whole matrix and the composition thread re-rasterised it at the current
+                 zoom. The crosshair is a separate translucent overlay now (drawn on top, not hit test
+                 visible); a hover change touches only it. See MatrixCrosshairView and the README. -->
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <matrix:MatrixCellsView x:Name="CellsView" Height="Auto" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,20,20">
+                    <!-- Removed 2026-07 for CSharpCodeAnalyst: the cell context menu, same reasoning as the
+                         row header menu above. -->
+                </matrix:MatrixCellsView>
+                <matrix:MatrixCrosshairView x:Name="CrosshairView" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,20,20" IsHitTestVisible="False"  />
+            </Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>
