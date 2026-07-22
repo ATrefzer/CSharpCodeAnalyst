@@ -15,6 +15,15 @@ namespace DsmSuite.DsmViewer.View.Matrix
         /// <summary>Added 2026-07 for CSharpCodeAnalyst: gap between the element order and the name.</summary>
         private const double OrderNameGap = 8.0;
 
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: the collapsed header (names off) reserves vertical room for
+        /// at least this many digits of element order. Element order runs to the size of the whole tree, so
+        /// four digits (1000+ elements) is a normal case; reserving for it keeps a four digit number from
+        /// being cramped and keeps the header height steady when bigger orders scroll or expand into view.
+        /// The header still grows past this if an order is ever wider.
+        /// </summary>
+        private const int MinCollapsedOrderDigits = 4;
+
         private MatrixViewModel _viewModel;
         private readonly MatrixTheme _theme;
         private Rect _rect;
@@ -113,7 +122,10 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
             if ((e.PropertyName == nameof(MatrixViewModel.MatrixSize)) ||
                 (e.PropertyName == nameof(MatrixViewModel.HoveredColumn)) ||
-                (e.PropertyName == nameof(MatrixViewModel.SelectedColumn)))
+                (e.PropertyName == nameof(MatrixViewModel.SelectedColumn)) ||
+                // Added 2026-07 for CSharpCodeAnalyst: the toggle changes what OnRender draws and how tall
+                // the header is, so it has to redraw.
+                (e.PropertyName == nameof(MatrixViewModel.ColumnNamesVisible)))
             {
                 InvalidateVisual();
             }
@@ -125,6 +137,19 @@ namespace DsmSuite.DsmViewer.View.Matrix
             {
                 int matrixSize = _viewModel.MatrixSize;
                 double orderFieldWidth = MeasureOrderFieldWidth(matrixSize);
+
+                // Added 2026-07 for CSharpCodeAnalyst: the toolbar toggle. With names off the header only
+                // has to hold the rotated order number, so it collapses to the order field plus a margin at
+                // each end instead of the full MatrixHeaderHeight - that reclaimed band is the whole point
+                // of the toggle. Anchoring is unchanged (top), so the number stays exactly where it was.
+                bool namesVisible = _viewModel.ColumnNamesVisible;
+                double collapsedOrderField = Math.Max(orderFieldWidth,
+                    MeasureText(new string('9', MinCollapsedOrderDigits)));
+                double headerHeight = namesVisible
+                    ? _theme.MatrixHeaderHeight
+                    : TextTopMargin + collapsedOrderField + TextTopMargin;
+                _rect.Height = headerHeight;
+
                 for (int column = 0; column < matrixSize; column++)
                 {
                     _rect.X = _offset + column * _pitch;
@@ -152,7 +177,6 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     // tail instead of its head, and drawing the two separately is what keeps the names
                     // aligned even though the order is variable width (1 vs 1234).
                     string order = _viewModel.ColumnElementIds[column].ToString();
-                    string name = _viewModel.ColumnElementNames[column];
 
                     double orderStart = TextTopMargin + orderFieldWidth - MeasureText(order);
                     DrawRotatedText(dc, order, new Point(_rect.X + 10.0, -orderStart), _theme.TextColor,
@@ -161,13 +185,21 @@ namespace DsmSuite.DsmViewer.View.Matrix
                     // Changed 2026-07 for CSharpCodeAnalyst: ellipsized, see Ellipsize. Without it a name
                     // longer than the header was simply cut, so two types whose names share a prefix ended
                     // up with identical column labels.
-                    double nameStart = TextTopMargin + orderFieldWidth + OrderNameGap;
-                    double nameBudget = _theme.MatrixHeaderHeight - nameStart - _theme.SpacingWidth;
-                    DrawRotatedText(dc, Ellipsize(name, nameBudget), new Point(_rect.X + 10.0, -nameStart),
-                        _theme.TextColor, nameBudget);
+                    // Changed 2026-07 for CSharpCodeAnalyst: skipped when the toolbar toggle hides names.
+                    if (namesVisible)
+                    {
+                        string name = _viewModel.ColumnElementNames[column];
+                        double nameStart = TextTopMargin + orderFieldWidth + OrderNameGap;
+                        double nameBudget = _theme.MatrixHeaderHeight - nameStart - _theme.SpacingWidth;
+                        DrawRotatedText(dc, Ellipsize(name, nameBudget), new Point(_rect.X + 10.0, -nameStart),
+                            _theme.TextColor, nameBudget);
+                    }
                 }
 
-                Height = _theme.MatrixHeaderHeight + _theme.SpacingWidth;
+                // Changed 2026-07 for CSharpCodeAnalyst: follows the toggle, see headerHeight above. The
+                // hosting Canvas in MatrixView.xaml binds its Height to this ActualHeight, so shrinking here
+                // is what actually collapses the header band.
+                Height = headerHeight + _theme.SpacingWidth;
                 Width = _theme.MatrixCellSize * matrixSize + _theme.SpacingWidth;
             }
         }

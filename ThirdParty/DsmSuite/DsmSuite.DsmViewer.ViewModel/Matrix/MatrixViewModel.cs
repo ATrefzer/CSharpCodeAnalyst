@@ -37,6 +37,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
         private int _matrixSize;
         private bool _isMetricsViewExpanded;
+        // Added 2026-07 for CSharpCodeAnalyst: see ColumnNamesVisible.
+        private bool _columnNamesVisible = true;
 
         private List<List<MatrixColor>> _cellColors;
         private List<List<int>> _cellWeights;
@@ -141,6 +143,18 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         {
             get { return _isMetricsViewExpanded; }
             set { _isMetricsViewExpanded = value; RaisePropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Added 2026-07 for CSharpCodeAnalyst: whether the column headers carry the element name (true) or
+        /// collapse to the element order alone (false). Toggled from the toolbar the host puts above the
+        /// matrix; MatrixColumnHeaderView reads it in OnRender and shrinks the header to fit just the number
+        /// when it is false, so turning the names off reclaims the tall header band.
+        /// </summary>
+        public bool ColumnNamesVisible
+        {
+            get { return _columnNamesVisible; }
+            set { _columnNamesVisible = value; RaisePropertyChanged(); }
         }
 
         public int MatrixSize

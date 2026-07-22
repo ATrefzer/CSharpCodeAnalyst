@@ -6,7 +6,14 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-        <Button Style="{StaticResource ArrowButton}" Width="50" Height="50" Click="OnClearSelection"/>
+        <!-- Changed 2026-07 for CSharpCodeAnalyst: collapsed. This is a contentless, transparent 50x50
+             button - an invisible click target that clears the selection. Being Visible it still reserved
+             ~60px (50 + margin) in the header row, which floored the row height: once the column-name toggle
+             collapsed the header below that, the corner button dictated the row and the gap under the header
+             jumped. Collapsed removes both the invisible hotspot and the floor, so the header alone drives
+             the row height in either mode and the gap stays constant. OnClearSelection stays but is now
+             unreachable; clicking another element clears the selection just the same. -->
+        <Button Style="{StaticResource ArrowButton}" Width="50" Height="50" Visibility="Collapsed" Click="OnClearSelection"/>
         <!-- Changed 2026-07 for CSharpCodeAnalyst: hidden, it toggles the metrics panel which is itself
              hidden. See MatrixView.xaml for why. -->
         <Button Content="{Binding IsMetricsViewExpanded, Converter={StaticResource MetricsExpandedToButtonContentConverter}}" Visibility="Collapsed" Style="{StaticResource ArrowButton}" ToolTip="Expand/collapse metrics view" Command="{Binding ToggleMetricsViewExpandedCommand}"/>

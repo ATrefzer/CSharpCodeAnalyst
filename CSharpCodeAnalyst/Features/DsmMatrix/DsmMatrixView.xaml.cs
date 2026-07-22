@@ -1,14 +1,14 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Input;
-
-// Both this application and DsmSuite have a MainViewModel.
-using DsmMainViewModel = DsmSuite.DsmViewer.ViewModel.Main.MainViewModel;
+using CSharpCodeAnalyst.Shared.Tabs;
 
 namespace CSharpCodeAnalyst.Features.DsmMatrix;
 
 /// <summary>
-///     Hosts DsmSuite's matrix view. Expects DsmSuite's own MainViewModel as its DataContext; see
-///     <see cref="DsmMatrixFactory" /> for how the code graph becomes one.
+///     Hosts DsmSuite's matrix view plus our own overlay toolbar. Its DataContext is the
+///     <see cref="DsmTabViewModel" />: the hosted MatrixView is rebound onto its <c>Matrix</c> (DsmSuite's
+///     own MainViewModel, see <see cref="DsmMatrixFactory" />), and the toolbar binds the tab's
+///     <see cref="DsmTabViewModel.OpenFileCommand" />.
 /// </summary>
 public partial class DsmMatrixView : UserControl
 {
@@ -47,13 +47,14 @@ public partial class DsmMatrixView : UserControl
             return;
         }
 
-        if (DataContext is not DsmMainViewModel { ActiveMatrix: not null } viewModel)
+        if (DataContext is not DsmTabViewModel { Matrix.ActiveMatrix: not null } tab)
         {
             return;
         }
 
+        var matrix = tab.Matrix.ActiveMatrix;
         var factor = e.Delta > 0 ? ZoomStep : 1.0 / ZoomStep;
-        viewModel.ActiveMatrix.ZoomLevel = Math.Clamp(viewModel.ActiveMatrix.ZoomLevel * factor, MinZoom, MaxZoom);
+        matrix.ZoomLevel = Math.Clamp(matrix.ZoomLevel * factor, MinZoom, MaxZoom);
 
         // Otherwise the ScrollViewer underneath scrolls as well.
         e.Handled = true;

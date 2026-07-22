@@ -54,6 +54,13 @@ public sealed class DsmTabViewModel(string id, string title, DsmMainViewModel ma
     /// <summary>Set by the owner (MainViewModel) right after construction.</summary>
     public ICommand? CloseCommand { get; set; }
 
+    /// <summary>
+    ///     Opens a DSM or DSI file into this tab, replacing <see cref="Matrix" />. Set by the owner
+    ///     (MainViewModel) right after construction, since the load needs the file dialog and the loading
+    ///     indicator that live there. Bound from the toolbar in DsmMatrixView.
+    /// </summary>
+    public ICommand? OpenFileCommand { get; set; }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

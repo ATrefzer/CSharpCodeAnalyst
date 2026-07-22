@@ -1,19 +1,67 @@
-﻿<UserControl x:Class="CSharpCodeAnalyst.Features.DsmMatrix.DsmMatrixView"
+<UserControl x:Class="CSharpCodeAnalyst.Features.DsmMatrix.DsmMatrixView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:matrix="clr-namespace:DsmSuite.DsmViewer.View.Matrix;assembly=DsmSuite.DsmViewer.View"
              xmlns:userControls="clr-namespace:DsmSuite.DsmViewer.View.UserControls;assembly=DsmSuite.DsmViewer.View"
+             xmlns:converters="clr-namespace:CSharpCodeAnalyst.Shared.Converters"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ButtonStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <converters:InvertBooleanConverter x:Key="InvertBooleanConverter" />
+            <converters:MinValueToVisibilityConverter x:Key="MinValueToVisibilityConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="16" />
         </Grid.RowDefinitions>
 
-        <matrix:MatrixView x:Name="Matrix" Grid.Row="0" />
-        <userControls:LegendView Grid.Row="1" />
+        <matrix:MatrixView x:Name="Matrix" Grid.Row="0" DataContext="{Binding Matrix}" />
+        <userControls:LegendView Grid.Row="1" DataContext="{Binding Matrix}" />
+
+        <!--
+          Our own toolbar, overlaid on the empty top-left corner of the matrix rather than given its own
+          row - a row would cost the very space the collapse is meant to reclaim. It is a sibling of the
+          MatrixView, not a child, so it stays outside DsmSuite's ScaleTransform and keeps a fixed size
+          while the matrix zooms. Drawn after the MatrixView so it sits on top. Room for more buttons later.
+
+          Opaque white background: zoomed out, the scaled headers slide up under this fixed-size bar, and a
+          transparent bar would let them show through. The background makes it cleanly occlude instead.
+          Below a zoom level the bar hides itself entirely - the names cannot be read that far out anyway,
+          so the toggle is pointless, and getting it out of the way keeps the zoomed-out shape unobstructed.
+
+          DataContext here is the DsmTabViewModel (the tab owns the matrix VM plus tab-level actions like
+          open), so the matrix bindings go through Matrix.ActiveMatrix.
+        -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal"
+                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"
+                    Background="White"
+                    Visibility="{Binding Matrix.ActiveMatrix.ZoomLevel, Converter={StaticResource MinValueToVisibilityConverter}, ConverterParameter=0.5}">
+            <!-- Open a DSM (.dsm) or DSI (.dsi) file into this tab, replacing the matrix. -->
+            <Button Command="{Binding OpenFileCommand}"
+                    ToolTip="Open a DSM or DSI file"
+                    Style="{StaticResource ToolbarButtonStyle}">
+                <Image Source="/Resources/load_project.png" Width="20" Height="20" />
+            </Button>
+            <!--
+              Toggle the column header between the full element name and the element order alone. Checked =
+              names hidden (the header collapses to the number); unchecked = names shown, the default. The
+              inverter maps that to MatrixViewModel.ColumnNamesVisible, which is true by default. See
+              MatrixColumnHeaderView in ThirdParty/DsmSuite.
+              TODO: replace the placeholder icon with the dedicated one.
+            -->
+            <ToggleButton IsChecked="{Binding Matrix.ActiveMatrix.ColumnNamesVisible, Mode=TwoWay, Converter={StaticResource InvertBooleanConverter}}"
+                          ToolTip="Show or collapse the column header names"
+                          Style="{StaticResource ToolbarToggleButtonStyle}">
+                <Image Source="/Resources/Collapse_16.png" Width="20" Height="20" />
+            </ToggleButton>
+        </StackPanel>
     </Grid>
 </UserControl>

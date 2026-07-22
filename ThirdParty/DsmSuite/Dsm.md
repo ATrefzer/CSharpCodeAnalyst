@@ -27,6 +27,11 @@ the element that column stands for.
 It is numbered straight through the tree as it currently stands, so **it changes whenever you expand or
 collapse something**. Do not write it down or use it to refer to an element later.
 
+The column header carries the element **name** next to the number as well, so a column is legible without
+the cross reference. That name is what makes the header tall. The **toggle button in the top-left corner**
+collapses the header back to the number alone — the same cross reference the original viewer showed — which
+reclaims that vertical space when you only need to read the shape.
+
 ## The blocks on the diagonal
 
 Expanding an element paints a square block on the diagonal covering everything inside it. This is the most
@@ -125,6 +130,9 @@ nothing selected there are none at all.
 - **Click the arrow** in a row header to expand or collapse; hold **shift** to do it recursively.
 - **Hover a cell** for the consumer and provider names plus the weight; **hover a row or column header**
   for the element's full name and type.
+- **Toggle button in the top-left corner** collapses the column headers from name + number down to the
+  number alone, and back. Use it to reclaim the tall header band when you only need the shape. It hides
+  itself once you zoom far out, where the names are unreadable anyway.
 
 The view is **read-only**. Everything the original viewer offered for editing the matrix has been removed:
 what you see is a projection of the parsed code, and an edited row would no longer say anything about it.

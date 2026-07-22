@@ -1,0 +1,15 @@
+https://cdn.jsdelivr.net/npm/elkjs/lib/elk.bundled.js
+
+https://www.jsdelivr.com/?query=cytoscape
+https://cdnjs.com/libraries?q=elk
+
+Bibliothek	            CDN Link
+cytoscape.min (Kern)	https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.0/cytoscape.min.js	
+dagre	                https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js	
+cytoscape-fcose	        https://cdn.jsdelivr.net/npm/cytoscape-fcose@1.0.0/cytoscape-fcose.js	
+cytoscape-dagre	        https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.js	
+cytoscape-navigator	    https://cdn.jsdelivr.net/npm/cytoscape-navigator@2.0.2/cytoscape-navigator.js	
+cytoscape-svg	        https://cdn.jsdelivr.net/npm/cytoscape-svg@0.4.0/cytoscape-svg.js	
+cytoscape-elk	        https://cdn.jsdelivr.net/npm/cytoscape-elk@2.3.0/cytoscape-elk.js	
+layout-base	            https://cdn.jsdelivr.net/npm/layout-base@2.0.1/layout-base.js	
+case-base	(Kein direkter CDN-Link in den Suchergebnissen gefunden)	-

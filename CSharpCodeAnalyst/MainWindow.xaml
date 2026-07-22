@@ -54,10 +54,10 @@
                                      UserCommands="{Binding Commands}"/>
             </DataTemplate>
 
-            <!-- DsmMatrixView hosts DsmSuite's MatrixView, which wants their MainViewModel as its
-                 DataContext - hence the rebind onto Matrix. -->
+            <!-- DsmMatrixView takes the whole DsmTabViewModel as its DataContext: it needs the tab's
+                 OpenFileCommand for its toolbar and rebinds the hosted MatrixView onto Matrix itself. -->
             <DataTemplate x:Key="DynamicDsmTabContentTemplate">
-                <dsmMatrix:DsmMatrixView DataContext="{Binding Matrix}" />
+                <dsmMatrix:DsmMatrixView />
             </DataTemplate>
 
         </ResourceDictionary>

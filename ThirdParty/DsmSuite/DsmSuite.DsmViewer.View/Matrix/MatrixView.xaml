@@ -133,7 +133,12 @@
         </Canvas>
 
         <!--  colomn 3 matrix cells and column header -->
-        <Canvas x:Name="ColumnHeaderCanvas" Grid.Column="3" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="{StaticResource MatrixHeaderHeight}" Margin="0,0,0,5" ClipToBounds="True">
+        <!-- Changed 2026-07 for CSharpCodeAnalyst: the canvas Height was a fixed MatrixHeaderHeight; it now
+             follows the header view, which shrinks itself when the toolbar toggle hides the column names.
+             Row 0 is Auto, so the reclaimed band collapses the whole header strip. ColumnHeaderView keeps
+             MatrixHeaderHeight as its starting Height so the canvas has a sane size before the first
+             OnRender; OnRender then owns it. -->
+        <Canvas x:Name="ColumnHeaderCanvas" Grid.Column="3" Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="{Binding ActualHeight, ElementName=ColumnHeaderView}" Margin="0,0,0,5" ClipToBounds="True">
             <matrix:MatrixColumnHeaderView x:Name="ColumnHeaderView"  Height="{StaticResource MatrixHeaderHeight}" Width="Auto" />
         </Canvas>
         <ScrollViewer x:Name="ScrolledCellsView" Grid.Column="3" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ScrollChanged="CellsViewOnScrollChanged">

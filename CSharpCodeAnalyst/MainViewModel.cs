@@ -730,7 +730,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (tab is null)
         {
             tab = new DsmTabViewModel(id, title, matrix);
-            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(tab));
+            var dsmTab = tab;
+            tab.CloseCommand = new WpfCommand(() => DynamicTabs.Remove(dsmTab));
+            tab.OpenFileCommand = new WpfCommand(() => OnOpenDsmFile(dsmTab));
             DynamicTabs.Add(tab);
         }
         else
@@ -773,6 +775,45 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         if (matrix is not null)
         {
             ShowDsmTab("dsm_id", Strings.Dsm_TabHeader, matrix);
+        }
+    }
+
+    /// <summary>
+    ///     Opens a DsmSuite model file (.dsm) or analyzer intermediate (.dsi) into the given DSM tab,
+    ///     replacing its matrix. The file dialog and the loading indicator live here, which is why the tab
+    ///     delegates back to this via its <see cref="DsmTabViewModel.OpenFileCommand" />.
+    /// </summary>
+    private async void OnOpenDsmFile(DsmTabViewModel tab)
+    {
+        var path = _ui.ShowOpenFileDialog(
+            "DSM/DSI files (*.dsm;*.dsi)|*.dsm;*.dsi|All files (*.*)|*.*",
+            "Open DSM or DSI file");
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        DsmMainViewModel? matrix = null;
+        try
+        {
+            IsLoading = true;
+            LoadMessage = Strings.BuildingDsm_Message;
+            await Task.Run(() => { matrix = DsmMatrixFactory.CreateFromFile(path); });
+        }
+        catch (Exception ex)
+        {
+            _ui.ShowError(string.Format(Strings.OperationFailed_Message, ex.Message));
+        }
+        finally
+        {
+            LoadMessage = string.Empty;
+            IsLoading = false;
+        }
+
+        if (matrix is not null)
+        {
+            tab.Matrix = matrix;
+            tab.Title = System.IO.Path.GetFileName(path);
         }
     }
 
