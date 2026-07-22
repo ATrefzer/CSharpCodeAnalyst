@@ -29,14 +29,10 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseLeave += OnMouseLeave;
         }
 
-        /// <summary>
-        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model, see
-        /// MatrixCellsView.OnDataContextChanged. Same defect, currently out of reach because the metrics
-        /// panel is collapsed (see MatrixView.xaml) — fixed anyway so that bringing it back does not
-        /// bring the crash with it.
-        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            // Unsubscribe from the previous view model, see MatrixCellsView.OnDataContextChanged. Same defect,
+            // reached by hovering the row metrics column.
             if (e.OldValue is MatrixViewModel oldViewModel)
             {
                 oldViewModel.PropertyChanged -= OnPropertyChanged;
@@ -73,7 +69,8 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
         private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // Added 2026-07 for CSharpCodeAnalyst, see MatrixCellsView.OnPropertyChanged.
+            // A stale subscription can still deliver here after the DataContext is gone, see
+            // MatrixCellsView.OnPropertyChanged.
             if (_viewModel == null)
             {
                 return;

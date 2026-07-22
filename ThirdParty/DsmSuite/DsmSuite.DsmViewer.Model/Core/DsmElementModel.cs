@@ -31,10 +31,9 @@ namespace DsmSuite.DsmViewer.Model.Core
         {
             _elementsById.Clear();
             _deletedElementsById.Clear();
-            // Changed 2026-07 for CSharpCodeAnalyst: _elementsByName was not cleared here. AddElement
-            // resolves through FindElementByFullname, so after a Clear it returned stale elements from
-            // the previous population, which are no longer registered by id nor attached to the root.
-            // Upstream never hit this because every import runs against a freshly constructed model.
+            // AddElement resolves through FindElementByFullname, so leaving _elementsByName populated here
+            // makes it return stale elements from the previous population after a Clear - elements that are
+            // no longer registered by id nor attached to the root.
             _elementsByName.Clear();
             _root.RemoveAllChildren();
             _lastElementId = 0;

@@ -79,21 +79,13 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseLeave += OnMouseLeave;
         }
 
-        /// <summary>
-        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model.
-        /// </summary>
-        /// <remarks>
-        /// Upstream only ever subscribed. The matrix sits in a TabControl, which keeps one content
-        /// presenter and rebuilds the tab's visual tree on every switch, while the view model survives on
-        /// the tab's own view model. So switching away and back left the discarded MatrixCellsView
-        /// subscribed to the live view model — and reachable from it, so it stayed alive. Its DataContext
-        /// was gone by then, hence _viewModel null, and the next hover raised CellToolTipViewModel into
-        /// OnPropertyChanged, which dereferences _viewModel. That was the NullReferenceException on
-        /// hovering; it hit hardest zoomed out, where a single mouse move crosses many cells and so
-        /// re-raises the tooltip almost continuously.
-        /// </remarks>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            // Unsubscribe from the previous view model. Without this a view that is discarded while its view
+            // model lives on (e.g. a host that keeps one view model but rebuilds this view's visual tree)
+            // stays subscribed and reachable from the view model, so it is neither collected nor silent: its
+            // DataContext is gone, so _viewModel is null, and the next property change reaches OnPropertyChanged,
+            // which dereferences _viewModel and throws.
             if (e.OldValue is MatrixViewModel oldViewModel)
             {
                 oldViewModel.PropertyChanged -= OnPropertyChanged;
@@ -133,9 +125,8 @@ namespace DsmSuite.DsmViewer.View.Matrix
 
         private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            // Added 2026-07 for CSharpCodeAnalyst: every other member guards this, OnRender and the mouse
-            // handlers included, so a null view model is a state the class already expects. See
-            // OnDataContextChanged for how it came about.
+            // A stale subscription can still deliver here after the DataContext is gone; every other member
+            // guards against a null view model, OnRender and the mouse handlers included, so match them.
             if (_viewModel == null)
             {
                 return;

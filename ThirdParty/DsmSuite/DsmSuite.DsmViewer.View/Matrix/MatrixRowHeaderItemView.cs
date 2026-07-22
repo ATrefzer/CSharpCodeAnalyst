@@ -37,8 +37,7 @@ namespace DsmSuite.DsmViewer.View.Matrix
         // ElementTreeItemViewModel that had no other reader.
 
         /// <summary>
-        /// Added 2026-07 for CSharpCodeAnalyst: drops both subscriptions, to be called before the item is
-        /// removed from its parent.
+        /// Drops both subscriptions. Call before the item is removed from its parent.
         /// </summary>
         /// <remarks>
         /// The constructor subscribes to the matrix view model and nothing ever unsubscribed, while
@@ -60,12 +59,9 @@ namespace DsmSuite.DsmViewer.View.Matrix
             }
         }
 
-        /// <summary>
-        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous element, see
-        /// <see cref="Detach"/>.
-        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            // Unsubscribe from the previous element, see Detach.
             if (e.OldValue is ElementTreeItemViewModel oldViewModel)
             {
                 oldViewModel.PropertyChanged -= OnViewModelPropertyChanged;

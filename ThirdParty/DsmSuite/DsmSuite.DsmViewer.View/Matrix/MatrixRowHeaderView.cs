@@ -22,12 +22,9 @@ namespace DsmSuite.DsmViewer.View.Matrix
             MouseLeave += OnMouseLeave;
         }
 
-        /// <summary>
-        /// Changed 2026-07 for CSharpCodeAnalyst: unsubscribe from the previous view model, see
-        /// MatrixCellsView.OnDataContextChanged.
-        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
+            // Unsubscribe from the previous view model, see MatrixCellsView.OnDataContextChanged.
             if (e.OldValue is MatrixViewModel oldViewModel)
             {
                 oldViewModel.PropertyChanged -= OnPropertyChanged;
@@ -107,8 +104,9 @@ namespace DsmSuite.DsmViewer.View.Matrix
         {
             double y = 0.0;
 
-            // Added 2026-07 for CSharpCodeAnalyst: this is the only place the items are discarded, so it
-            // is the place they have to be detached. See MatrixRowHeaderItemView.Detach.
+            // This is the only place the row header items are discarded, so it is where they have to be
+            // detached from the view model they subscribed to in their constructor. See
+            // MatrixRowHeaderItemView.Detach.
             foreach (var child in Children)
             {
                 (child as MatrixRowHeaderItemView)?.Detach();

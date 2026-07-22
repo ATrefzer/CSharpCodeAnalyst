@@ -177,22 +177,15 @@ namespace DsmSuite.DsmViewer.View.Matrix
         }
 
         /// <summary>
-        /// Added 2026-07 for CSharpCodeAnalyst: freezes a brush before it goes into the cache.
+        /// Changed 2026-07 for CSharpCodeAnalyst: freezes a brush before it goes into the cache. Freezing
+        /// the derived brushes is upstream behaviour; this helper only extracts it, because the crosshair
+        /// rewrite below (see <see cref="GetHighlightBrush"/>) derives brushes in more than one place.
         /// </summary>
         /// <remarks>
         /// Every use of a mutable Freezable in a DrawingContext costs WPF a change subscription, and
-        /// MatrixCellsView.OnRender issues one DrawRectangle per cell - so a brush that lands on the bulk
-        /// of the matrix is used matrixSize squared times. The brushes from the resource dictionaries are
-        /// all declared po:Freeze="True"; the ones derived here were not.
-        /// <para>
-        /// As the code stands that is latent rather than active: the cells that make up the bulk are
-        /// painted with the resource brushes themselves, and only the hovered and selected row and column
-        /// reach a derived one. It was not latent while a weakened depth ramp was being tried for small
-        /// zoom levels - every cell got a derived brush then, and the application stopped responding. That
-        /// ramp was dropped for unrelated reasons (see DsmMatrixTheme.xaml), so freezing is no longer what
-        /// keeps the matrix drawing. Keep it anyway: it is free, and it makes deriving a brush that covers
-        /// many cells a safe thing to do rather than a trap.
-        /// </para>
+        /// MatrixCellsView.OnRender issues one DrawRectangle per cell, so a brush that lands on the
+        /// highlighted row and column is used many times over. The brushes from the resource dictionaries
+        /// are already declared po:Freeze="True"; only the derived ones need this.
         /// </remarks>
         private static SolidColorBrush Frozen(SolidColorBrush brush)
         {

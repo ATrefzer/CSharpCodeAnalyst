@@ -236,11 +236,11 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         /// The leaf a row or column index addresses, or null if it addresses none.
         /// </summary>
         /// <remarks>
-        /// Added 2026-07 for CSharpCodeAnalyst. The views derive an index from a mouse position by plain
-        /// division, without bounding it against the current matrix (see MatrixCellsView.GetHoveredRow), so
-        /// every caller has to cope with an index that is out of range. GetRowCoord and GetColumnCoord did
-        /// check, but only against the upper bound, and UpdateCellTooltip / UpdateColumnHeaderTooltip did
-        /// not check at all and threw. Routing all four through here is what keeps the check in one place.
+        /// The views derive an index from a mouse position by plain division, without bounding it against
+        /// the current matrix (see MatrixCellsView.GetHoveredRow), so every caller has to cope with an index
+        /// that is out of range. GetRowCoord / GetColumnCoord checked, but only against the upper bound and
+        /// never against a negative one, while UpdateCellTooltip / UpdateColumnHeaderTooltip did not check at
+        /// all and threw. Routing all four through here keeps the single, complete bounds check in one place.
         /// </remarks>
         private ElementTreeItemViewModel LeafAt(int? index)
         {
@@ -253,8 +253,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         {
             if (row == null)
                 return null;
-
-            // Changed 2026-07 for CSharpCodeAnalyst: bounds check moved into LeafAt.
             ElementTreeItemViewModel vm = LeafAt(row);
 
             return new()
@@ -293,8 +291,6 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
         {
             if (column == null)
                 return null;
-
-            // Changed 2026-07 for CSharpCodeAnalyst: bounds check moved into LeafAt.
             IDsmElement consumer = LeafAt(column)?.Element;
 
             return new()
@@ -607,8 +603,7 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
  
         private void UpdateColumnHeaderTooltip(int? column)
         {
-            // Changed 2026-07 for CSharpCodeAnalyst: indexed _elementViewModelLeafs directly on HasValue
-            // alone and threw on an out of range column. See LeafAt.
+            // Indexing _elementViewModelLeafs on HasValue alone threw on an out of range column. See LeafAt.
             IDsmElement element = LeafAt(column)?.Element;
             if (element != null)
             {
@@ -618,8 +613,8 @@ namespace DsmSuite.DsmViewer.ViewModel.Matrix
 
         private void UpdateCellTooltip(int? row, int? column)
         {
-            // Changed 2026-07 for CSharpCodeAnalyst: indexed _elementViewModelLeafs directly on HasValue
-            // alone. Hovering a cell while the matrix resized under the pointer threw here. See LeafAt.
+            // Indexing _elementViewModelLeafs on HasValue alone threw when the matrix resized under the
+            // pointer while a cell was hovered. See LeafAt.
             IDsmElement consumer = LeafAt(column)?.Element;
             IDsmElement provider = LeafAt(row)?.Element;
 
