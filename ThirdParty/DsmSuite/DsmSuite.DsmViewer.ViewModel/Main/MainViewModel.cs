@@ -358,6 +358,14 @@ namespace DsmSuite.DsmViewer.ViewModel.Main
         private void HomeExecute(object parameter)
         {
             _application.ShowElementDetail(_application.RootElement, null);
+
+            // Added 2026-07 for CSharpCodeAnalyst: reset the zoom, like ShowCellDetailMatrixExecute. Reload
+            // keeps the zoom, so returning to the full matrix would otherwise stay at whatever a preceding
+            // drill left it at. 1.0 is the constructor default.
+            if (ActiveMatrix != null)
+            {
+                ActiveMatrix.ZoomLevel = 1.0;
+            }
         }
 
         private IEnumerable<IDsmElement> GetRootElements()
@@ -402,6 +410,15 @@ namespace DsmSuite.DsmViewer.ViewModel.Main
         private void ShowCellDetailMatrixExecute(object parameter)
         {
             _application.ShowElementDetail(SelectedProvider, ActiveMatrix?.SelectedColumn?.Element);
+
+            // Added 2026-07 for CSharpCodeAnalyst: reset the zoom when drilling into a cell's relation
+            // matrix. Reload keeps the zoom (it only rebuilds the tree), so drilling from a zoomed-out
+            // overview would show the small detail matrix at that same tiny scale. 1.0 is the constructor
+            // default.
+            if (ActiveMatrix != null)
+            {
+                ActiveMatrix.ZoomLevel = 1.0;
+            }
         }
 
         private void MoveUpElementExecute(object parameter)

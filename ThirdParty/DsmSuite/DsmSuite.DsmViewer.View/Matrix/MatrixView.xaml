@@ -149,8 +149,19 @@
                  visible); a hover change touches only it. See MatrixCrosshairView and the README. -->
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <matrix:MatrixCellsView x:Name="CellsView" Height="Auto" Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,20,20">
-                    <!-- Removed 2026-07 for CSharpCodeAnalyst: the cell context menu, same reasoning as the
-                         row header menu above. -->
+                    <!-- Changed 2026-07 for CSharpCodeAnalyst: of the original cell context menu only
+                         "Show relation matrix" is kept. It drills the matrix down to the clicked cell's
+                         provider and consumer (and their subtrees) via ShowElementDetail, which only flips
+                         IsIncludedInTree - a read-only view filter, not a graph edit. Right-clicking a cell
+                         selects it first (MatrixCellsView.OnMouseDown), so the command acts on that cell.
+                         The rest of the original menu (Edit relations, List consumers / providers) opened the
+                         viewer's edit / list dialogs and stays out; the toolbar's Home button (our
+                         DsmMatrixView) restores the full matrix. -->
+                    <matrix:MatrixCellsView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Show relation matrix" Command="{Binding ShowCellDetailMatrixCommand}" />
+                        </ContextMenu>
+                    </matrix:MatrixCellsView.ContextMenu>
                 </matrix:MatrixCellsView>
                 <matrix:MatrixCrosshairView x:Name="CrosshairView" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,0,20,20" IsHitTestVisible="False"  />
             </Grid>

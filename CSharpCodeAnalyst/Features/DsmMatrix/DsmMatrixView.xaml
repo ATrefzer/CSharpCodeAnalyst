@@ -51,11 +51,20 @@
                 <Image Source="/Resources/load_project.png" Width="20" Height="20" />
             </Button>
             <!--
+              Restore the full matrix and reset the zoom to 1.0, undoing the cell context menu's
+              "Show relation matrix" drill. HomeCommand lives on DsmSuite's MainViewModel (its
+              HomeExecute does both), hence Matrix.HomeCommand.
+            -->
+            <Button Command="{Binding Matrix.HomeCommand}"
+                    ToolTip="Show the full matrix again"
+                    Style="{StaticResource ToolbarButtonStyle}">
+                <Image Source="/Resources/home_32.png" Width="20" Height="20" />
+            </Button>
+            <!--
               Toggle the column header between the full element name and the element order alone. Checked =
               names hidden (the header collapses to the number); unchecked = names shown, the default. The
               inverter maps that to MatrixViewModel.ColumnNamesVisible, which is true by default. See
               MatrixColumnHeaderView in ThirdParty/DsmSuite.
-              TODO: replace the placeholder icon with the dedicated one.
             -->
             <ToggleButton IsChecked="{Binding Matrix.ActiveMatrix.ColumnNamesVisible, Mode=TwoWay, Converter={StaticResource InvertBooleanConverter}}"
                           ToolTip="Show or collapse the column header names"
