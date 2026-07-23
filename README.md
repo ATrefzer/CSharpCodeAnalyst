@@ -24,6 +24,7 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 - **Architectural Guardrails** – Define custom dependency rules and metric thresholds to actively validate and enforce a clean codebase.
 - **Multi-Format Exports** – Share your architecture by exporting diagrams to PlantUML, DGML, PNG, SVG, and more.
 - **Git History Hotspots** – Uncover hidden technical debt by running hotspot or change-coupling analyses directly on your Git repository history.
+- **Design Structure Matrix (DSM)** - Explore the System's dependencies at the type level.
 
 ## Requirements
 
@@ -314,7 +315,7 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 A Dependency Structure Matrix (DSM) displays system dependencies in a compact grid. Based on the convention used here, a numbered cell indicates that the element at the top (column) depends on the element on the left (row).
 
-To learn how to read the matrix and spot architectural patterns, you can refer to the [DSM Suite Overview](https://dsmsuite.github.io/dsm_overview). Getting used to this view may require a bit of practice.
+To learn how to read the matrix and spot architectural patterns, you can refer to the **[DSM Tutorial](Documentation/dsm-tutorial.md)**. Getting used to this view may require a bit of practice.
 
 > **Note:** The matrix does not show the entire raw codebase, but rather the type graph. For example, dependencies between individual methods are lifted to their corresponding types (this is the exact same graph used to calculate our system metrics). This abstraction keeps the DSM focused and clean.
 
