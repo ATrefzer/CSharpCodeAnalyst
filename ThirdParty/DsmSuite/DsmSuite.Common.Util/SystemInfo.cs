@@ -15,8 +15,8 @@ namespace DsmSuite.Common.Util
             return $"{name} version={version} build={buildDate}";
         }
 
-        private static string Changes => ThisAssembly.Git.Commits != "0" ? $"-{ThisAssembly.Git.Commits}" : "";
-        public static string Version => $"{ThisAssembly.Git.BaseTag}{Changes} {ThisAssembly.Git.Commit}";
-        public static string VersionLong => $"DsmSuite version {Version}";
+        // private static string Changes => ThisAssembly.Git.Commits != "0" ? $"-{ThisAssembly.Git.Commits}" : "";
+        // public static string Version => $"{ThisAssembly.Git.BaseTag}{Changes} {ThisAssembly.Git.Commit}";
+        // public static string VersionLong => $"DsmSuite version {Version}";
     }
 }

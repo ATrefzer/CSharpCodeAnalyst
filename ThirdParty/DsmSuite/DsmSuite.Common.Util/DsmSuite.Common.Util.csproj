@@ -14,10 +14,13 @@
         (GitInfo.targets), so dropping the property is what makes it work for a normal clone.
     -->
 
+    <!--
+    Remove unused assembly
     <ItemGroup>
       <PackageReference Include="GitInfo" Version="3.6.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
+    -->
 </Project>

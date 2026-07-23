@@ -53,7 +53,7 @@ namespace DsmSuite.DsmViewer.ViewModel.Settings
 
         public List<string> SupportedThemeNames => _supportedThemes.Values.ToList();
 
-        public string Version => SystemInfo.VersionLong;
+        //public string Version => SystemInfo.VersionLong;
 
         public string SettingsFilePath => $"Settings file {ViewerSetting.SettingsFilePath}";
 

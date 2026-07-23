@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource DialogTitle}" Text="Application Settings" Margin="5"/>
         <!-- Negative right margin to allow growing when the dialog is resized. -->
-        <TextBlock Grid.Row="0" Grid.Column="1" Margin="10,10,-50,10" Style="{StaticResource DialogTextBlock}" Text="{Binding Version}"/>
+        <!-- <TextBlock Grid.Row="0" Grid.Column="1" Margin="10,10,-50,10" Style="{StaticResource DialogTextBlock}" Text="{Binding Version}"/> -->
         <Label Grid.Row="1" Grid.Column="0" Style="{StaticResource DialogLabel}"  Content="Enable logging" Margin="5"/>
         <ComboBox Grid.Row="1" Grid.Column="1" Margin="10" Width="100" Height="24" HorizontalAlignment="Left"
                          ItemsSource="{Binding LogLevelNames}" SelectedItem="{Binding LogLevel}"/>
