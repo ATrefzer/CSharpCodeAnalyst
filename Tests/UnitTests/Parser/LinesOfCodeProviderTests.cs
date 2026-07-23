@@ -202,6 +202,117 @@ public class LinesOfCodeProviderTests
     }
 
     // -------------------------------------------------------------------
+    // Visual Basic
+    // -------------------------------------------------------------------
+
+    [Test]
+    public void VisualBasic_BasicMix_CountsCodeCommentsAndBlanks()
+    {
+        var lines = new[]
+        {
+            "Imports System",
+            "",
+            "' leading comment",
+            "''' <summary>XML doc comment</summary>",
+            "Dim x As Integer = 1 ' trailing comment"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(2));
+        Assert.That(comments, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void VisualBasic_RemKeyword_IsCaseInsensitive()
+    {
+        var lines = new[]
+        {
+            "REM upper case",
+            "rem lower case",
+            "Rem mixed case",
+            "Dim x = 1"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void VisualBasic_RemAlone_IsAComment()
+    {
+        // REM with nothing after it is still a valid (empty) comment; the
+        // whole-word check must accept end-of-line as a boundary.
+        var lines = new[] { "REM" };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(0));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void VisualBasic_IdentifierStartingWithRem_IsNotAComment()
+    {
+        // "REM" only counts as a comment as a whole word - an identifier that merely
+        // starts with those letters must not turn the line into a comment.
+        var lines = new[] { "REMainder = 5" };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void VisualBasic_RemAfterStatementSeparator_LineCountsAsCode()
+    {
+        var lines = new[] { "Dim x = 5 : REM trailing remark" };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void VisualBasic_StringWithDoubledQuoteEscapeAndFakeComments_IsCode()
+    {
+        // "" is the escape for an embedded quote; neither the apostrophe nor the REM
+        // inside the string content may start a comment.
+        var lines = new[]
+        {
+            "Dim s = \"say \"\"hi\"\" ' REM not a comment\"",
+            "' real comment"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void VisualBasic_MultiLineString_WithFakeCommentInside_IsAllCode()
+    {
+        // VB14+ allows string literals to span lines; the apostrophe inside is content.
+        var lines = new[]
+        {
+            "Dim s = \"line one",
+            "' looks like a comment but is not",
+            "line three\"",
+            "' real comment"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".vb");
+
+        Assert.That(code, Is.EqualTo(3));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    // -------------------------------------------------------------------
     // Python
     // -------------------------------------------------------------------
 

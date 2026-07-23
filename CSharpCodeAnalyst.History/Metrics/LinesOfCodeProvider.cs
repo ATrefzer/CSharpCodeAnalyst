@@ -54,13 +54,27 @@ public class DelimitedRegionStyle
     public Func<string, int, bool>? RequiresPrefix { get; init; }
 }
 
+/// <summary>
+///     A comment running from its token to the end of the line. Most languages use a fixed
+///     symbol token ("//", "#"); VB's REM is a keyword instead - case-insensitive and only
+///     valid as a whole word (see <see cref="IsKeyword" />).
+/// </summary>
+public class LineCommentStyle
+{
+    public required string Token { get; init; }
+
+    // Keyword-style tokens (VB "REM") match case-insensitively and only as a whole word:
+    // no identifier character (letter/digit/'_') directly before or after the token.
+    public bool IsKeyword { get; init; }
+}
+
 public class FileTypeInfo
 {
     public string Name { get; set; } = string.Empty;
 
     // Comments running to the end of the line, e.g. "//" or "#". Not delimiter-paired, so this
-    // stays separate from Regions.
-    public string? SingleLineComment { get; set; }
+    // stays separate from Regions. An empty list means the file type has no line comments.
+    public List<LineCommentStyle> LineComments { get; } = [];
 
     // All delimited regions (block comments AND string/char/template-literal variants) for this
     // file type, checked in order - the first style whose opener matches at a position wins. More
@@ -260,6 +274,58 @@ public class LinesOfCodeProvider
     }
 
     /// <summary>
+    ///     Checks whether any of the file type's line comments starts at the given position.
+    ///     Symbol tokens ("//", "#", "'") match literally; keyword tokens (VB "REM") match
+    ///     case-insensitively and only as a whole word, so identifiers like "REMainder" are
+    ///     not mistaken for a comment.
+    /// </summary>
+    private static bool MatchesLineComment(string line, int index, FileTypeInfo info)
+    {
+        foreach (var style in info.LineComments)
+        {
+            var token = style.Token;
+            if (index + token.Length > line.Length)
+            {
+                continue;
+            }
+
+            if (style.IsKeyword)
+            {
+                if (string.Compare(line, index, token, 0, token.Length, StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    continue;
+                }
+
+                if (index > 0 && IsIdentifierChar(line[index - 1]))
+                {
+                    // Dim theorem = 1
+                    continue;
+                }
+
+                var after = index + token.Length;
+                if (after < line.Length && IsIdentifierChar(line[after]))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            if (MatchesAt(line, index, token))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsIdentifierChar(char c)
+    {
+        return char.IsLetterOrDigit(c) || c == '_';
+    }
+
+    /// <summary>
     ///     Checks whether a region opens at the given position. Regions are checked in the order
     ///     declared on the FileTypeInfo, and the first one whose opener matches - and whose
     ///     optional RequiresPrefix predicate holds - wins.
@@ -447,14 +513,12 @@ public class LinesOfCodeProvider
             for (var i = 0; i < line.Length; i++)
             {
                 var c = line[i];
-                var peek1 = i + 1 < line.Length ? line[i + 1] : '\0';
 
                 switch (state)
                 {
                     case ParserState.Normal:
                         // Single-line comment start?
-                        if (info.SingleLineComment != null && c == info.SingleLineComment[0] &&
-                            (info.SingleLineComment.Length == 1 || peek1 == info.SingleLineComment[1]))
+                        if (MatchesLineComment(line, i, info))
                         {
                             hasComment = true;
                             i = line.Length; // rest of line is a comment

@@ -14,6 +14,12 @@ public static class LinesOfCodeFileTypes
         Start = "'", End = "'", Escaping = EscapeStyle.Backslash, Kind = RegionKind.Code
     };
 
+    // Shared line-comment styles for the C-family and script languages.
+    private static readonly LineCommentStyle DoubleSlashComment = new()
+    {
+        Token = "//"
+    };
+
     /// <summary>
     ///     Whether the '"' at quoteIndex is preceded by a verbatim-string prefix: @" / $@" / @$".
     /// </summary>
@@ -35,7 +41,7 @@ public static class LinesOfCodeFileTypes
         fileTypes[".cs"] = new FileTypeInfo
         {
             Name = "C#",
-            SingleLineComment = "//",
+            LineComments = { DoubleSlashComment },
             Regions =
             {
                 // Order is important
@@ -62,16 +68,35 @@ public static class LinesOfCodeFileTypes
             }
         };
 
+        // Visual Basic: two line comments - the apostrophe (which also covers ''' XML doc
+        // comments) and the legacy REM keyword (case-insensitive, whole word only). Strings
+        // use "" as the escape for an embedded quote and '\' has no meaning - identical to
+        // C# verbatim strings. No block comments, and deliberately NO single-quote string
+        // region: the apostrophe is the comment token here.
+        fileTypes[".vb"] = new FileTypeInfo
+        {
+            Name = "Visual Basic",
+            LineComments =
+            {
+                new LineCommentStyle { Token = "'" },
+                new LineCommentStyle { Token = "REM", IsKeyword = true }
+            },
+            Regions =
+            {
+                new DelimitedRegionStyle { Start = "\"", End = "\"", Escaping = EscapeStyle.DoubledDelimiter, Kind = RegionKind.Code }
+            }
+        };
+
         // XML (xaml, xml, resx, etc.)
         // Deliberately NO string regions: quotes delimit strings only inside tags (attribute
         // values), which a line scanner cannot know - in element text they are plain content
         // and must not suppress a following comment ("...<!-- x -->" IS a comment there).
         // Nothing is lost by this: well-formed XML forbids '<' inside attribute values (it must
         // be &lt;), so a comment opener can never legally occur inside an attribute string.
+        // No line comments in XML.
         var xmlContent = new FileTypeInfo
         {
             Name = "XAML/XML",
-            SingleLineComment = null, // XML has no single-line comments
             Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment } }
         };
 
@@ -89,7 +114,6 @@ public static class LinesOfCodeFileTypes
         fileTypes[".html"] = new FileTypeInfo
         {
             Name = "HTML",
-            SingleLineComment = null,
             Regions = { new DelimitedRegionStyle { Start = "<!--", End = "-->", Kind = RegionKind.Comment } }
         };
         fileTypes[".htm"] = fileTypes[".html"];
@@ -98,14 +122,14 @@ public static class LinesOfCodeFileTypes
         fileTypes[".cpp"] = new FileTypeInfo
         {
             Name = "C++",
-            SingleLineComment = "//",
+            LineComments = { DoubleSlashComment },
             Regions = { new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment }, DoubleQuoteString, SingleQuoteString }
         };
 
         fileTypes[".h"] = new FileTypeInfo
         {
             Name = "C++ Header",
-            SingleLineComment = "//",
+            LineComments = { DoubleSlashComment },
             Regions = { new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment }, DoubleQuoteString, SingleQuoteString }
         };
 
@@ -117,7 +141,7 @@ public static class LinesOfCodeFileTypes
         fileTypes[".py"] = new FileTypeInfo
         {
             Name = "Python",
-            SingleLineComment = "#",
+            LineComments = { new LineCommentStyle { Token = "#" } },
             Regions =
             {
                 new DelimitedRegionStyle { Start = "'''", End = "'''", Kind = RegionKind.Comment },
@@ -131,7 +155,7 @@ public static class LinesOfCodeFileTypes
         var scriptContent = new FileTypeInfo
         {
             Name = "JavaScript/TypeScript",
-            SingleLineComment = "//",
+            LineComments = { DoubleSlashComment },
             Regions =
             {
                 new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment },
@@ -150,7 +174,7 @@ public static class LinesOfCodeFileTypes
         fileTypes[".java"] = new FileTypeInfo
         {
             Name = "Java",
-            SingleLineComment = "//",
+            LineComments = { DoubleSlashComment },
             Regions =
             {
                 new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment },
@@ -167,7 +191,6 @@ public static class LinesOfCodeFileTypes
         fileTypes[".css"] = new FileTypeInfo
         {
             Name = "CSS",
-            SingleLineComment = null,
             Regions =
             {
                 new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment },
