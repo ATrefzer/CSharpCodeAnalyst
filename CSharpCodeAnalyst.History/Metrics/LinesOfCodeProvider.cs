@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Security;
 using CSharpCodeAnalyst.History.Model;
 
 namespace CSharpCodeAnalyst.History.Metrics;
@@ -107,11 +108,6 @@ public class LinesOfCodeProvider
         }
     }
 
-    public class LinesOfCode
-    {
-        public int Code { get; init; }
-        public int Comments { get; init; }
-    }
     /// <summary>
     ///     Public entry point: recursively analyzes all recognized source files
     ///     under the given directory and returns per-file code/comment counts.
@@ -149,12 +145,12 @@ public class LinesOfCodeProvider
                 {
                     // Override processing with custom handler
                     var stats = handler(file);
-                    results[file] = new LinesOfCode{Code =stats.code, Comments = stats.comments};
+                    results[file] = new LinesOfCode { Code = stats.code, Comments = stats.comments };
                 }
                 else
                 {
                     var stats = AnalyzeFile(file, _fileTypes[ext]);
-                    results[file] = new LinesOfCode{Code =stats.code, Comments = stats.comments};
+                    results[file] = new LinesOfCode { Code = stats.code, Comments = stats.comments };
                 }
 
                 int processed;
@@ -182,10 +178,35 @@ public class LinesOfCodeProvider
     /// <summary>
     ///     Enumerates files recursively while tolerating inaccessible subdirectories,
     ///     instead of letting one bad folder abort the entire scan.
+    ///     Ignore directory links to avoid endless searching.
+    ///     Ignore hidden . directories.
     /// </summary>
     private static IEnumerable<string> SafeEnumerateFiles(string path)
     {
-        var result = new List<string>();
+        bool IsAccepted(string folder)
+        {
+            try
+            {
+                var attr = File.GetAttributes(folder);
+                return !attr.HasFlag(FileAttributes.ReparsePoint) &&
+                       !Path.GetFileName(folder).StartsWith(".", StringComparison.Ordinal);
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return false;
+            }
+            catch (SecurityException)
+            {
+                return false;
+            }
+        }
+
+        // If the input is a link follow it.
+
         var pending = new Stack<string>();
         pending.Push(path);
 
@@ -193,36 +214,31 @@ public class LinesOfCodeProvider
         {
             var current = pending.Pop();
 
-            string[] subDirs;
-            string[] files;
+            IEnumerable<string> subDirs;
+            IEnumerable<string> files;
 
             try
             {
                 files = Directory.GetFiles(current);
                 subDirs = Directory.GetDirectories(current);
             }
-            catch (IOException)
-            {
-                continue;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                continue;
-            }
+            catch (UnauthorizedAccessException) { continue; }
+            catch (IOException) { continue; } //  DirectoryNotFound, DriveNotFound etc. ab
+            catch (SecurityException) { continue; }
 
-            result.AddRange(files);
+            foreach (var file in files)
+            {
+                yield return file;
+            }
 
             foreach (var dir in subDirs)
             {
-                var folderName = Path.GetFileName(dir);
-                if (!folderName.StartsWith("."))
+                if (IsAccepted(dir))
                 {
                     pending.Push(dir);
                 }
             }
         }
-
-        return result;
     }
 
     private static bool MatchesAt(string line, int index, string token)
@@ -515,6 +531,12 @@ public class LinesOfCodeProvider
         }
 
         return (codeLines, commentLines);
+    }
+
+    public class LinesOfCode
+    {
+        public int Code { get; init; }
+        public int Comments { get; init; }
     }
 
     /// <summary>
