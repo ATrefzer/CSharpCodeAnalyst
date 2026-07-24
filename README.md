@@ -179,6 +179,8 @@ The PlantUML syntax is copied to the clipboard. You can use any online editor to
 
 Plain text might sound boring, but it's actually useful. If you feed a large language model your whole source code for refactoring, you’ll quickly run out of tokens or get garbage results. Instead, just give the LLM your prompt along with this text-based dependency graph. This greatly improves results and saves a massive amount of  tokens. The LLM doesn't even need a description of the graph.
 
+Since almost every field is optional, you can also write such a file by hand to create small toy graphs and load them via **Import → Import plain text**. The format is documented in **[plain-text-graph-format.md](Documentation/plain-text-graph-format.md)**.
+
 ---
 
 ## Validate architectural rules
