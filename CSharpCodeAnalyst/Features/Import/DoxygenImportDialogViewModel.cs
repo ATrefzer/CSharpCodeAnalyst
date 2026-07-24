@@ -5,15 +5,44 @@ using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.Features.Import;
 
-public class ImportCppDialogViewModel : INotifyPropertyChanged
+public sealed record DoxygenLanguageOption(DoxygenLanguage Value, string Label);
+
+public class DoxygenImportDialogViewModel : INotifyPropertyChanged
 {
     private string _projectName = string.Empty;
     private bool _projectNameEditedByUser;
+    private DoxygenLanguageOption _selectedLanguage;
     private string _sourceDirectory = string.Empty;
+
+    public DoxygenImportDialogViewModel()
+    {
+        _selectedLanguage = Languages[0];
+    }
+
+    public IReadOnlyList<DoxygenLanguageOption> Languages { get; } =
+    [
+        new DoxygenLanguageOption(DoxygenLanguage.Cpp, "C++"),
+        new DoxygenLanguageOption(DoxygenLanguage.Python, "Python")
+    ];
+
+    public DoxygenLanguageOption SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            if (_selectedLanguage == value)
+            {
+                return;
+            }
+
+            _selectedLanguage = value;
+            OnPropertyChanged();
+        }
+    }
 
     public string Description
     {
-        get => Strings.ImportCpp_Description;
+        get => Strings.ImportDoxygen_Description;
     }
 
     public string SourceDirectory
@@ -65,7 +94,7 @@ public class ImportCppDialogViewModel : INotifyPropertyChanged
     public string SourceDirectoryError
     {
         get => _sourceDirectory.Length > 0 && !Directory.Exists(_sourceDirectory)
-            ? Strings.ImportCpp_DirectoryDoesNotExist
+            ? Strings.ImportDoxygen_DirectoryDoesNotExist
             : string.Empty;
     }
 

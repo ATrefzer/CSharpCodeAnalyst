@@ -4,9 +4,9 @@ using System.IO;
 namespace CSharpCodeAnalyst.Features.Import;
 
 /// <summary>
-///     Runs doxygen (expected on the PATH) over a C++ source directory to produce the XML
-///     output consumed by <see cref="DoxygenXmlConverter" />. The Doxyfile is generated into
-///     the working directory; all options not listed keep their doxygen defaults.
+///     Runs doxygen (expected on the PATH) over a C++ or Python source directory to produce
+///     the XML output consumed by <see cref="DoxygenXmlConverter" />. The Doxyfile is generated
+///     into the working directory; all options not listed keep their doxygen defaults.
 /// </summary>
 internal static class DoxygenRunner
 {
@@ -32,12 +32,12 @@ internal static class DoxygenRunner
     /// <summary>
     ///     Returns the directory containing the generated XML (index.xml etc.).
     /// </summary>
-    public static async Task<string> RunAsync(string sourceDirectory, string workingDirectory, string projectName)
+    public static async Task<string> RunAsync(string sourceDirectory, string workingDirectory, string projectName, DoxygenLanguage language)
     {
         Directory.CreateDirectory(workingDirectory);
 
         var doxyfilePath = Path.Combine(workingDirectory, "Doxyfile");
-        await File.WriteAllTextAsync(doxyfilePath, CreateDoxyfile(sourceDirectory, workingDirectory, projectName));
+        await File.WriteAllTextAsync(doxyfilePath, CreateDoxyfile(sourceDirectory, workingDirectory, projectName, language));
 
         var startInfo = CreateStartInfo($"\"{doxyfilePath}\"");
         startInfo.WorkingDirectory = workingDirectory;
@@ -76,15 +76,24 @@ internal static class DoxygenRunner
         };
     }
 
-    private static string CreateDoxyfile(string sourceDirectory, string outputDirectory, string projectName)
+    private static string CreateDoxyfile(string sourceDirectory, string outputDirectory, string projectName, DoxygenLanguage language)
     {
+        // Python: keep virtual environments and caches out - a venv would drag the whole
+        // installed package zoo into the graph and dwarf the actual project.
+        var (filePatterns, excludePatterns) = language switch
+        {
+            DoxygenLanguage.Python => ("*.py *.pyw", "*/venv/* */.venv/* */env/* */__pycache__/* */site-packages/* */.tox/*"),
+            _ => ("*.h *.hh *.hpp *.hxx *.c *.cc *.cpp *.cxx", string.Empty)
+        };
+
         // EXTRACT_* = YES: take everything, not just documented code.
         // REFERENCES_RELATION = YES: produces the <references> entries (call/use edges).
         return $"""
                 PROJECT_NAME           = "{projectName}"
                 INPUT                  = "{sourceDirectory}"
                 RECURSIVE              = YES
-                FILE_PATTERNS          = *.h *.hh *.hpp *.hxx *.c *.cc *.cpp *.cxx
+                FILE_PATTERNS          = {filePatterns}
+                EXCLUDE_PATTERNS       = {excludePatterns}
                 EXTRACT_ALL            = YES
                 EXTRACT_PRIVATE        = YES
                 EXTRACT_STATIC         = YES

@@ -78,39 +78,40 @@ public class Importer
     }
 
     /// <summary>
-    ///     Imports a C++ project by running doxygen (expected on the PATH) over a source
-    ///     directory and converting its XML output into a code graph. The wizard only asks for
-    ///     the directory and a project name; everything else happens in the background.
+    ///     Imports a C++ or Python project by running doxygen (expected on the PATH) over a
+    ///     source directory and converting its XML output into a code graph. The wizard only asks
+    ///     for the directory, the language and a project name; everything else happens in the
+    ///     background.
     /// </summary>
-    public async Task<Result<ParseResult>> ImportCppAsync()
+    public async Task<Result<ParseResult>> ImportDoxygenAsync()
     {
         if (!DoxygenRunner.IsDoxygenAvailable())
         {
-            _ui.ShowError(Strings.ImportCpp_DoxygenNotFound);
+            _ui.ShowError(Strings.ImportDoxygen_DoxygenNotFound);
             return Result<ParseResult>.Canceled();
         }
 
-        var viewModel = new ImportCppDialogViewModel();
-        var dialog = new ImportCppDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
+        var viewModel = new DoxygenImportDialogViewModel();
+        var dialog = new DoxygenImportDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
         if (dialog.ShowDialog() != true)
         {
             return Result<ParseResult>.Canceled();
         }
 
         return await ExecuteGuardedImportAsync(
-            Strings.ImportCpp_Progress,
-            () => ImportCppFuncAsync(viewModel.SourceDirectory, viewModel.ProjectName.Trim()));
+            Strings.ImportDoxygen_Progress,
+            () => ImportDoxygenFuncAsync(viewModel.SourceDirectory, viewModel.ProjectName.Trim(), viewModel.SelectedLanguage.Value));
     }
 
-    private async Task<ParseResult> ImportCppFuncAsync(string sourceDirectory, string projectName)
+    private async Task<ParseResult> ImportDoxygenFuncAsync(string sourceDirectory, string projectName, DoxygenLanguage language)
     {
         var workingDirectory = Path.Combine(Path.GetTempPath(), "CSharpCodeAnalyst", "doxygen", Guid.NewGuid().ToString("N"));
         try
         {
-            _progress.Report(Strings.ImportCpp_RunningDoxygen);
-            var xmlDirectory = await DoxygenRunner.RunAsync(sourceDirectory, workingDirectory, projectName);
+            _progress.Report(Strings.ImportDoxygen_RunningDoxygen);
+            var xmlDirectory = await DoxygenRunner.RunAsync(sourceDirectory, workingDirectory, projectName, language);
 
-            _progress.Report(Strings.ImportCpp_Converting);
+            _progress.Report(Strings.ImportDoxygen_Converting);
             var graph = new DoxygenXmlConverter().Convert(xmlDirectory, projectName);
             return new ParseResult(graph, new MetricStore());
         }

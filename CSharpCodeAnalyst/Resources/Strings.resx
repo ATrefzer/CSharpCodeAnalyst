@@ -307,37 +307,40 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="ImportJdeps_Label" xml:space="preserve">
     <value>Import from _jdeps ...</value>
   </data>
-    <data name="ImportCpp_Label" xml:space="preserve">
-    <value>Import _C++ project (doxygen) ...</value>
+    <data name="ImportDoxygen_Label" xml:space="preserve">
+    <value>Import _C++/Python project (doxygen) ...</value>
   </data>
-    <data name="ImportCpp_DialogTitle" xml:space="preserve">
-    <value>Import C++ project</value>
+    <data name="ImportDoxygen_DialogTitle" xml:space="preserve">
+    <value>Import C++ or Python project</value>
   </data>
-    <data name="ImportCpp_Description" xml:space="preserve">
-    <value>Runs doxygen over the given C++ source directory and imports the resulting code structure (namespaces, classes, methods, call and type dependencies). doxygen must be installed and available on the PATH.</value>
+    <data name="ImportDoxygen_Description" xml:space="preserve">
+    <value>Runs doxygen over the given source directory and imports the resulting code structure (namespaces/modules, classes, methods, call and type dependencies). doxygen must be installed and available on the PATH.</value>
   </data>
-    <data name="ImportCpp_SourceDirectory_Label" xml:space="preserve">
-    <value>C++ source directory</value>
+    <data name="ImportDoxygen_SourceDirectory_Label" xml:space="preserve">
+    <value>Source directory</value>
   </data>
-    <data name="ImportCpp_ProjectName_Label" xml:space="preserve">
+    <data name="ImportDoxygen_Language_Label" xml:space="preserve">
+    <value>Language</value>
+  </data>
+    <data name="ImportDoxygen_ProjectName_Label" xml:space="preserve">
     <value>Project name</value>
   </data>
-    <data name="ImportCpp_SelectSourceDirectoryTitle" xml:space="preserve">
-    <value>Select C++ source directory</value>
+    <data name="ImportDoxygen_SelectSourceDirectoryTitle" xml:space="preserve">
+    <value>Select source directory</value>
   </data>
-    <data name="ImportCpp_DirectoryDoesNotExist" xml:space="preserve">
+    <data name="ImportDoxygen_DirectoryDoesNotExist" xml:space="preserve">
     <value>Directory does not exist.</value>
   </data>
-    <data name="ImportCpp_DoxygenNotFound" xml:space="preserve">
+    <data name="ImportDoxygen_DoxygenNotFound" xml:space="preserve">
     <value>doxygen was not found. Please install doxygen and make sure it is available on the PATH (https://www.doxygen.nl/download.html).</value>
   </data>
-    <data name="ImportCpp_Progress" xml:space="preserve">
-    <value>Importing C++ project ...</value>
+    <data name="ImportDoxygen_Progress" xml:space="preserve">
+    <value>Importing project via doxygen ...</value>
   </data>
-    <data name="ImportCpp_RunningDoxygen" xml:space="preserve">
+    <data name="ImportDoxygen_RunningDoxygen" xml:space="preserve">
     <value>Running doxygen (this can take a while on large code bases) ...</value>
   </data>
-    <data name="ImportCpp_Converting" xml:space="preserve">
+    <data name="ImportDoxygen_Converting" xml:space="preserve">
     <value>Converting doxygen output ...</value>
   </data>
     <data name="ProjectFilter_Label" xml:space="preserve">

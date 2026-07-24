@@ -1664,99 +1664,108 @@ namespace CSharpCodeAnalyst.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Converting doxygen output ....
         /// </summary>
-        public static string ImportCpp_Converting {
+        public static string ImportDoxygen_Converting {
             get {
-                return ResourceManager.GetString("ImportCpp_Converting", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_Converting", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Runs doxygen over the given C++ source directory....
+        ///   Looks up a localized string similar to Runs doxygen over the given source directory....
         /// </summary>
-        public static string ImportCpp_Description {
+        public static string ImportDoxygen_Description {
             get {
-                return ResourceManager.GetString("ImportCpp_Description", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_Description", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Import C++ project.
+        ///   Looks up a localized string similar to Import C++ or Python project.
         /// </summary>
-        public static string ImportCpp_DialogTitle {
+        public static string ImportDoxygen_DialogTitle {
             get {
-                return ResourceManager.GetString("ImportCpp_DialogTitle", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_DialogTitle", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to Directory does not exist..
         /// </summary>
-        public static string ImportCpp_DirectoryDoesNotExist {
+        public static string ImportDoxygen_DirectoryDoesNotExist {
             get {
-                return ResourceManager.GetString("ImportCpp_DirectoryDoesNotExist", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_DirectoryDoesNotExist", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to doxygen was not found....
         /// </summary>
-        public static string ImportCpp_DoxygenNotFound {
+        public static string ImportDoxygen_DoxygenNotFound {
             get {
-                return ResourceManager.GetString("ImportCpp_DoxygenNotFound", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_DoxygenNotFound", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Import _C++ project (doxygen) ....
+        ///   Looks up a localized string similar to Import _C++/Python project (doxygen) ....
         /// </summary>
-        public static string ImportCpp_Label {
+        public static string ImportDoxygen_Label {
             get {
-                return ResourceManager.GetString("ImportCpp_Label", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_Label", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Importing C++ project ....
+        ///   Looks up a localized string similar to Language.
         /// </summary>
-        public static string ImportCpp_Progress {
+        public static string ImportDoxygen_Language_Label {
             get {
-                return ResourceManager.GetString("ImportCpp_Progress", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_Language_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Importing project via doxygen ....
+        /// </summary>
+        public static string ImportDoxygen_Progress {
+            get {
+                return ResourceManager.GetString("ImportDoxygen_Progress", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to Project name.
         /// </summary>
-        public static string ImportCpp_ProjectName_Label {
+        public static string ImportDoxygen_ProjectName_Label {
             get {
-                return ResourceManager.GetString("ImportCpp_ProjectName_Label", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_ProjectName_Label", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to Running doxygen ....
         /// </summary>
-        public static string ImportCpp_RunningDoxygen {
+        public static string ImportDoxygen_RunningDoxygen {
             get {
-                return ResourceManager.GetString("ImportCpp_RunningDoxygen", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_RunningDoxygen", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Select C++ source directory.
+        ///   Looks up a localized string similar to Select source directory.
         /// </summary>
-        public static string ImportCpp_SelectSourceDirectoryTitle {
+        public static string ImportDoxygen_SelectSourceDirectoryTitle {
             get {
-                return ResourceManager.GetString("ImportCpp_SelectSourceDirectoryTitle", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_SelectSourceDirectoryTitle", resourceCulture);
             }
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to C++ source directory.
+        ///   Looks up a localized string similar to Source directory.
         /// </summary>
-        public static string ImportCpp_SourceDirectory_Label {
+        public static string ImportDoxygen_SourceDirectory_Label {
             get {
-                return ResourceManager.GetString("ImportCpp_SourceDirectory_Label", resourceCulture);
+                return ResourceManager.GetString("ImportDoxygen_SourceDirectory_Label", resourceCulture);
             }
         }
 

@@ -136,7 +136,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         LoadSolutionCommand = new WpfCommand(OnImportSolution);
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
         ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
-        ImportCppCommand = new WpfCommand(OnImportCpp);
+        ImportDoxygenCommand = new WpfCommand(OnImportDoxygen);
 
         LoadProjectCommand = new WpfCommand(OnLoadProject);
         SaveProjectCommand = new WpfCommand(OnSaveProject);
@@ -261,7 +261,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand LoadProjectCommand { get; }
     public ICommand LoadSolutionCommand { get; }
     public ICommand ImportJdepsCommand { get; }
-    public ICommand ImportCppCommand { get; }
+    public ICommand ImportDoxygenCommand { get; }
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
@@ -1055,11 +1055,11 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async void OnImportCpp()
+    private async void OnImportDoxygen()
     {
         AskUserToSaveProject();
 
-        var result = await _importer.ImportCppAsync();
+        var result = await _importer.ImportDoxygenAsync();
         if (result.IsSuccess)
         {
             CompleteImport(result.Data!);

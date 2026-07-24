@@ -97,9 +97,9 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportJdeps_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportJdepsCommand}" />
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportCpp_Label}"
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportDoxygen_Label}"
                                         ImageSource="/Resources/import_solution.png"
-                                        Command="{Binding ImportCppCommand}" />
+                                        Command="{Binding ImportDoxygenCommand}" />
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportPlainText_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportPlainTextCommand}" />
