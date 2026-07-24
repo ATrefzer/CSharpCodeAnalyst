@@ -3,6 +3,7 @@ using DsmSuite.Analyzer.Model.Core;
 using DsmSuite.Common.Util;
 using DsmSuite.DsmViewer.Application.Core;
 using DsmSuite.DsmViewer.Application.Import.Dsi;
+using DsmSuite.DsmViewer.Application.Sorting;
 using DsmSuite.DsmViewer.Model.Core;
 // Both this application and DsmSuite have a MainViewModel.
 using DsmMainViewModel = DsmSuite.DsmViewer.ViewModel.Main.MainViewModel;
@@ -14,6 +15,13 @@ namespace CSharpCodeAnalyst.Features.DsmMatrix;
 /// </summary>
 public static class DsmMatrixFactory
 {
+    static DsmMatrixFactory()
+    {
+        // Replace DsmSuite's brute-force partitioning with our SCC based one under the same
+        // name, so the matrix view's own sort command (their context menu) uses it as well.
+        SortAlgorithmFactory.RegisterAlgorithm(PartitionSortAlgorithm.AlgorithmName, typeof(SccPartitionSortAlgorithm));
+    }
+
     /// <summary>
     ///     Builds everything from scratch and hands back a view model ready to be shown.
     ///     Can be executed in a worker thread.

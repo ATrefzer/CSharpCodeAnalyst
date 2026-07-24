@@ -337,15 +337,26 @@ public class DoxygenXmlConverter
 
     private static void AddLocation(CodeElement element, XElement? location)
     {
+        if (location is null)
+        {
+            return;
+        }
+        
         var file = (string?)location?.Attribute("file");
-        if (location is null || file is null)
+        file = ToSystemPath(file);
+        if (file is null)
         {
             return;
         }
 
-        var line = (int?)location.Attribute("line") ?? 0;
-        var column = (int?)location.Attribute("column") ?? 0;
+        var line = (int?)location?.Attribute("line") ?? 0;
+        var column = (int?)location?.Attribute("column") ?? 0;
         element.SourceLocations.Add(new SourceLocation(file, line, column));
+    }
+
+    private static string? ToSystemPath(string? path)
+    {
+        return path?.Replace('/', Path.DirectorySeparatorChar);
     }
 
     /// <summary>

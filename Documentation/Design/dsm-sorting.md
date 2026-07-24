@@ -1,0 +1,17 @@
+Der Algorithmus im Detail
+Schritt 0 — Scope. Sortiert wird immer nur eine Geschwistergruppe (die Kinder eines Elements); der Builder ruft das rekursiv für jeden Container auf. Die Hierarchie selbst wird nie verändert, nur die Reihenfolge unter einem Parent.
+
+Schritt 1 — Abhängigkeitsgraph der Geschwister. Für jedes Paar (i, j) wird GetDependencyWeight(consumer: i, provider: j) abgefragt — derselbe DsmSuite-Aufruf wie vorher, mit abgeleiteten Gewichten: Wenn irgendwas tief in i irgendwas tief in j benutzt, zählt das als Kante i→j ("i konsumiert j"). Das ist O(n²) Lookups, genau wie die alte Matrix-Konstruktion — der teure Teil war nie hier.
+
+Schritt 2 — Tarjan-SCC. Auf diesem Graphen laufen die Strongly Connected Components (der vorhandene generische Tarjan aus Algorithms/Cycles). Eine SCC = eine Gruppe gegenseitig erreichbarer Geschwister = ein Zyklus-Cluster. Azyklische Elemente sind Einer-SCCs. Das ist der entscheidende Trick: Innerhalb einer SCC ist Dreiecksform beweisbar unmöglich, zwischen SCCs ist sie beweisbar immer möglich. Die alte Brute-Force hat mühsam per Tauschen gesucht, was diese Zerlegung direkt hinschreibt.
+
+Schritt 3 — Kondensation topologisch sortieren (Kahn). Schrumpft man jede SCC auf einen Knoten, ist der Restgraph garantiert azyklisch. Kahns Algorithmus: Eine Komponente ist "bereit", sobald alle ihre Konsumenten platziert sind; unter den bereiten wird immer die mit dem kleinsten ursprünglichen Kind-Index genommen (Priority Queue). Beim Platzieren einer Komponente werden ihre Mitglieder in ursprünglicher Reihenfolge ausgegeben.
+
+Daraus folgen genau die drei Eigenschaften, die du in der Matrix siehst:
+
+Dreiecksform: Für jede Abhängigkeit A→B zwischen verschiedenen Komponenten wird A vor B platziert. Zelle (Zeile B, Spalte A) hat damit Zeilenindex > Spaltenindex → unter der Diagonale. Über der Diagonale kann nur überleben, was innerhalb einer SCC liegt — also echte Zyklus-Evidenz, nie Sortier-Artefakt.
+"So hoch wie möglich": Ein Element wird ausgegeben, sobald sein letzter Konsument steht — es rückt direkt unter seine Konsumenten (daher Contracts unter TreeMap/History statt am Boden).
+Stabilität: Der Min-Index-Tie-Break ist der einzige Freiheitsgrad. Unabhängige Elemente behalten ihre bisherige relative Reihenfolge, deshalb liest sich die Matrix jetzt als "Erzählung" — erst die eine Kette komplett, dann die nächste — und dasselbe Projekt sortiert immer identisch.
+Komplexität: O(n²) für die Gewichts-Lookups plus O(V+E) für Tarjan und Kahn (plus O(C log C) für die Queue) — gegen vorher bis zu O(n⁴) Tauschproben × O(n²) Score pro Iteration der do-while-Schleife. Bei deinen 16 Assemblies unmessbar, bei 300 flachen Typen der Unterschied zwischen Millisekunden und "läuft endlos".
+
+Ein bewusster Unterschied zur alten Heuristik: Die Brute-Force suchte zusätzlich innerhalb von Zyklen nach einer Reihenfolge, die möglichst wenige Zellen oben lässt. Wir lassen die Block-interne Reihenfolge bewusst stabil — über der Diagonale liegt dadurch eventuell die eine oder andere Zelle mehr, aber ausschließlich innerhalb der Zyklus-Blöcke, wo ohnehin mindestens eine liegen muss. Dafür ist der Block jetzt exakt der Cluster und die Reihenfolge reproduzierbar.

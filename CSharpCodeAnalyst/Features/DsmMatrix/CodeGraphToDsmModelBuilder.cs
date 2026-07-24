@@ -1,6 +1,5 @@
 ﻿using CSharpCodeAnalyst.CodeGraph.Algorithms.Metrics;
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using DsmSuite.DsmViewer.Application.Sorting;
 using DsmSuite.DsmViewer.Model.Interfaces;
 
 namespace CSharpCodeAnalyst.Features.DsmMatrix;
@@ -100,10 +99,12 @@ public sealed class CodeGraphToDsmModelBuilder
     ///     The partitioning is what turns "no cycles" into the triangular shape that makes it visible. Sorting is
     ///     per parent: children are only ever reordered among their siblings, so the hierarchy is untouched.
     ///     Mirrors ImporterBase.Partition, which we cannot reuse (protected, and tied to the DSI import).
+    ///     Uses our <see cref="SccPartitionSortAlgorithm" /> instead of DsmSuite's brute-force partitioning,
+    ///     which effectively hangs on parents with a few hundred children (flat jdeps/doxygen imports).
     /// </remarks>
     private void Partition(IDsmElement element)
     {
-        var algorithm = SortAlgorithmFactory.CreateAlgorithm(_dsmModel, element, PartitionSortAlgorithm.AlgorithmName);
+        var algorithm = new SccPartitionSortAlgorithm(_dsmModel, element);
         _dsmModel.ReorderChildren(element, algorithm.Sort());
 
         foreach (var child in element.Children)

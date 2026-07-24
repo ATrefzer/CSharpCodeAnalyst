@@ -42,39 +42,11 @@ In **C# Code Analyst**, expanded modules are rendered as shaded squares of varyi
 
 ## 2. Reading Off Layers
 
-The sort order that produces the triangle is called triangularization; many DSM tools simply call it sorting and do it at the push of a button. Afterward, you can read the layers directly.
+My honest advice: forget reading layers off the DSM. Every DSM tool has an algorithm that produces the triangle — called triangularization, or often simply *sorting*. Different tools produce different orders. The only thing you can rely on: consumers end up at the top, producers at the bottom. If the application is layered (an acyclic dependency graph), a triangular form is always possible; if not, dependencies remain above the diagonal (a cycle). But the order that achieves the triangle is not unique, and the result looks different in every tool.
 
-A layer consists of elements that do **not** use each other. In the matrix, you find them like this: walk the rows from top to bottom and look for groups of adjacent elements. If the intersection area of these elements (their square on the diagonal) is empty, they form a layer. The empty cells mean: no member uses any other member. Whatever these elements do outside the square — who uses them, what they use — is irrelevant to the layer question. Since no dependency exists between the members, nothing forces their order. You could swap them among themselves arbitrarily, and the matrix would remain lower triangular.
+So use the graph to read off layers, with a hierarchical layout algorithm such as ELK.
 
-Example from the matrix (red): `CodeParser` (387), `Analyzers` (416), `TreeMap` (480), and `History` (527). Each of these rows has entries in the rest of the matrix (for instance, all four are used by the application). But in the 4×4 diagonal square where the four would meet *each other*, there is nothing. Four independent features at the same height — that is a layer. The counter-case sits directly above: `View` (215) and `ViewModel` (265). In their 2×2 square sits the 35 — View uses ViewModel. These two are *not* a layer; the 35 forces View to be sorted above ViewModel.
-
-![](Images/same-layer.png)
-
-In the matrix — coarsely rasterized — a three-layer picture emerges:
-
-**At the top, the consumers:** ApprovalTestTool and CSharpCodeAnalyst. Their rows are empty — nobody depends on them. That is exactly how it should be: applications and tests sit at the very top; an application with a full row would be an alarm signal. In their columns, however, the two part ways distinctly: CSharpCodeAnalyst (the orchestrator) has a full column and uses almost everything. ApprovalTestTool has only two targeted entries — a precise component test that specifically verifies the parser output and only needs to know the result format to do so.
-
-**In the middle, the domain logic:** `Parser`, `Analyzer`, `TreeMap`, `History`, the viewer layers. This is where the actual work happens. These elements typically have both entries in their row (they are used) and in their column (they use the foundation).
-
-**At the bottom, the foundation:** here there are two flavors. `Common.Util` and `CodeGraph` are a broad foundation: full rows, empty columns. `Contracts`, by contrast, also has an empty column but only three targeted consumers — that is not a broad foundation but a narrow interface package. `Contracts` only sits this deep because most tools try to place every row as deep as possible when sorting. A change to `CodeGraph` shakes half the system. A change to `Contracts` affects three known places. More on this shortly.
-
-As mentioned, the sort order within a layer is **not unique**. Whether `TreeMap` sits above or below `History` is meaningless as long as no dependency exists between them. So do not read too much into the exact order — the layer boundaries matter, not the positions within a layer.
-
-### Why Does Contracts Sit at the Very Bottom, Then? (The Pitfalls of Sorting)
-
-Careful: a *matrix layer* is not yet an *architecture layer*.
-
-Logical layers in the architecture do not necessarily sit next to each other in the DSM.
-
-The sorting may choose freely among the permitted orders, and tools often place elements "as deep as possible".
-
-A fine example of this is `Contracts` (760): it is used only from far above and uses nothing itself — logically, it belongs at the height of `AnalyzerSdk`, yet it sits almost at the very bottom. The rule would even formally declare `Contracts` and `CodeGraph` one layer (their shared square is empty), although one is the foundation of half the system and the other has three local consumers. "Same layer" by this rule therefore only means *mutually independent and adjacent*, not *architecturally at the same height*.
-
-The graph below shows the architectural layers. `Contracts` sits here at the `Analyzer.Sdk` level, even though it could just as well be placed at the `CodeGraph` level.
-
-![](layer-graph.png)
-
-If you want the true heights, compute **topological levels**: each element sits one level below its deepest consumer.
+![](Images/layer-graph.png)
 
 **What you are looking for:** every entry that remains in the *upper right* triangle after sorting is a layering violation — a lower element using a higher one. Since the rows are sorted, that means a cycle (next chapter).
 
@@ -112,7 +84,9 @@ Two observations on this example that carry beyond the single case:
 
 **First:** each of the four violations has a filled mirror cell — that is four direct two-cycles, all through `Management`. The cycle cluster here is not a long ring but a **star around a mediator**: a manager that knows and calls its parts and is known by them in return (typical with callbacks). All four pairs have the same return direction to the same hub, and often all of them can be inverted with the same tool (interface, event). Then the star collapses into a clean hierarchy with `Management` on top.
 
-**Second:** the merged square is a *hull* — membership is candidate status, not a verdict. Here, all five elements really are involved (each is paired with `Management`, and through `Management` circles also close between the outposts, e.g. `Snapshot` → `Management` → `Element` → `Management` → `Snapshot`). But in general, bystanders can lie inside a merged hull. If `Base` were sorted between `Filtering` and `Management`, it would sit in the middle of the square without participating in any circle.
+**Second:** the merged square is a *hull* — membership is candidate status, not a verdict. Here, all five elements really are involved (each is paired with `Management`, and through `Management` circles also close between the outposts, e.g. `Snapshot` → `Management` → `Element` → `Management` → `Snapshot`). But in general, bystanders can lie inside a merged hull: if a sorter placed `Base` between `Filtering` and `Management`, it would sit in the middle of the square without participating in any circle.
+
+This tool's partitioning rules that out: the members of a cycle cluster are always sorted as one **contiguous block**, so the merged square closes up to exactly the cycle cluster — every element inside it participates, and so does every filled cell inside the block (within a cycle cluster, every dependency lies on some circle). Keep the bystander caveat for matrices sorted by other tools.
 
 ---
 
@@ -120,7 +94,7 @@ Two observations on this example that carry beyond the single case:
 
 Every element has a fingerprint in the DSM, made up of two values: how full is my row (fan-in), and how full is my column (fan-out)? Archetypes emerge from the combination.
 
-**The foundation (full row, empty column).** Many use it, it uses nothing. In the matrix, examples are `CodeGraph` (row with entries 1, 153, 47, 85, 11 — practically everyone needs it) and `Common.Util`. That is healthy at first: stable, abstraction-poor building blocks belong at the bottom. But the critical follow-up question is: **is it a coherent foundation or a dumping ground?** A `CodeGraph` with a clear domain purpose is a legitimate centerpiece. A `Common.Util` that has grown over the years into a collection bin for "didn't know where to put it" is a disguised coupling amplifier. And because all sorts of things live inside, it gets changed often. Test: expand `Common.Util`. If it decomposes internally into independent clusters (logging here, string stuff there, file system over there), each used by *different* consumers, then it is not one module but three — and should be split.
+**The foundation (full row, empty column).** Many use it, it uses nothing. In the matrix, examples are `CodeGraph` (row with entries 153, 1, 47, 86, 11 — practically everyone needs it) and `Common.Util`. That is healthy at first: stable, abstraction-poor building blocks belong at the bottom. But the critical follow-up question is: **is it a coherent foundation or a dumping ground?** A `CodeGraph` with a clear domain purpose is a legitimate centerpiece. A `Common.Util` that has grown over the years into a collection bin for "didn't know where to put it" is a disguised coupling amplifier. And because all sorts of things live inside, it gets changed often. Test: expand `Common.Util`. If it decomposes internally into independent clusters (logging here, string stuff there, file system over there), each used by *different* consumers, then it is not one module but three — and should be split.
 
 **The orchestrator (empty row, full column).** Uses everything, is used by no one. `CSharpCodeAnalyst` itself is the archetype: its column stacks up 14, 9, 9, 24, 89, 153 … For the root of an application, that is the correct, expected signature — someone has to plug the parts together. The pattern only becomes suspicious when it appears **in the middle of the domain logic**: a "service" class with an empty row and full column is frequently a god orchestrator holding logic that actually belongs in the modules it uses.
 
@@ -202,11 +176,11 @@ To close, four concrete questions you can answer directly on the example screens
 **1. Why is it good that the row of `CSharpCodeAnalyst` is almost empty?**
 Because an application should be the top of the food chain, entries in its row would mean library code depends on the application — the dependency direction would be inverted. The library would not be reusable without the app.
 
-**2. `Analyzers` has the entries 87 (at `AnalyzerSdk`) and 85 (at `CodeGraph`) in its column. What does that tell about the plugin design?**
+**2. `Analyzers` has the entries 87 (at `AnalyzerSdk`) and 86 (at `CodeGraph`) in its column. What does that tell about the plugin design?**
 The analyzers talk almost exclusively to the SDK and the graph model — not to the app, not to the viewer. That is the matrix signature of a clean plugin architecture: extensions know the contract and the data, nothing else.
 
-**3. `Common.Util` is used by `ViewModel`, `Application`, `Analyzer.Model`, `DsmViewer.Model`, and `Common.Model` — all `DsmSuite` namespaces. What follows?**
-That `Common.Util` is de facto a `DsmSuite`-internal utility, not a system-wide one. The `CSharpCodeAnalyst` side does without it. That is useful knowledge for an eventual split of the two suites into separate repositories: `Util` then clearly belongs to one side.
+**3. `Common.Util` is used by `ViewModel`, `Application`, `Analyzer.Model`, `DsmViewer.Model`, and `Common.Model` — all `DsmSuite` namespaces — plus a single 1 from `CSharpCodeAnalyst`. What follows?**
+That `Common.Util` is de facto a `DsmSuite`-internal utility, not a system-wide one. Apart from that one reference (the wiring of the embedded matrix view), the `CSharpCodeAnalyst` side does without it. That is useful knowledge for an eventual split of the two suites into separate repositories: `Util` then clearly belongs to one side.
 
 **4. How do you interpret the overall picture?**
 

@@ -153,3 +153,15 @@ were contributed back and merged upstream, so they are part of the pinned commit
    runs against the *initial* model. **Not fixed** — we avoid it instead by populating the model
    before constructing `DsmApplication`, so no swap ever happens. Do not introduce a `LoadModel` call
    without fixing this first.
+
+6. **`PartitioningCalculation.ToBlockTriangular` does not scale.** The partitioning is a brute-force
+   score maximizer: per pass it probes up to O(n⁴) swap candidates and scores each candidate in
+   O(n²), where n is the number of children of one parent. It terminates in theory (the score
+   strictly increases and is bounded) but not in practice: measured on a flat sibling set with ~10
+   edges per element, n=50 takes 0.5 s, n=100 takes 13 s, n=200 minutes — a few hundred siblings
+   look like a hang. Unremarkable upstream, where hierarchies from DSI files are deep and sibling
+   groups small; fatal for flat imported graphs (jdeps, doxygen). **Not fixed in their code** —
+   replaced from outside: our `Features/DsmMatrix/SccPartitionSortAlgorithm` (SCC condensation +
+   topological order, O(V+E), cycles stay together as blocks) is registered in their
+   `SortAlgorithmFactory` under the same "Partition" name, so both our builder and their sort
+   command use it. Their `PartitionSortAlgorithm` is thereby unreachable, but left untouched.
