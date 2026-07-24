@@ -140,25 +140,35 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         return child.IsChildOf(this);
     }
 
-    public HashSet<string> GetChildrenIncludingSelf()
+    /// <summary>
+    ///     All elements of the subtree rooted at this element, including the element itself.
+    /// </summary>
+    public IEnumerable<CodeElement> GetSubtreeIncludingSelf()
     {
-        var childrenIncludingSelf = new HashSet<string>();
+        var visited = new HashSet<string>();
         var stack = new Stack<CodeElement>();
         stack.Push(this);
 
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            if (childrenIncludingSelf.Add(current.Id))
+            if (!visited.Add(current.Id))
             {
-                foreach (var child in current.Children)
-                {
-                    stack.Push(child);
-                }
+                continue;
+            }
+
+            yield return current;
+
+            foreach (var child in current.Children)
+            {
+                stack.Push(child);
             }
         }
+    }
 
-        return childrenIncludingSelf;
+    public HashSet<string> GetChildrenIncludingSelf()
+    {
+        return GetSubtreeIncludingSelf().Select(e => e.Id).ToHashSet();
     }
 
     public HashSet<string> GetChildren()

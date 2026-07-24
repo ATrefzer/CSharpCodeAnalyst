@@ -718,12 +718,21 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         FocusAcrossBoundary(element, false);
     }
 
-    
+
     private void FocusAcrossBoundary(CodeElement element, bool outgoing)
     {
         var graph = _state.CodeGraph;
 
-        var result = CodeGraphServices.FocusOnCrossingEdges(graph, element, outgoing);
+        // The context menu hands over the canvas clone, whose hierarchy is intentionally
+        // incomplete (parents are only linked while they are on the canvas). Containment is
+        // decided on the element from the full code graph instead.
+        var originalElement = _explorer.GetElements([element.Id]).FirstOrDefault();
+        if (originalElement is null)
+        {
+            return;
+        }
+
+        var result = CodeGraphServices.FocusOnCrossingEdges(graph, originalElement, outgoing);
         if (!result.Success || result.NewGraph is null)
         {
             return;

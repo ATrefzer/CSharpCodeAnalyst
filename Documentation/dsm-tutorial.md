@@ -148,6 +148,15 @@ Now it gets interesting, because you can compare three things:
 
 **Breadth vs. depth of use.** Two consumers using the same single facade class: good. Five consumers each using different, deeply internal classes: the module is leaking from five different wounds.
 
+If you want for example to know what are the classes `CSharpCodeAnalyst` application uses from the `CSharpCodeAnalyst.Analyzers.Sdk` you can see this at one glance in a single column.
+![](Images/public-interface.png)
+
+Note: In the Code Graph Explorer, you need two steps to see the same result, and you have different options to choose from. 
+
+Add both the `CSharpCodeAnalyst.Analyzers.Sdk`  and `CSharpCodeAnalyst` to the Code Graph Explorer. For the `CSharpCodeAnalyst.Analyzers.Sdk` click **"All incoming relationships (deep)"**. This however, finds too many relationships outside `CSharpCodeAnalyst` . So in a second step, we remove the unwanted ones. On the `CSharpCodeAnalyst` node click **"Focus on outgoing (deep)"**. This removes all dependencies not originating from `CSharpCodeAnalyst`. What remains is the same information as in the DSM.
+
+![](Images/public-interface-graph.png)
+
 ---
 
 ## 6. Reading Weights: The 153 and the Lonely 1
