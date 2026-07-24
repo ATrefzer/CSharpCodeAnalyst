@@ -1,4 +1,6 @@
-﻿using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
+﻿using System.IO;
+using System.Windows;
+using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Export;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
@@ -6,7 +8,6 @@ using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
-using CSharpCodeAnalyst.Shared.Notifications;
 
 namespace CSharpCodeAnalyst.Features.Import;
 
@@ -74,6 +75,56 @@ public class Importer
         return await ExecuteGuardedImportAsync(
             "Importing jdeps data...",
             () => ImportJDepsFuncAsync(fileName));
+    }
+
+    /// <summary>
+    ///     Imports a C++ project by running doxygen (expected on the PATH) over a source
+    ///     directory and converting its XML output into a code graph. The wizard only asks for
+    ///     the directory and a project name; everything else happens in the background.
+    /// </summary>
+    public async Task<Result<ParseResult>> ImportCppAsync()
+    {
+        if (!DoxygenRunner.IsDoxygenAvailable())
+        {
+            _ui.ShowError(Strings.ImportCpp_DoxygenNotFound);
+            return Result<ParseResult>.Canceled();
+        }
+
+        var viewModel = new ImportCppDialogViewModel();
+        var dialog = new ImportCppDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
+        if (dialog.ShowDialog() != true)
+        {
+            return Result<ParseResult>.Canceled();
+        }
+
+        return await ExecuteGuardedImportAsync(
+            Strings.ImportCpp_Progress,
+            () => ImportCppFuncAsync(viewModel.SourceDirectory, viewModel.ProjectName.Trim()));
+    }
+
+    private async Task<ParseResult> ImportCppFuncAsync(string sourceDirectory, string projectName)
+    {
+        var workingDirectory = Path.Combine(Path.GetTempPath(), "CSharpCodeAnalyst", "doxygen", Guid.NewGuid().ToString("N"));
+        try
+        {
+            _progress.Report(Strings.ImportCpp_RunningDoxygen);
+            var xmlDirectory = await DoxygenRunner.RunAsync(sourceDirectory, workingDirectory, projectName);
+
+            _progress.Report(Strings.ImportCpp_Converting);
+            var graph = new DoxygenXmlConverter().Convert(xmlDirectory, projectName);
+            return new ParseResult(graph, new MetricStore());
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(workingDirectory, true);
+            }
+            catch
+            {
+                // Best effort - the directory lives below %TEMP% anyway.
+            }
+        }
     }
 
     public async Task<Result<ParseResult>> ImportPlainTextAsync()

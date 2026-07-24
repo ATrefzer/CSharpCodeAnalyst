@@ -136,6 +136,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         LoadSolutionCommand = new WpfCommand(OnImportSolution);
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
         ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
+        ImportCppCommand = new WpfCommand(OnImportCpp);
 
         LoadProjectCommand = new WpfCommand(OnLoadProject);
         SaveProjectCommand = new WpfCommand(OnSaveProject);
@@ -260,6 +261,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand LoadProjectCommand { get; }
     public ICommand LoadSolutionCommand { get; }
     public ICommand ImportJdepsCommand { get; }
+    public ICommand ImportCppCommand { get; }
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
@@ -1047,6 +1049,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         AskUserToSaveProject();
 
         var result = await _importer.ImportJdepsAsync();
+        if (result.IsSuccess)
+        {
+            CompleteImport(result.Data!);
+        }
+    }
+
+    private async void OnImportCpp()
+    {
+        AskUserToSaveProject();
+
+        var result = await _importer.ImportCppAsync();
         if (result.IsSuccess)
         {
             CompleteImport(result.Data!);
