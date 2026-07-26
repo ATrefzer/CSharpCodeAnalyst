@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Xml.Linq;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
@@ -125,7 +126,12 @@ public class DoxygenXmlConverter
                 continue;
             }
 
-            var document = XDocument.Load(compoundPath);
+            // Fixed invalid character when loading xml 
+            var xmlContent = File.ReadAllText(compoundPath, Encoding.UTF8);
+            xmlContent = xmlContent.TrimStart('\uFEFF'); // Remove BOM
+            var document = XDocument.Parse(xmlContent);
+            //var document = XDocument.Load(compoundPath);
+
             foreach (var compoundDef in document.Root!.Elements("compounddef"))
             {
                 var defKind = (string?)compoundDef.Attribute("kind") ?? kind;
@@ -341,7 +347,7 @@ public class DoxygenXmlConverter
         {
             return;
         }
-        
+
         var file = (string?)location?.Attribute("file");
         file = ToSystemPath(file);
         if (file is null)
