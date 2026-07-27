@@ -153,6 +153,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- Dart/Flutter import: the extractor ships as Dart sources and is resolved with
+             "dart pub get" into %LocalAppData% on first use (see DartExtractorDeployment).
+             .dart_tool holds absolute paths of the build machine and must never be copied. -->
+        <Content Include="..\DartExtractor\**\*" Exclude="..\DartExtractor\.dart_tool\**\*">
+            <Link>DartExtractor\%(RecursiveDir)%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />

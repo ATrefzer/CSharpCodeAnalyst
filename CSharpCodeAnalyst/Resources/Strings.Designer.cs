@@ -1662,6 +1662,123 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting Dart analyzer output ....
+        /// </summary>
+        public static string ImportDart_Converting {
+            get {
+                return ResourceManager.GetString("ImportDart_Converting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No Dart SDK was found....
+        /// </summary>
+        public static string ImportDart_DartNotFound {
+            get {
+                return ResourceManager.GetString("ImportDart_DartNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzes a Dart or Flutter project with the Dart analyzer....
+        /// </summary>
+        public static string ImportDart_Description {
+            get {
+                return ResourceManager.GetString("ImportDart_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import Dart or Flutter project.
+        /// </summary>
+        public static string ImportDart_DialogTitle {
+            get {
+                return ResourceManager.GetString("ImportDart_DialogTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Directory does not exist..
+        /// </summary>
+        public static string ImportDart_DirectoryDoesNotExist {
+            get {
+                return ResourceManager.GetString("ImportDart_DirectoryDoesNotExist", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Import _Dart/Flutter project ....
+        /// </summary>
+        public static string ImportDart_Label {
+            get {
+                return ResourceManager.GetString("ImportDart_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No pubspec.yaml in this directory....
+        /// </summary>
+        public static string ImportDart_NoPubspec {
+            get {
+                return ResourceManager.GetString("ImportDart_NoPubspec", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The project is not resolved....
+        /// </summary>
+        public static string ImportDart_NotResolved {
+            get {
+                return ResourceManager.GetString("ImportDart_NotResolved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preparing the Dart extractor (only needed once) ....
+        /// </summary>
+        public static string ImportDart_PreparingTool {
+            get {
+                return ResourceManager.GetString("ImportDart_PreparingTool", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Importing Dart project ....
+        /// </summary>
+        public static string ImportDart_Progress {
+            get {
+                return ResourceManager.GetString("ImportDart_Progress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Project directory (contains pubspec.yaml).
+        /// </summary>
+        public static string ImportDart_ProjectDirectory_Label {
+            get {
+                return ResourceManager.GetString("ImportDart_ProjectDirectory_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzing Dart sources (this can take a while on large code bases) ....
+        /// </summary>
+        public static string ImportDart_RunningExtractor {
+            get {
+                return ResourceManager.GetString("ImportDart_RunningExtractor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select Dart or Flutter project directory.
+        /// </summary>
+        public static string ImportDart_SelectProjectDirectoryTitle {
+            get {
+                return ResourceManager.GetString("ImportDart_SelectProjectDirectoryTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Converting doxygen output ....
         /// </summary>
         public static string ImportDoxygen_Converting {

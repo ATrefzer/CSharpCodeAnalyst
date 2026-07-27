@@ -100,6 +100,9 @@
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportDoxygen_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportDoxygenCommand}" />
+                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportDart_Label}"
+                                        ImageSource="/Resources/import_solution.png"
+                                        Command="{Binding ImportDartCommand}" />
                         <RibbonMenuItem Header="{x:Static resources:Strings.ImportPlainText_Label}"
                                         ImageSource="/Resources/import_solution.png"
                                         Command="{Binding ImportPlainTextCommand}" />

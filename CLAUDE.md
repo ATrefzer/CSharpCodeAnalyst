@@ -54,6 +54,8 @@ Five projects wired together in `CSharpCodeAnalyst.sln`:
 
 `ThirdParty/DsmSuite/` holds a vendored subset (7 of ~38 projects) of the GPL-licensed DsmSuite, which provides the matrix view on the DSM tab. It is foreign code with its own rules — see **Vendored DsmSuite** below before touching anything in there.
 
+`DartExtractor/` is a standalone **Dart** package (not in the .NET solution) used by the Dart/Flutter import — see **Dart/Flutter import** below.
+
 `TestSuite/` is a handcrafted C# solution used purely as parser input for the approval tests. Do not consume it from production code — it is intentionally full of odd language constructs. `ReferencedAssemblies/` contains the MSAGL DLLs referenced directly by `CSharpCodeAnalyst.csproj` and `Tests.csproj` (MSAGL is not on NuGet for the versions used here).
 
 ## Architectural notes worth knowing before editing
@@ -104,6 +106,11 @@ Rules live in `CSharpCodeAnalyst.Analyzers/ArchitecturalRules/Rules/` under a tw
 A new **metric** rule costs exactly two things: a class deriving from the right base, and one entry in `RuleParser.MetricRuleFactories`. The parser has a single regex for the whole family (`KEYWORD = value`, or `KEYWORD: Pattern = value` for element rules), so it needs no change. The base class supplies the range check via `MinThreshold` / `MaxThreshold`, the floating-point tolerance in `IsViolated`, and the baseline rewrite via `CreateBaselineThreshold` / `CreateRuleText`. Implement `Keyword`, the bounds, `Measure`, `FormatValue` (the value *with* its unit) and `CreateDescription`. Thresholds are expressed in the rule's own unit (percent, lines) — convert from the metric's internal representation exactly once, inside `Measure`. When writing a threshold back (baseline), round **up**, otherwise the rule you just wrote is violated again.
 
 Then wire up the edges: `RuleEngine.Execute` for the evaluation, `RuleViolationViewModel` for the table row and detail lines, `ViolationsFormatter` for the CLI output, `RuleCleaner` if the rule can be dead, `BaselineGenerator.RelaxMetricRules` if it can be baselined, and strings in `Resources/Strings.resx` **plus** its hand-maintained `Strings.Designer.cs`. Document the rule in the "Supported rules" tables of `README.md`. `MaxCyclicityRule` and `MaxLinesRule` are the reference implementations of the two kinds.
+
+### Dart/Flutter import
+`DartExtractor/` at the repository root is a **Dart** package (not part of the .NET solution) that analyses a Dart or Flutter project with the `analyzer` package and emits the graph as JSON. `Features/Import/Dart*.cs` finds the Dart SDK, deploys and resolves the tool once into `%LocalAppData%` (the install directory may be read-only and `dart pub get` writes into the package), runs it, and rebuilds the `CodeGraph` from the JSON. The JSON carries the literal `CodeElementType` / `RelationshipType` names, so **all modelling decisions live on the Dart side** and `DartGraphConverter` stays a pure rebuild — keep it that way, and bump `format` in both `graph_builder.dart` and `DartGraphConverter.SupportedFormat` when the contract changes incompatibly.
+
+Dart has no namespaces, so the hierarchy is derived (assembly = package, namespace = path + library file). **Document mapping changes in `Documentation/Dart/dart-import.md`** — same rule as `Documentation/Roslyn/corrections-and-updates.md` for the C# parser. The C# side is unit-tested without a Dart SDK (`DartGraphConverterTests`); the end-to-end test is `[Explicit]` and needs `CSCA_DART_TEST_PROJECT`.
 
 ### AI Advisor
 `Features/Ai/AiClient.cs` talks to any OpenAI-compatible endpoint (including Anthropic, Ollama). Credentials are stored via `Configuration/AiCredentialStorage`. The service is stateless and is invoked from the cycle-group UI to summarize a cycle.

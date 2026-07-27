@@ -137,6 +137,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         ImportJdepsCommand = new WpfCommand(OnImportJdeps);
         ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
         ImportDoxygenCommand = new WpfCommand(OnImportDoxygen);
+        ImportDartCommand = new WpfCommand(OnImportDart);
 
         LoadProjectCommand = new WpfCommand(OnLoadProject);
         SaveProjectCommand = new WpfCommand(OnSaveProject);
@@ -262,6 +263,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     public ICommand LoadSolutionCommand { get; }
     public ICommand ImportJdepsCommand { get; }
     public ICommand ImportDoxygenCommand { get; }
+    public ICommand ImportDartCommand { get; }
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
@@ -1060,6 +1062,17 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         AskUserToSaveProject();
 
         var result = await _importer.ImportDoxygenAsync();
+        if (result.IsSuccess)
+        {
+            CompleteImport(result.Data!);
+        }
+    }
+
+    private async void OnImportDart()
+    {
+        AskUserToSaveProject();
+
+        var result = await _importer.ImportDartAsync();
         if (result.IsSuccess)
         {
             CompleteImport(result.Data!);

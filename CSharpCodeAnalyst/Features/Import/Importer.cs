@@ -103,6 +103,56 @@ public class Importer
             () => ImportDoxygenFuncAsync(viewModel.SourceDirectory, viewModel.ProjectName.Trim(), viewModel.SelectedLanguage.Value));
     }
 
+    /// <summary>
+    ///     Imports a Dart or Flutter project by running the bundled DartExtractor tool (which uses
+    ///     the Dart analyzer) over the project directory and converting its JSON output into a code
+    ///     graph. The wizard only asks for the directory - package names and the file layout give
+    ///     the graph its structure.
+    /// </summary>
+    public async Task<Result<ParseResult>> ImportDartAsync()
+    {
+        if (DartRunner.FindDartExecutable() is null)
+        {
+            _ui.ShowError(Strings.ImportDart_DartNotFound);
+            return Result<ParseResult>.Canceled();
+        }
+
+        var viewModel = new DartImportDialogViewModel();
+        var dialog = new DartImportDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
+        if (dialog.ShowDialog() != true)
+        {
+            return Result<ParseResult>.Canceled();
+        }
+
+        return await ExecuteGuardedImportAsync(
+            Strings.ImportDart_Progress,
+            () => ImportDartFuncAsync(viewModel.ProjectDirectory));
+    }
+
+    private async Task<ParseResult> ImportDartFuncAsync(string projectDirectory)
+    {
+        var workingDirectory = Path.Combine(Path.GetTempPath(), "CSharpCodeAnalyst", "dart", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var jsonPath = await DartRunner.RunAsync(projectDirectory, workingDirectory, _progress);
+
+            _progress.Report(Strings.ImportDart_Converting);
+            var graph = new DartGraphConverter().ConvertFile(jsonPath);
+            return new ParseResult(graph, new MetricStore());
+        }
+        finally
+        {
+            try
+            {
+                Directory.Delete(workingDirectory, true);
+            }
+            catch
+            {
+                // Best effort - the directory lives below %TEMP% anyway.
+            }
+        }
+    }
+
     private async Task<ParseResult> ImportDoxygenFuncAsync(string sourceDirectory, string projectName, DoxygenLanguage language)
     {
         var workingDirectory = Path.Combine(Path.GetTempPath(), "CSharpCodeAnalyst", "doxygen", Guid.NewGuid().ToString("N"));

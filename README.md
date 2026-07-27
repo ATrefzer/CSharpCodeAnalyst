@@ -4,7 +4,7 @@
 
 **An interactive dependency graph explorer for C# that helps you find cycles, simulate refactorings, and get AI-powered refactoring advice**
 
-You can import C++ and Python via doxygen.
+You can import C++ and Python via doxygen, and Dart/Flutter via the Dart analyzer.
 
 [![GitHub stars](https://img.shields.io/github/stars/ATrefzer/CSharpCodeAnalyst.svg)](https://github.com/ATrefzer/CSharpCodeAnalyst/stargazers)
 [![License](https://img.shields.io/github/license/ATrefzer/CSharpCodeAnalyst)](LICENSE)
@@ -236,35 +236,11 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ## Other languages
 
-The tool is built for C# (has its own Roslyn-based parser), but you can also import Java, C++, and Python code via external parsers.
+The tool is built for C# (has its own Roslyn-based parser), but you can also import Java, C++, Python and Dart via external tools.
 
-This gives you a basic visualization of your codebase.
+Here you can read how it works: [Other languages](Documentation/other-languages.md).
 
-### C++ and Python
-
-To import a directory with C++ or Python files, you need **[doxygen](https://www.doxygen.nl/index.html)** in your search path. We use doxygen to extract the types and dependencies. Python packages and modules appear as namespaces; virtual environments (`venv`, `.venv`, `__pycache__`, `site-packages`) are excluded automatically.
-
-Keep in mind (see Limitations) that C# Code Analyst ignores the folder structure and organizes the code by its namespaces.
-
-Use the "Import C++/Python project (doxygen)" menu.
-
-![](Documentation/Images/import-menu.png)
-
-The wizard asks you for the root directory of your source code, the language, and a project name. The project name results in a single root node containing all code elements.
-
-![](Documentation/Images/import-wizard.png)
-
-> Doxygen's Python parser is noticeably more heuristic than the C++ mode. Hierarchy, classes, and inheritance are handled reliably; however, the call references (REFERENCES_RELATION) are more incomplete with dynamic typing—Doxygen often cannot resolve self.foo() on a duck-typed object. As a result, the graph is more likely to have too few edges than incorrect ones.
-
-### Java
-
-Use the jdeps too to generate a dependency file. You can import this file directly using the Import menu in the Ribbon.
-
-```
-jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
-```
-
----
+This gives you a basic visualization of your codebase. But this is more limited than C#.
 
 ## Analyze a GIT repository
 

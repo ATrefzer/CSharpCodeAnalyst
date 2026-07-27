@@ -343,6 +343,45 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <data name="ImportDoxygen_Converting" xml:space="preserve">
     <value>Converting doxygen output ...</value>
   </data>
+    <data name="ImportDart_Label" xml:space="preserve">
+    <value>Import _Dart/Flutter project ...</value>
+  </data>
+    <data name="ImportDart_DialogTitle" xml:space="preserve">
+    <value>Import Dart or Flutter project</value>
+  </data>
+    <data name="ImportDart_Description" xml:space="preserve">
+    <value>Analyzes a Dart or Flutter project with the Dart analyzer and imports its code structure (packages, libraries, classes, members, call and type dependencies). Requires a Dart or Flutter SDK on the PATH. The project must already be resolved with "flutter pub get" or "dart pub get".</value>
+  </data>
+    <data name="ImportDart_ProjectDirectory_Label" xml:space="preserve">
+    <value>Project directory (contains pubspec.yaml)</value>
+  </data>
+    <data name="ImportDart_SelectProjectDirectoryTitle" xml:space="preserve">
+    <value>Select Dart or Flutter project directory</value>
+  </data>
+    <data name="ImportDart_DirectoryDoesNotExist" xml:space="preserve">
+    <value>Directory does not exist.</value>
+  </data>
+    <data name="ImportDart_NoPubspec" xml:space="preserve">
+    <value>No pubspec.yaml in this directory - please select the root of a Dart or Flutter package.</value>
+  </data>
+    <data name="ImportDart_NotResolved" xml:space="preserve">
+    <value>The project is not resolved. Please run "flutter pub get" (or "dart pub get") in this directory first, otherwise no dependencies can be analyzed.</value>
+  </data>
+    <data name="ImportDart_DartNotFound" xml:space="preserve">
+    <value>No Dart SDK was found. Please install the Dart SDK or Flutter and make sure it is available on the PATH (https://dart.dev/get-dart).</value>
+  </data>
+    <data name="ImportDart_Progress" xml:space="preserve">
+    <value>Importing Dart project ...</value>
+  </data>
+    <data name="ImportDart_PreparingTool" xml:space="preserve">
+    <value>Preparing the Dart extractor (only needed once) ...</value>
+  </data>
+    <data name="ImportDart_RunningExtractor" xml:space="preserve">
+    <value>Analyzing Dart sources (this can take a while on large code bases) ...</value>
+  </data>
+    <data name="ImportDart_Converting" xml:space="preserve">
+    <value>Converting Dart analyzer output ...</value>
+  </data>
     <data name="ProjectFilter_Label" xml:space="preserve">
     <value>Project filter</value>
   </data>
