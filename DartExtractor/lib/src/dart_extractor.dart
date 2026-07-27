@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'graph_builder.dart';
+import 'metrics_collector.dart';
 import 'model.dart';
 import 'reference_visitor.dart';
 
@@ -85,11 +86,12 @@ class DartExtractor {
     }
     log?.call('Declared ${builder.elementCount} elements');
 
-    // Pass 2: walk the bodies for calls, constructor invocations, type uses.
+    // Pass 2: walk the bodies for calls, constructor invocations, type uses and member metrics.
+    // Line info is per unit, so the collector is built here rather than shared.
     for (final unit in units) {
-      unit.unit.accept(ReferenceVisitor(this));
+      unit.unit.accept(ReferenceVisitor(this, MetricsCollector(unit.lineInfo)));
     }
-    log?.call('Collected ${builder.relationshipCount} relationships');
+    log?.call('Collected ${builder.relationshipCount} relationships and ${builder.metricCount} member metrics');
   }
 
   void _readPackageName(AnalysisContext context) {

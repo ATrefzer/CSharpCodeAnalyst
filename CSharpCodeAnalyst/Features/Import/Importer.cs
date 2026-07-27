@@ -137,8 +137,9 @@ public class Importer
             var jsonPath = await DartRunner.RunAsync(projectDirectory, workingDirectory, _progress);
 
             _progress.Report(Strings.ImportDart_Converting);
-            var graph = new DartGraphConverter().ConvertFile(jsonPath);
-            return new ParseResult(graph, new MetricStore());
+            var converter = new DartGraphConverter();
+            var graph = converter.ConvertFile(jsonPath);
+            return new ParseResult(graph, converter.Metrics);
         }
         finally
         {

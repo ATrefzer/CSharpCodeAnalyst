@@ -74,6 +74,11 @@ public class DartImportEndToEndTests
             // must connect two known nodes - that is what the rest of the application relies on.
             Assert.That(graph.Nodes.Values.Where(e => e.Parent is null).All(e => e.ElementType == CodeElementType.Assembly), Is.True);
             Assert.That(graph.GetAllRelationships().All(r => graph.Nodes.ContainsKey(r.SourceId) && graph.Nodes.ContainsKey(r.TargetId)), Is.True);
+
+            // Metrics are only collected for project members with a body.
+            Assert.That(converter.Metrics.IsEmpty, Is.False, "No source metrics were collected.");
+            Assert.That(converter.Metrics.Metrics.Keys.All(id => graph.Nodes.ContainsKey(id)), Is.True);
+            Assert.That(converter.Metrics.Metrics.Values.All(m => m.CodeLines > 0 && m.CyclomaticComplexity >= 1), Is.True);
         });
     }
 }

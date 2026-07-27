@@ -48,6 +48,30 @@ class GraphElement {
       };
 }
 
+/// Source metrics for one member, mirroring CSharpCodeAnalyst.CodeGraph.Metrics.MemberMetrics.
+/// Emitted in a map keyed by element id, next to the graph rather than on the elements - the same
+/// separation MetricStore makes on the C# side.
+class MemberMetrics {
+  MemberMetrics({
+    required this.codeLines,
+    required this.commentLines,
+    required this.logicalLinesOfCode,
+    required this.cyclomaticComplexity,
+  });
+
+  final int codeLines;
+  final int commentLines;
+  final int logicalLinesOfCode;
+  final int cyclomaticComplexity;
+
+  Map<String, Object?> toJson() => {
+        'code': codeLines,
+        'comment': commentLines,
+        'logical': logicalLinesOfCode,
+        'complexity': cyclomaticComplexity,
+      };
+}
+
 class GraphRelationship {
   GraphRelationship(this.sourceId, this.targetId, this.type);
 

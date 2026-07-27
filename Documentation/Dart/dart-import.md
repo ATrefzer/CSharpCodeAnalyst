@@ -127,6 +127,39 @@ element model. The type names in those clauses are skipped during the AST walk, 
 inheritance edge would be shadowed by a `Uses` edge. Type *arguments* inside such a clause are not
 skipped — `extends State<MyHomePage>` legitimately uses `MyHomePage`.
 
+## Source metrics
+
+Members with a body get the same four metrics the C# parser collects, and the counting rules are
+deliberately identical so the numbers mean the same thing in both languages — see
+`SourceMetricsCollector` for the C# side and `metrics_collector.dart` for the Dart side:
+
+| Metric | Rule |
+| --- | --- |
+| `CodeLines` | Physical lines touched by a real token. A line with code and a trailing comment counts as code |
+| `CommentLines` | Comment-only lines, including the documentation comment above the signature |
+| `LogicalLinesOfCode` | Executable statements, block wrappers excluded; an expression body (`=> x * 2`) counts as one |
+| `CyclomaticComplexity` | McCabe: one plus the decision points |
+
+Decision points are `if`, `while`, `do`, `for`, `case`, `catch`, `? :`, `&&`, `||`, `??` and `??=` —
+the same set as in C#, plus the two Dart constructs with no C# equivalent: `if` and `for` inside a
+collection literal are real branches. A `default:` label is not counted, and neither is a bare `_ =>`
+arm in a switch expression, which is its equivalent; a guarded `_ when ... =>` is.
+
+Only members with a body are measured — abstract and external declarations would report a body of
+zero lines and dilute every average. The metrics are emitted in a map keyed by element id next to
+the graph, mirroring how `MetricStore` sits beside the `CodeGraph` rather than on its elements.
+
+**Where the metrics are computed.** In `ReferenceVisitor`, not in `DartExtractor`. The extractor
+declares elements from the element model, which has no syntax attached; the visitor is already
+positioned at each declaration's AST node and knows the element it belongs to.
+
+**The `beginToken` trap.** `AstNode.beginToken` of a declaration carrying a `///` documentation
+comment returns the *comment's* token. Comment tokens live in the `precedingComments` chain, not in
+the main token stream, so following `next` from there leaves the declaration immediately and the
+whole body goes uncounted. `MetricsCollector._firstTokenInStream` therefore starts at the first
+annotation, or at `firstTokenAfterCommentAndMetadata`. Annotations are regular tokens and do count
+as code.
+
 ## Known limitations
 
 - **Dynamic dispatch does not resolve.** A call on a `dynamic` receiver binds to no element and is

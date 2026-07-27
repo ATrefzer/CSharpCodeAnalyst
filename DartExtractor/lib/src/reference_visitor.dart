@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import 'dart_extractor.dart';
+import 'metrics_collector.dart';
 import 'model.dart';
 
 /// Walks the bodies of a resolved unit and records what each declaration refers
@@ -14,9 +15,10 @@ import 'model.dart';
 /// executed where it is written, and Flutter code is full of builder callbacks.
 /// This mirrors how the C# parser treats lambda bodies (see ISyntaxNodeHandler).
 class ReferenceVisitor extends RecursiveAstVisitor<void> {
-  ReferenceVisitor(this._extractor);
+  ReferenceVisitor(this._extractor, this._metrics);
 
   final DartExtractor _extractor;
+  final MetricsCollector _metrics;
 
   GraphElement? _current;
   int _closureDepth = 0;
@@ -25,13 +27,19 @@ class ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   // ------------------------------------------------------------- declarations
 
-  void _withDeclaration(Fragment? fragment, void Function() visit) {
+  void _withDeclaration(Fragment? fragment, void Function() visit, {AstNode? measure}) {
     final element = fragment?.element;
     final previous = _current;
     if (element != null) {
       _current = _extractor.ensureElement(element) ?? previous;
     }
     try {
+      // Metrics belong to the declaration that was just entered, not to the enclosing one - so
+      // record them here rather than in the extractor, which only sees the element model.
+      final target = _current;
+      if (measure != null && target != null && target != previous && MetricsCollector.hasBody(measure)) {
+        _extractor.builder.addMetrics(target.id, _metrics.compute(measure));
+      }
       visit();
     } finally {
       _current = previous;
@@ -60,15 +68,15 @@ class ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) =>
-      _withDeclaration(node.declaredFragment, () => super.visitMethodDeclaration(node));
+      _withDeclaration(node.declaredFragment, () => super.visitMethodDeclaration(node), measure: node);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) =>
-      _withDeclaration(node.declaredFragment, () => super.visitConstructorDeclaration(node));
+      _withDeclaration(node.declaredFragment, () => super.visitConstructorDeclaration(node), measure: node);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) =>
-      _withDeclaration(node.declaredFragment, () => super.visitFunctionDeclaration(node));
+      _withDeclaration(node.declaredFragment, () => super.visitFunctionDeclaration(node), measure: node);
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) =>

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Metrics;
 
 namespace CSharpCodeAnalyst.Features.Import;
 
@@ -17,10 +18,13 @@ namespace CSharpCodeAnalyst.Features.Import;
 public class DartGraphConverter
 {
     /// <summary>
-    ///     Bumped whenever the JSON contract changes incompatibly. Must match "format" in
-    ///     DartExtractor/lib/src/graph_builder.dart.
+    ///     Bumped whenever the JSON contract changes. Must match "format" in
+    ///     DartExtractor/lib/src/graph_builder.dart. Extractor and application always ship together
+    ///     (the deployment copies the tool out of the application directory), so a mismatch means a
+    ///     broken installation rather than an old tool - hence the strict check.
+    ///     2: added the per-member "metrics" map.
     /// </summary>
-    public const int SupportedFormat = 1;
+    public const int SupportedFormat = 2;
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -39,6 +43,12 @@ public class DartGraphConverter
     ///     Relationships dropped because an endpoint or the relationship type is unknown.
     /// </summary>
     public int SkippedRelationships { get; private set; }
+
+    /// <summary>
+    ///     Per-member source metrics, filled by <see cref="ConvertFile" />. Empty when the extractor
+    ///     found nothing to measure; only members with a body are measured.
+    /// </summary>
+    public MetricStore Metrics { get; } = new();
 
     public CodeGraph.Graph.CodeGraph ConvertFile(string jsonPath)
     {
@@ -68,6 +78,21 @@ public class DartGraphConverter
         foreach (var relationship in dto.Relationships)
         {
             AddRelationship(relationship);
+        }
+
+        foreach (var (elementId, metrics) in dto.Metrics ?? [])
+        {
+            // Metrics for an element that was skipped would never be looked up again.
+            if (_created.ContainsKey(elementId))
+            {
+                Metrics.Add(elementId, new MemberMetrics
+                {
+                    CodeLines = metrics.Code,
+                    CommentLines = metrics.Comment,
+                    LogicalLinesOfCode = metrics.Logical,
+                    CyclomaticComplexity = metrics.Complexity
+                });
+            }
         }
 
         return new CodeGraph.Graph.CodeGraph { Nodes = new Dictionary<string, CodeElement>(_created) };
@@ -155,5 +180,8 @@ public class DartGraphConverter
 
     internal sealed record RelationshipDto(string Source, string Target, string Type);
 
-    internal sealed record GraphDto(int Format, string ProjectName, List<ElementDto> Elements, List<RelationshipDto> Relationships);
+    internal sealed record MetricsDto(int Code, int Comment, int Logical, int Complexity);
+
+    internal sealed record GraphDto(int Format, string ProjectName, List<ElementDto> Elements, List<RelationshipDto> Relationships,
+        Dictionary<string, MetricsDto>? Metrics);
 }

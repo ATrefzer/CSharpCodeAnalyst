@@ -118,10 +118,32 @@ public class DartGraphConverterTests
     }
 
     [Test]
+    public void FillsTheMetricStore()
+    {
+        var build = ByFullName("app.features.login_page.LoginPage.build");
+        var metrics = _converter.Metrics.TryGet(build.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(metrics, Is.Not.Null);
+            Assert.That(metrics!.CodeLines, Is.EqualTo(26));
+            Assert.That(metrics.CommentLines, Is.EqualTo(4));
+            Assert.That(metrics.LogicalLinesOfCode, Is.EqualTo(1));
+            Assert.That(metrics.CyclomaticComplexity, Is.EqualTo(3));
+
+            // Only members with a body are measured, so a store entry is the exception, not the rule.
+            Assert.That(_converter.Metrics.TryGet(ByFullName("app.features.login_page.LoginPage").Id), Is.Null);
+
+            // "Gadget" was skipped as an element, so its metrics must not linger in the store.
+            Assert.That(_converter.Metrics.Count, Is.EqualTo(2));
+        });
+    }
+
+    [Test]
     public void RejectsAnIncompatibleFormatVersion()
     {
         var path = Path.Combine(Path.GetTempPath(), "DartGraphConverterTests_" + Guid.NewGuid().ToString("N") + ".json");
-        File.WriteAllText(path, """{"format":99,"projectName":"app","elements":[],"relationships":[]}""");
+        File.WriteAllText(path, """{"format":99,"projectName":"app","elements":[],"relationships":[],"metrics":{}}""");
         try
         {
             var exception = Assert.Throws<InvalidOperationException>(() => new DartGraphConverter().ConvertFile(path));
@@ -136,7 +158,7 @@ public class DartGraphConverterTests
     private const string Json =
         """
         {
-          "format": 1,
+          "format": 2,
           "projectName": "app",
           "elements": [
             { "id": "m:build", "type": "Method", "name": "build", "parent": "t:LoginPage",
@@ -169,7 +191,12 @@ public class DartGraphConverterTests
             { "source": "m:main", "target": "m:StatelessWidget.build", "type": "Calls" },
             { "source": "m:main", "target": "t:Gadget", "type": "Uses" },
             { "source": "m:main", "target": "f:title", "type": "Consumes" }
-          ]
+          ],
+          "metrics": {
+            "m:build": { "code": 26, "comment": 4, "logical": 1, "complexity": 3 },
+            "m:main":  { "code": 3,  "comment": 0, "logical": 1, "complexity": 1 },
+            "t:Gadget": { "code": 9, "comment": 0, "logical": 2, "complexity": 1 }
+          }
         }
         """;
 }
