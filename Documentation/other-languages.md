@@ -54,12 +54,16 @@ There are two ways to get a Java project into the tool, and they answer differen
 
 **From the source code, via doxygen** (see above): the project does not have to compile, and the graph goes down to methods and fields, including calls between them. This is the way to go if you want to explore the code.
 
-**From the compiled classes, via jdeps**: needs a built project, and gives you dependencies between *types* only — no members, no calls. In exchange the result is exact, because it comes from the bytecode rather than from a name-based source scan.
+**From the compiled classes, via jdeps**: needs a built project and gives you dependencies between *types* only. What it does give you is complete for that level, because it comes from the bytecode instead of from a name-based source scan — including everything that only exists after the build (Lombok, MapStruct and other annotation processors) and everything written in another JVM language, which doxygen cannot parse at all.
 
 Use the jdeps tool to generate a dependency file. You can import this file directly using the Import menu in the Ribbon.
 
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt
 ```
+
+> **What a jdeps import cannot show you.** Its output is a flat list of `from.Type -> to.Type` lines. It says *that* one type depends on another, never *how*: a base class looks exactly like a parameter type. An imported graph therefore contains **no inheritance** — the dependency on the base class is there, but as an ordinary `Uses` edge — and interfaces and enums are indistinguishable from classes. There are no methods, fields or calls either. Everything that builds on relationship types (inheritance views, the event and architectural analyses) stays empty; what works well is the type-level picture: DSM, cycles, partitions and the dependency metrics.
+>
+> If you need the structure inside your types, import the sources via doxygen. The two are complementary, not redundant: doxygen goes deep but resolves by name and misses edges, jdeps stays shallow but knows what the compiler actually emitted.
 
 ---

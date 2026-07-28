@@ -209,7 +209,7 @@
     <value>Cancel</value>
   </data>
   <data name="ImportJdeps_Description" xml:space="preserve">
-    <value>Imports a dependency file produced by the JDK's jdeps tool. Run jdeps yourself and select its output file here.</value>
+    <value>Imports a dependency file produced by the JDK's jdeps tool. Run jdeps yourself and select its output file here. The file lists dependencies between types without saying what kind they are, so inheritance arrives as a plain dependency and there are no methods, fields or calls. To get those, import the Java sources via doxygen instead.</value>
   </data>
   <data name="ImportJdeps_DialogTitle" xml:space="preserve">
     <value>Select jdeps output file</value>

@@ -3,6 +3,19 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Importers.Jdeps;
 
+/// <summary>
+///     Reads the output of "jdeps -verbose:class", which is a flat list of
+///     "from.Type -> to.Type module" lines.
+///     Everything below a type is invisible in that format, and so is the kind of the dependency:
+///     a base class shows up exactly like a parameter type. That is why every relationship here is
+///     <see cref="RelationshipType.Uses" /> and every leaf a <see cref="CodeElementType.Class" /> -
+///     not a shortcut, but all the input allows. A graph imported this way therefore has no
+///     Inherits/Implements edges at all, and interfaces and enums are indistinguishable from
+///     classes.
+///     The doxygen based Java import (<see cref="Doxygen.DoxygenImporter" />) is the way to get
+///     members, calls and inheritance; it reads the sources instead of the bytecode and pays for it
+///     with name-based, incomplete resolution.
+/// </summary>
 public class JdepsReader
 {
     private readonly Dictionary<string, CodeElement> _codeElements = new();
