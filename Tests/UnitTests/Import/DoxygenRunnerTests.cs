@@ -44,6 +44,33 @@ public class DoxygenRunnerTests
 
             }
             """);
+
+        var javaPackage = Path.Combine(_sourceDirectory, "com", "example");
+        Directory.CreateDirectory(javaPackage);
+        File.WriteAllText(Path.Combine(javaPackage, "Kind.java"), """
+            package com.example;
+
+            public enum Kind {
+                ROUND;
+
+                public boolean isRound() {
+                    return this == ROUND;
+                }
+            }
+            """);
+        File.WriteAllText(Path.Combine(javaPackage, "Box.java"), """
+            package com.example;
+
+            import java.util.ArrayList;
+
+            public class Box {
+                private Kind kind = Kind.ROUND;
+
+                public boolean check() {
+                    return this.kind.isRound();
+                }
+            }
+            """);
     }
 
     [TearDown]
@@ -85,6 +112,40 @@ public class DoxygenRunnerTests
                 .Where(r => r.Type == RelationshipType.Inherits)
                 .Select(r => (graph.Nodes[r.SourceId].FullName, graph.Nodes[r.TargetId].FullName));
             Assert.That(inherits, Does.Contain(("DemoCpp.app.Circle", "DemoCpp.app.Shape")));
+        });
+    }
+
+    /// <summary>
+    ///     The same for Java, where the interesting part is the enum: doxygen reports it as a
+    ///     compound of its own, unlike the C++ enum, which is a member of its scope.
+    ///     The C++ sources in the same directory must not appear - the language decides the file
+    ///     patterns.
+    /// </summary>
+    [Test]
+    public async Task ProducesAGraphFromRealJavaSources()
+    {
+        var xmlDirectory = await DoxygenRunner.RunAsync(_sourceDirectory, _workingDirectory, "DemoJava", DoxygenLanguage.Java);
+
+        var graph = new DoxygenXmlConverter().Convert(xmlDirectory, "DemoJava");
+        var byFullName = graph.Nodes.Values.ToDictionary(e => e.FullName, e => e);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(byFullName.ContainsKey("DemoJava.com.example"), Is.True, "Package hierarchy is missing.");
+            Assert.That(byFullName["DemoJava.com.example.Kind"].ElementType, Is.EqualTo(CodeElementType.Enum));
+            Assert.That(byFullName["DemoJava.com.example.Kind.isRound"].ElementType, Is.EqualTo(CodeElementType.Method));
+            Assert.That(byFullName["DemoJava.com.example.Box.kind"].ElementType, Is.EqualTo(CodeElementType.Field));
+
+            // C++ sources in the same directory are not part of a Java import.
+            Assert.That(byFullName.Keys, Has.No.Member("DemoJava.app.Shape"));
+
+            // The package doxygen only saw in an import must not become a namespace.
+            Assert.That(byFullName.Keys.Where(key => key.StartsWith("DemoJava.java")), Is.Empty);
+
+            var uses = graph.GetAllRelationships()
+                .Where(r => r.Type == RelationshipType.Uses)
+                .Select(r => (graph.Nodes[r.SourceId].FullName, graph.Nodes[r.TargetId].FullName));
+            Assert.That(uses, Does.Contain(("DemoJava.com.example.Box.kind", "DemoJava.com.example.Kind")));
         });
     }
 

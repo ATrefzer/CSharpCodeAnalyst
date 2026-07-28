@@ -206,7 +206,7 @@ namespace CSharpCodeAnalyst.Importers.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Import C++ or Python project.
+        ///   Looks up a localized string similar to Import C++, Python or Java project.
         /// </summary>
         public static string ImportDoxygen_DialogTitle {
             get {
@@ -233,7 +233,7 @@ namespace CSharpCodeAnalyst.Importers.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Import _C++/Python project (doxygen) ....
+        ///   Looks up a localized string similar to Import _C++/Python/Java project (doxygen) ....
         /// </summary>
         public static string ImportDoxygen_Label {
             get {

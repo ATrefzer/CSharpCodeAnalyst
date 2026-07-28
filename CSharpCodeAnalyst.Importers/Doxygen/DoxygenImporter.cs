@@ -8,7 +8,7 @@ using CSharpCodeAnalyst.Importers.Resources;
 namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 /// <summary>
-///     Imports a C++ or Python project by running doxygen (expected on the PATH) over a source
+///     Imports a C++, Python or Java project by running doxygen (expected on the PATH) over a source
 ///     directory and converting its XML output. The wizard only asks for the directory, the language
 ///     and a project name; everything else happens in the background.
 /// </summary>

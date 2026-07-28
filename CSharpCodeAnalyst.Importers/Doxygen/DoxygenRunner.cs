@@ -4,7 +4,7 @@ using CSharpCodeAnalyst.Importers.Shared;
 namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 /// <summary>
-///     Runs doxygen (expected on the PATH) over a C++ or Python source directory to produce
+///     Runs doxygen (expected on the PATH) over a C++, Python or Java source directory to produce
 ///     the XML output consumed by <see cref="DoxygenXmlConverter" />. The Doxyfile is generated
 ///     into the working directory; all options not listed keep their doxygen defaults.
 /// </summary>
@@ -50,10 +50,17 @@ internal static class DoxygenRunner
     {
         // Python: keep virtual environments and caches out - a venv would drag the whole
         // installed package zoo into the graph and dwarf the actual project.
-        var (filePatterns, excludePatterns) = language switch
+        // Java: the same for build output. Generated sources live below those directories
+        // (target/generated-sources, build/generated), so they are excluded with them.
+        // OPTIMIZE_OUTPUT_JAVA only changes the wording of the generated documentation, the XML
+        // is byte-identical either way. It is set because it is the documented mode for Java.
+        var (filePatterns, excludePatterns, languageOptions) = language switch
         {
-            DoxygenLanguage.Python => ("*.py *.pyw", "*/venv/* */.venv/* */env/* */__pycache__/* */site-packages/* */.tox/*"),
-            _ => ("*.h *.hh *.hpp *.hxx *.c *.cc *.cpp *.cxx", string.Empty)
+            DoxygenLanguage.Python => ("*.py *.pyw", "*/venv/* */.venv/* */env/* */__pycache__/* */site-packages/* */.tox/*",
+                string.Empty),
+            DoxygenLanguage.Java => ("*.java", "*/build/* */target/* */out/* */bin/* */.gradle/* */.idea/*",
+                "OPTIMIZE_OUTPUT_JAVA   = YES"),
+            _ => ("*.h *.hh *.hpp *.hxx *.c *.cc *.cpp *.cxx", string.Empty, string.Empty)
         };
 
         // EXTRACT_* = YES: take everything, not just documented code.
@@ -64,6 +71,7 @@ internal static class DoxygenRunner
                 RECURSIVE              = YES
                 FILE_PATTERNS          = {filePatterns}
                 EXCLUDE_PATTERNS       = {excludePatterns}
+                {languageOptions}
                 EXTRACT_ALL            = YES
                 EXTRACT_PRIVATE        = YES
                 EXTRACT_STATIC         = YES

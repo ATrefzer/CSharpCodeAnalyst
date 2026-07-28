@@ -22,7 +22,8 @@ public class DoxygenImportDialogViewModel : INotifyPropertyChanged
     public IReadOnlyList<DoxygenLanguageOption> Languages { get; } =
     [
         new DoxygenLanguageOption(DoxygenLanguage.Cpp, "C++"),
-        new DoxygenLanguageOption(DoxygenLanguage.Python, "Python")
+        new DoxygenLanguageOption(DoxygenLanguage.Python, "Python"),
+        new DoxygenLanguageOption(DoxygenLanguage.Java, "Java")
     ];
 
     public DoxygenLanguageOption SelectedLanguage

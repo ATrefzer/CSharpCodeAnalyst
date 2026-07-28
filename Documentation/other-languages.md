@@ -1,12 +1,12 @@
 ## Other languages
 
-### C++ and Python
+### C++, Python and Java
 
-To import a directory with C++ or Python files, you need **[doxygen](https://www.doxygen.nl/index.html)** in your search path. We use doxygen to extract the types and dependencies. Python packages and modules appear as namespaces; virtual environments (`venv`, `.venv`, `__pycache__`, `site-packages`) are excluded automatically.
+To import a directory with C++, Python or Java files, you need **[doxygen](https://www.doxygen.nl/index.html)** in your search path. We use doxygen to extract the types and dependencies. Python packages and modules as well as Java packages appear as namespaces. Directories that hold no source of your own are excluded automatically: virtual environments and caches for Python (`venv`, `.venv`, `__pycache__`, `site-packages`, `.tox`), build output for Java (`build`, `target`, `out`, `bin`, `.gradle`, `.idea`) — which also keeps generated sources such as `target/generated-sources` out of the graph.
 
 Keep in mind (see Limitations) that C# Code Analyst ignores the folder structure and organizes the code by its namespaces.
 
-Use the "Import C++/Python project (doxygen)" menu.
+Use the "Import C++/Python/Java project (doxygen)" menu.
 
 ![](Images/import-menu.png)
 
@@ -15,6 +15,14 @@ The wizard asks you for the root directory of your source code, the language, an
 ![](Images/import-wizard.png)
 
 > Doxygen's Python parser is noticeably more heuristic than the C++ mode. Hierarchy, classes, and inheritance are handled reliably; however, the call references (REFERENCES_RELATION) are more incomplete with dynamic typing—Doxygen often cannot resolve self.foo() on a duck-typed object. As a result, the graph is more likely to have too few edges than incorrect ones.
+
+#### Java specifics
+
+A Java package becomes a namespace, so `com.example.core` results in the nested namespaces `com` → `example` → `core`. Types, fields, methods, `extends` and `implements` are reliable. A Java `enum` is a type of its own with its constants and methods below it — unlike C#, where enum members are not code elements.
+
+The same caveat as for Python applies to the call references: doxygen resolves a call by name, without a type checker. Calls through an interface or a type parameter (`item.area()` where `item` is a `T extends Shape`) are frequently missing, so expect too few edges rather than wrong ones. Annotations produce no dependency at all.
+
+Only your own source is in the graph. References into the JDK or into libraries are dropped, since doxygen never saw those types.
 
 ### Dart and Flutter
 
@@ -40,9 +48,15 @@ see that a widget derives from `StatelessWidget` without pulling all of Flutter 
 > `Uses` rather than `Calls` — a builder callback is not executed where it is written. This matches
 > how the C# parser treats lambda bodies.
 
-### Java
+### Java: source (doxygen) or bytecode (jdeps)
 
-Use the jdeps too to generate a dependency file. You can import this file directly using the Import menu in the Ribbon.
+There are two ways to get a Java project into the tool, and they answer different questions.
+
+**From the source code, via doxygen** (see above): the project does not have to compile, and the graph goes down to methods and fields, including calls between them. This is the way to go if you want to explore the code.
+
+**From the compiled classes, via jdeps**: needs a built project, and gives you dependencies between *types* only — no members, no calls. In exchange the result is exact, because it comes from the bytecode rather than from a name-based source scan.
+
+Use the jdeps tool to generate a dependency file. You can import this file directly using the Import menu in the Ribbon.
 
 ```
 jdeps.exe -verbose:class <bin-folder1> <bin-folder2>...  >jdeps.txt

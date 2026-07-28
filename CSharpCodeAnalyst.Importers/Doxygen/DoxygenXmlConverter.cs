@@ -11,9 +11,11 @@ namespace CSharpCodeAnalyst.Importers.Doxygen;
 ///     - One artificial Assembly element is the root of everything.
 ///     - Namespace-less elements go into the artificial "global" namespace below the assembly,
 ///     following the convention of the C# parser (see CodeElement.GlobalNamespaceName).
-///     - Compounds: class/interface/struct/union become type elements, namespaces become
+///     - Compounds: class/interface/struct/union/enum become type elements, namespaces become
 ///     Namespace elements. The hierarchy is derived from the qualified compound name
 ///     ("a::b::Outer::Inner"), template arguments are kept out of the splitting.
+///     An "enum" compound only occurs for Java, where an enum is a type with its own members;
+///     a C++ enum is a memberdef of its scope and is handled as a member below.
 ///     - Members: function -> Method, variable -> Field, enum -> Enum, property -> Property,
 ///     event -> Event. Everything else (typedefs, defines, friends) is skipped.
 ///     - Relationships: basecompoundref -> Inherits (Implements when the base is an interface),
@@ -21,10 +23,12 @@ namespace CSharpCodeAnalyst.Importers.Doxygen;
 ///     Uses otherwise. Type references in signatures (return type, parameters, field types)
 ///     -> Uses.
 ///     Unresolved refids (external/system code) are skipped, so the graph stays self-contained.
+///     Namespaces left without any content are dropped again (see
+///     <see cref="RemoveEmptyNamespaces" />).
 /// </summary>
 public class DoxygenXmlConverter
 {
-    private static readonly HashSet<string> TypeKinds = ["class", "struct", "union", "interface"];
+    private static readonly HashSet<string> TypeKinds = ["class", "struct", "union", "interface", "enum"];
 
     private static readonly Dictionary<string, CodeElementType> MemberKindMap = new()
     {
@@ -91,6 +95,8 @@ public class DoxygenXmlConverter
             AddMemberRelationships(compound.Definition);
         }
 
+        RemoveEmptyNamespaces();
+
         return new CodeGraph.Graph.CodeGraph { Nodes = new Dictionary<string, CodeElement>(_elementsById) };
     }
 
@@ -147,6 +153,48 @@ public class DoxygenXmlConverter
         }
 
         return result;
+    }
+
+    /// <summary>
+    ///     Drops namespaces that ended up without any content. Two sources produce them:
+    ///     doxygen invents namespace compounds for scopes it only saw in a reference (Java code
+    ///     using java.util yields an empty "java::util"), and the artificial "global" namespace is
+    ///     created for every file compound even when the file has no global-scope members.
+    ///     Neither carries information, but both show up in the tree as an empty package.
+    ///     Deepest first, so a parent that only held such children is dropped in the same pass.
+    /// </summary>
+    private void RemoveEmptyNamespaces()
+    {
+        var referencedIds = _relationships.Select(r => r.TargetId).ToHashSet();
+
+        var candidates = _elementsById.Values
+            .Where(e => e.ElementType == CodeElementType.Namespace)
+            .OrderByDescending(GetDepth)
+            .ToList();
+
+        foreach (var element in candidates)
+        {
+            if (element.Children.Count > 0 || element.Relationships.Count > 0 || referencedIds.Contains(element.Id))
+            {
+                continue;
+            }
+
+            element.Parent?.Children.Remove(element);
+            _elementsById.Remove(element.Id);
+        }
+
+        return;
+
+        static int GetDepth(CodeElement element)
+        {
+            var depth = 0;
+            for (var current = element.Parent; current is not null; current = current.Parent)
+            {
+                depth++;
+            }
+
+            return depth;
+        }
     }
 
     private CodeElement GetGlobalNamespace()
@@ -226,6 +274,7 @@ public class DoxygenXmlConverter
         {
             "interface" => CodeElementType.Interface,
             "struct" or "union" => CodeElementType.Struct,
+            "enum" => CodeElementType.Enum,
             _ => CodeElementType.Class
         };
 

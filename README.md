@@ -4,7 +4,7 @@
 
 **An interactive dependency graph explorer for C# that helps you find cycles, simulate refactorings, and get AI-powered refactoring advice**
 
-You can import C++ and Python via doxygen, and Dart/Flutter via the Dart analyzer.
+You can import C++, Python and Java via doxygen, Java also via jdeps, and Dart/Flutter via the Dart analyzer.
 
 [![GitHub stars](https://img.shields.io/github/stars/ATrefzer/CSharpCodeAnalyst.svg)](https://github.com/ATrefzer/CSharpCodeAnalyst/stargazers)
 [![License](https://img.shields.io/github/license/ATrefzer/CSharpCodeAnalyst)](LICENSE)

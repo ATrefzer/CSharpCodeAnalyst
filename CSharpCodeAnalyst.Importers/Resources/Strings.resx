@@ -125,13 +125,13 @@
     <value>Import from _jdeps ...</value>
   </data>
   <data name="ImportDoxygen_Label" xml:space="preserve">
-    <value>Import _C++/Python project (doxygen) ...</value>
+    <value>Import _C++/Python/Java project (doxygen) ...</value>
   </data>
   <data name="ImportDoxygen_DialogTitle" xml:space="preserve">
-    <value>Import C++ or Python project</value>
+    <value>Import C++, Python or Java project</value>
   </data>
   <data name="ImportDoxygen_Description" xml:space="preserve">
-    <value>Runs doxygen over the given source directory and imports the resulting code structure (namespaces/modules, classes, methods, call and type dependencies). doxygen must be installed and available on the PATH.</value>
+    <value>Runs doxygen over the given source directory and imports the resulting code structure (namespaces/packages/modules, classes, methods, call and type dependencies). doxygen must be installed and available on the PATH.</value>
   </data>
   <data name="ImportDoxygen_SourceDirectory_Label" xml:space="preserve">
     <value>Source directory</value>
