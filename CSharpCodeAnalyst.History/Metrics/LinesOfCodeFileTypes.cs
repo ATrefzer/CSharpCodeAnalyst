@@ -33,6 +33,27 @@ public static class LinesOfCodeFileTypes
         return quoteIndex >= 2 && line[quoteIndex - 1] == '$' && line[quoteIndex - 2] == '@';
     }
 
+    /// <summary>
+    ///     Whether the quote at quoteIndex is preceded by Dart's raw-string prefix 'r'
+    ///     (r'...', r"...", r'''...'''), in which case '\' does not escape anything.
+    ///     Whole word only, so an identifier ending in 'r' is not mistaken for the prefix.
+    /// </summary>
+    private static bool IsRawStringPrefix(string line, int quoteIndex)
+    {
+        if (quoteIndex < 1 || line[quoteIndex - 1] != 'r')
+        {
+            return false;
+        }
+
+        if (quoteIndex < 2)
+        {
+            return true;
+        }
+
+        var before = line[quoteIndex - 2];
+        return !char.IsLetterOrDigit(before) && before != '_';
+    }
+
     public static Dictionary<string, FileTypeInfo> GetFileTypes()
     {
         var fileTypes = new Dictionary<string, FileTypeInfo>();
@@ -186,6 +207,33 @@ public static class LinesOfCodeFileTypes
             }
         };
 
+        // Dart. "//" covers both normal and "///" doc comments. Block comments nest in Dart
+        // ("/* /* */ */" is one comment); this scanner closes at the first "*/" - accepted
+        // simplification, nested block comments are rare.
+        // Strings come in four flavours, and the order below is the specific-before-general rule:
+        // raw triple-quoted, raw single-quoted, plain triple-quoted, plain single-quoted. Raw
+        // strings (r"...") have NO escaping at all, so r'C:\' really ends at that quote - which is
+        // why they need their own entries with a RequiresPrefix gate rather than sharing the
+        // backslash-escaped ones. String interpolation ($x, ${...}) is not parsed specially; the
+        // whole literal is one code region.
+        fileTypes[".dart"] = new FileTypeInfo
+        {
+            Name = "Dart",
+            LineComments = { DoubleSlashComment },
+            Regions =
+            {
+                new DelimitedRegionStyle { Start = "/*", End = "*/", Kind = RegionKind.Comment },
+                new DelimitedRegionStyle { Start = "'''", End = "'''", Kind = RegionKind.Code, RequiresPrefix = IsRawStringPrefix },
+                new DelimitedRegionStyle { Start = "\"\"\"", End = "\"\"\"", Kind = RegionKind.Code, RequiresPrefix = IsRawStringPrefix },
+                new DelimitedRegionStyle { Start = "'", End = "'", Kind = RegionKind.Code, RequiresPrefix = IsRawStringPrefix },
+                new DelimitedRegionStyle { Start = "\"", End = "\"", Kind = RegionKind.Code, RequiresPrefix = IsRawStringPrefix },
+                new DelimitedRegionStyle { Start = "'''", End = "'''", Escaping = EscapeStyle.Backslash, Kind = RegionKind.Code },
+                new DelimitedRegionStyle { Start = "\"\"\"", End = "\"\"\"", Escaping = EscapeStyle.Backslash, Kind = RegionKind.Code },
+                DoubleQuoteString,
+                SingleQuoteString
+            }
+        };
+
         // CSS - only block comments; "//" is NOT a comment in standard CSS. Strings (in url(),
         // content:, attribute selectors) use '\' escaping per the CSS spec.
         fileTypes[".css"] = new FileTypeInfo
@@ -204,6 +252,17 @@ public static class LinesOfCodeFileTypes
         fileTypes[".txt"] = new FileTypeInfo
         {
             Name = "Text"
+        };
+
+        // Markdown - counted like plain text: every non-blank line is content. Deliberately no
+        // comment syntax, although an HTML comment (<!-- -->) is the conventional way to hide
+        // text in Markdown: it is rare, and declaring it would have to come with string regions
+        // to be safe, which prose (apostrophes, unbalanced quotes) cannot support - see the XML
+        // entry above. Fenced code blocks are not parsed either; their content counts as content
+        // like everything else.
+        fileTypes[".md"] = new FileTypeInfo
+        {
+            Name = "Markdown"
         };
 
         return fileTypes;
