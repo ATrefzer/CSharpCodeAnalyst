@@ -1,0 +1,1669 @@
+{
+  "format": 2,
+  "projectName": "TestSuiteDart",
+  "elements": [
+    {
+      "id": "pkg:test_suite_dart",
+      "type": "Assembly",
+      "name": "test_suite_dart"
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/features",
+      "type": "Namespace",
+      "name": "features",
+      "parent": "pkg:test_suite_dart"
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/features/reporting",
+      "type": "Namespace",
+      "name": "reporting",
+      "parent": "ns:pkg:test_suite_dart/features"
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/features/reporting/report_builder",
+      "type": "Namespace",
+      "name": "report_builder",
+      "parent": "ns:pkg:test_suite_dart/features/reporting"
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#Important",
+      "type": "Class",
+      "name": "Important",
+      "parent": "ns:pkg:test_suite_dart/features/reporting/report_builder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 8,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#Important.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#Important"
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "type": "Class",
+      "name": "ReportBuilder",
+      "parent": "ns:pkg:test_suite_dart/features/reporting/report_builder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 13,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.accounts",
+      "type": "Field",
+      "name": "accounts",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 17,
+        "column": 23
+      }
+    },
+    {
+      "id": "pkg:dart:core",
+      "type": "Assembly",
+      "name": "dart:core",
+      "external": true
+    },
+    {
+      "id": "ns:pkg:dart:core/global",
+      "type": "Namespace",
+      "name": "global",
+      "parent": "pkg:dart:core",
+      "external": true
+    },
+    {
+      "id": "dart:core#List",
+      "type": "Interface",
+      "name": "List",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\list.dart",
+        "line": 120,
+        "column": 26
+      }
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/members",
+      "type": "Namespace",
+      "name": "members",
+      "parent": "pkg:test_suite_dart"
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account",
+      "type": "Class",
+      "name": "Account",
+      "parent": "ns:pkg:test_suite_dart/members",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 13,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker",
+      "type": "Property",
+      "name": "picker",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 40,
+        "column": 19
+      }
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/types",
+      "type": "Namespace",
+      "name": "types",
+      "parent": "pkg:test_suite_dart"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color",
+      "type": "Enum",
+      "name": "Color",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 54,
+        "column": 6
+      }
+    },
+    {
+      "id": "dart:core#int",
+      "type": "Class",
+      "name": "int",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\int.dart",
+        "line": 28,
+        "column": 22
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.template",
+      "type": "Method",
+      "name": "template",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 20,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#AbstractBase",
+      "type": "Class",
+      "name": "AbstractBase",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 10,
+        "column": 16
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#AbstractBase.template",
+      "type": "Method",
+      "name": "template",
+      "parent": "package:test_suite_dart/types.dart#AbstractBase",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 11,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "type": "Method",
+      "name": "merge",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 23,
+        "column": 11
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "type": "Method",
+      "name": "balancesDeferred",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 33,
+        "column": 13
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "type": "Method",
+      "name": "_pickColor",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 42,
+        "column": 9
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.describe",
+      "type": "Method",
+      "name": "describe",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "location": {
+        "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
+        "line": 45,
+        "column": 10
+      }
+    },
+    {
+      "id": "dart:core#String",
+      "type": "Class",
+      "name": "String",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\string.dart",
+        "line": 108,
+        "column": 22
+      }
+    },
+    {
+      "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Greeting",
+      "type": "Class",
+      "name": "Greeting",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 29,
+        "column": 7
+      }
+    },
+    {
+      "id": "ns:pkg:test_suite_dart/library_with_part",
+      "type": "Namespace",
+      "name": "library_with_part",
+      "parent": "pkg:test_suite_dart"
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#Bookkeeper",
+      "type": "Class",
+      "name": "Bookkeeper",
+      "parent": "ns:pkg:test_suite_dart/library_with_part",
+      "location": {
+        "file": "TestSuiteDart\\lib\\library_with_part.dart",
+        "line": 9,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#Bookkeeper.ledger",
+      "type": "Field",
+      "name": "ledger",
+      "parent": "package:test_suite_dart/library_with_part.dart#Bookkeeper",
+      "location": {
+        "file": "TestSuiteDart\\lib\\library_with_part.dart",
+        "line": 10,
+        "column": 16
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Ledger",
+      "type": "Class",
+      "name": "Ledger",
+      "parent": "ns:pkg:test_suite_dart/members",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 40,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#Bookkeeper.total",
+      "type": "Method",
+      "name": "total",
+      "parent": "package:test_suite_dart/library_with_part.dart#Bookkeeper",
+      "location": {
+        "file": "TestSuiteDart\\lib\\library_with_part.dart",
+        "line": 12,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#Bookkeeper.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/library_with_part.dart#Bookkeeper"
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#PartLocalHelper",
+      "type": "Class",
+      "name": "PartLocalHelper",
+      "parent": "ns:pkg:test_suite_dart/library_with_part",
+      "location": {
+        "file": "TestSuiteDart\\lib\\parts\\ledger_part.dart",
+        "line": 14,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#PartLocalHelper.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/library_with_part.dart#PartLocalHelper"
+    },
+    {
+      "id": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "type": "Method",
+      "name": "_sumBalances",
+      "parent": "ns:pkg:test_suite_dart/library_with_part",
+      "location": {
+        "file": "TestSuiteDart\\lib\\parts\\ledger_part.dart",
+        "line": 6,
+        "column": 5
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.instances",
+      "type": "Field",
+      "name": "instances",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 23,
+        "column": 14
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Field",
+      "name": "_balance",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 25,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.balance",
+      "type": "Property",
+      "name": "balance",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 28,
+        "column": 11
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.isEmpty",
+      "type": "Property",
+      "name": "isEmpty",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 33,
+        "column": 12
+      }
+    },
+    {
+      "id": "dart:core#bool",
+      "type": "Class",
+      "name": "bool",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\bool.dart",
+        "line": 16,
+        "column": 13
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.+",
+      "type": "Method",
+      "name": "+",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 36,
+        "column": 20
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/members.dart#Account"
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.empty",
+      "type": "Method",
+      "name": "empty",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 18,
+        "column": 11
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Account.copy",
+      "type": "Method",
+      "name": "copy",
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 21,
+        "column": 19
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Ledger.accounts",
+      "type": "Field",
+      "name": "accounts",
+      "parent": "package:test_suite_dart/members.dart#Ledger",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 41,
+        "column": 23
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#Ledger.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/members.dart#Ledger"
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#pickFirst",
+      "type": "Method",
+      "name": "pickFirst",
+      "parent": "ns:pkg:test_suite_dart/members",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 7,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/members.dart#defaultWidth",
+      "type": "Field",
+      "name": "defaultWidth",
+      "parent": "ns:pkg:test_suite_dart/members",
+      "location": {
+        "file": "TestSuiteDart\\lib\\members.dart",
+        "line": 10,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PlainClass",
+      "type": "Class",
+      "name": "PlainClass",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 5,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PlainClass.value",
+      "type": "Field",
+      "name": "value",
+      "parent": "package:test_suite_dart/types.dart#PlainClass",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 6,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PlainClass.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#PlainClass"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#AbstractBase.shared",
+      "type": "Method",
+      "name": "shared",
+      "parent": "package:test_suite_dart/types.dart#AbstractBase",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 13,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#AbstractBase.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#AbstractBase"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PureInterface",
+      "type": "Interface",
+      "name": "PureInterface",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 19,
+        "column": 17
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PureInterface.contract",
+      "type": "Method",
+      "name": "contract",
+      "parent": "package:test_suite_dart/types.dart#PureInterface",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 20,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#PureInterface.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#PureInterface"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Named",
+      "type": "Interface",
+      "name": "Named",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 24,
+        "column": 26
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Named.name",
+      "type": "Property",
+      "name": "name",
+      "parent": "package:test_suite_dart/types.dart#Named",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 25,
+        "column": 14
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Named.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#Named"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Combined",
+      "type": "Class",
+      "name": "Combined",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 45,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Combined.name",
+      "type": "Property",
+      "name": "name",
+      "parent": "package:test_suite_dart/types.dart#Combined",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 47,
+        "column": 14
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Combined.template",
+      "type": "Method",
+      "name": "template",
+      "parent": "package:test_suite_dart/types.dart#Combined",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 50,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Combined.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#Combined"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Greeting.greet",
+      "type": "Method",
+      "name": "greet",
+      "parent": "package:test_suite_dart/types.dart#Greeting",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 30,
+        "column": 10
+      }
+    },
+    {
+      "id": "dart:core#Object",
+      "type": "Class",
+      "name": "Object",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\object.dart",
+        "line": 19,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#CountingLog",
+      "type": "Class",
+      "name": "CountingLog",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 34,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#CountingLog.count",
+      "type": "Field",
+      "name": "count",
+      "parent": "package:test_suite_dart/types.dart#CountingLog",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 35,
+        "column": 7
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#CountingLog.log",
+      "type": "Method",
+      "name": "log",
+      "parent": "package:test_suite_dart/types.dart#CountingLog",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 37,
+        "column": 8
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.red",
+      "type": "Field",
+      "name": "red",
+      "parent": "package:test_suite_dart/types.dart#Color",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 55,
+        "column": 3
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.green",
+      "type": "Field",
+      "name": "green",
+      "parent": "package:test_suite_dart/types.dart#Color",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 56,
+        "column": 3
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.blue",
+      "type": "Field",
+      "name": "blue",
+      "parent": "package:test_suite_dart/types.dart#Color",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 57,
+        "column": 3
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.values",
+      "type": "Field",
+      "name": "values",
+      "parent": "package:test_suite_dart/types.dart#Color"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.isWarm",
+      "type": "Property",
+      "name": "isWarm",
+      "parent": "package:test_suite_dart/types.dart#Color",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 59,
+        "column": 12
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Color.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#Color"
+    },
+    {
+      "id": "dart:core#Enum",
+      "type": "Interface",
+      "name": "Enum",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\enum.dart",
+        "line": 17,
+        "column": 26
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#StringPadding",
+      "type": "Class",
+      "name": "StringPadding",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 63,
+        "column": 11
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#StringPadding.padBoth",
+      "type": "Method",
+      "name": "padBoth",
+      "parent": "package:test_suite_dart/types.dart#StringPadding",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 64,
+        "column": 10
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Meters",
+      "type": "Struct",
+      "name": "Meters",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 78,
+        "column": 16
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Meters.value",
+      "type": "Field",
+      "name": "value",
+      "parent": "package:test_suite_dart/types.dart#Meters",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 78,
+        "column": 30
+      }
+    },
+    {
+      "id": "dart:core#double",
+      "type": "Class",
+      "name": "double",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\double.dart",
+        "line": 24,
+        "column": 22
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Meters.inCentimeters",
+      "type": "Property",
+      "name": "inCentimeters",
+      "parent": "package:test_suite_dart/types.dart#Meters",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 79,
+        "column": 14
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#Meters.new",
+      "type": "Method",
+      "name": "new",
+      "parent": "package:test_suite_dart/types.dart#Meters"
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#ColorPicker",
+      "type": "Delegate",
+      "name": "ColorPicker",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 83,
+        "column": 9
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#ColorList",
+      "type": "Delegate",
+      "name": "ColorList",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 86,
+        "column": 9
+      }
+    },
+    {
+      "id": "package:test_suite_dart/types.dart#doubleIt",
+      "type": "Method",
+      "name": "doubleIt",
+      "parent": "ns:pkg:test_suite_dart/types",
+      "location": {
+        "file": "TestSuiteDart\\lib\\types.dart",
+        "line": 75,
+        "column": 5
+      }
+    },
+    {
+      "id": "dart:core#override",
+      "type": "Field",
+      "name": "override",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\annotations.dart",
+        "line": 262,
+        "column": 14
+      }
+    },
+    {
+      "id": "dart:core#Iterable",
+      "type": "Class",
+      "name": "Iterable",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\iterable.dart",
+        "line": 92,
+        "column": 22
+      }
+    },
+    {
+      "id": "dart:core#Iterable.toList",
+      "type": "Method",
+      "name": "toList",
+      "parent": "dart:core#Iterable",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\iterable.dart",
+        "line": 516,
+        "column": 11
+      }
+    },
+    {
+      "id": "dart:core#Iterable.map",
+      "type": "Method",
+      "name": "map",
+      "parent": "dart:core#Iterable",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\iterable.dart",
+        "line": 257,
+        "column": 15
+      }
+    },
+    {
+      "id": "dart:core#List.[]",
+      "type": "Method",
+      "name": "[]",
+      "parent": "dart:core#List",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\list.dart",
+        "line": 356,
+        "column": 14
+      }
+    },
+    {
+      "id": "dart:core#num",
+      "type": "Class",
+      "name": "num",
+      "parent": "ns:pkg:dart:core/global",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
+        "line": 17,
+        "column": 14
+      }
+    },
+    {
+      "id": "dart:core#num.%",
+      "type": "Method",
+      "name": "%",
+      "parent": "dart:core#num",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
+        "line": 152,
+        "column": 16
+      }
+    },
+    {
+      "id": "dart:core#List.length",
+      "type": "Property",
+      "name": "length",
+      "parent": "dart:core#List",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\list.dart",
+        "line": 408,
+        "column": 11
+      }
+    },
+    {
+      "id": "dart:core#num.==",
+      "type": "Method",
+      "name": "==",
+      "parent": "dart:core#num",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
+        "line": 47,
+        "column": 17
+      }
+    },
+    {
+      "id": "dart:core#num.+",
+      "type": "Method",
+      "name": "+",
+      "parent": "dart:core#num",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
+        "line": 110,
+        "column": 16
+      }
+    },
+    {
+      "id": "dart:core#Object.==",
+      "type": "Method",
+      "name": "==",
+      "parent": "dart:core#Object",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\object.dart",
+        "line": 53,
+        "column": 26
+      }
+    },
+    {
+      "id": "dart:core#String.padRight",
+      "type": "Method",
+      "name": "padRight",
+      "parent": "dart:core#String",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\string.dart",
+        "line": 482,
+        "column": 10
+      }
+    },
+    {
+      "id": "dart:core#String.padLeft",
+      "type": "Method",
+      "name": "padLeft",
+      "parent": "dart:core#String",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\string.dart",
+        "line": 458,
+        "column": 10
+      }
+    },
+    {
+      "id": "dart:core#double.*",
+      "type": "Method",
+      "name": "*",
+      "parent": "dart:core#double",
+      "external": true,
+      "location": {
+        "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\double.dart",
+        "line": 37,
+        "column": 19
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.accounts",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.accounts",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.template",
+      "target": "package:test_suite_dart/types.dart#AbstractBase.template",
+      "type": "Overrides"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.describe",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.new",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.new",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "target": "package:test_suite_dart/types.dart#AbstractBase",
+      "type": "Inherits"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "target": "package:test_suite_dart/types.dart#Greeting",
+      "type": "Inherits"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.ledger",
+      "target": "package:test_suite_dart/members.dart#Ledger",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.total",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.instances",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account._balance",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.balance",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.isEmpty",
+      "target": "dart:core#bool",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.+",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.new",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.copy",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Ledger.accounts",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Ledger.accounts",
+      "target": "package:test_suite_dart/members.dart#Account",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#PlainClass.value",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Named.name",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.name",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.name",
+      "target": "package:test_suite_dart/types.dart#Named.name",
+      "type": "Overrides"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.template",
+      "target": "package:test_suite_dart/types.dart#AbstractBase.template",
+      "type": "Overrides"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined",
+      "target": "package:test_suite_dart/types.dart#AbstractBase",
+      "type": "Inherits"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined",
+      "target": "package:test_suite_dart/types.dart#Greeting",
+      "type": "Inherits"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined",
+      "target": "package:test_suite_dart/types.dart#Named",
+      "type": "Implements"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Greeting.greet",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Greeting",
+      "target": "dart:core#Object",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#CountingLog.count",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#CountingLog",
+      "target": "package:test_suite_dart/types.dart#AbstractBase",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.red",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.green",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.blue",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.values",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.values",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.isWarm",
+      "target": "dart:core#bool",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color",
+      "target": "dart:core#Enum",
+      "type": "Inherits"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#StringPadding.padBoth",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#StringPadding.padBoth",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#StringPadding",
+      "target": "dart:core#String",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters.value",
+      "target": "dart:core#double",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters.inCentimeters",
+      "target": "dart:core#double",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters.new",
+      "target": "dart:core#double",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#ColorPicker",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#ColorPicker",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#ColorList",
+      "target": "dart:core#List",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#ColorList",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "target": "package:test_suite_dart/features/reporting/report_builder.dart#Important",
+      "type": "UsesAttribute"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.template",
+      "target": "dart:core#override",
+      "type": "UsesAttribute"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "target": "package:test_suite_dart/members.dart#Account.empty",
+      "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "target": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.accounts",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "target": "package:test_suite_dart/members.dart#Account.+",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "dart:core#Iterable.toList",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "dart:core#Iterable.map",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.accounts",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred",
+      "target": "package:test_suite_dart/members.dart#Account.balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker",
+      "target": "package:test_suite_dart/types.dart#ColorPicker",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker",
+      "target": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "dart:core#List.[]",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "package:test_suite_dart/types.dart#Color.values",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "dart:core#num.%",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor",
+      "target": "dart:core#List.length",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.describe",
+      "target": "package:test_suite_dart/types.dart#Greeting.greet",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.ledger",
+      "target": "package:test_suite_dart/members.dart#Ledger.new",
+      "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.total",
+      "target": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.total",
+      "target": "package:test_suite_dart/library_with_part.dart#Bookkeeper.ledger",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#pickFirst",
+      "target": "package:test_suite_dart/types.dart#Color",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#pickFirst",
+      "target": "package:test_suite_dart/types.dart#ColorPicker",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.empty",
+      "target": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.copy",
+      "target": "package:test_suite_dart/members.dart#Account.new",
+      "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.copy",
+      "target": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.balance",
+      "target": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.isEmpty",
+      "target": "dart:core#num.==",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.isEmpty",
+      "target": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.+",
+      "target": "package:test_suite_dart/members.dart#Account.new",
+      "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.+",
+      "target": "dart:core#num.+",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.+",
+      "target": "package:test_suite_dart/members.dart#Account._balance",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "target": "package:test_suite_dart/members.dart#Ledger",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "target": "package:test_suite_dart/members.dart#Ledger.accounts",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/library_with_part.dart#_sumBalances",
+      "target": "package:test_suite_dart/members.dart#Account.balance",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#AbstractBase.shared",
+      "target": "package:test_suite_dart/types.dart#AbstractBase.template",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#CountingLog.log",
+      "target": "dart:core#num.+",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#CountingLog.log",
+      "target": "package:test_suite_dart/types.dart#AbstractBase.shared",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.name",
+      "target": "dart:core#override",
+      "type": "UsesAttribute"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.name",
+      "target": "package:test_suite_dart/types.dart#Greeting.greet",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Combined.template",
+      "target": "dart:core#override",
+      "type": "UsesAttribute"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.isWarm",
+      "target": "dart:core#Object.==",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Color.isWarm",
+      "target": "package:test_suite_dart/types.dart#Color.red",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#StringPadding.padBoth",
+      "target": "dart:core#String.padRight",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#StringPadding.padBoth",
+      "target": "dart:core#String.padLeft",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#doubleIt",
+      "target": "dart:core#int",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters",
+      "target": "dart:core#double",
+      "type": "Uses"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters.inCentimeters",
+      "target": "dart:core#double.*",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/types.dart#Meters.inCentimeters",
+      "target": "package:test_suite_dart/types.dart#Meters.value",
+      "type": "Uses"
+    }
+  ],
+  "metrics": {
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.template": {
+      "code": 2,
+      "comment": 0,
+      "logical": 0,
+      "complexity": 1
+    },
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge": {
+      "code": 7,
+      "comment": 1,
+      "logical": 4,
+      "complexity": 2
+    },
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.balancesDeferred": {
+      "code": 5,
+      "comment": 2,
+      "logical": 2,
+      "complexity": 1
+    },
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.picker": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder._pickColor": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.describe": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/library_with_part.dart#Bookkeeper.total": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/members.dart#pickFirst": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/members.dart#Account.copy": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/members.dart#Account.balance": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/members.dart#Account.isEmpty": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/members.dart#Account.+": {
+      "code": 1,
+      "comment": 1,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/library_with_part.dart#_sumBalances": {
+      "code": 7,
+      "comment": 0,
+      "logical": 4,
+      "complexity": 2
+    },
+    "package:test_suite_dart/types.dart#AbstractBase.shared": {
+      "code": 3,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#PureInterface.contract": {
+      "code": 1,
+      "comment": 0,
+      "logical": 0,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#Greeting.greet": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#CountingLog.log": {
+      "code": 4,
+      "comment": 0,
+      "logical": 2,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#Combined.name": {
+      "code": 2,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#Combined.template": {
+      "code": 2,
+      "comment": 0,
+      "logical": 0,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#Color.isWarm": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#StringPadding.padBoth": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#doubleIt": {
+      "code": 1,
+      "comment": 2,
+      "logical": 1,
+      "complexity": 1
+    },
+    "package:test_suite_dart/types.dart#Meters.inCentimeters": {
+      "code": 1,
+      "comment": 0,
+      "logical": 1,
+      "complexity": 1
+    }
+  }
+}

@@ -1,35 +1,36 @@
-﻿using System.IO;
-using System.Windows;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
-using CSharpCodeAnalyst.CodeGraph.Export;
-using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
+using CSharpCodeAnalyst.Importers.Contracts;
 using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Shared;
 
 namespace CSharpCodeAnalyst.Features.Import;
 
 /// <summary>
-///     Imports various file format into a CodeGraph.
+///     Drives the imports.
+///     The C# solution import is implemented here because it takes its options from the settings
+///     rather than from a dialog. Everything else is an <see cref="IImporter" /> from
+///     CSharpCodeAnalyst.Importers and goes through <see cref="RunImporterAsync" />, which supplies
+///     the context and owns busy state, cancellation and error reporting.
 /// </summary>
 public class Importer
 {
-    private readonly IUserNotification _ui;
-
     /// <summary>
     ///     Busy/status-bar sink, owned by MainViewModel and injected here.
     /// </summary>
     private readonly IProgress<BusyState> _busy;
 
     /// <summary>
-    ///     Wraps <see cref="_busy" /> for the parser, which reports plain progress text. Constructed
-    ///     once on the UI thread, so it captures the UI SynchronizationContext: progress reported from
-    ///     the background parse (see ExecuteGuardedImportAsync) is marshalled back automatically
-    ///     instead of touching view-model properties from a worker thread.
+    ///     Wraps <see cref="_busy" /> for the parser and the importers, which report plain progress
+    ///     text. Constructed once on the UI thread, so it captures the UI SynchronizationContext:
+    ///     progress reported from the background run (see ExecuteGuardedImportAsync) is marshalled
+    ///     back automatically instead of touching view-model properties from a worker thread.
     /// </summary>
     private readonly IProgress<string> _progress;
+
+    private readonly IUserNotification _ui;
 
     /// <summary>
     ///     Store this value because we cannot show the diagnostics dialog in the worker.
@@ -43,7 +44,8 @@ public class Importer
         _progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
     }
 
-    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode,
+        bool includeGeneratedCode, bool splitPropertyAccessors)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -53,108 +55,39 @@ public class Importer
 
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
-            () => ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors));
+            async () => (ParseResult?)await Task.Run(() =>
+                ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors)));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
             _ui.ShowErrorWarningDialog(_parserDiagnostics.Failures, _parserDiagnostics.Warnings);
         }
 
-
         return result;
     }
 
-    public async Task<Result<ParseResult>> ImportJdepsAsync()
-    {
-        var fileName = TryGetImportJdepsFilePath();
-        if (string.IsNullOrEmpty(fileName))
-        {
-            return Result<ParseResult>.Canceled();
-        }
-
-        return await ExecuteGuardedImportAsync(
-            "Importing jdeps data...",
-            () => ImportJDepsFuncAsync(fileName));
-    }
-
     /// <summary>
-    ///     Imports a C++ or Python project by running doxygen (expected on the PATH) over a
-    ///     source directory and converting its XML output into a code graph. The wizard only asks
-    ///     for the directory, the language and a project name; everything else happens in the
-    ///     background.
+    ///     Runs one importer: checks its prerequisite, lets it ask the user for whatever it needs,
+    ///     and executes it off the UI thread. A null result means the user cancelled - that is not an
+    ///     error and leaves the currently loaded graph alone.
     /// </summary>
-    public async Task<Result<ParseResult>> ImportDoxygenAsync()
+    public async Task<Result<ParseResult>> RunImporterAsync(IImporter importer)
     {
-        if (!DoxygenRunner.IsDoxygenAvailable())
+        if (!importer.IsAvailable(out var unavailableReason))
         {
-            _ui.ShowError(Strings.ImportDoxygen_DoxygenNotFound);
+            _ui.ShowError(unavailableReason ?? string.Empty);
             return Result<ParseResult>.Canceled();
         }
 
-        var viewModel = new DoxygenImportDialogViewModel();
-        var dialog = new DoxygenImportDialog(viewModel, _ui) { Owner = Application.Current.MainWindow };
-        if (dialog.ShowDialog() != true)
-        {
-            return Result<ParseResult>.Canceled();
-        }
+        using var context = new ImportContext(_ui, _progress, importer);
 
-        return await ExecuteGuardedImportAsync(
-            Strings.ImportDoxygen_Progress,
-            () => ImportDoxygenFuncAsync(viewModel.SourceDirectory, viewModel.ProjectName.Trim(), viewModel.SelectedLanguage.Value));
+        // Called on the UI thread because the importer opens its own dialog; moving the actual work
+        // to a worker is the importer's job (see IImporter.ImportAsync).
+        return await ExecuteGuardedImportAsync(Strings.Import_Progress, () => importer.ImportAsync(context));
     }
 
-    private async Task<ParseResult> ImportDoxygenFuncAsync(string sourceDirectory, string projectName, DoxygenLanguage language)
-    {
-        var workingDirectory = Path.Combine(Path.GetTempPath(), "CSharpCodeAnalyst", "doxygen", Guid.NewGuid().ToString("N"));
-        try
-        {
-            _progress.Report(Strings.ImportDoxygen_RunningDoxygen);
-            var xmlDirectory = await DoxygenRunner.RunAsync(sourceDirectory, workingDirectory, projectName, language);
-
-            _progress.Report(Strings.ImportDoxygen_Converting);
-            var graph = new DoxygenXmlConverter().Convert(xmlDirectory, projectName);
-            return new ParseResult(graph, new MetricStore());
-        }
-        finally
-        {
-            try
-            {
-                Directory.Delete(workingDirectory, true);
-            }
-            catch
-            {
-                // Best effort - the directory lives below %TEMP% anyway.
-            }
-        }
-    }
-
-    public async Task<Result<ParseResult>> ImportPlainTextAsync()
-    {
-        var fileName = TryGetImportPlainTextPath();
-        if (string.IsNullOrEmpty(fileName))
-        {
-            return Result<ParseResult>.Canceled();
-        }
-
-        return await ExecuteGuardedImportAsync(
-            "Importing plain text graph...",
-            () => ImportPlainTextFuncAsync(fileName));
-    }
-
-    private Task<ParseResult> ImportJDepsFuncAsync(string filePath)
-    {
-        var importer = new JdepsReader();
-        return Task.FromResult(new ParseResult(importer.ImportFromFile(filePath), new MetricStore()));
-    }
-
-    private Task<ParseResult> ImportPlainTextFuncAsync(string filePath)
-    {
-        var graph = CodeGraphSerializer.DeserializeFromFile(filePath);
-        return Task.FromResult(new ParseResult(graph, new MetricStore()));
-    }
-
-
-    private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters, bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+    private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters,
+        bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
     {
         var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors), _progress);
 
@@ -169,14 +102,16 @@ public class Importer
         return parseResult;
     }
 
-    private async Task<Result<ParseResult>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<ParseResult>> importFunc)
+    private async Task<Result<ParseResult>> ExecuteGuardedImportAsync(string progressMessage, Func<Task<ParseResult?>> importFunc)
     {
         try
         {
             _busy.Report(new BusyState(progressMessage, true));
 
-            var parseResult = await Task.Run(importFunc);
-            return Result<ParseResult>.Success(parseResult);
+            var parseResult = await importFunc();
+            return parseResult is null
+                ? Result<ParseResult>.Canceled()
+                : Result<ParseResult>.Success(parseResult);
         }
         catch (Exception ex)
         {
@@ -190,27 +125,8 @@ public class Importer
         }
     }
 
-    private string? TryGetImportJdepsFilePath()
-    {
-        var filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-        var title = "Select jdeps output file";
-
-        return _ui.ShowOpenFileDialog(filter, title);
-    }
-
     private string? TryGetImportSolutionPath()
     {
-        var filter = Strings.Import_FileFilter;
-        var title = Strings.Import_DialogTitle;
-
-        return _ui.ShowOpenFileDialog(filter, title);
-    }
-
-    private string? TryGetImportPlainTextPath()
-    {
-        var filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-        var title = "Select plaint text graph file";
-
-        return _ui.ShowOpenFileDialog(filter, title);
+        return _ui.ShowOpenFileDialog(Strings.Import_FileFilter, Strings.Import_DialogTitle);
     }
 }

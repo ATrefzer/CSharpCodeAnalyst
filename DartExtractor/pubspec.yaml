@@ -1,0 +1,14 @@
+name: dart_extractor
+description: >-
+  Extracts a code graph (elements + relationships) from a Dart/Flutter project
+  and writes it as JSON for CSharpCodeAnalyst to import.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  analyzer: ^8.0.0
+  path: ^1.9.0
+  yaml: ^3.1.2

@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser;

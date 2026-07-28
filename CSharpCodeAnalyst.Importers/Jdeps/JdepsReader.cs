@@ -1,7 +1,7 @@
 using System.IO;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Jdeps;
 
 public class JdepsReader
 {

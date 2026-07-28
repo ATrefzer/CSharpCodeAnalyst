@@ -164,6 +164,7 @@
         <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.ViewModel\DsmSuite.DsmViewer.ViewModel.csproj" />
         <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.Application\DsmSuite.DsmViewer.Application.csproj" />
         <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.Model\DsmSuite.DsmViewer.Model.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Importers\CSharpCodeAnalyst.Importers.csproj" />
     </ItemGroup>
 
 

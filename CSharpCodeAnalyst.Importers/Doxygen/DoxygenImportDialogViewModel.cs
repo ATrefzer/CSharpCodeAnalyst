@@ -1,9 +1,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Importers.Resources;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 public sealed record DoxygenLanguageOption(DoxygenLanguage Value, string Label);
 

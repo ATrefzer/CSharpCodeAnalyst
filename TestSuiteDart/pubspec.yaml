@@ -1,0 +1,9 @@
+# Fixture for the Dart import. Deliberately dependency-free so that "dart pub get" resolves
+# offline and the fixture can be analyzed on any machine with a Dart SDK.
+name: test_suite_dart
+description: Handcrafted Dart package used as input for the Dart import tests.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.6.0

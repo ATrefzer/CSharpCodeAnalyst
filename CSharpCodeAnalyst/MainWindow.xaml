@@ -90,19 +90,19 @@
                     <RibbonSplitButton Label="{x:Static resources:Strings.Import_Label}"
                                        LargeImageSource="/Resources/import_solution.png"
                                        Command="{Binding LoadSolutionCommand}"
+                                       ItemsSource="{Binding ImportMenuEntries}"
                                        KeyTip="IM">
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportSolution_Label}"
-                                        ImageSource="/Resources/import_solution.png"
-                                        Command="{Binding LoadSolutionCommand}" />
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportJdeps_Label}"
-                                        ImageSource="/Resources/import_solution.png"
-                                        Command="{Binding ImportJdepsCommand}" />
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportDoxygen_Label}"
-                                        ImageSource="/Resources/import_solution.png"
-                                        Command="{Binding ImportDoxygenCommand}" />
-                        <RibbonMenuItem Header="{x:Static resources:Strings.ImportPlainText_Label}"
-                                        ImageSource="/Resources/import_solution.png"
-                                        Command="{Binding ImportPlainTextCommand}" />
+                        <!-- Bound, not hardcoded: registering an importer in ImporterManager is
+                             enough, no XAML change needed (same pattern as the Analyzers button). -->
+                        <RibbonSplitButton.ItemContainerStyle>
+                            <Style TargetType="RibbonMenuItem">
+                                <Setter Property="Header" Value="{Binding Label}" />
+                                <Setter Property="ToolTip" Value="{Binding Description}" />
+                                <Setter Property="ImageSource" Value="/Resources/import_solution.png" />
+                                <Setter Property="Command" Value="{Binding Command}" />
+                                <Setter Property="CommandParameter" Value="{Binding CommandParameter}" />
+                            </Style>
+                        </RibbonSplitButton.ItemContainerStyle>
                     </RibbonSplitButton>
 
                     <RibbonButton Label="{x:Static resources:Strings.ProjectFilter_Label}"

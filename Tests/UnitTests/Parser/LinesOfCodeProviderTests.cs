@@ -706,6 +706,158 @@ public class LinesOfCodeProviderTests
     }
 
     // -------------------------------------------------------------------
+    // Markdown
+    // -------------------------------------------------------------------
+
+    [Test]
+    public void Markdown_HasNoCommentSyntax_EveryNonBlankLineIsCode()
+    {
+        var lines = new[]
+        {
+            "# Heading",
+            "",
+            "Some prose with an apostrophe: don't panic.",
+            "<!-- an HTML comment is not modelled, it is content -->",
+            "```csharp",
+            "// this looks like a comment but is fenced content",
+            "```"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".md");
+
+        Assert.That(code, Is.EqualTo(6));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    // -------------------------------------------------------------------
+    // Dart
+    // -------------------------------------------------------------------
+
+    [Test]
+    public void Dart_BasicMix_CountsCodeCommentsAndBlanks()
+    {
+        var lines = new[]
+        {
+            "import 'dart:math';",
+            "",
+            "/// A doc comment.",
+            "class Foo {",
+            "  int x = 1; // trailing comment",
+            "}"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(4));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Dart_MultiLineBlockComment_SpansLinesCorrectly()
+    {
+        var lines = new[]
+        {
+            "var a = 1;",
+            "/* this comment",
+            "spans several",
+            "lines */",
+            "var b = 2;"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(2));
+        Assert.That(comments, Is.EqualTo(3));
+    }
+
+    [Test]
+    public void Dart_StringContainingSlashSlash_IsNotTreatedAsComment()
+    {
+        var lines = new[]
+        {
+            "var s = 'not a // comment';",
+            "var t = \"https://example.com\";"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(2));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void Dart_TripleQuotedString_MultiLineWithFakeComment_IsAllCode()
+    {
+        // Unlike Python, Dart's triple-quoted strings are plain multi-line strings, not
+        // docstrings - they count as code, and their content must not open a comment.
+        var lines = new[]
+        {
+            "var s = '''",
+            "// not a comment",
+            "/* not a block comment either",
+            "''';",
+            "var t = 2;"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(5));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void Dart_RawString_TrailingBackslashDoesNotEscapeTheClosingQuote()
+    {
+        // In a raw string '\' is an ordinary character, so the region closes at the quote
+        // right after it. With backslash escaping it would stay open and swallow the
+        // following comment line.
+        var lines = new[]
+        {
+            "var path = r'C:\\';",
+            "// a real comment",
+            "var x = 1;"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(2));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Dart_NonRawString_EscapedQuoteDoesNotCloseTheRegion()
+    {
+        // The counterpart to the raw-string test: in a normal string '\' DOES escape, so the
+        // region survives the embedded quote and closes at the last one.
+        var lines = new[]
+        {
+            "var s = 'it\\'s';",
+            "// a real comment"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(1));
+        Assert.That(comments, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Dart_RawTripleQuotedString_SpansLines()
+    {
+        var lines = new[]
+        {
+            "var s = r'''",
+            "// not a comment",
+            "''';"
+        };
+
+        var (code, comments) = _sut.AnalyzeLines(lines, ".dart");
+
+        Assert.That(code, Is.EqualTo(3));
+        Assert.That(comments, Is.EqualTo(0));
+    }
+
+    // -------------------------------------------------------------------
     // Misc
     // -------------------------------------------------------------------
 
