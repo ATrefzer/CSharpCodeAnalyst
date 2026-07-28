@@ -1,4 +1,4 @@
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 /// <summary>
 ///     Source languages the doxygen based import supports. The language only decides which

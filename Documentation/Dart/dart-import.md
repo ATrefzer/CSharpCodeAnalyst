@@ -24,9 +24,10 @@ The import is split across a language boundary, because `analyzer` only exists f
 | Part | Where | Job |
 | --- | --- | --- |
 | `DartExtractor/` | Dart package at the repository root | Analyzes the project, emits JSON |
-| `DartRunner` | `Features/Import/` | Finds the Dart SDK, runs the extractor |
-| `DartExtractorDeployment` | `Features/Import/` | Copies the tool to `%LocalAppData%` and resolves it once |
-| `DartGraphConverter` | `Features/Import/` | JSON → `CodeGraph` |
+| `DartImporter` | `CSharpCodeAnalyst.Importers/Dart/` | The `IImporter` entry point: dialog, then the two steps below |
+| `DartRunner` | `CSharpCodeAnalyst.Importers/Dart/` | Finds the Dart SDK, runs the extractor |
+| `DartExtractorDeployment` | `CSharpCodeAnalyst.Importers/Dart/` | Copies the tool to `%LocalAppData%` and resolves it once |
+| `DartGraphConverter` | `CSharpCodeAnalyst.Importers/Dart/` | JSON → `CodeGraph` |
 
 The JSON carries the literal names of `CodeElementType` and `RelationshipType`, so the modelling
 decisions all live on the Dart side and the converter stays a pure rebuild of the object graph.
@@ -39,6 +40,11 @@ shipped sources are copied to `%LocalAppData%\CSharpCodeAnalyst\DartExtractor\<f
 resolved there. The fingerprint is a hash over the shipped files rather than the application
 version — during development the sources change while the version does not, and a stale resolved
 copy would otherwise be used forever.
+
+The sources are found through `IImportContext.AssetDirectory`, which is the directory of the
+importer's own assembly — deliberately not `AppContext.BaseDirectory`. This importer is the reason
+that member exists: it is the one that ships files, and assuming they sit next to the executable
+would break the moment importers are loaded from a plugin folder.
 
 **Why dart.exe and not dart.** What sits on the PATH is usually Flutter's `dart.bat` wrapper, which
 cannot be started without a shell. `DartRunner` therefore prefers a real `dart.exe`, falling back to
@@ -93,9 +99,19 @@ visible as such rather than collapsing onto the type.
 Ids are `<library uri>#<qualified name>`, e.g. `package:app/main.dart#MyApp.build`. Dart has no
 overloading, so a name is unique inside its container.
 
-**Synthetic accessors.** Reading `obj.count` on a field resolves to the compiler-generated getter,
-not to the field. Those synthetic accessors are redirected to their variable, so the edge points at
-the declared field.
+**Field and accessor induce each other.** Dart models the same declaration twice, and the two halves
+carry the same name — so without a rule the outcome would depend on iteration order. `_canonicalize`
+decides both directions:
+
+- Reading `obj.count` on a field resolves to the compiler-generated *getter*. That accessor is
+  redirected to its variable, so the edge points at the declared field.
+- A hand-written getter or setter induces a synthetic *variable* of the same name. That variable is
+  redirected to the accessor — otherwise every property would appear in the graph as a field, which
+  is exactly what happened before `TestSuiteDart` existed to catch it.
+- A variable that is synthetic *and* has only synthetic accessors is genuinely generated — an enum's
+  `values` — and stays a field. There is no declaration to prefer over it.
+
+Getter and setter of a pair share one id, so they collapse into a single `Property` element.
 
 ## Relationship mapping
 
@@ -111,7 +127,7 @@ the declared field.
 | tear-off (`onPressed: _increment`) | `Uses` | References a method without calling it |
 | type annotations, type arguments | `Uses` | `Future<List<Order>>` reaches `Order`, not only `Future` |
 | annotation | `UsesAttribute` | Resolved to the annotation type where possible |
-| method override | `Overrides` | |
+| override of a method, getter or setter | `Overrides` | Implementing an abstract getter of an interface is an override too, and getters carry the bulk of a Dart interface |
 
 **Closures downgrade calls to `Uses`.** A closure body is not executed where it is written, so
 everything inside one is recorded as `Uses` instead of `Calls`. This mirrors how the C# parser
@@ -173,7 +189,24 @@ as code.
 
 ## Testing
 
-`DartGraphConverterTests` covers the converter with an inline JSON sample and needs no Dart SDK.
-`DartImportEndToEndTests` runs the whole chain against a real project; it is `[Explicit]` because it
-needs a Dart SDK and a resolved project. Point it at one with the `CSCA_DART_TEST_PROJECT`
-environment variable.
+`TestSuiteDart/` is the handcrafted fixture package — the Dart counterpart of `TestSuite/`. It
+contains every construct of the tables above exactly once and is deliberately dependency-free, so
+`dart pub get` resolves it offline on any machine. Do not consume it from production code.
+
+The fixture is tested in two halves, because asserting the mapping must not require a Dart SDK on
+the build agent:
+
+| Test | Needs Dart? | Job |
+| --- | --- | --- |
+| `DartFixtureApprovalTests` | no | Asserts the whole mapping against the recorded extractor output in `Tests/TestData/dart-fixture-graph.json` |
+| `DartFixtureRecordingTests` | yes, `[Explicit]` | Runs the extractor over `TestSuiteDart/` and compares it to that recording; `ReRecordTheGraph` rewrites it |
+
+**After any change to `DartExtractor`:** run `RecordedGraphIsUpToDate`. If it fails, review what
+moved, run `ReRecordTheGraph`, and update the expectations in `DartFixtureApprovalTests`. The
+recording is normalized — absolute paths replaced, JSON indented — so the diff is reviewable. Source
+locations are absolute and machine specific and are therefore not part of the comparison.
+
+`DartGraphConverterTests` additionally covers the converter's own edge cases (unknown types, dangling
+references, format version) with a small inline JSON sample. `DartImportEndToEndTests` runs the whole
+chain including tool deployment against an arbitrary real project; it is `[Explicit]` and takes its
+project from the `CSCA_DART_TEST_PROJECT` environment variable.

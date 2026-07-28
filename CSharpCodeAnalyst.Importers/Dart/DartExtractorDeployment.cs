@@ -2,7 +2,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Importers.Shared;
+
+namespace CSharpCodeAnalyst.Importers.Dart;
 
 /// <summary>
 ///     Makes the DartExtractor tool runnable.
@@ -22,9 +24,11 @@ internal static class DartExtractorDeployment
     ///     Returns the directory of the ready-to-run extractor package. Cheap after the first
     ///     call - it only recomputes the fingerprint and finds the marker file.
     /// </summary>
-    public static async Task<string> EnsureDeployedAsync(string dartExecutable, IProgress<string>? progress, CancellationToken cancellationToken = default)
+    public static async Task<string> EnsureDeployedAsync(string dartExecutable, string assetDirectory, IProgress<string>? progress,
+        CancellationToken cancellationToken = default)
     {
-        var source = Path.Combine(AppContext.BaseDirectory, "DartExtractor");
+        // Relative to the importer's own assembly, not to the executable - see IImportContext.
+        var source = Path.Combine(assetDirectory, "DartExtractor");
         if (!File.Exists(Path.Combine(source, "pubspec.yaml")))
         {
             throw new InvalidOperationException($"The DartExtractor tool is missing from the installation ({source}).");

@@ -12,12 +12,12 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
-        <PackageReference Include="NUnit" Version="4.6.1"/>
+        <PackageReference Include="NUnit" Version="4.6.1" />
         <PackageReference Include="NUnit.Analyzers" Version="4.14.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NUnit3TestAdapter" Version="6.2.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="6.2.0" />
         <PackageReference Update="Microsoft.NET.StringTools" Version="18.8.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -25,15 +25,24 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj"/>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst\CSharpCodeAnalyst.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Analyzers\CSharpCodeAnalyst.Analyzers.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Importers\CSharpCodeAnalyst.Importers.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="NUnit.Framework"/>
+        <Using Include="NUnit.Framework" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Recorded output of the Dart extractor over TestSuiteDart, so the mapping can be
+             asserted without a Dart SDK. Regenerate with DartFixtureRecordingTests. -->
+        <Content Include="TestData\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>

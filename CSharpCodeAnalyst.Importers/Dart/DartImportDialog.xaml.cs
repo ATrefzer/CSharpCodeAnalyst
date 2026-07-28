@@ -1,9 +1,9 @@
 using System.IO;
 using System.Windows;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
-using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Importers.Resources;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Dart;
 
 public partial class DartImportDialog : Window
 {

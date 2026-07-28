@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using System.IO;
+using CSharpCodeAnalyst.Importers.Shared;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 /// <summary>
 ///     Runs doxygen (expected on the PATH) over a C++ or Python source directory to produce
@@ -10,70 +10,40 @@ namespace CSharpCodeAnalyst.Features.Import;
 /// </summary>
 internal static class DoxygenRunner
 {
+    private static readonly TimeSpan AvailabilityTimeout = TimeSpan.FromSeconds(10);
+
     public static bool IsDoxygenAvailable()
     {
-        try
-        {
-            using var process = Process.Start(CreateStartInfo("--version"));
-            if (process is null)
-            {
-                return false;
-            }
-
-            process.WaitForExit(10000);
-            return process is { HasExited: true, ExitCode: 0 };
-        }
-        catch
-        {
-            return false;
-        }
+        return ProcessRunner.IsAvailable("doxygen", ["--version"], AvailabilityTimeout);
     }
 
     /// <summary>
     ///     Returns the directory containing the generated XML (index.xml etc.).
     /// </summary>
-    public static async Task<string> RunAsync(string sourceDirectory, string workingDirectory, string projectName, DoxygenLanguage language)
+    public static async Task<string> RunAsync(string sourceDirectory, string workingDirectory, string projectName,
+        DoxygenLanguage language, CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(workingDirectory);
 
         var doxyfilePath = Path.Combine(workingDirectory, "Doxyfile");
-        await File.WriteAllTextAsync(doxyfilePath, CreateDoxyfile(sourceDirectory, workingDirectory, projectName, language));
+        await File.WriteAllTextAsync(doxyfilePath, CreateDoxyfile(sourceDirectory, workingDirectory, projectName, language),
+            cancellationToken);
 
-        var startInfo = CreateStartInfo($"\"{doxyfilePath}\"");
-        startInfo.WorkingDirectory = workingDirectory;
+        var result = await ProcessRunner.RunAsync(new ProcessRunner.Options("doxygen", [doxyfilePath], workingDirectory),
+            cancellationToken);
 
-        using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start doxygen.");
-
-        // Drain both streams while waiting, otherwise doxygen can block on a full pipe.
-        var stdErrTask = process.StandardError.ReadToEndAsync();
-        var stdOutTask = process.StandardOutput.ReadToEndAsync();
-        await process.WaitForExitAsync();
-        await stdOutTask;
-
-        var stdErr = await stdErrTask;
-        if (process.ExitCode != 0)
+        if (result.ExitCode != 0)
         {
-            throw new InvalidOperationException($"doxygen exited with code {process.ExitCode}. {Tail(stdErr)}");
+            throw new InvalidOperationException($"doxygen exited with code {result.ExitCode}. {result.ErrorTail}");
         }
 
         var xmlDirectory = Path.Combine(workingDirectory, "xml");
         if (!File.Exists(Path.Combine(xmlDirectory, "index.xml")))
         {
-            throw new InvalidOperationException($"doxygen finished but produced no XML output in {xmlDirectory}. {Tail(stdErr)}");
+            throw new InvalidOperationException($"doxygen finished but produced no XML output in {xmlDirectory}. {result.ErrorTail}");
         }
 
         return xmlDirectory;
-    }
-
-    private static ProcessStartInfo CreateStartInfo(string arguments)
-    {
-        return new ProcessStartInfo("doxygen", arguments)
-        {
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
     }
 
     private static string CreateDoxyfile(string sourceDirectory, string outputDirectory, string projectName, DoxygenLanguage language)
@@ -108,12 +78,5 @@ internal static class DoxygenRunner
                 QUIET                  = YES
                 WARN_IF_UNDOCUMENTED   = NO
                 """;
-    }
-
-    private static string Tail(string text)
-    {
-        var trimmed = text.Trim();
-        const int maxLength = 500;
-        return trimmed.Length <= maxLength ? trimmed : "..." + trimmed[^maxLength..];
     }
 }

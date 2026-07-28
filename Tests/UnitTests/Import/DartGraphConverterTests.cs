@@ -1,5 +1,6 @@
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Importers.Dart;
+using CSharpCodeAnalyst.Importers.Doxygen;
 
 namespace CodeParserTests.UnitTests.Import;
 

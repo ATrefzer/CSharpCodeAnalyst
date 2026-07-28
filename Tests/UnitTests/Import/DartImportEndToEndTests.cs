@@ -1,5 +1,6 @@
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Importers.Dart;
+using CSharpCodeAnalyst.Importers.Doxygen;
 
 namespace CodeParserTests.UnitTests.Import;
 
@@ -55,7 +56,7 @@ public class DartImportEndToEndTests
     [Test]
     public async Task ProducesAConnectedGraph()
     {
-        var jsonPath = await DartRunner.RunAsync(_projectDirectory!, _workingDirectory, null);
+        var jsonPath = await DartRunner.RunAsync(_projectDirectory!, _workingDirectory, AppContext.BaseDirectory, null);
 
         var converter = new DartGraphConverter();
         var graph = converter.ConvertFile(jsonPath);

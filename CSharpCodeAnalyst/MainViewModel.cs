@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+using CSharpCodeAnalyst.CodeGraph.Contracts;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -61,6 +62,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     private readonly Exporter _exporter;
     private readonly Importer _importer;
+    private readonly ImporterManager _importerManager = new();
 
     private readonly MessageBus _messaging;
     private readonly MetricStore _metricStore;
@@ -134,10 +136,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _gallery = new Gallery();
         SearchCommand = new WpfCommand(Search);
         LoadSolutionCommand = new WpfCommand(OnImportSolution);
-        ImportJdepsCommand = new WpfCommand(OnImportJdeps);
-        ImportPlainTextCommand = new WpfCommand(OnImportPlainText);
-        ImportDoxygenCommand = new WpfCommand(OnImportDoxygen);
-        ImportDartCommand = new WpfCommand(OnImportDart);
+        ExecuteImporterCommand = new WpfCommand<string>(OnExecuteImporter);
 
         LoadProjectCommand = new WpfCommand(OnLoadProject);
         SaveProjectCommand = new WpfCommand(OnSaveProject);
@@ -261,9 +260,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public ICommand LoadProjectCommand { get; }
     public ICommand LoadSolutionCommand { get; }
-    public ICommand ImportJdepsCommand { get; }
-    public ICommand ImportDoxygenCommand { get; }
-    public ICommand ImportDartCommand { get; }
+    public ICommand ExecuteImporterCommand { get; }
     public ICommand SaveProjectCommand { get; }
     public ICommand GraphClearCommand { get; }
     public ICommand GraphLayoutCommand { get; }
@@ -404,6 +401,19 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         get => _analyzerManager.All.ToList();
     }
 
+    /// <summary>
+    ///     Bound by the import menu, so a new importer needs no XAML change - exactly like Analyzers.
+    ///     The C# solution import leads because it is the primary one and the split button's default.
+    /// </summary>
+    public List<ImportMenuEntry> ImportMenuEntries
+    {
+        get =>
+        [
+            new(Strings.ImportSolution_Label, Strings.Import_DialogTitle, LoadSolutionCommand, null),
+            .. _importerManager.All.Select(i => new ImportMenuEntry(i.Name, i.Description, ExecuteImporterCommand, i.Id))
+        ];
+    }
+
     public ICommand CopyBitmapToClipboardCommand { get; set; }
 
     public bool IsGraphToolPanelVisible
@@ -445,8 +455,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return title;
         }
     }
-
-    public ICommand ImportPlainTextCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -1035,44 +1043,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         IsCanvasHintsVisible = false;
     }
 
-    private async void OnImportPlainText()
+    /// <summary>
+    ///     Runs one of the registered importers. The C# solution import is not among them - it takes
+    ///     its options from the settings and has its own command (see OnImportSolution).
+    /// </summary>
+    private async void OnExecuteImporter(string id)
     {
         AskUserToSaveProject();
 
-        var result = await _importer.ImportPlainTextAsync();
-        if (result.IsSuccess)
-        {
-            CompleteImport(result.Data!);
-        }
-    }
-
-    private async void OnImportJdeps()
-    {
-        AskUserToSaveProject();
-
-        var result = await _importer.ImportJdepsAsync();
-        if (result.IsSuccess)
-        {
-            CompleteImport(result.Data!);
-        }
-    }
-
-    private async void OnImportDoxygen()
-    {
-        AskUserToSaveProject();
-
-        var result = await _importer.ImportDoxygenAsync();
-        if (result.IsSuccess)
-        {
-            CompleteImport(result.Data!);
-        }
-    }
-
-    private async void OnImportDart()
-    {
-        AskUserToSaveProject();
-
-        var result = await _importer.ImportDartAsync();
+        var result = await _importer.RunImporterAsync(_importerManager.Get(id));
         if (result.IsSuccess)
         {
             CompleteImport(result.Data!);

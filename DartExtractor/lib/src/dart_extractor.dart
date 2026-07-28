@@ -155,7 +155,8 @@ class DartExtractor {
         continue;
       }
       _addSignatureTypes(member, memberElement);
-      if (owner is InterfaceElement && member is MethodElement) {
+      // Constructors are executable but never override anything.
+      if (owner is InterfaceElement && member is ExecutableElement && member is! ConstructorElement) {
         _addOverride(owner, member, memberElement);
       }
     }
@@ -202,13 +203,20 @@ class DartExtractor {
     }
   }
 
-  void _addOverride(InterfaceElement owner, MethodElement member, GraphElement source) {
+  /// Overriding is not limited to methods: implementing an abstract getter of an interface is an
+  /// override just as much, and getters carry the bulk of a Dart interface.
+  void _addOverride(InterfaceElement owner, ExecutableElement member, GraphElement source) {
     final name = member.name;
     if (name == null) {
       return;
     }
     for (final supertype in owner.allSupertypes) {
-      final overridden = supertype.getMethod(name);
+      final overridden = switch (member) {
+        GetterElement() => supertype.getGetter(name),
+        SetterElement() => supertype.getSetter(name),
+        MethodElement() => supertype.getMethod(name),
+        _ => null,
+      };
       if (overridden != null) {
         addReference(source, overridden, 'Overrides');
         return;
@@ -314,13 +322,34 @@ class DartExtractor {
     }
   }
 
-  /// A field access resolves to the synthetic getter/setter the compiler creates
-  /// for the field. Redirect those to the field so `obj.count` points at the
-  /// declared field instead of an invisible accessor.
+  /// Picks the element that owns a declaration when Dart models it twice.
+  ///
+  /// A field and a hand-written accessor each induce the other as a synthetic counterpart, and the
+  /// two carry the same name - so without a rule the outcome would depend on iteration order:
+  ///  - a field access resolves to the compiler's synthetic getter; redirect it to the field, so
+  ///    `obj.count` points at the declared field instead of an invisible accessor;
+  ///  - a hand-written getter/setter induces a synthetic variable of the same name; redirect that
+  ///    to the accessor, otherwise every property would end up in the graph as a field.
+  ///
+  /// A variable that is synthetic *and* has only synthetic accessors is genuinely generated
+  /// (an enum's `values`) and stays a field - there is no declaration to prefer over it.
   Element _canonicalize(Element element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       return element.variable;
     }
+
+    if (element is PropertyInducingElement && element.isSynthetic) {
+      // Getter and setter of a pair share one id, so either is a fine representative.
+      final getter = element.getter;
+      if (getter != null && !getter.isSynthetic) {
+        return getter;
+      }
+      final setter = element.setter;
+      if (setter != null && !setter.isSynthetic) {
+        return setter;
+      }
+    }
+
     return element;
   }
 

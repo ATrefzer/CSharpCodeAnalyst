@@ -3,7 +3,7 @@ using System.Text;
 using System.Xml.Linq;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 /// <summary>
 ///     Converts the XML output of doxygen (GENERATE_XML = YES) into a CodeGraph.

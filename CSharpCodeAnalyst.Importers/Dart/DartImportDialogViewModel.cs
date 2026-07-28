@@ -1,9 +1,9 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Importers.Resources;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Dart;
 
 /// <summary>
 ///     Asks for the directory of a Dart or Flutter project. Unlike the doxygen import there is

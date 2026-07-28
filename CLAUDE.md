@@ -44,11 +44,12 @@ Debug shortcut: passing a single arg `-load:<project.json>` auto-loads a saved p
 
 ## Solution layout
 
-Five projects wired together in `CSharpCodeAnalyst.sln`:
+The projects wired together in `CSharpCodeAnalyst.sln` (the load-bearing ones):
 
 - **`CodeGraph/`** — pure, UI-free domain model. Contains the `CodeElement` / `Relationship` / `CodeGraph` graph types (`Graph/`), graph algorithms (`Algorithms/Cycles`, `Algorithms/Metrics`, `Algorithms/Partitioning`), exporters (`Export/` — DGML, DSI, PlantUML, JSON), and `Exploration/CodeGraphExplorer` (traversal queries used from the UI context menus). No WPF dependencies — reference this project from tests and tools.
 - **`CodeParser/`** — Roslyn front-end that turns an `.sln` or `.csproj` into a `CodeGraph`. Entry point: `Parser.ParseAsync(path)`. Works in **two passes**: `HierarchyAnalyzer` finds code elements and parent/child links, then `RelationshipAnalyzer.AnalyzeRelationships` walks method and lambda bodies to build relationships (parallel by default; pass `maxDegreeOfParallelism: 1` for a single-threaded debug run). `Initializer.InitializeMsBuildLocator()` **must** be called once before any parse (both `App.StartUi` and the test fixture `Init` do this).
 - **`CSharpCodeAnalyst/`** — WPF front-end. Organized by feature under `Features/` (`CycleGroups`, `Graph`, `Tree`, `AdvancedSearch`, `Analyzers/ArchitecturalRules`, `Analyzers/EventRegistration`, `Ai`, `Import`, `Export`, `Metrics`, `Partitions`, `Refactoring`, `Gallery`, `Help`, `Info`). Cross-cutting infrastructure lives in `Shared/` (messaging, notifications, data grid, search, filter, WPF helpers). `Configuration/` holds `AppSettings` (from `appsettings.json`), `UserPreferences` (persisted to `userSettings.json`), and `AiCredentialStorage`. Persistence of saved projects is in `Persistence/` (JSON, with DTOs under `Dto/`).
+- **`CSharpCodeAnalyst.Importers/`** — every import except the C# solution: doxygen (C++/Python), Dart/Flutter, jdeps (Java) and the plain text format. UI-free apart from each importer's own configuration dialog; references only `CodeGraph` and `AnalyzerSdk`, never the Roslyn parser. See **Importers (how to add one)** below.
 - **`Tests/`** (project name `CodeParserTests`) — NUnit suite. `ApprovalTests/` parses the `TestSuite/` C# solution once per fixture and asserts on the resulting graph; `UnitTests/` covers cycles, exploration, export, search, architectural rules, etc.
 - **`ApprovalTestTool/`** — standalone console app that clones external repos listed in `Repositories.txt`, parses each at a pinned commit, hashes the graph dump, and diffs against references. Used to catch parser regressions on real codebases; not part of the CI test run.
 
@@ -56,7 +57,7 @@ Five projects wired together in `CSharpCodeAnalyst.sln`:
 
 `DartExtractor/` is a standalone **Dart** package (not in the .NET solution) used by the Dart/Flutter import — see **Dart/Flutter import** below.
 
-`TestSuite/` is a handcrafted C# solution used purely as parser input for the approval tests. Do not consume it from production code — it is intentionally full of odd language constructs. `ReferencedAssemblies/` contains the MSAGL DLLs referenced directly by `CSharpCodeAnalyst.csproj` and `Tests.csproj` (MSAGL is not on NuGet for the versions used here).
+`TestSuite/` is a handcrafted C# solution used purely as parser input for the approval tests, and `TestSuiteDart/` is its Dart equivalent for the Dart import. Do not consume either from production code — they are intentionally full of odd language constructs. `ReferencedAssemblies/` contains the MSAGL DLLs referenced directly by `CSharpCodeAnalyst.csproj` and `Tests.csproj` (MSAGL is not on NuGet for the versions used here).
 
 ## Architectural notes worth knowing before editing
 
@@ -107,10 +108,23 @@ A new **metric** rule costs exactly two things: a class deriving from the right 
 
 Then wire up the edges: `RuleEngine.Execute` for the evaluation, `RuleViolationViewModel` for the table row and detail lines, `ViolationsFormatter` for the CLI output, `RuleCleaner` if the rule can be dead, `BaselineGenerator.RelaxMetricRules` if it can be baselined, and strings in `Resources/Strings.resx` **plus** its hand-maintained `Strings.Designer.cs`. Document the rule in the "Supported rules" tables of `README.md`. `MaxCyclicityRule` and `MaxLinesRule` are the reference implementations of the two kinds.
 
-### Dart/Flutter import
-`DartExtractor/` at the repository root is a **Dart** package (not part of the .NET solution) that analyses a Dart or Flutter project with the `analyzer` package and emits the graph as JSON. `Features/Import/Dart*.cs` finds the Dart SDK, deploys and resolves the tool once into `%LocalAppData%` (the install directory may be read-only and `dart pub get` writes into the package), runs it, and rebuilds the `CodeGraph` from the JSON. The JSON carries the literal `CodeElementType` / `RelationshipType` names, so **all modelling decisions live on the Dart side** and `DartGraphConverter` stays a pure rebuild — keep it that way, and bump `format` in both `graph_builder.dart` and `DartGraphConverter.SupportedFormat` when the contract changes incompatibly.
+### Importers (how to add one)
+Every import except the C# solution lives in **`CSharpCodeAnalyst.Importers/`** (one assembly, one folder per source: `Doxygen/`, `Dart/`, `Jdeps/`, `PlainText/` — the same shape `CSharpCodeAnalyst.Analyzers` has). An importer implements `Contracts/IImporter.cs`: `Id` / `Name` / `Description`, `IsAvailable(out reason)` for the external prerequisite, and `ImportAsync(IImportContext)` returning a `ParseResult` — or `null` when the user cancelled, which is not an error.
 
-Dart has no namespaces, so the hierarchy is derived (assembly = package, namespace = path + library file). **Document mapping changes in `Documentation/Dart/dart-import.md`** — same rule as `Documentation/Roslyn/corrections-and-updates.md` for the C# parser. The C# side is unit-tested without a Dart SDK (`DartGraphConverterTests`); the end-to-end test is `[Explicit]` and needs `CSCA_DART_TEST_PROJECT`.
+Unlike an analyzer, an importer needs user input, and every importer needs different input, so **it brings its own dialog**. A declarative parameter model was considered and rejected: it cannot express validation like the Dart importer's "is this project resolved?". `ImportAsync` is therefore called **on the UI thread** — wrap the CPU-bound part in `Task.Run` yourself, or the window freezes.
+
+`IImportContext` supplies `IUserNotification`, `IProgress<string>`, a scratch `WorkingDirectory` (created and deleted by the host) and `AssetDirectory` — the directory of the *importer's own assembly*, not the executable. An importer that ships files (the Dart one ships the extractor) must use it, or it breaks as soon as importers are loaded from a plugin folder.
+
+**Register** in `Features/Import/ImporterManager.cs`; the import `RibbonSplitButton` binds to `MainViewModel.ImportMenuEntries`, so **no XAML change** is needed. Strings live in `CSharpCodeAnalyst.Importers/Resources/Strings.resx` **and** its hand-maintained `Strings.Designer.cs`. `Features/Import/Importer.cs` stays in the app: it still owns the C# solution import (which takes its options from the settings rather than a dialog) and is the runner that supplies the context and handles busy state and errors.
+
+`ParseResult` lives in `CSharpCodeAnalyst.CodeGraph/Contracts/` — every graph producer returns one, and the importers must not reference the Roslyn-based parser to do so.
+
+### Dart/Flutter import
+`DartExtractor/` at the repository root is a **Dart** package (not part of the .NET solution) that analyses a Dart or Flutter project with the `analyzer` package and emits the graph as JSON. `CSharpCodeAnalyst.Importers/Dart/` finds the Dart SDK, deploys and resolves the tool once into `%LocalAppData%` (the install directory may be read-only and `dart pub get` writes into the package), runs it, and rebuilds the `CodeGraph` from the JSON. The JSON carries the literal `CodeElementType` / `RelationshipType` names, so **all modelling decisions live on the Dart side** and `DartGraphConverter` stays a pure rebuild — keep it that way, and bump `format` in both `graph_builder.dart` and `DartGraphConverter.SupportedFormat` when the contract changes incompatibly.
+
+Dart has no namespaces, so the hierarchy is derived (assembly = package, namespace = path + library file). **Document mapping changes in `Documentation/Dart/dart-import.md`** — same rule as `Documentation/Roslyn/corrections-and-updates.md` for the C# parser.
+
+`TestSuiteDart/` is the fixture package (the Dart counterpart of `TestSuite/`), dependency-free so it resolves offline. Its mapping is pinned in two halves: `DartFixtureApprovalTests` asserts against the recorded extractor output in `Tests/TestData/dart-fixture-graph.json` and runs without a Dart SDK, while `DartFixtureRecordingTests` (`[Explicit]`) re-runs the extractor and compares. **After changing `DartExtractor`, run `RecordedGraphIsUpToDate`, then `ReRecordTheGraph`, then update the expectations.** `DartImportEndToEndTests` is a separate `[Explicit]` test against an arbitrary project via `CSCA_DART_TEST_PROJECT`.
 
 ### AI Advisor
 `Features/Ai/AiClient.cs` talks to any OpenAI-compatible endpoint (including Anthropic, Ollama). Credentials are stored via `Configuration/AiCredentialStorage`. The service is stateless and is invoked from the cycle-group UI to summarize a cycle.

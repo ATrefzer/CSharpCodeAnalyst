@@ -3,7 +3,7 @@ using System.Text.Json;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 
-namespace CSharpCodeAnalyst.Features.Import;
+namespace CSharpCodeAnalyst.Importers.Dart;
 
 /// <summary>
 ///     Converts the JSON produced by the DartExtractor tool (DartExtractor/bin/extract.dart)

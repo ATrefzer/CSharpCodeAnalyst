@@ -1,6 +1,8 @@
 using System.IO;
 
-namespace CSharpCodeAnalyst.Features.Import;
+using CSharpCodeAnalyst.Importers.Shared;
+
+namespace CSharpCodeAnalyst.Importers.Dart;
 
 /// <summary>
 ///     Locates the Dart SDK and runs the DartExtractor tool over a Dart or Flutter project.
@@ -59,13 +61,13 @@ internal static class DartRunner
     /// <summary>
     ///     Runs the extractor and returns the path of the written JSON file.
     /// </summary>
-    public static async Task<string> RunAsync(string projectDirectory, string workingDirectory, IProgress<string>? progress,
-        CancellationToken cancellationToken = default)
+    public static async Task<string> RunAsync(string projectDirectory, string workingDirectory, string assetDirectory,
+        IProgress<string>? progress, CancellationToken cancellationToken = default)
     {
         var dartExecutable = FindDartExecutable()
                              ?? throw new InvalidOperationException(Resources.Strings.ImportDart_DartNotFound);
 
-        var extractorDirectory = await DartExtractorDeployment.EnsureDeployedAsync(dartExecutable, progress, cancellationToken);
+        var extractorDirectory = await DartExtractorDeployment.EnsureDeployedAsync(dartExecutable, assetDirectory, progress, cancellationToken);
 
         Directory.CreateDirectory(workingDirectory);
         var outputPath = Path.Combine(workingDirectory, "graph.json");

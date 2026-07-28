@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+      Microsoft ResX Schema 
+      
+      Version 2.0
+      
+      The primary goals of this format is to allow a simple XML format 
+      that is mostly human readable. The generation and parsing of the 
+      various data types are done through the TypeConverter classes 
+      associated with the data types.
+      
+      Example:
+      
+      ... ado.net/XML headers & schema ...
+      <resheader name="resmimetype">text/microsoft-resx</resheader>
+      <resheader name="version">2.0</resheader>
+      <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+      <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+      <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+      <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+      <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+          <value>[base64 mime encoded serialized .NET Framework object]</value>
+      </data>
+      <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+          <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+          <comment>This is a comment</comment>
+      </data>
+                  
+      There are any number of "resheader" rows that contain simple 
+      name/value pairs.
+      
+      Each data row contains a name, and value. The row also contains a 
+      type or mimetype. Type corresponds to a .NET class that support 
+      text/value conversion through the TypeConverter architecture. 
+      Classes that don't support this are serialized and stored with the 
+      mimetype set.
+      
+      The mimetype is used for serialized objects, and tells the 
+      ResXResourceReader how to depersist the object. This is currently not 
+      extensible. For a given mimetype the value must be set accordingly:
+      
+      Note - application/x-microsoft.net.object.binary.base64 is the format 
+      that the ResXResourceWriter will generate, however the reader can 
+      read any of the formats listed below.
+      
+      mimetype: application/x-microsoft.net.object.binary.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+              : and then encoded with base64 encoding.
+      
+      mimetype: application/x-microsoft.net.object.soap.base64
+      value   : The object must be serialized with 
+              : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+              : and then encoded with base64 encoding.
+  
+      mimetype: application/x-microsoft.net.object.bytearray.base64
+      value   : The object must be serialized into a byte array 
+              : using a System.ComponentModel.TypeConverter
+              : and then encoded with base64 encoding.
+      -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+  </resheader>
+  <data name="ImportJdeps_Label" xml:space="preserve">
+    <value>Import from _jdeps ...</value>
+  </data>
+  <data name="ImportDoxygen_Label" xml:space="preserve">
+    <value>Import _C++/Python project (doxygen) ...</value>
+  </data>
+  <data name="ImportDoxygen_DialogTitle" xml:space="preserve">
+    <value>Import C++ or Python project</value>
+  </data>
+  <data name="ImportDoxygen_Description" xml:space="preserve">
+    <value>Runs doxygen over the given source directory and imports the resulting code structure (namespaces/modules, classes, methods, call and type dependencies). doxygen must be installed and available on the PATH.</value>
+  </data>
+  <data name="ImportDoxygen_SourceDirectory_Label" xml:space="preserve">
+    <value>Source directory</value>
+  </data>
+  <data name="ImportDoxygen_Language_Label" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="ImportDoxygen_ProjectName_Label" xml:space="preserve">
+    <value>Project name</value>
+  </data>
+  <data name="ImportDoxygen_SelectSourceDirectoryTitle" xml:space="preserve">
+    <value>Select source directory</value>
+  </data>
+  <data name="ImportDoxygen_DirectoryDoesNotExist" xml:space="preserve">
+    <value>Directory does not exist.</value>
+  </data>
+  <data name="ImportDoxygen_DoxygenNotFound" xml:space="preserve">
+    <value>doxygen was not found. Please install doxygen and make sure it is available on the PATH (https://www.doxygen.nl/download.html).</value>
+  </data>
+  <data name="ImportDoxygen_Progress" xml:space="preserve">
+    <value>Importing project via doxygen ...</value>
+  </data>
+  <data name="ImportDoxygen_RunningDoxygen" xml:space="preserve">
+    <value>Running doxygen (this can take a while on large code bases) ...</value>
+  </data>
+  <data name="ImportDoxygen_Converting" xml:space="preserve">
+    <value>Converting doxygen output ...</value>
+  </data>
+  <data name="ImportDart_Label" xml:space="preserve">
+    <value>Import _Dart/Flutter project ...</value>
+  </data>
+  <data name="ImportDart_DialogTitle" xml:space="preserve">
+    <value>Import Dart or Flutter project</value>
+  </data>
+  <data name="ImportDart_Description" xml:space="preserve">
+    <value>Analyzes a Dart or Flutter project with the Dart analyzer and imports its code structure (packages, libraries, classes, members, call and type dependencies). Requires a Dart or Flutter SDK on the PATH. The project must already be resolved with "flutter pub get" or "dart pub get".</value>
+  </data>
+  <data name="ImportDart_ProjectDirectory_Label" xml:space="preserve">
+    <value>Project directory (contains pubspec.yaml)</value>
+  </data>
+  <data name="ImportDart_SelectProjectDirectoryTitle" xml:space="preserve">
+    <value>Select Dart or Flutter project directory</value>
+  </data>
+  <data name="ImportDart_DirectoryDoesNotExist" xml:space="preserve">
+    <value>Directory does not exist.</value>
+  </data>
+  <data name="ImportDart_NoPubspec" xml:space="preserve">
+    <value>No pubspec.yaml in this directory - please select the root of a Dart or Flutter package.</value>
+  </data>
+  <data name="ImportDart_NotResolved" xml:space="preserve">
+    <value>The project is not resolved. Please run "flutter pub get" (or "dart pub get") in this directory first, otherwise no dependencies can be analyzed.</value>
+  </data>
+  <data name="ImportDart_DartNotFound" xml:space="preserve">
+    <value>No Dart SDK was found. Please install the Dart SDK or Flutter and make sure it is available on the PATH (https://dart.dev/get-dart).</value>
+  </data>
+  <data name="ImportDart_Progress" xml:space="preserve">
+    <value>Importing Dart project ...</value>
+  </data>
+  <data name="ImportDart_PreparingTool" xml:space="preserve">
+    <value>Preparing the Dart extractor (only needed once) ...</value>
+  </data>
+  <data name="ImportDart_RunningExtractor" xml:space="preserve">
+    <value>Analyzing Dart sources (this can take a while on large code bases) ...</value>
+  </data>
+  <data name="ImportDart_Converting" xml:space="preserve">
+    <value>Converting Dart analyzer output ...</value>
+  </data>
+  <data name="ImportPlainText_Label" xml:space="preserve">
+    <value>Import plain text ...</value>
+  </data>
+  <data name="Common_OkButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="ImportJdeps_Description" xml:space="preserve">
+    <value>Imports a dependency file produced by the JDK's jdeps tool. Run jdeps yourself and select its output file here.</value>
+  </data>
+  <data name="ImportJdeps_DialogTitle" xml:space="preserve">
+    <value>Select jdeps output file</value>
+  </data>
+  <data name="ImportJdeps_FileFilter" xml:space="preserve">
+    <value>Text files (*.txt)|*.txt|All files (*.*)|*.*</value>
+  </data>
+  <data name="ImportPlainText_Description" xml:space="preserve">
+    <value>Reads a graph written in the plain text format - the counterpart of the plain text export, and the way to import a graph produced by a tool we have no importer for.</value>
+  </data>
+  <data name="ImportPlainText_DialogTitle" xml:space="preserve">
+    <value>Select plain text graph file</value>
+  </data>
+  <data name="ImportPlainText_FileFilter" xml:space="preserve">
+    <value>Text files (*.txt)|*.txt|All files (*.*)|*.*</value>
+  </data>
+</root>
