@@ -92,7 +92,7 @@ visible as such rather than collapsing onto the type.
 | `extension type` | `Struct` | A zero-cost wrapper over a representation type |
 | `enum` | `Enum` | |
 | `typedef` | `Delegate` | Plus a `Uses` edge to the aliased type |
-| top-level function, method, constructor | `Method` | The unnamed constructor is called `new`, matching Dart's own `MyApp.new` syntax |
+| top-level function, method, **written** constructor | `Method` | The unnamed constructor is called `new`, matching Dart's own `MyApp.new` syntax. An *implicit* constructor is dropped — see below |
 | field, top-level variable, enum constant | `Field` | |
 | getter, setter | `Property` | A getter/setter pair shares one element, like the C# default |
 
@@ -122,7 +122,7 @@ Getter and setter of a pair share one id, so they collapse into a single `Proper
 | `implements` | `Implements` | |
 | `on` (mixin constraint) | `Uses` | A constraint on the user of the mixin, not an inheritance |
 | method invocation | `Calls` | |
-| constructor invocation | `Creates` | The edge points at the constructor, which lives below the created type, so a type-level rollup still yields "creator → created type" |
+| constructor invocation | `Creates` to the **type**, plus `Calls` to a written constructor | See below |
 | getter/setter access | `Calls` | They are executable; field and variable reads are `Uses` |
 | tear-off (`onPressed: _increment`) | `Uses` | References a method without calling it |
 | type annotations, type arguments | `Uses` | `Future<List<Order>>` reaches `Order`, not only `Future` |
@@ -134,6 +134,26 @@ everything inside one is recorded as `Uses` instead of `Calls`. This mirrors how
 treats lambda bodies (see `ISyntaxNodeHandler`). It matters far more in Dart than in C#: Flutter
 code is largely builder callbacks, and treating them as unconditional calls would make almost every
 widget tree look like a call chain.
+
+**Implicit constructors are not in the graph, and `Creates` points at the type.** A class without a
+written constructor still has one in the language — `DatabaseProvider()` binds to it — and the
+analyzer reports it. Modelling it would put a node into the graph that cannot be found anywhere in
+the source, and since most classes declare no constructor, that node would be the rule rather than
+the exception: in `TestSuiteDart`, 8 of 13 constructors are implicit.
+
+The C# parser has the same situation and resolves it the same way, by construction: it walks
+*declaration syntax*, so an implicit constructor has none and never becomes an element, and its
+`Creates` edge points at the created type. The Dart side now follows that, which also makes the two
+graphs comparable:
+
+- implicit constructor → no element;
+- `Creates` → the created **type**, so the edge survives regardless;
+- a written constructor keeps its element and additionally gets a `Calls` edge, so
+  `Account.empty()` does not lose its only incoming edge.
+
+Not aligned with C# on purpose: for a field initializer (`final _p = DatabaseProvider();`) the C#
+parser attributes `Creates` to the *containing class*, while here it stays on the field. The finer
+attribution is more useful and Dart has no separate initializer semantics that would argue against it.
 
 **Constructors do not use their own class.** A constructor's return type is its class, which would
 be an edge from a child to its own parent. The return type is skipped for constructors.

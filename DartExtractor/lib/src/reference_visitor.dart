@@ -126,9 +126,19 @@ class ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // The edge points at the constructor, which lives below the created type -
-    // a type-level rollup therefore still yields "creator -> created type".
-    _add(node.constructorName.element, 'Creates');
+    final constructor = node.constructorName.element;
+
+    // Creates points at the created type, not at the constructor. It has to survive a synthetic
+    // constructor - which is not in the graph - and "who instantiates this class" is the question
+    // actually being asked. This is what the C# parser does as well.
+    _add(constructor?.enclosingElement, 'Creates');
+
+    // A written constructor is real code and stays visible as a call target; named constructors
+    // ("Account.empty()") would otherwise lose their only incoming edge.
+    if (constructor != null && !constructor.isSynthetic) {
+      _add(constructor, _callType);
+    }
+
     super.visitInstanceCreationExpression(node);
   }
 

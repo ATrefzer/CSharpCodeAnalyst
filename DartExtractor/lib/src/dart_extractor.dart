@@ -388,7 +388,10 @@ class DartExtractor {
     if (element is ExtensionElement) return 'Class';
     if (element is ClassElement) return element.isInterface ? 'Interface' : 'Class';
     if (element is TypeAliasElement) return 'Delegate';
-    if (element is ConstructorElement) return 'Method';
+    // A class without a written constructor still has one in the language, and `Foo()` binds to it -
+    // but it is not in the source. The C# parser, which walks declaration syntax, does not model the
+    // implicit constructor either, so dropping it keeps both graphs comparable.
+    if (element is ConstructorElement) return element.isSynthetic ? null : 'Method';
     if (element is MethodElement) return 'Method';
     if (element is TopLevelFunctionElement) return 'Method';
     if (element is PropertyAccessorElement) return 'Property';

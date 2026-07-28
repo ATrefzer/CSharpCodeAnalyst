@@ -67,17 +67,13 @@ public class DartFixtureApprovalTests
             ("test_suite_dart.types", CodeElementType.Namespace),
             ("test_suite_dart.types.PlainClass", CodeElementType.Class),
             ("test_suite_dart.types.PlainClass.value", CodeElementType.Field),
-            ("test_suite_dart.types.PlainClass.new", CodeElementType.Method),
             ("test_suite_dart.types.AbstractBase", CodeElementType.Class),
             ("test_suite_dart.types.AbstractBase.template", CodeElementType.Method),
             ("test_suite_dart.types.AbstractBase.shared", CodeElementType.Method),
-            ("test_suite_dart.types.AbstractBase.new", CodeElementType.Method),
             ("test_suite_dart.types.PureInterface", CodeElementType.Interface),
             ("test_suite_dart.types.PureInterface.contract", CodeElementType.Method),
-            ("test_suite_dart.types.PureInterface.new", CodeElementType.Method),
             ("test_suite_dart.types.Named", CodeElementType.Interface),
             ("test_suite_dart.types.Named.name", CodeElementType.Property),
-            ("test_suite_dart.types.Named.new", CodeElementType.Method),
             ("test_suite_dart.types.Greeting", CodeElementType.Class),
             ("test_suite_dart.types.Greeting.greet", CodeElementType.Method),
             ("test_suite_dart.types.CountingLog", CodeElementType.Class),
@@ -86,14 +82,12 @@ public class DartFixtureApprovalTests
             ("test_suite_dart.types.Combined", CodeElementType.Class),
             ("test_suite_dart.types.Combined.name", CodeElementType.Property),
             ("test_suite_dart.types.Combined.template", CodeElementType.Method),
-            ("test_suite_dart.types.Combined.new", CodeElementType.Method),
             ("test_suite_dart.types.Color", CodeElementType.Enum),
             ("test_suite_dart.types.Color.red", CodeElementType.Field),
             ("test_suite_dart.types.Color.green", CodeElementType.Field),
             ("test_suite_dart.types.Color.blue", CodeElementType.Field),
             ("test_suite_dart.types.Color.values", CodeElementType.Field),
             ("test_suite_dart.types.Color.isWarm", CodeElementType.Property),
-            ("test_suite_dart.types.Color.new", CodeElementType.Method),
             ("test_suite_dart.types.StringPadding", CodeElementType.Class),
             ("test_suite_dart.types.StringPadding.padBoth", CodeElementType.Method),
             ("test_suite_dart.types.Meters", CodeElementType.Struct),
@@ -118,13 +112,11 @@ public class DartFixtureApprovalTests
             ("test_suite_dart.members.Account.+", CodeElementType.Method),
             ("test_suite_dart.members.Ledger", CodeElementType.Class),
             ("test_suite_dart.members.Ledger.accounts", CodeElementType.Field),
-            ("test_suite_dart.members.Ledger.new", CodeElementType.Method),
 
             ("test_suite_dart.library_with_part", CodeElementType.Namespace),
             ("test_suite_dart.library_with_part.Bookkeeper", CodeElementType.Class),
             ("test_suite_dart.library_with_part.Bookkeeper.ledger", CodeElementType.Field),
             ("test_suite_dart.library_with_part.Bookkeeper.total", CodeElementType.Method),
-            ("test_suite_dart.library_with_part.Bookkeeper.new", CodeElementType.Method),
             ("test_suite_dart.library_with_part._sumBalances", CodeElementType.Method),
             ("test_suite_dart.library_with_part.PartLocalHelper", CodeElementType.Class),
             ("test_suite_dart.library_with_part.PartLocalHelper.new", CodeElementType.Method),
@@ -261,18 +253,53 @@ public class DartFixtureApprovalTests
         });
     }
 
+    /// <summary>
+    ///     A class without a written constructor still has one in the language, but not in the source.
+    ///     Modelling it would put a node into the graph that cannot be found in the code - and the C#
+    ///     parser, which walks declaration syntax, does not model the implicit constructor either.
+    /// </summary>
+    [Test]
+    public void DropsImplicitConstructorsButKeepsWrittenOnes()
+    {
+        var constructors = ProjectElements
+            .Where(e => e.ElementType == CodeElementType.Method && e.Parent?.ElementType is CodeElementType.Class
+                or CodeElementType.Interface or CodeElementType.Struct or CodeElementType.Enum)
+            .Where(e => e.Name == "new")
+            .Select(e => e.FullName);
+
+        Assert.That(constructors, Is.EquivalentTo(new[]
+        {
+            "test_suite_dart.members.Account.new", // Account(this._balance)
+            "test_suite_dart.types.Meters.new", // the representation of the extension type
+            "test_suite_dart.library_with_part.PartLocalHelper.new", // const PartLocalHelper()
+            "test_suite_dart.features.reporting.report_builder.Important.new", // const Important()
+            "test_suite_dart.features.reporting.report_builder.ReportBuilder.new" // ReportBuilder(this.accounts)
+        }));
+    }
+
     [Test]
     public void ModelsConstructorInvocationsAndTearOffs()
     {
         Assert.Multiple(() =>
         {
-            // The edge points at the constructor, which lives below the created type.
-            Assert.That(RelationshipsOf("test_suite_dart.members.Account.copy"), Does.Contain(
-                ("test_suite_dart.members.Account.copy", RelationshipType.Creates, "test_suite_dart.members.Account.new")));
+            // Creates points at the created type, so it survives an implicit constructor. Ledger
+            // declares none - without this rule the edge would have nowhere to go.
+            Assert.That(RelationshipsOf("test_suite_dart.library_with_part.Bookkeeper.ledger"), Does.Contain(
+                ("test_suite_dart.library_with_part.Bookkeeper.ledger", RelationshipType.Creates, "test_suite_dart.members.Ledger")));
 
-            // A named constructor is reached by its own name.
-            Assert.That(RelationshipsOf("test_suite_dart.features.reporting.report_builder.ReportBuilder.merge"), Does.Contain(
+            // A written constructor additionally stays visible as a call target.
+            Assert.That(RelationshipsOf("test_suite_dart.members.Account.copy"), Does.Contain(
+                ("test_suite_dart.members.Account.copy", RelationshipType.Creates, "test_suite_dart.members.Account")));
+            Assert.That(RelationshipsOf("test_suite_dart.members.Account.copy"), Does.Contain(
+                ("test_suite_dart.members.Account.copy", RelationshipType.Calls, "test_suite_dart.members.Account.new")));
+
+            // The same for a named constructor: "Account.empty()".
+            var merge = RelationshipsOf("test_suite_dart.features.reporting.report_builder.ReportBuilder.merge");
+            Assert.That(merge, Does.Contain(
                 ("test_suite_dart.features.reporting.report_builder.ReportBuilder.merge", RelationshipType.Creates,
+                    "test_suite_dart.members.Account")));
+            Assert.That(merge, Does.Contain(
+                ("test_suite_dart.features.reporting.report_builder.ReportBuilder.merge", RelationshipType.Calls,
                     "test_suite_dart.members.Account.empty")));
 
             // "ColorPicker get picker => _pickColor" references the method without calling it.

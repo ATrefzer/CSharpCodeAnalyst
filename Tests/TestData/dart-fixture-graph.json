@@ -303,12 +303,6 @@
       }
     },
     {
-      "id": "package:test_suite_dart/library_with_part.dart#Bookkeeper.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/library_with_part.dart#Bookkeeper"
-    },
-    {
       "id": "package:test_suite_dart/library_with_part.dart#PartLocalHelper",
       "type": "Class",
       "name": "PartLocalHelper",
@@ -393,9 +387,9 @@
       }
     },
     {
-      "id": "package:test_suite_dart/members.dart#Account.+",
+      "id": "package:test_suite_dart/members.dart#Account.\u002B",
       "type": "Method",
-      "name": "+",
+      "name": "\u002B",
       "parent": "package:test_suite_dart/members.dart#Account",
       "location": {
         "file": "TestSuiteDart\\lib\\members.dart",
@@ -443,12 +437,6 @@
       }
     },
     {
-      "id": "package:test_suite_dart/members.dart#Ledger.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/members.dart#Ledger"
-    },
-    {
       "id": "package:test_suite_dart/members.dart#pickFirst",
       "type": "Method",
       "name": "pickFirst",
@@ -493,12 +481,6 @@
       }
     },
     {
-      "id": "package:test_suite_dart/types.dart#PlainClass.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#PlainClass"
-    },
-    {
       "id": "package:test_suite_dart/types.dart#AbstractBase.shared",
       "type": "Method",
       "name": "shared",
@@ -508,12 +490,6 @@
         "line": 13,
         "column": 8
       }
-    },
-    {
-      "id": "package:test_suite_dart/types.dart#AbstractBase.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#AbstractBase"
     },
     {
       "id": "package:test_suite_dart/types.dart#PureInterface",
@@ -538,12 +514,6 @@
       }
     },
     {
-      "id": "package:test_suite_dart/types.dart#PureInterface.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#PureInterface"
-    },
-    {
       "id": "package:test_suite_dart/types.dart#Named",
       "type": "Interface",
       "name": "Named",
@@ -564,12 +534,6 @@
         "line": 25,
         "column": 14
       }
-    },
-    {
-      "id": "package:test_suite_dart/types.dart#Named.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#Named"
     },
     {
       "id": "package:test_suite_dart/types.dart#Combined",
@@ -603,12 +567,6 @@
         "line": 50,
         "column": 8
       }
-    },
-    {
-      "id": "package:test_suite_dart/types.dart#Combined.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#Combined"
     },
     {
       "id": "package:test_suite_dart/types.dart#Greeting.greet",
@@ -715,12 +673,6 @@
         "line": 59,
         "column": 12
       }
-    },
-    {
-      "id": "package:test_suite_dart/types.dart#Color.new",
-      "type": "Method",
-      "name": "new",
-      "parent": "package:test_suite_dart/types.dart#Color"
     },
     {
       "id": "dart:core#Enum",
@@ -949,9 +901,9 @@
       }
     },
     {
-      "id": "dart:core#num.+",
+      "id": "dart:core#num.\u002B",
       "type": "Method",
-      "name": "+",
+      "name": "\u002B",
       "parent": "dart:core#num",
       "external": true,
       "location": {
@@ -1116,7 +1068,7 @@
       "type": "Uses"
     },
     {
-      "source": "package:test_suite_dart/members.dart#Account.+",
+      "source": "package:test_suite_dart/members.dart#Account.\u002B",
       "target": "package:test_suite_dart/members.dart#Account",
       "type": "Uses"
     },
@@ -1297,8 +1249,13 @@
     },
     {
       "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
-      "target": "package:test_suite_dart/members.dart#Account.empty",
+      "target": "package:test_suite_dart/members.dart#Account",
       "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
+      "target": "package:test_suite_dart/members.dart#Account.empty",
+      "type": "Calls"
     },
     {
       "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
@@ -1307,7 +1264,7 @@
     },
     {
       "source": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.merge",
-      "target": "package:test_suite_dart/members.dart#Account.+",
+      "target": "package:test_suite_dart/members.dart#Account.\u002B",
       "type": "Calls"
     },
     {
@@ -1367,7 +1324,7 @@
     },
     {
       "source": "package:test_suite_dart/library_with_part.dart#Bookkeeper.ledger",
-      "target": "package:test_suite_dart/members.dart#Ledger.new",
+      "target": "package:test_suite_dart/members.dart#Ledger",
       "type": "Creates"
     },
     {
@@ -1397,8 +1354,13 @@
     },
     {
       "source": "package:test_suite_dart/members.dart#Account.copy",
-      "target": "package:test_suite_dart/members.dart#Account.new",
+      "target": "package:test_suite_dart/members.dart#Account",
       "type": "Creates"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.copy",
+      "target": "package:test_suite_dart/members.dart#Account.new",
+      "type": "Calls"
     },
     {
       "source": "package:test_suite_dart/members.dart#Account.copy",
@@ -1421,17 +1383,22 @@
       "type": "Uses"
     },
     {
-      "source": "package:test_suite_dart/members.dart#Account.+",
-      "target": "package:test_suite_dart/members.dart#Account.new",
+      "source": "package:test_suite_dart/members.dart#Account.\u002B",
+      "target": "package:test_suite_dart/members.dart#Account",
       "type": "Creates"
     },
     {
-      "source": "package:test_suite_dart/members.dart#Account.+",
-      "target": "dart:core#num.+",
+      "source": "package:test_suite_dart/members.dart#Account.\u002B",
+      "target": "package:test_suite_dart/members.dart#Account.new",
       "type": "Calls"
     },
     {
-      "source": "package:test_suite_dart/members.dart#Account.+",
+      "source": "package:test_suite_dart/members.dart#Account.\u002B",
+      "target": "dart:core#num.\u002B",
+      "type": "Calls"
+    },
+    {
+      "source": "package:test_suite_dart/members.dart#Account.\u002B",
       "target": "package:test_suite_dart/members.dart#Account._balance",
       "type": "Uses"
     },
@@ -1462,7 +1429,7 @@
     },
     {
       "source": "package:test_suite_dart/types.dart#CountingLog.log",
-      "target": "dart:core#num.+",
+      "target": "dart:core#num.\u002B",
       "type": "Calls"
     },
     {
@@ -1593,7 +1560,7 @@
       "logical": 1,
       "complexity": 1
     },
-    "package:test_suite_dart/members.dart#Account.+": {
+    "package:test_suite_dart/members.dart#Account.\u002B": {
       "code": 1,
       "comment": 1,
       "logical": 1,

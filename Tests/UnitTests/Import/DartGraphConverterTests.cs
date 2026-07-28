@@ -99,7 +99,9 @@ public class DartGraphConverterTests
             ("app.features.login_page.LoginPage", RelationshipType.Inherits, "flutter.src.widgets.framework.StatelessWidget"),
             ("app.features.login_page.LoginPage.build", RelationshipType.Overrides, "flutter.src.widgets.framework.StatelessWidget.build"),
             ("app.features.login_page.LoginPage.build", RelationshipType.Uses, "app.features.login_page.LoginPage.title"),
-            ("app.global.main", RelationshipType.Creates, "app.features.login_page.LoginPage.new"),
+            // Creates points at the type, the written constructor gets its own Calls edge.
+            ("app.global.main", RelationshipType.Creates, "app.features.login_page.LoginPage"),
+            ("app.global.main", RelationshipType.Calls, "app.features.login_page.LoginPage.new"),
             ("app.global.main", RelationshipType.Calls, "flutter.src.widgets.framework.StatelessWidget.build")
         }));
     }
@@ -188,7 +190,8 @@ public class DartGraphConverterTests
             { "source": "t:LoginPage", "target": "t:StatelessWidget", "type": "Inherits" },
             { "source": "m:build", "target": "m:StatelessWidget.build", "type": "Overrides" },
             { "source": "m:build", "target": "f:title", "type": "Uses" },
-            { "source": "m:main", "target": "c:LoginPage.new", "type": "Creates" },
+            { "source": "m:main", "target": "t:LoginPage", "type": "Creates" },
+            { "source": "m:main", "target": "c:LoginPage.new", "type": "Calls" },
             { "source": "m:main", "target": "m:StatelessWidget.build", "type": "Calls" },
             { "source": "m:main", "target": "t:Gadget", "type": "Uses" },
             { "source": "m:main", "target": "f:title", "type": "Consumes" }
