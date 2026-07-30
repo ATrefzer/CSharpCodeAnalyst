@@ -398,7 +398,10 @@ public class TreeViewModel : INotifyPropertyChanged
         }
         else
         {
-            var expr = SearchExpressionFactory.CreateSearchExpression(SearchText, SearchExpressionFactory.TextSearchField.Name);
+            // No negation here: SearchAndExpandNodes expands and highlights every ancestor of a match, so
+            // an excluding search would match nearly everything and unfold the whole tree at once.
+            var expr = SearchExpressionFactory.CreateSearchExpression(SearchText,
+                SearchExpressionFactory.TextSearchField.Name, false);
             SearchAndExpandNodes(TreeItems, expr);
         }
     }

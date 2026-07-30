@@ -686,7 +686,6 @@ Search with resharper style = Use at least one uppercase character in a search t
 '!' Clears the search but keeps highlighting
 
 Logical operations: space = AND, '|' = OR
-Exclude a term = prefix it with '-' (e.g. "-Strings." or "-type:property")
 Search for type = type:xxx
 Search for internal code elements = source:intern
 Search for external code elements = source:extern

@@ -156,6 +156,35 @@ public class SearchExpressionTests
     }
 
     [Test]
+    public void NegationDisabled_TreatsTheMinusAsPartOfTheTerm()
+    {
+        // The tree turns negation off: it expands and highlights every ancestor of a match, so an
+        // excluding search would unfold the whole tree. The '-' then searches literally and finds nothing
+        // instead of matching everything.
+        var element = Element("App.Resources.Strings.Close");
+
+        var withNegation = SearchExpressionFactory.CreateSearchExpression("-resources");
+        var withoutNegation = SearchExpressionFactory.CreateSearchExpression("-resources",
+            SearchExpressionFactory.TextSearchField.FullName, false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(withNegation.Evaluate(element), Is.False);
+            Assert.That(withoutNegation.Evaluate(element), Is.False);
+            Assert.That(withoutNegation.Evaluate(Element("App.Views.MainWindow")), Is.False);
+        });
+    }
+
+    [Test]
+    public void NegationDisabled_LeavesPositiveTermsUntouched()
+    {
+        var expression = SearchExpressionFactory.CreateSearchExpression("resources close",
+            SearchExpressionFactory.TextSearchField.FullName, false);
+
+        Assert.That(expression.Evaluate(Element("App.Resources.Strings.Close")), Is.True);
+    }
+
+    [Test]
     public void LoneMinus_IsALiteralTerm()
     {
         // Nothing to negate. It must not become an empty term, which would match everything and turn the

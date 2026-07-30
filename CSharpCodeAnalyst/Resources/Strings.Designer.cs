@@ -3328,7 +3328,6 @@ namespace CSharpCodeAnalyst.Resources {
         ///&apos;!&apos; Clears the search but keeps highlighting
         ///
         ///Logical operations: space = AND, &apos;|&apos; = OR
-        ///Exclude a term = prefix it with &apos;-&apos; (e.g. &quot;-Strings.&quot; or &quot;-type:property&quot;)
         ///Search for type = type:xxx
         ///Search for internal code elements = source:intern
         ///Search for external code elements = source:extern
