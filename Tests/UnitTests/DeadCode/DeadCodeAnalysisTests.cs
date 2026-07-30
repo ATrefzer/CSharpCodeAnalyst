@@ -1,0 +1,263 @@
+using CodeParserTests.Helper;
+using CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
+using CSharpCodeAnalyst.CodeGraph.Graph;
+
+namespace CodeParserTests.UnitTests.DeadCode;
+
+[TestFixture]
+public class DeadCodeAnalysisTests
+{
+    [SetUp]
+    public void SetUp()
+    {
+        _graph = new TestCodeGraph();
+    }
+
+    private TestCodeGraph _graph = null!;
+
+    private void Rel(CodeElement source, CodeElement target, RelationshipType type)
+    {
+        source.Relationships.Add(new Relationship(source.Id, target.Id, type));
+    }
+
+    private string[] Reported()
+    {
+        return DeadCodeAnalysis.Calculate(_graph).Select(f => f.Element.FullName).ToArray();
+    }
+
+    private DeadCodeFinding FindingFor(CodeElement element)
+    {
+        return DeadCodeAnalysis.Calculate(_graph).Single(f => f.Element.Id == element.Id);
+    }
+
+    [Test]
+    public void Calculate_EmptyGraph_NoFindings()
+    {
+        Assert.That(DeadCodeAnalysis.Calculate(_graph), Is.Empty);
+    }
+
+    [Test]
+    public void Calculate_UnreferencedClass_Reported()
+    {
+        _graph.CreateClass("A");
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A" }));
+    }
+
+    [Test]
+    public void Calculate_ClassUsedByAnotherClass_NotReported()
+    {
+        // B uses A, so only B itself has no incoming reference.
+        var a = _graph.CreateClass("A");
+        var b = _graph.CreateClass("B");
+        Rel(b, a, RelationshipType.Uses);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "B" }));
+    }
+
+    [Test]
+    public void Calculate_MethodCalledFromOutside_KeepsWholeClassAlive()
+    {
+        // Nothing names A, but B.M calls A.M -> the reference enters A's subtree from the outside.
+        var a = _graph.CreateClass("A");
+        var am = _graph.CreateMethod("A.M", a);
+        var b = _graph.CreateClass("B");
+        var bm = _graph.CreateMethod("B.M", b);
+        Rel(bm, am, RelationshipType.Calls);
+
+        // B is dead; B.M is inside it and rolled up.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "B" }));
+    }
+
+    [Test]
+    public void Calculate_ClassWithOnlyInternalCalls_ReportedAsOneFinding()
+    {
+        // A.M1 -> A.M2 does not prove anything about A: the reference never leaves the subtree.
+        var a = _graph.CreateClass("A");
+        var m1 = _graph.CreateMethod("A.M1", a);
+        var m2 = _graph.CreateMethod("A.M2", a);
+        Rel(m1, m2, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A" }));
+    }
+
+    [Test]
+    public void Calculate_UnusedMemberOfLiveClass_Reported()
+    {
+        var a = _graph.CreateClass("A");
+        var used = _graph.CreateMethod("A.Used", a);
+        _graph.CreateMethod("A.Unused", a);
+        var b = _graph.CreateClass("B");
+        var bm = _graph.CreateMethod("B.M", b);
+        Rel(bm, used, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A.Unused", "B" }));
+    }
+
+    [Test]
+    public void Calculate_NestedDeadClass_OnlyOutermostReported()
+    {
+        var outer = _graph.CreateClass("Outer");
+        var inner = _graph.CreateClass("Outer.Inner", outer);
+        _graph.CreateMethod("Outer.Inner.M", inner);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Outer" }));
+    }
+
+    [Test]
+    public void Calculate_ContainersAndExternalElements_NeverReported()
+    {
+        var assembly = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Asm.Ns", assembly);
+        _graph.CreateClass("Asm.Ns.A", ns);
+        _graph.CreateExternalClass("Ext");
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Asm.Ns.A" }));
+    }
+
+    [Test]
+    public void Calculate_ContainmentAndHandles_AreNoReferences()
+    {
+        // Handles points handler -> event; it is the callback wiring, not a use of the handler.
+        var publisher = _graph.CreateClass("Publisher");
+        var evt = _graph.CreateEvent("Publisher.Changed", publisher);
+        var subscriber = _graph.CreateClass("Subscriber");
+        var handler = _graph.CreateMethod("Subscriber.OnChanged", subscriber);
+        Rel(handler, evt, RelationshipType.Handles);
+        Rel(publisher, subscriber, RelationshipType.Containment);
+
+        // The Handles edge enters Publisher's subtree and the Containment edge enters Subscriber's,
+        // yet neither is a reference - both classes stay dead.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Publisher", "Subscriber" }));
+    }
+
+    [Test]
+    public void Calculate_CalledThroughInterface_KeepsImplementationAndItsTypeAlive()
+    {
+        var contract = _graph.CreateInterface("IFoo");
+        var contractMember = _graph.CreateMethod("IFoo.Bar", contract);
+        var impl = _graph.CreateClass("C");
+        var implMember = _graph.CreateMethod("C.Bar", impl);
+        Rel(impl, contract, RelationshipType.Implements);
+        Rel(implMember, contractMember, RelationshipType.Implements);
+
+        var user = _graph.CreateClass("User");
+        var userMethod = _graph.CreateMethod("User.M", user);
+        Rel(userMethod, contractMember, RelationshipType.Calls);
+
+        // Nobody creates C, yet the call through IFoo.Bar reaches C.Bar - so neither is dead.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_OverrideChain_LivenessPropagatesTransitively()
+    {
+        var contract = _graph.CreateInterface("IFoo");
+        var contractMember = _graph.CreateMethod("IFoo.Bar", contract);
+        var middle = _graph.CreateClass("Base");
+        var middleMember = _graph.CreateMethod("Base.Bar", middle);
+        var leaf = _graph.CreateClass("Derived");
+        var leafMember = _graph.CreateMethod("Derived.Bar", leaf);
+
+        Rel(middle, contract, RelationshipType.Implements);
+        Rel(middleMember, contractMember, RelationshipType.Implements);
+        Rel(leaf, middle, RelationshipType.Inherits);
+        Rel(leafMember, middleMember, RelationshipType.Overrides);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, contractMember, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_ContractImplementedButNeverCalled_ContractAndImplementationReported()
+    {
+        var contract = _graph.CreateInterface("IFoo");
+        var contractMember = _graph.CreateMethod("IFoo.Bar", contract);
+        var impl = _graph.CreateClass("C");
+        var implMember = _graph.CreateMethod("C.Bar", impl);
+        Rel(impl, contract, RelationshipType.Implements);
+        Rel(implMember, contractMember, RelationshipType.Implements);
+
+        // C is instantiated, so the class itself is alive - but nobody ever calls Bar.
+        var user = _graph.CreateClass("User");
+        Rel(user, impl, RelationshipType.Creates);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "C.Bar", "IFoo.Bar", "User" }));
+
+        var contractFinding = FindingFor(contractMember);
+        Assert.That(contractFinding.Hints.HasFlag(DeadCodeHint.ContractNeverCalled), Is.True);
+        Assert.That(contractFinding.RelatedMembers.Select(m => m.FullName), Is.EquivalentTo(new[] { "C.Bar" }));
+
+        var implFinding = FindingFor(implMember);
+        Assert.That(implFinding.Hints.HasFlag(DeadCodeHint.ImplementsDeadContract), Is.True);
+        Assert.That(implFinding.RelatedMembers.Select(m => m.FullName), Is.EquivalentTo(new[] { "IFoo.Bar" }));
+    }
+
+    [Test]
+    public void Calculate_ImplementsExternalContract_MemberAliveButClassStillDead()
+    {
+        // class C : IDisposable { public void Dispose() {} } - Dispose is called by code we cannot see,
+        // but implementing IDisposable is no use of C itself.
+        var external = _graph.CreateExternalInterface("IDisposable");
+        var externalMember = _graph.CreateExternalMethod("IDisposable.Dispose", external);
+        var impl = _graph.CreateClass("C");
+        var implMember = _graph.CreateMethod("C.Dispose", impl);
+        Rel(impl, external, RelationshipType.Implements);
+        Rel(implMember, externalMember, RelationshipType.Implements);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "C" }));
+    }
+
+    [Test]
+    public void Calculate_OverridesUnresolvedBaseMember_MemberAssumedAliveButNotItsType()
+    {
+        // The parser falls back to the containing type when it cannot resolve the exact base member
+        // (generic base methods). We cannot tell who calls it, so the member is assumed alive.
+        var baseClass = _graph.CreateClass("Base");
+        var derived = _graph.CreateClass("Derived");
+        var member = _graph.CreateMethod("Derived.M", derived);
+        Rel(derived, baseClass, RelationshipType.Inherits);
+        Rel(member, baseClass, RelationshipType.Overrides);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, derived, RelationshipType.Creates);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_EntryPointAndTestCode_ReportedWithHint()
+    {
+        var program = _graph.CreateClass("Program");
+        _graph.CreateMethod("Main", program);
+
+        var fixture = _graph.CreateClass("MyTests");
+        var testMethod = _graph.CreateMethod("MyTests.ShouldWork", fixture);
+        testMethod.Attributes.Add("TestAttribute");
+
+        var service = _graph.CreateClass("Service");
+        service.Attributes.Add("ObsoleteAttribute");
+
+        Assert.That(FindingFor(program).Hints, Is.EqualTo(DeadCodeHint.EntryPoint));
+        Assert.That(FindingFor(fixture).Hints, Is.EqualTo(DeadCodeHint.TestCode));
+        Assert.That(FindingFor(service).Hints, Is.EqualTo(DeadCodeHint.Attributed));
+        Assert.That(FindingFor(service).Attributes, Is.EquivalentTo(new[] { "ObsoleteAttribute" }));
+    }
+
+    [Test]
+    public void Calculate_UnusedPropertyAccessor_Reported()
+    {
+        var a = _graph.CreateClass("A");
+        var property = _graph.CreateProperty("A.Value", a);
+        var getter = _graph.CreatePropertyAccessor("A.get_Value", property);
+        _graph.CreatePropertyAccessor("A.set_Value", property);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, getter, RelationshipType.Calls);
+
+        // The setter is never used, the getter and everything above it is.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A.set_Value", "User" }));
+    }
+}

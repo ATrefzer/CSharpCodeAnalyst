@@ -258,6 +258,114 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dead Code.
+        /// </summary>
+        public static string Analyzer_DeadCode_Label {
+            get {
+                return ResourceManager.GetString("Analyzer_DeadCode_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No unreferenced elements found.
+        /// </summary>
+        public static string Analyzer_DeadCode_NoData {
+            get {
+                return ResourceManager.GetString("Analyzer_DeadCode_NoData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Finds elements nothing references any more. Only the topmost element of a dead subtree is listed; the hint column marks the cases that may still be used through XAML, reflection or a test runner..
+        /// </summary>
+        public static string Analyzer_DeadCode_Tooltip {
+            get {
+                return ResourceManager.GetString("Analyzer_DeadCode_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Element.
+        /// </summary>
+        public static string Column_DeadCode_Element {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Element", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Might still be used.
+        /// </summary>
+        public static string Column_DeadCode_Hint {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Hint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Kind.
+        /// </summary>
+        public static string Column_DeadCode_Kind {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Kind", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Attributes: {0}.
+        /// </summary>
+        public static string DeadCode_Hint_Attributed {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_Attributed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Implemented but never called: {0}.
+        /// </summary>
+        public static string DeadCode_Hint_ContractNeverCalled {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_ContractNeverCalled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Entry point.
+        /// </summary>
+        public static string DeadCode_Hint_EntryPoint {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_EntryPoint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Implements unused contract: {0}.
+        /// </summary>
+        public static string DeadCode_Hint_ImplementsDeadContract {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_ImplementsDeadContract", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} members.
+        /// </summary>
+        public static string DeadCode_Hint_RelatedCount {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_RelatedCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Test code.
+        /// </summary>
+        public static string DeadCode_Hint_TestCode {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_TestCode", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Type Cohesion.
         /// </summary>
         public static string Analyzer_TypeCohesion_Label {

@@ -234,6 +234,23 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ![](Documentation/Images/metrics-example.png)
 
+## Find dead code
+
+*Analyzers → Dead Code* lists the elements nothing references any more. The rule works on the subtree, so a
+class stays alive when one of its methods is used from the outside, and a class whose methods only call each
+other is still dead. Only the topmost element of a dead subtree is listed.
+
+Calls through an interface count for the implementation behind it, so an implementation is not reported just
+because it is only reached polymorphically — and a contract that nobody ever calls is reported together with
+its implementations.
+
+References the parser cannot see are not dropped silently: those rows carry a hint in the last column. An
+empty hint means nothing speaks against deleting the element. Note that XAML is only half visible — event
+handlers and `x:Name`d controls are compiled into C# and are found, while `{Binding}`, `{x:Static}` and
+`{StaticResource}` end up in BAML and are resolved by reflection at runtime.
+
+Details and limitations: [Dead Code](Documentation/dead-code.md)
+
 ## Other languages
 
 The tool is built for C# (has its own Roslyn-based parser), but you can also import Java, C++, Python and Dart via external tools.

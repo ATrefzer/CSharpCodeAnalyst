@@ -5,6 +5,7 @@ using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Notifications;
 using ArchitecturalRules = CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
+using DeadCode = CSharpCodeAnalyst.Analyzers.DeadCode;
 using MethodComplexity = CSharpCodeAnalyst.Analyzers.MethodComplexity;
 using SystemMetrics = CSharpCodeAnalyst.Analyzers.SystemMetrics;
 using TypeCohesion = CSharpCodeAnalyst.Analyzers.TypeCohesion;
@@ -91,6 +92,10 @@ internal class AnalyzerManager : IAnalyzerManager
         _analyzers.Add(analyzer.Id, analyzer);
 
         analyzer = new MethodComplexity.Analyzer(messaging, userNotification, metricStore);
+        analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
+        _analyzers.Add(analyzer.Id, analyzer);
+
+        analyzer = new DeadCode.Analyzer(messaging, userNotification);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 

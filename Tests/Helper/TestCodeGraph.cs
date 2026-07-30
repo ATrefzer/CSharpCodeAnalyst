@@ -60,6 +60,14 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
+    /// <summary>An interface from outside the solution (framework contract like IDisposable).</summary>
+    public CodeElement CreateExternalInterface(string id, CodeElement? parent = null)
+    {
+        var element = new CodeElement(id, CodeElementType.Interface, id, id, parent) { IsExternal = true };
+        Link(parent, element);
+        return element;
+    }
+
     public CodeElement CreateDelegate(string id, CodeElement? parent = null)
     {
         var element = new CodeElement(id, CodeElementType.Delegate, id, id, parent);
@@ -84,6 +92,14 @@ public class TestCodeGraph : CodeGraph
     public CodeElement CreateMethod(string id, CodeElement? parent = null)
     {
         var element = new CodeElement(id, CodeElementType.Method, id, id, parent);
+        Link(parent, element);
+        return element;
+    }
+
+    /// <summary>A method from outside the solution (member of a framework type).</summary>
+    public CodeElement CreateExternalMethod(string id, CodeElement? parent = null)
+    {
+        var element = new CodeElement(id, CodeElementType.Method, id, id, parent) { IsExternal = true };
         Link(parent, element);
         return element;
     }
