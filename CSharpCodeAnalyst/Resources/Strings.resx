@@ -675,8 +675,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Search in code element full name.
 
 Logical operations: space = AND, '|' = OR
+Exclude a term = prefix it with '-' (e.g. "-Strings." or "-type:property")
 Search for type = type:xxx
-Search for internal code elements = source:intern      
+Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
   </data>
@@ -685,8 +686,9 @@ Search with resharper style = Use at least one uppercase character in a search t
 '!' Clears the search but keeps highlighting
 
 Logical operations: space = AND, '|' = OR
+Exclude a term = prefix it with '-' (e.g. "-Strings." or "-type:property")
 Search for type = type:xxx
-Search for internal code elements = source:intern      
+Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
   </data>

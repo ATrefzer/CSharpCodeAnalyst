@@ -59,8 +59,9 @@ internal class DeadCodeViewModel : Table
     }
 
     /// <summary>
-    ///     Filters by element name using the same search expression as the Advanced Search
-    ///     (supports camel-case, OR via '|', AND via spaces).
+    ///     Filters by element name using the same search expression as the Advanced Search (camel-case,
+    ///     OR via '|', AND via spaces, exclusion via a leading '-'). Exclusion is what makes a long result
+    ///     usable: "-Strings. -Tests" drops whole groups of findings at once.
     /// </summary>
     public override ObservableCollection<TableRow> Filter(string searchText)
     {

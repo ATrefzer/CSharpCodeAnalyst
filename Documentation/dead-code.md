@@ -16,6 +16,17 @@ Available via *Analyzers → Dead Code*. The result is a sortable table:
 Sort by *Notes* to get the clean cases together, and use *Jump to code* or *Copy to explorer graph* from
 the context menu to check a finding.
 
+On a large codebase the fastest way to make the result readable is the filter box, which understands the
+same expressions as the Advanced Search — including **exclusion** with a leading `-`. Whole groups of
+findings disappear at once:
+
+```
+-Strings. -Tests -ThirdParty
+```
+
+`-type:property` drops a whole element kind, and `-source:extern` works as well. Terms combine with spaces
+(AND) and `|` (OR); the exclusion belongs to the term it precedes.
+
 The *Notes* column carries two different kinds of remark, which is why it is not called something like
 "might still be used":
 

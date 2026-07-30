@@ -120,6 +120,31 @@ internal abstract class Term : IExpression
             return _conditions.Any(c => c.Evaluate(item));
         }
     }
+
+    /// <summary>
+    ///     Negates a condition, so a search can exclude instead of select ("-Strings." hides everything
+    ///     whose name contains "Strings.").
+    ///     <para>
+    ///         An item without a code element never matches, not even a negated condition. Every term
+    ///         answers "no" for a null item, and negation must not silently turn that into a match - the
+    ///         tree has a virtual root without a code element that would otherwise light up on every
+    ///         exclusion.
+    ///     </para>
+    /// </summary>
+    internal class Not : IExpression
+    {
+        private readonly IExpression _condition;
+
+        public Not(IExpression condition)
+        {
+            _condition = condition;
+        }
+
+        public bool Evaluate(CodeElement? item)
+        {
+            return item is not null && !_condition.Evaluate(item);
+        }
+    }
 }
 
 internal class FullNameSearch(string searchTerm) : Term(searchTerm)
