@@ -3,6 +3,7 @@ using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeParser.Xaml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -201,6 +202,13 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
         sw.Stop();
         Trace.TraceInformation("Analyzing relationships: " + sw.Elapsed);
 
+        // Third pass: the XAML references Roslyn cannot see. Runs before the global namespace is inserted
+        // so the synthetic elements for code-behind-less files are moved along with everything else.
+        if (config.IncludeXamlReferences)
+        {
+            LinkXamlReferences(solution, codeGraph);
+        }
+
         // Makes the cycle detection easier because I never get to the assembly as shared ancestor
         // for a nested relationships.
         InsertGlobalNamespaceIfUsed(codeGraph);
@@ -213,6 +221,38 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
         return new ParseResult(codeGraph, metrics);
     }
 
+
+    /// <summary>
+    ///     Adds the references that only exist in XAML. The assembly elements are matched to the Roslyn
+    ///     projects by assembly name, and each project contributes the XAML files below its own directory -
+    ///     MSBuildWorkspace does not expose the "Page" items, so the directory is the practical source.
+    /// </summary>
+    private void LinkXamlReferences(Solution solution, CodeGraph.Graph.CodeGraph codeGraph)
+    {
+        progress?.Report("Reading XAML references ...");
+
+        var assembliesByName = codeGraph.GetRoots()
+            .Where(root => root.ElementType == CodeElementType.Assembly)
+            .ToDictionary(root => root.Name, root => root);
+
+        var projects = new List<XamlProject>();
+        foreach (var project in solution.Projects)
+        {
+            var directory = Path.GetDirectoryName(project.FilePath);
+            if (directory is null || !config.IsProjectIncluded(project.Name) ||
+                !assembliesByName.TryGetValue(project.AssemblyName, out var assembly))
+            {
+                continue;
+            }
+
+            projects.Add(new XamlProject(assembly, directory));
+        }
+
+        var sw = Stopwatch.StartNew();
+        var added = XamlGraphLinker.Link(codeGraph, projects);
+        sw.Stop();
+        Trace.TraceInformation($"Reading XAML references: {sw.Elapsed} ({added} relationships)");
+    }
 
     /// <summary>
     ///     Computes per-member source metrics from the symbol map built in phase 1.

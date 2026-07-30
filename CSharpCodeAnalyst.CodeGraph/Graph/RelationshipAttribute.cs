@@ -17,7 +17,14 @@ public enum RelationshipAttribute : uint
     IsExtensionMethodCall = 16,
     IsMethodGroup = 32,
     EventRegistration = 64,
-    EventUnregistration = 128
+    EventUnregistration = 128,
+
+    /// <summary>
+    ///     The relationship was read out of a XAML file, not out of C#. Declarative XAML (element tags,
+    ///     {x:Static}, {x:Type}) is compiled into BAML and resolved by reflection at runtime, so the
+    ///     markup compiler generates no C# for it and Roslyn cannot see it.
+    /// </summary>
+    IsXamlReference = 256
 }
 
 public static class RelationshipAttributeExtensions

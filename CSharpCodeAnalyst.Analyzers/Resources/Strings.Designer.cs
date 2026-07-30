@@ -294,7 +294,7 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Might still be used.
+        ///   Looks up a localized string similar to Notes.
         /// </summary>
         public static string Column_DeadCode_Hint {
             get {

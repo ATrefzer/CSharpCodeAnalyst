@@ -43,7 +43,9 @@ internal class DeadCodeViewModel : Table
             },
             new()
             {
-                // Empty means nothing speaks against deleting it - sorting brings those rows together.
+                // Carries both the doubts (entry point, test code, attributes) and the explanation of a
+                // contract finding. Empty means nothing speaks against deleting the element, and sorting
+                // brings those rows together.
                 Type = ColumnType.Text,
                 Header = Strings.Column_DeadCode_Hint,
                 PropertyName = nameof(DeadCodeRowViewModel.Hint)

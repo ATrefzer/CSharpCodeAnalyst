@@ -24,7 +24,11 @@ public class DeadCodeRowViewModel : TableRow
     public string Name { get; }
     public string Kind { get; }
 
-    /// <summary>Why the element might be alive despite having no visible reference. Empty means: no doubts.</summary>
+    /// <summary>
+    ///     Two kinds of note, joined into one cell: why the element might be alive despite having no
+    ///     visible reference (entry point, test code, attributes), and - for a contract finding - what
+    ///     dies together with it. Empty means neither applies, so nothing speaks against deleting it.
+    /// </summary>
     public string Hint { get; }
 
     private static string FormatHint(DeadCodeFinding finding)

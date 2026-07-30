@@ -275,3 +275,41 @@ Phase 2 now walks the declarations of **both** parts
 (`GetDeclaringSyntaxReferencesIncludingPartial`, using `PartialImplementationPart` /
 `PartialDefinitionPart`), for methods and for partial properties (C# 13) alike. The source metrics
 measure the implementation part. Partial *events* (C# 14) are not special-cased yet.
+
+## XAML: the half the markup compiler does not generate
+
+The WPF markup compiler writes a partial class per XAML file (`obj/.../MyView.g.cs`) and MSBuildWorkspace
+runs that pass during its design-time build, so the file is part of the compilation even for a solution
+that was never built. It contains the event handler wiring (`IComponentConnector.Connect`, and
+`IStyleConnector.Connect` for handlers inside templates) and one field per `x:Name`. Those references are
+therefore plain C# and need nothing special.
+
+Two things are *not* in there, and both were mistaken for dead code before:
+
+- Everything declarative - element tags, `{x:Static}`, `{x:Type}`, `{Binding}`, `{StaticResource}` - is
+  compiled into BAML and resolved by reflection at runtime.
+- `x:Name` only produces a field in the file's **main name scope**. A `DataTemplate`, `ControlTemplate` or
+  `Style` is its own name scope and gets no field. `MainWindow.xaml` in this repository has ten `x:Name`s
+  and nine generated fields; the missing one sits inside a `DataTemplate`.
+
+So a control can be used three times in XAML, once even with a name, and produce no C# reference at all.
+
+A third pass (`Xaml/XamlReferenceExtractor` + `Xaml/XamlGraphLinker`, enabled by
+`ParserConfig.IncludeXamlReferences`) therefore reads the XAML files next to each project and adds the
+references that carry a **fully qualified CLR name**: element tags, `{x:Static}` and `{x:Type}`. Prefixes
+are resolved through the `clr-namespace` xmlns declarations, so nothing is matched by guessing. The
+relationships are `Uses` and carry `RelationshipAttribute.IsXamlReference`.
+
+`{Binding Path=...}` is deliberately left out. Without evaluating the DataContext it is a bare member name,
+and matching that across the codebase would suppress far more than it explains.
+
+The source of such a relationship is the code-behind class from `x:Class`. A resource dictionary has none,
+so a synthetic class named after the file path takes its place - the same device already used for top-level
+statements (`GlobalStatements`). It is created only when the file actually contains a resolvable reference.
+Since nothing resolves the `Source` / `StartupUri` URIs of merged dictionaries, those synthetic elements
+have no incoming reference and do show up in a dead code analysis; there were six of them in this
+repository.
+
+MSBuildWorkspace note: opening a WPF project runs the markup compile through a temporary `_wpftmp.csproj`,
+which can invalidate the incremental build state of the real project - a following `dotnet build` may fail
+with `CS2001` for every `.g.cs` until it is rebuilt.

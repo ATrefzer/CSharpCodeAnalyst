@@ -220,7 +220,7 @@
     <value>Kind</value>
   </data>
     <data name="Column_DeadCode_Hint" xml:space="preserve">
-    <value>Might still be used</value>
+    <value>Notes</value>
   </data>
     <data name="DeadCode_Hint_EntryPoint" xml:space="preserve">
     <value>Entry point</value>

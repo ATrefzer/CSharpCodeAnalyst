@@ -5,12 +5,14 @@ public class ParserConfig
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals,
-        bool includeGeneratedCode = false, bool splitPropertyAccessors = false)
+        bool includeGeneratedCode = false, bool splitPropertyAccessors = false,
+        bool includeXamlReferences = true)
     {
         _projectExclusionFilters = projectExclusionFilters;
         IncludeExternals = includeExternals;
         IncludeGeneratedCode = includeGeneratedCode;
         SplitPropertyAccessors = splitPropertyAccessors;
+        IncludeXamlReferences = includeXamlReferences;
     }
 
     public bool IncludeExternals { get; }
@@ -30,6 +32,14 @@ public class ParserConfig
     ///     merged onto a single property node.
     /// </summary>
     public bool SplitPropertyAccessors { get; }
+
+    /// <summary>
+    ///     When enabled, the XAML files next to the analyzed projects are scanned for the references the
+    ///     markup compiler does not turn into C# (element tags, <c>{x:Static}</c>, <c>{x:Type}</c>) and
+    ///     those become relationships in the graph. Without it a control that is only instantiated from
+    ///     XAML looks unreferenced.
+    /// </summary>
+    public bool IncludeXamlReferences { get; }
 
     public bool IsProjectIncluded(string projectName)
     {

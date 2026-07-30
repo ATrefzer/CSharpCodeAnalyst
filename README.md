@@ -24,6 +24,7 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 - **Incremental Graph Exploration** – Build the exact graph you need to understand a codebase or solve a task. Map out dependencies step by step on demand (e.g., "show all incoming relationships"), and easily filter out unrelated code elements to keep the graph free of visual clutter.
 - **Sandbox Code Refactoring** – Experiment with structural changes and simulate cycle-breaking strategies safely, without touching your actual source code.
 - **Architectural Guardrails** – Define custom dependency rules and metric thresholds to actively validate and enforce a clean codebase.
+- **Dead Code Detection** – Find the types and members nothing references any more, with the cases that only look unused flagged instead of hidden.
 - **Multi-Format Exports** – Share your architecture by exporting diagrams to PlantUML, DGML, PNG, SVG, and more.
 - **Git History Hotspots** – Uncover hidden technical debt by running hotspot or change-coupling analyses directly on your Git repository history.
 - **Design Structure Matrix (DSM)** - Explore the System's dependencies at the type level.
@@ -236,20 +237,17 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ## Find dead code
 
-*Analyzers → Dead Code* lists the elements nothing references any more. The rule works on the subtree, so a
-class stays alive when one of its methods is used from the outside, and a class whose methods only call each
-other is still dead. Only the topmost element of a dead subtree is listed.
+C# Code Analyst can list the code elements that nothing references any more.
 
-Calls through an interface count for the implementation behind it, so an implementation is not reported just
-because it is only reached polymorphically — and a contract that nobody ever calls is reported together with
-its implementations.
+The rule works on the whole subtree, so a class stays alive when one of its methods is used from somewhere
+else, and a class whose methods only call each other is still dead. Only the topmost element of a dead
+subtree is listed. References the parser cannot see are flagged in the *Notes* column instead of being
+dropped silently.
 
-References the parser cannot see are not dropped silently: those rows carry a hint in the last column. An
-empty hint means nothing speaks against deleting the element. Note that XAML is only half visible — event
-handlers and `x:Name`d controls are compiled into C# and are found, while `{Binding}`, `{x:Static}` and
-`{StaticResource}` end up in BAML and are resolved by reflection at runtime.
+You can read more about the rule, how XAML is handled and where the limits are here:
+[Dead Code](Documentation/dead-code.md)
 
-Details and limitations: [Dead Code](Documentation/dead-code.md)
+The analysis is accessible via the Analyzer Ribbon, and the result is presented in a table on a separate tab.
 
 ## Other languages
 
