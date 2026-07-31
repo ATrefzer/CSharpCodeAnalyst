@@ -62,6 +62,9 @@ public static class DeadCodeAnalysis
         DeadCodeHint.EntryPoint | DeadCodeHint.TestCode | DeadCodeHint.Attributed |
         DeadCodeHint.ImplementsExternalContract;
 
+    /// <summary>Prefix of the contracts recorded for a type that raises change notifications.</summary>
+    private const string NotifyPropertyChanged = "INotifyPropertyChanged.";
+
     /// <summary>
     ///     Attribute names (with and without the "Attribute" suffix) of the common test frameworks. A test
     ///     method is called by a runner, never from the code, so it always looks unreferenced.
@@ -113,9 +116,15 @@ public static class DeadCodeAnalysis
         var implementations = new Dictionary<string, List<CodeElement>>();
         var contracts = new Dictionary<string, List<CodeElement>>();
 
+        // Base type -> the types deriving from it. Only used to spread the binding target property.
+        var derivedTypes = new Dictionary<string, List<CodeElement>>();
+
         // The structure never changes between rounds - only which sources still count does.
         var referenceEdges = new List<(CodeElement Source, CodeElement Target)>();
-        CollectEdges(graph, referenceEdges, external, implementations, contracts);
+        CollectEdges(graph, referenceEdges, external, implementations, contracts, derivedTypes);
+
+        var context = new AnalysisContext(external, implementations, contracts,
+            FindBindingTargets(graph, external, derivedTypes));
 
         // Everything found dead so far, including the subtrees of the reported elements.
         var found = new HashSet<string>();
@@ -128,7 +137,7 @@ public static class DeadCodeAnalysis
         for (var level = 1;; level++)
         {
             var referenced = ComputeReferenced(referenceEdges, silenced, implementations);
-            var round = Report(graph, referenced, found, external, implementations, contracts, level);
+            var round = Report(graph, referenced, found, context, level);
             if (round.Count == 0)
             {
                 break;
@@ -154,6 +163,77 @@ public static class DeadCodeAnalysis
         }
 
         return findings.OrderBy(f => f.Element.FullName, StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>
+    ///     The structural facts of one run: everything derived once from the graph and unchanged across the
+    ///     cascade rounds.
+    /// </summary>
+    private sealed record AnalysisContext(
+        Dictionary<string, string> External,
+        Dictionary<string, List<CodeElement>> Implementations,
+        Dictionary<string, List<CodeElement>> Contracts,
+        HashSet<string> BindingTargets);
+
+    /// <summary>
+    ///     The types whose public properties a XAML <c>{Binding}</c> may read - anything implementing
+    ///     <c>INotifyPropertyChanged</c>. Bindings are resolved by reflection at runtime and are the one
+    ///     XAML construct the parser deliberately does not follow, so such a property must never reach the
+    ///     highest confidence.
+    ///     <para>
+    ///         The interface shows up through the external contract of the <c>PropertyChanged</c> event.
+    ///         A derived view model has no such member of its own (the base class implements it), so the
+    ///         property is spread down the <see cref="RelationshipType.Inherits" /> edges - the common
+    ///         "MyViewModel : ViewModelBase" shape would be missed otherwise. A base class outside the
+    ///         analyzed code is invisible here, so a view model deriving from a framework type that
+    ///         implements the interface is not recognized.
+    ///     </para>
+    /// </summary>
+    private static HashSet<string> FindBindingTargets(Graph.CodeGraph graph, Dictionary<string, string> external,
+        Dictionary<string, List<CodeElement>> derivedTypes)
+    {
+        var targets = new HashSet<string>();
+        var queue = new Queue<string>();
+
+        foreach (var (elementId, contract) in external)
+        {
+            if (!contract.StartsWith(NotifyPropertyChanged, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var type = ContainingType(graph.TryGetCodeElement(elementId));
+            if (type is not null && targets.Add(type.Id))
+            {
+                queue.Enqueue(type.Id);
+            }
+        }
+
+        while (queue.Count > 0)
+        {
+            if (!derivedTypes.TryGetValue(queue.Dequeue(), out var derived))
+            {
+                continue;
+            }
+
+            foreach (var type in derived.Where(type => targets.Add(type.Id)))
+            {
+                queue.Enqueue(type.Id);
+            }
+        }
+
+        return targets;
+    }
+
+    private static CodeElement? ContainingType(CodeElement? element)
+    {
+        var current = element;
+        while (current is not null && !current.IsType())
+        {
+            current = current.Parent;
+        }
+
+        return current;
     }
 
     /// <summary>
@@ -194,7 +274,8 @@ public static class DeadCodeAnalysis
     private static void CollectEdges(Graph.CodeGraph graph,
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
         Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
+        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts,
+        Dictionary<string, List<CodeElement>> derivedTypes)
     {
         foreach (var relationship in graph.GetAllRelationships())
         {
@@ -203,6 +284,11 @@ public static class DeadCodeAnalysis
             if (source is null || target is null)
             {
                 continue;
+            }
+
+            if (relationship.Type == RelationshipType.Inherits && source.IsType() && target.IsType())
+            {
+                Add(derivedTypes, target.Id, source);
             }
 
             if (IsPolymorphicEdge(relationship.Type, source))
@@ -318,9 +404,7 @@ public static class DeadCodeAnalysis
     ///     The findings of a single round: everything unreferenced that was not already found earlier.
     /// </summary>
     private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, HashSet<string> referenced,
-        HashSet<string> found, Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations,
-        Dictionary<string, List<CodeElement>> contracts, int level)
+        HashSet<string> found, AnalysisContext context, int level)
     {
         var findings = new List<DeadCodeFinding>();
 
@@ -341,15 +425,13 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            findings.Add(CreateFinding(element, external, implementations, contracts, level));
+            findings.Add(CreateFinding(element, context, level));
         }
 
         return findings;
     }
 
-    private static DeadCodeFinding CreateFinding(CodeElement element, Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts,
-        int level)
+    private static DeadCodeFinding CreateFinding(CodeElement element, AnalysisContext context, int level)
     {
         var hints = DeadCodeHint.None;
         var attributes = new SortedSet<string>(StringComparer.Ordinal);
@@ -382,13 +464,13 @@ public static class DeadCodeAnalysis
 
         // Reported although it implements an internal contract means the contract is dead as well -
         // otherwise the propagation would have marked this element alive.
-        if (contracts.TryGetValue(element.Id, out var implemented))
+        if (context.Contracts.TryGetValue(element.Id, out var implemented))
         {
             hints |= DeadCodeHint.ImplementsDeadContract;
             related.AddRange(implemented);
         }
 
-        if (implementations.TryGetValue(element.Id, out var implementors))
+        if (context.Implementations.TryGetValue(element.Id, out var implementors))
         {
             hints |= DeadCodeHint.ContractNeverCalled;
             related.AddRange(implementors);
@@ -396,7 +478,7 @@ public static class DeadCodeAnalysis
 
         // Element level only. A dead class whose members implement IDisposable is still dead - saying
         // "might be used" about the class would be wrong, the note belongs to the member.
-        external.TryGetValue(element.Id, out var externalContract);
+        context.External.TryGetValue(element.Id, out var externalContract);
         if (externalContract is not null)
         {
             hints |= DeadCodeHint.ImplementsExternalContract;
@@ -405,7 +487,7 @@ public static class DeadCodeAnalysis
         return new DeadCodeFinding(element)
         {
             Level = level,
-            Confidence = RateConfidence(element, hints, level),
+            Confidence = RateConfidence(element, hints, level, context),
             Hints = hints,
             Attributes = attributes.ToList(),
             RelatedMembers = related,
@@ -418,19 +500,44 @@ public static class DeadCodeAnalysis
     ///     know the finding may be wrong. Otherwise visibility decides, but only for a direct finding:
     ///     what the cascade produced is never better than the rounds it rests on.
     /// </summary>
-    private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints, int level)
+    private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints, int level,
+        AnalysisContext context)
     {
         if ((hints & CallerOutsideTheGraph) != DeadCodeHint.None)
         {
             return DeadCodeConfidence.Low;
         }
 
-        if (level == 1 && IsConfinedToAnalyzedCode(element))
+        if (level == 1 && IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingTargets))
         {
             return DeadCodeConfidence.High;
         }
 
         return DeadCodeConfidence.Medium;
+    }
+
+    /// <summary>
+    ///     Whether a XAML <c>{Binding}</c> could read this element without us seeing it. That takes two
+    ///     things: a <b>public</b> property - the binding engine resolves by public reflection, so private,
+    ///     internal and protected members are out of its reach - on a type that raises change
+    ///     notifications.
+    ///     <para>
+    ///         Note that being confined does not help here. A public property of an internal class cannot
+    ///         be referenced from another assembly, but the binding sits <i>inside</i> the assembly and is
+    ///         merely invisible, which is a different thing.
+    ///     </para>
+    /// </summary>
+    private static bool IsBindable(CodeElement element, HashSet<string> bindingTargets)
+    {
+        // With split accessors the finding may be the getter or setter of the bound property.
+        var property = element.ElementType == CodeElementType.PropertyAccessor ? element.Parent : element;
+        if (property is not { ElementType: CodeElementType.Property, AccessLevel: AccessLevel.Public })
+        {
+            return false;
+        }
+
+        var type = ContainingType(property);
+        return type is not null && bindingTargets.Contains(type.Id);
     }
 
     /// <summary>

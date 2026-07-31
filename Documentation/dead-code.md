@@ -19,6 +19,12 @@ Available via *Analyzers → Dead Code*. The result is a sortable table:
 Sort by *Notes* to get the clean cases together, and use *Jump to code* or *Copy to explorer graph* from
 the context menu to check a finding.
 
+> **Two rows can carry the same name.** A full name is built from the plain symbol names, which carry
+> neither generic arity nor a parameter list. So `WpfCommand` and `WpfCommand<T>` read alike, and so do the
+> overloads `Foo(int)` and `Foo(string)`. They are separate elements in the graph — only the display
+> collides, and one of them being dead while the other is used looks like a wrong finding. *Jump to code*
+> resolves it: the source locations differ.
+
 On a large codebase the fastest way to make the result readable is the filter box, which understands the
 same expressions as the Advanced Search — including **exclusion** with a leading `-`. Whole groups of
 findings disappear at once:
@@ -110,11 +116,26 @@ measurement:
 The containment part matters more than it looks: a `public` method of an `internal` class cannot be called
 from another assembly either, so it still qualifies as high.
 
+**One exception to high:** a `public` property on a type that implements `INotifyPropertyChanged` — a view
+model. A XAML `{Binding}` reaches exactly that, and bindings are the one XAML construct the analysis
+deliberately does not follow. The interface is recognized through the `PropertyChanged` event and is spread
+down the inheritance edges, so the usual `MyViewModel : ViewModelBase` shape is covered too.
+
+Being confined does not help against this. A public property of an internal class cannot be referenced from
+another assembly, but the binding sits *inside* the assembly and is merely invisible — a different thing.
+Private, internal and protected properties stay high: the binding engine resolves by public reflection and
+cannot reach them.
+
+> **Known gap.** The rule keys on `INotifyPropertyChanged`, so a plain object bound inside a `DataTemplate`
+> is not covered. In this repository the `Mru` class (`Path`, `Command`, bound from an `ItemsSource`) is
+> exactly that case and still shows as high. Recognizing it would mean demoting *every* public property,
+> which costs real findings in non-WPF code.
+
 **Unknown visibility never reaches high.** Every importer except the C# parser leaves it unset, and so does
 a project file written before this existed. That is the honest answer rather than a penalty — without
 knowing the visibility we cannot claim that nothing outside could reference the element.
 
-On this repository the distribution is 35 high, 529 medium, 478 low out of 1042 findings. The high bucket is
+On this repository the distribution is 27 high, 537 medium, 478 low out of 1042 findings. The high bucket is
 deliberately small: it is the list you can work through without checking each entry by hand.
 
 > `InternalsVisibleTo` is not taken into account. A friend assembly inside the analysis shows its references

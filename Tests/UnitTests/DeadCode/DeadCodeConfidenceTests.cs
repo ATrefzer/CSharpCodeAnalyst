@@ -107,6 +107,91 @@ public class DeadCodeConfidenceTests
         Assert.That(ConfidenceOf(execute, store), Is.EqualTo(DeadCodeConfidence.Low));
     }
 
+    /// <summary>
+    ///     A view model with one used and one unused property. The store entry is what tells the analysis
+    ///     that the type raises change notifications - the interface itself is not in the graph.
+    /// </summary>
+    private (CodeElement Unused, ExternalContractStore Store) CreateViewModel(AccessLevel propertyAccess,
+        AccessLevel typeAccess = AccessLevel.Internal)
+    {
+        var viewModel = _graph.CreateClass("MainViewModel", accessLevel: typeAccess);
+        var changed = _graph.CreateEvent("MainViewModel.PropertyChanged", viewModel);
+        var used = _graph.CreateMethod("MainViewModel.Used", viewModel, AccessLevel.Public);
+        var unused = _graph.CreateProperty("MainViewModel.Title", viewModel);
+        unused = Retype(unused, propertyAccess);
+
+        var program = _graph.CreateClass("Program");
+        var main = _graph.CreateMethod("Main", program);
+        Rel(main, used, RelationshipType.Calls);
+
+        var store = new ExternalContractStore();
+        store.Add(changed.Id, "INotifyPropertyChanged.PropertyChanged");
+        return (unused, store);
+    }
+
+    /// <summary>TestCodeGraph has no accessibility overload for properties - replace the element.</summary>
+    private CodeElement Retype(CodeElement element, AccessLevel accessLevel)
+    {
+        var replacement = new CodeElement(element.Id, element.ElementType, element.Name, element.FullName,
+            element.Parent) { AccessLevel = accessLevel };
+        element.Parent?.Children.Remove(element);
+        element.Parent?.Children.Add(replacement);
+        _graph.Nodes[replacement.Id] = replacement;
+        return replacement;
+    }
+
+    [Test]
+    public void PublicPropertyOnANotifyingType_IsNotHighConfidence()
+    {
+        // A XAML {Binding} reaches exactly this and is invisible to the analysis.
+        var (unused, store) = CreateViewModel(AccessLevel.Public);
+
+        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.Medium));
+    }
+
+    [Test]
+    public void PrivatePropertyOnANotifyingType_StaysHighConfidence()
+    {
+        // The binding engine resolves by public reflection, so it can never reach this one.
+        var (unused, store) = CreateViewModel(AccessLevel.Private);
+
+        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.High));
+    }
+
+    [Test]
+    public void PublicPropertyOnAnOrdinaryType_StaysHighConfidence()
+    {
+        // Without the notification contract there is no reason to suspect a binding.
+        var type = _graph.CreateClass("Options", accessLevel: AccessLevel.Internal);
+        var used = _graph.CreateMethod("Options.Used", type, AccessLevel.Public);
+        var unused = Retype(_graph.CreateProperty("Options.Title", type), AccessLevel.Public);
+
+        var program = _graph.CreateClass("Program");
+        var main = _graph.CreateMethod("Main", program);
+        Rel(main, used, RelationshipType.Calls);
+
+        Assert.That(ConfidenceOf(unused), Is.EqualTo(DeadCodeConfidence.High));
+    }
+
+    [Test]
+    public void PublicPropertyOnADerivedViewModel_IsNotHighConfidence()
+    {
+        // The common MVVM shape: the base class implements the interface, the derived one inherits it.
+        // Without following the Inherits edge this case would be missed.
+        var (_, store) = CreateViewModel(AccessLevel.Private);
+        var baseType = _graph.Nodes.Values.Single(n => n.Name == "MainViewModel");
+
+        var derived = _graph.CreateClass("DetailViewModel", accessLevel: AccessLevel.Internal);
+        var unused = Retype(_graph.CreateProperty("DetailViewModel.Caption", derived), AccessLevel.Public);
+        Rel(derived, baseType, RelationshipType.Inherits);
+
+        // Keep the derived class itself alive, otherwise it is reported and swallows the property.
+        var main = _graph.Nodes.Values.Single(n => n.Name == "Main");
+        Rel(main, derived, RelationshipType.Creates);
+
+        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.Medium));
+    }
+
     [Test]
     public void StaticConstructor_IsAnEntryPointAndNotHighConfidence()
     {
