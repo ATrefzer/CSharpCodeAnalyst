@@ -237,17 +237,11 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ## Find dead code
 
-C# Code Analyst can list the code elements that nothing references any more.
+C# Code Analyst can list code elements that nothing references anymore.
 
-The rule works on the whole subtree, so a class stays alive when one of its methods is used from somewhere
-else, and a class whose methods only call each other is still dead. Only the topmost element of a dead
-subtree is listed. The analysis cascades: what is only kept alive by dead code dies with it, and the *Level*
-column says in which round a finding appeared. References the parser cannot see are flagged in the *Notes*
-column instead of being dropped silently, and every row carries a colour-coded *Confidence* — highest for
-elements that are `private` or `internal`, because nothing outside the analyzed code could reach those.
+This is a heuristic only. There are many situations, like Reflection, DI, and XAML Bindings, that are not recognized. Therefore, each finding gets a confidence level.
 
-You can read more about the rule, how XAML is handled and where the limits are here:
-[Dead Code](Documentation/dead-code.md)
+You can read more about the rules and  the limits here: [Dead Code](Documentation/dead-code.md)
 
 The analysis is accessible via the Analyzer Ribbon, and the result is presented in a table on a separate tab.
 

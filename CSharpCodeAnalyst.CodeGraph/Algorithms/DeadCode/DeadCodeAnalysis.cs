@@ -140,7 +140,7 @@ public static class DeadCodeAnalysis
         CollectEdges(graph, referenceEdges, external, implementations, contracts, derivedTypes);
 
         var context = new AnalysisContext(external, implementations, contracts,
-            FindBindingTargets(graph, external, derivedTypes), FindSerializableTypes(graph));
+            FindBindingSources(graph, external, derivedTypes), FindSerializableTypes(graph));
 
         var referenced = ComputeReferenced(referenceEdges, implementations);
 
@@ -154,14 +154,20 @@ public static class DeadCodeAnalysis
         Dictionary<string, string> External,
         Dictionary<string, List<CodeElement>> Implementations,
         Dictionary<string, List<CodeElement>> Contracts,
-        HashSet<string> BindingTargets,
+        HashSet<string> BindingSources,
         HashSet<string> SerializableTypes);
 
     /// <summary>
-    ///     The types whose public properties a XAML <c>{Binding}</c> may read - anything implementing
+    ///     Finds the view models.
+    ///     These are the types whose public properties a XAML <c>{Binding}</c> may read - anything implementing
     ///     <c>INotifyPropertyChanged</c>. Bindings are resolved by reflection at runtime and are the one
     ///     XAML construct the parser deliberately does not follow, so such a property must never reach the
     ///     highest confidence.
+    ///     <para>
+    ///         "Source" in the WPF sense: the object a binding reads from (<c>Binding.Source</c>). The
+    ///         binding <i>target</i> is the dependency property on the control, which is not what we look
+    ///         for here.
+    ///     </para>
     ///     <para>
     ///         The interface shows up through the external contract of the <c>PropertyChanged</c> event.
     ///         A derived view model has no such member of its own (the base class implements it), so the
@@ -171,10 +177,10 @@ public static class DeadCodeAnalysis
     ///         implements the interface is not recognized.
     ///     </para>
     /// </summary>
-    private static HashSet<string> FindBindingTargets(Graph.CodeGraph graph, Dictionary<string, string> external,
+    private static HashSet<string> FindBindingSources(Graph.CodeGraph graph, Dictionary<string, string> external,
         Dictionary<string, List<CodeElement>> derivedTypes)
     {
-        var targets = new HashSet<string>();
+        var sources = new HashSet<string>();
         var queue = new Queue<string>();
 
         foreach (var (elementId, contract) in external)
@@ -185,12 +191,13 @@ public static class DeadCodeAnalysis
             }
 
             var type = ContainingType(graph.TryGetCodeElement(elementId));
-            if (type is not null && targets.Add(type.Id))
+            if (type is not null && sources.Add(type.Id))
             {
                 queue.Enqueue(type.Id);
             }
         }
 
+        // Add returning false doubles as the visited check, so a diamond cannot enqueue a type twice.
         while (queue.Count > 0)
         {
             if (!derivedTypes.TryGetValue(queue.Dequeue(), out var derived))
@@ -198,18 +205,18 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            foreach (var type in derived.Where(type => targets.Add(type.Id)))
+            foreach (var type in derived.Where(type => sources.Add(type.Id)))
             {
                 queue.Enqueue(type.Id);
             }
         }
 
-        return targets;
+        return sources;
     }
 
     /// <summary>
     ///     The types a serializer drives: everything carrying one of the
-    ///     <see cref="SerializationAttributes" />. Unlike the binding targets this is not spread down the
+    ///     <see cref="SerializationAttributes" />. Unlike the binding sources this is not spread down the
     ///     inheritance edges - none of those attributes is inherited, a derived type has to carry its own.
     /// </summary>
     private static HashSet<string> FindSerializableTypes(Graph.CodeGraph graph)
@@ -500,7 +507,7 @@ public static class DeadCodeAnalysis
             return DeadCodeConfidence.Low;
         }
 
-        if (IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingTargets))
+        if (IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingSources))
         {
             return DeadCodeConfidence.High;
         }
@@ -519,9 +526,9 @@ public static class DeadCodeAnalysis
     ///         merely invisible, which is a different thing.
     ///     </para>
     /// </summary>
-    private static bool IsBindable(CodeElement element, HashSet<string> bindingTargets)
+    private static bool IsBindable(CodeElement element, HashSet<string> bindingSources)
     {
-        return IsPublicPropertyOf(element, bindingTargets);
+        return IsPublicPropertyOf(element, bindingSources);
     }
 
     /// <summary>
