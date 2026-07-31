@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Features.Gallery;
@@ -25,6 +26,13 @@ public class ProjectData
     ///     metric collection was enabled during import.
     /// </summary>
     public List<SerializableMemberMetrics> MemberMetrics { get; set; } = [];
+
+    /// <summary>
+    ///     Which members implement a contract from outside the analyzed code, keyed by element id.
+    ///     Empty for every graph producer except the C# parser. An older project file simply has none,
+    ///     and those members show up as unreferenced again until the solution is parsed anew.
+    /// </summary>
+    public Dictionary<string, string> ExternalContracts { get; set; } = new();
 
     /// <summary>
     ///     Gallery is already serializable.
@@ -60,6 +68,16 @@ public class ProjectData
                 LogicalLinesOfCode = m.LogicalLinesOfCode,
                 CyclomaticComplexity = m.CyclomaticComplexity
             });
+    }
+
+    public void SetExternalContracts(ExternalContractStore store)
+    {
+        ExternalContracts = store.Contracts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    public IReadOnlyDictionary<string, string> GetExternalContracts()
+    {
+        return ExternalContracts;
     }
 
     /// <summary>

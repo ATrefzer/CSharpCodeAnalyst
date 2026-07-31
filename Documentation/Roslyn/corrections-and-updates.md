@@ -313,3 +313,45 @@ repository.
 MSBuildWorkspace note: opening a WPF project runs the markup compile through a temporary `_wpftmp.csproj`,
 which can invalidate the incremental build state of the real project - a following `dotnet build` may fail
 with `CS2001` for every `.g.cs` until it is rebuilt.
+
+## Contracts from outside the analyzed code
+
+A member that implements or overrides something we did not analyze - `ICommand.Execute`,
+`object.GetHashCode`, `CSharpSyntaxVisitor.VisitGenericName` - has **no incoming reference anywhere in the
+graph**. The framework is the caller. Every such member therefore looks like dead code, and worse: it looks
+like a *confident* finding, because nothing hints at doubt.
+
+The relationship model cannot express it, in either configuration:
+
+- With `IncludeExternals` off (the default) `AddRelationshipWithFallbackToContainingType` finds neither the
+  member nor its containing type internally and adds **nothing at all**. There is no element to point at.
+- With `IncludeExternals` on, only *types* become external elements ("Always returns the containing TYPE
+  element"), and member relationships are flattened to `Uses`. The result,
+  `VisitGenericName -Uses-> CSharpSyntaxVisitor`, is indistinguishable from a method that merely uses that
+  type as a parameter. Measured on this repository, turning externals on adds 954 nodes and 78 % more edges
+  and still does not answer the question.
+
+The fact is therefore recorded **beside the graph** in `ExternalContractStore` (element id -> contract
+name), carried in `ParseResult` next to the source metrics. It deliberately does not live on
+`CodeElement`: that type is shared with every importer, and a field only the C# parser ever fills would sit
+there empty forever. `MetricStore` established the pattern - "kept beside the code graph so the graph model
+stays pure".
+
+Two detection routes in `DeclarationAnalyzer`, both needed:
+
+- **`override`** - the existing hook (`methodSymbol.IsOverride`, and the property equivalent) records the
+  contract when the *containing type* of the overridden member is not one of ours.
+- **Implicit interface implementation** - `ICommand.Execute` carries no `override` keyword, and
+  `AddImplementationsForInterfaceMember` only ever walks from the *interface* side, so an external interface
+  is never visited. `RecordExternalInterfaceImplementations` therefore walks the type's `AllInterfaces`,
+  skips the internal ones (those get real `Implements` edges) and resolves the rest with
+  `FindImplementationForInterfaceMember`. Those interfaces come from `AllInterfaces` and are already
+  constructed, so the definition/construction trap documented above does not apply here.
+
+Generic types are normalized with `OriginalDefinition` before asking whether an interface is ours -
+`IHandler<Widget>` is not in the map, `IHandler<T>` is.
+
+The store is filled from the parallel phase 2, hence a `ConcurrentDictionary`. The dead code analysis
+reports such members with a note rather than dropping them, and the fact is deliberately **not** pushed to
+the containing type: implementing `IDisposable` is not a use of the class, so a class whose only remaining
+trace is a `Dispose` method stays reportable.

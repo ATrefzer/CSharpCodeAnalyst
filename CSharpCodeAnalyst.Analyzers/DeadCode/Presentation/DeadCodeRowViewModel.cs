@@ -55,6 +55,11 @@ public class DeadCodeRowViewModel : TableRow
             parts.Add(string.Format(Strings.DeadCode_Hint_ImplementsDeadContract, FormatRelated(finding)));
         }
 
+        if (finding.Hints.HasFlag(DeadCodeHint.ImplementsExternalContract))
+        {
+            parts.Add(string.Format(Strings.DeadCode_Hint_ImplementsExternalContract, finding.ExternalContract));
+        }
+
         if (finding.Hints.HasFlag(DeadCodeHint.Attributed))
         {
             parts.Add(string.Format(Strings.DeadCode_Hint_Attributed, string.Join(", ", finding.Attributes)));

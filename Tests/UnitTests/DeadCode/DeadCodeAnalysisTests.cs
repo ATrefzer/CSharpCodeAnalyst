@@ -1,5 +1,6 @@
 using CodeParserTests.Helper;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.DeadCode;
@@ -211,10 +212,11 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
-    public void Calculate_OverridesUnresolvedBaseMember_MemberAssumedAliveButNotItsType()
+    public void Calculate_OverridesUnresolvedBaseMember_ReportedWithTheExternalContractHint()
     {
         // The parser falls back to the containing type when it cannot resolve the exact base member
-        // (generic base methods). We cannot tell who calls it, so the member is assumed alive.
+        // (generic base methods). We cannot tell who calls it - the member is still reported, but the
+        // note says why it is probably alive rather than dropping the row silently.
         var baseClass = _graph.CreateClass("Base");
         var derived = _graph.CreateClass("Derived");
         var member = _graph.CreateMethod("Derived.M", derived);
@@ -224,7 +226,40 @@ public class DeadCodeAnalysisTests
         var user = _graph.CreateClass("User");
         Rel(user, derived, RelationshipType.Creates);
 
-        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Derived.M", "User" }));
+
+        var finding = FindingFor(member);
+        Assert.Multiple(() =>
+        {
+            Assert.That(finding.Hints.HasFlag(DeadCodeHint.ImplementsExternalContract), Is.True);
+            Assert.That(finding.ExternalContract, Is.EqualTo("Base"));
+        });
+    }
+
+    [Test]
+    public void Calculate_ExternalContractFromTheStore_ReportedWithTheContractName()
+    {
+        // The usual case: the parser recorded the contract beside the graph because there is no element
+        // to point an edge at (IncludeExternals is off, so ICommand is not in the graph at all).
+        var live = _graph.CreateClass("Command");
+        var execute = _graph.CreateMethod("Command.Execute", live);
+        var user = _graph.CreateClass("User");
+        Rel(user, live, RelationshipType.Creates);
+
+        var store = new ExternalContractStore();
+        store.Add(execute.Id, "ICommand.Execute");
+
+        var findings = DeadCodeAnalysis.Calculate(_graph, store);
+        var finding = findings.Single(f => f.Element.Id == execute.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(finding.Hints.HasFlag(DeadCodeHint.ImplementsExternalContract), Is.True);
+            Assert.That(finding.ExternalContract, Is.EqualTo("ICommand.Execute"));
+
+            // The class itself is untouched by the assumption - it is created, so it is alive here.
+            Assert.That(findings.Select(f => f.Element.FullName), Does.Not.Contain("Command"));
+        });
     }
 
     [Test]

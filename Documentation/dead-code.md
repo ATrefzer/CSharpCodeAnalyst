@@ -84,12 +84,14 @@ Contracts from **outside** the solution are the exception. We cannot see who cal
 deliberately stops at the member: **implementing `IDisposable` is not a use of the class.** A class whose
 only remaining trace is a `Dispose` method is still reported as dead.
 
-> **This only works when the graph contains the edge.** With *Include External Code* switched off — the
-> default — the parser records no `Implements` / `Overrides` relationship at all for a contract that lives
-> outside the solution, because there is no element to point at. So `ToString`, `GetHashCode`,
-> `ICommand.Execute`, a `SyntaxWalker.Visit...` override and friends **are** reported as dead, with an
-> empty *Notes* cell. Recognizing them would require the parser to remember the fact; see the limitations
-> below.
+The graph itself cannot carry that fact. With *Include External Code* off — the default — the parser records
+no `Implements` / `Overrides` relationship for a contract outside the solution, because there is no element
+to point at. With it on, the edge is flattened to a `Uses` relationship on the containing *type*, which is
+indistinguishable from ordinary use of that type.
+
+So the parser records it **beside** the graph instead, from the symbols, the same way it does for source
+metrics. Those members are still listed — with `Implements external contract: ICommand.Execute` in the
+*Notes* column, so the judgement stays visible instead of rows disappearing silently.
 
 ## The notes
 
@@ -111,6 +113,7 @@ are reported with a note, and you decide.
 | ----------------------------------- | ----------------------------------------------------------------------------- |
 | `Implemented but never called: ...` | A contract member that is implemented but never called through the contract.  |
 | `Implements unused contract: ...`   | Implements or overrides an internal contract member that is itself dead.      |
+| `Implements external contract: ...` | Implements or overrides something outside the analyzed code (`ICommand.Execute`, `object.GetHashCode`). The framework is the caller, so this is almost certainly alive. |
 
 Notes are collected over the whole subtree, because the evidence usually sits below what is reported: a
 test fixture is reported as a dead *class*, but the `[Test]` attributes are on its methods.
@@ -166,10 +169,9 @@ Read these before deleting anything.
   Reading the XAML files removed 187 of 1051 findings on this repository.
 - **Reflection, DI and serialization** are invisible for the same reason: the reference only exists at
   runtime.
-- **Overrides of framework members are not recognized.** As described above, the graph carries no edge for
-  them unless *Include External Code* is on — and even then the parser records the edge as a plain `Uses`
-  relationship, which is indistinguishable from an ordinary use. Recognizing these would mean giving the
-  parser a way to mark "this member implements something external" on the element itself.
+- **External contracts are recognized, but only for C#.** The information comes from the Roslyn symbols, so
+  a graph produced by one of the importers (Java, C++, Dart, ...) does not have it, and a project file
+  written before this existed does not either — parse the solution again to get it.
 - **Public API.** Accessibility is not part of the code graph, so a library whose public API is consumed by
   a different solution will report most of that API as dead.
 - **Only the analyzed scope.** The analysis is only as complete as the loaded graph. If the solution was

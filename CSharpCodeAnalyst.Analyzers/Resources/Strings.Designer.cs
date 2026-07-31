@@ -348,6 +348,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Implements external contract: {0}.
+        /// </summary>
+        public static string DeadCode_Hint_ImplementsExternalContract {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_ImplementsExternalContract", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to {0} members.
         /// </summary>
         public static string DeadCode_Hint_RelatedCount {

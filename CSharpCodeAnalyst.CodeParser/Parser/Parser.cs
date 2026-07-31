@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
@@ -196,8 +197,9 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
+        var externalContracts = new ExternalContractStore();
         var phase2 = new RelationshipAnalyzer(progress, config);
-        await phase2.AnalyzeRelationships(solution, codeGraph, artifacts);
+        await phase2.AnalyzeRelationships(solution, codeGraph, artifacts, externalContracts);
 
         sw.Stop();
         Trace.TraceInformation("Analyzing relationships: " + sw.Elapsed);
@@ -218,7 +220,7 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
 #endif
         //await File.WriteAllTextAsync("d:\\debug0.txt", codeGraph.ToDebug());
 
-        return new ParseResult(codeGraph, metrics);
+        return new ParseResult(codeGraph, metrics) { ExternalContracts = externalContracts };
     }
 
 

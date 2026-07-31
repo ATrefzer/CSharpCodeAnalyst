@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
@@ -20,14 +21,16 @@ internal class DeclarationAnalyzer
     private readonly SyntaxNodeAnalyzer _bodyAnalyzer;
     private readonly RelationshipBuilder _builder;
     private readonly ParserConfig _config;
+    private readonly ExternalContractStore _externalContracts;
 
     internal DeclarationAnalyzer(RelationshipBuilder builder, SyntaxNodeAnalyzer bodyAnalyzer, Artifacts artifacts,
-        ParserConfig config)
+        ParserConfig config, ExternalContractStore externalContracts)
     {
         _builder = builder;
         _bodyAnalyzer = bodyAnalyzer;
         _artifacts = artifacts;
         _config = config;
+        _externalContracts = externalContracts;
     }
 
     /// <summary>
@@ -50,6 +53,7 @@ internal class DeclarationAnalyzer
             AnalyzeInheritanceRelationships(element, typeSymbol);
             AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
             AnalyzePrimaryConstructorBaseArguments(solution, element, typeSymbol);
+            RecordExternalInterfaceImplementations(typeSymbol);
         }
         else if (symbol is IMethodSymbol methodSymbol)
         {
@@ -390,6 +394,69 @@ internal class DeclarationAnalyzer
         // Maybe we override a framework method. Happens also if the base method is a generic one.
         // In this case the GetSymbolKey is different. One uses T, the overriding method uses the actual type.
         _builder.AddRelationshipWithFallbackToContainingType(sourceElement, methodSymbol, RelationshipType.Overrides, locations, RelationshipAttribute.None);
+
+        RecordIfExternalContract(sourceElement, methodSymbol);
+    }
+
+    /// <summary>
+    ///     An override whose base member lives outside the analyzed code produces no relationship at all -
+    ///     there is no element to point at - so the member ends up without a single incoming reference and
+    ///     looks like dead code. The fact is recorded beside the graph instead.
+    ///     The containing type decides: when it is one of ours the contract is internal, and the
+    ///     <see cref="RelationshipType.Overrides" /> edge already expresses it.
+    /// </summary>
+    private void RecordIfExternalContract(CodeElement sourceElement, ISymbol contractMember)
+    {
+        var containingType = contractMember.ContainingType;
+        if (containingType is null || _builder.FindInternalCodeElement(containingType.OriginalDefinition) is not null)
+        {
+            return;
+        }
+
+        _externalContracts.Add(sourceElement.Id, $"{containingType.Name}.{contractMember.Name}");
+    }
+
+    /// <summary>
+    ///     Members that implement an interface from outside the analyzed code (<c>ICommand.Execute</c>,
+    ///     <c>IValueConverter.Convert</c>, ...). Nothing in the graph shows this: the interface is not an
+    ///     element, and the implementation is called by the framework, never from our code.
+    ///     <para>
+    ///         Only foreign interfaces are scanned. For our own, <see cref="AddImplementationsForInterfaceMember" />
+    ///         creates real <see cref="RelationshipType.Implements" /> edges from the interface side.
+    ///     </para>
+    ///     <para>
+    ///         The interfaces come from <see cref="INamedTypeSymbol.AllInterfaces" /> and are therefore
+    ///         already constructed, so <see cref="INamedTypeSymbol.FindImplementationForInterfaceMember" />
+    ///         can be called directly - the mapping trap described at
+    ///         <see cref="FindImplementationsForInterfaceMember" /> does not apply here.
+    ///     </para>
+    /// </summary>
+    private void RecordExternalInterfaceImplementations(INamedTypeSymbol typeSymbol)
+    {
+        foreach (var contract in typeSymbol.AllInterfaces)
+        {
+            // A constructed generic interface (IHandler<Widget>) is not in the map - the definition is.
+            if (_builder.FindInternalCodeElement(contract.OriginalDefinition) is not null)
+            {
+                continue;
+            }
+
+            foreach (var contractMember in contract.GetMembers())
+            {
+                var implementation = typeSymbol.FindImplementationForInterfaceMember(contractMember);
+                if (implementation is null)
+                {
+                    continue;
+                }
+
+                var element = _builder.FindInternalCodeElement(implementation)
+                              ?? _builder.FindInternalCodeElement(implementation.OriginalDefinition);
+                if (element is not null)
+                {
+                    _externalContracts.Add(element.Id, $"{contract.Name}.{contractMember.Name}");
+                }
+            }
+        }
     }
 
     private void AnalyzeFieldRelationships(Solution solution, CodeElement fieldElement, IFieldSymbol fieldSymbol)
@@ -553,6 +620,8 @@ internal class DeclarationAnalyzer
         {
             _builder.AddRelationshipWithFallbackToContainingType(propertyElement, overriddenProperty,
                 RelationshipType.Overrides, propertySymbol.GetSymbolLocations(), RelationshipAttribute.None);
+
+            RecordIfExternalContract(propertyElement, overriddenProperty);
         }
     }
 

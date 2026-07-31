@@ -32,7 +32,14 @@ public enum DeadCodeHint
     ///     Implements or overrides an internal contract member that is itself dead, so it can only be
     ///     removed together with that contract.
     /// </summary>
-    ImplementsDeadContract = 16
+    ImplementsDeadContract = 16,
+
+    /// <summary>
+    ///     Implements or overrides a contract from outside the analyzed code (a framework interface, a
+    ///     base member from a referenced assembly). The caller is the framework, so nothing in the graph
+    ///     references it - it is almost certainly alive.
+    /// </summary>
+    ImplementsExternalContract = 32
 }
 
 /// <summary>
@@ -47,6 +54,12 @@ public sealed class DeadCodeFinding(CodeElement element)
 
     /// <summary>Distinct attribute names found on the element and its subtree.</summary>
     public IReadOnlyList<string> Attributes { get; init; } = [];
+
+    /// <summary>
+    ///     The contract outside the analyzed code this element implements or overrides, e.g.
+    ///     "IDisposable.Dispose". Set together with <see cref="DeadCodeHint.ImplementsExternalContract" />.
+    /// </summary>
+    public string? ExternalContract { get; init; }
 
     /// <summary>
     ///     The polymorphically related members: the internal contract members this element implements

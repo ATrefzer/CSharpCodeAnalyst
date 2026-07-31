@@ -1,6 +1,7 @@
 ﻿using CSharpCodeAnalyst.Analyzers.EventRegistration;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Notifications;
@@ -67,7 +68,8 @@ internal class AnalyzerManager : IAnalyzerManager
         AnalyzerDataChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification, MetricStore metricStore)
+    public void LoadAnalyzers(IPublisher messaging, IUserNotification userNotification, MetricStore metricStore,
+        ExternalContractStore externalContractStore)
     {
         _analyzers.Clear();
 
@@ -95,7 +97,7 @@ internal class AnalyzerManager : IAnalyzerManager
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 
-        analyzer = new DeadCode.Analyzer(messaging, userNotification);
+        analyzer = new DeadCode.Analyzer(messaging, userNotification, externalContractStore);
         analyzer.DataChanged += (_, _) => RaiseAnalyzerDataChanged();
         _analyzers.Add(analyzer.Id, analyzer);
 

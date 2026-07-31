@@ -289,6 +289,7 @@ Please keep these points in mind:
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
 - A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.
 - Primary constructors of records do not create the properties in the code graph.
+- XAML Bindings are not resolved.
 - Projects must be loadable by the **.NET SDK's MSBuild**. Legacy non-SDK .NET Framework projects — especially old-style WPF (`net472`) — may fail to load even though they build in Visual Studio. See [Supported projects and solutions](Documentation/supported-projects.md).
 
 ## Thank you

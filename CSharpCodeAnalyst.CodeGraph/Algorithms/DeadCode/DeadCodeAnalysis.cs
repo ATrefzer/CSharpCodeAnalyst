@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
@@ -59,27 +60,42 @@ public static class DeadCodeAnalysis
         "Benchmark", "BenchmarkAttribute"
     };
 
-    public static List<DeadCodeFinding> Calculate(Graph.CodeGraph graph)
+    /// <param name="externalContracts">
+    ///     What the parser recorded beside the graph: which members implement or override something from
+    ///     outside the analyzed code. Optional - without it those members are reported like any other
+    ///     unreferenced member, which is what they look like from the graph alone.
+    /// </param>
+    public static List<DeadCodeFinding> Calculate(Graph.CodeGraph graph,
+        ExternalContractStore? externalContracts = null)
     {
         ArgumentNullException.ThrowIfNull(graph);
 
         // Alive because something references it (directly or through a contract).
         var referenced = new HashSet<string>();
 
-        // Alive by assumption only: implements a contract from outside the analyzed code.
-        var assumedAlive = new HashSet<string>();
+        // Element -> the contract outside the analyzed code it implements. Two sources: the store the
+        // parser fills from the symbols, and - when external code is part of the graph - the edges.
+        var external = new Dictionary<string, string>();
+        if (externalContracts is not null)
+        {
+            foreach (var (elementId, contract) in externalContracts.Contracts)
+            {
+                external[elementId] = contract;
+            }
+        }
 
         // Internal contract member -> the members implementing / overriding it, and the reverse.
         var implementations = new Dictionary<string, List<CodeElement>>();
         var contracts = new Dictionary<string, List<CodeElement>>();
 
-        CollectEdges(graph, referenced, assumedAlive, implementations, contracts);
+        CollectEdges(graph, referenced, external, implementations, contracts);
         PropagateContractUsage(referenced, implementations);
 
-        return Report(graph, referenced, assumedAlive, implementations, contracts);
+        return Report(graph, referenced, external, implementations, contracts);
     }
 
-    private static void CollectEdges(Graph.CodeGraph graph, HashSet<string> referenced, HashSet<string> assumedAlive,
+    private static void CollectEdges(Graph.CodeGraph graph, HashSet<string> referenced,
+        Dictionary<string, string> external,
         Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
     {
         // Reused across relationships to keep the walk allocation free.
@@ -96,7 +112,7 @@ public static class DeadCodeAnalysis
 
             if (IsPolymorphicEdge(relationship.Type, source))
             {
-                RecordPolymorphicEdge(source, target, assumedAlive, implementations, contracts);
+                RecordPolymorphicEdge(source, target, external, implementations, contracts);
                 continue;
             }
 
@@ -160,21 +176,17 @@ public static class DeadCodeAnalysis
         return (type is RelationshipType.Implements or RelationshipType.Overrides) && !source.IsType();
     }
 
-    private static void RecordPolymorphicEdge(CodeElement source, CodeElement target, HashSet<string> assumedAlive,
+    private static void RecordPolymorphicEdge(CodeElement source, CodeElement target,
+        Dictionary<string, string> external,
         Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
     {
         if (target.IsExternal || target.IsType())
         {
-            // Either a framework contract, or the parser's fallback to the containing type because it could
-            // not resolve the exact base member (generic base methods). Both mean the caller is invisible,
-            // so the member is assumed alive. The assumption covers the member and its accessors, but it is
-            // deliberately not pushed to the containing type - implementing IDisposable is not a use of the
-            // class.
-            foreach (var element in source.GetSubtreeIncludingSelf())
-            {
-                assumedAlive.Add(element.Id);
-            }
-
+            // Either a framework contract, or the parser's fallback to the containing type because it
+            // could not resolve the exact base member (generic base methods). Both mean the caller is
+            // invisible. Recorded on the member only - implementing IDisposable is not a use of the class,
+            // so the class itself stays reportable as dead code.
+            external.TryAdd(source.Id, target.FullName);
             return;
         }
 
@@ -208,14 +220,16 @@ public static class DeadCodeAnalysis
     }
 
     private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, HashSet<string> referenced,
-        HashSet<string> assumedAlive, Dictionary<string, List<CodeElement>> implementations,
+        Dictionary<string, string> external, Dictionary<string, List<CodeElement>> implementations,
         Dictionary<string, List<CodeElement>> contracts)
     {
         var findings = new List<DeadCodeFinding>();
 
         foreach (var element in graph.Nodes.Values)
         {
-            if (!IsCandidate(element) || IsAlive(element))
+            // An external contract does not make the element alive - it is reported with a note instead,
+            // so the decision stays visible rather than silently removing rows from the result.
+            if (!IsCandidate(element) || referenced.Contains(element.Id))
             {
                 continue;
             }
@@ -223,23 +237,18 @@ public static class DeadCodeAnalysis
             // Roll-up: a dead element inside a dead element is reported as part of it. Namespaces and
             // assemblies are no candidates, so an element directly below them is always the topmost one.
             var parent = element.Parent;
-            if (parent is not null && IsCandidate(parent) && !IsAlive(parent))
+            if (parent is not null && IsCandidate(parent) && !referenced.Contains(parent.Id))
             {
                 continue;
             }
 
-            findings.Add(CreateFinding(element, implementations, contracts));
+            findings.Add(CreateFinding(element, external, implementations, contracts));
         }
 
         return findings.OrderBy(f => f.Element.FullName, StringComparer.Ordinal).ToList();
-
-        bool IsAlive(CodeElement element)
-        {
-            return referenced.Contains(element.Id) || assumedAlive.Contains(element.Id);
-        }
     }
 
-    private static DeadCodeFinding CreateFinding(CodeElement element,
+    private static DeadCodeFinding CreateFinding(CodeElement element, Dictionary<string, string> external,
         Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
     {
         var hints = DeadCodeHint.None;
@@ -285,11 +294,20 @@ public static class DeadCodeAnalysis
             related.AddRange(implementors);
         }
 
+        // Element level only. A dead class whose members implement IDisposable is still dead - saying
+        // "might be used" about the class would be wrong, the note belongs to the member.
+        external.TryGetValue(element.Id, out var externalContract);
+        if (externalContract is not null)
+        {
+            hints |= DeadCodeHint.ImplementsExternalContract;
+        }
+
         return new DeadCodeFinding(element)
         {
             Hints = hints,
             Attributes = attributes.ToList(),
-            RelatedMembers = related
+            RelatedMembers = related,
+            ExternalContract = externalContract
         };
     }
 

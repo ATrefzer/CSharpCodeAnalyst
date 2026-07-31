@@ -237,6 +237,9 @@
     <data name="DeadCode_Hint_ImplementsDeadContract" xml:space="preserve">
     <value>Implements unused contract: {0}</value>
   </data>
+    <data name="DeadCode_Hint_ImplementsExternalContract" xml:space="preserve">
+    <value>Implements external contract: {0}</value>
+  </data>
     <data name="DeadCode_Hint_RelatedCount" xml:space="preserve">
     <value>{0} members</value>
   </data>

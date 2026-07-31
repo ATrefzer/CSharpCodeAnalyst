@@ -4,6 +4,7 @@ using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 
 namespace CSharpCodeAnalyst.Analyzers.DeadCode;
 
@@ -13,13 +14,16 @@ namespace CSharpCodeAnalyst.Analyzers.DeadCode;
 /// </summary>
 public class Analyzer : IAnalyzer
 {
+    private readonly ExternalContractStore _externalContracts;
     private readonly IPublisher _messaging;
     private readonly IUserNotification _userNotification;
 
-    public Analyzer(IPublisher messaging, IUserNotification userNotification)
+    public Analyzer(IPublisher messaging, IUserNotification userNotification,
+        ExternalContractStore externalContracts)
     {
         _messaging = messaging;
         _userNotification = userNotification;
+        _externalContracts = externalContracts;
     }
 
     public string Id { get; } = "DeadCode";
@@ -28,7 +32,7 @@ public class Analyzer : IAnalyzer
 
     public void Analyze(CodeGraph.Graph.CodeGraph graph)
     {
-        var findings = DeadCodeAnalysis.Calculate(graph);
+        var findings = DeadCodeAnalysis.Calculate(graph, _externalContracts);
 
         if (findings.Count == 0)
         {
