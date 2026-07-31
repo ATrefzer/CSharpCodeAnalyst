@@ -219,9 +219,6 @@
     <data name="Column_DeadCode_Kind" xml:space="preserve">
     <value>Kind</value>
   </data>
-    <data name="Column_DeadCode_Level" xml:space="preserve">
-    <value>Level</value>
-  </data>
     <data name="Column_DeadCode_Access" xml:space="preserve">
     <value>Access</value>
   </data>

@@ -12,7 +12,6 @@ Available via *Analyzers → Dead Code*. The result is a sortable table:
 | Element | The fully qualified name of the unreferenced element.                        |
 | Kind    | Class, Interface, Method, Field, Property, ... — the kind of element.        |
 | Access  | The element's visibility, empty when the producer does not supply one.        |
-| Level   | Which round found it. 1 = nothing references it at all. See *The cascade*.    |
 | Confidence | How much the finding can be trusted — coloured like the complexity metric. See below. |
 | Notes   | Anything worth knowing about the finding. **Empty means nothing speaks against deleting it.** |
 
@@ -64,6 +63,49 @@ Namespaces and assemblies are never reported: nothing ever references them in th
 look dead. Code from outside the solution (frameworks, NuGet packages) is out of scope — we see neither its
 callers nor its body.
 
+### One round, not a chain
+
+The analysis reports what nothing references **right now**. It does not chase the consequences: if the only
+caller of `Formatter` sits in the `Report` class you just got reported, `Formatter` is *not* also reported —
+it is referenced, by dead code, but referenced.
+
+That is a deliberate step back from an earlier cascading version, which kept re-running with the previous
+findings switched off. It worked, but it multiplied every false positive: one invisible `{Binding}` took
+seven further elements with it, and the deeper rounds were only as good as the rounds below them.
+
+**Delete a finding and run the analysis again.** You get the next layer, one honest round at a time, and
+every row stands on its own.
+
+### Suppressed: accessors and serialized properties
+
+Two things are dropped instead of being reported. Both are the same kind of noise — a getter or setter that
+only a serializer, a binding or a framework ever touches.
+
+**A single property accessor is never a finding.** The question is whether the property is used, not
+whether both halves of it are. One dead half is the normal shape of anything reflection drives: a DTO built
+in C# and serialized by `System.Text.Json` has a dead *getter* on every property, and one deserialized from
+JSON has a dead *setter* on every property. A property that is dead as a whole is still reported — as the
+property.
+
+**A public property of a type carrying a serialization attribute** is not reported either. Same reason, but
+it catches the case the accessor rule cannot: a property nothing touches at all from C#.
+
+Recognized attributes (the ones that mark the whole type): `[Serializable]`, `[DataContract]`,
+`[JsonObject]`, `[JsonConverter]`, `[XmlRoot]`, `[XmlType]`, `[ProtoContract]`, `[MessagePackObject]`. None
+of them is inherited in C#, so a derived DTO has to carry its own — and a plain DTO without any attribute
+(`System.Text.Json` needs none) is not covered.
+
+Two boundaries are deliberate:
+
+- **Only properties, and only public ones.** A private property, a method or a field on the same type is
+  reported as usual — the serializer resolves by public reflection and reaches none of them. (`[Serializable]`
+  with `BinaryFormatter` does serialize fields; that case is not covered.)
+- **Only the member.** If the whole class is dead, the class is reported — carrying a serialization
+  attribute is not a use of the type.
+
+What you lose with both rules is the finding "this property is written but never read". In code driven by
+XAML and JSON that was almost pure noise; in plain logic it occasionally was not.
+
 ### Which relationships count as a reference
 
 `Calls`, `Creates`, `Uses`, `Inherits`, `Invokes`, `UsesAttribute`, and `Implements` between two *types*
@@ -110,8 +152,8 @@ measurement:
 | Confidence | Rule |
 | ---------- | ------ |
 | **Low** (red) | The finding carries a note saying the caller may sit outside the graph — entry point, test code, attributes, an external contract. We already know we might be wrong. |
-| **High** (green) | No such note, found in round 1, and the element **or one of its containers** is `private` or `internal`. Nothing outside the analyzed code could reach it, so "nothing references it" and "nothing *can* reference it" are the same statement. |
-| **Medium** (orange) | Everything else: `public` or `protected`, an unknown visibility, or anything the cascade found. |
+| **High** (green) | No such note, and the element **or one of its containers** is `private` or `internal`. Nothing outside the analyzed code could reach it, so "nothing references it" and "nothing *can* reference it" are the same statement. |
+| **Medium** (orange) | Everything else: `public`, `protected`, or an unknown visibility. |
 
 The containment part matters more than it looks: a `public` method of an `internal` class cannot be called
 from another assembly either, so it still qualifies as high.
@@ -135,44 +177,18 @@ cannot reach them.
 a project file written before this existed. That is the honest answer rather than a penalty — without
 knowing the visibility we cannot claim that nothing outside could reference the element.
 
-On this repository the distribution is 27 high, 537 medium, 478 low out of 1042 findings. The high bucket is
-deliberately small: it is the list you can work through without checking each entry by hand.
+The high bucket is deliberately small: it is the list you can work through without checking each entry by
+hand.
 
 > `InternalsVisibleTo` is not taken into account. A friend assembly inside the analysis shows its references
 > anyway; one outside it is the rare case this misses.
-
-## The cascade
-
-Round 1 finds what nothing references at all. Every following round ignores the outgoing references of
-what was already found, so code that is only kept alive by dead code dies with it:
-
-```csharp
-class Report                      // nothing references Report          -> level 1
-{
-    void Print() { Formatter.Format(); }
-}
-
-static class Formatter            // only ever used from Report.Print   -> level 2
-{
-    public static void Format() { }
-}
-```
-
-The *Level* column says which round a finding comes from, and that is a confidence scale: level 1 stands
-on its own, while level 4 only holds if levels 1 to 3 were right.
-
-**Not every finding propagates.** A finding carrying `Entry point`, `Test code`, `Attributes` or
-`Implements external contract` is reported but never used as evidence that something else is dead. This is
-load-bearing rather than a refinement: the class holding `Main` is a level-1 finding, and letting it
-propagate would declare the entire application dead in round 2. The same protection applies when such a
-member merely sits *inside* the reported element — a dead class holding an `ICommand.Execute` takes
-nothing with it, because that method may well still run.
 
 ## The notes
 
 The analysis can only see what the parser saw. Everything reached through reflection, dependency injection,
 serialization or a test runner therefore looks unreferenced. Those elements are not silently dropped — they
-are reported with a note, and you decide.
+are reported with a note, and you decide. (The single exception is the serialized property above, where the
+note would be on every row of a DTO.)
 
 **Doubts** — the reference may exist where the parser cannot look:
 
@@ -241,9 +257,10 @@ Read these before deleting anything.
 
 - **The rest of XAML.** Most of it is covered — see the section above for the exact split. What remains
   invisible is `{Binding}`, `{StaticResource}` and the `Source` / `StartupUri` URIs of merged dictionaries.
-  Reading the XAML files removed 187 of 1051 findings on this repository.
+  Reading the XAML files removed 187 findings on this repository when it was introduced.
 - **Reflection, DI and serialization** are invisible for the same reason: the reference only exists at
-  runtime.
+  runtime. What is handled explicitly are the two suppressed cases above — a single property accessor and
+  a public property of a type marked as a serialization target.
 - **External contracts are recognized, but only for C#.** The information comes from the Roslyn symbols, so
   a graph produced by one of the importers (Java, C++, Dart, ...) does not have it, and a project file
   written before this existed does not either — parse the solution again to get it.
@@ -251,10 +268,8 @@ Read these before deleting anything.
   a different solution will report most of that API as dead.
 - **Only the analyzed scope.** The analysis is only as complete as the loaded graph. If the solution was
   parsed with project exclusions, or the graph came from an import, the callers may simply be missing.
-- **The cascade amplifies the blind spots.** A false positive in round 1 drags everything it uses into
-  round 2. A single `{Binding}`-only property in this repository takes seven resource strings with it. The
-  *Level* column is there to make that visible: level 1 stands on its own, everything above it inherits
-  the uncertainty of the rounds below.
+- **Only one layer at a time.** Code that is kept alive solely by the code just reported does not show up
+  in the same run — see *One round, not a chain*. Delete and run again.
 - **Dead cycles are not found.** Two classes that only use each other and nothing else each have an
-  incoming reference, so neither is reported and no round removes them. Finding those requires
-  reachability from an explicit set of entry points rather than a cascade.
+  incoming reference, so neither is reported — and re-running does not help, because nothing ever breaks
+  the cycle. Finding those requires reachability from an explicit set of entry points.

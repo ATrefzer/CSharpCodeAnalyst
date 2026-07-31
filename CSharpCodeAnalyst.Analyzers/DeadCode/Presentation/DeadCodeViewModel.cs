@@ -18,7 +18,13 @@ internal class DeadCodeViewModel : Table
     internal DeadCodeViewModel(List<DeadCodeFinding> findings, IPublisher messaging)
     {
         _messaging = messaging;
-        var rows = findings.Select(f => new DeadCodeRowViewModel(f));
+
+        // Highest confidence first: that is the part of the result you can work through without checking
+        // every entry by hand, so it belongs at the top before anyone touches a column header. The
+        // analysis already sorts by name, which stays the tie breaker within a confidence band.
+        var rows = findings
+            .OrderByDescending(f => f.Confidence)
+            .Select(f => new DeadCodeRowViewModel(f));
         _rows = new ObservableCollection<TableRow>(rows);
     }
 
@@ -47,14 +53,6 @@ internal class DeadCodeViewModel : Table
                 Header = Strings.Column_DeadCode_Access,
                 PropertyName = nameof(DeadCodeRowViewModel.Access),
                 Width = 80
-            },
-            new()
-            {
-                // 1 is the direct finding; a higher level only holds if the earlier rounds were right.
-                Type = ColumnType.Text,
-                Header = Strings.Column_DeadCode_Level,
-                PropertyName = nameof(DeadCodeRowViewModel.Level),
-                Width = 50
             },
             new()
             {

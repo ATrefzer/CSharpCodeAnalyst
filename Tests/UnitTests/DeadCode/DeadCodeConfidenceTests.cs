@@ -214,25 +214,4 @@ public class DeadCodeConfidenceTests
         });
     }
 
-    [Test]
-    public void CascadedFinding_IsNeverHighConfidence()
-    {
-        // Level 2 rests on level 1 being right, so it cannot be better than medium even when private.
-        var report = _graph.CreateClass("Report", accessLevel: AccessLevel.Internal);
-        var print = _graph.CreateMethod("Report.Print", report, AccessLevel.Private);
-        var formatter = _graph.CreateClass("Formatter", accessLevel: AccessLevel.Internal);
-        var format = _graph.CreateMethod("Formatter.Format", formatter, AccessLevel.Internal);
-        Rel(print, format, RelationshipType.Calls);
-
-        var findings = DeadCodeAnalysis.Calculate(_graph);
-        var cascaded = findings.Single(f => f.Element.Id == formatter.Id);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(cascaded.Level, Is.EqualTo(2));
-            Assert.That(cascaded.Confidence, Is.EqualTo(DeadCodeConfidence.Medium));
-            Assert.That(findings.Single(f => f.Element.Id == report.Id).Confidence,
-                Is.EqualTo(DeadCodeConfidence.High));
-        });
-    }
 }

@@ -15,7 +15,6 @@ public class DeadCodeRowViewModel : TableRow
         Element = finding.Element;
         Name = finding.Element.FullName;
         Kind = finding.Element.ElementType.ToString();
-        Level = finding.Level;
         // Fully qualified: WPF pulls a global "Accessibility" namespace into scope; ours is AccessLevel.
         Access = finding.Element.AccessLevel == CodeGraph.Graph.AccessLevel.Unknown
             ? string.Empty
@@ -33,12 +32,6 @@ public class DeadCodeRowViewModel : TableRow
 
     public string Name { get; }
     public string Kind { get; }
-
-    /// <summary>
-    ///     1 = nothing references it at all. Higher means it was only kept alive by code found dead in an
-    ///     earlier round, so the finding is only as good as those rounds were.
-    /// </summary>
-    public int Level { get; }
 
     /// <summary>The element's visibility, empty when the producer did not supply one.</summary>
     public string Access { get; }

@@ -21,15 +21,9 @@ public class DeadCodeAnalysisTests
         source.Relationships.Add(new Relationship(source.Id, target.Id, type));
     }
 
-    /// <summary>
-    ///     The findings of the first round - what nothing references at all. These fixtures are about the
-    ///     direct rule; the cascade that follows from it has its own fixture. Without the filter almost
-    ///     every case here would also report whatever the (equally unreferenced) "User" element uses.
-    /// </summary>
     private string[] Reported()
     {
         return DeadCodeAnalysis.Calculate(_graph)
-            .Where(f => f.Level == 1)
             .Select(f => f.Element.FullName)
             .ToArray();
     }
@@ -265,9 +259,8 @@ public class DeadCodeAnalysisTests
             Assert.That(finding.Hints.HasFlag(DeadCodeHint.ImplementsExternalContract), Is.True);
             Assert.That(finding.ExternalContract, Is.EqualTo("ICommand.Execute"));
 
-            // The class itself is untouched by the assumption - it is created, so it survives round 1.
-            Assert.That(findings.Where(f => f.Level == 1).Select(f => f.Element.FullName),
-                Does.Not.Contain("Command"));
+            // The class itself is untouched by the assumption - it is created, so it is not reported.
+            Assert.That(findings.Select(f => f.Element.FullName), Does.Not.Contain("Command"));
         });
     }
 
@@ -291,7 +284,7 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
-    public void Calculate_UnusedPropertyAccessor_Reported()
+    public void Calculate_UnusedPropertyAccessor_NotReported()
     {
         var a = _graph.CreateClass("A");
         var property = _graph.CreateProperty("A.Value", a);
@@ -301,7 +294,125 @@ public class DeadCodeAnalysisTests
         var user = _graph.CreateClass("User");
         Rel(user, getter, RelationshipType.Calls);
 
-        // The setter is never used, the getter and everything above it is.
-        Assert.That(Reported(), Is.EquivalentTo(new[] { "A.set_Value", "User" }));
+        // The setter alone is no finding: the question is whether the property is used, and it is. One
+        // unused half is the normal shape of everything a serializer, a binding or a framework drives.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_PropertyWithNoUsedAccessor_ReportedAsTheProperty()
+    {
+        var a = _graph.CreateClass("A");
+        var property = _graph.CreateProperty("A.Value", a);
+        _graph.CreatePropertyAccessor("A.get_Value", property);
+        _graph.CreatePropertyAccessor("A.set_Value", property);
+
+        var used = _graph.CreateMethod("A.Used", a);
+        var user = _graph.CreateClass("User");
+        Rel(user, used, RelationshipType.Calls);
+
+        // Suppressing the accessors must not hide a property that is dead as a whole - it rolls up.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A.Value", "User" }));
+    }
+
+    [Test]
+    public void Calculate_CodeOnlyUsedByDeadCode_NotReported()
+    {
+        // Deliberate: the analysis reports what nothing references right now and does not chase the
+        // consequences. Formatter is referenced - by dead code, but referenced. Delete Report and run the
+        // analysis again, and Formatter shows up. That keeps every finding standing on its own instead of
+        // stacking on the round below it.
+        var report = _graph.CreateClass("Report");
+        var print = _graph.CreateMethod("Report.Print", report);
+        var formatter = _graph.CreateClass("Formatter");
+        var format = _graph.CreateMethod("Formatter.Format", formatter);
+        Rel(print, format, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Report" }));
+    }
+
+    [Test]
+    public void Calculate_MutualReference_NotFound()
+    {
+        // The known limit: two elements that only reference each other keep each other alive. Finding
+        // those needs reachability from an explicit set of entry points.
+        var a = _graph.CreateClass("A");
+        var am = _graph.CreateMethod("A.M", a);
+        var b = _graph.CreateClass("B");
+        var bm = _graph.CreateMethod("B.M", b);
+        Rel(am, bm, RelationshipType.Calls);
+        Rel(bm, am, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.Empty);
+    }
+
+    /// <summary>
+    ///     A type a serializer drives, kept alive by a user so that the members are reported individually.
+    /// </summary>
+    private CodeElement CreateSerializableType(string attribute = "DataContractAttribute")
+    {
+        var type = _graph.CreateClass("Config");
+        type.Attributes.Add(attribute);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, type, RelationshipType.Creates);
+        return type;
+    }
+
+    [Test]
+    public void Calculate_PublicPropertyOfASerializableType_NotReported()
+    {
+        // The serializer reads it by reflection. On such a type every property looks dead, so reporting
+        // them would only fill the result with rows nobody can act on.
+        var type = CreateSerializableType();
+        _graph.CreateProperty("Config.Title", type, AccessLevel.Public);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_NonPublicPropertyOfASerializableType_Reported()
+    {
+        // Out of reach for the serializer, which resolves by public reflection.
+        var type = CreateSerializableType("SerializableAttribute");
+        _graph.CreateProperty("Config.Secret", type, AccessLevel.Private);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Config.Secret", "User" }));
+    }
+
+    [Test]
+    public void Calculate_MethodOfASerializableType_Reported()
+    {
+        // The exception is about the serialized state, not about everything on the type.
+        var type = CreateSerializableType();
+        _graph.CreateMethod("Config.Validate", type, AccessLevel.Public);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Config.Validate", "User" }));
+    }
+
+    [Test]
+    public void Calculate_PublicPropertyOfAnOrdinaryType_Reported()
+    {
+        // Without one of the serialization attributes there is nothing to suspect.
+        var type = _graph.CreateClass("Config");
+        _graph.CreateProperty("Config.Title", type, AccessLevel.Public);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, type, RelationshipType.Creates);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Config.Title", "User" }));
+    }
+
+    [Test]
+    public void Calculate_PropertyOfASerializableTypeWithNoUsedAccessor_NotReported()
+    {
+        // Here the accessor roll-up alone would not help: nothing touches the property at all, so without
+        // the serialization rule it would be reported as a dead property.
+        var type = CreateSerializableType();
+        var property = _graph.CreateProperty("Config.Title", type, AccessLevel.Public);
+        _graph.CreatePropertyAccessor("Config.get_Title", property);
+        _graph.CreatePropertyAccessor("Config.set_Title", property);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
     }
 }

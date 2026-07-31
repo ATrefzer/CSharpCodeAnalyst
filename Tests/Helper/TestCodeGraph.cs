@@ -83,9 +83,10 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
-    public CodeElement CreateProperty(string id, CodeElement? parent = null)
+    public CodeElement CreateProperty(string id, CodeElement? parent = null,
+        AccessLevel accessLevel = AccessLevel.Unknown)
     {
-        var element = new CodeElement(id, CodeElementType.Property, id, id, parent);
+        var element = new CodeElement(id, CodeElementType.Property, id, id, parent) { AccessLevel = accessLevel };
         Link(parent, element);
         return element;
     }

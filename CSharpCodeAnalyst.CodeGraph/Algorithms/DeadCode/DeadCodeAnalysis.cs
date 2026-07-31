@@ -25,18 +25,11 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         containing type: a class whose only "use" is implementing IDisposable is still dead code.
 ///     </para>
 ///     <para>
-///         The analysis cascades. Round 1 finds what nothing references at all. Every following round
-///         ignores the outgoing references of what was already found, so code that is only kept alive by
-///         dead code dies with it - the chain "nobody calls Report, Report calls Formatter, nothing else
-///         calls Formatter" collapses completely. <see cref="DeadCodeFinding.Level" /> says which round a
-///         finding comes from.
-///     </para>
-///     <para>
-///         Only findings without a note propagate (see <see cref="PropagatesDeath" />). This is not a
-///         detail: the class holding <c>Main</c> is a round-1 finding, and letting it propagate would
-///         declare the entire application dead in the following rounds. The same holds for test fixtures
-///         and for members the framework calls. They are still reported - they simply do not take anything
-///         with them.
+///         The analysis reports exactly what nothing references <i>right now</i>. It does not chase the
+///         consequences: code that is only kept alive by the code just reported stays out of the result.
+///         That is a deliberate step back from an earlier cascading version, which multiplied every false
+///         positive - one invisible XAML binding took seven further elements with it. Deleting a finding
+///         and running the analysis again gives the same answer without stacking the uncertainty.
 ///     </para>
 ///     <para>
 ///         Every finding carries a <see cref="DeadCodeFinding.Confidence" />, and
@@ -44,6 +37,13 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         type or assembly cannot be referenced from code we did not analyze, so "nothing references it"
 ///         and "nothing can reference it" coincide. A producer that supplies no visibility never reaches
 ///         that level - which is the honest answer, not a penalty.
+///     </para>
+///     <para>
+///         Two cases are dropped instead of reported: a single property accessor (see
+///         <see cref="Report" />) and a public property of a type marked as a serialization target (see
+///         <see cref="IsSerializedProperty" />). Both are the same kind of noise - a getter or setter that
+///         only a serializer, a binding or a framework ever touches - and on the affected types they would
+///         be the rule rather than the exception.
 ///     </para>
 ///     <para>
 ///         Limitations, by construction: references the parser cannot see (reflection, dependency
@@ -55,8 +55,8 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 public static class DeadCodeAnalysis
 {
     /// <summary>
-    ///     The notes that say "the caller is somewhere we cannot see". A finding carrying one of them is
-    ///     reported but never used as evidence that something else is dead.
+    ///     The notes that say "the caller is somewhere we cannot see". They are what pins a finding to the
+    ///     lowest confidence: we already know we might be wrong about it.
     /// </summary>
     private const DeadCodeHint CallerOutsideTheGraph =
         DeadCodeHint.EntryPoint | DeadCodeHint.TestCode | DeadCodeHint.Attributed |
@@ -91,6 +91,23 @@ public static class DeadCodeAnalysis
         "Benchmark", "BenchmarkAttribute"
     };
 
+    /// <summary>
+    ///     Attribute names (with and without the "Attribute" suffix) that mark a whole type as a
+    ///     serialization target. A serializer reads and writes the public properties by reflection, so on
+    ///     such a type they look unreferenced no matter how heavily the type is used.
+    /// </summary>
+    private static readonly HashSet<string> SerializationAttributes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Serializable", "SerializableAttribute",
+        "DataContract", "DataContractAttribute",
+        "JsonObject", "JsonObjectAttribute",
+        "JsonConverter", "JsonConverterAttribute",
+        "XmlRoot", "XmlRootAttribute",
+        "XmlType", "XmlTypeAttribute",
+        "ProtoContract", "ProtoContractAttribute",
+        "MessagePackObject", "MessagePackObjectAttribute"
+    };
+
     /// <param name="externalContracts">
     ///     What the parser recorded beside the graph: which members implement or override something from
     ///     outside the analyzed code. Optional - without it those members are reported like any other
@@ -119,61 +136,26 @@ public static class DeadCodeAnalysis
         // Base type -> the types deriving from it. Only used to spread the binding target property.
         var derivedTypes = new Dictionary<string, List<CodeElement>>();
 
-        // The structure never changes between rounds - only which sources still count does.
         var referenceEdges = new List<(CodeElement Source, CodeElement Target)>();
         CollectEdges(graph, referenceEdges, external, implementations, contracts, derivedTypes);
 
         var context = new AnalysisContext(external, implementations, contracts,
-            FindBindingTargets(graph, external, derivedTypes));
+            FindBindingTargets(graph, external, derivedTypes), FindSerializableTypes(graph));
 
-        // Everything found dead so far, including the subtrees of the reported elements.
-        var found = new HashSet<string>();
+        var referenced = ComputeReferenced(referenceEdges, implementations);
 
-        // The subset whose outgoing references are ignored from the next round on.
-        var silenced = new HashSet<string>();
-
-        var findings = new List<DeadCodeFinding>();
-
-        for (var level = 1;; level++)
-        {
-            var referenced = ComputeReferenced(referenceEdges, silenced, implementations);
-            var round = Report(graph, referenced, found, context, level);
-            if (round.Count == 0)
-            {
-                break;
-            }
-
-            findings.AddRange(round);
-            foreach (var finding in round)
-            {
-                // The note about an external contract sits on the member, but the decision to propagate
-                // has to look at the whole subtree: a dead class holding an ICommand.Execute is reported
-                // without that note (it is the class that is dead), yet its calls may well still run.
-                var propagates = PropagatesDeath(finding) &&
-                                 !finding.Element.GetSubtreeIncludingSelf().Any(e => external.ContainsKey(e.Id));
-                foreach (var element in finding.Element.GetSubtreeIncludingSelf())
-                {
-                    found.Add(element.Id);
-                    if (propagates)
-                    {
-                        silenced.Add(element.Id);
-                    }
-                }
-            }
-        }
-
-        return findings.OrderBy(f => f.Element.FullName, StringComparer.Ordinal).ToList();
+        return Report(graph, referenced, context)
+            .OrderBy(f => f.Element.FullName, StringComparer.Ordinal)
+            .ToList();
     }
 
-    /// <summary>
-    ///     The structural facts of one run: everything derived once from the graph and unchanged across the
-    ///     cascade rounds.
-    /// </summary>
+    /// <summary>The structural facts of one run, all derived once from the graph.</summary>
     private sealed record AnalysisContext(
         Dictionary<string, string> External,
         Dictionary<string, List<CodeElement>> Implementations,
         Dictionary<string, List<CodeElement>> Contracts,
-        HashSet<string> BindingTargets);
+        HashSet<string> BindingTargets,
+        HashSet<string> SerializableTypes);
 
     /// <summary>
     ///     The types whose public properties a XAML <c>{Binding}</c> may read - anything implementing
@@ -225,6 +207,19 @@ public static class DeadCodeAnalysis
         return targets;
     }
 
+    /// <summary>
+    ///     The types a serializer drives: everything carrying one of the
+    ///     <see cref="SerializationAttributes" />. Unlike the binding targets this is not spread down the
+    ///     inheritance edges - none of those attributes is inherited, a derived type has to carry its own.
+    /// </summary>
+    private static HashSet<string> FindSerializableTypes(Graph.CodeGraph graph)
+    {
+        return graph.Nodes.Values
+            .Where(element => element.IsType() && element.Attributes.Any(SerializationAttributes.Contains))
+            .Select(element => element.Id)
+            .ToHashSet();
+    }
+
     private static CodeElement? ContainingType(CodeElement? element)
     {
         var current = element;
@@ -236,22 +231,9 @@ public static class DeadCodeAnalysis
         return current;
     }
 
-    /// <summary>
-    ///     Whether a finding may be used as evidence that something else is dead. Anything whose caller
-    ///     sits outside the graph must not: the class holding <c>Main</c> is reported, but treating its
-    ///     calls as gone would take the whole application down with it in the next round.
-    /// </summary>
-    private static bool PropagatesDeath(DeadCodeFinding finding)
-    {
-        return (finding.Hints & CallerOutsideTheGraph) == DeadCodeHint.None;
-    }
-
-    /// <summary>
-    ///     Recomputes who is referenced, ignoring everything that comes out of already dead code. The set
-    ///     only ever shrinks from round to round, so nothing that was reported can come back to life.
-    /// </summary>
+    /// <summary>Everything a relationship enters from the outside, plus what a used contract keeps alive.</summary>
     private static HashSet<string> ComputeReferenced(
-        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> silenced,
+        List<(CodeElement Source, CodeElement Target)> referenceEdges,
         Dictionary<string, List<CodeElement>> implementations)
     {
         var referenced = new HashSet<string>();
@@ -261,10 +243,7 @@ public static class DeadCodeAnalysis
 
         foreach (var (source, target) in referenceEdges)
         {
-            if (!silenced.Contains(source.Id))
-            {
-                MarkReferenced(source, target, referenced, sourceChain);
-            }
+            MarkReferenced(source, target, referenced, sourceChain);
         }
 
         PropagateContractUsage(referenced, implementations);
@@ -401,10 +380,10 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     The findings of a single round: everything unreferenced that was not already found earlier.
+    ///     Everything unreferenced, reduced to the topmost element of each dead subtree.
     /// </summary>
     private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, HashSet<string> referenced,
-        HashSet<string> found, AnalysisContext context, int level)
+        AnalysisContext context)
     {
         var findings = new List<DeadCodeFinding>();
 
@@ -412,7 +391,22 @@ public static class DeadCodeAnalysis
         {
             // An external contract does not make the element alive - it is reported with a note instead,
             // so the decision stays visible rather than silently removing rows from the result.
-            if (!IsCandidate(element) || referenced.Contains(element.Id) || found.Contains(element.Id))
+            if (!IsCandidate(element) || referenced.Contains(element.Id))
+            {
+                continue;
+            }
+
+            // A single accessor is never a finding of its own: the question is whether the property is
+            // used, not whether both halves of it are. One unused half is the normal shape of anything a
+            // serializer, a binding or a framework drives - a DTO that is written in C# and only read by
+            // System.Text.Json has a dead getter on every single property. A property that is dead as a
+            // whole is still reported, as the property.
+            if (element.ElementType == CodeElementType.PropertyAccessor)
+            {
+                continue;
+            }
+
+            if (IsSerializedProperty(element, context.SerializableTypes))
             {
                 continue;
             }
@@ -425,13 +419,13 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            findings.Add(CreateFinding(element, context, level));
+            findings.Add(CreateFinding(element, context));
         }
 
         return findings;
     }
 
-    private static DeadCodeFinding CreateFinding(CodeElement element, AnalysisContext context, int level)
+    private static DeadCodeFinding CreateFinding(CodeElement element, AnalysisContext context)
     {
         var hints = DeadCodeHint.None;
         var attributes = new SortedSet<string>(StringComparer.Ordinal);
@@ -486,8 +480,7 @@ public static class DeadCodeAnalysis
 
         return new DeadCodeFinding(element)
         {
-            Level = level,
-            Confidence = RateConfidence(element, hints, level, context),
+            Confidence = RateConfidence(element, hints, context),
             Hints = hints,
             Attributes = attributes.ToList(),
             RelatedMembers = related,
@@ -497,10 +490,9 @@ public static class DeadCodeAnalysis
 
     /// <summary>
     ///     Three rules, in order. A note about a caller outside the graph beats everything - we already
-    ///     know the finding may be wrong. Otherwise visibility decides, but only for a direct finding:
-    ///     what the cascade produced is never better than the rounds it rests on.
+    ///     know the finding may be wrong. Otherwise visibility decides.
     /// </summary>
-    private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints, int level,
+    private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints,
         AnalysisContext context)
     {
         if ((hints & CallerOutsideTheGraph) != DeadCodeHint.None)
@@ -508,7 +500,7 @@ public static class DeadCodeAnalysis
             return DeadCodeConfidence.Low;
         }
 
-        if (level == 1 && IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingTargets))
+        if (IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingTargets))
         {
             return DeadCodeConfidence.High;
         }
@@ -529,15 +521,37 @@ public static class DeadCodeAnalysis
     /// </summary>
     private static bool IsBindable(CodeElement element, HashSet<string> bindingTargets)
     {
-        // With split accessors the finding may be the getter or setter of the bound property.
-        var property = element.ElementType == CodeElementType.PropertyAccessor ? element.Parent : element;
-        if (property is not { ElementType: CodeElementType.Property, AccessLevel: AccessLevel.Public })
+        return IsPublicPropertyOf(element, bindingTargets);
+    }
+
+    /// <summary>
+    ///     Whether the element is a public property of a type marked as a serialization target. The
+    ///     serializer reaches it by reflection, so "nothing references it" says nothing about it at all -
+    ///     such a property is not reported.
+    ///     <para>
+    ///         Dropping it rather than reporting it with a note is deliberate: on a DTO <i>every</i>
+    ///         property looks dead, so the note would be the rule rather than the exception and would fill
+    ///         the result with rows nobody can act on.
+    ///     </para>
+    /// </summary>
+    private static bool IsSerializedProperty(CodeElement element, HashSet<string> serializableTypes)
+    {
+        return IsPublicPropertyOf(element, serializableTypes);
+    }
+
+    /// <summary>
+    ///     Whether the element is a public property of one of the given types. Accessors are never findings
+    ///     of their own (see <see cref="Report" />), so the reported element is the property itself.
+    /// </summary>
+    private static bool IsPublicPropertyOf(CodeElement element, HashSet<string> types)
+    {
+        if (element is not { ElementType: CodeElementType.Property, AccessLevel: AccessLevel.Public })
         {
             return false;
         }
 
-        var type = ContainingType(property);
-        return type is not null && bindingTargets.Contains(type.Id);
+        var type = ContainingType(element);
+        return type is not null && types.Contains(type.Id);
     }
 
     /// <summary>

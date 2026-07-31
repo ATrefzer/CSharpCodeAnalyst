@@ -56,8 +56,7 @@ public enum DeadCodeConfidence
 
     /// <summary>
     ///     Nothing references it, but it could be reached from code we did not analyze - it is public or
-    ///     protected, or the producer did not tell us its visibility. Also everything the cascade found:
-    ///     those depend on the earlier rounds being right.
+    ///     protected, or the producer did not tell us its visibility.
     /// </summary>
     Medium,
 
@@ -76,13 +75,6 @@ public sealed class DeadCodeFinding(CodeElement element)
 {
     /// <summary>The unreferenced element. Everything below it is dead too and is not reported separately.</summary>
     public CodeElement Element { get; } = element;
-
-    /// <summary>
-    ///     How many rounds it took to find this. 1 means nothing references it at all. 2 means its only
-    ///     references come from elements found dead in round 1, and so on - the higher the level, the more
-    ///     the finding depends on the earlier rounds being right.
-    /// </summary>
-    public int Level { get; init; } = 1;
 
     /// <summary>How much the finding can be trusted - see <see cref="DeadCodeConfidence" />.</summary>
     public DeadCodeConfidence Confidence { get; init; } = DeadCodeConfidence.Medium;
