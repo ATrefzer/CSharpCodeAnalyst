@@ -11,6 +11,7 @@ Available via *Analyzers → Dead Code*. The result is a sortable table:
 | ------- | ---------------------------------------------------------------------------- |
 | Element | The fully qualified name of the unreferenced element.                        |
 | Kind    | Class, Interface, Method, Field, Property, ... — the kind of element.        |
+| Level   | Which round found it. 1 = nothing references it at all. See *The cascade*.    |
 | Notes   | Anything worth knowing about the finding. **Empty means nothing speaks against deleting it.** |
 
 Sort by *Notes* to get the clean cases together, and use *Jump to code* or *Copy to explorer graph* from
@@ -93,6 +94,33 @@ So the parser records it **beside** the graph instead, from the symbols, the sam
 metrics. Those members are still listed — with `Implements external contract: ICommand.Execute` in the
 *Notes* column, so the judgement stays visible instead of rows disappearing silently.
 
+## The cascade
+
+Round 1 finds what nothing references at all. Every following round ignores the outgoing references of
+what was already found, so code that is only kept alive by dead code dies with it:
+
+```csharp
+class Report                      // nothing references Report          -> level 1
+{
+    void Print() { Formatter.Format(); }
+}
+
+static class Formatter            // only ever used from Report.Print   -> level 2
+{
+    public static void Format() { }
+}
+```
+
+The *Level* column says which round a finding comes from, and that is a confidence scale: level 1 stands
+on its own, while level 4 only holds if levels 1 to 3 were right.
+
+**Not every finding propagates.** A finding carrying `Entry point`, `Test code`, `Attributes` or
+`Implements external contract` is reported but never used as evidence that something else is dead. This is
+load-bearing rather than a refinement: the class holding `Main` is a level-1 finding, and letting it
+propagate would declare the entire application dead in round 2. The same protection applies when such a
+member merely sits *inside* the reported element — a dead class holding an `ICommand.Execute` takes
+nothing with it, because that method may well still run.
+
 ## The notes
 
 The analysis can only see what the parser saw. Everything reached through reflection, dependency injection,
@@ -142,7 +170,7 @@ fully qualified CLR name (see `ParserConfig.IncludeXamlReferences`).
 | `Click="Button_Click"`, anywhere incl. templates              | yes, generated C# |
 | `x:Name="CodeTree"` in the file's main name scope             | yes, generated field |
 | `x:Name` inside `DataTemplate` / `ControlTemplate` / `Style`  | no field is generated — but the element tag is read from the XAML |
-| `<local:MyControl/>` — the element tag                        | yes, read from the XAML |
+| `<local:MyControl/>` — the element tag                        | yes, read from the XAML — including the constructor it runs |
 | `{x:Static resx:Strings.Header}`, `{x:Type local:Foo}`        | yes, read from the XAML |
 | `{Binding SaveCommand}`                                       | **no** |
 | `{StaticResource key}`                                        | **no** |
@@ -176,10 +204,10 @@ Read these before deleting anything.
   a different solution will report most of that API as dead.
 - **Only the analyzed scope.** The analysis is only as complete as the loaded graph. If the solution was
   parsed with project exclusions, or the graph came from an import, the callers may simply be missing.
-- **No cascade.** This is the direct variant: an element counts as alive as soon as *anything* references
-  it — even something that is itself dead. So a dead class keeps the interface it implements and the
-  helpers it calls alive. Delete the reported elements and run the analysis again to peel off the next
-  layer.
+- **The cascade amplifies the blind spots.** A false positive in round 1 drags everything it uses into
+  round 2. A single `{Binding}`-only property in this repository takes seven resource strings with it. The
+  *Level* column is there to make that visible: level 1 stands on its own, everything above it inherits
+  the uncertainty of the rounds below.
 - **Dead cycles are not found.** Two classes that only use each other and nothing else each have an
-  incoming reference, so neither is reported. Finding those requires reachability from an explicit set of
-  entry points.
+  incoming reference, so neither is reported and no round removes them. Finding those requires
+  reachability from an explicit set of entry points rather than a cascade.

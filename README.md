@@ -241,8 +241,9 @@ C# Code Analyst can list the code elements that nothing references any more.
 
 The rule works on the whole subtree, so a class stays alive when one of its methods is used from somewhere
 else, and a class whose methods only call each other is still dead. Only the topmost element of a dead
-subtree is listed. References the parser cannot see are flagged in the *Notes* column instead of being
-dropped silently.
+subtree is listed. The analysis cascades: what is only kept alive by dead code dies with it, and the *Level*
+column says in which round a finding appeared. References the parser cannot see are flagged in the *Notes*
+column instead of being dropped silently.
 
 You can read more about the rule, how XAML is handled and where the limits are here:
 [Dead Code](Documentation/dead-code.md)

@@ -18,6 +18,13 @@ public sealed record XamlReference(
     int Line,
     int Column)
 {
+    /// <summary>
+    ///     True for an object element (<c>&lt;local:MyControl/&gt;</c>) - XAML creates an instance there,
+    ///     so the constructor runs. False for everything that only names a type: property element syntax
+    ///     (<c>&lt;local:MyControl.Items&gt;</c>), an attached property and <c>{x:Type}</c>.
+    /// </summary>
+    public bool IsInstantiation { get; init; }
+
     public string TypeFullName => $"{NamespaceName}.{TypeName}";
 }
 
@@ -109,7 +116,10 @@ public static class XamlReferenceExtractor
     /// </summary>
     private static void CollectElementTag(XElement element, List<XamlReference> references)
     {
-        Add(element.Name.NamespaceName, element.Name.LocalName, element, references);
+        // Only a tag without a dot creates an object; with one it is property element syntax.
+        var isInstantiation = !element.Name.LocalName.Contains('.');
+        Add(element.Name.NamespaceName, element.Name.LocalName, element, references,
+            isInstantiation: isInstantiation);
     }
 
     /// <summary>An attached property written as local:MyPanel.Dock="..." references MyPanel.</summary>
@@ -156,7 +166,7 @@ public static class XamlReferenceExtractor
     }
 
     private static void Add(string namespaceName, string localName, IXmlLineInfo position,
-        List<XamlReference> references, string? memberName = null)
+        List<XamlReference> references, string? memberName = null, bool isInstantiation = false)
     {
         if (!namespaceName.StartsWith(ClrNamespacePrefix, StringComparison.Ordinal))
         {
@@ -191,6 +201,6 @@ public static class XamlReferenceExtractor
         }
 
         references.Add(new XamlReference(clrNamespace, typeName, memberName, assemblyName,
-            position.LineNumber, position.LinePosition));
+            position.LineNumber, position.LinePosition) { IsInstantiation = isInstantiation });
     }
 }

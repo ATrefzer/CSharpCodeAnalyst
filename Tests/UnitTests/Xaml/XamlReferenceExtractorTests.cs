@@ -86,6 +86,37 @@ public class XamlReferenceExtractorTests
     }
 
     [Test]
+    public void Extract_ObjectElement_IsMarkedAsInstantiation()
+    {
+        // XAML creates the object here, so the constructor runs - the linker needs to know.
+        const string xaml = """
+                            <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                    xmlns:local="clr-namespace:App.Views">
+                                <local:MyControl />
+                            </Window>
+                            """;
+
+        Assert.That(XamlReferenceExtractor.Extract(xaml).References.Single().IsInstantiation, Is.True);
+    }
+
+    [Test]
+    public void Extract_PropertyElementSyntaxAndXType_AreNoInstantiation()
+    {
+        const string xaml = """
+                            <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                    xmlns:local="clr-namespace:App.Views">
+                                <Style TargetType="{x:Type local:Other}" />
+                                <local:MyControl.Items />
+                            </Window>
+                            """;
+
+        Assert.That(XamlReferenceExtractor.Extract(xaml).References.Select(r => r.IsInstantiation),
+            Is.All.False);
+    }
+
+    [Test]
     public void Extract_XType_YieldsTypeOnly()
     {
         const string xaml = """

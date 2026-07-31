@@ -43,6 +43,14 @@ internal class DeadCodeViewModel : Table
             },
             new()
             {
+                // 1 is the direct finding; a higher level only holds if the earlier rounds were right.
+                Type = ColumnType.Text,
+                Header = Strings.Column_DeadCode_Level,
+                PropertyName = nameof(DeadCodeRowViewModel.Level),
+                Width = 50
+            },
+            new()
+            {
                 // Carries both the doubts (entry point, test code, attributes) and the explanation of a
                 // contract finding. Empty means nothing speaks against deleting the element, and sorting
                 // brings those rows together.

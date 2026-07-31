@@ -25,15 +25,37 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         containing type: a class whose only "use" is implementing IDisposable is still dead code.
 ///     </para>
 ///     <para>
-///         Limitations, by construction: references the parser cannot see (XAML, reflection, dependency
+///         The analysis cascades. Round 1 finds what nothing references at all. Every following round
+///         ignores the outgoing references of what was already found, so code that is only kept alive by
+///         dead code dies with it - the chain "nobody calls Report, Report calls Formatter, nothing else
+///         calls Formatter" collapses completely. <see cref="DeadCodeFinding.Level" /> says which round a
+///         finding comes from.
+///     </para>
+///     <para>
+///         Only findings without a note propagate (see <see cref="PropagatesDeath" />). This is not a
+///         detail: the class holding <c>Main</c> is a round-1 finding, and letting it propagate would
+///         declare the entire application dead in the following rounds. The same holds for test fixtures
+///         and for members the framework calls. They are still reported - they simply do not take anything
+///         with them.
+///     </para>
+///     <para>
+///         Limitations, by construction: references the parser cannot see (reflection, dependency
 ///         injection, serialization) look like dead code - see <see cref="DeadCodeHint" />. Accessibility
-///         is not part of the graph, so the public API of a library cannot be treated as used. And because
-///         this is the direct variant, an element stays alive when a dead element references it; only a
-///         cascading analysis would collapse whole dead clusters.
+///         is not part of the graph, so the public API of a library cannot be treated as used. Dead cycles
+///         are not found either: two elements that only reference each other keep each other alive, which
+///         needs reachability from an explicit set of entry points rather than a cascade.
 ///     </para>
 /// </summary>
 public static class DeadCodeAnalysis
 {
+    /// <summary>
+    ///     The notes that say "the caller is somewhere we cannot see". A finding carrying one of them is
+    ///     reported but never used as evidence that something else is dead.
+    /// </summary>
+    private const DeadCodeHint CallerOutsideTheGraph =
+        DeadCodeHint.EntryPoint | DeadCodeHint.TestCode | DeadCodeHint.Attributed |
+        DeadCodeHint.ImplementsExternalContract;
+
     /// <summary>
     ///     Attribute names (with and without the "Attribute" suffix) of the common test frameworks. A test
     ///     method is called by a runner, never from the code, so it always looks unreferenced.
@@ -70,9 +92,6 @@ public static class DeadCodeAnalysis
     {
         ArgumentNullException.ThrowIfNull(graph);
 
-        // Alive because something references it (directly or through a contract).
-        var referenced = new HashSet<string>();
-
         // Element -> the contract outside the analyzed code it implements. Two sources: the store the
         // parser fills from the symbols, and - when external code is part of the graph - the edges.
         var external = new Dictionary<string, string>();
@@ -88,19 +107,89 @@ public static class DeadCodeAnalysis
         var implementations = new Dictionary<string, List<CodeElement>>();
         var contracts = new Dictionary<string, List<CodeElement>>();
 
-        CollectEdges(graph, referenced, external, implementations, contracts);
-        PropagateContractUsage(referenced, implementations);
+        // The structure never changes between rounds - only which sources still count does.
+        var referenceEdges = new List<(CodeElement Source, CodeElement Target)>();
+        CollectEdges(graph, referenceEdges, external, implementations, contracts);
 
-        return Report(graph, referenced, external, implementations, contracts);
+        // Everything found dead so far, including the subtrees of the reported elements.
+        var found = new HashSet<string>();
+
+        // The subset whose outgoing references are ignored from the next round on.
+        var silenced = new HashSet<string>();
+
+        var findings = new List<DeadCodeFinding>();
+
+        for (var level = 1;; level++)
+        {
+            var referenced = ComputeReferenced(referenceEdges, silenced, implementations);
+            var round = Report(graph, referenced, found, external, implementations, contracts, level);
+            if (round.Count == 0)
+            {
+                break;
+            }
+
+            findings.AddRange(round);
+            foreach (var finding in round)
+            {
+                // The note about an external contract sits on the member, but the decision to propagate
+                // has to look at the whole subtree: a dead class holding an ICommand.Execute is reported
+                // without that note (it is the class that is dead), yet its calls may well still run.
+                var propagates = PropagatesDeath(finding) &&
+                                 !finding.Element.GetSubtreeIncludingSelf().Any(e => external.ContainsKey(e.Id));
+                foreach (var element in finding.Element.GetSubtreeIncludingSelf())
+                {
+                    found.Add(element.Id);
+                    if (propagates)
+                    {
+                        silenced.Add(element.Id);
+                    }
+                }
+            }
+        }
+
+        return findings.OrderBy(f => f.Element.FullName, StringComparer.Ordinal).ToList();
     }
 
-    private static void CollectEdges(Graph.CodeGraph graph, HashSet<string> referenced,
-        Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
+    /// <summary>
+    ///     Whether a finding may be used as evidence that something else is dead. Anything whose caller
+    ///     sits outside the graph must not: the class holding <c>Main</c> is reported, but treating its
+    ///     calls as gone would take the whole application down with it in the next round.
+    /// </summary>
+    private static bool PropagatesDeath(DeadCodeFinding finding)
     {
+        return (finding.Hints & CallerOutsideTheGraph) == DeadCodeHint.None;
+    }
+
+    /// <summary>
+    ///     Recomputes who is referenced, ignoring everything that comes out of already dead code. The set
+    ///     only ever shrinks from round to round, so nothing that was reported can come back to life.
+    /// </summary>
+    private static HashSet<string> ComputeReferenced(
+        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> silenced,
+        Dictionary<string, List<CodeElement>> implementations)
+    {
+        var referenced = new HashSet<string>();
+
         // Reused across relationships to keep the walk allocation free.
         var sourceChain = new HashSet<string>();
 
+        foreach (var (source, target) in referenceEdges)
+        {
+            if (!silenced.Contains(source.Id))
+            {
+                MarkReferenced(source, target, referenced, sourceChain);
+            }
+        }
+
+        PropagateContractUsage(referenced, implementations);
+        return referenced;
+    }
+
+    private static void CollectEdges(Graph.CodeGraph graph,
+        List<(CodeElement Source, CodeElement Target)> referenceEdges,
+        Dictionary<string, string> external,
+        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
+    {
         foreach (var relationship in graph.GetAllRelationships())
         {
             var source = graph.TryGetCodeElement(relationship.SourceId);
@@ -124,7 +213,7 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            MarkReferenced(source, target, referenced, sourceChain);
+            referenceEdges.Add((source, target));
         }
     }
 
@@ -219,9 +308,13 @@ public static class DeadCodeAnalysis
         }
     }
 
+    /// <summary>
+    ///     The findings of a single round: everything unreferenced that was not already found earlier.
+    /// </summary>
     private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, HashSet<string> referenced,
-        Dictionary<string, string> external, Dictionary<string, List<CodeElement>> implementations,
-        Dictionary<string, List<CodeElement>> contracts)
+        HashSet<string> found, Dictionary<string, string> external,
+        Dictionary<string, List<CodeElement>> implementations,
+        Dictionary<string, List<CodeElement>> contracts, int level)
     {
         var findings = new List<DeadCodeFinding>();
 
@@ -229,7 +322,7 @@ public static class DeadCodeAnalysis
         {
             // An external contract does not make the element alive - it is reported with a note instead,
             // so the decision stays visible rather than silently removing rows from the result.
-            if (!IsCandidate(element) || referenced.Contains(element.Id))
+            if (!IsCandidate(element) || referenced.Contains(element.Id) || found.Contains(element.Id))
             {
                 continue;
             }
@@ -242,14 +335,15 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            findings.Add(CreateFinding(element, external, implementations, contracts));
+            findings.Add(CreateFinding(element, external, implementations, contracts, level));
         }
 
-        return findings.OrderBy(f => f.Element.FullName, StringComparer.Ordinal).ToList();
+        return findings;
     }
 
     private static DeadCodeFinding CreateFinding(CodeElement element, Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
+        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts,
+        int level)
     {
         var hints = DeadCodeHint.None;
         var attributes = new SortedSet<string>(StringComparer.Ordinal);
@@ -304,6 +398,7 @@ public static class DeadCodeAnalysis
 
         return new DeadCodeFinding(element)
         {
+            Level = level,
             Hints = hints,
             Attributes = attributes.ToList(),
             RelatedMembers = related,

@@ -24,6 +24,9 @@ public sealed record XamlProject(CodeElement Assembly, string Directory);
 /// </summary>
 public static class XamlGraphLinker
 {
+    /// <summary>The element name the parser gives a constructor (it comes straight from the symbol).</summary>
+    private const string ConstructorName = ".ctor";
+
     public static int Link(CodeGraph.Graph.CodeGraph graph, IReadOnlyList<XamlProject> projects)
     {
         ArgumentNullException.ThrowIfNull(graph);
@@ -67,15 +70,17 @@ public static class XamlGraphLinker
 
         foreach (var reference in references.References)
         {
-            var target = ResolveTarget(project, reference, typesByAssembly);
-            if (target is null || target.Id == source.Id)
+            foreach (var target in ResolveTargets(project, reference, typesByAssembly))
             {
-                continue;
-            }
+                if (target.Id == source.Id)
+                {
+                    continue;
+                }
 
-            if (AddReference(source, target, file, reference))
-            {
-                added++;
+                if (AddReference(source, target, file, reference))
+                {
+                    added++;
+                }
             }
         }
 
@@ -151,18 +156,45 @@ public static class XamlGraphLinker
         return element;
     }
 
-    private static CodeElement? ResolveTarget(XamlProject project, XamlReference reference,
+    private static IEnumerable<CodeElement> ResolveTargets(XamlProject project, XamlReference reference,
         Dictionary<string, Dictionary<string, CodeElement>> typesByAssembly)
     {
         var type = ResolveType(project, reference, typesByAssembly);
-        if (type is null || reference.MemberName is null)
+        if (type is null)
         {
-            return type;
+            yield break;
         }
 
-        // {x:Static Type.Member} - prefer the member, fall back to the type when it has no element
-        // (e.g. an enum value or a member the parser did not model).
-        return type.Children.FirstOrDefault(c => c.Name == reference.MemberName) ?? type;
+        if (reference.MemberName is not null)
+        {
+            // {x:Static Type.Member} - prefer the member, fall back to the type when it has no element
+            // (e.g. an enum value or a member the parser did not model).
+            yield return type.Children.FirstOrDefault(c => c.Name == reference.MemberName) ?? type;
+            yield break;
+        }
+
+        yield return type;
+
+        if (!reference.IsInstantiation)
+        {
+            yield break;
+        }
+
+        // An object element runs the constructor. Without this edge the constructor has no incoming
+        // reference at all, and everything only it calls dies with it in the cascade - the body of a
+        // XAML-instantiated control lives almost entirely below its constructor.
+        // Overloads share the element name, so all of them are linked: XAML picks the parameterless one,
+        // but the graph cannot tell them apart, and an edge too many is far cheaper here than a missing
+        // one.
+        foreach (var constructor in type.Children.Where(IsConstructor))
+        {
+            yield return constructor;
+        }
+    }
+
+    private static bool IsConstructor(CodeElement element)
+    {
+        return element is { ElementType: CodeElementType.Method, Name: ConstructorName };
     }
 
     private static CodeElement? ResolveType(XamlProject project, XamlReference reference,

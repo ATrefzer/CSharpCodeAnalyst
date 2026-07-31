@@ -50,6 +50,13 @@ public sealed class DeadCodeFinding(CodeElement element)
     /// <summary>The unreferenced element. Everything below it is dead too and is not reported separately.</summary>
     public CodeElement Element { get; } = element;
 
+    /// <summary>
+    ///     How many rounds it took to find this. 1 means nothing references it at all. 2 means its only
+    ///     references come from elements found dead in round 1, and so on - the higher the level, the more
+    ///     the finding depends on the earlier rounds being right.
+    /// </summary>
+    public int Level { get; init; } = 1;
+
     public DeadCodeHint Hints { get; init; }
 
     /// <summary>Distinct attribute names found on the element and its subtree.</summary>

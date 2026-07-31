@@ -80,6 +80,53 @@ public class XamlGraphLinkerTests
     }
 
     [Test]
+    public void Link_ObjectElement_AlsoConnectsToTheConstructor()
+    {
+        // Without this edge the constructor has no incoming reference at all, and everything only it
+        // calls dies with it once the analysis cascades.
+        var assembly = _graph.CreateAssembly("App");
+        var view = CreateType(assembly, "App.Views", "MainWindow");
+        var control = CreateType(assembly, "App.Controls", "MyGrid");
+        var constructor = _graph.CreateMethod(".ctor", control);
+
+        WriteXaml("MainWindow.xaml", """
+                                     <Window x:Class="App.Views.MainWindow"
+                                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                             xmlns:c="clr-namespace:App.Controls">
+                                         <c:MyGrid />
+                                     </Window>
+                                     """);
+
+        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+
+        Assert.That(EdgesFrom(view, _graph), Is.EquivalentTo(new[] { "MyGrid", constructor.FullName }));
+    }
+
+    [Test]
+    public void Link_XType_DoesNotConnectToTheConstructor()
+    {
+        // {x:Type} only names the type; nothing is created.
+        var assembly = _graph.CreateAssembly("App");
+        var view = CreateType(assembly, "App.Views", "MainWindow");
+        var control = CreateType(assembly, "App.Controls", "MyGrid");
+        _graph.CreateMethod(".ctor", control);
+
+        WriteXaml("MainWindow.xaml", """
+                                     <Window x:Class="App.Views.MainWindow"
+                                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                             xmlns:c="clr-namespace:App.Controls">
+                                         <Style TargetType="{x:Type c:MyGrid}" />
+                                     </Window>
+                                     """);
+
+        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+
+        Assert.That(EdgesFrom(view, _graph), Is.EquivalentTo(new[] { "MyGrid" }));
+    }
+
+    [Test]
     public void Link_XStatic_ConnectsToTheMemberNotOnlyTheType()
     {
         var assembly = _graph.CreateAssembly("App");

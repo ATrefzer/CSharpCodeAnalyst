@@ -15,6 +15,7 @@ public class DeadCodeRowViewModel : TableRow
         Element = finding.Element;
         Name = finding.Element.FullName;
         Kind = finding.Element.ElementType.ToString();
+        Level = finding.Level;
         Hint = FormatHint(finding);
     }
 
@@ -23,6 +24,12 @@ public class DeadCodeRowViewModel : TableRow
 
     public string Name { get; }
     public string Kind { get; }
+
+    /// <summary>
+    ///     1 = nothing references it at all. Higher means it was only kept alive by code found dead in an
+    ///     earlier round, so the finding is only as good as those rounds were.
+    /// </summary>
+    public int Level { get; }
 
     /// <summary>
     ///     Two kinds of note, joined into one cell: why the element might be alive despite having no

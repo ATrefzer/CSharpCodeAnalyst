@@ -303,6 +303,16 @@ relationships are `Uses` and carry `RelationshipAttribute.IsXamlReference`.
 `{Binding Path=...}` is deliberately left out. Without evaluating the DataContext it is a bare member name,
 and matching that across the codebase would suppress far more than it explains.
 
+An **object element** (`<local:MyControl/>`) is not only a type reference - XAML creates the instance
+there, so the constructor runs. The linker therefore also connects the type's `.ctor` elements. Without
+that edge the constructor of a XAML-instantiated control has no incoming reference at all, and since the
+body of such a control largely hangs below its constructor (`DynamicDataGrid` wires its search timer
+there), everything it calls dies with it as soon as the dead code analysis cascades. Property element
+syntax (`<local:MyControl.Items>`), attached properties and `{x:Type}` only name a type and are not
+treated as an instantiation. Constructor overloads share the element name, so all of them are linked -
+XAML picks the parameterless one, but the graph cannot tell them apart and a missing edge costs far more
+than a superfluous one.
+
 The source of such a relationship is the code-behind class from `x:Class`. A resource dictionary has none,
 so a synthetic class named after the file path takes its place - the same device already used for top-level
 statements (`GlobalStatements`). It is created only when the file actually contains a resolvable reference.

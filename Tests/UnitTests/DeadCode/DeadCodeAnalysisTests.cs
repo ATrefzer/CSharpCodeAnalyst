@@ -21,9 +21,17 @@ public class DeadCodeAnalysisTests
         source.Relationships.Add(new Relationship(source.Id, target.Id, type));
     }
 
+    /// <summary>
+    ///     The findings of the first round - what nothing references at all. These fixtures are about the
+    ///     direct rule; the cascade that follows from it has its own fixture. Without the filter almost
+    ///     every case here would also report whatever the (equally unreferenced) "User" element uses.
+    /// </summary>
     private string[] Reported()
     {
-        return DeadCodeAnalysis.Calculate(_graph).Select(f => f.Element.FullName).ToArray();
+        return DeadCodeAnalysis.Calculate(_graph)
+            .Where(f => f.Level == 1)
+            .Select(f => f.Element.FullName)
+            .ToArray();
     }
 
     private DeadCodeFinding FindingFor(CodeElement element)
@@ -257,8 +265,9 @@ public class DeadCodeAnalysisTests
             Assert.That(finding.Hints.HasFlag(DeadCodeHint.ImplementsExternalContract), Is.True);
             Assert.That(finding.ExternalContract, Is.EqualTo("ICommand.Execute"));
 
-            // The class itself is untouched by the assumption - it is created, so it is alive here.
-            Assert.That(findings.Select(f => f.Element.FullName), Does.Not.Contain("Command"));
+            // The class itself is untouched by the assumption - it is created, so it survives round 1.
+            Assert.That(findings.Where(f => f.Level == 1).Select(f => f.Element.FullName),
+                Does.Not.Contain("Command"));
         });
     }
 

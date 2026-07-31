@@ -312,6 +312,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Level.
+        /// </summary>
+        public static string Column_DeadCode_Level {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Level", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Attributes: {0}.
         /// </summary>
         public static string DeadCode_Hint_Attributed {
