@@ -365,3 +365,30 @@ The store is filled from the parallel phase 2, hence a `ConcurrentDictionary`. T
 reports such members with a note rather than dropping them, and the fact is deliberately **not** pushed to
 the containing type: implementing `IDisposable` is not a use of the class, so a class whose only remaining
 trace is a `Dispose` method stays reportable.
+
+## Visibility on the code element
+
+`CodeElement.AccessLevel` carries what `ISymbol.DeclaredAccessibility` says, mapped in `HierarchyAnalyzer`
+where the elements are created (types and members in one place, property accessors in another - an accessor
+may narrow its property, `public int P { get; private set; }`).
+
+Unlike the external contracts, this belongs **on** the element rather than beside it: visibility is a
+first-class property that every language the tool imports has, several consumers can use it, and the
+importers can fill it later. `AccessLevel.Unknown` is the default and must always be read as "nobody told
+us", never as a value - a graph from doxygen or jdeps has no visibility today, and neither has a project
+file written before this existed.
+
+The type is called `AccessLevel`, not `Accessibility`: WPF drags a global `Accessibility` namespace into
+scope, so the natural name would force a full qualification in every file of the UI projects.
+
+Persisted in both formats - `SerializableCodeElement` (optional constructor parameter, so old project files
+keep loading) and the text serializer (`access=` written only when it is not Unknown, and an unparsable
+value falls back to Unknown rather than guessing).
+
+The dead code analysis uses it for the confidence of a finding, and reads it over the whole containment
+chain: a `public` method of an `internal` class is just as unreachable from another assembly, so it is the
+*most restrictive* container that decides.
+
+One entry point was found only through this: a **static constructor** (`.cctor`) is run by the runtime and
+never referenced from code. It is usually private, so it landed in the highest confidence band until it was
+recognized as an entry point like `Main`.

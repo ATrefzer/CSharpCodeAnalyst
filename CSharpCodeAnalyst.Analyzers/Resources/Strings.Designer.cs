@@ -312,6 +312,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Access.
+        /// </summary>
+        public static string Column_DeadCode_Access {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Access", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Confidence.
+        /// </summary>
+        public static string Column_DeadCode_Confidence {
+            get {
+                return ResourceManager.GetString("Column_DeadCode_Confidence", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Level.
         /// </summary>
         public static string Column_DeadCode_Level {

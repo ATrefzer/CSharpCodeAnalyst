@@ -243,7 +243,8 @@ The rule works on the whole subtree, so a class stays alive when one of its meth
 else, and a class whose methods only call each other is still dead. Only the topmost element of a dead
 subtree is listed. The analysis cascades: what is only kept alive by dead code dies with it, and the *Level*
 column says in which round a finding appeared. References the parser cannot see are flagged in the *Notes*
-column instead of being dropped silently.
+column instead of being dropped silently, and every row carries a colour-coded *Confidence* — highest for
+elements that are `private` or `internal`, because nothing outside the analyzed code could reach those.
 
 You can read more about the rule, how XAML is handled and where the limits are here:
 [Dead Code](Documentation/dead-code.md)

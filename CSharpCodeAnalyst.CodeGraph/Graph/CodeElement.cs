@@ -41,6 +41,13 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     /// </summary>
     public bool IsExternal { get; init; }
 
+    /// <summary>
+    ///     How far the element can be reached from. <see cref="Graph.AccessLevel.Unknown" /> when the
+    ///     producer does not supply it - every importer except the C# parser, and any project file written
+    ///     before this existed. Never read Unknown as a value; it means "no information".
+    /// </summary>
+    public AccessLevel AccessLevel { get; init; }
+
     public override bool Equals(object? obj)
     {
         if (obj != null && obj.GetType() == GetType())
@@ -107,7 +114,8 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         var element = new CodeElement(Id, ElementType, Name,
             FullName, null)
         {
-            IsExternal = IsExternal
+            IsExternal = IsExternal,
+            AccessLevel = AccessLevel
         };
 
         element.SourceLocations.AddRange(SourceLocations);

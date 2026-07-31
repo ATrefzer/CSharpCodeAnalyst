@@ -16,6 +16,15 @@ public class DeadCodeRowViewModel : TableRow
         Name = finding.Element.FullName;
         Kind = finding.Element.ElementType.ToString();
         Level = finding.Level;
+        // Fully qualified: WPF pulls a global "Accessibility" namespace into scope; ours is AccessLevel.
+        Access = finding.Element.AccessLevel == CodeGraph.Graph.AccessLevel.Unknown
+            ? string.Empty
+            : finding.Element.AccessLevel.ToString();
+
+        Confidence = finding.Confidence.ToString();
+
+        // Bound for the colour rating and for sorting; the column displays the word.
+        ConfidenceValue = (int)finding.Confidence;
         Hint = FormatHint(finding);
     }
 
@@ -30,6 +39,14 @@ public class DeadCodeRowViewModel : TableRow
     ///     earlier round, so the finding is only as good as those rounds were.
     /// </summary>
     public int Level { get; }
+
+    /// <summary>The element's visibility, empty when the producer did not supply one.</summary>
+    public string Access { get; }
+
+    public string Confidence { get; }
+
+    /// <summary>Numeric backer of <see cref="Confidence" /> for the colour rating and for sorting.</summary>
+    public int ConfidenceValue { get; }
 
     /// <summary>
     ///     Two kinds of note, joined into one cell: why the element might be alive despite having no

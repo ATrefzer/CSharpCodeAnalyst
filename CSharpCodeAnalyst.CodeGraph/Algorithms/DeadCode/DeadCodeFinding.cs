@@ -43,6 +43,33 @@ public enum DeadCodeHint
 }
 
 /// <summary>
+///     How much the finding can be trusted. Three levels, each from one stated rule - this is a summary of
+///     what we know, not a measurement.
+/// </summary>
+public enum DeadCodeConfidence
+{
+    /// <summary>
+    ///     A note says the caller may sit outside the graph (entry point, test code, attributes, an
+    ///     external contract). We know we might be wrong here.
+    /// </summary>
+    Low,
+
+    /// <summary>
+    ///     Nothing references it, but it could be reached from code we did not analyze - it is public or
+    ///     protected, or the producer did not tell us its visibility. Also everything the cascade found:
+    ///     those depend on the earlier rounds being right.
+    /// </summary>
+    Medium,
+
+    /// <summary>
+    ///     Nothing references it, and nothing outside the analyzed code could: the element or one of its
+    ///     containers is private or internal. "Nothing references it" and "nothing can reference it" mean
+    ///     the same thing here.
+    /// </summary>
+    High
+}
+
+/// <summary>
 ///     One reported element: the topmost element of a dead subtree, plus what we know about it.
 /// </summary>
 public sealed class DeadCodeFinding(CodeElement element)
@@ -56,6 +83,9 @@ public sealed class DeadCodeFinding(CodeElement element)
     ///     the finding depends on the earlier rounds being right.
     /// </summary>
     public int Level { get; init; } = 1;
+
+    /// <summary>How much the finding can be trusted - see <see cref="DeadCodeConfidence" />.</summary>
+    public DeadCodeConfidence Confidence { get; init; } = DeadCodeConfidence.Medium;
 
     public DeadCodeHint Hints { get; init; }
 

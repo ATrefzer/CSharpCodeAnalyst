@@ -176,6 +176,27 @@ public class HierarchyAnalyzer
         return true;
     }
 
+    /// <summary>
+    ///     Roslyn's accessibility onto ours. <c>NotApplicable</c> (namespaces, and anything Roslyn cannot
+    ///     decide) maps to Unknown - the graph must not claim a visibility that does not exist.
+    /// </summary>
+    private static CodeGraph.Graph.AccessLevel MapAccessLevel(
+        Microsoft.CodeAnalysis.Accessibility accessibility)
+    {
+        return accessibility switch
+        {
+            Microsoft.CodeAnalysis.Accessibility.Private => CodeGraph.Graph.AccessLevel.Private,
+            Microsoft.CodeAnalysis.Accessibility.Protected => CodeGraph.Graph.AccessLevel.Protected,
+            Microsoft.CodeAnalysis.Accessibility.Internal => CodeGraph.Graph.AccessLevel.Internal,
+            Microsoft.CodeAnalysis.Accessibility.ProtectedAndInternal => CodeGraph.Graph.AccessLevel
+                .ProtectedAndInternal,
+            Microsoft.CodeAnalysis.Accessibility.ProtectedOrInternal => CodeGraph.Graph.AccessLevel
+                .ProtectedOrInternal,
+            Microsoft.CodeAnalysis.Accessibility.Public => CodeGraph.Graph.AccessLevel.Public,
+            _ => CodeGraph.Graph.AccessLevel.Unknown
+        };
+    }
+
     private async Task BuildHierarchy(Compilation compilation, IEnumerable<Document> generatedDocuments)
     {
         // Assembly has no source location.
@@ -429,7 +450,10 @@ public class HierarchyAnalyzer
         var fullName = symbol.BuildSymbolName();
         var newId = Guid.NewGuid().ToString();
 
-        var element = new CodeElement(newId, elementType, name, fullName, parent);
+        var element = new CodeElement(newId, elementType, name, fullName, parent)
+        {
+            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility)
+        };
 
         UpdateCodeElementLocations(element, location);
 
@@ -478,7 +502,11 @@ public class HierarchyAnalyzer
         var name = accessor.Name;
         var fullName = propertyElement.FullName + "." + name;
         var id = Guid.NewGuid().ToString();
-        var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement);
+        var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement)
+        {
+            // An accessor may narrow the property ("public int P { get; private set; }").
+            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility)
+        };
 
         foreach (var accessorLocation in accessor.GetSymbolLocations())
         {

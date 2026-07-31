@@ -11,7 +11,9 @@ Available via *Analyzers → Dead Code*. The result is a sortable table:
 | ------- | ---------------------------------------------------------------------------- |
 | Element | The fully qualified name of the unreferenced element.                        |
 | Kind    | Class, Interface, Method, Field, Property, ... — the kind of element.        |
+| Access  | The element's visibility, empty when the producer does not supply one.        |
 | Level   | Which round found it. 1 = nothing references it at all. See *The cascade*.    |
+| Confidence | How much the finding can be trusted — coloured like the complexity metric. See below. |
 | Notes   | Anything worth knowing about the finding. **Empty means nothing speaks against deleting it.** |
 
 Sort by *Notes* to get the clean cases together, and use *Jump to code* or *Copy to explorer graph* from
@@ -94,6 +96,30 @@ So the parser records it **beside** the graph instead, from the symbols, the sam
 metrics. Those members are still listed — with `Implements external contract: ICommand.Execute` in the
 *Notes* column, so the judgement stays visible instead of rows disappearing silently.
 
+## Confidence
+
+Three levels, each from one stated rule, evaluated in this order. It is a summary of what is known, not a
+measurement:
+
+| Confidence | Rule |
+| ---------- | ------ |
+| **Low** (red) | The finding carries a note saying the caller may sit outside the graph — entry point, test code, attributes, an external contract. We already know we might be wrong. |
+| **High** (green) | No such note, found in round 1, and the element **or one of its containers** is `private` or `internal`. Nothing outside the analyzed code could reach it, so "nothing references it" and "nothing *can* reference it" are the same statement. |
+| **Medium** (orange) | Everything else: `public` or `protected`, an unknown visibility, or anything the cascade found. |
+
+The containment part matters more than it looks: a `public` method of an `internal` class cannot be called
+from another assembly either, so it still qualifies as high.
+
+**Unknown visibility never reaches high.** Every importer except the C# parser leaves it unset, and so does
+a project file written before this existed. That is the honest answer rather than a penalty — without
+knowing the visibility we cannot claim that nothing outside could reference the element.
+
+On this repository the distribution is 35 high, 529 medium, 478 low out of 1042 findings. The high bucket is
+deliberately small: it is the list you can work through without checking each entry by hand.
+
+> `InternalsVisibleTo` is not taken into account. A friend assembly inside the analysis shows its references
+> anyway; one outside it is the rare case this misses.
+
 ## The cascade
 
 Round 1 finds what nothing references at all. Every following round ignores the outgoing references of
@@ -131,7 +157,7 @@ are reported with a note, and you decide.
 
 | Note              | Meaning                                                                       |
 | ----------------- | ------------------------------------------------------------------------------ |
-| `Entry point`     | `Main`, or the synthetic `GlobalStatements` element for top-level statements.  |
+| `Entry point`     | `Main`, a static constructor (the runtime runs it), or the synthetic `GlobalStatements` element for top-level statements. |
 | `Test code`       | The element or something below it carries a known test-framework attribute.    |
 | `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed, including the test ones that already produced `Test code`. |
 

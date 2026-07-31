@@ -24,9 +24,10 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
-    public CodeElement CreateClass(string id, CodeElement? parent = null, string? fullName = null)
+    public CodeElement CreateClass(string id, CodeElement? parent = null, string? fullName = null,
+        AccessLevel accessLevel = AccessLevel.Unknown)
     {
-        var element = new CodeElement(id, CodeElementType.Class, id, id, parent);
+        var element = new CodeElement(id, CodeElementType.Class, id, id, parent) { AccessLevel = accessLevel };
         Link(parent, element);
         return element;
     }
@@ -89,9 +90,10 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
-    public CodeElement CreateMethod(string id, CodeElement? parent = null)
+    public CodeElement CreateMethod(string id, CodeElement? parent = null,
+        AccessLevel accessLevel = AccessLevel.Unknown)
     {
-        var element = new CodeElement(id, CodeElementType.Method, id, id, parent);
+        var element = new CodeElement(id, CodeElementType.Method, id, id, parent) { AccessLevel = accessLevel };
         Link(parent, element);
         return element;
     }

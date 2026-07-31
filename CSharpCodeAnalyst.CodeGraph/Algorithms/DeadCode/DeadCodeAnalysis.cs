@@ -39,11 +39,17 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         with them.
 ///     </para>
 ///     <para>
+///         Every finding carries a <see cref="DeadCodeFinding.Confidence" />, and
+///         <see cref="AccessLevel" /> is what makes the top level reachable: an element confined to its
+///         type or assembly cannot be referenced from code we did not analyze, so "nothing references it"
+///         and "nothing can reference it" coincide. A producer that supplies no visibility never reaches
+///         that level - which is the honest answer, not a penalty.
+///     </para>
+///     <para>
 ///         Limitations, by construction: references the parser cannot see (reflection, dependency
-///         injection, serialization) look like dead code - see <see cref="DeadCodeHint" />. Accessibility
-///         is not part of the graph, so the public API of a library cannot be treated as used. Dead cycles
-///         are not found either: two elements that only reference each other keep each other alive, which
-///         needs reachability from an explicit set of entry points rather than a cascade.
+///         injection, serialization) look like dead code - see <see cref="DeadCodeHint" />. Dead cycles are
+///         not found either: two elements that only reference each other keep each other alive, which needs
+///         reachability from an explicit set of entry points rather than a cascade.
 ///     </para>
 /// </summary>
 public static class DeadCodeAnalysis
@@ -399,11 +405,55 @@ public static class DeadCodeAnalysis
         return new DeadCodeFinding(element)
         {
             Level = level,
+            Confidence = RateConfidence(element, hints, level),
             Hints = hints,
             Attributes = attributes.ToList(),
             RelatedMembers = related,
             ExternalContract = externalContract
         };
+    }
+
+    /// <summary>
+    ///     Three rules, in order. A note about a caller outside the graph beats everything - we already
+    ///     know the finding may be wrong. Otherwise visibility decides, but only for a direct finding:
+    ///     what the cascade produced is never better than the rounds it rests on.
+    /// </summary>
+    private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints, int level)
+    {
+        if ((hints & CallerOutsideTheGraph) != DeadCodeHint.None)
+        {
+            return DeadCodeConfidence.Low;
+        }
+
+        if (level == 1 && IsConfinedToAnalyzedCode(element))
+        {
+            return DeadCodeConfidence.High;
+        }
+
+        return DeadCodeConfidence.Medium;
+    }
+
+    /// <summary>
+    ///     Whether the element is out of reach for code we did not analyze. It is enough that *any*
+    ///     container is private or internal: a public method of an internal class cannot be called from
+    ///     another assembly either. An element whose visibility is unknown contributes nothing, so a graph
+    ///     from an importer that does not supply it never reaches high confidence.
+    ///     <para>
+    ///         "InternalsVisibleTo" is not considered. A friend assembly inside the analysis would show its
+    ///         references anyway; one outside it is the rare case this misses.
+    ///     </para>
+    /// </summary>
+    private static bool IsConfinedToAnalyzedCode(CodeElement element)
+    {
+        for (var current = element; current is not null; current = current.Parent)
+        {
+            if (current.AccessLevel.IsConfinedToAnalyzedCode())
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -423,6 +473,14 @@ public static class DeadCodeAnalysis
     private static bool IsEntryPoint(CodeElement element)
     {
         if (element is { ElementType: CodeElementType.Method, Name: "Main" })
+        {
+            return true;
+        }
+
+        // A static constructor is run by the runtime before the first use of the type. Nothing in the
+        // code ever references it, so without this it looks like a particularly trustworthy finding -
+        // it is usually private, which would otherwise put it in the highest confidence band.
+        if (element is { ElementType: CodeElementType.Method, Name: ".cctor" })
         {
             return true;
         }

@@ -43,11 +43,30 @@ internal class DeadCodeViewModel : Table
             },
             new()
             {
+                Type = ColumnType.Text,
+                Header = Strings.Column_DeadCode_Access,
+                PropertyName = nameof(DeadCodeRowViewModel.Access),
+                Width = 80
+            },
+            new()
+            {
                 // 1 is the direct finding; a higher level only holds if the earlier rounds were right.
                 Type = ColumnType.Text,
                 Header = Strings.Column_DeadCode_Level,
                 PropertyName = nameof(DeadCodeRowViewModel.Level),
                 Width = 50
+            },
+            new()
+            {
+                Type = ColumnType.Text,
+                Header = Strings.Column_DeadCode_Confidence,
+                PropertyName = nameof(DeadCodeRowViewModel.Confidence),
+                Width = 80,
+
+                // High (2) green, Medium (1) orange, Low (0) red - here a larger value is better.
+                Rating = new ThresholdRating(2, 1, false),
+                RatingValuePropertyName = nameof(DeadCodeRowViewModel.ConfidenceValue),
+                SortMemberName = nameof(DeadCodeRowViewModel.ConfidenceValue)
             },
             new()
             {

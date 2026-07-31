@@ -222,6 +222,12 @@
     <data name="Column_DeadCode_Level" xml:space="preserve">
     <value>Level</value>
   </data>
+    <data name="Column_DeadCode_Access" xml:space="preserve">
+    <value>Access</value>
+  </data>
+    <data name="Column_DeadCode_Confidence" xml:space="preserve">
+    <value>Confidence</value>
+  </data>
     <data name="Column_DeadCode_Hint" xml:space="preserve">
     <value>Notes</value>
   </data>

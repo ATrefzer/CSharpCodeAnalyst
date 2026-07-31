@@ -10,7 +10,8 @@ public class SerializableCodeElement(
     CodeElementType elementType,
     List<SourceLocation> sourceLocations,
     HashSet<string> attributes,
-    bool isExternal = false)
+    bool isExternal = false,
+    AccessLevel accessLevel = AccessLevel.Unknown)
 {
     public string Id { get; set; } = id;
     public string Name { get; set; } = name;
@@ -23,4 +24,10 @@ public class SerializableCodeElement(
     ///     Whether the element belongs to a referenced assembly rather than the parsed solution.
     /// </summary>
     public bool IsExternal { get; set; } = isExternal;
+
+    /// <summary>
+    ///     How far the element can be reached from. Defaults to Unknown, so a project file written before
+    ///     this existed keeps loading - the elements simply carry no visibility until the next parse.
+    /// </summary>
+    public AccessLevel AccessLevel { get; set; } = accessLevel;
 }
