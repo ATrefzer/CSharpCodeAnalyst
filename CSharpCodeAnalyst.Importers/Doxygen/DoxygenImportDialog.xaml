@@ -25,6 +25,10 @@
             <RowDefinition Height="15" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="15" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="20" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -68,15 +72,30 @@
                   Height="25"
                   VerticalContentAlignment="Center" />
 
+        <!-- Hierarchy -->
+        <TextBlock Grid.Row="9" Text="{x:Static resources:Strings.ImportDoxygen_Hierarchy_Label}" Margin="0,0,0,5" />
+        <ComboBox Grid.Row="10"
+                  ItemsSource="{Binding HierarchyModes}"
+                  SelectedItem="{Binding SelectedHierarchyMode}"
+                  DisplayMemberPath="Label"
+                  Height="25"
+                  VerticalContentAlignment="Center" />
+        <TextBlock Grid.Row="11"
+                   Text="{x:Static resources:Strings.ImportDoxygen_Hierarchy_Hint}"
+                   Foreground="Gray"
+                   FontSize="11"
+                   TextWrapping="Wrap"
+                   Margin="0,3,0,0" />
+
         <!-- Project name -->
-        <TextBlock Grid.Row="9" Text="{x:Static resources:Strings.ImportDoxygen_ProjectName_Label}" Margin="0,0,0,5" />
-        <TextBox Grid.Row="10"
+        <TextBlock Grid.Row="13" Text="{x:Static resources:Strings.ImportDoxygen_ProjectName_Label}" Margin="0,0,0,5" />
+        <TextBox Grid.Row="14"
                  Text="{Binding ProjectName, UpdateSourceTrigger=PropertyChanged}"
                  Height="25"
                  VerticalContentAlignment="Center" />
 
         <!-- Buttons -->
-        <StackPanel Grid.Row="12"
+        <StackPanel Grid.Row="16"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
             <Button Content="{x:Static resources:Strings.Common_OkButton}"

@@ -45,6 +45,21 @@ public class DoxygenRunnerTests
             }
             """);
 
+        // In a subdirectory, but in the same namespace as shapes.h - the two are only told apart
+        // by the directory mode.
+        var cppSubdirectory = Path.Combine(_sourceDirectory, "geometry");
+        Directory.CreateDirectory(cppSubdirectory);
+        File.WriteAllText(Path.Combine(cppSubdirectory, "box.h"), """
+            namespace app {
+
+            class Box {
+            public:
+                void resize();
+            };
+
+            }
+            """);
+
         var javaPackage = Path.Combine(_sourceDirectory, "com", "example");
         Directory.CreateDirectory(javaPackage);
         File.WriteAllText(Path.Combine(javaPackage, "Kind.java"), """
@@ -112,6 +127,33 @@ public class DoxygenRunnerTests
                 .Where(r => r.Type == RelationshipType.Inherits)
                 .Select(r => (graph.Nodes[r.SourceId].FullName, graph.Nodes[r.TargetId].FullName));
             Assert.That(inherits, Does.Contain(("DemoCpp.app.Circle", "DemoCpp.app.Shape")));
+        });
+    }
+
+    /// <summary>
+    ///     The directory mode against real doxygen output. This is the test that pins the
+    ///     assumption the mode rests on: doxygen reports absolute paths in its locations, which the
+    ///     converter makes relative to the imported directory itself (DoxygenDirectoryHierarchyTests
+    ///     can only assert that with hand-written paths).
+    /// </summary>
+    [Test]
+    public async Task DerivesTheHierarchyFromDirectories()
+    {
+        var xmlDirectory = await DoxygenRunner.RunAsync(_sourceDirectory, _workingDirectory, "DemoCpp", DoxygenLanguage.Cpp);
+
+        var graph = new DoxygenXmlConverter(DoxygenHierarchyMode.Directories, _sourceDirectory).Convert(xmlDirectory, "DemoCpp");
+        var byFullName = graph.Nodes.Values.ToDictionary(e => e.FullName, e => e);
+
+        Assert.Multiple(() =>
+        {
+            // Both types declare namespace app; only their directory tells them apart now.
+            Assert.That(byFullName.ContainsKey("DemoCpp.app"), Is.False, "The declared namespace must not be used.");
+            Assert.That(byFullName["DemoCpp.geometry.Box"].ElementType, Is.EqualTo(CodeElementType.Class));
+            Assert.That(byFullName["DemoCpp.global.Shape"].ElementType, Is.EqualTo(CodeElementType.Class));
+
+            // The location stays absolute, so it can still be opened in an editor.
+            Assert.That(byFullName["DemoCpp.geometry.Box"].SourceLocations.Single().File,
+                Is.EqualTo(Path.Combine(_sourceDirectory, "geometry", "box.h")));
         });
     }
 

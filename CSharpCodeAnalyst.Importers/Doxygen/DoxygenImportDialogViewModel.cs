@@ -7,16 +7,20 @@ namespace CSharpCodeAnalyst.Importers.Doxygen;
 
 public sealed record DoxygenLanguageOption(DoxygenLanguage Value, string Label);
 
+public sealed record DoxygenHierarchyOption(DoxygenHierarchyMode Value, string Label);
+
 public class DoxygenImportDialogViewModel : INotifyPropertyChanged
 {
     private string _projectName = string.Empty;
     private bool _projectNameEditedByUser;
+    private DoxygenHierarchyOption _selectedHierarchyMode;
     private DoxygenLanguageOption _selectedLanguage;
     private string _sourceDirectory = string.Empty;
 
     public DoxygenImportDialogViewModel()
     {
         _selectedLanguage = Languages[0];
+        _selectedHierarchyMode = HierarchyModes[0];
     }
 
     public IReadOnlyList<DoxygenLanguageOption> Languages { get; } =
@@ -25,6 +29,27 @@ public class DoxygenImportDialogViewModel : INotifyPropertyChanged
         new DoxygenLanguageOption(DoxygenLanguage.Python, "Python"),
         new DoxygenLanguageOption(DoxygenLanguage.Java, "Java")
     ];
+
+    public IReadOnlyList<DoxygenHierarchyOption> HierarchyModes { get; } =
+    [
+        new DoxygenHierarchyOption(DoxygenHierarchyMode.Declared, Strings.ImportDoxygen_Hierarchy_Declared),
+        new DoxygenHierarchyOption(DoxygenHierarchyMode.Directories, Strings.ImportDoxygen_Hierarchy_Directories)
+    ];
+
+    public DoxygenHierarchyOption SelectedHierarchyMode
+    {
+        get => _selectedHierarchyMode;
+        set
+        {
+            if (_selectedHierarchyMode == value)
+            {
+                return;
+            }
+
+            _selectedHierarchyMode = value;
+            OnPropertyChanged();
+        }
+    }
 
     public DoxygenLanguageOption SelectedLanguage
     {

@@ -233,6 +233,42 @@ namespace CSharpCodeAnalyst.Importers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Namespaces / packages.
+        /// </summary>
+        public static string ImportDoxygen_Hierarchy_Declared {
+            get {
+                return ResourceManager.GetString("ImportDoxygen_Hierarchy_Declared", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Directories.
+        /// </summary>
+        public static string ImportDoxygen_Hierarchy_Directories {
+            get {
+                return ResourceManager.GetString("ImportDoxygen_Hierarchy_Directories", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose &quot;Directories&quot; if the code is organized by folders rather than by namespaces. The folders below the source directory then become the namespaces; the file name is not part of it..
+        /// </summary>
+        public static string ImportDoxygen_Hierarchy_Hint {
+            get {
+                return ResourceManager.GetString("ImportDoxygen_Hierarchy_Hint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Hierarchy.
+        /// </summary>
+        public static string ImportDoxygen_Hierarchy_Label {
+            get {
+                return ResourceManager.GetString("ImportDoxygen_Hierarchy_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Import _C++/Python/Java project (doxygen) ....
         /// </summary>
         public static string ImportDoxygen_Label {

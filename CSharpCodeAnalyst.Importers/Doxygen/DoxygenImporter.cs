@@ -53,6 +53,7 @@ public sealed class DoxygenImporter : IImporter
         var projectName = viewModel.ProjectName.Trim();
         var sourceDirectory = viewModel.SourceDirectory;
         var language = viewModel.SelectedLanguage.Value;
+        var hierarchyMode = viewModel.SelectedHierarchyMode.Value;
 
         return await Task.Run(async () =>
         {
@@ -61,7 +62,7 @@ public sealed class DoxygenImporter : IImporter
                 context.CancellationToken);
 
             context.Progress.Report(Strings.ImportDoxygen_Converting);
-            var graph = new DoxygenXmlConverter().Convert(xmlDirectory, projectName);
+            var graph = new DoxygenXmlConverter(hierarchyMode, sourceDirectory).Convert(xmlDirectory, projectName);
 
             // doxygen reports no source metrics.
             return (ParseResult?)new ParseResult(graph, new MetricStore());

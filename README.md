@@ -269,7 +269,7 @@ The developer who contributed most to a file (based on a simple Git blame) is ma
 Please keep these points in mind:
 
 - The Roslyn-based parser covers the vast majority of the latest C# syntax. However, since C# syntax evolves rapidly with new versions, some cutting-edge features or edge cases might not yet map perfectly to the graph.
-- The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles.
+- The directory structure of the source code is completely ignored, so keep this in mind when searching for cycles. The one exception is the doxygen based C++/Python/Java import, where you can choose to derive the hierarchy from the directories instead of the namespaces (see [Other languages](Documentation/other-languages.md)).
 - Source locations are not extracted for all dependencies; only those that are easily extractable are included.
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
 - A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.

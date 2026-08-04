@@ -16,6 +16,8 @@ namespace CSharpCodeAnalyst.Importers.Doxygen;
 ///     ("a::b::Outer::Inner"), template arguments are kept out of the splitting.
 ///     An "enum" compound only occurs for Java, where an enum is a type with its own members;
 ///     a C++ enum is a memberdef of its scope and is handled as a member below.
+///     With <see cref="DoxygenHierarchyMode.Directories" /> the namespaces come from the directory
+///     of each element's source file instead - see <see cref="ResolveDirectoryNamespace" />.
 ///     - Members: function -> Method, variable -> Field, enum -> Enum, property -> Property,
 ///     event -> Event. Everything else (typedefs, defines, friends) is skipped.
 ///     - Relationships: basecompoundref -> Inherits (Implements when the base is an interface),
@@ -40,13 +42,41 @@ public class DoxygenXmlConverter
     };
 
     private readonly Dictionary<string, CodeElement> _elementsById = new();
-    private readonly Dictionary<string, CodeElement> _namespacesByCppName = new();
+    private readonly DoxygenHierarchyMode _hierarchyMode;
+
+    /// <summary>
+    ///     Keyed by the path the namespace was built from: the C++ scope ("a::b") in
+    ///     <see cref="DoxygenHierarchyMode.Declared" />, the relative directory in
+    ///     <see cref="DoxygenHierarchyMode.Directories" />. Only one of the two is ever filled.
+    /// </summary>
+    private readonly Dictionary<string, CodeElement> _namespacesByPath = new();
+
     private readonly HashSet<(string SourceId, string TargetId, RelationshipType Type)> _relationships = [];
+
+    /// <summary>Absolute path of the imported directory, the root the namespace paths start at.</summary>
+    private readonly string? _sourceDirectory;
+
     private readonly Dictionary<string, CodeElement> _typesByCppName = new();
 
     private CodeElement _assembly = null!;
     private CodeElement? _globalNamespace;
     private int _nextSyntheticId = 1;
+
+    /// <param name="hierarchyMode">Where the namespaces come from.</param>
+    /// <param name="sourceDirectory">
+    ///     The imported directory. Required for <see cref="DoxygenHierarchyMode.Directories" />,
+    ///     ignored otherwise.
+    /// </param>
+    public DoxygenXmlConverter(DoxygenHierarchyMode hierarchyMode = DoxygenHierarchyMode.Declared, string? sourceDirectory = null)
+    {
+        if (hierarchyMode == DoxygenHierarchyMode.Directories && string.IsNullOrWhiteSpace(sourceDirectory))
+        {
+            throw new ArgumentException("A source directory is required to derive the hierarchy from directories.", nameof(sourceDirectory));
+        }
+
+        _hierarchyMode = hierarchyMode;
+        _sourceDirectory = sourceDirectory is null ? null : Path.GetFullPath(sourceDirectory);
+    }
 
     public int SkippedUnresolvedReferences { get; private set; }
 
@@ -62,9 +92,12 @@ public class DoxygenXmlConverter
         var types = compounds.Where(c => TypeKinds.Contains(c.Kind)).OrderBy(c => SplitQualifiedName(c.QualifiedName).Count).ToList();
         var files = compounds.Where(c => c.Kind == "file").ToList();
 
-        foreach (var ns in namespaces)
+        if (_hierarchyMode == DoxygenHierarchyMode.Declared)
         {
-            EnsureNamespaceChain(SplitQualifiedName(ns.QualifiedName), ns.RefId);
+            foreach (var ns in namespaces)
+            {
+                EnsureNamespaceChain(SplitQualifiedName(ns.QualifiedName), ns.RefId);
+            }
         }
 
         foreach (var type in types)
@@ -75,14 +108,22 @@ public class DoxygenXmlConverter
         // Members of types and namespaces first. File compounds repeat some of those
         // memberdefs under the same id, so afterwards only the true global-scope members
         // are left for the artificial "global" namespace.
-        foreach (var compound in types.Concat(namespaces))
+        foreach (var type in types)
         {
-            CreateMembers(compound.Definition, _elementsById[compound.RefId]);
+            CreateMembers(type.Definition, _elementsById[type.RefId]);
+        }
+
+        // Free functions and variables. In directory mode the namespace compounds produced no
+        // element to hang them on, so each one goes to the directory of its own location - the
+        // same rule the file compounds below follow.
+        foreach (var ns in namespaces)
+        {
+            CreateMembers(ns.Definition, _hierarchyMode == DoxygenHierarchyMode.Declared ? _elementsById[ns.RefId] : null);
         }
 
         foreach (var file in files)
         {
-            CreateMembers(file.Definition, GetGlobalNamespace());
+            CreateMembers(file.Definition, _hierarchyMode == DoxygenHierarchyMode.Declared ? GetGlobalNamespace() : null);
         }
 
         foreach (var type in types)
@@ -211,18 +252,18 @@ public class DoxygenXmlConverter
     }
 
     /// <summary>
-    ///     Creates the namespace elements for the given path ("a::b::c" split into parts) below the
-    ///     assembly, reusing existing ones. The doxygen refid is used as element id for the last
-    ///     segment when this call is made for the namespace's own compound.
+    ///     Creates the namespace elements for the given path ("a::b::c" or "src/widgets" split into
+    ///     parts) below the assembly, reusing existing ones. The doxygen refid is used as element id
+    ///     for the last segment when this call is made for the namespace's own compound.
     /// </summary>
     private CodeElement EnsureNamespaceChain(List<string> parts, string? refIdForLast = null)
     {
         var parent = _assembly;
-        var cppPath = string.Empty;
+        var path = string.Empty;
         for (var i = 0; i < parts.Count; i++)
         {
-            cppPath = cppPath.Length == 0 ? parts[i] : cppPath + "::" + parts[i];
-            if (_namespacesByCppName.TryGetValue(cppPath, out var existing))
+            path = path.Length == 0 ? parts[i] : path + "::" + parts[i];
+            if (_namespacesByPath.TryGetValue(path, out var existing))
             {
                 parent = existing;
                 continue;
@@ -232,42 +273,96 @@ public class DoxygenXmlConverter
             var element = new CodeElement(id, CodeElementType.Namespace, parts[i], parent.FullName + "." + parts[i], parent);
             parent.Children.Add(element);
             _elementsById[id] = element;
-            _namespacesByCppName[cppPath] = element;
+            _namespacesByPath[path] = element;
             parent = element;
         }
 
         return parent;
     }
 
+    /// <summary>
+    ///     The namespace for an element in <see cref="DoxygenHierarchyMode.Directories" />: the
+    ///     directory of its source file, relative to the imported directory, one namespace per
+    ///     path segment. The file name itself is not a segment - a header and its implementation
+    ///     belong together. Everything the imported directory does not contain (a file with no
+    ///     location, a header pulled in from elsewhere) goes to the artificial "global" namespace,
+    ///     just like a file directly in the imported directory.
+    /// </summary>
+    private CodeElement ResolveDirectoryNamespace(XElement? location)
+    {
+        var segments = GetDirectorySegments(location);
+        return segments.Count == 0 ? GetGlobalNamespace() : EnsureNamespaceChain(segments);
+    }
+
+    private List<string> GetDirectorySegments(XElement? location)
+    {
+        var file = ToSystemPath((string?)location?.Attribute("file"));
+        if (file is null || _sourceDirectory is null)
+        {
+            return [];
+        }
+
+        string relative;
+        try
+        {
+            // doxygen reports absolute paths; the base path only matters for a relative one.
+            relative = Path.GetRelativePath(_sourceDirectory, Path.GetFullPath(file, _sourceDirectory));
+        }
+        catch (ArgumentException)
+        {
+            return [];
+        }
+
+        var directory = Path.GetDirectoryName(relative);
+        if (string.IsNullOrEmpty(directory))
+        {
+            return [];
+        }
+
+        // Outside the imported directory: another drive keeps the path rooted, a parent
+        // directory produces "..".
+        if (Path.IsPathRooted(directory) || directory.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Contains(".."))
+        {
+            return [];
+        }
+
+        return directory
+            .Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries)
+            .Where(segment => segment != ".")
+            .Select(Sanitize)
+            .Where(segment => segment.Length > 0)
+            .ToList();
+    }
+
     private void CreateType(CompoundInfo compound)
     {
         var parts = SplitQualifiedName(compound.QualifiedName);
         var name = parts[^1];
+        var prefixParts = parts[..^1];
+        var prefix = string.Join("::", prefixParts);
 
+        // A nested type stays below its outer type in both modes - it is part of that type, not
+        // of a folder. Types are processed outer-before-inner, so an outer type is known here.
         CodeElement parent;
-        if (parts.Count == 1)
+        if (prefixParts.Count > 0 && _typesByCppName.TryGetValue(prefix, out var outerType))
+        {
+            parent = outerType;
+        }
+        else if (_hierarchyMode == DoxygenHierarchyMode.Directories)
+        {
+            parent = ResolveDirectoryNamespace(compound.Definition.Element("location"));
+        }
+        else if (prefixParts.Count == 0)
         {
             parent = GetGlobalNamespace();
         }
+        else if (_namespacesByPath.TryGetValue(prefix, out var ns))
+        {
+            parent = ns;
+        }
         else
         {
-            var prefixParts = parts[..^1];
-            var prefix = string.Join("::", prefixParts);
-
-            // The prefix is either an outer type (nested class) or a namespace. Types are
-            // processed outer-before-inner, so an outer type is already known here.
-            if (_typesByCppName.TryGetValue(prefix, out var outerType))
-            {
-                parent = outerType;
-            }
-            else if (_namespacesByCppName.TryGetValue(prefix, out var ns))
-            {
-                parent = ns;
-            }
-            else
-            {
-                parent = EnsureNamespaceChain(prefixParts);
-            }
+            parent = EnsureNamespaceChain(prefixParts);
         }
 
         var elementType = compound.Kind switch
@@ -285,7 +380,11 @@ public class DoxygenXmlConverter
         _typesByCppName[compound.QualifiedName] = element;
     }
 
-    private void CreateMembers(XElement compoundDef, CodeElement parent)
+    /// <param name="parent">
+    ///     The element all members belong to, or null to resolve it per member from its own
+    ///     location (directory mode, where a namespace or file compound has no element of its own).
+    /// </param>
+    private void CreateMembers(XElement compoundDef, CodeElement? parent)
     {
         foreach (var memberDef in compoundDef.Elements("sectiondef").Elements("memberdef"))
         {
@@ -307,9 +406,12 @@ public class DoxygenXmlConverter
                 name = "unnamed";
             }
 
-            var element = new CodeElement(id, elementType, name, parent.FullName + "." + name, parent);
-            parent.Children.Add(element);
-            AddLocation(element, memberDef.Element("location"));
+            var location = memberDef.Element("location");
+            var memberParent = parent ?? ResolveDirectoryNamespace(location);
+
+            var element = new CodeElement(id, elementType, name, memberParent.FullName + "." + name, memberParent);
+            memberParent.Children.Add(element);
+            AddLocation(element, location);
             _elementsById[id] = element;
         }
     }

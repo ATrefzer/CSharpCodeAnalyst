@@ -4,15 +4,33 @@
 
 To import a directory with C++, Python or Java files, you need **[doxygen](https://www.doxygen.nl/index.html)** in your search path. We use doxygen to extract the types and dependencies. Python packages and modules as well as Java packages appear as namespaces. Directories that hold no source of your own are excluded automatically: virtual environments and caches for Python (`venv`, `.venv`, `__pycache__`, `site-packages`, `.tox`), build output for Java (`build`, `target`, `out`, `bin`, `.gradle`, `.idea`) — which also keeps generated sources such as `target/generated-sources` out of the graph.
 
-Keep in mind (see Limitations) that C# Code Analyst ignores the folder structure and organizes the code by its namespaces.
-
 Use the "Import C++/Python/Java project (doxygen)" menu.
 
 ![](Images/import-menu.png)
 
-The wizard asks you for the root directory of your source code, the language, and a project name. The project name results in a single root node containing all code elements.
+The wizard asks you for the root directory of your source code, the language, the hierarchy (see below), and a project name. The project name results in a single root node containing all code elements.
 
 ![](Images/import-wizard.png)
+
+#### Hierarchy: namespaces or directories
+
+C# Code Analyst normally organizes code by its namespaces and ignores the folder structure (see Limitations). For C++ that is not always what you want: plenty of projects use one flat namespace — or none at all — and express their structure through directories instead. Everything would end up in a single node, which tells you nothing.
+
+The **Hierarchy** setting of the import wizard therefore offers two options:
+
+* **Namespaces / packages** (default) — the scopes declared in the code: C++ namespaces, Java packages, Python packages and modules.
+* **Directories** — the folders below the imported source directory become the namespaces. `src/core/widgets/widget.h` results in `core` → `widgets`, regardless of which namespace the code declares.
+
+Details of the directory mode:
+
+* The **file name is not** part of the hierarchy, so a header and its implementation land in the same namespace, and so do two classes that live in the same folder.
+* Nested types stay below their outer type and members stay below their type — a folder never breaks a type apart.
+* A file directly in the imported directory, or a file outside of it (an included header from elsewhere), goes into the artificial `global` namespace.
+* Source locations remain absolute, so "Open in editor" keeps working. Only the hierarchy is relative to the imported directory.
+
+The option works for all three languages, but Python and Java rarely need it: there the package structure already mirrors the directories.
+
+> If the code uses namespaces *and* directories, pick one. In directory mode the declared namespaces disappear completely, so two classes of the same name from different namespaces in the same folder show up twice with the same name. They are still two distinct nodes, and their dependencies are correct.
 
 > Doxygen's Python parser is noticeably more heuristic than the C++ mode. Hierarchy, classes, and inheritance are handled reliably; however, the call references (REFERENCES_RELATION) are more incomplete with dynamic typing—Doxygen often cannot resolve self.foo() on a duck-typed object. As a result, the graph is more likely to have too few edges than incorrect ones.
 

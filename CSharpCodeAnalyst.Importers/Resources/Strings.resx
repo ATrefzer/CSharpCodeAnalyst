@@ -142,6 +142,18 @@
   <data name="ImportDoxygen_ProjectName_Label" xml:space="preserve">
     <value>Project name</value>
   </data>
+  <data name="ImportDoxygen_Hierarchy_Label" xml:space="preserve">
+    <value>Hierarchy</value>
+  </data>
+  <data name="ImportDoxygen_Hierarchy_Declared" xml:space="preserve">
+    <value>Namespaces / packages</value>
+  </data>
+  <data name="ImportDoxygen_Hierarchy_Directories" xml:space="preserve">
+    <value>Directories</value>
+  </data>
+  <data name="ImportDoxygen_Hierarchy_Hint" xml:space="preserve">
+    <value>Choose "Directories" if the code is organized by folders rather than by namespaces. The folders below the source directory then become the namespaces; the file name is not part of it.</value>
+  </data>
   <data name="ImportDoxygen_SelectSourceDirectoryTitle" xml:space="preserve">
     <value>Select source directory</value>
   </data>
