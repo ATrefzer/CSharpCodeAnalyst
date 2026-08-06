@@ -46,44 +46,21 @@ Wenn ich priorisieren müsste: (1) den Header-Widerspruch fixen, (2) INPC-Erkenn
 
 => DONE Nach 1 war weitere Vereinfachung möglich.
 
---------------------
-
-Verstanden — Punkt 1 = die INPC-Erkennung für ViewModels mit externer Basisklasse, und die Header-Korrektur bleibt drin. Ich schaue mir zuerst an, wie der `ExternalContractStore` durch Parser, Persistenz und Analyzer fließt, um die sauberste Stelle für das neue Typ-Level-Faktum zu finden.
-
-Build und Tests:
-
-Punkt 1 ist umgesetzt: ViewModels mit externer INPC-Basisklasse (`ObservableObject`, `BindableBase`, …) werden jetzt als Binding-Quellen erkannt, ihre public Properties landen nicht mehr auf High. Alle 773 Tests grün.
-
-So funktioniert es:
-
-- **Parser** ([DeclarationAnalyzer.cs](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeParser/Parser/DeclarationAnalyzer.cs)): Das neue `RecordIfNotifyingType` prüft pro Typ `AllInterfaces` auf `System.ComponentModel.INotifyPropertyChanged` — das Symbol kennt auch die Interfaces, die eine externe Basisklasse beisteuert, der Graph nicht.
-- **Store** ([ExternalContractStore.cs](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeGraph/Declarations/ExternalContractStore.cs)): Trägt neben den Member-Contracts jetzt das Typ-Level-Set `NotifyingTypes` (ConcurrentDictionary als Set, weil Phase 2 parallel läuft). `Clear`/`LoadFrom`/`IsEmpty` decken beide Mengen ab.
-- **Analyse** ([DeadCodeAnalysis.cs:284](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeGraph/Algorithms/DeadCode/DeadCodeAnalysis.cs:284)): `FindBindingSources` nutzt das Set als primäre Quelle. Der bisherige Weg (`PropertyChanged`-Contract + Spreading über `Inherits`-Kanten) bleibt als Fallback — er greift für Projektdateien, die vor diesem Feld gespeichert wurden.
-- **Persistenz**: `ProjectData.NotifyingTypes` (Liste von Element-IDs); ältere Projektdateien haben schlicht keine und fallen auf den alten Weg zurück, bis neu geparst wird.
-
-Eine Stolperfalle kam beim Testen heraus: Die In-Memory-Compilation von `ParseSourceAsync` referenzierte `System.ObjectModel.dll` nicht. `netstandard.dll` enthält für `INotifyPropertyChanged` nur einen Type-Forward — fehlt die Ziel-Assembly, bleibt der Typ unaufgelöst und fehlt *stillschweigend* in `AllInterfaces`. Die Referenz ist jetzt ergänzt (hilft auch dem Einzeldatei-Parse generell).
-
-Tests: neue Fixture [NotifyingTypeParseTests.cs](https://claude.ai/epitaxy/Tests/UnitTests/Parser/NotifyingTypeParseTests.cs) (direkte Implementierung, interne Basis, **externe Basis** via `ObservableCollection<int>`, Negativfall) plus ein Confidence-Test in [DeadCodeConfidenceTests.cs](https://claude.ai/epitaxy/Tests/UnitTests/DeadCode/DeadCodeConfidenceTests.cs), der den Store-Eintrag ohne jedes `PropertyChanged`-Member im Graphen prüft. Doku aktualisiert in [dead-code.md](https://claude.ai/epitaxy/Documentation/dead-code.md), [dead-code-algorithm.md](https://claude.ai/epitaxy/Documentation/Design/dead-code-algorithm.md) und als neues Unterkapitel im Parser-Entscheidungsprotokoll [corrections-and-updates.md](https://claude.ai/epitaxy/Documentation/Roslyn/corrections-and-updates.md).
-
-Die übrigen Review-Punkte (Test-Attribut-Härtung, `Finalize`, `Attributed`-Verwässerung, CHA→RTA) sind unverändert offen — sag einfach, welcher als Nächstes dran ist.
 
 
+# Fazit
 
-# Test Assemby poisoning
+Festgehalten — CHA bleibt, die RTA-Verfeinerung ist bewusst verworfen. Die Begründung steht jetzt an zwei Stellen, damit sie nicht verloren geht: als Absatz in der Doku von `PropagateContractUsage` in [DeadCodeAnalysis.cs](https://claude.ai/epitaxy/CSharpCodeAnalyst.CodeGraph/Algorithms/DeadCode/DeadCodeAnalysis.cs) („deliberately every implementation … the refinement would report precisely the code it cannot see being created") und als neuer Punkt unter „Was der Algorithmus bewusst *nicht* tut" in [dead-code-algorithm.md](https://claude.ai/epitaxy/Documentation/Design/dead-code-algorithm.md), neben Kaskade und toten Zyklen — wo solche Entscheidungen in diesem Projekt hingehören. Nur Kommentar- und Markdown-Änderungen, kein Codeverhalten betroffen.
 
-Mein Vorschlag deckt sich mit deinem — pro Typ statt pro Assembly — plus zwei Verfeinerungen, damit die Typ-Granularität in der Praxis nicht sofort Löcher hat:
+Damit ist das Review vom Anfang der Session vollständig abgearbeitet:
 
-**1. Test-Typen statt Test-Assemblies, aber über den Subtree bestimmt.** Die Regel „Typ trägt ein Test-Attribut" reicht nicht: xUnit hat *kein* Klassen-Attribut (nur `[Fact]`/`[Theory]` auf Methoden), und NUnit erkennt Klassen seit 2.5 auch ohne `[TestFixture]`. Deshalb: Von jedem Element mit Test-Attribut die Parent-Kette hochlaufen und **jeden Typ auf dem Weg** markieren. `IsTestCode(element)` läuft dann wie heute die Kette hoch, prüft aber gegen dieses Typ-Set statt gegen die Assembly-Wurzel. Das deckt automatisch auch unattributierte verschachtelte Klassen *innerhalb* einer Fixture ab (lokale Fakes, Testdaten-Klassen) — deren Vorfahre ist markiert. Implementierung ist fast mechanisch: `FindTestAssemblies` → `FindTestTypes`, `RootOf` entfällt, die drei Nutzer (`ComputeReferenced`, `CollectTestReferences`, `IsReported`) bleiben strukturell unverändert.
+| Punkt                                                  | Ausgang                                                      |
+| ------------------------------------------------------ | ------------------------------------------------------------ |
+| Header-Widerspruch (external contract „assumed alive") | Korrigiert                                                   |
+| ViewModels mit externer Basisklasse (INPC)             | `NotifyingTypes` im Parser, `FindBindingSources` komplett entfallen |
+| Test-Attribut-Härtung                                  | Pro Typ statt pro Assembly, Ordinal-Matching                 |
+| Finalizer / statische Konstruktoren                    | Beide gedroppt (`IsRuntimeInvoked`) statt annotiert          |
+| `Attributed`-Verwässerung                              | `ToolingAttributes`-Ignorierliste                            |
+| CHA→RTA                                                | Bewusst verworfen (DI-Container), dokumentiert               |
 
-**2. Ordinal statt case-insensitive matchen.** Die Framework-Attributnamen sind exakt („Test", „Fact", „TestMethod"); das `OrdinalIgnoreCase` im `TestAttributes`-Set kauft nichts und riskiert, dass ein Domänen-Attribut `test`/`TEST` eine Klasse umklassifiziert. Kostenlose Präzision.
-
-Die Konsequenzen, ehrlich aufgelistet:
-
-- **Das Cross-Assembly-Poisoning ist weg** — und zwar in beide Richtungen korrekter als heute: Eine `[Test]`-Klasse in einer Produktions-Assembly macht nur noch *ihre eigenen* Referenzen zu Test-Referenzen, und Produktionscode, den nur diese eingebettete Testklasse nutzt, wird jetzt korrekt als `UsedOnlyByTests` gemeldet (heute unterdrückt die Assembly-Ausnahme das).
-- **Testhelper außerhalb von Fixture-Klassen werden gemeldet** (Builder, `TestCodeGraph` & Co. — referenziert nur von Test-Typen → `UsedOnlyByTests`, Medium-Cap). Das ist der Preis, den du akzeptierst — und streng genommen ist die Aussage ja auch wahr: Löscht man die Tests, ist der Helper verwaist.
-- **Produktionscode, den nur ein Helper aufruft, erscheint eine Schicht später:** Erst wird der Helper gemeldet, nach dessen Löschung der Produktionscode. Das ist exakt die Nicht-Kaskadieren-Philosophie („nochmal laufen lassen, nächste Schicht"), also konsistent mit dem Rest des Designs.
-- **Innerhalb einer Fixture ändert sich nichts:** Private Helfer-Methoden und verschachtelte Klassen einer Testklasse sind über die Vorfahren-Kette Testcode und bleiben unterdrückt.
-
-Anzupassen wären außer dem Algorithmus: die Begründungs-Doku an `FindTestAssemblies` (das dortige Plädoyer *für* Assembly-Granularität wird durch die neue Abwägung ersetzt), der Klassen-Header („Test code is decided per assembly"), der entsprechende Abschnitt in [dead-code.md](https://claude.ai/epitaxy/Documentation/dead-code.md), und neue Tests für die Typ-Granularität — auffällig ist ohnehin, dass es für `UsedOnlyByTests` bisher kaum direkte Tests gibt; die würde ich bei der Gelegenheit mit anlegen.
-
-Wenn das so passt, setze ich es um.
+Als bekannte, bewusst offene Themen bleiben nur die von früher: Inseln/tote Zyklen und die DataTemplate-Lücke bei Bindings ohne INPC.
