@@ -238,7 +238,7 @@ Drei Regeln, in dieser Reihenfolge:
 
 Zwei Abzüge von High:
 
-- Eine public Property auf einem Typ, der `INotifyPropertyChanged` implementiert. Ein `{Binding}` erreicht genau das, und Bindings verfolgt der Parser bewusst nicht.
+- Eine public Property auf einem Typ, der `INotifyPropertyChanged` implementiert. Ein `{Binding}` erreicht genau das, und Bindings verfolgt der Parser bewusst nicht. Der Parser zeichnet diese Typen über die Symbole auf (`ExternalContractStore.NotifyingTypes`) – damit zählt auch ein ViewModel, dessen Basisklasse außerhalb des analysierten Codes liegt (`ObservableObject`, `BindableBase`, ...) und dem man das Interface im Graphen nicht ansieht.
 - Ein `Used only by tests`-Fund. Etwas referenziert es ja nachweislich – ob ein Test allein das Behalten rechtfertigt, ist eine Entscheidung, keine Messung.
 
 ## Was der Algorithmus bewusst *nicht* tut

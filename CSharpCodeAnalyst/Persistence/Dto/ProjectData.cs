@@ -35,6 +35,15 @@ public class ProjectData
     public Dictionary<string, string> ExternalContracts { get; set; } = new();
 
     /// <summary>
+    ///     The element ids of the types that raise change notifications (INotifyPropertyChanged anywhere
+    ///     in the interface set). Complements <see cref="ExternalContracts" />: the member-level contract
+    ///     cannot see a view model whose base class lives outside the analyzed code. An older project
+    ///     file simply has none - those view models fall back to the member-based detection until the
+    ///     solution is parsed anew.
+    /// </summary>
+    public List<string> NotifyingTypes { get; set; } = [];
+
+    /// <summary>
     ///     Gallery is already serializable.
     /// </summary>
     public Gallery Gallery { get; set; } = new();
@@ -73,11 +82,17 @@ public class ProjectData
     public void SetExternalContracts(ExternalContractStore store)
     {
         ExternalContracts = store.Contracts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        NotifyingTypes = store.NotifyingTypes.ToList();
     }
 
     public IReadOnlyDictionary<string, string> GetExternalContracts()
     {
         return ExternalContracts;
+    }
+
+    public IReadOnlyCollection<string> GetNotifyingTypes()
+    {
+        return NotifyingTypes;
     }
 
     /// <summary>

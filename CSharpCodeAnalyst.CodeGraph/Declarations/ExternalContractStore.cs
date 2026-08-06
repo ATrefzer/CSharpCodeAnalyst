@@ -21,18 +21,34 @@ namespace CSharpCodeAnalyst.CodeGraph.Declarations;
 ///         <see cref="Graph.CodeElement" /> type does not grow a field that only the C# parser ever fills.
 ///     </para>
 ///     <para>
-///         Filled from the parallel phase 2 of the parser, hence the concurrent dictionary.
+///         Beside the member-level contracts the store carries one type-level fact: the
+///         <see cref="NotifyingTypes" /> - every analyzed type that raises change notifications
+///         (<c>INotifyPropertyChanged</c> anywhere in its interface set). The member-level route cannot
+///         express this when the implementation sits in a base class outside the analyzed code
+///         (<c>ObservableObject</c>, <c>BindableBase</c>, ...): the derived type then has no
+///         <c>PropertyChanged</c> member of its own, so nothing in the graph says it is a view model.
+///         The dead code analysis uses the set to keep public properties of such types - the ones a XAML
+///         <c>{Binding}</c> may read - out of the highest confidence.
+///     </para>
+///     <para>
+///         Filled from the parallel phase 2 of the parser, hence the concurrent dictionaries.
 ///     </para>
 /// </summary>
 public sealed class ExternalContractStore
 {
     private readonly ConcurrentDictionary<string, string> _contracts = new();
 
+    /// <summary>Value-less; a concurrent set does not exist in the BCL.</summary>
+    private readonly ConcurrentDictionary<string, byte> _notifyingTypes = new();
+
     public IReadOnlyDictionary<string, string> Contracts => _contracts;
+
+    /// <summary>The ids of the types that raise change notifications - see the class remarks.</summary>
+    public IReadOnlyCollection<string> NotifyingTypes => _notifyingTypes.Keys.ToList();
 
     public int Count => _contracts.Count;
 
-    public bool IsEmpty => _contracts.IsEmpty;
+    public bool IsEmpty => _contracts.IsEmpty && _notifyingTypes.IsEmpty;
 
     /// <summary>
     ///     Records the contract for an element. A member can implement several external contracts; the
@@ -54,21 +70,33 @@ public sealed class ExternalContractStore
         return _contracts.ContainsKey(elementId);
     }
 
+    /// <summary>Records a type that raises change notifications.</summary>
+    public void AddNotifyingType(string typeId)
+    {
+        _notifyingTypes.TryAdd(typeId, 0);
+    }
+
     public void Clear()
     {
         _contracts.Clear();
+        _notifyingTypes.Clear();
     }
 
     /// <summary>
     ///     Replaces the current contents. Used to refill the shared store after an import or when loading
     ///     a project.
     /// </summary>
-    public void LoadFrom(IReadOnlyDictionary<string, string> contracts)
+    public void LoadFrom(IReadOnlyDictionary<string, string> contracts, IEnumerable<string> notifyingTypes)
     {
-        _contracts.Clear();
+        Clear();
         foreach (var (id, contract) in contracts)
         {
             _contracts[id] = contract;
+        }
+
+        foreach (var typeId in notifyingTypes)
+        {
+            _notifyingTypes.TryAdd(typeId, 0);
         }
     }
 }

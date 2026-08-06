@@ -163,6 +163,10 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
             "System.Linq.Expressions.dll",
             "System.Collections.dll",
             "System.Console.dll",
+
+            // INotifyPropertyChanged, ObservableCollection - netstandard.dll only forwards to this
+            // assembly, so without it those types stay unresolved and miss from AllInterfaces.
+            "System.ObjectModel.dll",
             "netstandard.dll"
         ];
 

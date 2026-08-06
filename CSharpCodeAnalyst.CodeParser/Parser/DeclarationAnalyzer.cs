@@ -54,6 +54,7 @@ internal class DeclarationAnalyzer
             AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
             AnalyzePrimaryConstructorBaseArguments(solution, element, typeSymbol);
             RecordExternalInterfaceImplementations(typeSymbol);
+            RecordIfNotifyingType(element, typeSymbol);
         }
         else if (symbol is IMethodSymbol methodSymbol)
         {
@@ -456,6 +457,28 @@ internal class DeclarationAnalyzer
                     _externalContracts.Add(element.Id, $"{contract.Name}.{contractMember.Name}");
                 }
             }
+        }
+    }
+
+    /// <summary>
+    ///     Records a type that raises change notifications - <c>INotifyPropertyChanged</c> appears
+    ///     anywhere in its interface set, no matter which class of the inheritance chain implements it.
+    ///     The member-level contract cannot carry this fact when the implementation sits in a base class
+    ///     outside the analyzed code (ObservableObject, BindableBase, ...): the derived type then has no
+    ///     PropertyChanged member of its own, so from the graph alone nothing says it is a view model,
+    ///     and the dead code analysis would rate its bindable properties too confidently.
+    /// </summary>
+    private void RecordIfNotifyingType(CodeElement element, INamedTypeSymbol typeSymbol)
+    {
+        var raisesChangeNotifications = typeSymbol.AllInterfaces.Any(contract => contract is
+        {
+            Name: "INotifyPropertyChanged",
+            ContainingNamespace: { Name: "ComponentModel", ContainingNamespace.Name: "System" }
+        });
+
+        if (raisesChangeNotifications)
+        {
+            _externalContracts.AddNotifyingType(element.Id);
         }
     }
 

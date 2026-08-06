@@ -193,6 +193,26 @@ public class DeadCodeConfidenceTests
     }
 
     [Test]
+    public void PublicPropertyOnARecordedNotifyingType_IsNotHighConfidence()
+    {
+        // The INPC implementation sits in a base class outside the analyzed code (ObservableObject,
+        // BindableBase, ...): there is no PropertyChanged member in the graph and no internal base to
+        // spread from. The parser records the type itself instead.
+        var viewModel = _graph.CreateClass("DetailViewModel", accessLevel: AccessLevel.Internal);
+        var used = _graph.CreateMethod("DetailViewModel.Used", viewModel, AccessLevel.Public);
+        var unused = Retype(_graph.CreateProperty("DetailViewModel.Title", viewModel), AccessLevel.Public);
+
+        var program = _graph.CreateClass("Program");
+        var main = _graph.CreateMethod("Main", program);
+        Rel(main, used, RelationshipType.Calls);
+
+        var store = new ExternalContractStore();
+        store.AddNotifyingType(viewModel.Id);
+
+        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.Medium));
+    }
+
+    [Test]
     public void StaticConstructor_IsAnEntryPointAndNotHighConfidence()
     {
         // The runtime runs it before the first use of the type; nothing in the code references it. It is

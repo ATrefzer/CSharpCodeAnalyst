@@ -1031,7 +1031,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _metricStore.LoadFrom(parseResult.Metrics.Metrics);
 
         // Same for the external contracts (empty for every importer except the C# parser).
-        _externalContractStore.LoadFrom(parseResult.ExternalContracts.Contracts);
+        _externalContractStore.LoadFrom(parseResult.ExternalContracts.Contracts,
+            parseResult.ExternalContracts.NotifyingTypes);
 
         // Give an immediate overview of the freshly imported solution: the whole graph, every
         // container collapsed, so the user starts from a map instead of an empty canvas. Only on
@@ -1292,7 +1293,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Restore the source metrics (LoadCodeGraph cleared the shared store).
         // Singleton share with analyzer!
         _metricStore.LoadFrom(projectData.GetMetrics());
-        _externalContractStore.LoadFrom(projectData.GetExternalContracts());
+        _externalContractStore.LoadFrom(projectData.GetExternalContracts(), projectData.GetNotifyingTypes());
 
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);

@@ -426,6 +426,22 @@ reports such members with a note rather than dropping them, and the fact is deli
 the containing type: implementing `IDisposable` is not a use of the class, so a class whose only remaining
 trace is a `Dispose` method stays reportable.
 
+### Notifying types (INotifyPropertyChanged through an external base class)
+
+The store carries one type-level fact beside the member contracts: `NotifyingTypes`, every analyzed type
+with `INotifyPropertyChanged` anywhere in its interface set. The member-level route cannot express the
+common MVVM shape `MyViewModel : ObservableObject` (CommunityToolkit.Mvvm, Prism's `BindableBase`, ...):
+the implementation of `PropertyChanged` sits in the external base class, so the derived type has **no
+member of its own** to record a contract on, and from the graph alone it is indistinguishable from any
+other class. Only the symbol knows — `RecordIfNotifyingType` asks `AllInterfaces`, which includes the
+interfaces contributed by base classes, external or not. Without this, the dead code analysis rated the
+bindable properties of such view models with the highest confidence, which is exactly where a XAML
+`{Binding}` proves it wrong.
+
+The single-file parse (`ParseSourceAsync`) needed `System.ObjectModel.dll` added to its metadata
+references for this: `netstandard.dll` only *forwards* `INotifyPropertyChanged`, and a forward whose
+target assembly is missing leaves the type unresolved — it then silently misses from `AllInterfaces`.
+
 ## Visibility on the code element
 
 `CodeElement.AccessLevel` carries what `ISymbol.DeclaredAccessibility` says, mapped in `HierarchyAnalyzer`

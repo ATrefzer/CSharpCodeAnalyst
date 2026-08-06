@@ -21,8 +21,10 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         member that is called keeps all its implementations (and their types) alive. A contract that is
 ///         never called dies together with its implementations, which is exactly the finding one wants.
 ///         Contracts from outside the analyzed code are the exception - we cannot see who calls them, so
-///         the implementation is assumed alive. That assumption deliberately does not extend to the
-///         containing type: a class whose only "use" is implementing IDisposable is still dead code.
+///         the implementation is still reported, but with
+///         <see cref="DeadCodeHint.ImplementsExternalContract" /> and the lowest confidence: the decision
+///         stays visible instead of silently removing the row. The note deliberately does not extend to
+///         the containing type: a class whose only "use" is implementing IDisposable is still dead code.
 ///     </para>
 ///     <para>
 ///         References are counted in two colours. An element nothing references at all is the obvious
@@ -155,8 +157,11 @@ public static class DeadCodeAnalysis
 
         var testAssemblies = FindTestAssemblies(graph);
 
+        var bindingSources = FindBindingSources(graph, external, derivedTypes,
+            externalContracts?.NotifyingTypes ?? []);
+
         var context = new AnalysisContext(external, implementations, contracts,
-            FindBindingSources(graph, external, derivedTypes), FindSerializableTypes(graph),
+            bindingSources, FindSerializableTypes(graph),
             testAssemblies, CollectTestReferences(referenceEdges, testAssemblies));
 
         var references = ComputeReferenced(referenceEdges, implementations, testAssemblies);
@@ -273,19 +278,34 @@ public static class DeadCodeAnalysis
     ///         for here.
     ///     </para>
     ///     <para>
-    ///         The interface shows up through the external contract of the <c>PropertyChanged</c> event.
-    ///         A derived view model has no such member of its own (the base class implements it), so the
+    ///         The primary source is the set the parser recorded from the symbols
+    ///         (<see cref="ExternalContractStore.NotifyingTypes" />): every analyzed type with the
+    ///         interface anywhere in its interface set, which covers a view model whose base class lives
+    ///         outside the analyzed code (ObservableObject, BindableBase, ...) - from the graph alone
+    ///         such a type is indistinguishable from any other class.
+    ///     </para>
+    ///     <para>
+    ///         The second route is the fallback for a project file saved before the set existed: the
+    ///         interface shows up through the external contract of the <c>PropertyChanged</c> event. A
+    ///         derived view model has no such member of its own (the base class implements it), so the
     ///         property is spread down the <see cref="RelationshipType.Inherits" /> edges - the common
-    ///         "MyViewModel : ViewModelBase" shape would be missed otherwise. A base class outside the
-    ///         analyzed code is invisible here, so a view model deriving from a framework type that
-    ///         implements the interface is not recognized.
+    ///         "MyViewModel : ViewModelBase" shape would be missed otherwise. This route cannot see past
+    ///         an external base class, which is exactly why the recorded set is the primary one.
     ///     </para>
     /// </summary>
     private static HashSet<string> FindBindingSources(Graph.CodeGraph graph, Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> derivedTypes)
+        Dictionary<string, List<CodeElement>> derivedTypes, IReadOnlyCollection<string> notifyingTypes)
     {
         var sources = new HashSet<string>();
         var queue = new Queue<string>();
+
+        foreach (var typeId in notifyingTypes)
+        {
+            if (sources.Add(typeId))
+            {
+                queue.Enqueue(typeId);
+            }
+        }
 
         foreach (var (elementId, contract) in external)
         {

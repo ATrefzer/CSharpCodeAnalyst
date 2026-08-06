@@ -216,8 +216,12 @@ decision, not a measurement. Low still wins when one of the notes above applies.
 
 **One exception to high:** a `public` property on a type that implements `INotifyPropertyChanged` — a view
 model. A XAML `{Binding}` reaches exactly that, and bindings are the one XAML construct the analysis
-deliberately does not follow. The interface is recognized through the `PropertyChanged` event and is spread
-down the inheritance edges, so the usual `MyViewModel : ViewModelBase` shape is covered too.
+deliberately does not follow. The parser records every analyzed type with the interface anywhere in its
+interface set, no matter which class of the inheritance chain implements it — so a view model deriving from
+a base class outside the analyzed code (`ObservableObject`, `BindableBase`, ...) is covered too, although
+nothing in the graph itself says it is a view model. For a project file saved before this existed the
+interface is still recognized through the `PropertyChanged` event and spread down the inheritance edges,
+which covers the `MyViewModel : ViewModelBase` shape but cannot see past an external base class.
 
 Being confined does not help against this. A public property of an internal class cannot be referenced from
 another assembly, but the binding sits *inside* the assembly and is merely invisible — a different thing.
