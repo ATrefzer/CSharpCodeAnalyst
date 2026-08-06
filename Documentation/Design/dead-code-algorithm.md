@@ -144,9 +144,9 @@ Jetzt geht es einmal über alle Knoten. Vier Filter, in dieser Reihenfolge:
 
 **1. Ist es überhaupt ein Fund?** (`IsReported`)
 
-- Assemblies, Namespaces und externe Elemente sind nie Kandidaten. Statische Konstruktoren und Finalizer auch nicht: Die ruft nur die Runtime, kein Code kann sie referenzieren – auf einem lebendigen Typ wäre die Zeile immer falsch, auf einem toten deckt sie das Roll-up ab.
+- Assemblies, Namespaces und externe Elemente sind nie Kandidaten. Statische Konstruktoren und Finalizer auch nicht: Die ruft nur die Runtime, kein Code kann sie referenzieren – auf einem lebendigen Typ wäre die Zeile immer falsch, auf einem toten deckt sie das Roll-up ab. Test-Typen ebenso wenig: Der Runner ruft, was die Testattribute trägt – eine Fixture ist per Definition lebendig, und alles in ihr ist ihre eigene Angelegenheit.
 - Steht es in `FromProduction`? → lebendig, fertig.
-- Sonst: gar nicht referenziert **oder** nur von Tests. Letzteres zählt nur *außerhalb* eines Test-Typs – innerhalb einer Fixture ist „von Tests benutzt" ja der Zweck ihrer Helfer. Eine Helper-*Klasse* außerhalb der Fixtures wird dagegen gemeldet – der akzeptierte Preis der Typ-Granularität: Die Aussage stimmt (der Helper geht mit den Tests), sie ist nur Rauschen, solange er seinen Job tut.
+- Sonst: gar nicht referenziert **oder** nur von Tests. Eine Helper-*Klasse* außerhalb der Fixtures trägt kein Attribut, ist also Produktionscode für die Analyse und wird als used-only-by-tests gemeldet – der akzeptierte Preis der Typ-Granularität: Die Aussage stimmt (der Helper geht mit den Tests), sie ist nur Rauschen, solange er seinen Job tut.
 
 **2. Serialisierte Property?** Eine public Property auf einem Typ mit `[Serializable]`, `[DataContract]`, `[JsonObject]` … wird fallengelassen. Der Serializer greift per Reflection zu; auf so einem Typ wäre jede Property ein Fund.
 
@@ -161,7 +161,6 @@ Zwei Sorten. **Zweifel** – der Verweis könnte da sein, wo der Parser nicht hi
 | Notiz                             | Woher                                              |
 | --------------------------------- | -------------------------------------------------- |
 | `Entry point`                     | `Main`, `GlobalStatements` |
-| `Test code`                       | Testattribut im Teilbaum                           |
 | `Attributes: …`                   | ein Attribut im Teilbaum – außer den reinen Tooling-Attributen (`[Obsolete]`, `[DebuggerDisplay]`, …), die sagen nichts über einen Aufrufer |
 | `Implements external contract: …` | aus dem `ExternalContractStore` des Parsers        |
 | `Generated code`                  | `CodeElement.IsGenerated`                          |
@@ -174,7 +173,7 @@ Zwei Sorten. **Zweifel** – der Verweis könnte da sein, wo der Parser nicht hi
 | `Implements unused contract: …`   | Sieht die **Implementierung**: der Contract, den ich erfülle, ist selbst tot |
 | `Used only by tests: …`           | plus die Namen der Tests                                     |
 
-Entry-Point-, Test- und Attribut-Notizen werden über den **ganzen Teilbaum** gesammelt. Gemeldet wird eine tote Klasse – aber die `[Test]`-Attribute hängen an ihren Methoden.
+Entry-Point- und Attribut-Notizen werden über den **ganzen Teilbaum** gesammelt. Gemeldet wird eine tote Klasse – aber `Main` oder die Framework-Attribute hängen an ihren Methoden.
 
 Gleicher Code in allen drei Fällen, nur der Aufrufer wechselt:
 
@@ -232,7 +231,7 @@ public class Caller { public void Go(IService s) { s.Run(); } }
 
 Drei Regeln, in dieser Reihenfolge:
 
-1. **Low** – eine der Zweifel-Notizen (Entry Point, Test Code, Attribute, externer Contract) ist gesetzt. Wir wissen schon, dass wir falsch liegen könnten.
+1. **Low** – eine der Zweifel-Notizen (Entry Point, Attribute, externer Contract) ist gesetzt. Wir wissen schon, dass wir falsch liegen könnten.
 2. **High** – keine solche Notiz, und das Element **oder einer seiner Container** ist `private`/`internal`. Dann fallen „nichts referenziert es" und „nichts *kann* es referenzieren" zusammen.
 3. **Medium** – alles andere: public, protected, oder Sichtbarkeit unbekannt.
 

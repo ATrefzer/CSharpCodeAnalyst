@@ -32,9 +32,10 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         code, and is reported with <see cref="DeadCodeHint.UsedOnlyByTests" />. Without that rule,
 ///         analyzing the tests along with the production code would <i>hide</i> dead code - exactly the
 ///         elements one would see by excluding the test projects. Test code is decided per type (see
-///         <see cref="FindTestTypes" />), and inside a test type the rule is off: a fixture's own helper
-///         members and nested fakes are what the tests are made of. An unattributed helper class outside
-///         the fixtures is reported like anything else - only the tests need it, it goes when they go.
+///         <see cref="FindTestTypes" />), and a test type is never a finding itself: the runner calls
+///         what carries the test attributes, so a fixture is alive by definition, and its helper members
+///         and nested fakes are the fixture's own business. An unattributed helper class outside the
+///         fixtures is reported like anything else - only the tests need it, it goes when they go.
 ///     </para>
 ///     <para>
 ///         The analysis reports exactly what nothing references <i>right now</i>. It does not chase the
@@ -51,12 +52,14 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         that level - which is the honest answer, not a penalty.
 ///     </para>
 ///     <para>
-///         Two cases are dropped instead of reported. A public property of a type marked as a
+///         Three cases are dropped instead of reported. A public property of a type marked as a
 ///         serialization target (see <see cref="IsSerializedProperty" />): a serializer reaches it by
 ///         reflection, so on such a type an unreferenced property is the rule rather than the exception.
-///         And the members only the runtime ever calls, static constructor and finalizer (see
+///         The members only the runtime ever calls, static constructor and finalizer (see
 ///         <see cref="IsRuntimeInvoked" />): no code can reference them, so the row would be wrong on
-///         every live type.
+///         every live type. And the test types: the runner calls what carries the test attributes, so a
+///         row per fixture would be wrong just the same - which also means an unused helper inside a
+///         fixture is not found; the whole test type is out of scope.
 ///     </para>
 ///     <para>
 ///         A single property accessor <i>is</i> reported. Rolling it up into the property used to halve the
@@ -79,8 +82,7 @@ public static class DeadCodeAnalysis
     ///     lowest confidence: we already know we might be wrong about it.
     /// </summary>
     private const DeadCodeHint CallerOutsideTheGraph =
-        DeadCodeHint.EntryPoint | DeadCodeHint.TestCode | DeadCodeHint.Attributed |
-        DeadCodeHint.ImplementsExternalContract;
+        DeadCodeHint.EntryPoint | DeadCodeHint.Attributed | DeadCodeHint.ImplementsExternalContract;
 
     /// <summary>
     ///     Attribute names (with and without the "Attribute" suffix) of the common test frameworks. A test
@@ -552,8 +554,9 @@ public static class DeadCodeAnalysis
     ///     Whether nothing in the production code references the element. Two ways to get there: nothing
     ///     references it at all, or only test code does.
     ///     <para>
-    ///         The second one is a finding only outside a test type. Inside one it is what is supposed to
-    ///         happen - a fixture's own helper members and nested fakes are what the tests are made of.
+    ///         Test types are out of scope entirely: the runner calls what carries the test attributes,
+    ///         so a fixture is alive by definition, and everything else inside it is the fixture's own
+    ///         business.
     ///     </para>
     ///     <para>
     ///         An external contract does not make an element alive either; it is reported with a note
@@ -562,12 +565,12 @@ public static class DeadCodeAnalysis
     /// </summary>
     private static bool IsReported(CodeElement element, ReferenceSets references, AnalysisContext context)
     {
-        if (!IsCandidate(element) || references.FromProduction.Contains(element.Id))
+        if (!IsCandidate(element) || IsTestCode(element, context.TestTypes))
         {
             return false;
         }
 
-        return !references.All.Contains(element.Id) || !IsTestCode(element, context.TestTypes);
+        return !references.FromProduction.Contains(element.Id);
     }
 
     private static DeadCodeFinding CreateFinding(CodeElement element, ReferenceSets references,
@@ -585,13 +588,11 @@ public static class DeadCodeAnalysis
                 hints |= DeadCodeHint.EntryPoint;
             }
 
+            // A test attribute cannot show up here: it would have made every containing type a test
+            // type, and those are never reported.
             foreach (var attribute in member.Attributes)
             {
-                if (TestAttributes.Contains(attribute))
-                {
-                    hints |= DeadCodeHint.TestCode;
-                }
-                else if (!ToolingAttributes.Contains(attribute))
+                if (!ToolingAttributes.Contains(attribute))
                 {
                     hints |= DeadCodeHint.Attributed;
                 }

@@ -265,20 +265,15 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
-    public void Calculate_EntryPointAndTestCode_ReportedWithHint()
+    public void Calculate_EntryPointAndAttributed_ReportedWithHint()
     {
         var program = _graph.CreateClass("Program");
         _graph.CreateMethod("Main", program);
-
-        var fixture = _graph.CreateClass("MyTests");
-        var testMethod = _graph.CreateMethod("MyTests.ShouldWork", fixture);
-        testMethod.Attributes.Add("TestAttribute");
 
         var service = _graph.CreateClass("Service");
         service.Attributes.Add("ExportAttribute");
 
         Assert.That(FindingFor(program).Hints, Is.EqualTo(DeadCodeHint.EntryPoint));
-        Assert.That(FindingFor(fixture).Hints, Is.EqualTo(DeadCodeHint.TestCode));
         Assert.That(FindingFor(service).Hints, Is.EqualTo(DeadCodeHint.Attributed));
         Assert.That(FindingFor(service).Attributes, Is.EquivalentTo(new[] { "ExportAttribute" }));
     }

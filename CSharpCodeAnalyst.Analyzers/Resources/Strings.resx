@@ -231,9 +231,6 @@
     <data name="DeadCode_Hint_EntryPoint" xml:space="preserve">
     <value>Entry point</value>
   </data>
-    <data name="DeadCode_Hint_TestCode" xml:space="preserve">
-    <value>Test code</value>
-  </data>
     <data name="DeadCode_Hint_Attributed" xml:space="preserve">
     <value>Attributes: {0}</value>
   </data>

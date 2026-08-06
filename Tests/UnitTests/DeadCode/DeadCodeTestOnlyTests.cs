@@ -88,11 +88,11 @@ public class DeadCodeTestOnlyTests
     }
 
     /// <summary>
-    ///     Inside a fixture the rule stays off: the helper members and nested fakes are what the tests
-    ///     are made of. Only the fixture itself is reported, as unreferenced test code like always.
+    ///     Everything inside a fixture is the fixture's own business - helper members and nested fakes
+    ///     never show up, and neither does the fixture itself.
     /// </summary>
     [Test]
-    public void Calculate_HelpersInsideAFixture_AreNotReportedSeparately()
+    public void Calculate_HelpersInsideAFixture_AreNotReported()
     {
         var fixture = CreateTestClass("SomeTests");
         var test = _graph.CreateMethod("SomeTests.ShouldWork", fixture);
@@ -104,7 +104,7 @@ public class DeadCodeTestOnlyTests
         Rel(test, helper, RelationshipType.Calls);
         Rel(test, fakeMethod, RelationshipType.Calls);
 
-        Assert.That(Reported(), Is.EquivalentTo(new[] { "SomeTests" }));
+        Assert.That(Reported(), Is.Empty);
     }
 
     /// <summary>
@@ -174,20 +174,17 @@ public class DeadCodeTestOnlyTests
         Assert.That(Reported(), Does.Not.Contain("Helper"));
     }
 
-    /// <summary>The test class itself is unreferenced as ever, and keeps saying so.</summary>
+    /// <summary>
+    ///     The runner calls what carries the test attributes - a fixture is alive by definition, exactly
+    ///     like a static constructor. Reporting it with a note used to put one low-confidence row per
+    ///     fixture into the result.
+    /// </summary>
     [Test]
-    public void Calculate_TestClassItself_IsStillReportedAsTestCode()
+    public void Calculate_TestClassItself_IsNeverReported()
     {
-        var test = CreateTestClass("SomeTests");
+        CreateTestClass("SomeTests");
 
-        var finding = FindingFor(test);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(finding.Hints.HasFlag(DeadCodeHint.TestCode), Is.True);
-            Assert.That(finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests), Is.False);
-            Assert.That(finding.Confidence, Is.EqualTo(DeadCodeConfidence.Low));
-        });
+        Assert.That(Reported(), Is.Empty);
     }
 
     /// <summary>

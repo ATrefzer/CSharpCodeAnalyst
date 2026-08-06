@@ -57,11 +57,6 @@ public class DeadCodeRowViewModel : TableRow
             parts.Add(Strings.DeadCode_Hint_EntryPoint);
         }
 
-        if (finding.Hints.HasFlag(DeadCodeHint.TestCode))
-        {
-            parts.Add(Strings.DeadCode_Hint_TestCode);
-        }
-
         if (finding.Hints.HasFlag(DeadCodeHint.Generated))
         {
             parts.Add(Strings.DeadCode_Hint_Generated);

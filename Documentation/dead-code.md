@@ -38,7 +38,7 @@ findings disappear at once:
 The *Notes* column carries two different kinds of remark, which is why it is not called something like
 "might still be used":
 
-- A **doubt** — `Entry point`, `Test code`, `Attributes: ...`. The reference may exist somewhere the parser
+- A **doubt** — `Entry point`, `Attributes: ...`. The reference may exist somewhere the parser
   cannot see, so the finding needs a second look.
 - An **explanation** — `Implemented but never called: ...`, `Implements unused contract: ...`. Those are
   the opposite of a doubt: the finding is well understood, and the note tells you what dies together with
@@ -96,11 +96,12 @@ assembly in both directions: every reference leaving the assembly counted as a t
 *other* assemblies used from ordinary production code was falsely `Used only by tests` — and production
 code beside the embedded tests, used only by them, was never found, because the whole assembly was exempt.
 
-**Inside a test type the rule does not apply.** A fixture's own helper members and nested fakes are what
-the tests are made of. A helper *class* outside the fixtures carries no attribute, though, so it is
-production code to the analysis and shows up as used-only-by-tests. That is the accepted price of the type
-granularity, and the statement is true — the helper goes when the tests go — it is just noise while the
-helper is doing its job.
+**A test type is never a finding.** The runner calls what carries the test attributes, so a fixture is
+alive by definition — like a static constructor, "nothing references it" carries no information here — and
+its helper members and nested fakes are the fixture's own business. A helper *class* outside the fixtures
+carries no attribute, though, so it is production code to the analysis and shows up as used-only-by-tests.
+That is the accepted price of the type granularity, and the statement is true — the helper goes when the
+tests go — it is just noise while the helper is doing its job.
 
 The note names the tests that reference the element — what has to go with it. It can be empty: when the
 element is reached through a contract member (`ICommand.Execute` and friends) there is no edge whose caller
@@ -208,7 +209,7 @@ measurement:
 
 | Confidence | Rule |
 | ---------- | ------ |
-| **Low** (red) | The finding carries a note saying the caller may sit outside the graph — entry point, test code, attributes, an external contract. We already know we might be wrong. |
+| **Low** (red) | The finding carries a note saying the caller may sit outside the graph — entry point, attributes, an external contract. We already know we might be wrong. |
 | **High** (green) | No such note, and the element **or one of its containers** is `private` or `internal`. Nothing outside the analyzed code could reach it, so "nothing references it" and "nothing *can* reference it" are the same statement. |
 | **Medium** (orange) | Everything else: `public`, `protected`, or an unknown visibility. |
 
@@ -254,18 +255,18 @@ hand.
 
 The analysis can only see what the parser saw. Everything reached through reflection, dependency injection,
 serialization or a test runner therefore looks unreferenced. Those elements are not silently dropped — they
-are reported with a note, and you decide. (Two exceptions are dropped outright: the serialized property
-above, where the note would be on every row of a DTO, and static constructors and finalizers — no code can
-reference those, only the runtime calls them, so the row would be wrong on every live type.)
+are reported with a note, and you decide. (Three exceptions are dropped outright: the serialized property
+above, where the note would be on every row of a DTO; static constructors and finalizers — no code can
+reference those, only the runtime calls them, so the row would be wrong on every live type; and test
+types, where the runner is the caller — see [Code only the tests still use](#code-only-the-tests-still-use).)
 
 **Doubts** — the reference may exist where the parser cannot look:
 
 | Note              | Meaning                                                                       |
 | ----------------- | ------------------------------------------------------------------------------ |
 | `Entry point`     | `Main`, or the synthetic `GlobalStatements` element for top-level statements. |
-| `Test code`       | The element or something below it carries a known test-framework attribute.    |
 | `Generated code`  | A tool wrote it, not a person. The finding is correct, it is just not for you — the next build writes it again. See [Generated code](#generated-code). |
-| `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed, including the test ones that already produced `Test code`. Attributes that only talk to the compiler, debugger or analyzer (`[Obsolete]`, `[DebuggerDisplay]`, `[ExcludeFromCodeCoverage]`, ...) do not raise this note — they say nothing about a caller, and `[Obsolete]` outright argues for deletion. |
+| `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed. Attributes that only talk to the compiler, debugger or analyzer (`[Obsolete]`, `[DebuggerDisplay]`, `[ExcludeFromCodeCoverage]`, ...) do not raise this note — they say nothing about a caller, and `[Obsolete]` outright argues for deletion. |
 
 **Explanations** — the finding is understood, and the note names what dies with it:
 
@@ -277,7 +278,7 @@ reference those, only the runtime calls them, so the row would be wrong on every
 | `Used only by tests: ...`           | Nothing in the production code references it — the listed tests are the only thing keeping it alive. See [Code only the tests still use](#code-only-the-tests-still-use). |
 
 Notes are collected over the whole subtree, because the evidence usually sits below what is reported: a
-test fixture is reported as a dead *class*, but the `[Test]` attributes are on its methods.
+dead controller is reported as a *class*, but the framework attributes sit on its methods.
 
 ## What XAML the analysis does see
 

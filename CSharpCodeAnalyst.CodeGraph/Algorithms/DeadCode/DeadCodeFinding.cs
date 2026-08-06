@@ -16,8 +16,8 @@ public enum DeadCodeHint
     /// <summary>Called from outside the analyzed code by definition (program entry point).</summary>
     EntryPoint = 1,
 
-    /// <summary>The element or something in its subtree carries a known test-framework attribute.</summary>
-    TestCode = 2,
+    // 2 was TestCode. Test types are no longer findings at all - the runner calls them, so a fixture is
+    // alive by definition, exactly like a static constructor.
 
     /// <summary>
     ///     Carries attributes beyond the tooling ones (compiler, debugger, analyzer - [Obsolete],
