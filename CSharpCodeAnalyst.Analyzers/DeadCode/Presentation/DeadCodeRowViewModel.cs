@@ -62,6 +62,13 @@ public class DeadCodeRowViewModel : TableRow
             parts.Add(Strings.DeadCode_Hint_TestCode);
         }
 
+        if (finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests))
+        {
+            parts.Add(finding.TestReferences.Count == 0
+                ? Strings.DeadCode_Hint_UsedOnlyByTestsWithoutCaller
+                : string.Format(Strings.DeadCode_Hint_UsedOnlyByTests, Format(finding.TestReferences)));
+        }
+
         if (finding.Hints.HasFlag(DeadCodeHint.ContractNeverCalled))
         {
             parts.Add(string.Format(Strings.DeadCode_Hint_ContractNeverCalled, FormatRelated(finding)));
@@ -87,11 +94,16 @@ public class DeadCodeRowViewModel : TableRow
 
     private static string FormatRelated(DeadCodeFinding finding)
     {
-        if (finding.RelatedMembers.Count > MaxNamedRelatedMembers)
+        return Format(finding.RelatedMembers);
+    }
+
+    private static string Format(IReadOnlyList<CodeElement> members)
+    {
+        if (members.Count > MaxNamedRelatedMembers)
         {
-            return string.Format(Strings.DeadCode_Hint_RelatedCount, finding.RelatedMembers.Count);
+            return string.Format(Strings.DeadCode_Hint_RelatedCount, members.Count);
         }
 
-        return string.Join(", ", finding.RelatedMembers.Select(m => m.FullName));
+        return string.Join(", ", members.Select(m => m.FullName));
     }
 }

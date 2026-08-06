@@ -393,6 +393,24 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Used only by tests: {0}.
+        /// </summary>
+        public static string DeadCode_Hint_UsedOnlyByTests {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_UsedOnlyByTests", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Used only by tests.
+        /// </summary>
+        public static string DeadCode_Hint_UsedOnlyByTestsWithoutCaller {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_UsedOnlyByTestsWithoutCaller", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Type Cohesion.
         /// </summary>
         public static string Analyzer_TypeCohesion_Label {

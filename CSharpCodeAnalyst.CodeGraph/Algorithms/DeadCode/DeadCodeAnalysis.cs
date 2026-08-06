@@ -25,6 +25,15 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         containing type: a class whose only "use" is implementing IDisposable is still dead code.
 ///     </para>
 ///     <para>
+///         References are counted in two colours. An element nothing references at all is the obvious
+///         finding; an element only <i>test</i> code references is the same statement about the production
+///         code, and is reported with <see cref="DeadCodeHint.UsedOnlyByTests" />. Without that rule,
+///         analyzing the tests along with the production code would <i>hide</i> dead code - exactly the
+///         elements one would see by excluding the test projects. Test code is decided per assembly (see
+///         <see cref="FindTestAssemblies" />), and inside a test assembly the rule is off: being used by
+///         tests is what a test helper is for.
+///     </para>
+///     <para>
 ///         The analysis reports exactly what nothing references <i>right now</i>. It does not chase the
 ///         consequences: code that is only kept alive by the code just reported stays out of the result.
 ///         That is a deliberate step back from an earlier cascading version, which multiplied every false
@@ -139,12 +148,15 @@ public static class DeadCodeAnalysis
         var referenceEdges = new List<(CodeElement Source, CodeElement Target)>();
         CollectEdges(graph, referenceEdges, external, implementations, contracts, derivedTypes);
 
+        var testAssemblies = FindTestAssemblies(graph);
+
         var context = new AnalysisContext(external, implementations, contracts,
-            FindBindingSources(graph, external, derivedTypes), FindSerializableTypes(graph));
+            FindBindingSources(graph, external, derivedTypes), FindSerializableTypes(graph),
+            testAssemblies, CollectTestReferences(referenceEdges, testAssemblies));
 
-        var referenced = ComputeReferenced(referenceEdges, implementations);
+        var references = ComputeReferenced(referenceEdges, implementations, testAssemblies);
 
-        return Report(graph, referenced, context)
+        return Report(graph, references, context)
             .OrderBy(f => f.Element.FullName, StringComparer.Ordinal)
             .ToList();
     }
@@ -155,7 +167,94 @@ public static class DeadCodeAnalysis
         Dictionary<string, List<CodeElement>> Implementations,
         Dictionary<string, List<CodeElement>> Contracts,
         HashSet<string> BindingSources,
-        HashSet<string> SerializableTypes);
+        HashSet<string> SerializableTypes,
+        HashSet<string> TestAssemblies,
+        Dictionary<string, List<CodeElement>> TestReferences);
+
+    /// <summary>
+    ///     What a relationship reaches, once counting every relationship and once counting only those that
+    ///     do not start in test code. An element in <see cref="All" /> but not in
+    ///     <see cref="FromProduction" /> is used by tests and by nothing else.
+    /// </summary>
+    private sealed record ReferenceSets(HashSet<string> All, HashSet<string> FromProduction);
+
+    /// <summary>
+    ///     The assemblies holding the tests: those containing at least one element with a known
+    ///     test-framework attribute.
+    ///     <para>
+    ///         Deliberately the assembly and not the type. Test helpers - builders, fakes, the graph
+    ///         fixture - carry no attribute at all. Deciding per type would make a production member that
+    ///         only a helper calls look alive, and would report every helper as used-only-by-tests, which
+    ///         floods the result with the whole test project. Tests living <i>in</i> the production
+    ///         assembly turn the rule off for that assembly, which is the harmless direction to fail in.
+    ///     </para>
+    /// </summary>
+    private static HashSet<string> FindTestAssemblies(Graph.CodeGraph graph)
+    {
+        return graph.Nodes.Values
+            .Where(element => element.Attributes.Any(TestAttributes.Contains))
+            .Select(element => RootOf(element).Id)
+            .ToHashSet();
+    }
+
+    /// <summary>The assembly an element belongs to - the top of its containment chain.</summary>
+    private static CodeElement RootOf(CodeElement element)
+    {
+        var current = element;
+        while (current.Parent is not null)
+        {
+            current = current.Parent;
+        }
+
+        return current;
+    }
+
+    private static bool IsTestCode(CodeElement element, HashSet<string> testAssemblies)
+    {
+        return testAssemblies.Contains(RootOf(element).Id);
+    }
+
+    /// <summary>
+    ///     Element -&gt; the test elements referencing it, so a used-only-by-tests finding can name what has
+    ///     to be deleted with it. Only the relationships starting in test code are walked.
+    /// </summary>
+    private static Dictionary<string, List<CodeElement>> CollectTestReferences(
+        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> testAssemblies)
+    {
+        var testReferences = new Dictionary<string, List<CodeElement>>();
+
+        // Reused across relationships, like in ComputeReferenced.
+        var reached = new HashSet<string>();
+        var sourceChain = new HashSet<string>();
+
+        foreach (var (source, target) in referenceEdges)
+        {
+            if (!IsTestCode(source, testAssemblies))
+            {
+                continue;
+            }
+
+            reached.Clear();
+            MarkReferenced(source, target, reached, sourceChain);
+
+            foreach (var id in reached)
+            {
+                if (!testReferences.TryGetValue(id, out var callers))
+                {
+                    callers = [];
+                    testReferences[id] = callers;
+                }
+
+                // The same test typically reaches an element over several relationships.
+                if (!callers.Contains(source))
+                {
+                    callers.Add(source);
+                }
+            }
+        }
+
+        return testReferences;
+    }
 
     /// <summary>
     ///     Finds the view models.
@@ -238,10 +337,30 @@ public static class DeadCodeAnalysis
         return current;
     }
 
-    /// <summary>Everything a relationship enters from the outside, plus what a used contract keeps alive.</summary>
-    private static HashSet<string> ComputeReferenced(
+    /// <summary>
+    ///     Everything a relationship enters from the outside, plus what a used contract keeps alive - the
+    ///     same walk twice, once over all relationships and once leaving out those that start in test code.
+    ///     <para>
+    ///         The contract propagation has to run per colour, not once at the end: the UI calling
+    ///         <c>ICodeGraphExplorer.FindIncomingCalls</c> keeps the implementation alive for production,
+    ///         a test calling it does not. Sharing one propagation would mark every implementation of a
+    ///         contract that any test uses as production code.
+    ///     </para>
+    /// </summary>
+    private static ReferenceSets ComputeReferenced(
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
-        Dictionary<string, List<CodeElement>> implementations)
+        Dictionary<string, List<CodeElement>> implementations,
+        HashSet<string> testAssemblies)
+    {
+        return new ReferenceSets(
+            Mark(referenceEdges, implementations, _ => true),
+            Mark(referenceEdges, implementations, source => !IsTestCode(source, testAssemblies)));
+    }
+
+    private static HashSet<string> Mark(
+        List<(CodeElement Source, CodeElement Target)> referenceEdges,
+        Dictionary<string, List<CodeElement>> implementations,
+        Func<CodeElement, bool> includeSource)
     {
         var referenced = new HashSet<string>();
 
@@ -250,7 +369,10 @@ public static class DeadCodeAnalysis
 
         foreach (var (source, target) in referenceEdges)
         {
-            MarkReferenced(source, target, referenced, sourceChain);
+            if (includeSource(source))
+            {
+                MarkReferenced(source, target, referenced, sourceChain);
+            }
         }
 
         PropagateContractUsage(referenced, implementations);
@@ -387,18 +509,17 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     Everything unreferenced, reduced to the topmost element of each dead subtree.
+    ///     Everything the production code does not reference, reduced to the topmost element of each dead
+    ///     subtree.
     /// </summary>
-    private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, HashSet<string> referenced,
+    private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, ReferenceSets references,
         AnalysisContext context)
     {
         var findings = new List<DeadCodeFinding>();
 
         foreach (var element in graph.Nodes.Values)
         {
-            // An external contract does not make the element alive - it is reported with a note instead,
-            // so the decision stays visible rather than silently removing rows from the result.
-            if (!IsCandidate(element) || referenced.Contains(element.Id))
+            if (!IsReported(element, references, context))
             {
                 continue;
             }
@@ -420,19 +541,42 @@ public static class DeadCodeAnalysis
 
             // Roll-up: a dead element inside a dead element is reported as part of it. Namespaces and
             // assemblies are no candidates, so an element directly below them is always the topmost one.
-            var parent = element.Parent;
-            if (parent is not null && IsCandidate(parent) && !referenced.Contains(parent.Id))
+            if (element.Parent is not null && IsReported(element.Parent, references, context))
             {
                 continue;
             }
 
-            findings.Add(CreateFinding(element, context));
+            findings.Add(CreateFinding(element, references, context));
         }
 
         return findings;
     }
 
-    private static DeadCodeFinding CreateFinding(CodeElement element, AnalysisContext context)
+    /// <summary>
+    ///     Whether nothing in the production code references the element. Two ways to get there: nothing
+    ///     references it at all, or only test code does.
+    ///     <para>
+    ///         The second one is a finding only outside a test assembly. Inside one it is what is supposed
+    ///         to happen - a helper the tests use is doing its job - and reporting it would put the whole
+    ///         test project into the result.
+    ///     </para>
+    ///     <para>
+    ///         An external contract does not make an element alive either; it is reported with a note
+    ///         instead, so the decision stays visible rather than silently removing rows from the result.
+    ///     </para>
+    /// </summary>
+    private static bool IsReported(CodeElement element, ReferenceSets references, AnalysisContext context)
+    {
+        if (!IsCandidate(element) || references.FromProduction.Contains(element.Id))
+        {
+            return false;
+        }
+
+        return !references.All.Contains(element.Id) || !IsTestCode(element, context.TestAssemblies);
+    }
+
+    private static DeadCodeFinding CreateFinding(CodeElement element, ReferenceSets references,
+        AnalysisContext context)
     {
         var hints = DeadCodeHint.None;
         var attributes = new SortedSet<string>(StringComparer.Ordinal);
@@ -485,19 +629,38 @@ public static class DeadCodeAnalysis
             hints |= DeadCodeHint.ImplementsExternalContract;
         }
 
+        // Reported although something references it means that something was test code - IsReported has
+        // already established that the production code does not.
+        var testReferences = new List<CodeElement>();
+        if (references.All.Contains(element.Id))
+        {
+            hints |= DeadCodeHint.UsedOnlyByTests;
+            testReferences = context.TestReferences.GetValueOrDefault(element.Id, []);
+        }
+
         return new DeadCodeFinding(element)
         {
             Confidence = RateConfidence(element, hints, context),
             Hints = hints,
             Attributes = attributes.ToList(),
             RelatedMembers = related,
+            TestReferences = testReferences,
             ExternalContract = externalContract
         };
     }
 
     /// <summary>
     ///     Three rules, in order. A note about a caller outside the graph beats everything - we already
-    ///     know the finding may be wrong. Otherwise visibility decides.
+    ///     know the finding may be wrong. Otherwise visibility decides, capped at
+    ///     <see cref="DeadCodeConfidence.Medium" /> for a used-only-by-tests finding.
+    ///     <para>
+    ///         The cap, not a fixed level: the ladder measures whether a caller we cannot see could exist,
+    ///         and that question stays valid here - a public element could still be used from an assembly
+    ///         outside the analysis. <see cref="DeadCodeConfidence.High" /> is the one level it must not
+    ///         reach, because that level claims nothing <i>can</i> reference the element while something
+    ///         demonstrably does. Whether a test alone justifies keeping it is a decision, not a
+    ///         measurement.
+    ///     </para>
     /// </summary>
     private static DeadCodeConfidence RateConfidence(CodeElement element, DeadCodeHint hints,
         AnalysisContext context)
@@ -507,7 +670,8 @@ public static class DeadCodeAnalysis
             return DeadCodeConfidence.Low;
         }
 
-        if (IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingSources))
+        if (IsConfinedToAnalyzedCode(element) && !IsBindable(element, context.BindingSources) &&
+            !hints.HasFlag(DeadCodeHint.UsedOnlyByTests))
         {
             return DeadCodeConfidence.High;
         }

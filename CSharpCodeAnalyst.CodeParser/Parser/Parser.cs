@@ -226,31 +226,37 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
 
     /// <summary>
     ///     Adds the references that only exist in XAML. The assembly elements are matched to the Roslyn
-    ///     projects by assembly name, and each project contributes the XAML files below its own directory -
-    ///     MSBuildWorkspace does not expose the "Page" items, so the directory is the practical source.
+    ///     projects by assembly name; which XAML files a project owns is answered by
+    ///     <see cref="XamlFileLocator" />, because MSBuildWorkspace does not expose the "Page" items.
     /// </summary>
     private void LinkXamlReferences(Solution solution, CodeGraph.Graph.CodeGraph codeGraph)
     {
         progress?.Report("Reading XAML references ...");
+        var sw = Stopwatch.StartNew();
 
         var assembliesByName = codeGraph.GetRoots()
             .Where(root => root.ElementType == CodeElementType.Assembly)
             .ToDictionary(root => root.Name, root => root);
 
         var projects = new List<XamlProject>();
-        foreach (var project in solution.Projects)
-        {
-            var directory = Path.GetDirectoryName(project.FilePath);
-            if (directory is null || !config.IsProjectIncluded(project.Name) ||
-                !assembliesByName.TryGetValue(project.AssemblyName, out var assembly))
-            {
-                continue;
-            }
 
-            projects.Add(new XamlProject(assembly, directory));
+        // Constructed only here, and only now: it holds an MSBuild ProjectCollection, so the type must not
+        // be touched before Initializer.InitializeMsBuildLocator has run.
+        using (var locator = new XamlFileLocator())
+        {
+            foreach (var project in solution.Projects)
+            {
+                var directory = Path.GetDirectoryName(project.FilePath);
+                if (directory is null || !config.IsProjectIncluded(project.Name) ||
+                    !assembliesByName.TryGetValue(project.AssemblyName, out var assembly))
+                {
+                    continue;
+                }
+
+                projects.Add(new XamlProject(assembly, directory, locator.Locate(project.FilePath, directory)));
+            }
         }
 
-        var sw = Stopwatch.StartNew();
         var added = XamlGraphLinker.Link(codeGraph, projects);
         sw.Stop();
         Trace.TraceInformation($"Reading XAML references: {sw.Elapsed} ({added} relationships)");

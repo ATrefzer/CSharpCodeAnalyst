@@ -39,7 +39,13 @@ public enum DeadCodeHint
     ///     base member from a referenced assembly). The caller is the framework, so nothing in the graph
     ///     references it - it is almost certainly alive.
     /// </summary>
-    ImplementsExternalContract = 32
+    ImplementsExternalContract = 32,
+
+    /// <summary>
+    ///     Referenced, but only from test assemblies. The production code has no use for it any more, so
+    ///     the test is the only thing keeping it alive - removing it means removing that test too.
+    /// </summary>
+    UsedOnlyByTests = 64
 }
 
 /// <summary>
@@ -96,4 +102,12 @@ public sealed class DeadCodeFinding(CodeElement element)
     ///     (<see cref="DeadCodeHint.ContractNeverCalled" />).
     /// </summary>
     public IReadOnlyList<CodeElement> RelatedMembers { get; init; } = [];
+
+    /// <summary>
+    ///     The test elements that reference this one, set together with
+    ///     <see cref="DeadCodeHint.UsedOnlyByTests" /> - what has to go with it. Can be empty although the
+    ///     hint is set: liveness reaching the element through a contract member is not an edge we could
+    ///     name a caller for.
+    /// </summary>
+    public IReadOnlyList<CodeElement> TestReferences { get; init; } = [];
 }

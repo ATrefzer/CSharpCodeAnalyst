@@ -295,10 +295,36 @@ Two things are *not* in there, and both were mistaken for dead code before:
 So a control can be used three times in XAML, once even with a name, and produce no C# reference at all.
 
 A third pass (`Xaml/XamlReferenceExtractor` + `Xaml/XamlGraphLinker`, enabled by
-`ParserConfig.IncludeXamlReferences`) therefore reads the XAML files next to each project and adds the
+`ParserConfig.IncludeXamlReferences`) therefore reads the XAML files of each project and adds the
 references that carry a **fully qualified CLR name**: element tags, `{x:Static}` and `{x:Type}`. Prefixes
 are resolved through the `clr-namespace` xmlns declarations, so nothing is matched by guessing. The
 relationships are `Uses` and carry `RelationshipAttribute.IsXamlReference`.
+
+### Which files belong to a project
+
+Roslyn cannot say: a `Project` exposes `Documents`, `AdditionalDocuments` and `AnalyzerConfigDocuments`,
+and a `Page` is none of them. `Xaml/XamlFileLocator` therefore **evaluates the project file a second time**
+with `Microsoft.Build.Evaluation` - the MSBuild engine `Initializer.InitializeMsBuildLocator` has already
+put in place, which is why the package is referenced compile-only (`ExcludeAssets=runtime`, same trap as
+in `Directory.Build.props`) and why the type must not be touched before the locator is registered.
+
+The first version scanned the project directory instead, which reads whatever lies around: a file excluded
+from the project, a leftover from another branch, or the XAML of a nested project. A file taken out with
+`<Page Remove="..." />` lands in **no** item group at all - not even in the SDK's default `None` glob - so
+the evaluated item list gets this right where a scan cannot. Two things to know about the item list:
+the SDK contributes ~20 `PropertyPageSchema` items pointing into the dotnet installation, which is why the
+item type is filtered (`ApplicationDefinition`, `Page`, `Resource`, `Content`, `None`) rather than the file
+extension alone; and the default `Page` items are flagged `IsImported` because they come from the SDK
+props, so that flag must *not* be used to tell ours from the SDK's.
+
+An empty result is an answer, not a failure - a project without XAML items has no XAML, and falling back
+to a scan there would bring the excluded files straight back in. The scan survives only for a project file
+that cannot be evaluated at all. Cost is a few hundred milliseconds per project; one shared
+`ProjectCollection` evaluates the SDK imports once.
+
+A linked file (`<Page Include="..\Shared\Foo.xaml">`) now comes along for free, because the item carries
+its real path - a side effect, not the goal. Its synthetic element (see below) is named after the file
+name, because a path relative to the project directory would only produce a row of dots.
 
 `{Binding Path=...}` is deliberately left out. Without evaluating the DataContext it is a bare member name,
 and matching that across the codebase would suppress far more than it explains.

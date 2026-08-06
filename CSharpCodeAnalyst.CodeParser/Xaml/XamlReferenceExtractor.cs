@@ -65,6 +65,10 @@ public sealed class XamlFileReferences
 public static class XamlReferenceExtractor
 {
     private const string ClrNamespacePrefix = "clr-namespace:";
+    
+    /// <summary>
+    /// Typically named x:
+    /// </summary>
     private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
 
     /// <summary>

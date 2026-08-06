@@ -249,6 +249,12 @@
     <data name="DeadCode_Hint_RelatedCount" xml:space="preserve">
     <value>{0} members</value>
   </data>
+    <data name="DeadCode_Hint_UsedOnlyByTests" xml:space="preserve">
+    <value>Used only by tests: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_UsedOnlyByTestsWithoutCaller" xml:space="preserve">
+    <value>Used only by tests</value>
+  </data>
     <data name="Analyzer_TypeCohesion_Label" xml:space="preserve">
     <value>Type Cohesion</value>
   </data>

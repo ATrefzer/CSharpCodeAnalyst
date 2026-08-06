@@ -1,4 +1,4 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeParser.Xaml;
 
@@ -46,6 +46,15 @@ public class XamlGraphLinkerTests
         File.WriteAllText(path, content);
     }
 
+    /// <summary>
+    ///     Which files belong to a project is <see cref="XamlFileLocator" />'s job; here everything written
+    ///     into the temporary directory is simply passed in.
+    /// </summary>
+    private XamlProject Project(CodeElement assembly)
+    {
+        return new XamlProject(assembly, _directory, XamlFileLocator.EnumerateDirectory(_directory));
+    }
+
     private static string[] EdgesFrom(CodeElement source, CodeGraph graph)
     {
         return source.Relationships
@@ -70,7 +79,7 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        var added = XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        var added = XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         Assert.Multiple(() =>
         {
@@ -98,7 +107,7 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         Assert.That(EdgesFrom(view, _graph), Is.EquivalentTo(new[] { "MyGrid", constructor.FullName }));
     }
@@ -121,7 +130,7 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         Assert.That(EdgesFrom(view, _graph), Is.EquivalentTo(new[] { "MyGrid" }));
     }
@@ -143,7 +152,7 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         Assert.That(EdgesFrom(view, _graph), Is.EqualTo(new[] { caption.FullName }));
     }
@@ -162,7 +171,7 @@ public class XamlGraphLinkerTests
                                                                </ResourceDictionary>
                                                                """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         var synthetic = assembly.Children.Single(c => c.Name == "Styles.ButtonStyles");
 
@@ -184,7 +193,7 @@ public class XamlGraphLinkerTests
                                                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" />
                                 """);
 
-        var added = XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        var added = XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         Assert.Multiple(() =>
         {
@@ -211,30 +220,9 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(app, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(app)]);
 
         Assert.That(EdgesFrom(view, _graph), Is.EqualTo(new[] { "Widget" }));
-    }
-
-    [Test]
-    public void Link_GeneratedOutputDirectories_AreSkipped()
-    {
-        var assembly = _graph.CreateAssembly("App");
-        var control = CreateType(assembly, "App.Controls", "MyGrid");
-
-        const string xaml = """
-                            <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                                                xmlns:c="clr-namespace:App.Controls">
-                                <c:MyGrid />
-                            </ResourceDictionary>
-                            """;
-        WriteXaml(Path.Combine("obj", "Copy.xaml"), xaml);
-        WriteXaml(Path.Combine("bin", "Copy.xaml"), xaml);
-
-        var added = XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
-
-        Assert.That(added, Is.Zero);
     }
 
     [Test]
@@ -254,7 +242,7 @@ public class XamlGraphLinkerTests
                                      </Window>
                                      """);
 
-        XamlGraphLinker.Link(_graph, [new XamlProject(assembly, _directory)]);
+        XamlGraphLinker.Link(_graph, [Project(assembly)]);
 
         var relationship = view.Relationships.Single();
 

@@ -76,6 +76,32 @@ seven further elements with it, and the deeper rounds were only as good as the r
 **Delete a finding and run the analysis again.** You get the next layer, one honest round at a time, and
 every row stands on its own.
 
+### Code only the tests still use
+
+References are counted in two colours: those from test code, and those from everything else. An element
+with no reference at all is the obvious finding. An element that only *tests* reference is the same
+statement about the production code, and is reported with the note `Used only by tests`.
+
+Without this rule, analyzing the tests along with the production code would **hide** dead code. Exclude the
+test projects and the elements show up as unreferenced; include them and the tests hold them up. Both
+answers cannot be right, and this is the one that survives either setup.
+
+**Test code is decided per assembly:** an assembly is a test assembly when it contains at least one element
+carrying a known test-framework attribute. Not per type, and that is the important part — test helpers
+(builders, fakes, a graph fixture) carry no attribute at all. Deciding per type would let a production
+member that only a helper calls look alive, and would report every helper as used-only-by-tests, which puts
+the whole test project into the result. If your tests live *inside* the production assembly, the rule
+switches itself off for that assembly.
+
+**Inside a test assembly the rule does not apply.** A helper the tests use is doing its job.
+
+The note names the tests that reference the element — what has to go with it. It can be empty: when the
+element is reached through a contract member (`ICommand.Execute` and friends) there is no edge whose caller
+we could name.
+
+> This needs the test projects to be part of the analysis. The default project exclusion filter is
+> `.*Tests`, which removes them — then there is no test code, and the rule finds nothing.
+
 ### Suppressed: accessors and serialized properties
 
 Two things are dropped instead of being reported. Both are the same kind of noise — a getter or setter that
@@ -158,6 +184,12 @@ measurement:
 The containment part matters more than it looks: a `public` method of an `internal` class cannot be called
 from another assembly either, so it still qualifies as high.
 
+**A `Used only by tests` finding is capped at medium.** The ladder measures whether a caller we cannot see
+could exist, and that question stays valid — a public element could still be used from an assembly outside
+the analysis. High is the one level such a finding must not reach, because high claims that nothing *can*
+reference the element while something demonstrably does. Whether a test alone justifies keeping it is a
+decision, not a measurement. Low still wins when one of the notes above applies.
+
 **One exception to high:** a `public` property on a type that implements `INotifyPropertyChanged` — a view
 model. A XAML `{Binding}` reaches exactly that, and bindings are the one XAML construct the analysis
 deliberately does not follow. The interface is recognized through the `PropertyChanged` event and is spread
@@ -205,6 +237,7 @@ note would be on every row of a DTO.)
 | `Implemented but never called: ...` | A contract member that is implemented but never called through the contract.  |
 | `Implements unused contract: ...`   | Implements or overrides an internal contract member that is itself dead.      |
 | `Implements external contract: ...` | Implements or overrides something outside the analyzed code (`ICommand.Execute`, `object.GetHashCode`). The framework is the caller, so this is almost certainly alive. |
+| `Used only by tests: ...`           | Nothing in the production code references it — the listed tests are the only thing keeping it alive. See [Code only the tests still use](#code-only-the-tests-still-use). |
 
 Notes are collected over the whole subtree, because the evidence usually sits below what is reported: a
 test fixture is reported as a dead *class*, but the `[Test]` attributes are on its methods.

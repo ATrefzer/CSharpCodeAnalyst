@@ -2,8 +2,12 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeParser.Xaml;
 
-/// <summary>One analyzed project: its assembly element in the graph and the directory to scan for XAML.</summary>
-public sealed record XamlProject(CodeElement Assembly, string Directory);
+/// <summary>
+///     One analyzed project: its assembly element in the graph, its directory and the XAML files belonging
+///     to it. Which files those are is an MSBuild question and is answered by <see cref="XamlFileLocator" />
+///     - the directory is only needed to name the synthetic element of a file without code-behind.
+/// </summary>
+public sealed record XamlProject(CodeElement Assembly, string Directory, IReadOnlyList<string> Files);
 
 /// <summary>
 ///     Turns the references <see cref="XamlReferenceExtractor" /> finds into real relationships in the code
@@ -37,7 +41,7 @@ public static class XamlGraphLinker
 
         foreach (var project in projects)
         {
-            foreach (var file in EnumerateXamlFiles(project.Directory))
+            foreach (var file in project.Files)
             {
                 added += LinkFile(graph, project, file, typesByAssembly);
             }
@@ -130,12 +134,20 @@ public static class XamlGraphLinker
 
     /// <summary>
     ///     The stand-in for a XAML file that has no code-behind class. Named after the path relative to the
-    ///     project so two files with the same name stay distinguishable.
+    ///     project so two files with the same name stay distinguishable. A linked file lies outside the
+    ///     project directory, where a relative path would only produce a row of dots - its file name has to
+    ///     do.
     /// </summary>
     private static CodeElement GetOrCreateSyntheticElement(CodeGraph.Graph.CodeGraph graph, XamlProject project,
         string file)
     {
-        var name = Path.ChangeExtension(Path.GetRelativePath(project.Directory, file), null)
+        var relativePath = Path.GetRelativePath(project.Directory, file);
+        if (relativePath.StartsWith("..", StringComparison.Ordinal) || Path.IsPathRooted(relativePath))
+        {
+            relativePath = Path.GetFileName(file);
+        }
+
+        var name = Path.ChangeExtension(relativePath, null)
             .Replace(Path.DirectorySeparatorChar, '.')
             .Replace(Path.AltDirectorySeparatorChar, '.');
 
@@ -255,15 +267,4 @@ public static class XamlGraphLinker
         return lookup;
     }
 
-    private static IEnumerable<string> EnumerateXamlFiles(string directory)
-    {
-        if (!Directory.Exists(directory))
-        {
-            return [];
-        }
-
-        return Directory.EnumerateFiles(directory, "*.xaml", SearchOption.AllDirectories)
-            .Where(file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}") &&
-                           !file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"));
-    }
 }
