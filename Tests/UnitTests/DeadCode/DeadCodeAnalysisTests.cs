@@ -445,6 +445,23 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
+    public void Calculate_UnusedSetterOfASerializedProperty_NotReported()
+    {
+        // The deserializer writes through the setter, so a dead setter on a DTO is the rule rather than
+        // the exception - exactly like the property as a whole.
+        var dto = _graph.CreateClass("Dto");
+        dto.Attributes.Add("DataContract");
+        var property = _graph.CreateProperty("Dto.Value", dto, AccessLevel.Public);
+        var getter = _graph.CreatePropertyAccessor("Dto.get_Value", property, AccessLevel.Public);
+        _graph.CreatePropertyAccessor("Dto.set_Value", property, AccessLevel.Public);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, getter, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
     public void Calculate_PropertyOfASerializableTypeWithNoUsedAccessor_NotReported()
     {
         // Here the accessor roll-up alone would not help: nothing touches the property at all, so without

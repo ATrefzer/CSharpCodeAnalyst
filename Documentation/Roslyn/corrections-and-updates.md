@@ -4,13 +4,18 @@
 
 Constructors may be called as part of a field initialization.
 
-It looks strange if we add a constructor invocation to a field. When a field is initialized we do not have a calling method.
-
-Therefore I handle this case as shown in the image:
+There is no calling *method* in that case, so the type-level edges avoid pretending there is one:
 
 - I add two "uses" relationships from the field to the created class. (Field type and type of created class)
 
 - I move the "creates" relationship up to the containing class.
+
+The **Calls edge to an explicit internal constructor is anchored on the field**, exactly like every
+method invocation inside an initializer already is (`static readonly X = Create();` gives the field a
+Calls edge to `Create`). It used to be skipped for constructors only - "a field is not a calling method" -
+but that rationale was never applied to invocations, and the inconsistency surfaced as a dead-code false
+positive: a constructor only called from field initializers (`static readonly List<QuickInfo> Default =
+[new("...")];`) had no incoming reference anywhere and was reported with high confidence.
 
 ```
 public class FieldInitializers

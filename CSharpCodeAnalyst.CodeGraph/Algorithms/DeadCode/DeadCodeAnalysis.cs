@@ -721,12 +721,20 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     Whether the element is a public property of one of the given types. The property is what carries
-    ///     the visibility, so this is where the rule applies; its accessors are dropped with it by the
-    ///     roll-up.
+    ///     Whether the element is a public property of one of the given types - or a <b>public accessor</b>
+    ///     of one, which is what a single dead getter or setter is reported as when the other accessor
+    ///     keeps the property alive. The reflection-based reader goes through the accessor (a binding
+    ///     read is a getter call, a deserializer writes the setter), so the rule has to hold on both
+    ///     levels. An accessor narrowed below public ("public string X { get; private set; }") is out of
+    ///     reflection's reach and does not count.
     /// </summary>
     private static bool IsPublicPropertyOf(CodeElement element, HashSet<string> types)
     {
+        if (element is { ElementType: CodeElementType.PropertyAccessor, AccessLevel: AccessLevel.Public, Parent: not null })
+        {
+            return IsPublicPropertyOf(element.Parent, types);
+        }
+
         if (element is not { ElementType: CodeElementType.Property, AccessLevel: AccessLevel.Public })
         {
             return false;

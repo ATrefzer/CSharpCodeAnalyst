@@ -182,6 +182,46 @@ public class DeadCodeConfidenceTests
     }
 
     [Test]
+    public void UnusedGetterOfAPublicPropertyOnANotifyingType_IsNotHighConfidence()
+    {
+        // A {Binding} read is exactly a call of the getter. The setter keeps the property alive from
+        // production, so the finding is the single accessor - it must obey the same rule as the property.
+        var viewModel = _graph.CreateClass("InfoViewModel", accessLevel: AccessLevel.Internal);
+        var property = _graph.CreateProperty("InfoViewModel.QuickInfo", viewModel, AccessLevel.Public);
+        var getter = _graph.CreatePropertyAccessor("InfoViewModel.get_QuickInfo", property, AccessLevel.Public);
+        var setter = _graph.CreatePropertyAccessor("InfoViewModel.set_QuickInfo", property, AccessLevel.Public);
+
+        var program = _graph.CreateClass("Program");
+        var main = _graph.CreateMethod("Main", program);
+        Rel(main, setter, RelationshipType.Calls);
+
+        var store = new ExternalContractStore();
+        store.AddNotifyingType(viewModel.Id);
+
+        Assert.That(ConfidenceOf(getter, store), Is.EqualTo(DeadCodeConfidence.Medium));
+    }
+
+    [Test]
+    public void UnusedPrivateSetterOnANotifyingType_StaysHighConfidence()
+    {
+        // "public string X { get; private set; }": the binding engine resolves by public reflection and
+        // can never write through this one.
+        var viewModel = _graph.CreateClass("InfoViewModel", accessLevel: AccessLevel.Internal);
+        var property = _graph.CreateProperty("InfoViewModel.QuickInfo", viewModel, AccessLevel.Public);
+        var getter = _graph.CreatePropertyAccessor("InfoViewModel.get_QuickInfo", property, AccessLevel.Public);
+        var setter = _graph.CreatePropertyAccessor("InfoViewModel.set_QuickInfo", property, AccessLevel.Private);
+
+        var program = _graph.CreateClass("Program");
+        var main = _graph.CreateMethod("Main", program);
+        Rel(main, getter, RelationshipType.Calls);
+
+        var store = new ExternalContractStore();
+        store.AddNotifyingType(viewModel.Id);
+
+        Assert.That(ConfidenceOf(setter, store), Is.EqualTo(DeadCodeConfidence.High));
+    }
+
+    [Test]
     public void PublicPropertyOnAnOrdinaryType_StaysHighConfidence()
     {
         // Without the notification contract there is no reason to suspect a binding.

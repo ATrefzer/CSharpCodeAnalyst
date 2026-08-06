@@ -451,23 +451,23 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             }
         }
 
-        // When handling field initializers don't add calls relationship to ctor.
-        if (!isFieldInitializer)
+        // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
+        // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
+        // Adding this relationship allows following method invocations later.
+        // In a field initializer the edge is anchored on the field element - the same anchoring every
+        // method invocation in an initializer already gets. It used to be skipped there, which left a
+        // constructor only called from field initializers without a single incoming reference, and the
+        // dead code analysis reported it.
+        var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
+        if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
         {
-            // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
-            // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
-            // Adding this relationship allows following method invocations later.
-            var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
-            if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
+            // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
+            // So IsGeneric is never true, yet we need the original definition.
+            var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
+            if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
             {
-                // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
-                // So IsGeneric is never true, yet we need the original definition.
-                var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
-                if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
-                {
-                    var location = objectCreationSyntax.GetSyntaxLocation();
-                    _builder.AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
-                }
+                var location = objectCreationSyntax.GetSyntaxLocation();
+                _builder.AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);
             }
         }
 
