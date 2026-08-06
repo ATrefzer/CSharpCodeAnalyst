@@ -60,15 +60,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add _parent.
-        /// </summary>
-        public static string AddParent {
-            get {
-                return ResourceManager.GetString("AddParent", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Add direct c_hildren.
         /// </summary>
         public static string AddDirectChildren {
@@ -76,7 +67,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("AddDirectChildren", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Add direct children.
         /// </summary>
@@ -85,7 +76,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("AddDirectChildren_DialogTitle", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add _parent.
+        /// </summary>
+        public static string AddParent {
+            get {
+                return ResourceManager.GetString("AddParent", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Add parents.
         ///If code elements are selected, their parent is added. 
@@ -310,6 +310,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Browse {
             get {
                 return ResourceManager.GetString("Browse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Building dependency structure matrix ....
+        /// </summary>
+        public static string BuildingDsm_Message {
+            get {
+                return ResourceManager.GetString("BuildingDsm_Message", resourceCulture);
             }
         }
         
@@ -725,6 +734,33 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DSM.
+        /// </summary>
+        public static string Dsm_Label {
+            get {
+                return ResourceManager.GetString("Dsm_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DSM.
+        /// </summary>
+        public static string Dsm_TabHeader {
+            get {
+                return ResourceManager.GetString("Dsm_TabHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shows the whole solution as a dependency structure matrix, on the type graph: one row and column per type, dependencies lifted to the containing type, external types left out..
+        /// </summary>
+        public static string Dsm_Tooltip {
+            get {
+                return ResourceManager.GetString("Dsm_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy table as CSV.
         /// </summary>
         public static string DynamicGrid_CopyAsCsv {
@@ -748,6 +784,87 @@ namespace CSharpCodeAnalyst.Resources {
         public static string DynamicGrid_NoData {
             get {
                 return ResourceManager.GetString("DynamicGrid_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alias.
+        /// </summary>
+        public static string EditAlias_AliasColumn {
+            get {
+                return ResourceManager.GetString("EditAlias_AliasColumn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear the search..
+        /// </summary>
+        public static string EditAlias_ClearSearchTooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_ClearSearchTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign an alias to each developer. Developers sharing the same alias are treated as one entity (e.g. a team) in the Knowledge analysis, which colors each file by its main developer. The default alias is the developer&apos;s own name..
+        /// </summary>
+        public static string EditAlias_Description {
+            get {
+                return ResourceManager.GetString("EditAlias_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Developer.
+        /// </summary>
+        public static string EditAlias_DeveloperColumn {
+            get {
+                return ResourceManager.GetString("EditAlias_DeveloperColumn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Alias.
+        /// </summary>
+        public static string EditAlias_Label {
+            get {
+                return ResourceManager.GetString("EditAlias_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset all.
+        /// </summary>
+        public static string EditAlias_ResetButton {
+            get {
+                return ResourceManager.GetString("EditAlias_ResetButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset every alias back to the developer&apos;s own name. Takes effect when you confirm with OK..
+        /// </summary>
+        public static string EditAlias_ResetTooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_ResetTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Developer Aliases.
+        /// </summary>
+        public static string EditAlias_Title {
+            get {
+                return ResourceManager.GetString("EditAlias_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign an alias to each developer, for example to group developers onto teams. Developers that share an alias are treated as one in the Knowledge analysis. Changes are saved back to the history file..
+        /// </summary>
+        public static string EditAlias_Tooltip {
+            get {
+                return ResourceManager.GetString("EditAlias_Tooltip", resourceCulture);
             }
         }
         
@@ -959,7 +1076,7 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Set project exclusion filters.
+        ///   Looks up a localized string similar to Set project exclusion filters (regex).
         /// </summary>
         public static string FilterDialog_Title {
             get {
@@ -1337,6 +1454,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alias mapping saved..
+        /// </summary>
+        public static string History_AliasSaved {
+            get {
+                return ResourceManager.GetString("History_AliasSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string History_CancelButton {
@@ -1678,7 +1804,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Import_Progress", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Import Visual Studio _solution or C# project ....
         /// </summary>
@@ -1751,96 +1877,6 @@ namespace CSharpCodeAnalyst.Resources {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Alias.
-        /// </summary>
-        public static string EditAlias_Label {
-            get {
-                return ResourceManager.GetString("EditAlias_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Assign an alias to each developer....
-        /// </summary>
-        public static string EditAlias_Tooltip {
-            get {
-                return ResourceManager.GetString("EditAlias_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Edit Developer Aliases.
-        /// </summary>
-        public static string EditAlias_Title {
-            get {
-                return ResourceManager.GetString("EditAlias_Title", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Assign an alias to each developer....
-        /// </summary>
-        public static string EditAlias_Description {
-            get {
-                return ResourceManager.GetString("EditAlias_Description", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Clear the search.
-        /// </summary>
-        public static string EditAlias_ClearSearchTooltip {
-            get {
-                return ResourceManager.GetString("EditAlias_ClearSearchTooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Reset all.
-        /// </summary>
-        public static string EditAlias_ResetButton {
-            get {
-                return ResourceManager.GetString("EditAlias_ResetButton", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Reset every alias back to the developer's own name....
-        /// </summary>
-        public static string EditAlias_ResetTooltip {
-            get {
-                return ResourceManager.GetString("EditAlias_ResetTooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Developer.
-        /// </summary>
-        public static string EditAlias_DeveloperColumn {
-            get {
-                return ResourceManager.GetString("EditAlias_DeveloperColumn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Alias.
-        /// </summary>
-        public static string EditAlias_AliasColumn {
-            get {
-                return ResourceManager.GetString("EditAlias_AliasColumn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Alias mapping saved.
-        /// </summary>
-        public static string History_AliasSaved {
-            get {
-                return ResourceManager.GetString("History_AliasSaved", resourceCulture);
-            }
-        }
-
         /// <summary>
         ///   Looks up a localized string similar to Knowledge.
         /// </summary>
@@ -3381,42 +3417,6 @@ namespace CSharpCodeAnalyst.Resources {
         public static string WebView_TabHeader {
             get {
                 return ResourceManager.GetString("WebView_TabHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to DSM.
-        /// </summary>
-        public static string Dsm_Label {
-            get {
-                return ResourceManager.GetString("Dsm_Label", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Shows the whole solution as a dependency structure matrix, on the type graph: one row and column per type, dependencies lifted to the containing type, external types left out.
-        /// </summary>
-        public static string Dsm_Tooltip {
-            get {
-                return ResourceManager.GetString("Dsm_Tooltip", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to DSM.
-        /// </summary>
-        public static string Dsm_TabHeader {
-            get {
-                return ResourceManager.GetString("Dsm_TabHeader", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Building dependency structure matrix ....
-        /// </summary>
-        public static string BuildingDsm_Message {
-            get {
-                return ResourceManager.GetString("BuildingDsm_Message", resourceCulture);
             }
         }
     }

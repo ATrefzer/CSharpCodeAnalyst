@@ -917,7 +917,7 @@ Search with resharper style = Use at least one uppercase character in a search t
     <value>Browse ...</value>
   </data>
   <data name="FilterDialog_Title" xml:space="preserve">
-    <value>Set project exclusion filters</value>
+    <value>Set project exclusion filters (regex)</value>
   </data>
   <data name="FilterDialog_ProjectFilters_Tooltip" xml:space="preserve">
     <value>Regular expressions to exclude projects</value>
