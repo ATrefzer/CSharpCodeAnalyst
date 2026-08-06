@@ -38,6 +38,12 @@ internal abstract class Term : IExpression
         {
             SearchMode = SearchType.ExternalCode;
         }
+        else if (lowerSearchTerm is "source:generated")
+        {
+            // Code a tool wrote. Mostly useful negated ("-source:generated"), because a resx designer or
+            // the XAML markup compiler contributes rows nobody can act on.
+            SearchMode = SearchType.GeneratedCode;
+        }
         else
         {
             var (isPascalCase, regex) = PascalCaseSearch.CreateSearchRegex(searchTerm);
@@ -88,7 +94,10 @@ internal abstract class Term : IExpression
 
         FullNameResharperStyle,
         ExternalCode,
-        InternalCode
+        InternalCode,
+
+        // Written by a tool rather than a person (CodeElement.IsGenerated).
+        GeneratedCode
     }
 
     internal class And : IExpression
@@ -161,6 +170,7 @@ internal class FullNameSearch(string searchTerm) : Term(searchTerm)
             SearchType.Type => item.ElementType == Type,
             SearchType.InternalCode => !item.IsExternal,
             SearchType.ExternalCode => item.IsExternal,
+            SearchType.GeneratedCode => item.IsGenerated,
             SearchType.FullNameResharperStyle => Regex!.IsMatch(item.FullName),
             _ => item.FullName.Contains(SearchTerm, StringComparison.InvariantCultureIgnoreCase)
         };
@@ -181,6 +191,7 @@ internal class NameSearch(string searchTerm) : Term(searchTerm)
             SearchType.Type => item.ElementType == Type,
             SearchType.InternalCode => !item.IsExternal,
             SearchType.ExternalCode => item.IsExternal,
+            SearchType.GeneratedCode => item.IsGenerated,
             SearchType.FullNameResharperStyle => Regex!.IsMatch(item.Name),
             _ => item.Name.Contains(SearchTerm, StringComparison.InvariantCultureIgnoreCase)
         };

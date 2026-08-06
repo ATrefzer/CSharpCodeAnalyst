@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.AnalyzerSdk.Search;
+﻿using CSharpCodeAnalyst.AnalyzerSdk.Search;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Search;
@@ -13,9 +13,13 @@ namespace CodeParserTests.UnitTests.Search;
 public class SearchExpressionTests
 {
     private static CodeElement Element(string fullName, string? name = null,
-        CodeElementType type = CodeElementType.Class, bool isExternal = false)
+        CodeElementType type = CodeElementType.Class, bool isExternal = false, bool isGenerated = false)
     {
-        return new CodeElement(fullName, type, name ?? fullName, fullName, null) { IsExternal = isExternal };
+        return new CodeElement(fullName, type, name ?? fullName, fullName, null)
+        {
+            IsExternal = isExternal,
+            IsGenerated = isGenerated
+        };
     }
 
     private static bool Matches(string search, CodeElement? element,
@@ -140,6 +144,39 @@ public class SearchExpressionTests
         {
             Assert.That(Matches("-source:extern", external), Is.False);
             Assert.That(Matches("-source:extern", internalElement), Is.True);
+        });
+    }
+
+    [Test]
+    public void SourceGenerated_SelectsWhatAToolWrote()
+    {
+        var generated = Element("App.MainWindow.Connect", type: CodeElementType.Method, isGenerated: true);
+        var handWritten = Element("App.MainWindow.OnClick", type: CodeElementType.Method);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Matches("source:generated", generated), Is.True);
+            Assert.That(Matches("source:generated", handWritten), Is.False);
+
+            // The useful direction: drop the rows nobody can act on.
+            Assert.That(Matches("-source:generated", generated), Is.False);
+            Assert.That(Matches("-source:generated", handWritten), Is.True);
+        });
+    }
+
+    /// <summary>The three source terms are independent - generated code is internal code, not a third kind.</summary>
+    [Test]
+    public void SourceGenerated_IsIndependentOfInternAndExtern()
+    {
+        var generated = Element("App.MainWindow.Connect", type: CodeElementType.Method, isGenerated: true);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Matches("source:intern", generated), Is.True);
+            Assert.That(Matches("source:extern", generated), Is.False);
+
+            // Combined with AND, which is how it is typed in the search box.
+            Assert.That(Matches("source:intern -source:generated", generated), Is.False);
         });
     }
 
