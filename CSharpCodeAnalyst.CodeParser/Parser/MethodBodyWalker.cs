@@ -11,8 +11,8 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 internal class MethodBodyWalker : SyntaxWalkerBase
 {
 
-    public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
-        : base(analyzer, sourceElement, semanticModel, isFieldInitializer)
+    public MethodBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel)
+        : base(analyzer, sourceElement, semanticModel)
     {
     }
 
@@ -91,7 +91,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     /// </summary>
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
-        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node, IsFieldInitializer);
+        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node);
         base.VisitImplicitObjectCreationExpression(node);
     }
 
@@ -100,7 +100,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     /// </summary>
     public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
-        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node, IsFieldInitializer);
+        Analyzer.AnalyzeObjectCreation(SourceElement, SemanticModel, node);
         base.VisitObjectCreationExpression(node);
     }
 

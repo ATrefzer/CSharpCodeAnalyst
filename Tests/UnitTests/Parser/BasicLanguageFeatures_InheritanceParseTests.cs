@@ -141,8 +141,9 @@ public class BasicLanguageFeatures_InheritanceParseTests : InMemoryParseTestBase
     {
         var expected = new[]
         {
-            // Field initializer (attributed to the type) and a creation inside a local function.
-            "FieldInitializers -> BaseClass",
+            // Field initializers (anchored on the field) and a creation inside a local function.
+            "FieldInitializers._baseClassList -> BaseClass",
+            "FieldInitializers._baseClass -> BaseClass",
             "BaseClass.HasLocalFunction -> CreatableClass"
         };
 

@@ -504,7 +504,7 @@ internal class DeclarationAnalyzer
                 {
                     // The walk starts at the EqualsValueClause (not its value) so that an implicit
                     // user-defined conversion of the initializer is captured (VisitEqualsValueClause).
-                    _bodyAnalyzer.AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer, semanticModel, true);
+                    _bodyAnalyzer.AnalyzeMethodBody(fieldElement, variableDeclarator.Initializer, semanticModel);
                 }
             }
         }
@@ -744,7 +744,7 @@ internal class DeclarationAnalyzer
                     // The initializer runs at construction, so it stays on the property container.
                     if (syntax is PropertyDeclarationSyntax { Initializer: not null } propertyWithInitializer)
                     {
-                        _bodyAnalyzer.AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer, semanticModel, true);
+                        _bodyAnalyzer.AnalyzeMethodBody(propertyElement, propertyWithInitializer.Initializer, semanticModel);
                     }
                 }
             }

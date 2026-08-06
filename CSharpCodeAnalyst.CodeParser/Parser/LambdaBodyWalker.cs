@@ -15,7 +15,7 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 internal class LambdaBodyWalker : SyntaxWalkerBase
 {
     public LambdaBodyWalker(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel)
-        : base(analyzer, sourceElement, semanticModel, false)
+        : base(analyzer, sourceElement, semanticModel)
     {
     }
 

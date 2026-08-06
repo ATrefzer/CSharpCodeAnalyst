@@ -3,8 +3,10 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
-///     Property and field initializers: the containing type "creates" the object, the member "uses" it.
-///     Migrated from the former Core.BasicLanguageFeatures approval fixture (Initializers namespace).
+///     Property and field initializers: the initialized member owns the creation - it "creates" the
+///     object and calls the constructor, the same anchoring as for every method invocation in an
+///     initializer. Migrated from the former Core.BasicLanguageFeatures approval fixture (Initializers
+///     namespace).
 /// </summary>
 [TestFixture]
 public class BasicLanguageFeatures_InitializersParseTests : InMemoryParseTestBase
@@ -45,8 +47,8 @@ public class BasicLanguageFeatures_InitializersParseTests : InMemoryParseTestBas
     {
         var expected = new[]
         {
-            "CarWithFieldInitializer -> Engine",
-            "CarWithPropertyInitializer -> Engine"
+            "CarWithFieldInitializer._engine -> Engine",
+            "CarWithPropertyInitializer.Engine -> Engine"
         };
 
         Assert.That(RelsOf(RelationshipType.Creates), Is.EquivalentTo(expected));

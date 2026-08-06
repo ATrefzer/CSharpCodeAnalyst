@@ -83,7 +83,7 @@ public class BasicLanguageFeatures_IndexersAndOperatorsParseTests : InMemoryPars
     {
         var expected = new[]
         {
-            "Catalog -> DataStore",
+            "Catalog._store -> DataStore",
             "Catalog.op_Addition -> Catalog"
         };
 

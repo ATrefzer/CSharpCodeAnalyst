@@ -98,9 +98,9 @@ public class BasicLanguageFeatures_OverloadsParseTests : InMemoryParseTestBase
             "Calculator.Compute -> ByRefResult",
             "Calculator.Compute -> ByOutResult",
 
-            // Both indexer field initializers (attributed to the type).
-            "Repository -> IntStore",
-            "Repository -> TextStore"
+            // Both indexer field initializers (anchored on the field).
+            "Repository._byIndex -> IntStore",
+            "Repository._byKey -> TextStore"
         };
 
         Assert.That(RelsOf(RelationshipType.Creates), Is.EquivalentTo(expected));

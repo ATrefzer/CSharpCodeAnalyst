@@ -20,16 +20,14 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 internal class SyntaxWalkerBase : CSharpSyntaxWalker
 {
     protected readonly ISyntaxNodeHandler Analyzer;
-    protected readonly bool IsFieldInitializer;
     protected readonly SemanticModel SemanticModel;
     protected readonly CodeElement SourceElement;
 
-    protected SyntaxWalkerBase(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel, bool isFieldInitializer)
+    protected SyntaxWalkerBase(ISyntaxNodeHandler analyzer, CodeElement sourceElement, SemanticModel semanticModel)
     {
         Analyzer = analyzer;
         SourceElement = sourceElement;
         SemanticModel = semanticModel;
-        IsFieldInitializer = isFieldInitializer;
     }
 
     // Note: VisitIdentifierName is NOT overridden here because concrete walkers need to specify

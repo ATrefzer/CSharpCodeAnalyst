@@ -1,21 +1,8 @@
 # Corrections and updates
 
-## Field initializers
+## Field and property initializers
 
-Constructors may be called as part of a field initialization.
-
-There is no calling *method* in that case, so the type-level edges avoid pretending there is one:
-
-- I add two "uses" relationships from the field to the created class. (Field type and type of created class)
-
-- I move the "creates" relationship up to the containing class.
-
-The **Calls edge to an explicit internal constructor is anchored on the field**, exactly like every
-method invocation inside an initializer already is (`static readonly X = Create();` gives the field a
-Calls edge to `Create`). It used to be skipped for constructors only - "a field is not a calling method" -
-but that rationale was never applied to invocations, and the inconsistency surfaced as a dead-code false
-positive: a constructor only called from field initializers (`static readonly List<QuickInfo> Default =
-[new("...")];`) had no incoming reference anywhere and was reported with high confidence.
+Constructors may be called as part of a field or property initialization:
 
 ```
 public class FieldInitializers
@@ -23,10 +10,29 @@ public class FieldInitializers
     private BaseClass _baseClass = new BaseClass();
 
     private static List<BaseClass> _baseClassList = [new()];
+
+    public BaseClass Prop { get; } = new();
 }
 ```
 
-![](field-initializers.png)
+An object creation in an initializer is anchored on the **initialized member itself**: the field or
+property *creates* the constructed type and *calls* its explicit internal constructor - the same
+anchoring every method invocation inside an initializer always had (`static readonly X = Create();`
+gives the field a Calls edge to `Create`).
+
+It used to be special-cased - "a field is not a calling method": the Creates edge was moved up to the
+containing class, the constructor call was omitted entirely, and the field got a consolation Uses edge
+to the created type. Two things killed that modelling. The omitted constructor call surfaced as a
+dead-code false positive: a constructor only called from field initializers
+(`static readonly List<QuickInfo> Default = [new("...")];`) had no incoming reference anywhere and was
+reported with high confidence. And the class-level Creates was one level too coarse for member-level
+analyses (the cohesion partitioning groups members by shared dependencies - the field is what owns
+this one).
+
+"A field calls a constructor" reads odd only under a runtime interpretation. The graph models which
+element *owns* a dependency, not stack frames - the true runtime caller (the instance constructors, or
+the implicit `.cctor`) often has no element at all, which is exactly why the old modelling had to
+invent a stand-in anchor.
 
 
 

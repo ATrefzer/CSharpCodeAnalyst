@@ -28,9 +28,9 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
     ///     For method and property bodies, field initializers, attribute arguments, enum member
     ///     initializers and primary-constructor base arguments. Entry point for every body walk.
     /// </summary>
-    public void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel, bool isFieldInitializer = false)
+    public void AnalyzeMethodBody(CodeElement sourceElement, SyntaxNode node, SemanticModel semanticModel)
     {
-        var walker = new MethodBodyWalker(this, sourceElement, semanticModel, isFieldInitializer);
+        var walker = new MethodBodyWalker(this, sourceElement, semanticModel);
         walker.Visit(node);
     }
 
@@ -426,38 +426,25 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
     ///     <inheritdoc cref="ISyntaxNodeHandler.AnalyzeObjectCreation" />
     /// </summary>
     public void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
-        BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer)
+        BaseObjectCreationExpressionSyntax objectCreationSyntax)
     {
         var typeInfo = semanticModel.GetTypeInfo(objectCreationSyntax);
         if (typeInfo.Type != null)
         {
-            var location = objectCreationSyntax.GetSyntaxLocation();
-
-            if (isFieldInitializer)
-            {
-                // Field "uses" the created class
-                _builder.AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Uses, location);
-
-                // Containing class "creates" the object
-                if (sourceElement.Parent != null)
-                {
-                    _builder.AddTypeRelationship(sourceElement.Parent, typeInfo.Type, RelationshipType.Creates, location);
-                }
-            }
-            else
-            {
-                // Method "creates" the object
-                _builder.AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates, location);
-            }
+            // The element owning the expression "creates" the object. For a field or property
+            // initializer that is the field or property itself - the same anchoring every other
+            // dependency of an initializer gets. The graph models which element owns a dependency,
+            // not runtime stack frames; the true runtime caller (the instance constructors, or the
+            // implicit .cctor) often has no element at all.
+            _builder.AddTypeRelationship(sourceElement, typeInfo.Type, RelationshipType.Creates,
+                objectCreationSyntax.GetSyntaxLocation());
         }
 
         // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
         // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
-        // Adding this relationship allows following method invocations later.
-        // In a field initializer the edge is anchored on the field element - the same anchoring every
-        // method invocation in an initializer already gets. It used to be skipped there, which left a
-        // constructor only called from field initializers without a single incoming reference, and the
-        // dead code analysis reported it.
+        // Adding this relationship allows following method invocations later. It used to be skipped for
+        // field initializers, which left a constructor only called from them without a single incoming
+        // reference, and the dead code analysis reported it.
         var symbolInfo = semanticModel.GetSymbolInfo(objectCreationSyntax);
         if (symbolInfo.Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
         {

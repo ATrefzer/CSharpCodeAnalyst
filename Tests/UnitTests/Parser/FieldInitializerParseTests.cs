@@ -35,6 +35,9 @@ public class FieldInitializerParseTests
                                 // Explicit new.
                                 private Widget _single = new Widget("single");
 
+                                // Property initializers share the anchoring.
+                                public Widget Prop { get; } = new("prop");
+
                                 public static List<Widget> All()
                                 {
                                     return Default;
@@ -60,9 +63,14 @@ public class FieldInitializerParseTests
         return _graph.Nodes.Values.Single(n => n.Name == name && n.ElementType == type);
     }
 
+    private bool HasEdge(CodeElement source, CodeElement target, RelationshipType type)
+    {
+        return source.Relationships.Any(r => r.TargetId == target.Id && r.Type == type);
+    }
+
     private bool HasCallsEdge(CodeElement source, CodeElement target)
     {
-        return source.Relationships.Any(r => r.TargetId == target.Id && r.Type == RelationshipType.Calls);
+        return HasEdge(source, target, RelationshipType.Calls);
     }
 
     [Test]
@@ -81,6 +89,34 @@ public class FieldInitializerParseTests
         var field = Element("_single", CodeElementType.Field);
 
         Assert.That(HasCallsEdge(field, constructor), Is.True);
+    }
+
+    [Test]
+    public void PropertyInitializer_CallsTheConstructor()
+    {
+        var constructor = Element(".ctor", CodeElementType.Method);
+        var property = Element("Prop", CodeElementType.Property);
+
+        Assert.That(HasCallsEdge(property, constructor), Is.True);
+    }
+
+    [Test]
+    public void CreatesIsAnchoredOnTheInitializedMember_NotOnTheContainingClass()
+    {
+        // The graph models which element owns a dependency, not runtime stack frames. The Creates used
+        // to sit on the containing class, which kept the created type alive one level too coarse for
+        // member-level analyses.
+        var widget = Element("Widget", CodeElementType.Class);
+        var factory = Element("Factory", CodeElementType.Class);
+        var field = Element("Default", CodeElementType.Field);
+        var property = Element("Prop", CodeElementType.Property);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(HasEdge(field, widget, RelationshipType.Creates), Is.True);
+            Assert.That(HasEdge(property, widget, RelationshipType.Creates), Is.True);
+            Assert.That(HasEdge(factory, widget, RelationshipType.Creates), Is.False);
+        });
     }
 
     [Test]

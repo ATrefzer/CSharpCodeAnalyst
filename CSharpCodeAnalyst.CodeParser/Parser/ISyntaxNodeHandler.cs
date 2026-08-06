@@ -76,14 +76,13 @@ public interface ISyntaxNodeHandler
     ///     new Class() is ObjectCreationExpressionSyntax
     ///     They are different cases in the MethodBodyWalker,
     ///     but both expressions derive from BaseObjectCreationExpressionSyntax
-    /// 
-    ///     If the object is created as part of a field initialization additional steps are necessary
-    ///     - Source for the creates relationship is the containing class and not to the field.
-    ///     - Constructor calls relationship is omitted.
-    ///     - Field gets an uses relationship to the created type (may not be the same as the field type)
+    ///
+    ///     The source element owns the expression and gets both edges (Creates to the type, Calls to an
+    ///     explicit internal constructor) - in a field or property initializer that is the field or
+    ///     property itself, the same anchoring as for every method invocation in an initializer.
     /// </summary>
     void AnalyzeObjectCreation(CodeElement sourceElement, SemanticModel semanticModel,
-        BaseObjectCreationExpressionSyntax objectCreationSyntax, bool isFieldInitializer);
+        BaseObjectCreationExpressionSyntax objectCreationSyntax);
 
     /// <summary>
     ///     Adds a relationship to a type the walker has already resolved itself. Used by the visits that
