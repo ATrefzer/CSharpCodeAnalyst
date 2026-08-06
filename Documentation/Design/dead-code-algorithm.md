@@ -144,7 +144,7 @@ Jetzt geht es einmal über alle Knoten. Vier Filter, in dieser Reihenfolge:
 
 **1. Ist es überhaupt ein Fund?** (`IsReported`)
 
-- Assemblies, Namespaces und externe Elemente sind nie Kandidaten.
+- Assemblies, Namespaces und externe Elemente sind nie Kandidaten. Statische Konstruktoren und Finalizer auch nicht: Die ruft nur die Runtime, kein Code kann sie referenzieren – auf einem lebendigen Typ wäre die Zeile immer falsch, auf einem toten deckt sie das Roll-up ab.
 - Steht es in `FromProduction`? → lebendig, fertig.
 - Sonst: gar nicht referenziert **oder** nur von Tests. Letzteres zählt nur *außerhalb* eines Test-Typs – innerhalb einer Fixture ist „von Tests benutzt" ja der Zweck ihrer Helfer. Eine Helper-*Klasse* außerhalb der Fixtures wird dagegen gemeldet – der akzeptierte Preis der Typ-Granularität: Die Aussage stimmt (der Helper geht mit den Tests), sie ist nur Rauschen, solange er seinen Job tut.
 
@@ -160,7 +160,7 @@ Zwei Sorten. **Zweifel** – der Verweis könnte da sein, wo der Parser nicht hi
 
 | Notiz                             | Woher                                              |
 | --------------------------------- | -------------------------------------------------- |
-| `Entry point`                     | `Main`, statischer Konstruktor, `GlobalStatements` |
+| `Entry point`                     | `Main`, `GlobalStatements` |
 | `Test code`                       | Testattribut im Teilbaum                           |
 | `Attributes: …`                   | irgendein Attribut im Teilbaum                     |
 | `Implements external contract: …` | aus dem `ExternalContractStore` des Parsers        |

@@ -254,14 +254,15 @@ hand.
 
 The analysis can only see what the parser saw. Everything reached through reflection, dependency injection,
 serialization or a test runner therefore looks unreferenced. Those elements are not silently dropped — they
-are reported with a note, and you decide. (The single exception is the serialized property above, where the
-note would be on every row of a DTO.)
+are reported with a note, and you decide. (Two exceptions are dropped outright: the serialized property
+above, where the note would be on every row of a DTO, and static constructors and finalizers — no code can
+reference those, only the runtime calls them, so the row would be wrong on every live type.)
 
 **Doubts** — the reference may exist where the parser cannot look:
 
 | Note              | Meaning                                                                       |
 | ----------------- | ------------------------------------------------------------------------------ |
-| `Entry point`     | `Main`, a static constructor (the runtime runs it), or the synthetic `GlobalStatements` element for top-level statements. |
+| `Entry point`     | `Main`, or the synthetic `GlobalStatements` element for top-level statements. |
 | `Test code`       | The element or something below it carries a known test-framework attribute.    |
 | `Generated code`  | A tool wrote it, not a person. The finding is correct, it is just not for you — the next build writes it again. See [Generated code](#generated-code). |
 | `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed, including the test ones that already produced `Test code`. |

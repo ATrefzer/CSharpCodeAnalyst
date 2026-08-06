@@ -174,26 +174,4 @@ public class DeadCodeConfidenceTests
         Assert.That(ConfidenceOf(unused), Is.EqualTo(DeadCodeConfidence.High));
     }
 
-    [Test]
-    public void StaticConstructor_IsAnEntryPointAndNotHighConfidence()
-    {
-        // The runtime runs it before the first use of the type; nothing in the code references it. It is
-        // usually private, so without the entry point rule it would land in the highest confidence band.
-        var type = _graph.CreateClass("Cache", accessLevel: AccessLevel.Internal);
-        var staticConstructor = _graph.CreateMethod(".cctor", type, AccessLevel.Private);
-        var used = _graph.CreateMethod("Cache.Used", type, AccessLevel.Public);
-
-        var program = _graph.CreateClass("Program");
-        var main = _graph.CreateMethod("Main", program);
-        Rel(main, used, RelationshipType.Calls);
-
-        var finding = DeadCodeAnalysis.Calculate(_graph).Single(f => f.Element.Id == staticConstructor.Id);
-
-        Assert.Multiple(() =>
-        {
-            Assert.That(finding.Hints.HasFlag(DeadCodeHint.EntryPoint), Is.True);
-            Assert.That(finding.Confidence, Is.EqualTo(DeadCodeConfidence.Low));
-        });
-    }
-
 }

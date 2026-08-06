@@ -284,6 +284,33 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
+    public void Calculate_StaticConstructorAndFinalizer_AreNeverReported()
+    {
+        // No code can reference either - the runtime calls them. On a live type the row would be wrong
+        // in every case, so it is dropped rather than annotated; on a dead type the roll-up covers them.
+        var cache = _graph.CreateClass("Cache");
+        _graph.CreateMethod(".cctor", cache);
+        _graph.CreateMethod("Finalize", cache);
+        var used = _graph.CreateMethod("Cache.Used", cache);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, used, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_DeadClassWithStaticConstructor_IsReportedWithoutAnEntryPointHint()
+    {
+        // An unused type's static constructor never runs. It must not push the class finding down to
+        // the lowest confidence the way a real entry point would.
+        var cache = _graph.CreateClass("Cache");
+        _graph.CreateMethod(".cctor", cache);
+
+        Assert.That(FindingFor(cache).Hints, Is.EqualTo(DeadCodeHint.None));
+    }
+
+    [Test]
     public void Calculate_UnusedPropertyAccessor_Reported()
     {
         var a = _graph.CreateClass("A");

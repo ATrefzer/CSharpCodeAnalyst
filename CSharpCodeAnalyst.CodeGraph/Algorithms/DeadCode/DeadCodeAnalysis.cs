@@ -51,9 +51,12 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         that level - which is the honest answer, not a penalty.
 ///     </para>
 ///     <para>
-///         One case is dropped instead of reported: a public property of a type marked as a serialization
-///         target (see <see cref="IsSerializedProperty" />). A serializer reaches it by reflection, so on
-///         such a type an unreferenced property is the rule rather than the exception.
+///         Two cases are dropped instead of reported. A public property of a type marked as a
+///         serialization target (see <see cref="IsSerializedProperty" />): a serializer reaches it by
+///         reflection, so on such a type an unreferenced property is the rule rather than the exception.
+///         And the members only the runtime ever calls, static constructor and finalizer (see
+///         <see cref="IsRuntimeInvoked" />): no code can reference them, so the row would be wrong on
+///         every live type.
 ///     </para>
 ///     <para>
 ///         A single property accessor <i>is</i> reported. Rolling it up into the property used to halve the
@@ -720,12 +723,28 @@ public static class DeadCodeAnalysis
 
     /// <summary>
     ///     Containers never carry relationships of their own, so they would all look dead. External
-    ///     elements are out of scope - we see neither their callers nor their bodies.
+    ///     elements are out of scope - we see neither their callers nor their bodies. And the members
+    ///     only the runtime calls can never be dead on their own.
     /// </summary>
     private static bool IsCandidate(CodeElement element)
     {
         return !element.IsExternal &&
-               element.ElementType is not (CodeElementType.Assembly or CodeElementType.Namespace);
+               element.ElementType is not (CodeElementType.Assembly or CodeElementType.Namespace) &&
+               !IsRuntimeInvoked(element);
+    }
+
+    /// <summary>
+    ///     Members only the runtime ever calls: the static constructor (run before the first use of the
+    ///     type) and the finalizer (run by the garbage collector - C# cannot even spell a call to it;
+    ///     the destructor arrives from the parser as an ordinary method named "Finalize"). No code can
+    ///     reference them, so "nothing references it" carries no information here: on a live type the
+    ///     row would be wrong in every single case, and on a dead type they disappear into the roll-up.
+    ///     Unlike an entry point this is not a doubt worth a note - the finding is dropped. Both are
+    ///     effectively private, so without this they would land in the highest confidence band.
+    /// </summary>
+    private static bool IsRuntimeInvoked(CodeElement element)
+    {
+        return element is { ElementType: CodeElementType.Method, Name: ".cctor" or "Finalize" };
     }
 
     /// <summary>
@@ -735,14 +754,6 @@ public static class DeadCodeAnalysis
     private static bool IsEntryPoint(CodeElement element)
     {
         if (element is { ElementType: CodeElementType.Method, Name: "Main" })
-        {
-            return true;
-        }
-
-        // A static constructor is run by the runtime before the first use of the type. Nothing in the
-        // code ever references it, so without this it looks like a particularly trustworthy finding -
-        // it is usually private, which would otherwise put it in the highest confidence band.
-        if (element is { ElementType: CodeElementType.Method, Name: ".cctor" })
         {
             return true;
         }

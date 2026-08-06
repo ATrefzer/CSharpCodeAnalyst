@@ -465,6 +465,9 @@ The dead code analysis uses it for the confidence of a finding, and reads it ove
 chain: a `public` method of an `internal` class is just as unreachable from another assembly, so it is the
 *most restrictive* container that decides.
 
-One entry point was found only through this: a **static constructor** (`.cctor`) is run by the runtime and
-never referenced from code. It is usually private, so it landed in the highest confidence band until it was
-recognized as an entry point like `Main`.
+Two members were found only through this: a **static constructor** (`.cctor`) and a **finalizer** (the
+destructor arrives from the parser as an ordinary method named `Finalize` - the Roslyn symbol name). Both
+are run by the runtime, can never be referenced from code, and are effectively private, so they landed in
+the highest confidence band. The static constructor started out annotated as an entry point; both are now
+dropped from the result entirely - on a live type such a row is wrong in every case, and on a dead type
+the roll-up covers them.
