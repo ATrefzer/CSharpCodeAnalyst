@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
+﻿using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
 using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
@@ -45,7 +45,7 @@ public class Importer
     }
 
     public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode,
-        bool includeGeneratedCode, bool splitPropertyAccessors)
+        bool splitPropertyAccessors)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -56,7 +56,7 @@ public class Importer
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
             async () => (ParseResult?)await Task.Run(() =>
-                ImportSolutionFuncAsync(fileName, filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors)));
+                ImportSolutionFuncAsync(fileName, filters, includeExternalCode, splitPropertyAccessors)));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -87,9 +87,9 @@ public class Importer
     }
 
     private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters,
-        bool includeExternalCode, bool includeGeneratedCode, bool splitPropertyAccessors)
+        bool includeExternalCode, bool splitPropertyAccessors)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, includeGeneratedCode, splitPropertyAccessors), _progress);
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode, splitPropertyAccessors), _progress);
 
         _parserDiagnostics = null;
         var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(true);

@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Persistence.Dto;
 
@@ -11,7 +11,8 @@ public class SerializableCodeElement(
     List<SourceLocation> sourceLocations,
     HashSet<string> attributes,
     bool isExternal = false,
-    AccessLevel accessLevel = AccessLevel.Unknown)
+    AccessLevel accessLevel = AccessLevel.Unknown,
+    bool isGenerated = false)
 {
     public string Id { get; set; } = id;
     public string Name { get; set; } = name;
@@ -24,6 +25,12 @@ public class SerializableCodeElement(
     ///     Whether the element belongs to a referenced assembly rather than the parsed solution.
     /// </summary>
     public bool IsExternal { get; set; } = isExternal;
+
+    /// <summary>
+    ///     Whether a tool wrote the element. Defaults to false, so a project file written before this
+    ///     existed keeps loading - its elements simply carry no marking until the next parse.
+    /// </summary>
+    public bool IsGenerated { get; set; } = isGenerated;
 
     /// <summary>
     ///     How far the element can be reached from. Defaults to Unknown, so a project file written before

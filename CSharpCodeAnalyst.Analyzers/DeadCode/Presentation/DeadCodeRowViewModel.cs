@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.Analyzers.Resources;
+﻿using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 using CSharpCodeAnalyst.CodeGraph.Graph;
@@ -60,6 +60,11 @@ public class DeadCodeRowViewModel : TableRow
         if (finding.Hints.HasFlag(DeadCodeHint.TestCode))
         {
             parts.Add(Strings.DeadCode_Hint_TestCode);
+        }
+
+        if (finding.Hints.HasFlag(DeadCodeHint.Generated))
+        {
+            parts.Add(Strings.DeadCode_Hint_Generated);
         }
 
         if (finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests))

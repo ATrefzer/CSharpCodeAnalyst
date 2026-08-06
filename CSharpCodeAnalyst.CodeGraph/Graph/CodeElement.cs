@@ -42,6 +42,17 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     public bool IsExternal { get; init; }
 
     /// <summary>
+    ///     Whether a tool wrote this element rather than a person - every declaration of it sits in a
+    ///     generated file. Generated code is always parsed, because it holds relationships nothing else
+    ///     does; the flag exists so a result can leave out what nobody can edit anyway.
+    ///     <para>
+    ///         A partial type that a generator only extends is <i>not</i> marked: half of it is hand
+    ///         written. Only what lives exclusively in the generated file is.
+    ///     </para>
+    /// </summary>
+    public bool IsGenerated { get; set; }
+
+    /// <summary>
     ///     How far the element can be reached from. <see cref="Graph.AccessLevel.Unknown" /> when the
     ///     producer does not supply it - every importer except the C# parser, and any project file written
     ///     before this existed. Never read Unknown as a value; it means "no information".
@@ -115,6 +126,7 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
             FullName, null)
         {
             IsExternal = IsExternal,
+            IsGenerated = IsGenerated,
             AccessLevel = AccessLevel
         };
 

@@ -411,6 +411,15 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Generated code.
+        /// </summary>
+        public static string DeadCode_Hint_Generated {
+            get {
+                return ResourceManager.GetString("DeadCode_Hint_Generated", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Type Cohesion.
         /// </summary>
         public static string Analyzer_TypeCohesion_Label {

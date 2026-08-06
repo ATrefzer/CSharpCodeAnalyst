@@ -5,25 +5,21 @@ public class ParserConfig
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals,
-        bool includeGeneratedCode = false, bool splitPropertyAccessors = false,
-        bool includeXamlReferences = true)
+        bool splitPropertyAccessors = false, bool includeXamlReferences = true)
     {
         _projectExclusionFilters = projectExclusionFilters;
         IncludeExternals = includeExternals;
-        IncludeGeneratedCode = includeGeneratedCode;
         SplitPropertyAccessors = splitPropertyAccessors;
         IncludeXamlReferences = includeXamlReferences;
     }
 
     public bool IncludeExternals { get; }
 
-    /// <summary>
-    ///     When enabled, source-generated documents (e.g. CommunityToolkit.Mvvm [ObservableProperty] /
-    ///     [RelayCommand], [GeneratedRegex], ...) are included in phase 1 so the generated members get
-    ///     their own code element instead of being collapsed onto the containing type via the phase-2
-    ///     fallback.
-    /// </summary>
-    public bool IncludeGeneratedCode { get; }
+    // There is no "include generated code" option. Generated code is always parsed: leaving it out
+    // removes the only reference many hand-written elements have (the markup compiler's Connect is the
+    // sole caller of every XAML event handler, an [ObservableProperty] the only reader of its backing
+    // field), which turns them into dead code. What a tool wrote carries CodeElement.IsGenerated instead,
+    // so a result can leave it out without the graph losing an edge.
 
     /// <summary>
     ///     When enabled, each property is split into its getter and setter accessor as separate child

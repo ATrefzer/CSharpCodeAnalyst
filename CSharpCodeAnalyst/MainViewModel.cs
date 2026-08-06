@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -1003,7 +1003,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AskUserToSaveProject();
 
-            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode,
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode,
                 _applicationSettings.SplitPropertyAccessors);
 
             if (result.IsCanceled)

@@ -121,6 +121,7 @@ public static class XamlReferenceExtractor
     private static void CollectElementTag(XElement element, List<XamlReference> references)
     {
         // Only a tag without a dot creates an object; with one it is property element syntax.
+        // This is not necessary redundant: <Grid><local:GridHelper.Columns>...</local:GridHelper.Columns></Grid>
         var isInstantiation = !element.Name.LocalName.Contains('.');
         Add(element.Name.NamespaceName, element.Name.LocalName, element, references,
             isInstantiation: isInstantiation);

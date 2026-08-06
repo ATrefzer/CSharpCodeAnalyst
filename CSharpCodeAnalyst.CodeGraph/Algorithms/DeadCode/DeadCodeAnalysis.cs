@@ -48,11 +48,16 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         that level - which is the honest answer, not a penalty.
 ///     </para>
 ///     <para>
-///         Two cases are dropped instead of reported: a single property accessor (see
-///         <see cref="Report" />) and a public property of a type marked as a serialization target (see
-///         <see cref="IsSerializedProperty" />). Both are the same kind of noise - a getter or setter that
-///         only a serializer, a binding or a framework ever touches - and on the affected types they would
-///         be the rule rather than the exception.
+///         One case is dropped instead of reported: a public property of a type marked as a serialization
+///         target (see <see cref="IsSerializedProperty" />). A serializer reaches it by reflection, so on
+///         such a type an unreferenced property is the rule rather than the exception.
+///     </para>
+///     <para>
+///         A single property accessor <i>is</i> reported. Rolling it up into the property used to halve the
+///         output, but it answered a question nobody asked: "is this property used at all" instead of "is
+///         anything reading it". A setter nothing calls is a real finding, and hiding it contradicts the
+///         rest of this class, which reports and annotates rather than drops. Accessors only exist in the
+///         graph at all when <c>ParserConfig.SplitPropertyAccessors</c> is on.
 ///     </para>
 ///     <para>
 ///         Limitations, by construction: references the parser cannot see (reflection, dependency
@@ -524,16 +529,6 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            // A single accessor is never a finding of its own: the question is whether the property is
-            // used, not whether both halves of it are. One unused half is the normal shape of anything a
-            // serializer, a binding or a framework drives - a DTO that is written in C# and only read by
-            // System.Text.Json has a dead getter on every single property. A property that is dead as a
-            // whole is still reported, as the property.
-            if (element.ElementType == CodeElementType.PropertyAccessor)
-            {
-                continue;
-            }
-
             if (IsSerializedProperty(element, context.SerializableTypes))
             {
                 continue;
@@ -629,6 +624,11 @@ public static class DeadCodeAnalysis
             hints |= DeadCodeHint.ImplementsExternalContract;
         }
 
+        if (element.IsGenerated)
+        {
+            hints |= DeadCodeHint.Generated;
+        }
+
         // Reported although something references it means that something was test code - IsReported has
         // already established that the production code does not.
         var testReferences = new List<CodeElement>();
@@ -711,8 +711,9 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     Whether the element is a public property of one of the given types. Accessors are never findings
-    ///     of their own (see <see cref="Report" />), so the reported element is the property itself.
+    ///     Whether the element is a public property of one of the given types. The property is what carries
+    ///     the visibility, so this is where the rule applies; its accessors are dropped with it by the
+    ///     roll-up.
     /// </summary>
     private static bool IsPublicPropertyOf(CodeElement element, HashSet<string> types)
     {

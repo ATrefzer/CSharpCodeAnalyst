@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -93,7 +93,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
     {
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);
-        var parser = new Parser(new ParserConfig(filter, settings.IncludeExternalCode, settings.IncludeGeneratedCode, settings.SplitPropertyAccessors));
+        var parser = new Parser(new ParserConfig(filter, settings.IncludeExternalCode, settings.SplitPropertyAccessors));
         var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(false);
 
         var failures = parser.Diagnostics.FormatFailures();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
     <!--
       Microsoft ResX Schema
@@ -254,6 +254,9 @@
   </data>
     <data name="DeadCode_Hint_UsedOnlyByTestsWithoutCaller" xml:space="preserve">
     <value>Used only by tests</value>
+  </data>
+    <data name="DeadCode_Hint_Generated" xml:space="preserve">
+    <value>Generated code</value>
   </data>
     <data name="Analyzer_TypeCohesion_Label" xml:space="preserve">
     <value>Type Cohesion</value>

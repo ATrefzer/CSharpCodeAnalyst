@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Declarations;
+﻿using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Features.Gallery;
@@ -88,7 +88,7 @@ public class ProjectData
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
                 new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes,
-                    n.IsExternal, n.AccessLevel))
+                    n.IsExternal, n.AccessLevel, n.IsGenerated))
             .ToList();
 
         // We iterate over children, so we expect to have a parent
@@ -117,6 +117,7 @@ public class ProjectData
                 SourceLocations = se.SourceLocations,
                 Attributes = se.Attributes,
                 IsExternal = se.IsExternal,
+                IsGenerated = se.IsGenerated,
                 AccessLevel = se.AccessLevel
             };
             codeStructure.Nodes.Add(element.Id, element);

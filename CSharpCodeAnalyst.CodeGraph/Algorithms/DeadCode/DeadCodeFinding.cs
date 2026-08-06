@@ -45,7 +45,13 @@ public enum DeadCodeHint
     ///     Referenced, but only from test assemblies. The production code has no use for it any more, so
     ///     the test is the only thing keeping it alive - removing it means removing that test too.
     /// </summary>
-    UsedOnlyByTests = 64
+    UsedOnlyByTests = 64,
+
+    /// <summary>
+    ///     A tool wrote it, not a person (<see cref="CodeElement.IsGenerated" />). Deleting it is
+    ///     pointless - the next build writes it again. The finding is correct, it is just not for you.
+    /// </summary>
+    Generated = 128
 }
 
 /// <summary>

@@ -284,7 +284,7 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
-    public void Calculate_UnusedPropertyAccessor_NotReported()
+    public void Calculate_UnusedPropertyAccessor_Reported()
     {
         var a = _graph.CreateClass("A");
         var property = _graph.CreateProperty("A.Value", a);
@@ -294,9 +294,8 @@ public class DeadCodeAnalysisTests
         var user = _graph.CreateClass("User");
         Rel(user, getter, RelationshipType.Calls);
 
-        // The setter alone is no finding: the question is whether the property is used, and it is. One
-        // unused half is the normal shape of everything a serializer, a binding or a framework drives.
-        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+        // The property is used, so it is alive - but nothing writes it, and that is a finding of its own.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "A.set_Value", "User" }));
     }
 
     [Test]
@@ -311,7 +310,7 @@ public class DeadCodeAnalysisTests
         var user = _graph.CreateClass("User");
         Rel(user, used, RelationshipType.Calls);
 
-        // Suppressing the accessors must not hide a property that is dead as a whole - it rolls up.
+        // A property that is dead as a whole is one finding, not three - the accessors roll up into it.
         Assert.That(Reported(), Is.EquivalentTo(new[] { "A.Value", "User" }));
     }
 
