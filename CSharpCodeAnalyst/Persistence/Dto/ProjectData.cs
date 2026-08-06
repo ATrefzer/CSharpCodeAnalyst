@@ -1,3 +1,4 @@
+﻿using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.Features.Gallery;
@@ -25,6 +26,21 @@ public class ProjectData
     ///     metric collection was enabled during import.
     /// </summary>
     public List<SerializableMemberMetrics> MemberMetrics { get; set; } = [];
+
+    /// <summary>
+    ///     Which members implement a contract from outside the analyzed code, keyed by element id.
+    ///     Empty for every graph producer except the C# parser. An older project file simply has none,
+    ///     and those members show up as unreferenced again until the solution is parsed anew.
+    /// </summary>
+    public Dictionary<string, string> ExternalContracts { get; set; } = new();
+
+    /// <summary>
+    ///     The element ids of the types that raise change notifications (INotifyPropertyChanged anywhere
+    ///     in the interface set). Complements <see cref="ExternalContracts" />: the member-level contract
+    ///     cannot see a view model whose base class lives outside the analyzed code. An older project
+    ///     file simply has none, and the binding rule is off until the solution is parsed anew.
+    /// </summary>
+    public List<string> NotifyingTypes { get; set; } = [];
 
     /// <summary>
     ///     Gallery is already serializable.
@@ -62,6 +78,22 @@ public class ProjectData
             });
     }
 
+    public void SetExternalContracts(ExternalContractStore store)
+    {
+        ExternalContracts = store.Contracts.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        NotifyingTypes = store.NotifyingTypes.ToList();
+    }
+
+    public IReadOnlyDictionary<string, string> GetExternalContracts()
+    {
+        return ExternalContracts;
+    }
+
+    public IReadOnlyCollection<string> GetNotifyingTypes()
+    {
+        return NotifyingTypes;
+    }
+
     /// <summary>
     ///     Flatten the recursive structures.
     /// </summary>
@@ -70,7 +102,7 @@ public class ProjectData
         CodeElements = codeGraph.Nodes.Values
             .Select(n =>
                 new SerializableCodeElement(n.Id, n.Name, n.FullName, n.ElementType, n.SourceLocations, n.Attributes,
-                    n.IsExternal))
+                    n.IsExternal, n.AccessLevel, n.IsGenerated))
             .ToList();
 
         // We iterate over children, so we expect to have a parent
@@ -98,7 +130,9 @@ public class ProjectData
             {
                 SourceLocations = se.SourceLocations,
                 Attributes = se.Attributes,
-                IsExternal = se.IsExternal
+                IsExternal = se.IsExternal,
+                IsGenerated = se.IsGenerated,
+                AccessLevel = se.AccessLevel
             };
             codeStructure.Nodes.Add(element.Id, element);
         }

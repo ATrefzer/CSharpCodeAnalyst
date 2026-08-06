@@ -1,6 +1,8 @@
 ﻿IMPROVEMENTS
 ---------------------
 
+- Duplicate names with generics (for example WpfCommand and WpfCommand<T>)
+- Root folder is quite crowded. Move to sub folders.
 - Track calls should add also Uses relationships. They are called black vs blue anyway.
   This way we see which method define a lambda.
 
@@ -22,7 +24,3 @@ BUGS
 
 MISSING TEST CASES
 ---------------------
-
-CHECk
------
-FillGapsInHierarchy vs FillContainerGaps

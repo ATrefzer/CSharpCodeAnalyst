@@ -103,8 +103,12 @@ public partial class App
         // project load, read by the Method Complexity analyzer.
         var metricStore = new CodeGraph.Metrics.MetricStore();
 
+        // Same shape: which members implement a contract from outside the analyzed code. Read by the
+        // Dead Code analyzer, which would otherwise report every framework override as unused.
+        var externalContractStore = new CodeGraph.Declarations.ExternalContractStore();
+
         var analyzerManager = new AnalyzerManager();
-        analyzerManager.LoadAnalyzers(messaging, uiNotification, metricStore);
+        analyzerManager.LoadAnalyzers(messaging, uiNotification, metricStore, externalContractStore);
 
         var explorer = new CodeGraphExplorer();
         var mainWindow = new MainWindow();
@@ -123,7 +127,7 @@ public partial class App
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
-        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService, metricStore);
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService, metricStore, externalContractStore);
         var graphViewModel = new GraphViewModel(graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
       Microsoft ResX Schema 
@@ -675,8 +675,9 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
     <value>Search in code element full name.
 
 Logical operations: space = AND, '|' = OR
+Exclude a term = prefix it with '-' (e.g. "-Strings." or "-type:property")
 Search for type = type:xxx
-Search for internal code elements = source:intern      
+Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
   </data>
@@ -686,7 +687,7 @@ Search with resharper style = Use at least one uppercase character in a search t
 
 Logical operations: space = AND, '|' = OR
 Search for type = type:xxx
-Search for internal code elements = source:intern      
+Search for internal code elements = source:intern
 Search for external code elements = source:extern
 Search with resharper style = Use at least one uppercase character in a search term.</value>
   </data>
@@ -780,6 +781,9 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Statistics_Relationships" xml:space="preserve">
     <value># Relationships</value>
   </data>
+  <data name="DynamicGrid_CopyAsCsv" xml:space="preserve">
+    <value>Copy table as CSV</value>
+  </data>
   <data name="DynamicGrid_LoadError" xml:space="preserve">
     <value>Error while loading data!</value>
   </data>
@@ -821,12 +825,6 @@ Search with resharper style = Use at least one uppercase character in a search t
   </data>
   <data name="Settings_IncludeExternalCode_Tooltip" xml:space="preserve">
     <value>Include external code when parsing the solution.</value>
-  </data>
-  <data name="Settings_IncludeGeneratedCode" xml:space="preserve">
-    <value>Include _generated code</value>
-  </data>
-  <data name="Settings_IncludeGeneratedCode_Tooltip" xml:space="preserve">
-    <value>Include source-generated code (e.g. [ObservableProperty], [RelayCommand]) when parsing the solution. Without this, calls to generated members appear as a relationship to the containing type.</value>
   </data>
   <data name="Settings_SplitPropertyAccessors" xml:space="preserve">
     <value>Split property _getter/setter</value>

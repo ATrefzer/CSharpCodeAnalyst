@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Windows;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
@@ -28,7 +28,6 @@ public partial class SettingsDialog
         // Internal format to new line separated.
         ProjectExcludeFilterTextBox.Text = AppSettings.DefaultProjectExcludeFilter.Replace(";", Environment.NewLine);
         IncludeExternalCodeCheckBox.IsChecked = AppSettings.IncludeExternalCode;
-        IncludeGeneratedCodeCheckBox.IsChecked = AppSettings.IncludeGeneratedCode;
         SplitPropertyAccessorsCheckBox.IsChecked = AppSettings.SplitPropertyAccessors;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
         ShowOverviewOnImportCheckBox.IsChecked = AppSettings.ShowOverviewOnImport;
@@ -49,7 +48,6 @@ public partial class SettingsDialog
     {
         AppSettings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
         AppSettings.IncludeExternalCode = IncludeExternalCodeCheckBox.IsChecked ?? true;
-        AppSettings.IncludeGeneratedCode = IncludeGeneratedCodeCheckBox.IsChecked ?? false;
         AppSettings.SplitPropertyAccessors = SplitPropertyAccessorsCheckBox.IsChecked ?? false;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
         AppSettings.ShowOverviewOnImport = ShowOverviewOnImportCheckBox.IsChecked ?? true;

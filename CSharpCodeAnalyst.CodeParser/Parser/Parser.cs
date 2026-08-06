@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
 using CSharpCodeAnalyst.CodeGraph.Contracts;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
+using CSharpCodeAnalyst.CodeParser.Xaml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -161,6 +163,10 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
             "System.Linq.Expressions.dll",
             "System.Collections.dll",
             "System.Console.dll",
+
+            // INotifyPropertyChanged, ObservableCollection - netstandard.dll only forwards to this
+            // assembly, so without it those types stay unresolved and miss from AllInterfaces.
+            "System.ObjectModel.dll",
             "netstandard.dll"
         ];
 
@@ -195,11 +201,19 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
         sw = Stopwatch.StartNew();
 
         // Second Pass: Build Relationships
+        var externalContracts = new ExternalContractStore();
         var phase2 = new RelationshipAnalyzer(progress, config);
-        await phase2.AnalyzeRelationships(solution, codeGraph, artifacts);
+        await phase2.AnalyzeRelationships(solution, codeGraph, artifacts, externalContracts);
 
         sw.Stop();
         Trace.TraceInformation("Analyzing relationships: " + sw.Elapsed);
+
+        // Third pass: the XAML references Roslyn cannot see. Runs before the global namespace is inserted
+        // so the synthetic elements for code-behind-less files are moved along with everything else.
+        if (config.IncludeXamlReferences)
+        {
+            LinkXamlReferences(solution, codeGraph);
+        }
 
         // Makes the cycle detection easier because I never get to the assembly as shared ancestor
         // for a nested relationships.
@@ -210,9 +224,47 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
 #endif
         //await File.WriteAllTextAsync("d:\\debug0.txt", codeGraph.ToDebug());
 
-        return new ParseResult(codeGraph, metrics);
+        return new ParseResult(codeGraph, metrics) { ExternalContracts = externalContracts };
     }
 
+
+    /// <summary>
+    ///     Adds the references that only exist in XAML. The assembly elements are matched to the Roslyn
+    ///     projects by assembly name; which XAML files a project owns is answered by
+    ///     <see cref="XamlFileLocator" />, because MSBuildWorkspace does not expose the "Page" items.
+    /// </summary>
+    private void LinkXamlReferences(Solution solution, CodeGraph.Graph.CodeGraph codeGraph)
+    {
+        progress?.Report("Reading XAML references ...");
+        var sw = Stopwatch.StartNew();
+
+        var assembliesByName = codeGraph.GetRoots()
+            .Where(root => root.ElementType == CodeElementType.Assembly)
+            .ToDictionary(root => root.Name, root => root);
+
+        var projects = new List<XamlProject>();
+
+        // Constructed only here, and only now: it holds an MSBuild ProjectCollection, so the type must not
+        // be touched before Initializer.InitializeMsBuildLocator has run.
+        using (var locator = new XamlFileLocator())
+        {
+            foreach (var project in solution.Projects)
+            {
+                var directory = Path.GetDirectoryName(project.FilePath);
+                if (directory is null || !config.IsProjectIncluded(project.Name) ||
+                    !assembliesByName.TryGetValue(project.AssemblyName, out var assembly))
+                {
+                    continue;
+                }
+
+                projects.Add(new XamlProject(assembly, directory, locator.Locate(project.FilePath, directory)));
+            }
+        }
+
+        var added = XamlGraphLinker.Link(codeGraph, projects);
+        sw.Stop();
+        Trace.TraceInformation($"Reading XAML references: {sw.Elapsed} ({added} relationships)");
+    }
 
     /// <summary>
     ///     Computes per-member source metrics from the symbol map built in phase 1.

@@ -1,4 +1,4 @@
-<Window x:Class="CSharpCodeAnalyst.Configuration.SettingsDialog"
+﻿<Window x:Class="CSharpCodeAnalyst.Configuration.SettingsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:resources="clr-namespace:CSharpCodeAnalyst.Resources"
@@ -40,11 +40,6 @@
                                           Content="{x:Static resources:Strings.Settings_IncludeExternalCode}"
                                           Margin="0,5"
                                           ToolTip="{x:Static resources:Strings.Settings_IncludeExternalCode_Tooltip}" />
-
-                                <CheckBox x:Name="IncludeGeneratedCodeCheckBox"
-                                          Content="{x:Static resources:Strings.Settings_IncludeGeneratedCode}"
-                                          Margin="0,5"
-                                          ToolTip="{x:Static resources:Strings.Settings_IncludeGeneratedCode_Tooltip}" />
 
                                 <CheckBox x:Name="SplitPropertyAccessorsCheckBox"
                                           Content="{x:Static resources:Strings.Settings_SplitPropertyAccessors}"

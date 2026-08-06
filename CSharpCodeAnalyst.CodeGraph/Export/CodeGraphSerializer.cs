@@ -76,6 +76,11 @@ public static class CodeGraphSerializer
             sb.Append($"{Separator}external");
         }
 
+        if (element.AccessLevel != AccessLevel.Unknown)
+        {
+            sb.Append($"{Separator}access={element.AccessLevel}");
+        }
+
         if (element.Attributes.Count > 0)
         {
             var attrs = string.Join(",", element.Attributes.OrderBy(a => a));
@@ -256,6 +261,7 @@ public static class CodeGraphSerializer
         string? fullName = null;
         string? parentId = null;
         var isExternal = false;
+        var accessLevel = AccessLevel.Unknown;
         var attributes = new HashSet<string>();
 
         // Parse optional fields
@@ -279,6 +285,11 @@ public static class CodeGraphSerializer
             {
                 isExternal = true;
             }
+            else if (part.StartsWith("access="))
+            {
+                // An unreadable value stays Unknown - never guess a visibility.
+                Enum.TryParse(part.Substring("access=".Length), out accessLevel);
+            }
             else if (part.StartsWith("attr="))
             {
                 var attrList = part.Substring("attr=".Length).Split(',');
@@ -296,7 +307,8 @@ public static class CodeGraphSerializer
         // Create element without parent - will be linked later
         var element = new CodeElement(id, elementType, name, fullName, null)
         {
-            IsExternal = isExternal
+            IsExternal = isExternal,
+            AccessLevel = accessLevel
         };
 
         foreach (var attr in attributes)

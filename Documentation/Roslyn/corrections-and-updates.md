@@ -275,3 +275,199 @@ Phase 2 now walks the declarations of **both** parts
 (`GetDeclaringSyntaxReferencesIncludingPartial`, using `PartialImplementationPart` /
 `PartialDefinitionPart`), for methods and for partial properties (C# 13) alike. The source metrics
 measure the implementation part. Partial *events* (C# 14) are not special-cased yet.
+
+## XAML: the half the markup compiler does not generate
+
+The WPF markup compiler writes a partial class per XAML file (`obj/.../MyView.g.cs`) and MSBuildWorkspace
+runs that pass during its design-time build, so the file is part of the compilation even for a solution
+that was never built. It contains the event handler wiring (`IComponentConnector.Connect`, and
+`IStyleConnector.Connect` for handlers inside templates) and one field per `x:Name`. Those references are
+therefore plain C# and need nothing special.
+
+Two things are *not* in there, and both were mistaken for dead code before:
+
+- Everything declarative - element tags, `{x:Static}`, `{x:Type}`, `{Binding}`, `{StaticResource}` - is
+  compiled into BAML and resolved by reflection at runtime.
+- `x:Name` only produces a field in the file's **main name scope**. A `DataTemplate`, `ControlTemplate` or
+  `Style` is its own name scope and gets no field. `MainWindow.xaml` in this repository has ten `x:Name`s
+  and nine generated fields; the missing one sits inside a `DataTemplate`.
+
+So a control can be used three times in XAML, once even with a name, and produce no C# reference at all.
+
+A third pass (`Xaml/XamlReferenceExtractor` + `Xaml/XamlGraphLinker`, enabled by
+`ParserConfig.IncludeXamlReferences`) therefore reads the XAML files of each project and adds the
+references that carry a **fully qualified CLR name**: element tags, `{x:Static}` and `{x:Type}`. Prefixes
+are resolved through the `clr-namespace` xmlns declarations, so nothing is matched by guessing. The
+relationships are `Uses` and carry `RelationshipAttribute.IsXamlReference`.
+
+### Which files belong to a project
+
+Roslyn cannot say: a `Project` exposes `Documents`, `AdditionalDocuments` and `AnalyzerConfigDocuments`,
+and a `Page` is none of them. `Xaml/XamlFileLocator` therefore **evaluates the project file a second time**
+with `Microsoft.Build.Evaluation` - the MSBuild engine `Initializer.InitializeMsBuildLocator` has already
+put in place, which is why the package is referenced compile-only (`ExcludeAssets=runtime`, same trap as
+in `Directory.Build.props`) and why the type must not be touched before the locator is registered.
+
+The first version scanned the project directory instead, which reads whatever lies around: a file excluded
+from the project, a leftover from another branch, or the XAML of a nested project. A file taken out with
+`<Page Remove="..." />` lands in **no** item group at all - not even in the SDK's default `None` glob - so
+the evaluated item list gets this right where a scan cannot. Two things to know about the item list:
+the SDK contributes ~20 `PropertyPageSchema` items pointing into the dotnet installation, which is why the
+item type is filtered (`ApplicationDefinition`, `Page`, `Resource`, `Content`, `None`) rather than the file
+extension alone; and the default `Page` items are flagged `IsImported` because they come from the SDK
+props, so that flag must *not* be used to tell ours from the SDK's.
+
+An empty result is an answer, not a failure - a project without XAML items has no XAML, and falling back
+to a scan there would bring the excluded files straight back in. The scan survives only for a project file
+that cannot be evaluated at all. Cost is a few hundred milliseconds per project; one shared
+`ProjectCollection` evaluates the SDK imports once.
+
+A linked file (`<Page Include="..\Shared\Foo.xaml">`) now comes along for free, because the item carries
+its real path - a side effect, not the goal. Its synthetic element (see below) is named after the file
+name, because a path relative to the project directory would only produce a row of dots.
+
+`{Binding Path=...}` is deliberately left out. Without evaluating the DataContext it is a bare member name,
+and matching that across the codebase would suppress far more than it explains.
+
+An **object element** (`<local:MyControl/>`) is not only a type reference - XAML creates the instance
+there, so the constructor runs. The linker therefore also connects the type's `.ctor` elements. Without
+that edge the constructor of a XAML-instantiated control has no incoming reference at all, and since the
+body of such a control largely hangs below its constructor (`DynamicDataGrid` wires its search timer
+there), everything it calls dies with it as soon as the dead code analysis cascades. Property element
+syntax (`<local:MyControl.Items>`), attached properties and `{x:Type}` only name a type and are not
+treated as an instantiation. Constructor overloads share the element name, so all of them are linked -
+XAML picks the parameterless one, but the graph cannot tell them apart and a missing edge costs far more
+than a superfluous one.
+
+The source of such a relationship is the code-behind class from `x:Class`. A resource dictionary has none,
+so a synthetic class named after the file path takes its place - the same device already used for top-level
+statements (`GlobalStatements`). It is created only when the file actually contains a resolvable reference.
+Since nothing resolves the `Source` / `StartupUri` URIs of merged dictionaries, those synthetic elements
+have no incoming reference and do show up in a dead code analysis; there were six of them in this
+repository.
+
+MSBuildWorkspace note: opening a WPF project runs the markup compile through a temporary `_wpftmp.csproj`,
+which can invalidate the incremental build state of the real project - a following `dotnet build` may fail
+with `CS2001` for every `.g.cs` until it is rebuilt.
+
+## Generated code is always parsed, and marked
+
+There is no "include generated code" option any more. It used to gate `GetSourceGeneratedDocumentsAsync`,
+which was doubly wrong: it covered only Roslyn *source generators* while the files on disk (`*.g.cs` from
+the markup compiler, `*.Designer.cs`) always came in through `project.Documents` anyway - and switching it
+off did not just hide generated members, it removed the only reference many hand-written ones have.
+`IComponentConnector.Connect` is the sole caller of every XAML event handler; an `[ObservableProperty]`
+is the only reader of its backing field, a `[RelayCommand]` the only caller of its method. Excluding
+generated code turns all of them into dead code, so the option could produce a wrong graph and nothing
+else.
+
+`Parser/GeneratedCode.cs` marks instead: `CodeElement.IsGenerated` is set when **every** declaration of the
+element sits in a generated file. "Every", because a WPF code-behind class is partial and lives in
+`MainWindow.xaml.cs` and `MainWindow.g.cs` at the same time - one element with two source locations. Asking
+whether *any* declaration is generated would mark the user's own class; asking about the first one would
+make the answer depend on the walk order. What is left are the members that exist nowhere but the generated
+half (`Connect`, the `x:Name` fields, the resource designer members), which is exactly the set a consumer
+wants to leave out.
+
+Detection follows Roslyn's own `GeneratedCodeUtilities`: the file name (`.g.cs`, `.g.i.cs`, `.designer.cs`,
+`.generated.cs`, `.AssemblyAttributes.cs`, `TemporaryGeneratedFile_*`) or an `<auto-generated>` comment in
+the leading trivia of the first token. Source-generated documents are marked without a check.
+
+The flag is a marking, not a filter: nothing in the parser or the graph algorithms treats a generated
+element differently. Only results do - the dead code analysis reports it with a `Generated code` note.
+
+Both halves are covered by tests, and they need different machinery. The files on disk are reachable from
+an in-memory parse, so `GeneratedCodeTests` passes a document path (`Widget.g.cs`) or a header to
+`ParseSourceAsync`. The source generators are not: `GetSourceGeneratedDocumentsAsync` needs a real MSBuild
+project, which is what the `TestSuiteGenerated/` fixture is for - one class using `[GeneratedRegex]`,
+asserted on by `SourceGeneratorFixtureTests`. That fixture is where the partial cases are pinned: the class
+*and* the partial method are completed by the generator and must stay unmarked, while everything the
+generator adds beside them must not be.
+
+## Contracts from outside the analyzed code
+
+A member that implements or overrides something we did not analyze - `ICommand.Execute`,
+`object.GetHashCode`, `CSharpSyntaxVisitor.VisitGenericName` - has **no incoming reference anywhere in the
+graph**. The framework is the caller. Every such member therefore looks like dead code, and worse: it looks
+like a *confident* finding, because nothing hints at doubt.
+
+The relationship model cannot express it, in either configuration:
+
+- With `IncludeExternals` off (the default) `AddRelationshipWithFallbackToContainingType` finds neither the
+  member nor its containing type internally and adds **nothing at all**. There is no element to point at.
+- With `IncludeExternals` on, only *types* become external elements ("Always returns the containing TYPE
+  element"), and member relationships are flattened to `Uses`. The result,
+  `VisitGenericName -Uses-> CSharpSyntaxVisitor`, is indistinguishable from a method that merely uses that
+  type as a parameter. Measured on this repository, turning externals on adds 954 nodes and 78 % more edges
+  and still does not answer the question.
+
+The fact is therefore recorded **beside the graph** in `ExternalContractStore` (element id -> contract
+name), carried in `ParseResult` next to the source metrics. It deliberately does not live on
+`CodeElement`: that type is shared with every importer, and a field only the C# parser ever fills would sit
+there empty forever. `MetricStore` established the pattern - "kept beside the code graph so the graph model
+stays pure".
+
+Two detection routes in `DeclarationAnalyzer`, both needed:
+
+- **`override`** - the existing hook (`methodSymbol.IsOverride`, and the property equivalent) records the
+  contract when the *containing type* of the overridden member is not one of ours.
+- **Implicit interface implementation** - `ICommand.Execute` carries no `override` keyword, and
+  `AddImplementationsForInterfaceMember` only ever walks from the *interface* side, so an external interface
+  is never visited. `RecordExternalInterfaceImplementations` therefore walks the type's `AllInterfaces`,
+  skips the internal ones (those get real `Implements` edges) and resolves the rest with
+  `FindImplementationForInterfaceMember`. Those interfaces come from `AllInterfaces` and are already
+  constructed, so the definition/construction trap documented above does not apply here.
+
+Generic types are normalized with `OriginalDefinition` before asking whether an interface is ours -
+`IHandler<Widget>` is not in the map, `IHandler<T>` is.
+
+The store is filled from the parallel phase 2, hence a `ConcurrentDictionary`. The dead code analysis
+reports such members with a note rather than dropping them, and the fact is deliberately **not** pushed to
+the containing type: implementing `IDisposable` is not a use of the class, so a class whose only remaining
+trace is a `Dispose` method stays reportable.
+
+### Notifying types (INotifyPropertyChanged through an external base class)
+
+The store carries one type-level fact beside the member contracts: `NotifyingTypes`, every analyzed type
+with `INotifyPropertyChanged` anywhere in its interface set. The member-level route cannot express the
+common MVVM shape `MyViewModel : ObservableObject` (CommunityToolkit.Mvvm, Prism's `BindableBase`, ...):
+the implementation of `PropertyChanged` sits in the external base class, so the derived type has **no
+member of its own** to record a contract on, and from the graph alone it is indistinguishable from any
+other class. Only the symbol knows — `RecordIfNotifyingType` asks `AllInterfaces`, which includes the
+interfaces contributed by base classes, external or not. Without this, the dead code analysis rated the
+bindable properties of such view models with the highest confidence, which is exactly where a XAML
+`{Binding}` proves it wrong.
+
+The single-file parse (`ParseSourceAsync`) needed `System.ObjectModel.dll` added to its metadata
+references for this: `netstandard.dll` only *forwards* `INotifyPropertyChanged`, and a forward whose
+target assembly is missing leaves the type unresolved — it then silently misses from `AllInterfaces`.
+
+## Visibility on the code element
+
+`CodeElement.AccessLevel` carries what `ISymbol.DeclaredAccessibility` says, mapped in `HierarchyAnalyzer`
+where the elements are created (types and members in one place, property accessors in another - an accessor
+may narrow its property, `public int P { get; private set; }`).
+
+Unlike the external contracts, this belongs **on** the element rather than beside it: visibility is a
+first-class property that every language the tool imports has, several consumers can use it, and the
+importers can fill it later. `AccessLevel.Unknown` is the default and must always be read as "nobody told
+us", never as a value - a graph from doxygen or jdeps has no visibility today, and neither has a project
+file written before this existed.
+
+The type is called `AccessLevel`, not `Accessibility`: WPF drags a global `Accessibility` namespace into
+scope, so the natural name would force a full qualification in every file of the UI projects.
+
+Persisted in both formats - `SerializableCodeElement` (optional constructor parameter, so old project files
+keep loading) and the text serializer (`access=` written only when it is not Unknown, and an unparsable
+value falls back to Unknown rather than guessing).
+
+The dead code analysis uses it for the confidence of a finding, and reads it over the whole containment
+chain: a `public` method of an `internal` class is just as unreachable from another assembly, so it is the
+*most restrictive* container that decides.
+
+Two members were found only through this: a **static constructor** (`.cctor`) and a **finalizer** (the
+destructor arrives from the parser as an ordinary method named `Finalize` - the Roslyn symbol name). Both
+are run by the runtime, can never be referenced from code, and are effectively private, so they landed in
+the highest confidence band. The static constructor started out annotated as an entry point; both are now
+dropped from the result entirely - on a live type such a row is wrong in every case, and on a dead type
+the roll-up covers them.

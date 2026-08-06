@@ -24,6 +24,7 @@ This desktop app helps you explore, understand, and manage large C# codebases, e
 - **Incremental Graph Exploration** – Build the exact graph you need to understand a codebase or solve a task. Map out dependencies step by step on demand (e.g., "show all incoming relationships"), and easily filter out unrelated code elements to keep the graph free of visual clutter.
 - **Sandbox Code Refactoring** – Experiment with structural changes and simulate cycle-breaking strategies safely, without touching your actual source code.
 - **Architectural Guardrails** – Define custom dependency rules and metric thresholds to actively validate and enforce a clean codebase.
+- **Dead Code Detection** – Find the types and members nothing references any more, with the cases that only look unused flagged instead of hidden.
 - **Multi-Format Exports** – Share your architecture by exporting diagrams to PlantUML, DGML, PNG, SVG, and more.
 - **Git History Hotspots** – Uncover hidden technical debt by running hotspot or change-coupling analyses directly on your Git repository history.
 - **Design Structure Matrix (DSM)** - Explore the System's dependencies at the type level.
@@ -234,6 +235,16 @@ All metrics are accessible via the Analyzer Ribbon, and the results are presente
 
 ![](Documentation/Images/metrics-example.png)
 
+## Find dead code
+
+C# Code Analyst can list code elements that nothing references anymore.
+
+This is a heuristic only. There are many situations, like Reflection, DI, and XAML Bindings, that are not recognized. Therefore, each finding gets a confidence level.
+
+You can read more about the rules and  the limits here: [Dead Code](Documentation/dead-code.md)
+
+The analysis is accessible via the Analyzer Ribbon, and the result is presented in a table on a separate tab.
+
 ## Other languages
 
 The tool is built for C# (has its own Roslyn-based parser), but you can also import Java, C++, Python and Dart via external tools.
@@ -274,6 +285,7 @@ Please keep these points in mind:
 - You can include external code by setting the "Include External Code" option. Only type dependencies are collected.
 - A method defining a  lambda expression only has "uses" relationships to types and methods inside the lambda.  This is because I cannot track where the lambda is actually called. I think that is a good compromise.
 - Primary constructors of records do not create the properties in the code graph.
+- XAML Bindings are not resolved.
 - Projects must be loadable by the **.NET SDK's MSBuild**. Legacy non-SDK .NET Framework projects — especially old-style WPF (`net472`) — may fail to load even though they build in Visual Studio. See [Supported projects and solutions](Documentation/supported-projects.md).
 
 ## Thank you

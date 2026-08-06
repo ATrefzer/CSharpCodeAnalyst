@@ -1,3 +1,4 @@
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
@@ -34,15 +35,16 @@ public class RelationshipAnalyzer
     ///     (useful when debugging); the default (-1) lets the scheduler use all available cores.
     /// </summary>
     public Task AnalyzeRelationships(Solution solution, CodeGraph.Graph.CodeGraph codeGraph, Artifacts artifacts,
-        int maxDegreeOfParallelism = -1)
+        ExternalContractStore externalContracts, int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(solution, nameof(solution));
         ArgumentNullException.ThrowIfNull(codeGraph, nameof(codeGraph));
         ArgumentNullException.ThrowIfNull(artifacts, nameof(artifacts));
+        ArgumentNullException.ThrowIfNull(externalContracts, nameof(externalContracts));
 
         var builder = new RelationshipBuilder(codeGraph, artifacts, _config);
         var bodyAnalyzer = new SyntaxNodeAnalyzer(builder, _config);
-        var declarationAnalyzer = new DeclarationAnalyzer(builder, bodyAnalyzer, artifacts, _config);
+        var declarationAnalyzer = new DeclarationAnalyzer(builder, bodyAnalyzer, artifacts, _config, externalContracts);
 
         var numberOfCodeElements = codeGraph.Nodes.Count;
         _processedCodeElements = 0;

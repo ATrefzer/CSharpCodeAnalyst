@@ -522,11 +522,6 @@ public partial class DynamicDataGrid
 
         // Only Table may provide commands.
         var commands = TableData?.GetCommands() ?? [];
-        if (commands.Count == 0)
-        {
-            e.Handled = true;
-            return;
-        }
 
         var dataContext = row.DataContext;
         foreach (var command in commands)
@@ -534,8 +529,59 @@ public partial class DynamicDataGrid
             row.ContextMenu.Items.Add(new MenuItem { Header = command.Header, Command = command.Command, CommandParameter = dataContext });
         }
 
+        // Offered by the grid for every table, so no analyzer has to implement its own export.
+        if (TableData is not null)
+        {
+            if (commands.Count > 0)
+            {
+                row.ContextMenu.Items.Add(new Separator());
+            }
+
+            var copy = new MenuItem { Header = Strings.DynamicGrid_CopyAsCsv };
+            copy.Click += (_, _) => CopyTableToClipboard();
+            row.ContextMenu.Items.Add(copy);
+        }
+
+        if (row.ContextMenu.Items.Count == 0)
+        {
+            e.Handled = true;
+            return;
+        }
+
         row.ContextMenu.IsOpen = true;
         e.Handled = true;
+    }
+
+    /// <summary>
+    ///     Puts the table on the clipboard as CSV. What is copied is what is on screen - the rows after
+    ///     filtering, in the current sort order - because counting or pivoting a result usually starts with
+    ///     narrowing it down first.
+    ///     <para>
+    ///         The separator is the one the current culture uses for lists, which is what Excel expects on
+    ///         the same machine: a comma in en-US, a semicolon in de-DE. Without that the paste ends up in
+    ///         a single column.
+    ///     </para>
+    /// </summary>
+    private void CopyTableToClipboard()
+    {
+        var columns = TableData?.GetColumns().ToList();
+        if (columns is null || columns.Count == 0)
+        {
+            return;
+        }
+
+        // MainDataGrid.Items, not TableData.GetData(): that is the view after filtering and sorting.
+        var csv = TableCsv.Build(columns, MainDataGrid.Items.OfType<object>());
+
+        try
+        {
+            Clipboard.SetText(csv);
+        }
+        catch (Exception ex)
+        {
+            // The WPF clipboard fails when another process holds it. Not worth interrupting the user over.
+            Debug.WriteLine($"Could not copy the table to the clipboard: {ex.Message}");
+        }
     }
 
     /// <summary>

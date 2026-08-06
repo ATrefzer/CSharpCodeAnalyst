@@ -81,7 +81,8 @@ internal class TypeDependenciesViewModel : Table
 
     /// <summary>
     ///     Filters by type name using the same search expression as the Advanced Search
-    ///     (supports camel-case, OR via '|', AND via spaces). The searched column is the type name.
+    ///     (camel-case, OR via '|', AND via spaces, exclusion via a leading '-'). The searched column is
+    ///     the type name.
     /// </summary>
     public override ObservableCollection<TableRow> Filter(string searchText)
     {

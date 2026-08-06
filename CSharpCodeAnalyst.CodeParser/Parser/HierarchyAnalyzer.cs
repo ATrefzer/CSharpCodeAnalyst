@@ -23,6 +23,10 @@ public class HierarchyAnalyzer
 
     private readonly IProgress<string>? _progress;
     private readonly HashSet<string> _projectFilePaths = [];
+
+    /// <summary>The files a tool wrote, collected while walking - see <see cref="MarkGeneratedElements" />.</summary>
+    private readonly HashSet<string> _generatedFilePaths = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly Dictionary<string, CodeElement> _symbolKeyToElementMap = new();
 
     internal HierarchyAnalyzer(IProgress<string>? progress, ParserConfig config, ParserDiagnostics diagnostics)
@@ -49,11 +53,11 @@ public class HierarchyAnalyzer
             // Source-generated documents (e.g. CommunityToolkit.Mvvm [ObservableProperty]/[RelayCommand],
             // [GeneratedRegex], ...) are not part of project.Documents and their syntax trees are not in
             // the compilation, so they have to be requested explicitly.
-            IEnumerable<Document> generatedDocuments = [];
-            if (_config.IncludeGeneratedCode)
-            {
-                generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
-            }
+            // Always, and deliberately so: leaving them out does not just hide the generated members, it
+            // removes the only reference many hand-written ones have. Nothing else reads the backing field
+            // of an [ObservableProperty], and nothing else calls the method behind a [RelayCommand] - they
+            // would all turn into dead code. What is generated is marked instead (see MarkGeneratedElements).
+            var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
 
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve relationships
@@ -63,6 +67,8 @@ public class HierarchyAnalyzer
 
             await BuildHierarchy(compilation, generatedDocuments);
         }
+
+        MarkGeneratedElements();
 
         var result = new Artifacts(
             _allNamedTypesInSolution.AsReadOnly(),
@@ -176,6 +182,27 @@ public class HierarchyAnalyzer
         return true;
     }
 
+    /// <summary>
+    ///     Roslyn's accessibility onto ours. <c>NotApplicable</c> (namespaces, and anything Roslyn cannot
+    ///     decide) maps to Unknown - the graph must not claim a visibility that does not exist.
+    /// </summary>
+    private static CodeGraph.Graph.AccessLevel MapAccessLevel(
+        Microsoft.CodeAnalysis.Accessibility accessibility)
+    {
+        return accessibility switch
+        {
+            Microsoft.CodeAnalysis.Accessibility.Private => CodeGraph.Graph.AccessLevel.Private,
+            Microsoft.CodeAnalysis.Accessibility.Protected => CodeGraph.Graph.AccessLevel.Protected,
+            Microsoft.CodeAnalysis.Accessibility.Internal => CodeGraph.Graph.AccessLevel.Internal,
+            Microsoft.CodeAnalysis.Accessibility.ProtectedAndInternal => CodeGraph.Graph.AccessLevel
+                .ProtectedAndInternal,
+            Microsoft.CodeAnalysis.Accessibility.ProtectedOrInternal => CodeGraph.Graph.AccessLevel
+                .ProtectedOrInternal,
+            Microsoft.CodeAnalysis.Accessibility.Public => CodeGraph.Graph.AccessLevel.Public,
+            _ => CodeGraph.Graph.AccessLevel.Unknown
+        };
+    }
+
     private async Task BuildHierarchy(Compilation compilation, IEnumerable<Document> generatedDocuments)
     {
         // Assembly has no source location.
@@ -190,6 +217,11 @@ public class HierarchyAnalyzer
                 continue;
             }
 
+            if (GeneratedCode.IsGeneratedFile(syntaxTree))
+            {
+                _generatedFilePaths.Add(syntaxTree.FilePath);
+            }
+
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
             var root = syntaxTree.GetRoot();
 
@@ -197,10 +229,10 @@ public class HierarchyAnalyzer
             ProcessNodeForHierarchy(root, semanticModel, assemblyElement);
         }
 
-        // Process the source-generated documents (only present when IncludeGeneratedCode is enabled)
-        // through the same hierarchy walk. The generated members then get their own code element
-        // instead of being collapsed onto the containing type via the phase-2 fallback. Generated
-        // members extend existing partial types, so the named types are already collected above.
+        // Process the source-generated documents through the same hierarchy walk. The generated members
+        // then get their own code element instead of being collapsed onto the containing type via the
+        // phase-2 fallback. Generated members extend existing partial types, so the named types are
+        // already collected above.
         foreach (var generatedDocument in generatedDocuments)
         {
             var semanticModel = await generatedDocument.GetSemanticModelAsync();
@@ -210,7 +242,32 @@ public class HierarchyAnalyzer
                 continue;
             }
 
+            // Generated by definition - no file-name or header check needed.
+            if (!string.IsNullOrEmpty(root.SyntaxTree.FilePath))
+            {
+                _generatedFilePaths.Add(root.SyntaxTree.FilePath);
+            }
+
             ProcessNodeForHierarchy(root, semanticModel, assemblyElement);
+        }
+    }
+
+    /// <summary>
+    ///     Flags what a tool wrote. Runs after the whole solution is walked, because the decision needs
+    ///     <i>all</i> declarations of an element: a WPF code-behind class is partial and lives in both a
+    ///     generated and a hand-written file, and only the members that exist nowhere but the generated
+    ///     half are generated (see <see cref="GeneratedCode.IsGeneratedElement" />).
+    /// </summary>
+    private void MarkGeneratedElements()
+    {
+        if (_generatedFilePaths.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var element in _codeGraph.Nodes.Values)
+        {
+            element.IsGenerated = GeneratedCode.IsGeneratedElement(element, _generatedFilePaths);
         }
     }
 
@@ -429,7 +486,10 @@ public class HierarchyAnalyzer
         var fullName = symbol.BuildSymbolName();
         var newId = Guid.NewGuid().ToString();
 
-        var element = new CodeElement(newId, elementType, name, fullName, parent);
+        var element = new CodeElement(newId, elementType, name, fullName, parent)
+        {
+            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility)
+        };
 
         UpdateCodeElementLocations(element, location);
 
@@ -478,7 +538,11 @@ public class HierarchyAnalyzer
         var name = accessor.Name;
         var fullName = propertyElement.FullName + "." + name;
         var id = Guid.NewGuid().ToString();
-        var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement);
+        var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement)
+        {
+            // An accessor may narrow the property ("public int P { get; private set; }").
+            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility)
+        };
 
         foreach (var accessorLocation in accessor.GetSymbolLocations())
         {

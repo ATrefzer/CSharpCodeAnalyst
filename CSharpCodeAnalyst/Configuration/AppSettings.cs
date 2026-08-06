@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 
 namespace CSharpCodeAnalyst.Configuration;
@@ -16,8 +16,6 @@ public class AppSettings
     public bool AutomaticallyAddContainingType { get; set; } = true;
 
     public bool IncludeExternalCode { get; set; }
-
-    public bool IncludeGeneratedCode { get; set; }
 
     public bool SplitPropertyAccessors { get; set; } = true;
 
@@ -58,7 +56,6 @@ public class AppSettings
             DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,
             AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
             IncludeExternalCode = this.IncludeExternalCode,
-            IncludeGeneratedCode = this.IncludeGeneratedCode,
             SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
             ShowOverviewOnImport = this.ShowOverviewOnImport

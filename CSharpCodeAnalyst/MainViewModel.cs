@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Contracts;
+﻿using CSharpCodeAnalyst.CodeGraph.Contracts;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -15,6 +15,7 @@ using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Cycles;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Metrics;
 using CSharpCodeAnalyst.CodeParser.Parser;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
@@ -65,6 +66,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private readonly ImporterManager _importerManager = new();
 
     private readonly MessageBus _messaging;
+    private readonly ExternalContractStore _externalContractStore;
     private readonly MetricStore _metricStore;
 
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
@@ -90,7 +92,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
-        MetricStore metricStore)
+        MetricStore metricStore, ExternalContractStore externalContractStore)
     {
         // Initialize settings
         _applicationSettings = settings;
@@ -98,6 +100,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _analyzerManager = analyzerManager;
         _refactoringService = refactoringService;
         _metricStore = metricStore;
+        _externalContractStore = externalContractStore;
 
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
@@ -977,6 +980,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         Cycles = null;
         DynamicTabs.Clear();
         _metricStore.Clear();
+        _externalContractStore.Clear();
         InfoPanelViewModel?.ClearQuickInfo();
 
         UpdateStatistics(codeGraph);
@@ -999,7 +1003,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             AskUserToSaveProject();
 
-            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode, _applicationSettings.IncludeGeneratedCode,
+            var result = await _importer.ImportSolutionAsync(_projectExclusionFilters, _applicationSettings.IncludeExternalCode,
                 _applicationSettings.SplitPropertyAccessors);
 
             if (result.IsCanceled)
@@ -1025,6 +1029,10 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         // Carry the freshly collected source metrics into the shared store (empty if the option was off).
         _metricStore.LoadFrom(parseResult.Metrics.Metrics);
+
+        // Same for the external contracts (empty for every importer except the C# parser).
+        _externalContractStore.LoadFrom(parseResult.ExternalContracts.Contracts,
+            parseResult.ExternalContracts.NotifyingTypes);
 
         // Give an immediate overview of the freshly imported solution: the whole graph, every
         // container collapsed, so the user starts from a map instead of an empty canvas. Only on
@@ -1247,6 +1255,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         projectData.Settings.ExclusionFilter = _projectExclusionFilters.ToString();
         projectData.AnalyzerData = _analyzerManager.CollectAnalyzerData();
         projectData.SetMetrics(_metricStore);
+        projectData.SetExternalContracts(_externalContractStore);
         return projectData;
     }
 
@@ -1284,6 +1293,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // Restore the source metrics (LoadCodeGraph cleared the shared store).
         // Singleton share with analyzer!
         _metricStore.LoadFrom(projectData.GetMetrics());
+        _externalContractStore.LoadFrom(projectData.GetExternalContracts(), projectData.GetNotifyingTypes());
 
         // Restore analyzer data
         _analyzerManager.RestoreAnalyzerData(projectData.AnalyzerData);

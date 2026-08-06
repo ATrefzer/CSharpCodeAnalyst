@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
     <!--
       Microsoft ResX Schema
@@ -203,6 +203,60 @@
   </data>
     <data name="Analyzer_TypeDependencies_NoData" xml:space="preserve">
     <value>No types found to rank</value>
+  </data>
+    <data name="Analyzer_DeadCode_Label" xml:space="preserve">
+    <value>Dead Code</value>
+  </data>
+    <data name="Analyzer_DeadCode_Tooltip" xml:space="preserve">
+    <value>Finds elements nothing references any more. Only the topmost element of a dead subtree is listed; the hint column marks the cases that may still be used through XAML, reflection or a test runner.</value>
+  </data>
+    <data name="Analyzer_DeadCode_NoData" xml:space="preserve">
+    <value>No unreferenced elements found</value>
+  </data>
+    <data name="Column_DeadCode_Element" xml:space="preserve">
+    <value>Element</value>
+  </data>
+    <data name="Column_DeadCode_Kind" xml:space="preserve">
+    <value>Kind</value>
+  </data>
+    <data name="Column_DeadCode_Access" xml:space="preserve">
+    <value>Access</value>
+  </data>
+    <data name="Column_DeadCode_Confidence" xml:space="preserve">
+    <value>Confidence</value>
+  </data>
+    <data name="Column_DeadCode_Hint" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+    <data name="DeadCode_Hint_EntryPoint" xml:space="preserve">
+    <value>Entry point</value>
+  </data>
+    <data name="DeadCode_Hint_TestCode" xml:space="preserve">
+    <value>Test code</value>
+  </data>
+    <data name="DeadCode_Hint_Attributed" xml:space="preserve">
+    <value>Attributes: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_ContractNeverCalled" xml:space="preserve">
+    <value>Implemented but never called: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_ImplementsDeadContract" xml:space="preserve">
+    <value>Implements unused contract: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_ImplementsExternalContract" xml:space="preserve">
+    <value>Implements external contract: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_RelatedCount" xml:space="preserve">
+    <value>{0} members</value>
+  </data>
+    <data name="DeadCode_Hint_UsedOnlyByTests" xml:space="preserve">
+    <value>Used only by tests: {0}</value>
+  </data>
+    <data name="DeadCode_Hint_UsedOnlyByTestsWithoutCaller" xml:space="preserve">
+    <value>Used only by tests</value>
+  </data>
+    <data name="DeadCode_Hint_Generated" xml:space="preserve">
+    <value>Generated code</value>
   </data>
     <data name="Analyzer_TypeCohesion_Label" xml:space="preserve">
     <value>Type Cohesion</value>
