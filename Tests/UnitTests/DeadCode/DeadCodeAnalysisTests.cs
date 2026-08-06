@@ -275,12 +275,32 @@ public class DeadCodeAnalysisTests
         testMethod.Attributes.Add("TestAttribute");
 
         var service = _graph.CreateClass("Service");
-        service.Attributes.Add("ObsoleteAttribute");
+        service.Attributes.Add("ExportAttribute");
 
         Assert.That(FindingFor(program).Hints, Is.EqualTo(DeadCodeHint.EntryPoint));
         Assert.That(FindingFor(fixture).Hints, Is.EqualTo(DeadCodeHint.TestCode));
         Assert.That(FindingFor(service).Hints, Is.EqualTo(DeadCodeHint.Attributed));
-        Assert.That(FindingFor(service).Attributes, Is.EquivalentTo(new[] { "ObsoleteAttribute" }));
+        Assert.That(FindingFor(service).Attributes, Is.EquivalentTo(new[] { "ExportAttribute" }));
+    }
+
+    [Test]
+    public void Calculate_ToolingAttributes_RaiseNoDoubt()
+    {
+        // [Obsolete] and the debugger attributes talk to the compiler or debugger, not to a runtime
+        // that could call the element - they must not count as a caller doubt. The attributes are
+        // still collected on the finding.
+        var service = _graph.CreateClass("Service");
+        service.Attributes.Add("ObsoleteAttribute");
+        service.Attributes.Add("DebuggerDisplayAttribute");
+
+        var finding = FindingFor(service);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(finding.Hints, Is.EqualTo(DeadCodeHint.None));
+            Assert.That(finding.Attributes,
+                Is.EquivalentTo(new[] { "DebuggerDisplayAttribute", "ObsoleteAttribute" }));
+        });
     }
 
     [Test]

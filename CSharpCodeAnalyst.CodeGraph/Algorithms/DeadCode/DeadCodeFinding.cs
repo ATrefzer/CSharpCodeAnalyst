@@ -19,7 +19,11 @@ public enum DeadCodeHint
     /// <summary>The element or something in its subtree carries a known test-framework attribute.</summary>
     TestCode = 2,
 
-    /// <summary>Carries attributes. Attributes often mean an external framework drives the element.</summary>
+    /// <summary>
+    ///     Carries attributes beyond the tooling ones (compiler, debugger, analyzer - [Obsolete],
+    ///     [DebuggerDisplay], ...). Such an attribute often means an external framework drives the
+    ///     element by reflection.
+    /// </summary>
     Attributed = 4,
 
     /// <summary>

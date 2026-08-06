@@ -162,7 +162,7 @@ Zwei Sorten. **Zweifel** – der Verweis könnte da sein, wo der Parser nicht hi
 | --------------------------------- | -------------------------------------------------- |
 | `Entry point`                     | `Main`, `GlobalStatements` |
 | `Test code`                       | Testattribut im Teilbaum                           |
-| `Attributes: …`                   | irgendein Attribut im Teilbaum                     |
+| `Attributes: …`                   | ein Attribut im Teilbaum – außer den reinen Tooling-Attributen (`[Obsolete]`, `[DebuggerDisplay]`, …), die sagen nichts über einen Aufrufer |
 | `Implements external contract: …` | aus dem `ExternalContractStore` des Parsers        |
 | `Generated code`                  | `CodeElement.IsGenerated`                          |
 
@@ -248,3 +248,5 @@ Zwei Abzüge von High:
 Eine frühere Version kaskadierte. Sie funktionierte, aber sie multiplizierte jeden Fehlalarm: ein unsichtbares `{Binding}` riss sieben weitere Elemente mit.
 
 **Keine toten Zyklen.** Zwei Elemente, die nur einander referenzieren, halten sich gegenseitig am Leben. Das zu finden bräuchte Erreichbarkeit von einer expliziten Menge von Einstiegspunkten – eine andere Analyse als diese.
+
+**Keine Instanziierungs-Prüfung bei der Contract-Propagation.** Ein aufgerufener Contract-Member hält *jede* Implementierung am Leben – auch die einer Klasse, die nirgends sichtbar instanziiert wird (Class Hierarchy Analysis, nicht Rapid Type Analysis). Die Verfeinerung „nur Implementierungen, deren Typ auch erzeugt wird" wurde bewusst verworfen: Implementierungen von Interfaces sind genau die Klassen, die ein Dependency Container instanziiert, und eine Container-Registrierung erzeugt keine `Creates`-Kante (beim Assembly-Scanning gar keine). Die Verfeinerung würde also genau den Code melden, dessen Erzeugung sie nicht sehen kann.

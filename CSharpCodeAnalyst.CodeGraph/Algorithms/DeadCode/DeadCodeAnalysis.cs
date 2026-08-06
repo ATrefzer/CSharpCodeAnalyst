@@ -111,6 +111,35 @@ public static class DeadCodeAnalysis
     };
 
     /// <summary>
+    ///     Attribute names (with and without the "Attribute" suffix) that talk to the compiler, the
+    ///     debugger or a code analyzer - not to a runtime that would find the element by reflection. They
+    ///     say nothing about a caller, so they do not raise <see cref="DeadCodeHint.Attributed" />;
+    ///     without this list a single [Obsolete] or [DebuggerDisplay] pushed a finding down to the lowest
+    ///     confidence. Every attribute <i>not</i> listed here keeps the doubt - a custom or framework
+    ///     attribute ([Export], [HttpGet], ...) usually means exactly that some framework drives the
+    ///     element. [Obsolete] is the extreme case: it argues for deleting the element, not against it.
+    /// </summary>
+    private static readonly HashSet<string> ToolingAttributes = new(StringComparer.Ordinal)
+    {
+        "Obsolete", "ObsoleteAttribute",
+        "Flags", "FlagsAttribute",
+        "AttributeUsage", "AttributeUsageAttribute",
+        "Conditional", "ConditionalAttribute",
+        "MethodImpl", "MethodImplAttribute",
+        "CLSCompliant", "CLSCompliantAttribute",
+        "DebuggerDisplay", "DebuggerDisplayAttribute",
+        "DebuggerStepThrough", "DebuggerStepThroughAttribute",
+        "DebuggerHidden", "DebuggerHiddenAttribute",
+        "DebuggerNonUserCode", "DebuggerNonUserCodeAttribute",
+        "DebuggerBrowsable", "DebuggerBrowsableAttribute",
+        "DebuggerTypeProxy", "DebuggerTypeProxyAttribute",
+        "ExcludeFromCodeCoverage", "ExcludeFromCodeCoverageAttribute",
+        "SuppressMessage", "SuppressMessageAttribute",
+        "EditorBrowsable", "EditorBrowsableAttribute",
+        "GeneratedCode", "GeneratedCodeAttribute"
+    };
+
+    /// <summary>
     ///     Attribute names (with and without the "Attribute" suffix) that mark a whole type as a
     ///     serialization target. A serializer reads and writes the public properties by reflection, so on
     ///     such a type they look unreferenced no matter how heavily the type is used.
@@ -456,6 +485,14 @@ public static class DeadCodeAnalysis
     ///     Pushes liveness from a used contract member to its implementations: calling IFoo.Bar calls every
     ///     implementation of Bar, so the implementations and the types holding them are alive. Transitive,
     ///     because an override can itself be overridden.
+    ///     <para>
+    ///         Deliberately <i>every</i> implementation, not only those whose type is visibly instantiated
+    ///         (the class-hierarchy-analysis choice, not the rapid-type-analysis refinement). The
+    ///         refinement would need a Creates edge to exist for every live type - but implementations of
+    ///         an interface are exactly the classes a dependency container instantiates, and a container
+    ///         registration produces no Creates edge (or, with assembly scanning, no edge at all). The
+    ///         refinement would report precisely the code it cannot see being created.
+    ///     </para>
     /// </summary>
     private static void PropagateContractUsage(HashSet<string> referenced,
         Dictionary<string, List<CodeElement>> implementations)
@@ -554,7 +591,7 @@ public static class DeadCodeAnalysis
                 {
                     hints |= DeadCodeHint.TestCode;
                 }
-                else
+                else if (!ToolingAttributes.Contains(attribute))
                 {
                     hints |= DeadCodeHint.Attributed;
                 }

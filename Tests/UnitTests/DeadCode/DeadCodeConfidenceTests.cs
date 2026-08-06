@@ -142,6 +142,28 @@ public class DeadCodeConfidenceTests
     }
 
     [Test]
+    public void ObsoleteMember_StaysHighConfidence()
+    {
+        // [Obsolete] argues for deleting the element, not against it - it must not count as a doubt
+        // about a caller outside the graph.
+        var unused = CreateUnusedMember(AccessLevel.Private);
+        unused.Attributes.Add("Obsolete");
+
+        Assert.That(ConfidenceOf(unused), Is.EqualTo(DeadCodeConfidence.High));
+    }
+
+    [Test]
+    public void UnknownAttributeOnAMember_IsLowConfidence()
+    {
+        // Everything not on the tooling list keeps the doubt: a custom or framework attribute usually
+        // means some runtime finds the element by reflection.
+        var unused = CreateUnusedMember(AccessLevel.Private);
+        unused.Attributes.Add("Export");
+
+        Assert.That(ConfidenceOf(unused), Is.EqualTo(DeadCodeConfidence.Low));
+    }
+
+    [Test]
     public void PublicPropertyOnANotifyingType_IsNotHighConfidence()
     {
         // A XAML {Binding} reaches exactly this and is invisible to the analysis.

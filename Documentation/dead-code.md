@@ -265,7 +265,7 @@ reference those, only the runtime calls them, so the row would be wrong on every
 | `Entry point`     | `Main`, or the synthetic `GlobalStatements` element for top-level statements. |
 | `Test code`       | The element or something below it carries a known test-framework attribute.    |
 | `Generated code`  | A tool wrote it, not a person. The finding is correct, it is just not for you — the next build writes it again. See [Generated code](#generated-code). |
-| `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed, including the test ones that already produced `Test code`. |
+| `Attributes: ...` | The element carries attributes — often the sign that a framework drives it. Every attribute is listed, including the test ones that already produced `Test code`. Attributes that only talk to the compiler, debugger or analyzer (`[Obsolete]`, `[DebuggerDisplay]`, `[ExcludeFromCodeCoverage]`, ...) do not raise this note — they say nothing about a caller, and `[Obsolete]` outright argues for deletion. |
 
 **Explanations** — the finding is understood, and the note names what dies with it:
 
