@@ -108,14 +108,15 @@ public class DeadCodeConfidenceTests
     }
 
     /// <summary>
-    ///     A view model with one used and one unused property. The store entry is what tells the analysis
-    ///     that the type raises change notifications - the interface itself is not in the graph.
+    ///     A view model with one used and one unused property. The recorded notifying type is what tells
+    ///     the analysis that a {Binding} may read the public properties. Where the interface is
+    ///     implemented - own code, an internal base, an external base like ObservableObject - makes no
+    ///     difference here; that distinction lives in the parser (see NotifyingTypeParseTests).
     /// </summary>
     private (CodeElement Unused, ExternalContractStore Store) CreateViewModel(AccessLevel propertyAccess,
         AccessLevel typeAccess = AccessLevel.Internal)
     {
         var viewModel = _graph.CreateClass("MainViewModel", accessLevel: typeAccess);
-        var changed = _graph.CreateEvent("MainViewModel.PropertyChanged", viewModel);
         var used = _graph.CreateMethod("MainViewModel.Used", viewModel, AccessLevel.Public);
         var unused = _graph.CreateProperty("MainViewModel.Title", viewModel);
         unused = Retype(unused, propertyAccess);
@@ -125,7 +126,7 @@ public class DeadCodeConfidenceTests
         Rel(main, used, RelationshipType.Calls);
 
         var store = new ExternalContractStore();
-        store.Add(changed.Id, "INotifyPropertyChanged.PropertyChanged");
+        store.AddNotifyingType(viewModel.Id);
         return (unused, store);
     }
 
@@ -171,45 +172,6 @@ public class DeadCodeConfidenceTests
         Rel(main, used, RelationshipType.Calls);
 
         Assert.That(ConfidenceOf(unused), Is.EqualTo(DeadCodeConfidence.High));
-    }
-
-    [Test]
-    public void PublicPropertyOnADerivedViewModel_IsNotHighConfidence()
-    {
-        // The common MVVM shape: the base class implements the interface, the derived one inherits it.
-        // Without following the Inherits edge this case would be missed.
-        var (_, store) = CreateViewModel(AccessLevel.Private);
-        var baseType = _graph.Nodes.Values.Single(n => n.Name == "MainViewModel");
-
-        var derived = _graph.CreateClass("DetailViewModel", accessLevel: AccessLevel.Internal);
-        var unused = Retype(_graph.CreateProperty("DetailViewModel.Caption", derived), AccessLevel.Public);
-        Rel(derived, baseType, RelationshipType.Inherits);
-
-        // Keep the derived class itself alive, otherwise it is reported and swallows the property.
-        var main = _graph.Nodes.Values.Single(n => n.Name == "Main");
-        Rel(main, derived, RelationshipType.Creates);
-
-        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.Medium));
-    }
-
-    [Test]
-    public void PublicPropertyOnARecordedNotifyingType_IsNotHighConfidence()
-    {
-        // The INPC implementation sits in a base class outside the analyzed code (ObservableObject,
-        // BindableBase, ...): there is no PropertyChanged member in the graph and no internal base to
-        // spread from. The parser records the type itself instead.
-        var viewModel = _graph.CreateClass("DetailViewModel", accessLevel: AccessLevel.Internal);
-        var used = _graph.CreateMethod("DetailViewModel.Used", viewModel, AccessLevel.Public);
-        var unused = Retype(_graph.CreateProperty("DetailViewModel.Title", viewModel), AccessLevel.Public);
-
-        var program = _graph.CreateClass("Program");
-        var main = _graph.CreateMethod("Main", program);
-        Rel(main, used, RelationshipType.Calls);
-
-        var store = new ExternalContractStore();
-        store.AddNotifyingType(viewModel.Id);
-
-        Assert.That(ConfidenceOf(unused, store), Is.EqualTo(DeadCodeConfidence.Medium));
     }
 
     [Test]

@@ -124,9 +124,9 @@ Zeigt der Contract nach draußen (`ICommand.Execute`, `object.GetHashCode`), kö
 Schritt 2 und 3 laufen zweimal über dieselben Kanten:
 
 - **`All`** – alle Kanten.
-- **`FromProduction`** – nur Kanten, deren *Quelle* nicht in einer Test-Assembly liegt.
+- **`FromProduction`** – nur Kanten, deren *Quelle* kein Testcode ist.
 
-Eine Test-Assembly ist eine, die mindestens ein Element mit Testattribut enthält (`[Test]`, `[Fact]`, `[TestFixture]`, …).
+Testcode wird **pro Typ** entschieden: Ein Typ ist ein Test-Typ, wenn er selbst oder etwas in seinem Subtree ein Testattribut trägt (`[Test]`, `[Fact]`, `[TestFixture]`, … – der Subtree, weil xUnit kein Klassen-Attribut hat). Früher galt die ganze Assembly; das vergiftete bei einer eingebetteten Testklasse alle Referenzen der Assembly und unterdrückte zugleich Funde neben den eingebetteten Tests.
 
 Wichtig: Die Contract-Propagation läuft **pro Farbe**, nicht einmal am Ende. Ruft die UI `ICodeGraphExplorer.FindIncomingCalls`, lebt die Implementierung produktiv. Ruft nur ein Test sie, nicht. Eine gemeinsame Propagation würde jede Implementierung eines Contracts, den irgendein Test benutzt, für produktiv erklären.
 
@@ -146,7 +146,7 @@ Jetzt geht es einmal über alle Knoten. Vier Filter, in dieser Reihenfolge:
 
 - Assemblies, Namespaces und externe Elemente sind nie Kandidaten.
 - Steht es in `FromProduction`? → lebendig, fertig.
-- Sonst: gar nicht referenziert **oder** nur von Tests. Letzteres zählt nur *außerhalb* einer Test-Assembly – innerhalb ist „von Tests benutzt" ja der Zweck eines Helfers.
+- Sonst: gar nicht referenziert **oder** nur von Tests. Letzteres zählt nur *außerhalb* eines Test-Typs – innerhalb einer Fixture ist „von Tests benutzt" ja der Zweck ihrer Helfer. Eine Helper-*Klasse* außerhalb der Fixtures wird dagegen gemeldet – der akzeptierte Preis der Typ-Granularität: Die Aussage stimmt (der Helper geht mit den Tests), sie ist nur Rauschen, solange er seinen Job tut.
 
 **2. Serialisierte Property?** Eine public Property auf einem Typ mit `[Serializable]`, `[DataContract]`, `[JsonObject]` … wird fallengelassen. Der Serializer greift per Reflection zu; auf so einem Typ wäre jede Property ein Fund.
 

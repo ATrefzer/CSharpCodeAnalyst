@@ -42,7 +42,7 @@ public enum DeadCodeHint
     ImplementsExternalContract = 32,
 
     /// <summary>
-    ///     Referenced, but only from test assemblies. The production code has no use for it any more, so
+    ///     Referenced, but only from test code. The production code has no use for it any more, so
     ///     the test is the only thing keeping it alive - removing it means removing that test too.
     /// </summary>
     UsedOnlyByTests = 64,

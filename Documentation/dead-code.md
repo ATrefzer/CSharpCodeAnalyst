@@ -86,14 +86,21 @@ Without this rule, analyzing the tests along with the production code would **hi
 test projects and the elements show up as unreferenced; include them and the tests hold them up. Both
 answers cannot be right, and this is the one that survives either setup.
 
-**Test code is decided per assembly:** an assembly is a test assembly when it contains at least one element
-carrying a known test-framework attribute. Not per type, and that is the important part — test helpers
-(builders, fakes, a graph fixture) carry no attribute at all. Deciding per type would let a production
-member that only a helper calls look alive, and would report every helper as used-only-by-tests, which puts
-the whole test project into the result. If your tests live *inside* the production assembly, the rule
-switches itself off for that assembly.
+**Test code is decided per type:** a type is a test type when it, or anything inside it, carries a known
+test-framework attribute — the subtree, because xUnit has no class-level attribute (only the `[Fact]`
+methods carry one) and NUnit finds classes without `[TestFixture]` too. Attribute names are matched
+case-sensitively; a domain attribute that happens to be called `test` does not count.
 
-**Inside a test assembly the rule does not apply.** A helper the tests use is doing its job.
+Per type and not per assembly (which it used to be), because one embedded test class poisoned its whole
+assembly in both directions: every reference leaving the assembly counted as a test reference, so code in
+*other* assemblies used from ordinary production code was falsely `Used only by tests` — and production
+code beside the embedded tests, used only by them, was never found, because the whole assembly was exempt.
+
+**Inside a test type the rule does not apply.** A fixture's own helper members and nested fakes are what
+the tests are made of. A helper *class* outside the fixtures carries no attribute, though, so it is
+production code to the analysis and shows up as used-only-by-tests. That is the accepted price of the type
+granularity, and the statement is true — the helper goes when the tests go — it is just noise while the
+helper is doing its job.
 
 The note names the tests that reference the element — what has to go with it. It can be empty: when the
 element is reached through a contract member (`ICommand.Execute` and friends) there is no edge whose caller
@@ -219,9 +226,9 @@ model. A XAML `{Binding}` reaches exactly that, and bindings are the one XAML co
 deliberately does not follow. The parser records every analyzed type with the interface anywhere in its
 interface set, no matter which class of the inheritance chain implements it — so a view model deriving from
 a base class outside the analyzed code (`ObservableObject`, `BindableBase`, ...) is covered too, although
-nothing in the graph itself says it is a view model. For a project file saved before this existed the
-interface is still recognized through the `PropertyChanged` event and spread down the inheritance edges,
-which covers the `MyViewModel : ViewModelBase` shape but cannot see past an external base class.
+nothing in the graph itself says it is a view model. A project file saved before this existed has no
+recorded types, so the rule is simply off there until the solution is parsed anew — the same graceful
+degradation as for the other parser-side facts.
 
 Being confined does not help against this. A public property of an internal class cannot be referenced from
 another assembly, but the binding sits *inside* the assembly and is merely invisible — a different thing.

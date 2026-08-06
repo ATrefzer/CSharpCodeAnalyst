@@ -31,9 +31,10 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         finding; an element only <i>test</i> code references is the same statement about the production
 ///         code, and is reported with <see cref="DeadCodeHint.UsedOnlyByTests" />. Without that rule,
 ///         analyzing the tests along with the production code would <i>hide</i> dead code - exactly the
-///         elements one would see by excluding the test projects. Test code is decided per assembly (see
-///         <see cref="FindTestAssemblies" />), and inside a test assembly the rule is off: being used by
-///         tests is what a test helper is for.
+///         elements one would see by excluding the test projects. Test code is decided per type (see
+///         <see cref="FindTestTypes" />), and inside a test type the rule is off: a fixture's own helper
+///         members and nested fakes are what the tests are made of. An unattributed helper class outside
+///         the fixtures is reported like anything else - only the tests need it, it goes when they go.
 ///     </para>
 ///     <para>
 ///         The analysis reports exactly what nothing references <i>right now</i>. It does not chase the
@@ -78,14 +79,13 @@ public static class DeadCodeAnalysis
         DeadCodeHint.EntryPoint | DeadCodeHint.TestCode | DeadCodeHint.Attributed |
         DeadCodeHint.ImplementsExternalContract;
 
-    /// <summary>Prefix of the contracts recorded for a type that raises change notifications.</summary>
-    private const string NotifyPropertyChanged = "INotifyPropertyChanged.";
-
     /// <summary>
     ///     Attribute names (with and without the "Attribute" suffix) of the common test frameworks. A test
-    ///     method is called by a runner, never from the code, so it always looks unreferenced.
+    ///     method is called by a runner, never from the code, so it always looks unreferenced. Matching is
+    ///     case-sensitive: the framework names are exact, and a domain attribute that happens to be called
+    ///     "test" must not turn its class into test code.
     /// </summary>
-    private static readonly HashSet<string> TestAttributes = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> TestAttributes = new(StringComparer.Ordinal)
     {
         "Test", "TestAttribute",
         "TestCase", "TestCaseAttribute",
@@ -149,22 +149,20 @@ public static class DeadCodeAnalysis
         var implementations = new Dictionary<string, List<CodeElement>>();
         var contracts = new Dictionary<string, List<CodeElement>>();
 
-        // Base type -> the types deriving from it. Only used to spread the binding target property.
-        var derivedTypes = new Dictionary<string, List<CodeElement>>();
-
         var referenceEdges = new List<(CodeElement Source, CodeElement Target)>();
-        CollectEdges(graph, referenceEdges, external, implementations, contracts, derivedTypes);
+        CollectEdges(graph, referenceEdges, external, implementations, contracts);
 
-        var testAssemblies = FindTestAssemblies(graph);
+        var testTypes = FindTestTypes(graph);
 
-        var bindingSources = FindBindingSources(graph, external, derivedTypes,
-            externalContracts?.NotifyingTypes ?? []);
+        // The types whose public properties a XAML {Binding} may read - see IsBindable. Recorded by the
+        // parser; an importer graph or a project file saved before the set existed simply has none.
+        var bindingSources = externalContracts?.NotifyingTypes.ToHashSet() ?? [];
 
         var context = new AnalysisContext(external, implementations, contracts,
             bindingSources, FindSerializableTypes(graph),
-            testAssemblies, CollectTestReferences(referenceEdges, testAssemblies));
+            testTypes, CollectTestReferences(referenceEdges, testTypes));
 
-        var references = ComputeReferenced(referenceEdges, implementations, testAssemblies);
+        var references = ComputeReferenced(referenceEdges, implementations, testTypes);
 
         return Report(graph, references, context)
             .OrderBy(f => f.Element.FullName, StringComparer.Ordinal)
@@ -178,7 +176,7 @@ public static class DeadCodeAnalysis
         Dictionary<string, List<CodeElement>> Contracts,
         HashSet<string> BindingSources,
         HashSet<string> SerializableTypes,
-        HashSet<string> TestAssemblies,
+        HashSet<string> TestTypes,
         Dictionary<string, List<CodeElement>> TestReferences);
 
     /// <summary>
@@ -189,39 +187,60 @@ public static class DeadCodeAnalysis
     private sealed record ReferenceSets(HashSet<string> All, HashSet<string> FromProduction);
 
     /// <summary>
-    ///     The assemblies holding the tests: those containing at least one element with a known
+    ///     The types holding the tests: every type on the ancestor chain of an element carrying a known
     ///     test-framework attribute.
     ///     <para>
-    ///         Deliberately the assembly and not the type. Test helpers - builders, fakes, the graph
-    ///         fixture - carry no attribute at all. Deciding per type would make a production member that
-    ///         only a helper calls look alive, and would report every helper as used-only-by-tests, which
-    ///         floods the result with the whole test project. Tests living <i>in</i> the production
-    ///         assembly turn the rule off for that assembly, which is the harmless direction to fail in.
+    ///         The chain, not just the attributed element: xUnit has no class-level attribute at all
+    ///         (only the [Fact] methods carry one) and NUnit finds classes without [TestFixture] too, so
+    ///         it is the subtree that marks a fixture. Marking every ancestor type also covers the fakes
+    ///         and test-data classes nested inside one.
+    ///     </para>
+    ///     <para>
+    ///         Deliberately the type and not the assembly (which this used to be). One embedded test
+    ///         class poisoned its whole assembly, in both directions: every reference leaving the
+    ///         assembly counted as a test reference, so code in <i>other</i> assemblies used from there
+    ///         was falsely used-only-by-tests - and production code beside the embedded tests, used only
+    ///         by them, was never found, because the whole assembly was exempt. The price of the type
+    ///         granularity is the unattributed helper outside the fixtures (builders, fakes), which is
+    ///         now reported as used-only-by-tests. That is accepted, and it is a true statement: the
+    ///         helper goes when the tests go.
     ///     </para>
     /// </summary>
-    private static HashSet<string> FindTestAssemblies(Graph.CodeGraph graph)
+    private static HashSet<string> FindTestTypes(Graph.CodeGraph graph)
     {
-        return graph.Nodes.Values
-            .Where(element => element.Attributes.Any(TestAttributes.Contains))
-            .Select(element => RootOf(element).Id)
-            .ToHashSet();
-    }
+        var testTypes = new HashSet<string>();
 
-    /// <summary>The assembly an element belongs to - the top of its containment chain.</summary>
-    private static CodeElement RootOf(CodeElement element)
-    {
-        var current = element;
-        while (current.Parent is not null)
+        foreach (var element in graph.Nodes.Values)
         {
-            current = current.Parent;
+            if (!element.Attributes.Any(TestAttributes.Contains))
+            {
+                continue;
+            }
+
+            for (var current = element; current is not null; current = current.Parent)
+            {
+                if (current.IsType())
+                {
+                    testTypes.Add(current.Id);
+                }
+            }
         }
 
-        return current;
+        return testTypes;
     }
 
-    private static bool IsTestCode(CodeElement element, HashSet<string> testAssemblies)
+    /// <summary>Whether the element is a test type or sits inside one.</summary>
+    private static bool IsTestCode(CodeElement element, HashSet<string> testTypes)
     {
-        return testAssemblies.Contains(RootOf(element).Id);
+        for (var current = element; current is not null; current = current.Parent)
+        {
+            if (testTypes.Contains(current.Id))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -229,7 +248,7 @@ public static class DeadCodeAnalysis
     ///     to be deleted with it. Only the relationships starting in test code are walked.
     /// </summary>
     private static Dictionary<string, List<CodeElement>> CollectTestReferences(
-        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> testAssemblies)
+        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> testTypes)
     {
         var testReferences = new Dictionary<string, List<CodeElement>>();
 
@@ -239,7 +258,7 @@ public static class DeadCodeAnalysis
 
         foreach (var (source, target) in referenceEdges)
         {
-            if (!IsTestCode(source, testAssemblies))
+            if (!IsTestCode(source, testTypes))
             {
                 continue;
             }
@@ -264,78 +283,6 @@ public static class DeadCodeAnalysis
         }
 
         return testReferences;
-    }
-
-    /// <summary>
-    ///     Finds the view models.
-    ///     These are the types whose public properties a XAML <c>{Binding}</c> may read - anything implementing
-    ///     <c>INotifyPropertyChanged</c>. Bindings are resolved by reflection at runtime and are the one
-    ///     XAML construct the parser deliberately does not follow, so such a property must never reach the
-    ///     highest confidence.
-    ///     <para>
-    ///         "Source" in the WPF sense: the object a binding reads from (<c>Binding.Source</c>). The
-    ///         binding <i>target</i> is the dependency property on the control, which is not what we look
-    ///         for here.
-    ///     </para>
-    ///     <para>
-    ///         The primary source is the set the parser recorded from the symbols
-    ///         (<see cref="ExternalContractStore.NotifyingTypes" />): every analyzed type with the
-    ///         interface anywhere in its interface set, which covers a view model whose base class lives
-    ///         outside the analyzed code (ObservableObject, BindableBase, ...) - from the graph alone
-    ///         such a type is indistinguishable from any other class.
-    ///     </para>
-    ///     <para>
-    ///         The second route is the fallback for a project file saved before the set existed: the
-    ///         interface shows up through the external contract of the <c>PropertyChanged</c> event. A
-    ///         derived view model has no such member of its own (the base class implements it), so the
-    ///         property is spread down the <see cref="RelationshipType.Inherits" /> edges - the common
-    ///         "MyViewModel : ViewModelBase" shape would be missed otherwise. This route cannot see past
-    ///         an external base class, which is exactly why the recorded set is the primary one.
-    ///     </para>
-    /// </summary>
-    private static HashSet<string> FindBindingSources(Graph.CodeGraph graph, Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> derivedTypes, IReadOnlyCollection<string> notifyingTypes)
-    {
-        var sources = new HashSet<string>();
-        var queue = new Queue<string>();
-
-        foreach (var typeId in notifyingTypes)
-        {
-            if (sources.Add(typeId))
-            {
-                queue.Enqueue(typeId);
-            }
-        }
-
-        foreach (var (elementId, contract) in external)
-        {
-            if (!contract.StartsWith(NotifyPropertyChanged, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var type = ContainingType(graph.TryGetCodeElement(elementId));
-            if (type is not null && sources.Add(type.Id))
-            {
-                queue.Enqueue(type.Id);
-            }
-        }
-
-        // Add returning false doubles as the visited check, so a diamond cannot enqueue a type twice.
-        while (queue.Count > 0)
-        {
-            if (!derivedTypes.TryGetValue(queue.Dequeue(), out var derived))
-            {
-                continue;
-            }
-
-            foreach (var type in derived.Where(type => sources.Add(type.Id)))
-            {
-                queue.Enqueue(type.Id);
-            }
-        }
-
-        return sources;
     }
 
     /// <summary>
@@ -375,11 +322,11 @@ public static class DeadCodeAnalysis
     private static ReferenceSets ComputeReferenced(
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
         Dictionary<string, List<CodeElement>> implementations,
-        HashSet<string> testAssemblies)
+        HashSet<string> testTypes)
     {
         return new ReferenceSets(
             Mark(referenceEdges, implementations, _ => true),
-            Mark(referenceEdges, implementations, source => !IsTestCode(source, testAssemblies)));
+            Mark(referenceEdges, implementations, source => !IsTestCode(source, testTypes)));
     }
 
     private static HashSet<string> Mark(
@@ -407,8 +354,7 @@ public static class DeadCodeAnalysis
     private static void CollectEdges(Graph.CodeGraph graph,
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
         Dictionary<string, string> external,
-        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts,
-        Dictionary<string, List<CodeElement>> derivedTypes)
+        Dictionary<string, List<CodeElement>> implementations, Dictionary<string, List<CodeElement>> contracts)
     {
         foreach (var relationship in graph.GetAllRelationships())
         {
@@ -417,11 +363,6 @@ public static class DeadCodeAnalysis
             if (source is null || target is null)
             {
                 continue;
-            }
-
-            if (relationship.Type == RelationshipType.Inherits && source.IsType() && target.IsType())
-            {
-                Add(derivedTypes, target.Id, source);
             }
 
             if (IsPolymorphicEdge(relationship.Type, source))
@@ -571,9 +512,8 @@ public static class DeadCodeAnalysis
     ///     Whether nothing in the production code references the element. Two ways to get there: nothing
     ///     references it at all, or only test code does.
     ///     <para>
-    ///         The second one is a finding only outside a test assembly. Inside one it is what is supposed
-    ///         to happen - a helper the tests use is doing its job - and reporting it would put the whole
-    ///         test project into the result.
+    ///         The second one is a finding only outside a test type. Inside one it is what is supposed to
+    ///         happen - a fixture's own helper members and nested fakes are what the tests are made of.
     ///     </para>
     ///     <para>
     ///         An external contract does not make an element alive either; it is reported with a note
@@ -587,7 +527,7 @@ public static class DeadCodeAnalysis
             return false;
         }
 
-        return !references.All.Contains(element.Id) || !IsTestCode(element, context.TestAssemblies);
+        return !references.All.Contains(element.Id) || !IsTestCode(element, context.TestTypes);
     }
 
     private static DeadCodeFinding CreateFinding(CodeElement element, ReferenceSets references,
@@ -700,10 +640,19 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     Whether a XAML <c>{Binding}</c> could read this element without us seeing it. That takes two
-    ///     things: a <b>public</b> property - the binding engine resolves by public reflection, so private,
-    ///     internal and protected members are out of its reach - on a type that raises change
-    ///     notifications.
+    ///     Whether a XAML <c>{Binding}</c> could read this element without us seeing it - bindings are
+    ///     resolved by reflection at runtime and are the one XAML construct the parser deliberately does
+    ///     not follow. That takes two things: a <b>public</b> property - the binding engine resolves by
+    ///     public reflection, so private, internal and protected members are out of its reach - on a type
+    ///     that raises change notifications.
+    ///     <para>
+    ///         Which types those are comes straight from the parser
+    ///         (<see cref="ExternalContractStore.NotifyingTypes" />): every analyzed type with
+    ///         <c>INotifyPropertyChanged</c> anywhere in its interface set, no matter which class of the
+    ///         inheritance chain implements it - so a view model deriving from a base class outside the
+    ///         analyzed code (ObservableObject, BindableBase, ...) counts too, although from the graph
+    ///         alone it is indistinguishable from any other class.
+    ///     </para>
     ///     <para>
     ///         Note that being confined does not help here. A public property of an internal class cannot
     ///         be referenced from another assembly, but the binding sits <i>inside</i> the assembly and is

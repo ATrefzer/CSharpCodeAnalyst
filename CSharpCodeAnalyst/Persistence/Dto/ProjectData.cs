@@ -38,8 +38,7 @@ public class ProjectData
     ///     The element ids of the types that raise change notifications (INotifyPropertyChanged anywhere
     ///     in the interface set). Complements <see cref="ExternalContracts" />: the member-level contract
     ///     cannot see a view model whose base class lives outside the analyzed code. An older project
-    ///     file simply has none - those view models fall back to the member-based detection until the
-    ///     solution is parsed anew.
+    ///     file simply has none, and the binding rule is off until the solution is parsed anew.
     /// </summary>
     public List<string> NotifyingTypes { get; set; } = [];
 
