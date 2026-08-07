@@ -1,0 +1,92 @@
+# Copy to your repo as .github/workflows/codeanalyst-validate.yml and edit paths.
+# Requires a Windows runner (.NET 10 Desktop runtime + SDK for MSBuildLocator).
+name: Architecture guardrails (C# Code Analyst)
+
+on:
+  pull_request:
+    paths:
+      - "**/*.cs"
+      - "**/*.csproj"
+      - "**/*.sln"
+      - "architecture.rules.txt"
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Install desktop runtime if the hosted image needs it for the published exe.
+      - name: Ensure .NET Desktop runtime
+        shell: pwsh
+        run: |
+          # Hosted images usually ship SDKs; this is a safe no-op when present.
+          dotnet --list-runtimes
+
+      - name: Restore (helps MSBuild load multi-project solutions)
+        run: dotnet restore MyApp.sln
+
+      # Option A: vendor this composite action from a checkout of CSharpCodeAnalyst
+      # - uses: path/to/CSharpCodeAnalyst/samples/ci-pipeline/action
+      #   with:
+      #     solution: MyApp.sln
+      #     rules: architecture.rules.txt
+
+      # Option B: inline (no vendored action)
+      - name: Download C# Code Analyst
+        shell: pwsh
+        run: |
+          $url = "https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest/download/latest-release.zip"
+          Invoke-WebRequest $url -OutFile codeanalyst.zip
+          Expand-Archive codeanalyst.zip -DestinationPath tools/codeanalyst -Force
+
+      - name: Validate architecture
+        shell: pwsh
+        run: |
+          $outDir = "artifacts/codeanalyst"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          $exe = Get-ChildItem tools/codeanalyst -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
+
+          $argList = @(
+            "-validate",
+            "-sln:$env:GITHUB_WORKSPACE\MyApp.sln",
+            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",
+            "-log-console",
+            "-log-file:$env:GITHUB_WORKSPACE\$outDir\validation-log.txt",
+            "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt"
+          )
+
+          # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). The plain `& $exe args` call
+          # operator does not reliably wait or propagate the exit code when no console is
+          # attached (the normal case on a CI runner). Start-Process -Wait -PassThru is the
+          # reliable way to invoke it headlessly; -WorkingDirectory also covers tool
+          # versions that resolve appsettings.json relative to the working directory.
+          $proc = Start-Process -FilePath $exe.FullName -ArgumentList $argList -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput "$outDir\console-stdout.txt" `
+            -RedirectStandardError "$outDir\console-stderr.txt"
+
+          Get-Content "$outDir\console-stdout.txt" | Write-Host
+          if ((Get-Item "$outDir\console-stderr.txt").Length -gt 0) {
+            Get-Content "$outDir\console-stderr.txt" | Write-Host
+          }
+
+          $code = $proc.ExitCode
+          Write-Host "CSharpCodeAnalyst -validate exit code: $code"
+          if ($code -ne 0) {
+            exit $code
+          }
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeanalyst-validation
+          path: artifacts/codeanalyst/

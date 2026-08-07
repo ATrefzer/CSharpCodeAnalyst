@@ -1,0 +1,20 @@
+// Example architectural rules for headless CI.
+// Replace MyApp.* with paths that match YOUR graph (Tree View / advanced search).
+// Wrong prefixes silently match nothing — verify with one interactive validation first.
+// See Documentation/architectural-rules.md and Documentation/ci-and-multi-source-pipeline.md
+
+// Layer: domain/core must not depend on UI
+DENY MyApp.Core.** -> MyApp.UI.**
+
+// Optional MVVM guard: ViewModels should not construct Views
+// DENY MyApp.UI.ViewModels.** -> MyApp.UI.Views.**
+
+// Keep a chosen root free of dependency cycles (path without wildcard)
+// NOCYCLES MyApp
+// NOCYCLES MyApp.Core
+
+// Cap share of types entangled in type-graph cycles (percent)
+MAXCYCLICITY = 15
+
+// Optional hot-spot LOC budgets (methods)
+// MAXLINES MyApp.UI.ViewModels.MainShellViewModel = 120

@@ -68,4 +68,13 @@ defaults are used.
 
 ## Rules file syntax
 
-See [README.md](../README.md)
+See [README.md](../README.md) and [Architectural rules](architectural-rules.md).
+
+## CI and multi-source pipelines
+
+For GitHub Actions packaging, JSON edge export helpers, and using Code Analyst
+as one evidence stage among peer auditors (without pretending the graph sees every
+UI binding), see:
+
+- [CI + multi-source evidence pipeline](ci-and-multi-source-pipeline.md)
+- Sample pack: [`samples/ci-pipeline/`](../samples/ci-pipeline/README.md)
