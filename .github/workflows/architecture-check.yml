@@ -17,8 +17,16 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      - name: Restore (helps MSBuild load the multi-project solution)
+      - name: Restore
         run: dotnet restore CSharpCodeAnalyst.sln
+
+      # Restore alone is not enough: MSBuildWorkspace's design-time build for the WPF
+      # projects needs referenced projects' DLLs to physically exist (e.g.
+      # ThirdParty/DsmSuite/DsmSuite.DsmViewer.View). Without a real build first, -validate
+      # logs "Parser failures" for those projects but still exits 0 on an incomplete graph -
+      # confirmed by reproducing it locally.
+      - name: Build
+        run: dotnet build CSharpCodeAnalyst.sln --no-restore -c Debug
 
       - name: Download C# Code Analyst (latest release)
         shell: pwsh
