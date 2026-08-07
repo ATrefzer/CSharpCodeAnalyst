@@ -147,10 +147,16 @@ The composite action under [`samples/ci-pipeline/action/`](../samples/ci-pipelin
 
 ### Parse → structured edges
 
-Headless output is currently **human-readable text**. The sample parser  
-[`samples/ci-pipeline/scripts/parse_validation_result.py`](../samples/ci-pipeline/scripts/parse_validation_result.py) turns it into JSON edges + a handoff summary suitable for a multi-source merge.
+`-sarif:<file>` writes the result as machine-readable SARIF 2.1.0 - one result per offending
+relationship or element, with repository-relative paths and stable fingerprints. Prefer it over
+scraping the text output, both for a code scanning upload and as the input of a multi-source merge.
+See [Command-line arguments](command-line-arguments.md#sarif-output) for the mapping and a GitHub
+Actions example.
 
-> Wish for upstream later: a first-class `-out-json:<file>` (or SARIF) export would remove the text scrape. Until then, parsers stay tolerant of whitespace noise.
+The sample parser
+[`samples/ci-pipeline/scripts/parse_validation_result.py`](../samples/ci-pipeline/scripts/parse_validation_result.py)
+predates the SARIF export and reads the **text** output of `-out`. It stays for setups that already
+depend on it; new pipelines should read the SARIF file instead.
 
 ---
 

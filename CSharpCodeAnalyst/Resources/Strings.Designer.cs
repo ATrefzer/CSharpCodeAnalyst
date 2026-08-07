@@ -447,7 +447,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Cmd_AnalysisComplete", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to SARIF report written to: {0}.
+        /// </summary>
+        public static string Cmd_SarifWritten {
+            get {
+                return ResourceManager.GetString("Cmd_SarifWritten", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Parser failures:.
         /// </summary>
