@@ -62,14 +62,33 @@ runs:
         } else {
           Join-Path $env:GITHUB_WORKSPACE "${{ inputs.rules }}"
         }
-        & $env:CODEANALYST_EXE `
-          -validate `
-          "-sln:$sln" `
-          "-rules:$rules" `
-          -log-console `
-          "-log-file:$log" `
+        # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem), not a console app. With no
+        # console attached to the calling process - the normal case on a CI runner - the
+        # plain `& $exe args` call operator does not reliably wait for it or propagate
+        # $LASTEXITCODE. Start-Process -Wait -PassThru is the reliable way to get both the
+        # exit code and the console output back. -WorkingDirectory also covers tool
+        # versions that resolve appsettings.json relative to the working directory instead
+        # of the executable's own folder.
+        $exeDir = Split-Path $env:CODEANALYST_EXE -Parent
+        $stdoutPath = Join-Path "${{ inputs.output-dir }}" "console-stdout.txt"
+        $stderrPath = Join-Path "${{ inputs.output-dir }}" "console-stderr.txt"
+        $proc = Start-Process -FilePath $env:CODEANALYST_EXE -ArgumentList @(
+          "-validate",
+          "-sln:$sln",
+          "-rules:$rules",
+          "-log-console",
+          "-log-file:$log",
           "-out:$out"
-        $code = $LASTEXITCODE
+        ) -WorkingDirectory $exeDir -NoNewWindow -Wait -PassThru `
+          -RedirectStandardOutput $stdoutPath `
+          -RedirectStandardError $stderrPath
+
+        Get-Content $stdoutPath | Write-Host
+        if ((Get-Item $stderrPath).Length -gt 0) {
+          Get-Content $stderrPath | Write-Host
+        }
+
+        $code = $proc.ExitCode
         "CODEANALYST_EXIT=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
         if ($code -eq 2) { exit 2 }
         if ($code -eq 1 -and "${{ inputs.continue-on-violation }}" -ne "true") { exit 1 }

@@ -51,15 +51,38 @@ jobs:
       - name: Validate architecture
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path artifacts/codeanalyst | Out-Null
+          $outDir = "artifacts/codeanalyst"
+          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
           $exe = Get-ChildItem tools/codeanalyst -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
-          & $exe.FullName `
-            -validate `
-            "-sln:$env:GITHUB_WORKSPACE\MyApp.sln" `
-            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt" `
-            -log-console `
-            "-log-file:$env:GITHUB_WORKSPACE\artifacts\codeanalyst\validation-log.txt" `
-            "-out:$env:GITHUB_WORKSPACE\artifacts\codeanalyst\validation-result.txt"
+
+          $argList = @(
+            "-validate",
+            "-sln:$env:GITHUB_WORKSPACE\MyApp.sln",
+            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",
+            "-log-console",
+            "-log-file:$env:GITHUB_WORKSPACE\$outDir\validation-log.txt",
+            "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt"
+          )
+
+          # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). The plain `& $exe args` call
+          # operator does not reliably wait or propagate the exit code when no console is
+          # attached (the normal case on a CI runner). Start-Process -Wait -PassThru is the
+          # reliable way to invoke it headlessly; -WorkingDirectory also covers tool
+          # versions that resolve appsettings.json relative to the working directory.
+          $proc = Start-Process -FilePath $exe.FullName -ArgumentList $argList -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru `
+            -RedirectStandardOutput "$outDir\console-stdout.txt" `
+            -RedirectStandardError "$outDir\console-stderr.txt"
+
+          Get-Content "$outDir\console-stdout.txt" | Write-Host
+          if ((Get-Item "$outDir\console-stderr.txt").Length -gt 0) {
+            Get-Content "$outDir\console-stderr.txt" | Write-Host
+          }
+
+          $code = $proc.ExitCode
+          Write-Host "CSharpCodeAnalyst -validate exit code: $code"
+          if ($code -ne 0) {
+            exit $code
+          }
 
       - name: Upload results
         if: always()
