@@ -10,9 +10,11 @@ The pattern is intentionally generic. Teams wire different importers (UI binders
 
 Related:
 
+- **[Pipeline documentation](pipeline-documentation.md)** — write durable `.pipeline` maps (document → reverse-engineer → rebuild)
 - [Command-line arguments](command-line-arguments.md)
 - [Architectural rules](architectural-rules.md)
 - Sample pack: [`samples/ci-pipeline/`](../samples/ci-pipeline/README.md)
+- Pipeline writer sample: [`samples/PipelineDocsCli/`](../samples/PipelineDocsCli/README.md)
 
 ---
 

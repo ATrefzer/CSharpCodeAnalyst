@@ -1,0 +1,3 @@
+# Generated architecture maps — large; regenerate with PipelineDocsCli instead of checking in bulk dumps.
+# Keep this directory tracked via README so users know where output goes.
+*.pipeline

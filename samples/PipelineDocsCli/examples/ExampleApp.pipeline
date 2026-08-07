@@ -1,0 +1,61 @@
+PIPELINE 2.0
+
+REPOSITORY ExampleApp
+SOLUTION ExampleApp.sln
+GENERATED 2026-01-01T00:00:00.0000000+00:00
+
+SUMMARY
+  projects-total: 2
+  solution-members: 2
+  adjacent-projects: 0
+  standalone-unclassified: 0
+  diagnostics: 0
+END SUMMARY
+
+SOLUTION TREE
+  ExampleApp.Core
+  ExampleApp.App
+    -> ExampleApp.Core
+END SOLUTION TREE
+
+PROJECT ExampleApp.Core
+  path: src/ExampleApp.Core/ExampleApp.Core.csproj
+  membership: solution
+  classification: solution-member
+  output: Library
+  framework: net10.0
+  referenced-by:
+    - ExampleApp.App
+  CODE TREE
+    TYPE ExampleApp.Core.OrderService
+      kind: Class
+      file: src/ExampleApp.Core/OrderService.cs
+      calls:
+        - ExampleApp.Core.IOrderRepository.GetAsync(System.Guid)
+      creates:
+        - ExampleApp.Core.Order
+      inputs:
+        - System.Guid
+      outputs:
+        - ExampleApp.Core.Order
+    END TYPE
+  END CODE TREE
+END PROJECT
+
+PROJECT ExampleApp.App
+  path: src/ExampleApp.App/ExampleApp.App.csproj
+  membership: solution
+  classification: solution-member, executable
+  output: Exe
+  framework: net10.0
+  references:
+    - ExampleApp.Core
+  CODE TREE
+    TYPE ExampleApp.App.Program
+      kind: Class
+      file: src/ExampleApp.App/Program.cs
+      creates:
+        - ExampleApp.Core.OrderService
+    END TYPE
+  END CODE TREE
+END PROJECT
