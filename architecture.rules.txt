@@ -1,0 +1,14 @@
+// Architectural rules for CSharpCodeAnalyst itself (dogfooding).
+// Run manually via the "Architecture guardrails" GitHub Action (workflow_dispatch).
+// See Documentation/architectural-rules.md for rule syntax.
+
+// CodeGraph is documented as a pure, UI-free domain model (see CLAUDE.md) and must
+// never depend on the WPF app.
+DENY CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.CSharpCodeAnalyst.**
+
+// CodeParser is the Roslyn front-end; it must not depend on the WPF app either.
+DENY CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CSharpCodeAnalyst.**
+
+// Baseline: measured cyclicity is currently 0.82%. Rounded up to 1% headroom.
+// Tighten this over time as cycles get cleaned up.
+MAXCYCLICITY = 1
