@@ -70,9 +70,14 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
 
     private static AppSettings LoadAppSettings()
     {
+        // Resolve next to the executable, not the process's current working directory: headless
+        // -validate is typically invoked from CI scripts (e.g. Start-Process without an explicit
+        // -WorkingDirectory) whose CWD has no relation to where the tool was extracted/installed.
+        // Missing the file is not an error here - fall back to AppSettings' own defaults, the same
+        // as an interactive first run with no saved settings yet.
         var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", false, true);
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", true, true);
 
         IConfiguration configuration = builder.Build();
         var settings = configuration.GetSection("ApplicationSettings").Get<AppSettings>();
