@@ -118,22 +118,27 @@ class PipelineDocsGenerator
     private bool ShouldProcess(string filePath, string projectRoot)
     {
         var relativePath = Path.GetRelativePath(projectRoot, filePath);
-        
-        // Exclude patterns
-        var excludePatterns = new[] {
+        var parts = relativePath.Split(
+            new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
+            StringSplitOptions.RemoveEmptyEntries);
+
+        // Match path segments only — substring "obj" wrongly matches "Objects".
+        var excludedSegments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
             "obj", "bin", "backup", "Backup1", ".broken",
             "AvaloniaEdit", "AvaloniaUI.MCP", "Matplotlib.Net",
             "node_modules", "packages"
         };
-        
-        foreach (var pattern in excludePatterns)
-        {
-            if (relativePath.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-        }
-        
+
+        if (parts.Any(p => excludedSegments.Contains(p)))
+            return false;
+
+        // Also skip common dead suffixes in file names
+        var name = Path.GetFileName(filePath);
+        if (name.Contains(".broken", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
+            return false;
+
         return true;
     }
 }
