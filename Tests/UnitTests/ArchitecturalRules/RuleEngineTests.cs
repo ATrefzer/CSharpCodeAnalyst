@@ -76,6 +76,46 @@ public class RuleEngineTests
     }
 
     /// <summary>
+    ///     ISOLATE constrains only what its element depends on. Being used from the outside is the
+    ///     whole point of an isolated element - it has to become a leaf of the dependency graph, not
+    ///     an island nobody may touch.
+    /// </summary>
+    [Test]
+    public void Isolate_IncomingDependency_IsNoViolation()
+    {
+        var keys = _codeGraph.CreateNamespace("MyApp.Keys");
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+
+        var keyDefinitions = _codeGraph.CreateClass("KeyDefinitions", keys);
+        var orderLogic = _codeGraph.CreateClass("OrderLogic", business);
+
+        orderLogic.Relationships.Add(new Relationship(orderLogic.Id, keyDefinitions.Id, RelationshipType.Uses));
+
+        var result = Execute("ISOLATE MyApp.Keys.**");
+
+        Assert.That(result.Violations, Is.Empty);
+        Assert.That(result.Warnings, Is.Empty);
+    }
+
+    /// <summary>The other direction, for contrast: the isolated element depending on anything outside.</summary>
+    [Test]
+    public void Isolate_OutgoingDependency_IsAViolation()
+    {
+        var keys = _codeGraph.CreateNamespace("MyApp.Keys");
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+
+        var keyDefinitions = _codeGraph.CreateClass("KeyDefinitions", keys);
+        var orderLogic = _codeGraph.CreateClass("OrderLogic", business);
+
+        keyDefinitions.Relationships.Add(new Relationship(keyDefinitions.Id, orderLogic.Id, RelationshipType.Uses));
+
+        var result = Execute("ISOLATE MyApp.Keys.**");
+
+        Assert.That(result.Violations, Has.Count.EqualTo(1));
+        Assert.That(result.Violations[0].ViolatingRelationships, Has.Count.EqualTo(1));
+    }
+
+    /// <summary>
     ///     Two of the four types form a cycle, so the cyclicity of this graph is 50 percent.
     /// </summary>
     private void CreateGraphWithCyclicityOfFiftyPercent()

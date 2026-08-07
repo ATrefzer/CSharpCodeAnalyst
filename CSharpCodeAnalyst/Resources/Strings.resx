@@ -814,6 +814,9 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Cmd_AnalysisComplete" xml:space="preserve">
     <value>Analysis completed with exit code: {0}</value>
   </data>
+  <data name="Cmd_SarifWritten" xml:space="preserve">
+    <value>SARIF report written to: {0}</value>
+  </data>
   <data name="Cmd_VerifyArchitecturalRules" xml:space="preserve">
     <value>Verify architectural rules</value>
   </data>

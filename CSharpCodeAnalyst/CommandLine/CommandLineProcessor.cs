@@ -112,8 +112,10 @@ public static class CommandLineProcessor
                                             -sln:<solution_file> 
                                             -rules:<rules_file> 
 
-                                            [-out:out_file>] 
-                                            [-log-console] 
+                                            [-out:out_file>]
+                                            [-sarif:<sarif_file>]
+                                            [-source-root:<directory>]
+                                            [-log-console]
                                             [-log-file:<log_file>]
                     --------------------------------------------------------------------------
 

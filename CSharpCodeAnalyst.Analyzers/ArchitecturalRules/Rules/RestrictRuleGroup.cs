@@ -22,6 +22,10 @@ public class RestrictRuleGroup : DependencyRule
         Rules = rules.ToList();
         Source = string.Join("; ", Sources);
         RuleText = string.Join("; ", Rules.Select(r => r.RuleText));
+
+        // A group has no line of its own. Point at the first of its rules, so a violation still
+        // leads back into the rules text.
+        LineNumber = Rules.Count == 0 ? 0 : Rules.Min(r => r.LineNumber);
     }
 
     private List<RestrictRule> Rules { get; }

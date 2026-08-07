@@ -103,6 +103,7 @@ public static class RuleParser
             try
             {
                 var rule = ParseRule(line);
+                rule.LineNumber = i + 1;
                 rules.Add(rule);
             }
             catch (Exception ex)
