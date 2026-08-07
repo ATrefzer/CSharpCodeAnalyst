@@ -47,8 +47,10 @@ jobs:
           # `& $exe args` operator does not reliably block or propagate $LASTEXITCODE when
           # there is no attached console (as on a CI runner) - confirmed by testing.
           # Start-Process -Wait -PassThru is the reliable way to get both the exit code
-          # and the console output back.
-          $proc = Start-Process -FilePath $exe.FullName -ArgumentList $argList -NoNewWindow -Wait -PassThru `
+          # and the console output back. -WorkingDirectory is required for released
+          # versions of the tool that resolve appsettings.json relative to the working
+          # directory instead of the executable's own folder.
+          $proc = Start-Process -FilePath $exe.FullName -ArgumentList $argList -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru `
             -RedirectStandardOutput "$outDir\console-stdout.txt" `
             -RedirectStandardError "$outDir\console-stderr.txt"
 
