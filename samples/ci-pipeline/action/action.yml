@@ -1,7 +1,9 @@
 name: csharp-code-analyst-validate
 description: >
   Download a C# Code Analyst release and run headless -validate on a solution.
-  Windows runners only. Uploads raw + parsed results when requested.
+  Windows runners only. Writes raw + parsed results to output-dir when requested
+  (does not upload them as a GitHub Actions artifact - add your own upload-artifact
+  step for that, see samples/ci-pipeline/README.md).
 
 inputs:
   solution:

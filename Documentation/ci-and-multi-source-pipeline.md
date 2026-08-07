@@ -106,6 +106,16 @@ Peer importers introduce their own kinds (`bind`, `inject`, `shell_route`, …).
 Windows runners only (app targets `net10.0-windows`).
 
 ```yaml
+# Replace every path below marked "EDIT ME" with your own before use.
+- name: Restore
+  run: dotnet restore MyApp.sln # EDIT ME - your solution's path
+
+# Restore alone can leave a WPF/Avalonia solution with cross-project XAML references
+# incompletely loadable - see the "Honesty bar" section of samples/ci-pipeline/README.md.
+# Skip this for a plain console/library/service solution.
+- name: Build
+  run: dotnet build MyApp.sln --no-restore # EDIT ME - your solution's path
+
 - name: Download C# Code Analyst release
   shell: pwsh
   run: |
@@ -116,16 +126,24 @@ Windows runners only (app targets `net10.0-windows`).
 - name: Validate architecture
   shell: pwsh
   run: |
-    & tools/codeanalyst/CSharpCodeAnalyst.exe `
-      -validate `
-      -sln:${{ github.workspace }}/MyApp.sln `
-      -rules:${{ github.workspace }}/architecture.rules.txt `
-      -log-console `
-      -out:${{ github.workspace }}/artifacts/codeanalyst/validation-result.txt
+    $exe = Get-ChildItem tools/codeanalyst -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
+    # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem): the plain `& $exe args` call
+    # operator does not reliably wait or propagate the exit code when no console is
+    # attached, as on a CI runner. Start-Process -Wait -PassThru is the reliable way to
+    # invoke it headlessly; -WorkingDirectory covers tool versions that resolve
+    # appsettings.json relative to the working directory instead of the exe's own folder.
+    $proc = Start-Process -FilePath $exe.FullName -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru -ArgumentList @(
+      "-validate",
+      "-sln:${{ github.workspace }}/MyApp.sln",                 # EDIT ME - your solution's path
+      "-rules:${{ github.workspace }}/architecture.rules.txt",  # EDIT ME - your rules file's path
+      "-log-console",
+      "-out:${{ github.workspace }}/artifacts/codeanalyst/validation-result.txt"
+    )
+    if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
   # Optional: continue-on-error: true when you only want artifacts, not a red build
 ```
 
-The composite action under [`samples/ci-pipeline/action/`](../samples/ci-pipeline/action/action.yml) packages this as a reusable step.
+The composite action under [`samples/ci-pipeline/action/`](../samples/ci-pipeline/action/action.yml) packages the validate step (not the restore/build steps - those stay the caller's responsibility) as a reusable step.
 
 ### Parse → structured edges
 

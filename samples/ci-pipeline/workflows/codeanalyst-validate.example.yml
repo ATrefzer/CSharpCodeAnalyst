@@ -1,5 +1,7 @@
 # Copy to your repo as .github/workflows/codeanalyst-validate.yml and edit paths.
 # Requires a Windows runner (.NET 10 Desktop runtime + SDK for MSBuildLocator).
+#
+# (!) Replace every path below marked "EDIT ME" with your own before use.
 name: Architecture guardrails (C# Code Analyst)
 
 on:
@@ -8,9 +10,9 @@ on:
       - "**/*.cs"
       - "**/*.csproj"
       - "**/*.sln"
-      - "architecture.rules.txt"
+      - "architecture.rules.txt" # EDIT ME - your rules file's path
   push:
-    branches: [main, master]
+    branches: [main, master] # EDIT ME - your repo's default branch
   workflow_dispatch:
 
 jobs:
@@ -32,15 +34,14 @@ jobs:
           dotnet --list-runtimes
 
       - name: Restore (helps MSBuild load multi-project solutions)
-        run: dotnet restore MyApp.sln
+        run: dotnet restore MyApp.sln # EDIT ME - your solution's path
 
-      # Option A: vendor this composite action from a checkout of CSharpCodeAnalyst
-      # - uses: path/to/CSharpCodeAnalyst/samples/ci-pipeline/action
-      #   with:
-      #     solution: MyApp.sln
-      #     rules: architecture.rules.txt
+      # Restore alone can leave a WPF/Avalonia solution with cross-project XAML references
+	  # incompletely loadable - see the "Honesty bar" section of samples/ci-pipeline/README.md.
+	  # Skip this for a plain console/library/service solution.
+      - name: Build
+        run: dotnet build MyApp.sln --no-restore # EDIT ME - your solution's path
 
-      # Option B: inline (no vendored action)
       - name: Download C# Code Analyst
         shell: pwsh
         run: |
@@ -57,8 +58,8 @@ jobs:
 
           $argList = @(
             "-validate",
-            "-sln:$env:GITHUB_WORKSPACE\MyApp.sln",
-            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",
+            "-sln:$env:GITHUB_WORKSPACE\MyApp.sln",                    # EDIT ME - your solution's path
+            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",     # EDIT ME - your rules file's path
             "-log-console",
             "-log-file:$env:GITHUB_WORKSPACE\$outDir\validation-log.txt",
             "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt"
@@ -80,6 +81,9 @@ jobs:
 
           $code = $proc.ExitCode
           Write-Host "CSharpCodeAnalyst -validate exit code: $code"
+          # This fails the step on either 1 (violations) or 2 (load error) alike. If you want
+          # to record violations as an artifact without failing the build, use the composite
+          # action instead - it has a continue-on-violation input for exactly that.
           if ($code -ne 0) {
             exit $code
           }
