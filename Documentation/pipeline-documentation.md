@@ -2,16 +2,21 @@
 
 [TOC]
 
-Most dependency tools help **explore a live model**. Rebuild work needs something they often skip: a **durable architecture document** written from the compiler’s graph so you can walk:
+Most dependency tools help **explore a live model**. Rebuild work needs something they often skip: durable documentation written from the code so you can walk:
 
 **document → debug / reverse-engineer → rebuild**
 
 …instead of re-discovering a codebase only through chat transcripts or “AI hand-built this once.”
 
-This repository includes a sample tool that does exactly that writer job:
+This repository includes a sample tool with **two complementary writers**:
+
+| Mode | Command | Artifact |
+|------|---------|----------|
+| **1 — Solution map** | `snapshot` | One human-readable **`.pipeline`** file |
+| **2 — Per-file banners** | `headers` | **`// PIPELINE DOCUMENTATION`** headers at the top of each `.cs` file |
 
 - **Sample:** [`samples/PipelineDocsCli/`](../samples/PipelineDocsCli/README.md)
-- **Output format:** UTF-8 text files ending in `.pipeline` under `docs/pipeline/`
+- **Default map path:** `docs/pipeline/<SolutionName>.pipeline`
 
 It complements C# Code Analyst. It does not replace the Code Explorer, cycle tools, DSM, or headless `-validate` rules.
 
@@ -21,16 +26,17 @@ It complements C# Code Analyst. It does not replace the Code Explorer, cycle too
 
 | Situation | Bad outcome | Better outcome |
 |-----------|-------------|----------------|
-| Agent or human added features without a map | Next session reinvents structure | Checked-in `.pipeline` is the first read |
+| Agent or human added features without a map | Next session reinvents structure | Checked-in `.pipeline` + file banners |
 | Large monorepo, multi-project | “Where does X live?” burns days | Project tree + type tree in one file |
-| Reverse-engineering a shipped app | Scattering greps | Ordered call / create / inject-ish hints from Roslyn |
+| Opening a random `.cs` mid-rewrite | No orientation | Auto header: called by / calls / flow |
+| Reverse-engineering a shipped app | Scattering greps | Ordered call / create hints from Roslyn + path roles |
 | Rebuild in another shape | Guessing layers | Documented membership, adjacency, purpose annotations |
 
-`.pipeline` files are **not** proof of runtime wiring (reflection, DI containers, XAML/Avalonia bindings can still be invisible — same honesty bar as the Roslyn graph). They *are* proof of what MSBuild and semantic analysis could resolve at snapshot time, with diagnostics kept visible when load failed.
+`.pipeline` files and auto headers are **not** proof of every runtime wire (reflection, DI containers, XAML/Avalonia bindings can still be invisible — same honesty bar as the Roslyn graph). They *are* bookmarks of what static analysis + folder roles could report, so rebuild work starts with evidence.
 
 ---
 
-## 2. Quick start
+## 2. Quick start — option 1 (`snapshot`)
 
 ```powershell
 # From this repository root
@@ -46,11 +52,47 @@ dotnet run --project samples/PipelineDocsCli -- `
   alongside build -- CSharpCodeAnalyst.sln
 ```
 
-Copy `samples/PipelineDocsCli` into any other monorepo and point `--solution` / `--output` at your tree.
+---
+
+## 3. Quick start — option 2 (`headers`)
+
+The original **per-file** pipeline banners:
+
+```powershell
+# Dry-run first
+dotnet run --project samples/PipelineDocsCli -- headers `
+  --project-dir CSharpCodeAnalyst.CodeGraph `
+  --dry-run --verbose
+
+# Write auto-generated headers (skips non-auto manual blocks)
+dotnet run --project samples/PipelineDocsCli -- headers `
+  --project-dir CSharpCodeAnalyst.CodeGraph
+```
+
+Header shape (auto-generated marker so rewrites stay safe):
+
+```csharp
+// ============================================================================
+// PIPELINE DOCUMENTATION (auto-generated)
+// ============================================================================
+// PIPELINE: This file is called by: …
+// PIPELINE: This file calls: …
+// PIPELINE: Flow: …
+// PIPELINE: Dependencies: …
+// PIPELINE: Output: …
+// PIPELINE: Audio Integration: …
+// PIPELINE: Effect Integration: …
+// ============================================================================
+```
+
+Notes:
+
+- Non-auto `// PIPELINE DOCUMENTATION` blocks are **not** replaced unless you pass `--replace-manual`.
+- Path heuristics still include visualizer/studio-oriented defaults from the original monorepo tool; syntax call extraction is general. Tune `PipelineHeuristics.cs` for your product vocabulary.
 
 ---
 
-## 3. Format sketch
+## 4. `.pipeline` format sketch
 
 Markers are line-oriented and stable enough for scripts:
 
@@ -87,9 +129,11 @@ END PROJECT
 
 Ordering is deterministic so diffs stay reviewable.
 
+Example excerpt: [`samples/PipelineDocsCli/examples/ExampleApp.pipeline`](../samples/PipelineDocsCli/examples/ExampleApp.pipeline).
+
 ---
 
-## 4. Intent annotations
+## 5. Intent annotations (snapshot)
 
 Roslyn cannot invent *why* an adjacent tool project exists. Optional properties survive into the document:
 
@@ -102,23 +146,19 @@ Roslyn cannot invent *why* an adjacent tool project exists. Optional properties 
 
 ---
 
-## 5. How this relates to headless Code Analyst CI
+## 6. How this relates to headless Code Analyst CI
 
 | Stage | Owner |
 |-------|--------|
-| Document structure for humans/agents | **PipelineDocsCli** (`.pipeline`) |
+| Solution map for humans/agents | **PipelineDocsCli `snapshot`** |
+| Per-file orientation in source | **PipelineDocsCli `headers`** |
 | Enforce DENY / NOCYCLES / metrics in CI | **CSharpCodeAnalyst.exe -validate** |
 | Optional multi-source merge (bindings, DI, shell) | [CI multi-source pack](ci-and-multi-source-pipeline.md) |
 
-A healthy rebuild loop often uses all three. Start with the document writer if your gap is “I cannot see what was built.”
-
-Related sample: if you already have a `.pipeline` snapshot, the [multi-source CI pack](../samples/ci-pipeline/README.md) can treat it as one evidence feed beside `-validate` layer rules.
+A healthy rebuild loop often uses all of the above. Start with `snapshot` + `headers` if your gap is “I cannot see what was built.”
 
 ---
 
-## 6. Provenance note
+## 7. Provenance note
 
-The snapshot CLI and `.pipeline` writer pattern came from real monorepo work: **document the apps you build so later you (or another agent) can reverse-engineer and rebuild from structural evidence**, not from chat memory of “AI hand-built this.” Donated here so C# Code Analyst users can adopt that writer without adopting any particular product stack.
-
-Example excerpt: [`samples/PipelineDocsCli/examples/ExampleApp.pipeline`](../samples/PipelineDocsCli/examples/ExampleApp.pipeline).
-
+The **per-file PIPELINE header workflow** and later the **solution `.pipeline` snapshot** writer are the same documentation practice: leave structural commentary the next human or agent can walk when reverse-engineering or rebuilding. Sources live under product monorepos (e.g. Phoenix Visualizer `tools/PipelineDocsCli`); this sample is donated so C# Code Analyst users can adopt the workflow without depending on any particular app tree.

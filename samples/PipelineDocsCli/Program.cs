@@ -1,5 +1,5 @@
-// PipelineDocsCli — solution-native .pipeline documentation writer
-// Snapshot topology for reverse-engineering / rebuilding real apps.
+// PipelineDocsCli — durable architecture maps + per-file PIPELINE headers
+// From the original pipeline-documentation workflow (Phoenix Visualizer tools lineage).
 
 namespace PipelineDocsCli;
 
@@ -25,6 +25,9 @@ internal static class Program
             return args[0].ToLowerInvariant() switch
             {
                 "snapshot" => await RunSnapshotAsync(args[1..], cancellation.Token),
+                "headers" => RunHeaders(args[1..]),
+                // Back-compat: bare --project-dir runs option 2 (per-file headers)
+                _ when args.Contains("--project-dir", StringComparer.OrdinalIgnoreCase) => RunHeaders(args),
                 "alongside" => await RunAlongsideAsync(args[1..], cancellation.Token),
                 _ => UnknownCommand(args[0])
             };
@@ -57,6 +60,35 @@ internal static class Program
         return 0;
     }
 
+    /// <summary>
+    /// Option 2: write/update auto-generated PIPELINE DOCUMENTATION headers at the top of each .cs file.
+    /// </summary>
+    private static int RunHeaders(string[] args)
+    {
+        var options = ParseHeaderArguments(args);
+        if (string.IsNullOrWhiteSpace(options.ProjectDir))
+        {
+            Console.Error.WriteLine("headers requires --project-dir <path>.");
+            return 2;
+        }
+
+        try
+        {
+            var generator = new PipelineDocsGenerator(options);
+            var result = generator.Run();
+            Console.WriteLine(
+                $"Header pass processed {result.FilesProcessed}; " +
+                $"updated {result.FilesUpdated}; skipped {result.FilesSkipped}" +
+                (options.DryRun ? " (dry-run)." : "."));
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Header generation failed: {ex.Message}");
+            return 1;
+        }
+    }
+
     private static async Task<int> RunAlongsideAsync(string[] args, CancellationToken cancellationToken)
     {
         if (args.Length == 0 || args[0] is not ("build" or "run"))
@@ -86,6 +118,54 @@ internal static class Program
         await PipelineDocumentWriter.WriteAsync(snapshot, output, cancellationToken);
     }
 
+    private static GeneratorOptions ParseHeaderArguments(string[] args)
+    {
+        var options = new GeneratorOptions();
+        for (var i = 0; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--project-dir" when i + 1 < args.Length:
+                    options.ProjectDir = args[++i];
+                    break;
+                case "--files" when i + 1 < args.Length:
+                    options.Files = args[++i]
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(f => f.Trim('"'))
+                        .ToList();
+                    break;
+                case "--dry-run":
+                    options.DryRun = true;
+                    break;
+                case "--max-calls" when i + 1 < args.Length && int.TryParse(args[++i], out var maxCalls):
+                    options.MaxCalls = maxCalls;
+                    break;
+                case "--update-existing":
+                    options.UpdateExisting = ReadOptionalBool(args, ref i, true);
+                    break;
+                case "--replace-manual":
+                    options.ReplaceManual = ReadOptionalBool(args, ref i, true);
+                    break;
+                case "--verbose":
+                    options.Verbose = true;
+                    break;
+            }
+        }
+
+        return options;
+    }
+
+    private static bool ReadOptionalBool(string[] args, ref int index, bool fallback)
+    {
+        if (index + 1 < args.Length && bool.TryParse(args[index + 1], out var value))
+        {
+            index++;
+            return value;
+        }
+
+        return fallback;
+    }
+
     private static int UnknownCommand(string command)
     {
         Console.Error.WriteLine($"Unknown command: {command}");
@@ -96,37 +176,39 @@ internal static class Program
     private static void ShowHelp()
     {
         Console.WriteLine("""
-PipelineDocsCli — write durable architecture maps for reverse-engineering and rebuild
-
-WHY
-  Most analysis tools show a live graph. This tool writes a stable, human-readable
-  .pipeline document of what Roslyn + MSBuild actually see: projects, refs, types,
-  calls, creates, events, I/O. Use it to document apps you (or anyone) built so you
-  can debug → reverse-engineer → rebuild with evidence instead of guessing and
-  instead of trust-me AI scaffolding with no map.
+PipelineDocsCli — document apps for reverse-engineering and rebuild
 
 COMMANDS
-  snapshot [options]
-      Emit a .pipeline file for a solution + adjacent projects.
+  1) snapshot [options]
+       Write a solution-native .pipeline map (projects, types, calls, creates…).
+
+  2) headers --project-dir <path> [options]
+       Write/update auto PIPELINE DOCUMENTATION headers at the top of each .cs file
+       (the original per-file banner workflow).
 
   alongside build [options] -- [dotnet build arguments]
   alongside run   [options] -- [dotnet run arguments]
-      Refresh the snapshot beside a build/run. Analysis failure never replaces
-      the build/run exit code.
+       Refresh snapshot beside a build/run (never gates the build).
 
-OPTIONS
+SNAPSHOT OPTIONS
   --repo <path>          Repository root (default: current directory)
   --solution <path>      .sln path (default: first root-level .sln)
   --output <path>        Output path (default: docs/pipeline/<SolutionName>.pipeline)
 
+HEADER OPTIONS
+  --project-dir <path>   Required. Root to scan for .cs files
+  --files "a.cs b.cs"    Optional explicit file list
+  --dry-run              Analyze and report without writing
+  --max-calls <n>        Top method/create names kept in header (default 10)
+  --update-existing      Update files that already have auto headers (default true)
+  --replace-manual       Also replace non-auto PIPELINE DOCUMENTATION blocks
+  --verbose              Log each file
+
 EXAMPLES
   dotnet run --project samples/PipelineDocsCli -- snapshot --solution CSharpCodeAnalyst.sln
-  dotnet run --project samples/PipelineDocsCli -- snapshot --output docs/pipeline/MyApp.pipeline
+  dotnet run --project samples/PipelineDocsCli -- headers --project-dir CSharpCodeAnalyst --dry-run
+  dotnet run --project samples/PipelineDocsCli -- headers --project-dir MyApp.Core --verbose
   dotnet run --project samples/PipelineDocsCli -- alongside build -- MyApp.sln
-
-OPTIONAL PROJECT ANNOTATIONS (MSBuild properties)
-  <PipelineRole>occasional-tool</PipelineRole>
-  <PipelinePurpose>Why this adjacent project exists.</PipelinePurpose>
 
 See Documentation/pipeline-documentation.md
 """);
@@ -172,4 +254,22 @@ internal sealed record SnapshotOptions(string RepositoryRoot, string? SolutionPa
             name = Path.GetFileName(RepositoryRoot);
         return Path.Combine(RepositoryRoot, "docs", "pipeline", $"{name}.pipeline");
     }
+}
+
+internal sealed class GeneratorOptions
+{
+    public string ProjectDir { get; set; } = "";
+    public List<string> Files { get; set; } = new();
+    public bool DryRun { get; set; }
+    public int MaxCalls { get; set; } = 10;
+    public bool UpdateExisting { get; set; } = true;
+    public bool ReplaceManual { get; set; }
+    public bool Verbose { get; set; }
+}
+
+internal sealed class GeneratorResult
+{
+    public int FilesProcessed { get; set; }
+    public int FilesUpdated { get; set; }
+    public int FilesSkipped { get; set; }
 }

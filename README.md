@@ -208,6 +208,9 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 [Pipeline documentation](Documentation/pipeline-documentation.md) · [`samples/PipelineDocsCli/`](samples/PipelineDocsCli/README.md)
 
+- Option **1** `snapshot` — solution `.pipeline` file  
+- Option **2** `headers` — per-file `// PIPELINE DOCUMENTATION` banners at the top of each `.cs` file
+
 **Multi-source CI evidence** (Code Analyst as one structural stage among peers):
 
 [CI + multi-source evidence pipeline](Documentation/ci-and-multi-source-pipeline.md) · [`samples/ci-pipeline/`](samples/ci-pipeline/README.md)
