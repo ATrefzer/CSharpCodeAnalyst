@@ -50,7 +50,17 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
 
         // Parse solution and do analysis
         var settings = LoadAppSettings();
-        var (graph, metricStore) = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
+        var (graph, metricStore, hasParserFailures) = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
+        if (hasParserFailures)
+        {
+            // The solution did not load cleanly (e.g. a referenced project's build output is
+            // missing). Whatever graph we do have is incomplete, so any rule result on it - clean
+            // or violated - would be misleading. Treat this the same as the file-not-found guards
+            // above: exit 2, do not run the rule analysis on unreliable data.
+            Trace.TraceError(Strings.Cmd_ParserFailuresAbort);
+            return 2;
+        }
+
         var analysisResult = RunAnalysis(rulesFile, graph, metricStore);
 
         // Write output
@@ -94,7 +104,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         return analyzer.Analyze(graph, rulesFilePath, metricStore);
     }
 
-    private static async Task<(CodeGraph.Graph.CodeGraph Graph, MetricStore MetricStore)> ParseSolution(string solutionPath, AppSettings settings)
+    private static async Task<(CodeGraph.Graph.CodeGraph Graph, MetricStore MetricStore, bool HasFailures)> ParseSolution(string solutionPath, AppSettings settings)
     {
         var filter = new ProjectExclusionRegExCollection();
         filter.Initialize(settings.DefaultProjectExcludeFilter);
@@ -116,7 +126,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         }
 
         Trace.WriteLine("\n");
-        return (parseResult.CodeGraph, parseResult.Metrics);
+        return (parseResult.CodeGraph, parseResult.Metrics, parser.Diagnostics.Failures.Count > 0);
     }
 
     public bool CanExecute()

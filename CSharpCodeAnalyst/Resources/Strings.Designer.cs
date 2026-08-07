@@ -456,6 +456,15 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Cmd_Failures", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Aborting: the solution did not load cleanly, so the graph above is incomplete and any rule result would be unreliable. Fix the parser failures and try again..
+        /// </summary>
+        public static string Cmd_ParserFailuresAbort {
+            get {
+                return ResourceManager.GetString("Cmd_ParserFailuresAbort", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Rules file: {0}.
