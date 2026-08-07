@@ -458,11 +458,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Aborting: the solution did not load cleanly, so the graph above is incomplete and any rule result would be unreliable. Fix the parser failures and try again..
+        ///   Looks up a localized string similar to The solution did not load cleanly (see parser failures above). The graph may be missing a few elements tied to those failures; rule results below still reflect everything else that did parse..
         /// </summary>
-        public static string Cmd_ParserFailuresAbort {
+        public static string Cmd_ParserFailuresWarning {
             get {
-                return ResourceManager.GetString("Cmd_ParserFailuresAbort", resourceCulture);
+                return ResourceManager.GetString("Cmd_ParserFailuresWarning", resourceCulture);
             }
         }
         

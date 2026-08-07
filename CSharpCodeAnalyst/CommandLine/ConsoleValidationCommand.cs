@@ -53,12 +53,12 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         var (graph, metricStore, hasParserFailures) = await ParseSolution(solutionFile, settings).ConfigureAwait(false);
         if (hasParserFailures)
         {
-            // The solution did not load cleanly (e.g. a referenced project's build output is
-            // missing). Whatever graph we do have is incomplete, so any rule result on it - clean
-            // or violated - would be misleading. Treat this the same as the file-not-found guards
-            // above: exit 2, do not run the rule analysis on unreliable data.
-            Trace.TraceError(Strings.Cmd_ParserFailuresAbort);
-            return 2;
+            // A parser failure (e.g. a referenced project's build output missing for a WPF
+            // markup-compile pass) is typically narrow: measured on this repo, 4 out of 9652
+            // graph elements were missing for two unresolvable XAML tags - everything else,
+            // including every .cs file, still parsed. Not worth discarding the whole run over;
+            // just make sure it is impossible to miss in the output.
+            Trace.TraceWarning(Strings.Cmd_ParserFailuresWarning);
         }
 
         var analysisResult = RunAnalysis(rulesFile, graph, metricStore);

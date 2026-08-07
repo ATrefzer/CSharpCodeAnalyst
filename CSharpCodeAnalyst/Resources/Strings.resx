@@ -805,8 +805,8 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Cmd_Failures" xml:space="preserve">
     <value>Parser failures:</value>
   </data>
-  <data name="Cmd_ParserFailuresAbort" xml:space="preserve">
-    <value>Aborting: the solution did not load cleanly, so the graph above is incomplete and any rule result would be unreliable. Fix the parser failures and try again.</value>
+  <data name="Cmd_ParserFailuresWarning" xml:space="preserve">
+    <value>The solution did not load cleanly (see parser failures above). The graph may be missing a few elements tied to those failures; rule results below still reflect everything else that did parse.</value>
   </data>
   <data name="Cmd_Warnings" xml:space="preserve">
     <value>Parser warnings:</value>
