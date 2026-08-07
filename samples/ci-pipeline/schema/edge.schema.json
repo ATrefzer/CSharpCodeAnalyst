@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ATrefzer/CSharpCodeAnalyst/samples/ci-pipeline/schema/edge.schema.json",
+  "title": "Multi-source architecture edge",
+  "type": "object",
+  "required": ["kind", "from", "to", "evidence_source", "status"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Optional stable id (hash of kind|from|to|source|path|status)."
+    },
+    "kind": {
+      "type": "string",
+      "description": "Semantic relation kind.",
+      "examples": ["layer_deny", "cycle", "metric", "bind", "inject", "shell_route", "call", "tension"]
+    },
+    "from": { "type": "string" },
+    "to": { "type": "string" },
+    "evidence_source": {
+      "type": "string",
+      "description": "Importer id. Use codeanalyst for this tool.",
+      "examples": ["codeanalyst", "ui_bindings", "di_factory", "merge"]
+    },
+    "status": {
+      "type": "string",
+      "description": "Disposition from that evidence source.",
+      "examples": ["DENY", "WARN", "LIVE", "DEAD", "NOISE", "OK", "FAIL"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "path": {
+      "type": "string",
+      "description": "Source file, report path, or line locator."
+    },
+    "note": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "rules": [
+    "No evidence_source overwrites another without tagging a tension when they conflict.",
+    "codeanalyst proves layer/cycle structure; markup bindings need a peer source."
+  ]
+}

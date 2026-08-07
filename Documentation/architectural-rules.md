@@ -127,3 +127,5 @@ Over time, after refactoring or deleting baselined elements, some rules might no
 To integrate the tool into a build pipeline, you can call it without a user interface. You can find the syntax of the command-line here:
 
 [Command-line arguments](command-line-arguments.md)
+
+For multi-source CI packaging and an evidence-edge merge model, see [CI + multi-source evidence pipeline](ci-and-multi-source-pipeline.md).

@@ -1,0 +1,90 @@
+name: csharp-code-analyst-validate
+description: >
+  Download a C# Code Analyst release and run headless -validate on a solution.
+  Windows runners only. Uploads raw + parsed results when requested.
+
+inputs:
+  solution:
+    description: Path to the .sln relative to the workspace (or absolute).
+    required: true
+  rules:
+    description: Path to the architectural rules text file.
+    required: true
+  output-dir:
+    description: Directory for validation-result.txt, log, and parsed JSON.
+    required: false
+    default: artifacts/codeanalyst
+  release-asset-url:
+    description: Zip URL for the desktop tool (default = latest release zip name used by upstream CI).
+    required: false
+    default: https://github.com/ATrefzer/CSharpCodeAnalyst/releases/latest/download/latest-release.zip
+  parse-results:
+    description: If true, run the sample parser into JSONL edges + handoff JSON.
+    required: false
+    default: "true"
+  continue-on-violation:
+    description: If true, exit 0 even when Code Analyst reports violations (exit 1).
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure output directory
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path "${{ inputs.output-dir }}" | Out-Null
+
+    - name: Download C# Code Analyst
+      shell: pwsh
+      run: |
+        $zip = Join-Path $env:RUNNER_TEMP "codeanalyst.zip"
+        $dest = Join-Path $env:RUNNER_TEMP "codeanalyst"
+        Invoke-WebRequest -Uri "${{ inputs.release-asset-url }}" -OutFile $zip
+        if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
+        Expand-Archive -Path $zip -DestinationPath $dest -Force
+        $exe = Get-ChildItem -Path $dest -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
+        if (-not $exe) { throw "CSharpCodeAnalyst.exe not found in release zip" }
+        "CODEANALYST_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Run headless validation
+      shell: pwsh
+      run: |
+        $out = Join-Path "${{ inputs.output-dir }}" "validation-result.txt"
+        $log = Join-Path "${{ inputs.output-dir }}" "validation-log.txt"
+        $sln = if ([System.IO.Path]::IsPathRooted("${{ inputs.solution }}")) {
+          "${{ inputs.solution }}"
+        } else {
+          Join-Path $env:GITHUB_WORKSPACE "${{ inputs.solution }}"
+        }
+        $rules = if ([System.IO.Path]::IsPathRooted("${{ inputs.rules }}")) {
+          "${{ inputs.rules }}"
+        } else {
+          Join-Path $env:GITHUB_WORKSPACE "${{ inputs.rules }}"
+        }
+        & $env:CODEANALYST_EXE `
+          -validate `
+          "-sln:$sln" `
+          "-rules:$rules" `
+          -log-console `
+          "-log-file:$log" `
+          "-out:$out"
+        $code = $LASTEXITCODE
+        "CODEANALYST_EXIT=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
+        if ($code -eq 2) { exit 2 }
+        if ($code -eq 1 -and "${{ inputs.continue-on-violation }}" -ne "true") { exit 1 }
+        exit 0
+
+    - name: Parse validation result
+      if: inputs.parse-results == 'true'
+      shell: pwsh
+      run: |
+        $script = Join-Path $env:GITHUB_ACTION_PATH ".." "scripts" "parse_validation_result.py" | Resolve-Path
+        $input = Join-Path "${{ inputs.output-dir }}" "validation-result.txt"
+        $edges = Join-Path "${{ inputs.output-dir }}" "edges-codeanalyst.jsonl"
+        $hand = Join-Path "${{ inputs.output-dir }}" "handoff-codeanalyst.json"
+        if (-not (Test-Path $input)) {
+          Write-Warning "No validation-result.txt to parse"
+          exit 0
+        }
+        python $script --input $input --edges-out $edges --handoff-out $hand
