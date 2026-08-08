@@ -13,6 +13,9 @@ Validation of a C# solution against a rule file can be done via command line.
 | -sarif:<file>       | no       | Validation result is *additionally* written to the given file as SARIF 2.1.0. See below.               |
 | -source-root:<dir>  | no       | The directory the code was checked out into. Only affects `-sarif`. Defaults to the solution directory. |
 
+`-out`, `-sarif` and `-log-file` create the directory of the given path if it does not exist, so a
+CI script can point them straight into a fresh artifacts folder without a preceding `mkdir`.
+
 ## Example
 
 ```

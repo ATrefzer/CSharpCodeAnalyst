@@ -5,12 +5,6 @@
 name: Architecture guardrails (C# Code Analyst)
 
 on:
-  pull_request:
-    paths:
-      - "**/*.cs"
-      - "**/*.csproj"
-      - "**/*.sln"
-      - "architecture.rules.txt" # EDIT ME - your rules file's path
   push:
     branches: [main, master] # EDIT ME - your repo's default branch
   workflow_dispatch:
@@ -18,6 +12,14 @@ on:
 jobs:
   validate:
     runs-on: windows-latest
+    permissions:
+      security-events: write # Required to upload the SARIF report
+      contents: read
+    # Single definition of the output directory: the validation step writes into it and the
+    # two upload steps read from it. Kept in one place so the sides cannot drift apart - a
+    # mismatch here looks exactly like a missing result file.
+    env:
+      OUT_DIR: artifacts/codeanalyst
     steps:
       - uses: actions/checkout@v4
 
@@ -26,19 +28,11 @@ jobs:
         with:
           dotnet-version: "10.0.x"
 
-      # Install desktop runtime if the hosted image needs it for the published exe.
-      - name: Ensure .NET Desktop runtime
-        shell: pwsh
-        run: |
-          # Hosted images usually ship SDKs; this is a safe no-op when present.
-          dotnet --list-runtimes
-
       - name: Restore (helps MSBuild load multi-project solutions)
         run: dotnet restore MyApp.sln # EDIT ME - your solution's path
 
       # Restore alone can leave a WPF/Avalonia solution with cross-project XAML references
-	  # incompletely loadable - see the "Honesty bar" section of samples/ci-pipeline/README.md.
-	  # Skip this for a plain console/library/service solution.
+      # incompletely loaded. Skip this for a plain console/library/service solution.
       - name: Build
         run: dotnet build MyApp.sln --no-restore # EDIT ME - your solution's path
 
@@ -52,8 +46,7 @@ jobs:
       - name: Validate architecture
         shell: pwsh
         run: |
-          $outDir = "artifacts/codeanalyst"
-          New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:OUT_DIR | Out-Null
           $exe = Get-ChildItem tools/codeanalyst -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
 
           $argList = @(
@@ -61,31 +54,46 @@ jobs:
             "-sln:$env:GITHUB_WORKSPACE\MyApp.sln",                    # EDIT ME - your solution's path
             "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",     # EDIT ME - your rules file's path
             "-log-console",
-            "-log-file:$env:GITHUB_WORKSPACE\$outDir\validation-log.txt",
-            "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt"
+            "-log-file:$env:GITHUB_WORKSPACE\$env:OUT_DIR\validation-log.txt",
+            "-out:$env:GITHUB_WORKSPACE\$env:OUT_DIR\validation-result.txt",
+            # SARIF is what turns findings into code scanning alerts. -source-root is the
+            # directory the paths inside the report are made relative to, which for a checkout
+            # is always the workspace - without it, absolute runner paths would match no file
+            # in the repository and the alerts would be dropped silently.
+            "-source-root:$env:GITHUB_WORKSPACE",
+            "-sarif:$env:GITHUB_WORKSPACE\$env:OUT_DIR\architecture.sarif"
           )
 
           # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). The plain `& $exe args` call
           # operator does not reliably wait or propagate the exit code when no console is
           # attached (the normal case on a CI runner). Start-Process -Wait -PassThru is the
-          # reliable way to invoke it headlessly; -WorkingDirectory also covers tool
-          # versions that resolve appsettings.json relative to the working directory.
+          # reliable way to invoke it headlessly.
           $proc = Start-Process -FilePath $exe.FullName -ArgumentList $argList -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru `
-            -RedirectStandardOutput "$outDir\console-stdout.txt" `
-            -RedirectStandardError "$outDir\console-stderr.txt"
+            -RedirectStandardOutput "$env:OUT_DIR\console-stdout.txt" `
+            -RedirectStandardError "$env:OUT_DIR\console-stderr.txt"
 
-          Get-Content "$outDir\console-stdout.txt" | Write-Host
-          if ((Get-Item "$outDir\console-stderr.txt").Length -gt 0) {
-            Get-Content "$outDir\console-stderr.txt" | Write-Host
+          Get-Content "$env:OUT_DIR\console-stdout.txt" | Write-Host
+          if ((Get-Item "$env:OUT_DIR\console-stderr.txt").Length -gt 0) {
+            Get-Content "$env:OUT_DIR\console-stderr.txt" | Write-Host
           }
 
+          # -validate exit codes: 0 = clean, 1 = violations, 2 = validation failed
+          # (load/parse error).
           $code = $proc.ExitCode
           Write-Host "CSharpCodeAnalyst -validate exit code: $code"
-          # This fails the step on either 1 (violations) or 2 (load error) alike. If you want
-          # to record violations as an artifact without failing the build, use the composite
-          # action instead - it has a continue-on-violation input for exactly that.
-          if ($code -ne 0) {
-            exit $code
+
+          # Only a broken analysis fails the run. Violations are the finding, not a failure of
+          # this workflow: they are uploaded as code scanning alerts, and that list is the signal
+          # to read. Failing the run on them would also leave a permanent "tool is reporting
+          # errors" banner on the code scanning page, where nothing is actually wrong with the
+          # tool. To block a pull request on violations, use the "Code scanning results" check
+          # in branch protection rather than this exit code.
+          if ($code -eq 2) {
+            exit 2
+          }
+
+          if ($code -eq 1) {
+            Write-Host "::warning::Architecture violations found - see the code scanning alerts for details."
           }
 
       - name: Upload results
@@ -93,4 +101,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: codeanalyst-validation
-          path: artifacts/codeanalyst/
+          path: ${{ env.OUT_DIR }}/
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ env.OUT_DIR }}/architecture.sarif
+          category: architecture-guardrails

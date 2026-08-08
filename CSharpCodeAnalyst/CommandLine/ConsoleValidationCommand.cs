@@ -70,6 +70,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         var outFile = arguments.GetValueOrDefault("out");
         if (!string.IsNullOrEmpty(outFile))
         {
+            CommandLineProcessor.EnsureDirectoryExists(outFile);
             await File.WriteAllTextAsync(outFile, result, Encoding.UTF8);
         }
 
@@ -117,6 +118,7 @@ internal class ConsoleValidationCommand(Dictionary<string, string> arguments) : 
         };
 
         var sarif = SarifFormatter.Format(graph, analysisResult, context);
+        CommandLineProcessor.EnsureDirectoryExists(sarifFile);
         await File.WriteAllTextAsync(sarifFile, sarif, new UTF8Encoding(false));
 
         Trace.TraceInformation(Strings.Cmd_SarifWritten, sarifFile);

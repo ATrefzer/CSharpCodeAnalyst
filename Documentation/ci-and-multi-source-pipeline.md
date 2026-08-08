@@ -95,11 +95,11 @@ Peer importers introduce their own kinds (`bind`, `inject`, `shell_route`, …).
 
 ### Exit codes (Code Analyst)
 
-| Code | Meaning |
-|------|---------|
-| 0 | No rule violations |
-| 1 | Violations found |
-| 2 | Validation failed (load/parse error) |
+| Code | Meaning | Should it fail the run? |
+|------|---------|-------------------------|
+| 0 | No rule violations | No |
+| 1 | Violations found | No - the findings travel as code scanning alerts, and a red run also leaves a permanent "tool is reporting errors" banner there. Block a pull request through the "Code scanning results" check instead. |
+| 2 | Validation failed (load/parse error) | Yes - the analysis did not happen |
 
 ### Minimal job (release zip)
 
@@ -111,8 +111,7 @@ Windows runners only (app targets `net10.0-windows`).
   run: dotnet restore MyApp.sln # EDIT ME - your solution's path
 
 # Restore alone can leave a WPF/Avalonia solution with cross-project XAML references
-# incompletely loadable - see the "Honesty bar" section of samples/ci-pipeline/README.md.
-# Skip this for a plain console/library/service solution.
+# incompletely loaded. Skip this for a plain console/library/service solution.
 - name: Build
   run: dotnet build MyApp.sln --no-restore # EDIT ME - your solution's path
 
@@ -127,23 +126,39 @@ Windows runners only (app targets `net10.0-windows`).
   shell: pwsh
   run: |
     $exe = Get-ChildItem tools/codeanalyst -Filter CSharpCodeAnalyst.exe -Recurse | Select-Object -First 1
-    # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem): the plain `& $exe args` call
+    # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). The plain `& $exe args` call
     # operator does not reliably wait or propagate the exit code when no console is
-    # attached, as on a CI runner. Start-Process -Wait -PassThru is the reliable way to
-    # invoke it headlessly; -WorkingDirectory covers tool versions that resolve
-    # appsettings.json relative to the working directory instead of the exe's own folder.
+    # attached (the normal case on a CI runner). Start-Process -Wait -PassThru is the
+    # reliable way to invoke it headlessly.
     $proc = Start-Process -FilePath $exe.FullName -WorkingDirectory $exe.DirectoryName -NoNewWindow -Wait -PassThru -ArgumentList @(
       "-validate",
       "-sln:${{ github.workspace }}/MyApp.sln",                 # EDIT ME - your solution's path
       "-rules:${{ github.workspace }}/architecture.rules.txt",  # EDIT ME - your rules file's path
       "-log-console",
-      "-out:${{ github.workspace }}/artifacts/codeanalyst/validation-result.txt"
+      "-out:${{ github.workspace }}/artifacts/codeanalyst/validation-result.txt",
+      # -source-root is what makes the paths in the report repository-relative; without it the
+      # absolute runner paths match no file and the alerts are dropped silently.
+      "-source-root:${{ github.workspace }}",
+      "-sarif:${{ github.workspace }}/artifacts/codeanalyst/architecture.sarif"
     )
-    if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
-  # Optional: continue-on-error: true when you only want artifacts, not a red build
+    # Exit codes: 0 = clean, 1 = violations, 2 = validation failed. Only a broken analysis
+    # fails the run - violations are the finding and travel as code scanning alerts. A red run
+    # on violations also leaves a permanent "tool is reporting errors" banner on the code
+    # scanning page. Use the "Code scanning results" check in branch protection to block a PR.
+    if ($proc.ExitCode -eq 2) { exit 2 }
+    if ($proc.ExitCode -eq 1) {
+      Write-Host "::warning::Architecture violations found - see the code scanning alerts."
+    }
+
+- name: Upload SARIF results
+  if: always()
+  uses: github/codeql-action/upload-sarif@v4
+  with:
+    sarif_file: artifacts/codeanalyst/architecture.sarif
+    category: architecture-guardrails
 ```
 
-The composite action under [`samples/ci-pipeline/action/`](../samples/ci-pipeline/action/action.yml) packages the validate step (not the restore/build steps - those stay the caller's responsibility) as a reusable step.
+The job needs `permissions: security-events: write` for that upload. The composite action under [`samples/ci-pipeline/action/`](../samples/ci-pipeline/action/action.yml) packages the validate step (not the restore/build steps, and not the uploads - those stay the caller's responsibility) as a reusable step; it exposes the report as its `sarif-file` output.
 
 ### Parse → structured edges
 

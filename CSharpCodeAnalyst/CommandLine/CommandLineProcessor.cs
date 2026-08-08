@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using CSharpCodeAnalyst.Resources;
 
 namespace CSharpCodeAnalyst.CommandLine;
@@ -49,16 +50,10 @@ public static class CommandLineProcessor
         var logFile = arguments.GetValueOrDefault("log-file");
         var writeToConsole = arguments.ContainsKey("log-console");
 
-        // Trace is written to log file
-        if (!string.IsNullOrEmpty(logFile))
-        {
-            var fileListener = new TextWriterTraceListener(logFile);
-            //fileListener.TraceOutputOptions = TraceOptions.DateTime;
-            Trace.Listeners.Add(fileListener);
-        }
-
-        // Trace is written to console 
+        // Trace is written to console
         // Note: > redirect does not work if this is used.
+        // Set up before the log file, so that a problem with the log file has somewhere to be
+        // reported - with no listener attached at all, the message would be lost.
         if (writeToConsole)
         {
             ConsoleHelper.EnsureConsole();
@@ -66,7 +61,39 @@ public static class CommandLineProcessor
             Trace.Listeners.Add(consoleListener);
         }
 
+        // Trace is written to log file
+        if (!string.IsNullOrEmpty(logFile))
+        {
+            try
+            {
+                EnsureDirectoryExists(logFile);
+                var fileListener = new TextWriterTraceListener(logFile);
+                //fileListener.TraceOutputOptions = TraceOptions.DateTime;
+                Trace.Listeners.Add(fileListener);
+            }
+            catch (Exception ex)
+            {
+                // Losing the log file must not abort a validation that would otherwise run. Failing
+                // here would also report exit code 2 ("validation failed") for what is really just
+                // an unusable path.
+                Trace.TraceError(string.Format(Strings.Cmd_LogFileNotWritable, logFile, ex.Message));
+            }
+        }
+
         Trace.AutoFlush = true;
+    }
+
+    /// <summary>
+    ///     Creates the directory of an output file if it does not exist yet.
+    /// </summary>
+    internal static void EnsureDirectoryExists(string filePath)
+    {
+        // Null or empty for a bare file name (no directory part), which needs nothing created.
+        var directory = Path.GetDirectoryName(Path.GetFullPath(filePath));
+        if (!string.IsNullOrEmpty(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
     }
 
     private static Dictionary<string, string> ParseArguments(string[] args)

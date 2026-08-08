@@ -458,6 +458,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Could not write the log file '{0}', continuing without it: {1}.
+        /// </summary>
+        public static string Cmd_LogFileNotWritable {
+            get {
+                return ResourceManager.GetString("Cmd_LogFileNotWritable", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Parser failures:.
         /// </summary>
         public static string Cmd_Failures {

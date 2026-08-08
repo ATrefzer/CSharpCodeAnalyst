@@ -817,6 +817,9 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Cmd_SarifWritten" xml:space="preserve">
     <value>SARIF report written to: {0}</value>
   </data>
+  <data name="Cmd_LogFileNotWritable" xml:space="preserve">
+    <value>Could not write the log file '{0}', continuing without it: {1}</value>
+  </data>
   <data name="Cmd_VerifyArchitecturalRules" xml:space="preserve">
     <value>Verify architectural rules</value>
   </data>

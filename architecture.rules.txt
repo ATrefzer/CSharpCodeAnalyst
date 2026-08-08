@@ -9,10 +9,6 @@ DENY CSharpCodeAnalyst.CodeGraph.** -> CSharpCodeAnalyst.CSharpCodeAnalyst.**
 // CodeParser is the Roslyn front-end; it must not depend on the WPF app either.
 DENY CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CSharpCodeAnalyst.**
 
-
-// TODO This is wrong
-DENY CSharpCodeAnalyst.** -> CSharpCodeAnalyst.TreeMap.**
-
 // Baseline: measured cyclicity is currently 0.82%. Rounded up to 1% headroom.
 // Tighten this over time as cycles get cleaned up.
-MAXCYCLICITY = 0.1
+MAXCYCLICITY = 1

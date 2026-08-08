@@ -2,8 +2,9 @@ name: csharp-code-analyst-validate
 description: >
   Download a C# Code Analyst release and run headless -validate on a solution.
   Windows runners only. Writes raw + parsed results to output-dir when requested
-  (does not upload them as a GitHub Actions artifact - add your own upload-artifact
-  step for that, see samples/ci-pipeline/README.md).
+  (does not upload them as a GitHub Actions artifact, and does not upload the SARIF
+  report either - add your own upload-artifact / upload-sarif steps for that, see
+  samples/ci-pipeline/README.md).
 
 inputs:
   solution:
@@ -13,9 +14,16 @@ inputs:
     description: Path to the architectural rules text file.
     required: true
   output-dir:
-    description: Directory for validation-result.txt, log, and parsed JSON.
+    description: Directory for validation-result.txt, log, SARIF report, and parsed JSON.
     required: false
     default: artifacts/codeanalyst
+  source-root:
+    description: >
+      Directory the file paths inside the SARIF report are made relative to - the directory the
+      code was checked out into. Defaults to the workspace, which is correct for a normal
+      checkout. Absolute runner paths would match no file in the consuming system.
+    required: false
+    default: ""
   release-asset-url:
     description: Zip URL for the desktop tool (default = latest release zip name used by upstream CI).
     required: false
@@ -25,9 +33,21 @@ inputs:
     required: false
     default: "true"
   continue-on-violation:
-    description: If true, exit 0 even when Code Analyst reports violations (exit 1).
+    description: >
+      If true (the default), violations do not fail this action - they are reported in the SARIF
+      file and, once you upload it, as code scanning alerts. Only a failed analysis (exit code 2)
+      fails the step. Set to false for the older behaviour of failing on violations too; prefer
+      the "Code scanning results" check in branch protection to block a pull request.
     required: false
-    default: "false"
+    default: "true"
+
+outputs:
+  sarif-file:
+    description: Path of the written SARIF report, for a following upload-sarif step.
+    value: ${{ steps.validate.outputs.sarif-file }}
+  exit-code:
+    description: The -validate exit code - 0 = clean, 1 = violations, 2 = validation failed.
+    value: ${{ steps.validate.outputs.exit-code }}
 
 runs:
   using: composite
@@ -50,10 +70,18 @@ runs:
         "CODEANALYST_EXE=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - name: Run headless validation
+      id: validate
       shell: pwsh
       run: |
         $out = Join-Path "${{ inputs.output-dir }}" "validation-result.txt"
         $log = Join-Path "${{ inputs.output-dir }}" "validation-log.txt"
+        $sarif = Join-Path "${{ inputs.output-dir }}" "architecture.sarif"
+
+        # The paths inside the SARIF report have to be relative to the checkout, or the
+        # consuming system matches none of them. The workspace is that directory for a normal
+        # checkout, so it is the default.
+        $sourceRoot = "${{ inputs.source-root }}"
+        if ([string]::IsNullOrWhiteSpace($sourceRoot)) { $sourceRoot = $env:GITHUB_WORKSPACE }
         $sln = if ([System.IO.Path]::IsPathRooted("${{ inputs.solution }}")) {
           "${{ inputs.solution }}"
         } else {
@@ -64,13 +92,10 @@ runs:
         } else {
           Join-Path $env:GITHUB_WORKSPACE "${{ inputs.rules }}"
         }
-        # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem), not a console app. With no
-        # console attached to the calling process - the normal case on a CI runner - the
-        # plain `& $exe args` call operator does not reliably wait for it or propagate
-        # $LASTEXITCODE. Start-Process -Wait -PassThru is the reliable way to get both the
-        # exit code and the console output back. -WorkingDirectory also covers tool
-        # versions that resolve appsettings.json relative to the working directory instead
-        # of the executable's own folder.
+        # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). The plain `& $exe args` call
+        # operator does not reliably wait or propagate the exit code when no console is
+        # attached (the normal case on a CI runner). Start-Process -Wait -PassThru is the
+        # reliable way to invoke it headlessly.
         $exeDir = Split-Path $env:CODEANALYST_EXE -Parent
         $stdoutPath = Join-Path "${{ inputs.output-dir }}" "console-stdout.txt"
         $stderrPath = Join-Path "${{ inputs.output-dir }}" "console-stderr.txt"
@@ -80,7 +105,9 @@ runs:
           "-rules:$rules",
           "-log-console",
           "-log-file:$log",
-          "-out:$out"
+          "-out:$out",
+          "-source-root:$sourceRoot",
+          "-sarif:$sarif"
         ) -WorkingDirectory $exeDir -NoNewWindow -Wait -PassThru `
           -RedirectStandardOutput $stdoutPath `
           -RedirectStandardError $stderrPath
@@ -90,10 +117,21 @@ runs:
           Get-Content $stderrPath | Write-Host
         }
 
+        # -validate exit codes: 0 = clean, 1 = violations, 2 = validation failed (load/parse error).
         $code = $proc.ExitCode
         "CODEANALYST_EXIT=$code" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "exit-code=$code" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "sarif-file=$sarif" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+        # A failed analysis stops here - there is no result to parse or upload. Violations do
+        # not fail this step: the findings are in the SARIF report, and failing here would skip
+        # every following step, including the parse step, exactly when there is something to
+        # parse. The opt-in failure happens in the last step instead.
         if ($code -eq 2) { exit 2 }
-        if ($code -eq 1 -and "${{ inputs.continue-on-violation }}" -ne "true") { exit 1 }
+
+        if ($code -eq 1) {
+          Write-Host "::warning::Architecture violations found - see the SARIF report or the code scanning alerts."
+        }
         exit 0
 
     - name: Parse validation result
@@ -109,3 +147,13 @@ runs:
           exit 0
         }
         python $script --input $input --edges-out $edges --handoff-out $hand
+
+    # Last, so that the result files and the parsed edges exist before the step can fail.
+    - name: Fail on violations
+      if: inputs.continue-on-violation != 'true'
+      shell: pwsh
+      run: |
+        if ($env:CODEANALYST_EXIT -ne "0") {
+          Write-Host "Failing because continue-on-violation is false and -validate returned $env:CODEANALYST_EXIT."
+          exit [int]$env:CODEANALYST_EXIT
+        }
