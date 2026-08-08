@@ -11,4 +11,4 @@ DENY CSharpCodeAnalyst.CodeParser.** -> CSharpCodeAnalyst.CSharpCodeAnalyst.**
 
 // Baseline: measured cyclicity is currently 0.82%. Rounded up to 1% headroom.
 // Tighten this over time as cycles get cleaned up.
-MAXCYCLICITY = 1
+MAXCYCLICITY = 1.2

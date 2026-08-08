@@ -10,10 +10,17 @@ public static class RuleParser
     // Allowed character for identifiers. Add - to end.
     private const string AllowedNameChars = @"[a-zA-Z0-9_-]+";
 
+    // The type parameter list a generic type or method carries in its name ("<T>", "<TKey,TValue>").
+    // Optional, because a pattern may name a generic element with or without it - see PatternMatcher,
+    // which resolves the short form to the generic element as well. The names are built from the type
+    // parameter names alone, never from the arguments of a constructed type, so a dot, a space or a
+    // nested list cannot occur here and stays unmatched on purpose.
+    private const string TypeParameterList = @"(?:<[a-zA-Z0-9_,]+>)?";
+
     // A single path segment. The optional leading dot allows compiler-generated member names
     // like the constructor ".ctor" or the static constructor ".cctor", which produce a double
     // dot in the full path (e.g. "MyClass..ctor" = "MyClass" + separator + ".ctor").
-    private static readonly string NameSegment = $@"\.?{AllowedNameChars}";
+    private static readonly string NameSegment = $@"\.?{AllowedNameChars}{TypeParameterList}";
 
     // A plain path without a wildcard suffix. NOCYCLES uses it exclusively: the rule always
     // checks the element and everything below it, so a wildcard has nothing to select.

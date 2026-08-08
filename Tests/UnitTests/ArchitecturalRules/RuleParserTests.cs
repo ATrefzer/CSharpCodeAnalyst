@@ -304,4 +304,70 @@ public class RuleParserTests
         var ex = Assert.Throws<FormatException>(() => RuleParser.ParseRules(rulesText));
         Assert.That(ex.Message, Contains.Substring("line 2"));
     }
+
+    [Test]
+    public void ParseDenyRule_TypeParametersInPath_ShouldBeAccepted()
+    {
+        // A generic element carries its type parameters in its name, so a path must be able to name
+        // them - on both ends, in the middle of a path, and for a generic method.
+        var rule = (DenyRule)RuleParser.ParseRule(
+            "DENY MyApp.Business.Cache<TKey,TValue>.Map<TResult> -> MyApp.Data.Repository<T>.**");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rule.Source, Is.EqualTo("MyApp.Business.Cache<TKey,TValue>.Map<TResult>"));
+            Assert.That(rule.Target, Is.EqualTo("MyApp.Data.Repository<T>.**"));
+        });
+    }
+
+    [Test]
+    public void ParseDenyRule_TypeParametersWithoutSpacesAroundArrow_ShouldSplitOnTheArrow()
+    {
+        // The closing angle bracket sits directly in front of the arrow here. Worth pinning: '-' is a
+        // legal name character, so the parser has to read "->" as the separator and not as part of
+        // either name.
+        var rule = (DenyRule)RuleParser.ParseRule("DENY MyApp.Cache<T>->MyApp.Data.Store<T>");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rule.Source, Is.EqualTo("MyApp.Cache<T>"));
+            Assert.That(rule.Target, Is.EqualTo("MyApp.Data.Store<T>"));
+        });
+    }
+
+    [Test]
+    public void ParseIsolateRule_TypeParametersInPath_ShouldBeAccepted()
+    {
+        var rule = (IsolateRule)RuleParser.ParseRule("ISOLATE MyApp.Domain.Entity<T>.**");
+
+        Assert.That(rule.Source, Is.EqualTo("MyApp.Domain.Entity<T>.**"));
+    }
+
+    [Test]
+    public void ParseMetricRule_TypeParametersInPath_ShouldBeAccepted()
+    {
+        var rule = RuleParser.ParseRule($"{MaxLinesRule.RuleKeyword} MyApp.Cache<T>.Add = 50");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rule, Is.InstanceOf<MaxLinesRule>());
+            Assert.That(((MaxLinesRule)rule).Source, Is.EqualTo("MyApp.Cache<T>.Add"));
+            Assert.That(((MaxLinesRule)rule).Threshold, Is.EqualTo(50));
+        });
+    }
+
+    [Test]
+    public void ParseNoCyclesRule_TypeParametersInPath_ShouldBeAccepted()
+    {
+        var rule = (NoCyclesRule)RuleParser.ParseRule($"{NoCyclesRule.RuleKeyword} MyApp.Domain.Entity<T>");
+
+        Assert.That(rule.Source, Is.EqualTo("MyApp.Domain.Entity<T>"));
+    }
+
+    [Test]
+    public void ParseDenyRule_UnclosedTypeParameterList_ShouldThrow()
+    {
+        // The list has to be well formed; a stray bracket is a typo, not a name.
+        Assert.Throws<FormatException>(() => RuleParser.ParseRule("DENY MyApp.Cache<T -> MyApp.Data"));
+    }
 }

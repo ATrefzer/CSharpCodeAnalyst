@@ -151,6 +151,107 @@ public class PatternMatcherTests
     }
 
     [Test]
+    public void ResolvePattern_PathWithoutTypeParameters_MatchesGenericElement()
+    {
+        // A rule file written before the element names carried type parameters must keep working -
+        // a rule that stops matching is a no-op nobody notices.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var cache = AddClass("c1", "Cache<T>", ns);
+
+        var result = PatternMatcher.ResolvePattern("MyApp.Business.Cache", _codeGraph);
+
+        Assert.That(result, Is.EquivalentTo(new[] { cache.Id }));
+    }
+
+    [Test]
+    public void ResolvePattern_PathWithoutTypeParameters_MatchesGenericAndNonGenericSibling()
+    {
+        // "Cache" and "Cache<T>" are two elements. The short path cannot tell them apart, so it means
+        // both - the same reasoning as for overloaded members above.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var plain = AddClass("c1", "Cache", ns);
+        var generic = AddClass("c2", "Cache<T>", ns);
+
+        var result = PatternMatcher.ResolvePattern("MyApp.Business.Cache", _codeGraph);
+
+        Assert.That(result, Is.EquivalentTo(new[] { plain.Id, generic.Id }));
+    }
+
+    [Test]
+    public void ResolvePattern_PathWithTypeParameters_MatchesOnlyThatElement()
+    {
+        // Spelling the type parameters out is how a rule selects exactly one of the two.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        AddClass("c1", "Cache", ns);
+        var generic = AddClass("c2", "Cache<T>", ns);
+
+        var result = PatternMatcher.ResolvePattern("MyApp.Business.Cache<T>", _codeGraph);
+
+        Assert.That(result, Is.EquivalentTo(new[] { generic.Id }));
+    }
+
+    [Test]
+    public void ResolvePattern_PathWithWrongTypeParameters_ShouldNotMatch()
+    {
+        // Written-out type parameters are compared literally, like every other part of the name.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        AddClass("c1", "Cache<T>", ns);
+
+        var result = PatternMatcher.ResolvePattern("MyApp.Business.Cache<TKey>", _codeGraph);
+
+        Assert.That(result, Is.Empty);
+    }
+
+    [Test]
+    public void ResolvePattern_PathWithoutTypeParameters_MatchesMemberOfGenericType()
+    {
+        // The type parameters sit in the middle of the path here, and a generic method adds a second
+        // list at the end - both have to drop out for the short path to match.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var cache = AddClass("c1", "Cache<T>", ns);
+        var add = AddMethod("m1", "Add", cache);
+        var map = AddMethod("m2", "Map<TResult>", cache);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(PatternMatcher.ResolvePattern("MyApp.Business.Cache.Add", _codeGraph),
+                Is.EquivalentTo(new[] { add.Id }));
+            Assert.That(PatternMatcher.ResolvePattern("MyApp.Business.Cache.Map", _codeGraph),
+                Is.EquivalentTo(new[] { map.Id }));
+        });
+    }
+
+    [Test]
+    public void ResolvePattern_RecursiveWildcardOnGenericType_ShouldIncludeMembers()
+    {
+        // The wildcard suffix is stripped before the path is resolved, so it works on both spellings.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var cache = AddClass("c1", "Cache<T>", ns);
+        var add = AddMethod("m1", "Add", cache);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(PatternMatcher.ResolvePattern("MyApp.Business.Cache.**", _codeGraph),
+                Is.EquivalentTo(new[] { cache.Id, add.Id }));
+            Assert.That(PatternMatcher.ResolvePattern("MyApp.Business.Cache<T>.**", _codeGraph),
+                Is.EquivalentTo(new[] { cache.Id, add.Id }));
+        });
+    }
+
+    [Test]
+    public void ResolveSubtree_PathWithoutTypeParameters_MatchesGenericElement()
+    {
+        // NOCYCLES takes the same path resolution, so the short form has to work there as well.
+        var ns = _codeGraph.CreateNamespace("MyApp.Business");
+        var cache = AddClass("c1", "Cache<T>", ns);
+        var add = AddMethod("m1", "Add", cache);
+
+        var result = PatternMatcher.ResolveSubtree("MyApp.Business.Cache", _codeGraph);
+
+        Assert.That(result, Is.EquivalentTo(new[] { cache.Id, add.Id }));
+    }
+
+    [Test]
     public void ResolvePattern_ComplexHierarchy_ShouldWorkCorrectly()
     {
         // Arrange
@@ -168,5 +269,28 @@ public class PatternMatcherTests
         // Test recursive match
         var recursiveResult = PatternMatcher.ResolvePattern("MyApp.Business.**", _codeGraph);
         Assert.That(recursiveResult.Count, Is.EqualTo(4)); // Business + Services + OrderService + ProcessOrder
+    }
+
+    /// <summary>
+    ///     The graph helper names an element after its id, which cannot express a name and a full name
+    ///     that differ. These build the full name from the parent, the way the parser does, so a type
+    ///     parameter list can sit in the middle of a path and not only at its end.
+    /// </summary>
+    private CodeElement AddClass(string id, string name, CodeElement parent)
+    {
+        return Add(id, CodeElementType.Class, name, parent);
+    }
+
+    private CodeElement AddMethod(string id, string name, CodeElement parent)
+    {
+        return Add(id, CodeElementType.Method, name, parent);
+    }
+
+    private CodeElement Add(string id, CodeElementType elementType, string name, CodeElement parent)
+    {
+        var element = new CodeElement(id, elementType, name, parent.FullName + "." + name, parent);
+        parent.Children.Add(element);
+        _codeGraph.Nodes[id] = element;
+        return element;
     }
 }
