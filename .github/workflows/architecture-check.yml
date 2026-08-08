@@ -9,6 +9,9 @@ on:
 jobs:
   validate:
     runs-on: windows-latest
+    permissions:
+      security-events: write # Required for upload-sarif
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -45,10 +48,11 @@ jobs:
           $argList = @(
             "-validate",
             "-sln:$env:GITHUB_WORKSPACE\CSharpCodeAnalyst.sln",
-            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",
+            "-rules:$env:GITHUB_WORKSPACE\architecture.rules.txt",	  
             "-log-console",
             "-log-file:$env:GITHUB_WORKSPACE\$outDir\validation-log.txt",
-            "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt"
+            "-out:$env:GITHUB_WORKSPACE\$outDir\validation-result.txt",
+	    "-sarif:$env:GITHUB_WORKSPACE\$outDir\architecture.sarif"
           )
 
           # CSharpCodeAnalyst.exe is a WinExe (GUI subsystem). Calling it with the plain
@@ -81,3 +85,12 @@ jobs:
         with:
           name: architecture-validation
           path: artifacts/codeanalyst/
+
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: artifacts/codeanalyst/architecture.sarif
+          # Optional
+          category: architecture-guardrails
