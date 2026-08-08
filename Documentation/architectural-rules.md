@@ -137,6 +137,8 @@ After that, only new violations are reported. The existing ones are treated as t
 
 The exceptions are exact paths down to the member level, so a baseline freezes precisely what exists today. Overloaded methods (which share one path) are all covered by the single exception generated for them.
 
+One case is slightly wider than "precisely what exists today": if a non-generic type is baselined and a generic type of the same name exists beside it (`Cache` and `Cache<T>`), the generated exception reads `ALLOW ...Cache -> ...`, and that path covers `Cache<T>` too — a later violation from the generic namesake would not be reported. The generated line simply is the non-generic type's full path, which has no type parameters to write. If that matters for a particular pair, edit the baselined line to name the generic one separately and remove the wider one.
+
 ## Remove unused rules
 
 Over time, after refactoring or deleting baselined elements, some rules might no longer match anything. **Remove unused rules** deletes every rule that currently has no effect (its source or target pattern matches no code element). The cleanup is careful: it never removes a rule that still enforces something, so your checks stay strong.

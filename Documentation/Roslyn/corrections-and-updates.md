@@ -1,4 +1,4 @@
-# Corrections and updates
+﻿# Corrections and updates
 
 ## Field and property initializers
 
@@ -482,3 +482,51 @@ are run by the runtime, can never be referenced from code, and are effectively p
 the highest confidence band. The static constructor started out annotated as an entry point; both are now
 dropped from the result entirely - on a live type such a row is wrong in every case, and on a dead type
 the roll-up covers them.
+
+## Type parameters are part of the element name
+
+`WpfCommand` and `WpfCommand<T>` are two declarations and two code elements - `SymbolExtensions.Key`
+has always told them apart. Their *names* did not: both `Name` and `FullName` came from `symbol.Name`,
+which carries no type parameters, so the two were indistinguishable in the tree, the graph labels, every
+export and every architectural rule. `SymbolExtensions.GetDisplayName` now appends the type parameter
+list a generic type, interface or method declares - `Cache<T>`, `Map<TKey,TValue>`, `Foo<T,T2,T3>` - and
+both `Name` and `FullName` (via `BuildSymbolName`) are built from it. `CodeElement.GetFullPath` joins the
+`Name`s and therefore follows along on its own; the two ways of spelling a full path stay in agreement.
+
+Three decisions in that one line are worth keeping:
+
+- **The list comes from the type *parameters*, never from the arguments of a construction.** So
+  `List<int>` and `List<T>` both yield `List<T>`, which makes the name independent of which symbol
+  instance phase 2 happens to hold, and matches the rest of the parser: every arrow already points at the
+  `OriginalDefinition`. It also keeps the name free of dots and spaces, which the outputs depend on - the
+  plain text format splits its lines on whitespace, the DSI hierarchy splits names on dots.
+  A visible consequence: `CreatePair<T,U>` calling the constructor of `GenericPair<TFirst,TSecond>` shows
+  the *declaration's* parameter names at the target, not the ones the call site passes.
+- **`Arity`/`TypeParameters`, not `IsGenericType`.** `INamedTypeSymbol.IsGenericType` is documented as
+  "true if this type **or some containing type** has type parameters", so `List<T>.Enumerator` reports
+  true while having no parameters of its own - it would have been named `Enumerator<>`.
+  `IMethodSymbol.IsGenericMethod` does not have that property, but asking for the parameter list is the
+  more direct question either way. Note that `GetGenericPart`, which builds the *key*, does use
+  `IsGenericType` and does produce `<>` for such types; harmless there, because both sides of a key
+  comparison do it, but not a pattern to copy.
+- **Overloads still share a name.** Two methods that differ only in their parameter lists
+  (`M2<T>(int, T)` and `M2<T>(T, int)`) remain one name, as they always were - the parameters are part of
+  the `Key`, not of the name. Only arity overloads (`M1<T>` vs `M1<T,T2>`) became distinguishable.
+
+One consumer had to be taught about it, and one turned out to be *fixed* by it:
+
+- `XamlGraphLinker.BuildTypeLookup` keys types by their CLR name to resolve what markup refers to, and
+  needed no change at all - the type parameter list stays in the key, and that is what finally makes the
+  key unique. While `Cache` and `Cache<T>` were both named `Cache` they collided on one key and
+  `types[key] = element` let whichever came later in the node order silently win, so a markup reference
+  to `Cache` could resolve to the generic type. Now the keys differ and `Cache` resolves to exactly the
+  non-generic declaration. Stripping the list back off inside the lookup - the seemingly obvious move -
+  restores the collision; `Link_GenericAndNonGenericTypeOfTheSameName_ResolvesToTheNonGenericOne` guards
+  against it. An open generic is unreachable from markup through this route anyway, because
+  `XamlReferenceExtractor` does not read `x:TypeArguments`.
+- The architectural rules match a path against `FullName` exactly, which would have made every existing
+  rule naming a generic element silently dead. `RuleParser` now accepts a type parameter list in a path,
+  and `PatternMatcher` resolves a path *without* one to the generic element as well: `MyApp.Cache`
+  matches `Cache` and `Cache<T>`, `MyApp.Cache.Add` also `MyApp.Cache<T>.Add`. Writing the list out
+  selects exactly one of them. Where a short path names both, the rule means both - the same reading that
+  has always applied to overloaded members.
