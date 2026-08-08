@@ -1,4 +1,4 @@
-using CodeParserTests.Helper;
+﻿using CodeParserTests.Helper;
 using CSharpCodeAnalyst.CodeGraph.Export;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
@@ -70,8 +70,9 @@ public class PlantUmlExportTests
     public void TypeAlias_ShouldReplaceDotsWithUnderscores()
     {
         var text = Export(BuildBasicGraph());
-        // Alias example for Export.ServiceImpl -> Export_ServiceImpl
-        Assert.That(text.Contains(@"class ""Export_ServiceImpl"" as Export_ServiceImpl"));
+        // Alias example for Export.ServiceImpl -> Export_ServiceImpl. Only the alias is sanitized;
+        // a quoted label carries the name as written (see EscapeLabel).
+        Assert.That(text.Contains(@"class ""Export-ServiceImpl"" as Export_ServiceImpl"));
     }
 
     [Test]
@@ -80,9 +81,9 @@ public class PlantUmlExportTests
         var text = Export(BuildBasicGraph());
         // Namespace block header
         Assert.That(text.Contains("namespace Export {"));
-        // Class with same name must have alias Export_Export
-        // The underscore in the class name is sanitized.
-        Assert.That(text.Contains("class \"Export_Export\" as Export_Export"));
+        // Class with same name must have alias Export_Export - the dash is sanitized in the alias
+        // only, so the two can no longer collide while the label stays readable.
+        Assert.That(text.Contains("class \"Export-Export\" as Export_Export"));
     }
 
     [Test]
@@ -91,14 +92,14 @@ public class PlantUmlExportTests
         var text = Export(BuildBasicGraph());
         // Extract block for ServiceImpl
         var lines = text.Split('\n');
-        var startIndex = Array.FindIndex(lines, l => l.Contains("class \"Export_ServiceImpl\" as Export_ServiceImpl {"));
+        var startIndex = Array.FindIndex(lines, l => l.Contains("class \"Export-ServiceImpl\" as Export_ServiceImpl {"));
         Assert.That(startIndex, Is.GreaterThan(-1));
         var endIndex = Array.FindIndex(lines, startIndex + 1, l => l.Trim() == "}");
         Assert.That(endIndex, Is.GreaterThan(startIndex));
         var memberLines = lines.Skip(startIndex + 1).Take(endIndex - startIndex - 1).Select(l => l.Trim()).ToList();
 
         // Expect order: Method (), Property, Event, Field
-        // Note class members allow '-' so it is not sanitized here, but the class name is.
+        // Neither the member lines nor the quoted class label are sanitized - only the alias is.
         var expectedOrder = new[] { "Export-ServiceImpl.DoWork()", "Export-ServiceImpl.State", "Export-ServiceImpl.Changed", "Export-ServiceImpl._data" };
         Assert.That(memberLines, Is.EqualTo(expectedOrder));
     }

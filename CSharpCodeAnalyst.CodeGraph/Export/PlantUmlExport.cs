@@ -108,11 +108,11 @@ public class PlantUmlExport
 
     private static void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
     {
-        // The display name is sanitized although it is written inside quotes, and that is deliberate:
-        // PlantUML applies creole/HTML markup inside a quoted label, so a compiler-generated name like
-        // "<Main>$" or "<>c__DisplayClass0_0" would be read as a tag. Ordinary C# identifiers contain
-        // none of the replaced characters, so nothing legible is lost.
-        var typeDisplayName = SanitizeName(node.Name, false);
+        // PlantUML applies creole/HTML markup inside a quoted label, so the angle brackets of a generic
+        // name ("Cache<T>") or of a compiler-generated one ("<Main>$") must not reach it raw - they would
+        // be read as a tag. They are escaped rather than replaced, so the label reads the way the code
+        // does. The alias has no such option: it is an identifier and stays sanitized.
+        var typeDisplayName = EscapeLabel(node.Name);
         var alias = SanitizeName(node.FullName, true);
 
         // Always use alias syntax with full path as the identifier
@@ -369,6 +369,24 @@ public class PlantUmlExport
     private static string SanitizeLabel(string label)
     {
         return label.Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", " ");
+    }
+
+    /// <summary>
+    ///     Escapes a name for a quoted label, where PlantUML parses creole and a subset of HTML. The angle
+    ///     brackets become entities so the label renders as the name is written - "Cache&lt;T&gt;", not
+    ///     "Cache_T_" and not a swallowed tag.
+    ///     <para>
+    ///         Member lines inside a class body are left alone on purpose (see
+    ///         <see cref="FormatClassMember" />): raw brackets demonstrably render there, so escaping them
+    ///         would risk showing the entity itself.
+    ///     </para>
+    /// </summary>
+    private static string EscapeLabel(string label)
+    {
+        return SanitizeLabel(label)
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;");
     }
 
     private static string FormatClassMember(CodeElement member)
