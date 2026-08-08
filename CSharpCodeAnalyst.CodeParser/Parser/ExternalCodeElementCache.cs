@@ -112,7 +112,7 @@ internal class ExternalCodeElementCache
     private CodeElement CreateExternalCodeElement(ISymbol symbol, CodeElement? parent)
     {
         var id = Guid.NewGuid().ToString();
-        var name = symbol.Name;
+        var name = symbol.GetDisplayName();
         var fullName = symbol.BuildSymbolName(); // .ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
 
         var elementType = DetermineCodeElementType(symbol);

@@ -482,7 +482,7 @@ public class HierarchyAnalyzer
             return existingElement;
         }
 
-        var name = symbol.Name;
+        var name = symbol.GetDisplayName();
         var fullName = symbol.BuildSymbolName();
         var newId = Guid.NewGuid().ToString();
 

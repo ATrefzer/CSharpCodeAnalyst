@@ -48,8 +48,9 @@ public class ConstructedGenericStaticMemberParseTests : InMemoryParseTestBase
     public void StaticMemberRelationships_AreDetected()
     {
         // Premise guard (green): the member edges themselves are found via normalization.
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Locator.Prime -> Registry.Instance"));
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Locator.Count -> Registry.CountItems"));
+        // Normalization means the target is the definition Registry<T>, not the construction.
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Locator.Prime -> Registry<T>.Instance"));
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Locator.Count -> Registry<T>.CountItems"));
     }
 
     [Test]

@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeParser.Xaml;
 
@@ -233,6 +233,15 @@ public static class XamlGraphLinker
     /// <summary>
     ///     Maps assembly name -&gt; CLR full name ("Namespace.Type") -&gt; type element. The assembly node and
     ///     the synthetic global namespace are not part of a CLR name and are skipped.
+    ///     <para>
+    ///         The type parameter list an element name carries ("Cache&lt;T&gt;") stays in the key, and
+    ///         that is what makes the key unique: a generic and a non-generic declaration of the same name
+    ///         may legally coexist, and while both were named "Cache" they collided here and one of them
+    ///         arbitrarily won. A markup reference names a closed type - "Cache" - and now resolves to
+    ///         exactly the non-generic one. An open generic is unreachable from markup through this route
+    ///         (<see cref="XamlReferenceExtractor" /> does not read <c>x:TypeArguments</c>), so its entry
+    ///         is simply never asked for.
+    ///     </para>
     /// </summary>
     private static Dictionary<string, Dictionary<string, CodeElement>> BuildTypeLookup(
         CodeGraph.Graph.CodeGraph graph)
@@ -266,5 +275,4 @@ public static class XamlGraphLinker
 
         return lookup;
     }
-
 }

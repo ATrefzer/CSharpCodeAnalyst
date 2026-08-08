@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CodeParserTests.UnitTests.Parser;
 
@@ -171,9 +171,9 @@ public class Events_PublishSubscribeParseTests : InMemoryParseTestBase
     {
         var expected = new[]
         {
-            "EventPublisher", "CustomEventArgs", "DataChangedEventArgs", "EventSubscriber", "EventLogger",
+            "EventPublisher", "CustomEventArgs", "DataChangedEventArgs<T>", "EventSubscriber", "EventLogger",
             "EventCounter", "EventInvoker", "EventSink", "EventChain", "EventAggregator", "AggregatedEventArgs",
-            "GenericEventHandler", "GenericEventArgs", "ConditionalEventHandler"
+            "GenericEventHandler<T>", "GenericEventArgs<T>", "ConditionalEventHandler"
         };
 
         Assert.That(PathsOf(CodeElementType.Class), Is.EquivalentTo(expected));
@@ -210,12 +210,12 @@ public class Events_PublishSubscribeParseTests : InMemoryParseTestBase
         var expected = new[]
         {
             "CustomEventArgs..ctor -> CustomEventArgs.Data",
-            "DataChangedEventArgs..ctor -> DataChangedEventArgs.OldValue",
-            "DataChangedEventArgs..ctor -> DataChangedEventArgs.NewValue",
+            "DataChangedEventArgs<T>..ctor -> DataChangedEventArgs<T>.OldValue",
+            "DataChangedEventArgs<T>..ctor -> DataChangedEventArgs<T>.NewValue",
             "EventSubscriber..ctor -> EventSubscriber.SubscribeToEvents",
             "EventSubscriber.HandleCustomEvent -> CustomEventArgs.Data",
-            "EventSubscriber.HandleDataChanged -> DataChangedEventArgs.NewValue",
-            "EventSubscriber.HandleDataChanged -> DataChangedEventArgs.OldValue",
+            "EventSubscriber.HandleDataChanged -> DataChangedEventArgs<T>.NewValue",
+            "EventSubscriber.HandleDataChanged -> DataChangedEventArgs<T>.OldValue",
             "EventLogger.LogCustomEvent -> CustomEventArgs.Data",
             "EventInvoker.TriggerAllInvocations -> EventInvoker.InvokeMethod1",
             "EventInvoker.TriggerAllInvocations -> EventInvoker.InvokeMethod2",
@@ -227,9 +227,9 @@ public class Events_PublishSubscribeParseTests : InMemoryParseTestBase
             "EventAggregator.HandleMessage -> AggregatedEventArgs..ctor",
             "EventAggregator.HandleSimple -> AggregatedEventArgs..ctor",
             "EventPublisher.TriggerCustomEvent -> CustomEventArgs..ctor",
-            "EventPublisher.TriggerDataChanged -> DataChangedEventArgs..ctor",
-            "GenericEventArgs..ctor -> GenericEventArgs.Data",
-            "GenericEventHandler.TriggerEvent -> GenericEventArgs..ctor"
+            "EventPublisher.TriggerDataChanged -> DataChangedEventArgs<T>..ctor",
+            "GenericEventArgs<T>..ctor -> GenericEventArgs<T>.Data",
+            "GenericEventHandler<T>.TriggerEvent -> GenericEventArgs<T>..ctor"
         };
 
         Assert.That(RelsOf(RelationshipType.Calls), Is.EquivalentTo(expected));

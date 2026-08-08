@@ -212,13 +212,15 @@ public class GenericsParseTests : InMemoryParseTestBase
     [Test]
     public void Classes_AreDetected()
     {
+        // The names carry the type parameters of the declaration, so a nested generic shows both lists.
         var expected = new[]
         {
-            "GenericProcessor", "GenericCalculator", "GenericManager", "GenericFactory", "GenericSorter",
-            "BaseEntity", "EntityManager", "GenericConverter", "ProcessableItem", "ComparableItem",
-            "DatabaseEntity", "GenericCollection", "GenericContainer", "GenericCreator", "GenericMethodsClass",
-            "GenericPair", "GenericService", "GenericTree", "GenericTree.Node", "GenericUtilities",
-            "NumberValidator", "StringValidator"
+            "GenericProcessor<T>", "GenericCalculator<T>", "GenericManager<T>", "GenericFactory<T>",
+            "GenericSorter<T>", "BaseEntity", "EntityManager<T>", "GenericConverter<TSource,TTarget>",
+            "ProcessableItem", "ComparableItem", "DatabaseEntity", "GenericCollection<T>",
+            "GenericContainer<T>", "GenericCreator", "GenericMethodsClass",
+            "GenericPair<TFirst,TSecond>", "GenericService<TEntity>", "GenericTree<T>",
+            "GenericTree<T>.Node<U>", "GenericUtilities", "NumberValidator", "StringValidator"
         };
 
         Assert.That(PathsOf(CodeElementType.Class), Is.EquivalentTo(expected));
@@ -229,14 +231,16 @@ public class GenericsParseTests : InMemoryParseTestBase
     {
         // "where T : Foo" records the constraint type as a Uses relationship, for both class and method
         // type parameters. IComparable here is the module's own interface.
+        // The target is always the declaration, so "where T : IComparable<T>" names IComparable<T> with
+        // the parameter name of its own declaration - not with the argument the constraint passes.
         var expected = new[]
         {
-            "GenericManager -> IProcessor",
-            "GenericSorter -> IComparable",
-            "EntityManager -> BaseEntity",
-            "GenericMethodsClass.ProcessItems -> IProcessor",
-            "GenericMethodsClass.SaveEntities -> BaseEntity",
-            "GenericService.ProcessWithValidator -> IValidator"
+            "GenericManager<T> -> IProcessor",
+            "GenericSorter<T> -> IComparable<T>",
+            "EntityManager<T> -> BaseEntity",
+            "GenericMethodsClass.ProcessItems<T> -> IProcessor",
+            "GenericMethodsClass.SaveEntities<T> -> BaseEntity",
+            "GenericService<TEntity>.ProcessWithValidator<TValidator> -> IValidator<T>"
         };
 
         Assert.That(RelsOf(RelationshipType.Uses), Is.SupersetOf(expected));
@@ -247,29 +251,29 @@ public class GenericsParseTests : InMemoryParseTestBase
     {
         var expected = new[]
         {
-            "GenericManager.ProcessAll -> IProcessor.Process",
-            "EntityManager.AddEntity -> BaseEntity.Id",
-            "EntityManager.SaveAll -> BaseEntity.Save",
-            "GenericConverter.ConvertMany -> GenericConverter.Convert",
+            "GenericManager<T>.ProcessAll -> IProcessor.Process",
+            "EntityManager<T>.AddEntity -> BaseEntity.Id",
+            "EntityManager<T>.SaveAll -> BaseEntity.Save",
+            "GenericConverter<TSource,TTarget>.ConvertMany -> GenericConverter<TSource,TTarget>.Convert",
             "ProcessableItem.Process -> ProcessableItem.Name",
             "ComparableItem.CompareTo -> ComparableItem.Value",
             "DatabaseEntity.Save -> BaseEntity.Id",
             "DatabaseEntity.Save -> DatabaseEntity.Name",
-            "GenericMethodsClass.ProcessItems -> IProcessor.Process",
-            "GenericMethodsClass.SaveEntities -> BaseEntity.Save",
-            "GenericPair..ctor -> GenericPair.First",
-            "GenericPair..ctor -> GenericPair.Second",
-            "GenericPair.Swap -> GenericPair.First",
-            "GenericTree.Node..ctor -> GenericTree.Node.Value",
-            "GenericTree.Node.AddChild -> GenericTree.Node.Children",
-            "GenericTree.SetRoot -> GenericTree.Root",
-            "GenericCreator.CreateContainer -> GenericContainer..ctor",
-            "GenericCreator.CreatePair -> GenericPair..ctor",
-            "GenericService.WrapResult -> GenericContainer..ctor",
-            "GenericTree.Node.AddChild -> GenericTree.Node..ctor",
-            "GenericTree.SetRoot -> GenericTree.Node..ctor",
-            "GenericUtilities.MakePair -> GenericPair..ctor",
-            "GenericService.ProcessWithValidator -> IValidator.IsValid"
+            "GenericMethodsClass.ProcessItems<T> -> IProcessor.Process",
+            "GenericMethodsClass.SaveEntities<T> -> BaseEntity.Save",
+            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.First",
+            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.Second",
+            "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First",
+            "GenericTree<T>.Node<U>..ctor -> GenericTree<T>.Node<U>.Value",
+            "GenericTree<T>.Node<U>.AddChild -> GenericTree<T>.Node<U>.Children",
+            "GenericTree<T>.SetRoot -> GenericTree<T>.Root",
+            "GenericCreator.CreateContainer<T> -> GenericContainer<T>..ctor",
+            "GenericCreator.CreatePair<T,U> -> GenericPair<TFirst,TSecond>..ctor",
+            "GenericService<TEntity>.WrapResult<TResult> -> GenericContainer<T>..ctor",
+            "GenericTree<T>.Node<U>.AddChild -> GenericTree<T>.Node<U>..ctor",
+            "GenericTree<T>.SetRoot -> GenericTree<T>.Node<U>..ctor",
+            "GenericUtilities.MakePair<T,U> -> GenericPair<TFirst,TSecond>..ctor",
+            "GenericService<TEntity>.ProcessWithValidator<TValidator> -> IValidator<T>.IsValid"
         };
 
         Assert.That(RelsOf(RelationshipType.Calls), Is.EquivalentTo(expected));

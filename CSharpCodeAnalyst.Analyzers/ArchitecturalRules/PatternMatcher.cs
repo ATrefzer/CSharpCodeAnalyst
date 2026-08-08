@@ -1,9 +1,17 @@
+using System.Text.RegularExpressions;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 public static class PatternMatcher
 {
+    /// <summary>
+    ///     The type parameter list inside a full name ("Cache&lt;T&gt;", "Map&lt;TKey,TValue&gt;"). Never
+    ///     nested: the names carry the type parameters of a declaration, not the arguments of a
+    ///     constructed type.
+    /// </summary>
+    private static readonly Regex TypeParameterLists = new("<[^<>]*>", RegexOptions.Compiled);
+
     /// <summary>
     ///     Resolves a pattern like "Business.**" to a set of CodeElement IDs
     ///     Pattern format: "Base.Path" or "Base.Path.*" or "Base.Path.**"
@@ -63,10 +71,10 @@ public static class PatternMatcher
     }
 
     /// <summary>
-    ///     Finds the elements a pattern anchors on. The written path is matched exactly first; only when
-    ///     that matches nothing is the equivalent path with the "global" namespace segment toggled tried
-    ///     (see <see cref="ToggleGlobalNamespace" />). Exact-first means a rule can never match more than
-    ///     what it says, and the fallback only ever helps a rule that would otherwise be dead.
+    ///     Finds the elements a pattern anchors on. The written path is tried first (see
+    ///     <see cref="FindByFullName" />); only when that matches nothing is the equivalent path with the
+    ///     "global" namespace segment toggled tried (see <see cref="ToggleGlobalNamespace" />). The
+    ///     fallback therefore only ever helps a rule that would otherwise be dead.
     /// </summary>
     private static List<CodeElement> FindStartElements(string basePath, CodeGraph.Graph.CodeGraph codeGraph)
     {
@@ -80,15 +88,48 @@ public static class PatternMatcher
         return alternativePath is null ? matches : FindByFullName(alternativePath, codeGraph);
     }
 
+    /// <summary>
+    ///     All elements the path names - more than one for overloaded members, and for a generic and a
+    ///     non-generic element of the same name.
+    ///     <para>
+    ///         The comparison is case-sensitive: C# identifiers are, so "MyApp.business" must not match
+    ///         "MyApp.Business" - otherwise a typo silently hits the wrong element instead of raising the
+    ///         no-match warning that is supposed to catch it.
+    ///     </para>
+    ///     <para>
+    ///         A path that names no type parameters matches a generic element as well ("MyApp.Cache"
+    ///         matches "MyApp.Cache" and "MyApp.Cache&lt;T&gt;", "MyApp.Cache.Add" also
+    ///         "MyApp.Cache&lt;T&gt;.Add"). Rule files were written when no name carried type parameters,
+    ///         and letting those rules stop matching would turn them silently into no-ops - the one
+    ///         failure mode a rule must never have. Writing the list out means exactly that element.
+    ///     </para>
+    /// </summary>
     private static List<CodeElement> FindByFullName(string path, CodeGraph.Graph.CodeGraph codeGraph)
     {
-        // All elements with an exact FullName match (more than one for overloaded members).
-        // The comparison is case-sensitive: C# identifiers are, so "MyApp.business" must not match
-        // "MyApp.Business" - otherwise a typo silently hits the wrong element instead of raising the
-        // no-match warning that is supposed to catch it.
-        return codeGraph.Nodes.Values
-            .Where(element => string.Equals(element.FullName, path, StringComparison.Ordinal))
-            .ToList();
+        // A path that names type parameters itself is taken literally - it says which element is meant.
+        var allowShortForm = !path.Contains('<', StringComparison.Ordinal);
+
+        var matches = new List<CodeElement>();
+        foreach (var element in codeGraph.Nodes.Values)
+        {
+            if (string.Equals(element.FullName, path, StringComparison.Ordinal) ||
+                (allowShortForm && MatchesWithoutTypeParameters(element.FullName, path)))
+            {
+                matches.Add(element);
+            }
+        }
+
+        return matches;
+    }
+
+    /// <summary>
+    ///     Whether the full name equals the path once its type parameter lists are removed. The
+    ///     containment check comes first so the rewrite only runs for the few names that are generic.
+    /// </summary>
+    private static bool MatchesWithoutTypeParameters(string fullName, string path)
+    {
+        return fullName.Contains('<', StringComparison.Ordinal) &&
+               string.Equals(TypeParameterLists.Replace(fullName, string.Empty), path, StringComparison.Ordinal);
     }
 
     /// <summary>

@@ -166,4 +166,81 @@ public class BaselineGeneratorTests
 
         Assert.That(afterResult.Violations, Is.Empty, "the single ALLOW line must cover every overload");
     }
+
+    [Test]
+    public void Baseline_WithGenericElements_IsParseableAndSuppressesTheViolations()
+    {
+        // The generator writes raw full names, which now carry type parameter lists - anywhere along the
+        // path, and twice over for a generic member of a generic type. The round trip is what matters:
+        // the emitted text has to parse, and the exceptions have to resolve back to the same elements.
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+        var data = _codeGraph.CreateNamespace("MyApp.Data");
+        var repository = AddChild("r", CodeElementType.Class, "Repository", data);
+
+        var cache = AddChild("c", CodeElementType.Class, "Cache<T>", business);
+        var map = AddChild("m", CodeElementType.Class, "Map<TKey,TValue>", business);
+        var add = AddChild("a", CodeElementType.Method, "Add<TResult>", map);
+        cache.Relationships.Add(new Relationship(cache.Id, repository.Id, RelationshipType.Uses));
+        add.Relationships.Add(new Relationship(add.Id, repository.Id, RelationshipType.Uses));
+
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
+        var (result, _) = Run(originalRules);
+        Assert.That(result.Violations.Sum(v => v.ViolatingRelationships.Count), Is.EqualTo(2), "sanity");
+
+        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(baseline, Contains.Substring("ALLOW MyApp.Business.Cache<T> -> MyApp.Data.Repository"));
+            Assert.That(baseline,
+                Contains.Substring("ALLOW MyApp.Business.Map<TKey,TValue>.Add<TResult> -> MyApp.Data.Repository"));
+
+            // Parsing the baseline on its own: a line the generator writes but the parser rejects would
+            // make the whole rules file unusable.
+            Assert.DoesNotThrow(() => RuleParser.ParseRules(baseline));
+        });
+
+        var (afterResult, _) = Run(originalRules + Environment.NewLine + baseline);
+        Assert.That(afterResult.Violations, Is.Empty);
+    }
+
+    [Test]
+    public void Baseline_OfANonGenericType_AlsoExceptsItsGenericNamesake()
+    {
+        // Accepted consequence of the short path form: the non-generic "Cache" has no type parameters in
+        // its full name, so the generated line reads "ALLOW MyApp.Business.Cache -> ..." - and that path
+        // covers Cache<T> as well. Only Cache violates here, yet the baseline widens to both.
+        // Bounded to a generic and a non-generic declaration of the same name, and the alternative would
+        // be a way to write "exactly this element" that the path syntax does not have.
+        var business = _codeGraph.CreateNamespace("MyApp.Business");
+        var data = _codeGraph.CreateNamespace("MyApp.Data");
+        var repository = AddChild("r", CodeElementType.Class, "Repository", data);
+
+        var plain = AddChild("p", CodeElementType.Class, "Cache", business);
+        var generic = AddChild("g", CodeElementType.Class, "Cache<T>", business);
+        plain.Relationships.Add(new Relationship(plain.Id, repository.Id, RelationshipType.Uses));
+
+        var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
+        var (result, _) = Run(originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        Assert.That(baseline, Contains.Substring("ALLOW MyApp.Business.Cache -> MyApp.Data.Repository"));
+
+        // The generic namesake starts violating afterwards - and is not reported.
+        generic.Relationships.Add(new Relationship(generic.Id, repository.Id, RelationshipType.Uses));
+        var (afterResult, _) = Run(originalRules + Environment.NewLine + baseline);
+
+        Assert.That(afterResult.Violations, Is.Empty);
+    }
+
+    /// <summary>
+    ///     The graph helper names an element after its id; this builds the full name from the parent, the
+    ///     way the parser does, so a type parameter list can sit in the middle of a path.
+    /// </summary>
+    private CodeElement AddChild(string id, CodeElementType elementType, string name, CodeElement parent)
+    {
+        var element = new CodeElement(id, elementType, name, parent.FullName + "." + name, parent);
+        parent.Children.Add(element);
+        _codeGraph.Nodes[id] = element;
+        return element;
+    }
 }
