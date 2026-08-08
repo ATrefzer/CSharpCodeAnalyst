@@ -75,10 +75,12 @@ public class GenericInterfaceImplementsParseTests : InMemoryParseTestBase
         var implements = RelsOf(RelationshipType.Implements);
         Assert.Multiple(() =>
         {
-            Assert.That(implements, Does.Contain("ItemHandler -> IHandler"));
-            Assert.That(implements, Does.Contain("GenHandler -> IHandler"));
-            Assert.That(implements, Does.Contain("ItemProvider -> IProvider"));
-            Assert.That(implements, Does.Contain("DualHandler -> IHandler"));
+            // The target is the interface definition even for a closed construction, so it is
+            // IHandler<T> and not IHandler<Item> - that is the modelling decision, not the name.
+            Assert.That(implements, Does.Contain("ItemHandler -> IHandler<T>"));
+            Assert.That(implements, Does.Contain("GenHandler<T> -> IHandler<T>"));
+            Assert.That(implements, Does.Contain("ItemProvider -> IProvider<T>"));
+            Assert.That(implements, Does.Contain("DualHandler -> IHandler<T>"));
         });
     }
 
@@ -92,19 +94,19 @@ public class GenericInterfaceImplementsParseTests : InMemoryParseTestBase
     [Test]
     public void ClosedConstruction_MemberImplements_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemHandler.Handle -> IHandler.Handle"));
+        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemHandler.Handle -> IHandler<T>.Handle"));
     }
 
     [Test]
     public void OpenConstruction_MemberImplements_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("GenHandler.Handle -> IHandler.Handle"));
+        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("GenHandler<T>.Handle -> IHandler<T>.Handle"));
     }
 
     [Test]
     public void PropertyMember_Implements_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemProvider.Current -> IProvider.Current"));
+        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemProvider.Current -> IProvider<T>.Current"));
     }
 
     [Test]
@@ -112,7 +114,7 @@ public class GenericInterfaceImplementsParseTests : InMemoryParseTestBase
     {
         // Handle(Item) and Handle(Widget) both implement IHandler<T>.Handle - two edges, one per overload.
         var count = RelsOf(RelationshipType.Implements)
-            .Count(r => r == "DualHandler.Handle -> IHandler.Handle");
+            .Count(r => r == "DualHandler.Handle -> IHandler<T>.Handle");
         Assert.That(count, Is.EqualTo(2));
     }
 }

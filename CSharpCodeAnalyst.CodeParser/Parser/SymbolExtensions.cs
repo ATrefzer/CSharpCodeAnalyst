@@ -1,4 +1,5 @@
-﻿using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using System.Collections.Immutable;
+using CSharpCodeAnalyst.CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -16,8 +17,53 @@ public static class SymbolExtensions
     {
         var parts = GetSymbolChain(symbol);
         parts.Reverse();
-        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.Name));
+        var fullName = string.Join(".", parts.Where(p => !string.IsNullOrEmpty(p.Name)).Select(p => p.GetDisplayName()));
         return fullName;
+    }
+
+    /// <summary>
+    ///     The name a code element is shown and addressed by: the symbol name plus the type parameter
+    ///     list a generic type, interface or method declares ("Cache&lt;T&gt;", "Map&lt;TKey,TValue&gt;").
+    ///     <para>
+    ///         Two declarations that differ only in their type parameters - "WpfCommand" and
+    ///         "WpfCommand&lt;T&gt;" - are separate elements with separate <see cref="Key" />s, but
+    ///         without the list they carry the same name and are indistinguishable in every name-based
+    ///         view and export.
+    ///     </para>
+    /// </summary>
+    public static string GetDisplayName(this ISymbol symbol)
+    {
+        return symbol.Name + GetTypeParameterList(symbol);
+    }
+
+    /// <summary>
+    ///     The declared type parameters as they belong in a name, or an empty string.
+    ///     <para>
+    ///         Built from the type <i>parameters</i>, never from the arguments of a constructed type. That
+    ///         makes the name independent of which symbol instance we happen to hold - List&lt;int&gt; and
+    ///         List&lt;T&gt; both yield "List&lt;T&gt;" - and it keeps the name free of dots and spaces,
+    ///         which the exports depend on: the plain text format splits its lines on whitespace, and the
+    ///         DSI hierarchy splits names on dots.
+    ///     </para>
+    ///     <para>
+    ///         Deliberately not <see cref="INamedTypeSymbol.IsGenericType" />: that is true for a
+    ///         non-generic type nested in a generic one as well ("List&lt;T&gt;.Enumerator"), which would
+    ///         produce an empty pair of brackets. <see cref="IMethodSymbol.IsGenericMethod" /> does not
+    ///         have that property, but the parameter list is the more direct question either way.
+    ///     </para>
+    /// </summary>
+    private static string GetTypeParameterList(ISymbol symbol)
+    {
+        var typeParameters = symbol switch
+        {
+            INamedTypeSymbol namedType => namedType.TypeParameters,
+            IMethodSymbol method => method.TypeParameters,
+            _ => ImmutableArray<ITypeParameterSymbol>.Empty
+        };
+
+        return typeParameters.IsEmpty
+            ? string.Empty
+            : $"<{string.Join(",", typeParameters.Select(parameter => parameter.Name))}>";
     }
 
     /// <summary>

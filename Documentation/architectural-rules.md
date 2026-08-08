@@ -61,6 +61,25 @@ A pattern can end with a wildcard suffix:
 
 The part before the wildcard is an **anchor**. It must exactly match the full path of one element (the whole path, not a prefix). The wildcard then expands along the tree. It collects the children of that anchor element, not everything whose name merely starts with the same text. For example, `MyApp.**` matches everything inside the assembly `MyApp` but nothing in a sibling assembly `MyApp.Utils` because that assembly is a separate root in the tree and not a child of the anchor.
 
+An anchor may match **more than one** element, and then the rule means all of them. That happens for overloaded methods, which share one path, and for a generic and a non-generic declaration of the same name (see below).
+
+### Generic types and methods
+
+A generic element carries its type parameters in its name: `Cache<T>`, `Map<TKey,TValue>`, `Convert<TResult>`. You may write them in a path, and then the path means exactly that element:
+
+```
+DENY MyApp.Business.Cache<T>.** -> MyApp.Data.**
+```
+
+You may also leave them out, and then the path means every element of that name — with and without type parameters:
+
+- `MyApp.Business.Cache` matches `Cache` **and** `Cache<T>`.
+- `MyApp.Business.Cache.Add` matches `Cache<T>.Add` as well, because the parameters may sit anywhere along the path.
+
+So rules written before type parameters appeared in the names keep working unchanged, and where you need to tell `WpfCommand` and `WpfCommand<T>` apart, you write the parameters out. "Copy Full Path" always gives you the exact spelling of one element.
+
+Note that only the *arity* is part of the name: `M<T>` and `M<T,T2>` are distinguishable, while two overloads that differ only in their ordinary parameters (`M<T>(int, T)` and `M<T>(T, int)`) share one path, like any other overload pair.
+
 The `global` namespace is optional in a pattern
 Both spellings therefore resolve to the same element:
 

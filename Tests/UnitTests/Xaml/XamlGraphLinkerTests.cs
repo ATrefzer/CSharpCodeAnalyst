@@ -89,6 +89,38 @@ public class XamlGraphLinkerTests
     }
 
     [Test]
+    public void Link_GenericAndNonGenericTypeOfTheSameName_ResolvesToTheNonGenericOne()
+    {
+        // "MyGrid" and "MyGrid<T>" may legally sit in one namespace, and their element names differ by
+        // the type parameter list. Markup names a closed type, so <c:MyGrid /> means the non-generic one -
+        // an open generic cannot be written in markup at all through this route (no x:TypeArguments
+        // support). The lookup is keyed by the CLR name, so leaving the list out of the key would make
+        // the two collide and let one of them arbitrarily win.
+        // The generic type is created last on purpose: on a collision it would be the one that overwrites.
+        var assembly = _graph.CreateAssembly("App");
+        var view = CreateType(assembly, "App.Views", "MainWindow");
+        CreateType(assembly, "App.Controls", "MyGrid");
+        CreateType(assembly, "App.Controls", "MyGrid<T>");
+
+        WriteXaml("MainWindow.xaml", """
+                                     <Window x:Class="App.Views.MainWindow"
+                                             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                             xmlns:c="clr-namespace:App.Controls">
+                                         <c:MyGrid />
+                                     </Window>
+                                     """);
+
+        var added = XamlGraphLinker.Link(_graph, [Project(assembly)]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(added, Is.EqualTo(1));
+            Assert.That(EdgesFrom(view, _graph), Is.EqualTo(new[] { "MyGrid" }));
+        });
+    }
+
+    [Test]
     public void Link_ObjectElement_AlsoConnectsToTheConstructor()
     {
         // Without this edge the constructor has no incoming reference at all, and everything only it

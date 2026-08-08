@@ -57,13 +57,13 @@ public class MethodGroups_GenericParseTests : InMemoryParseTestBase
     public void QualifiedGenericMethodGroup_IsDetected()
     {
         // Premise guard (green): the member-access form is already captured.
-        Assert.That(MethodGroupUsages(), Does.Contain("Dispatcher.WireQualified -> Producer.Produce"));
+        Assert.That(MethodGroupUsages(), Does.Contain("Dispatcher.WireQualified -> Producer.Produce<T>"));
     }
 
     [Test]
     public void StandaloneGenericMethodGroup_IsDetected()
     {
-        Assert.That(MethodGroupUsages(), Does.Contain("Dispatcher.Wire -> Dispatcher.Create"));
+        Assert.That(MethodGroupUsages(), Does.Contain("Dispatcher.Wire -> Dispatcher.Create<T>"));
     }
 
     [Test]

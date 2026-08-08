@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 // ReSharper disable StringLiteralTypo
 
@@ -47,11 +47,12 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
             // Called by extension method
             "Old.CSharpLanguage.global.CSharpLanguage.TheExtendedType.Do",
 
-            // Generic method calls
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2",
+            // Generic method calls. M1 is overloaded on its arity, so the two are told apart by name;
+            // the two M2 overloads differ in their parameters only and share one name.
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1<T,T2>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2<T>",
             "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run",
 
 
@@ -108,15 +109,15 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 
         var expected = new List<string>
         {
-            // Twice this is a generic class
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo",
+            // Twice this is a generic class - Foo is overloaded on its arity
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo<T,T2,T3>",
 
 
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_Hierarchies.ClassDerived3",
             "Old.CSharpLanguage.global.CSharpLanguage.Regression_Hierarchies.ClassDerived4",
             "Old.CSharpLanguage.global.CSharpLanguage.TheExtendedType",
-            "Old.CSharpLanguage.global.CSharpLanguage.XmlFile",
+            "Old.CSharpLanguage.global.CSharpLanguage.XmlFile<T>",
 
             "Old.CSharpLanguage.global.CSharpLanguage.Partial.Client",
             "Old.CSharpLanguage.global.CSharpLanguage.Partial.PartialClass",
@@ -169,8 +170,9 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
         {
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.Extensions.Slice",
             "Old.CSharpLanguage.global.CSharpLanguage.Extensions.Slice -> Old.CSharpLanguage.global.CSharpLanguage.TheExtendedType.Do",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M1<T,T2>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.M2<T>",
 
             "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.DoSomething -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise1",
             "Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.DoSomething -> Old.CSharpLanguage.global.CSharpLanguage.EventInvocation.Raise2",
@@ -242,8 +244,9 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.ClassOfferingAnEvent",
             "Old.CSharpLanguage.global.CSharpLanguage.ClassUsingAnEvent.Init -> Old.CSharpLanguage.global.CSharpLanguage.TheExtendedType",
-            "Old.CSharpLanguage.global.CSharpLanguage.CreatorOfGenericTypes.Create -> Old.CSharpLanguage.global.CSharpLanguage.XmlFile",
-            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo",
+            "Old.CSharpLanguage.global.CSharpLanguage.CreatorOfGenericTypes.Create -> Old.CSharpLanguage.global.CSharpLanguage.XmlFile<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo<T>",
+            "Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Run -> Old.CSharpLanguage.global.CSharpLanguage.MoreGenerics.Foo<T,T2,T3>",
             "Old.CSharpLanguage.global.CSharpLanguage.Partial.Client.CreateInstance -> Old.CSharpLanguage.global.CSharpLanguage.Partial.PartialClass",
             "Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.OnCreteAutomationPeer -> Old.CSharpLanguage.global.CSharpLanguage.PinSignalView.PinSignalViewAutomationPeer",
 
@@ -429,7 +432,7 @@ public class OldCSharpLanguageApprovalTests : ApprovalTestBase
 
         var expected = new HashSet<string>
         {
-            "Old.CSharpLanguage.global.CSharpLanguage.ProjectFile -> Old.CSharpLanguage.global.CSharpLanguage.XmlFile",
+            "Old.CSharpLanguage.global.CSharpLanguage.ProjectFile -> Old.CSharpLanguage.global.CSharpLanguage.XmlFile<T>",
             "Old.CSharpLanguage.global.CSharpLanguage.MissingInterface.Storage -> Old.CSharpLanguage.global.CSharpLanguage.MissingInterface.BaseStorage",
 
             // Regression Hierarchies

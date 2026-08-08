@@ -92,7 +92,7 @@ public class EventDeRegistrationInLambdaParseTests
             .Where(r => r.Type == RelationshipType.Calls)
             .Select(r => _graph.Nodes[r.TargetId].Name);
 
-        Assert.That(callTargets, Is.EquivalentTo(new[] { "LoopOver" }));
+        Assert.That(callTargets, Is.EquivalentTo(new[] { "LoopOver<T>" }));
     }
 
     private string[] NamesOf(CodeElementType type)
