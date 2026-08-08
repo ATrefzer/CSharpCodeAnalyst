@@ -108,11 +108,16 @@ public class PlantUmlExport
 
     private static void WriteTypeDefinition(StringBuilder builder, CodeElement node, string indent)
     {
-        // PlantUML applies creole/HTML markup inside a quoted label, so the angle brackets of a generic
-        // name ("Cache<T>") or of a compiler-generated one ("<Main>$") must not reach it raw - they would
-        // be read as a tag. They are escaped rather than replaced, so the label reads the way the code
-        // does. The alias has no such option: it is an identifier and stays sanitized.
-        var typeDisplayName = EscapeLabel(node.Name);
+        // The label carries the name as written, angle brackets and all. PlantUML reads them as UML
+        // formal type parameters and draws them in the dashed box at the corner of the class - the proper
+        // notation for a generic type, and nothing is lost: a label "Pair<B,I>" keeps both parameters,
+        // so they are not taken for the <b> and <i> markup tags either. Only the quote and the line
+        // breaks are escaped.
+        // HTML entities are NOT an option here (they were tried): a quoted label does not resolve them,
+        // "Cache&lt;T&gt;" renders literally. Replacing the brackets is not one either - that was the old
+        // behaviour and it made "Cache" and "Cache<T>" read the same.
+        // The alias is an identifier and stays sanitized - a bracket there is a syntax error.
+        var typeDisplayName = SanitizeLabel(node.Name);
         var alias = SanitizeName(node.FullName, true);
 
         // Always use alias syntax with full path as the identifier
@@ -366,27 +371,15 @@ public class PlantUmlExport
         return sanitized;
     }
 
+    /// <summary>
+    ///     Prepares a name for a quoted label or a member line: the quote would end the label, a line break
+    ///     would end the line. Angle brackets are deliberately left as they are so a generic name reads the
+    ///     way it is written; see the note in <see cref="WriteTypeDefinition" /> on why escaping them is not
+    ///     an option.
+    /// </summary>
     private static string SanitizeLabel(string label)
     {
         return label.Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", " ");
-    }
-
-    /// <summary>
-    ///     Escapes a name for a quoted label, where PlantUML parses creole and a subset of HTML. The angle
-    ///     brackets become entities so the label renders as the name is written - "Cache&lt;T&gt;", not
-    ///     "Cache_T_" and not a swallowed tag.
-    ///     <para>
-    ///         Member lines inside a class body are left alone on purpose (see
-    ///         <see cref="FormatClassMember" />): raw brackets demonstrably render there, so escaping them
-    ///         would risk showing the entity itself.
-    ///     </para>
-    /// </summary>
-    private static string EscapeLabel(string label)
-    {
-        return SanitizeLabel(label)
-            .Replace("&", "&amp;")
-            .Replace("<", "&lt;")
-            .Replace(">", "&gt;");
     }
 
     private static string FormatClassMember(CodeElement member)

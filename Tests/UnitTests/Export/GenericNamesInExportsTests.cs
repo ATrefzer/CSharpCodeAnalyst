@@ -88,19 +88,20 @@ public class GenericNamesInExportsTests
     [Test]
     public void PlantUml_WritesTheTypeParametersIntoTheLabel()
     {
-        // The label is what a reader sees, so it spells the name out. The brackets go in as entities
-        // because PlantUML parses creole/HTML inside a quoted label and would take "<T>" for a tag.
+        // The label is what a reader sees, so it spells the name out with its brackets. HTML entities
+        // were tried and rejected: a quoted label does not resolve them, "&lt;T&gt;" renders literally.
         var uml = new PlantUmlExport().Export(_graph);
 
         Assert.Multiple(() =>
         {
-            Assert.That(uml, Contains.Substring("class \"Cache&lt;T&gt;\" as MyAsm_Store_Cache_T_ {"));
-            Assert.That(uml, Contains.Substring("class \"Map&lt;TKey,TValue&gt;\" as MyAsm_Store_Map_TKey_TValue_ {"));
+            Assert.That(uml, Contains.Substring("class \"Cache<T>\" as MyAsm_Store_Cache_T_ {"));
+            Assert.That(uml, Contains.Substring("class \"Map<TKey,TValue>\" as MyAsm_Store_Map_TKey_TValue_ {"));
+            Assert.That(uml, Does.Not.Contain("&lt;"), "entities are not resolved in a label");
 
             // The alias is an identifier and has no escaping option - a raw bracket there is a syntax error.
             foreach (var line in uml.Split('\n').Where(l => l.Contains(" as ")))
             {
-                Assert.That(line.Split(" as ")[1], Does.Not.Contain("<").And.Not.Contains("&lt;"), line.Trim());
+                Assert.That(line.Split(" as ")[1], Does.Not.Contain("<"), line.Trim());
             }
         });
     }
