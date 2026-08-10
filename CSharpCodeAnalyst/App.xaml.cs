@@ -181,12 +181,5 @@ public partial class App
         mainWindow.DataContext = viewModel;
         MainWindow = mainWindow;
         mainWindow.Show();
-
-        // Not awaited: the window is up and usable whether or not the endpoint comes up, and every
-        // failure mode is reported by the service itself.
-        if (applicationSettings.McpServerAutoStart)
-        {
-            _ = mcpServerService.StartAsync();
-        }
     }
 }
