@@ -36,6 +36,28 @@ public interface ICodeGraphExplorer
     SearchResult FindAllRelationshipsDeep(HashSet<string> ids);
 
     /// <summary>
+    ///     Finds the shortest dependency paths between the given elements: the missing piece between
+    ///     two elements the user knows are connected somehow, but not how.
+    ///     Unlike <see cref="FindAllRelationshipsDeep" /> - which only reports direct relationships
+    ///     between elements that are already part of the selection - this walks through arbitrary
+    ///     intermediate elements and brings them into the result.
+    ///     Every element is expanded to itself plus its descendants first, so selecting two classes
+    ///     finds the concrete call chain between their methods. Each ordered pair is searched
+    ///     separately, so both directions are covered.
+    ///     Only relationships that are a real dependency (see
+    ///     <see cref="RelationshipTypeExtensions.IsDependency" />) are followed. The hierarchy is not
+    ///     a path: otherwise everything would be connected through a common ancestor.
+    ///     For each pair, all paths of the shortest length are returned - a single path would hide
+    ///     whether the connection is one thin wire or a bundle. Longer alternatives are not reported.
+    /// </summary>
+    /// <param name="ids">The selected elements. Fewer than two make no pair, the result is empty.</param>
+    /// <param name="maxLength">
+    ///     Maximum number of relationships in a path. Pairs whose shortest path is longer are
+    ///     reported as not connected, so an unconnected selection does not pull in half the graph.
+    /// </param>
+    SearchResult FindPathsBetween(HashSet<string> ids, int maxLength);
+
+    /// <summary>
     ///     Methods that implement or overload the given method
     /// </summary>
     SearchResult FindSpecializations(string id);

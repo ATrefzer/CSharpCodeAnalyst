@@ -10,15 +10,15 @@ Initially, I attempted to detect cycles between code elements based on dependenc
 
 The two classes in the image below reference each other through their fields, forming a class cycle. If the classes are in different namespaces, a cycle would occur between the namespaces. The dependency arrows would cross the namespace boundaries. However, by just following the dependency arrows, there is no cycle between the classes and namespaces.
 
-![](Images/class-by-field.png)
+![](../Images/class-by-field.png)
 
 We could try to repair this by including parent-child relationships in the search graph. (adding "contains" or "is-parent-of" arrows)
 
-![](Images/class-by-field-with-containment.png)
+![](../Images/class-by-field-with-containment.png)
 
 However, there are situations when even this is not enough. In the image below, no cycle is formed, even when including the parent-child relationships. However, the methods of the two classes call each other, showing that a class cycle must exist.
 
-![](Images/class-by-method-with-containment.png)
+![](../Images/class-by-method-with-containment.png)
 
 An attempt to add additional artificial **is-child-of** dependencies would cause cycles everywhere.
 
@@ -32,7 +32,7 @@ Assume you extracted the following code graph from the source code.
 
 There is a cycle between **Namespace 2** and **Namespace 3,** caused by **Method 1** calling **Method 2** and **_field1** holding a reference to **Class 1.**
 
-![](Images/solution-problem.png)
+![](../Images/solution-problem.png)
 
 
 
@@ -48,7 +48,7 @@ Process:
 
 Here is what the search graph looks like:
 
-![](Images/search-graph.png)
+![](../Images/search-graph.png)
 
 Assume the call from **Method 1** to **Method 2.** The least common ancestor is **Namespace 1**, which is excluded. This results in **Namespace 2** and **Namespace 3** being the highest involved code elements in this **call** dependency.
 
@@ -76,7 +76,7 @@ However, some edge cases need to be discussed. These relate to cycles with inner
 
 In the given scenario, we identify **Namespace 1** as the least common ancestor of the cycle. In the base scenario described above, we remove this container. However, we cannot simply do this in this scenario because **Namespace 1** is involved in the cycle itself.
 
-![](Images/edge-case-source-graph.png)
+![](../Images/edge-case-source-graph.png)
 
 #### Handling containment when building the search graph (Step 2)
 
@@ -105,7 +105,7 @@ Assume the proxy source is **Namespace 2** and the proxy target is **Namespace 1
 
 Following this procedure, only the green elements in the image below are considered valid targets for resolving the proxy dependency.
 
-![](Images/containment.png)
+![](../Images/containment.png)
 
 
 
@@ -114,7 +114,7 @@ Following this procedure, only the green elements in the image below are conside
 In the previously discussed scenario, namespaces play a crucial role. Can we recreate the same example using classes and subclasses, considering that they are also containers? No, it's not possible. Classes, or types in general, are not distinguishable from one another. As a result, we cannot replicate the example using classes. In this algorithm, there is only one exceptional case to consider, which involves a namespace containing a type and a nested namespace with code elements that interact with that type. I believe that the algorithm can be simplified.
 Assume following scenario:
 
-![](Images/nested_classes_code_graph.png)
+![](../Images/nested_classes_code_graph.png)
 
 
 
@@ -124,7 +124,7 @@ The proxy dependencies are between **DirectClass** and **MiddleClass**.
 
 The resulting cycle looks like this:
 
-![](Images/nested_classes_scc.png)
+![](../Images/nested_classes_scc.png)
 
 ## The role of `GetContainerLevel`
 

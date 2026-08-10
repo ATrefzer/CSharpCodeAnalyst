@@ -229,6 +229,167 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         return new SearchResult(elements, relationships);
     }
 
+   /// <summary>
+   /// <inheritdoc/>
+   /// </summary>
+    public SearchResult FindPathsBetween(HashSet<string> ids, int maxLength)
+    {
+        ArgumentNullException.ThrowIfNull(ids);
+
+        if (_codeGraph is null || maxLength < 1)
+        {
+            return new SearchResult([], []);
+        }
+
+        var roots = ids.Where(_codeGraph.Nodes.ContainsKey).Select(id => _codeGraph.Nodes[id]).ToList();
+        if (roots.Count < 2)
+        {
+            return new SearchResult([], []);
+        }
+
+        var subtrees = roots.ToDictionary(r => r.Id, r => r.GetChildrenIncludingSelf());
+
+        // Built once for all pairs: the source-indexed dependency edges we are allowed to follow.
+        var outgoing = _codeGraph.GetAllRelationships()
+            .Where(r => r.Type.IsDependency())
+            .ToLookup(r => r.SourceId);
+
+        var pathIds = new HashSet<string>();
+        var pathRelationships = new HashSet<Relationship>();
+
+        foreach (var source in roots)
+        {
+            foreach (var target in roots)
+            {
+                if (source.Id == target.Id)
+                {
+                    continue;
+                }
+
+                // Nested selection (e.g. a class and the namespace containing it): every path would
+                // start and end inside the same subtree, so the pair carries no information.
+                if (subtrees[source.Id].Overlaps(subtrees[target.Id]))
+                {
+                    continue;
+                }
+
+                CollectShortestPaths(subtrees[source.Id], subtrees[target.Id], outgoing, maxLength,
+                    pathIds, pathRelationships);
+            }
+        }
+
+        if (pathIds.Count == 0)
+        {
+            return new SearchResult([], []);
+        }
+
+        // The elements found on a path can be buried anywhere. Fill in the namespaces/classes that
+        // connect them to something already known, so they don't end up added without their hierarchy.
+        var knownIds = pathIds.Union(ids).ToHashSet();
+        var elements = knownIds
+            .Union(FillGapsInHierarchy(knownIds))
+            .Where(_codeGraph.Nodes.ContainsKey)
+            .Select(id => _codeGraph.Nodes[id])
+            .ToHashSet();
+
+        return new SearchResult(elements, pathRelationships);
+    }
+
+    /// <summary>
+    ///     Breadth first search from all <paramref name="sources" /> at once, stopping at the first
+    ///     level that reaches a target. Since BFS settles a node at its shortest distance, keeping
+    ///     every predecessor found on that same level yields the predecessor DAG of all shortest
+    ///     paths; walking it backwards from the reached targets collects them.
+    ///     The elements and relationships found are added to the given sets.
+    /// </summary>
+    private void CollectShortestPaths(
+        HashSet<string> sources,
+        HashSet<string> targets,
+        ILookup<string, Relationship> outgoing,
+        int maxLength,
+        HashSet<string> pathIds,
+        HashSet<Relationship> pathRelationships)
+    {
+        
+        // Step 1: Measure forwared
+        var distance = sources.ToDictionary(id => id, _ => 0);
+        var predecessors = new Dictionary<string, HashSet<string>>();
+        var currentLevel = sources.ToList();
+        var reachedTargets = new HashSet<string>();
+        var depth = 0;
+
+        while (currentLevel.Count > 0 /*no new nodes*/ && reachedTargets.Count == 0 /*found shortest path*/ && depth < maxLength)
+        {
+            depth++;
+            var nextLevel = new List<string>();
+
+            foreach (var current in currentLevel)
+            {
+                foreach (var relationship in outgoing[current])
+                {
+                    // Every edge is one hop, so the level order is the distance order: the first
+                    // time we see an element, we see it at its shortest distance. A later, shorter
+                    // route cannot exist - distance is only ever written as the current depth, and
+                    // depth only grows, so knownDistance <= depth always holds and the two cases
+                    // below are exhaustive. (With weighted edges this would need Dijkstra's
+                    // relaxation instead: lower the distance and drop the predecessors collected
+                    // so far.)
+                    var next = relationship.TargetId;
+                    if (!distance.TryGetValue(next, out var knownDistance))
+                    {
+                        distance[next] = depth;
+                        predecessors[next] = [current];
+                        nextLevel.Add(next);
+                    }
+                    else if (knownDistance == depth)
+                    {
+                        // Another equally short way into an element already seen on this level.
+                        predecessors[next].Add(current);
+                    }
+
+                    // Anything settled on an earlier level is not part of a shortest path to here.
+                    // Note: BFS finds the shortest path first.
+                }
+            }
+
+            reachedTargets.UnionWith(nextLevel.Where(targets.Contains));
+            currentLevel = nextLevel;
+        }
+
+        if (reachedTargets.Count == 0)
+        {
+            return;
+        }
+
+        // Step 2: Collect backward
+        var queue = new Queue<string>(reachedTargets);
+        var visited = new HashSet<string>(reachedTargets);
+        pathIds.UnionWith(reachedTargets);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (!predecessors.TryGetValue(current, out var parents))
+            {
+                continue; // A source: the path starts here.
+            }
+
+            foreach (var parent in parents)
+            {
+                pathIds.Add(parent);
+
+                // The graph can hold several relationships for one hop (a call and a type usage).
+                // They are all evidence for this step of the path.
+                pathRelationships.UnionWith(outgoing[parent].Where(r => r.TargetId == current));
+
+                if (visited.Add(parent))
+                {
+                    queue.Enqueue(parent);
+                }
+            }
+        }
+    }
+
     public SearchResult FindIncomingCalls(string id)
     {
         ArgumentNullException.ThrowIfNull(id);

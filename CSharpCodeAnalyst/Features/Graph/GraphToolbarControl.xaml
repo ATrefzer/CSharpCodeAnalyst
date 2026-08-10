@@ -41,6 +41,13 @@
             <Image Source="/Resources/complete_relationships_deep_32.png" Width="20" Height="20" />
         </Button>
 
+        <!-- Needs at least two selected elements, so unlike its neighbours it disables itself. -->
+        <Button Command="{Binding FindPathsBetweenSelectedCommand}"
+                ToolTip="{x:Static resources:Strings.FindPathsBetweenSelected}"
+                Style="{StaticResource ToolbarButtonStyle}">
+            <Image Source="/Resources/route_32.png" Width="20" Height="20" />
+        </Button>
+
         <Button Command="{Binding ClearAllFlagsCommand}"
                 ToolTip="{x:Static resources:Strings.ClearAllFlags}"
                 Style="{StaticResource ToolbarButtonStyle}">

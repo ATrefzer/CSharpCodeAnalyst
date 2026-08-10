@@ -25,6 +25,13 @@ namespace CSharpCodeAnalyst.Features.Graph;
 internal sealed class GraphViewModel : INotifyPropertyChanged
 {
     private const int UndoStackSize = 10;
+
+    /// <summary>
+    ///     Upper bound for the number of relationships in a path. Beyond this the connection is too
+    ///     indirect to explain anything, and an unconnected selection would drag in half the graph.
+    /// </summary>
+    private const int MaxPathLength = 8;
+
     private readonly ICodeGraphExplorer _explorer;
     private readonly IPublisher _publisher;
     private readonly RefactoringService _refactoringService;
@@ -210,10 +217,11 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         CollapseEverythingCommand = new WpfCommand(OnCollapseEverything);
         RemoveSelectedCommand = new WpfCommand(OnRemoveSelectedWithChildren);
         AddParentsCommand = new WpfCommand(OnAddParents);
+        FindPathsBetweenSelectedCommand = new WpfCommand(OnFindPathsBetweenSelected, CanFindPathsBetweenSelected);
 
         // Selection changes come from the web view, not WPF input events, so WpfCommand's
         // CommandManager.RequerySuggested would not otherwise re-evaluate CanExecute predicates that
-        // depend on the selection. No toolbar command uses one yet, but this keeps it ready for when one does.
+        // depend on the selection - FindPathsBetweenSelectedCommand does.
         _state.SelectionChanged += () => WpfCommand.RaiseCanExecuteChanged();
 
         // Global commands, moved to toolbar
@@ -228,6 +236,7 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
     public ICommand CompleteToContainingTypesCommand { get; set; }
     public ICommand CompleteRelationshipsCommand { get; set; }
     public ICommand CompleteRelationshipsDeepCommand { get; set; }
+    public ICommand FindPathsBetweenSelectedCommand { get; }
     public ICommand UndoCommand { get; }
     public ICommand OpenGraphHideDialogCommand { get; }
     public ICommand ClearAllFlagsCommand { get; }
@@ -417,6 +426,33 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         var ids = GetSelectionOrAllPresentIds();
         var result = _explorer.FindAllRelationshipsDeep(ids);
         AddToGraph(result.Elements, result.Relationships, true);
+    }
+
+    /// <summary>
+    ///     Adds the shortest dependency paths between the selected elements, together with the
+    ///     connecting elements that are not on the canvas yet. Where the "complete relationships"
+    ///     commands only draw the edges between what is already selected, this answers "what lies
+    ///     between these two?".
+    ///     Unlike its toolbar neighbours it deliberately has no "act on everything shown" fallback:
+    ///     paths are only meaningful between endpoints the user picked on purpose.
+    /// </summary>
+    private void OnFindPathsBetweenSelected()
+    {
+        var ids = _state.SelectedIds.ToHashSet();
+        var result = _explorer.FindPathsBetween(ids, MaxPathLength);
+
+        if (result.Elements.Count == 0)
+        {
+            ToastManager.ShowInfo(Strings.Message_NoPathFound, 3000);
+            return;
+        }
+
+        AddToGraph(result.Elements, result.Relationships, true);
+    }
+
+    private bool CanFindPathsBetweenSelected()
+    {
+        return _state.SelectedIds.Count >= 2;
     }
 
     /// <summary>

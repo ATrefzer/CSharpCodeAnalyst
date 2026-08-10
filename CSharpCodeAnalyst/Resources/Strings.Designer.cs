@@ -1175,6 +1175,16 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Find paths between selected
+        ///Adds the shortest dependency paths between the selected code elements, including the connecting code elements that are not on the canvas yet. Searches both directions and expands each selection to its children, so two selected classes yield the call chain between their methods. Select at least two code elements..
+        /// </summary>
+        public static string FindPathsBetweenSelected {
+            get {
+                return ResourceManager.GetString("FindPathsBetweenSelected", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Find outgoing Calls.
         /// </summary>
         public static string FindOutgoingCalls {
@@ -2255,6 +2265,15 @@ namespace CSharpCodeAnalyst.Resources {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to No path found between the selected code elements..
+        /// </summary>
+        public static string Message_NoPathFound {
+            get {
+                return ResourceManager.GetString("Message_NoPathFound", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Clear movement parent.
         /// </summary>

@@ -128,6 +128,8 @@
         <Resource Include="Resources\alias_32.png" />
         <None Remove="Resources\home_32.png" />
         <Resource Include="Resources\home_32.png" />
+        <None Remove="Resources\route_32.png" />
+        <Resource Include="Resources\route_32.png" />
     </ItemGroup>
 
 

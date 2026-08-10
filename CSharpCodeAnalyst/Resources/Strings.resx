@@ -230,6 +230,13 @@ If none are selected, adds missing relationships between all code elements in th
     <value>Complete relationships (deep)
 Like Complete relationships, but also expands into descendants (e.g. methods of selected classes), pulling in any new code elements needed to show a found relationship. New elements are added collapsed.</value>
   </data>
+  <data name="FindPathsBetweenSelected" xml:space="preserve">
+    <value>Find paths between selected
+Adds the shortest dependency paths between the selected code elements, including the connecting code elements that are not on the canvas yet. Searches both directions and expands each selection to its children, so two selected classes yield the call chain between their methods. Select at least two code elements.</value>
+  </data>
+  <data name="Message_NoPathFound" xml:space="preserve">
+    <value>No path found between the selected code elements.</value>
+  </data>
   <data name="Layout_Tooltip" xml:space="preserve">
     <value>Recompute the graph layout from scratch</value>
   </data>
