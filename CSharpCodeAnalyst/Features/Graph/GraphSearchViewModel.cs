@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CSharpCodeAnalyst.AnalyzerSdk.Search;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
+using CSharpCodeAnalyst.CodeGraph.Search;
 using CSharpCodeAnalyst.Shared.Wpf;
 
 namespace CSharpCodeAnalyst.Features.Graph;

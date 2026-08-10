@@ -1,4 +1,4 @@
-﻿namespace CSharpCodeAnalyst.AnalyzerSdk.Search;
+﻿namespace CSharpCodeAnalyst.CodeGraph.Search;
 
 public static class SearchExpressionFactory
 {

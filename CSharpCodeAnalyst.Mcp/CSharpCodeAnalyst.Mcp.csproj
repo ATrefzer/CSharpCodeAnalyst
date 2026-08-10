@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!--
+          Deliberately not net10.0-windows: this assembly must stay free of WPF so the tools can be
+          unit tested against a hand built CodeGraph, the same way the analyzers are.
+        -->
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!--
+          Brings a FrameworkReference to Microsoft.AspNetCore.App with it. Through the ProjectReference
+          in CSharpCodeAnalyst.csproj that reference propagates into the application's
+          runtimeconfig.json, so the executable requires the ASP.NET Core runtime next to the desktop
+          runtime. See Documentation/mcp.md for the measurement and for the alternative
+          (ReferenceOutputAssembly="false" plus dynamic loading) should that ever become a problem.
+        -->
+        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+    </ItemGroup>
+
+</Project>

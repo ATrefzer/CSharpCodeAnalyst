@@ -528,7 +528,97 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Cmd_UnknownCommandLineArgs", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The MCP server could not be started on port {0}. ...
+        /// </summary>
+        public static string Mcp_StartFailed {
+            get {
+                return ResourceManager.GetString("Mcp_StartFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MCP.
+        /// </summary>
+        public static string Mcp_Header {
+            get {
+                return ResourceManager.GetString("Mcp_Header", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Start MCP server.
+        /// </summary>
+        public static string Mcp_Start_Label {
+            get {
+                return ResourceManager.GetString("Mcp_Start_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Stop MCP server.
+        /// </summary>
+        public static string Mcp_Stop_Label {
+            get {
+                return ResourceManager.GetString("Mcp_Stop_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Open a local endpoint so an AI assistant can ask questions ...
+        /// </summary>
+        public static string Mcp_Tooltip_Stopped {
+            get {
+                return ResourceManager.GetString("Mcp_Tooltip_Stopped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Running at {0} ...
+        /// </summary>
+        public static string Mcp_Tooltip_Running {
+            get {
+                return ResourceManager.GetString("Mcp_Tooltip_Running", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copy setup command.
+        /// </summary>
+        public static string Mcp_CopySetup_Label {
+            get {
+                return ResourceManager.GetString("Mcp_CopySetup_Label", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Copies the command that registers this server with Claude Code ...
+        /// </summary>
+        public static string Mcp_CopySetup_Tooltip {
+            get {
+                return ResourceManager.GetString("Mcp_CopySetup_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MCP server running at {0}.
+        /// </summary>
+        public static string Mcp_Started {
+            get {
+                return ResourceManager.GetString("Mcp_Started", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Setup command copied. ...
+        /// </summary>
+        public static string Mcp_SetupCopied {
+            get {
+                return ResourceManager.GetString("Mcp_SetupCopied", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Verify architectural rules.
         /// </summary>

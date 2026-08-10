@@ -803,6 +803,42 @@ Search with resharper style = Use at least one uppercase character in a search t
   <data name="Cmd_UnknownCommandLineArgs" xml:space="preserve">
     <value>The command to execute is unknown or the required parameters are missing.</value>
   </data>
+  <data name="Mcp_StartFailed" xml:space="preserve">
+    <value>The MCP server could not be started on port {0}. The rest of the application is unaffected; only AI assistants cannot query the code graph. If the port is already in use, change McpServerPort in appsettings.json.
+
+{1}</value>
+  </data>
+  <data name="Mcp_Header" xml:space="preserve">
+    <value>MCP</value>
+  </data>
+  <data name="Mcp_Start_Label" xml:space="preserve">
+    <value>Start MCP server</value>
+  </data>
+  <data name="Mcp_Stop_Label" xml:space="preserve">
+    <value>Stop MCP server</value>
+  </data>
+  <data name="Mcp_Tooltip_Stopped" xml:space="preserve">
+    <value>Open a local endpoint so an AI assistant can ask questions about the loaded code graph: who calls what, what depends on what, how two elements are connected.
+
+Nothing is reachable until you start it, and only from this machine. All queries are read-only.</value>
+  </data>
+  <data name="Mcp_Tooltip_Running" xml:space="preserve">
+    <value>Running at {0}
+
+Use "Copy setup command" to get the line that registers it with Claude Code. Stopping also frees the graph copy the server works on.</value>
+  </data>
+  <data name="Mcp_CopySetup_Label" xml:space="preserve">
+    <value>Copy setup command</value>
+  </data>
+  <data name="Mcp_CopySetup_Tooltip" xml:space="preserve">
+    <value>Copies the command that registers this server with Claude Code, with the right scope and the port actually in use.</value>
+  </data>
+  <data name="Mcp_Started" xml:space="preserve">
+    <value>MCP server running at {0}</value>
+  </data>
+  <data name="Mcp_SetupCopied" xml:space="preserve">
+    <value>Setup command copied. Run it in a terminal to register the server with Claude Code.</value>
+  </data>
   <data name="Cmd_SolutionFileNotFound" xml:space="preserve">
     <value>Solution file not found.</value>
   </data>

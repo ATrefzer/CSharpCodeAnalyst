@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace CSharpCodeAnalyst.AnalyzerSdk.Search;
+namespace CSharpCodeAnalyst.CodeGraph.Search;
 
 public static class PascalCaseSearch
 {

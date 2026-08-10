@@ -313,6 +313,10 @@ https://github.com/punker76/gong-wpf-dragdrop
 - Markdown rendering in the AI Advisor window is powered by **Markdig.Wpf** and **Markdig**.
 Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
 https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
+- The optional MCP server, which lets an AI assistant query the loaded code graph, is built on the
+**Model Context Protocol C# SDK** (`ModelContextProtocol`, `ModelContextProtocol.Core`,
+`ModelContextProtocol.AspNetCore`), licensed under Apache-2.0.
+https://github.com/modelcontextprotocol/csharp-sdk
 - The dependency structure matrix on the DSM tab is the viewer from **DsmSuite**, licensed under
 GPL-3.0-or-later (same as this project) and originally MIT-licensed by jmuijsenberg. A modified
 subset of it is vendored under [ThirdParty/DsmSuite](ThirdParty/DsmSuite/).

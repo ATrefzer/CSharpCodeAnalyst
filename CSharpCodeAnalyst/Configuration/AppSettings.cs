@@ -27,6 +27,20 @@ public class AppSettings
     /// </summary>
     public bool ShowOverviewOnImport { get; set; } = true;
 
+    /// <summary>
+    ///     Whether the MCP endpoint opens automatically at startup, for someone who uses it every day
+    ///     and does not want to press the ribbon button every time. Off by default: a listening socket
+    ///     nobody asked for is not something a shipped application should decide on its own.
+    ///     See Documentation/mcp.md.
+    /// </summary>
+    public bool McpServerAutoStart { get; set; }
+
+    /// <summary>
+    ///     TCP port for the MCP endpoint, bound to loopback only. Configurable because the default may
+    ///     already be taken - the client configuration has to name the same port.
+    /// </summary>
+    public int McpServerPort { get; set; } = 5178;
+
     public static string CleanupProjectFilters(string filterText)
     {
         char[] separators = [';', '\n', '\r'];
@@ -58,7 +72,9 @@ public class AppSettings
             IncludeExternalCode = this.IncludeExternalCode,
             SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
-            ShowOverviewOnImport = this.ShowOverviewOnImport
+            ShowOverviewOnImport = this.ShowOverviewOnImport,
+            McpServerAutoStart = this.McpServerAutoStart,
+            McpServerPort = this.McpServerPort
         };
     }
 }

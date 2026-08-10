@@ -187,7 +187,6 @@
 
                 </RibbonGroup>
 
-
                 <RibbonGroup Header="{x:Static resources:Strings.CodeExplorer_Header}"
                              LargeImageSource="/Resources/four-arrows_32.png">
                     <RibbonButton Label="{x:Static resources:Strings.Clear_Label}"
@@ -437,6 +436,25 @@
                                   Command="{Binding RestoreCommand}" KeyTip="RE">
                         <RibbonButton.ToolTip>
                             <ToolTip Content="{x:Static resources:Strings.Restore_Tooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+                </RibbonGroup>
+
+                <RibbonGroup Header="{x:Static resources:Strings.Mcp_Header}"
+                             LargeImageSource="/Resources/server_32.png">
+                    <RibbonButton Label="{Binding McpServerLabel}"
+                                  LargeImageSource="/Resources/server_32.png"
+                                  Command="{Binding ToggleMcpServerCommand}" KeyTip="MC">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{Binding McpServerTooltip}" />
+                        </RibbonButton.ToolTip>
+                    </RibbonButton>
+
+                    <RibbonButton Label="{x:Static resources:Strings.Mcp_CopySetup_Label}"
+                                  SmallImageSource="/Resources/clipboard_32.png"
+                                  Command="{Binding CopyMcpSetupCommand}" KeyTip="MS">
+                        <RibbonButton.ToolTip>
+                            <ToolTip Content="{x:Static resources:Strings.Mcp_CopySetup_Tooltip}" />
                         </RibbonButton.ToolTip>
                     </RibbonButton>
                 </RibbonGroup>

@@ -130,6 +130,8 @@
         <Resource Include="Resources\home_32.png" />
         <None Remove="Resources\route_32.png" />
         <Resource Include="Resources\route_32.png" />
+        <None Remove="Resources\server_32.png" />
+        <Resource Include="Resources\server_32.png" />
     </ItemGroup>
 
 
@@ -160,6 +162,7 @@
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.History\CSharpCodeAnalyst.History.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Mcp\CSharpCodeAnalyst.Mcp.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.TreeMap\CSharpCodeAnalyst.TreeMap.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.Contracts\CSharpCodeAnalyst.Contracts.csproj" />
         <ProjectReference Include="..\ThirdParty\DsmSuite\DsmSuite.DsmViewer.View\DsmSuite.DsmViewer.View.csproj" />
