@@ -1,4 +1,5 @@
-﻿using CodeParserTests.Helper;
+﻿using System.Globalization;
+using CodeParserTests.Helper;
 using CSharpCodeAnalyst.CodeGraph.Graph;
 using CSharpCodeAnalyst.Mcp.Tools;
 
@@ -180,6 +181,83 @@ public class ElementToolsTests
             Assert.That(answer, Does.Contain(_place.Id));
             Assert.That(answer, Does.Contain(_validate.Id));
         });
+    }
+
+    /// <summary>
+    ///     The children of a large container do not fit, and the caller has no tool that pages through
+    ///     them - so the truncation notice has to name the one query that reaches the rest. This asserts
+    ///     that the notice is there; the test below asserts that following it actually works.
+    /// </summary>
+    [Test]
+    public async Task Describe_MoreChildrenThanTheLimit_NamesTheSearchThatReachesTheRest()
+    {
+        var container = CreateContainerWithManyMembers();
+
+        var answer = await _tools.DescribeElementAsync(container.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain("more not shown"));
+            Assert.That(answer, Does.Contain("search_elements"));
+            Assert.That(answer, Does.Contain(container.FullName.ToLowerInvariant()));
+        });
+    }
+
+    /// <summary>
+    ///     Advice a caller cannot act on is worse than none: it spends a call and comes back empty. So
+    ///     the term the notice hands out is run here, and it has to find a member that the truncated
+    ///     list left out.
+    /// </summary>
+    [Test]
+    public async Task Describe_TheSearchItSuggests_FindsTheChildrenItCouldNotShow()
+    {
+        var container = CreateContainerWithManyMembers();
+        var truncated = await _tools.DescribeElementAsync(container.Id);
+        var omitted = container.Children
+            .First(child => !truncated.Contains($"id={child.Id}", StringComparison.Ordinal));
+
+        var answer = await _tools.SearchElementsAsync(container.FullName.ToLowerInvariant(), 500);
+
+        Assert.That(answer, Does.Contain($"id={omitted.Id}"));
+    }
+
+    /// <summary>
+    ///     What the tool description promises about a path term: the full name is the whole path, so a
+    ///     lowercase prefix lists what a container holds. Everything else in the graph stays out.
+    /// </summary>
+    [Test]
+    public async Task Search_PathPrefix_ListsTheContentsOfThatContainerOnly()
+    {
+        var container = CreateContainerWithManyMembers();
+        var elsewhere = _graph.CreateMethod("Unrelated", _orderService,
+            fullName: "Sample.Core.Services.OrderService.Unrelated");
+
+        var answer = await _tools.SearchElementsAsync("sample.core.services.billing type:method", 500);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain($"id={container.Children.First().Id}"));
+            Assert.That(answer, Does.Not.Contain($"id={elsewhere.Id}"));
+        });
+    }
+
+    /// <summary>
+    ///     A container with more members than <c>describe_element</c> lists, named the way the parser
+    ///     names things: the full name is the path down from the assembly, which is what makes a prefix
+    ///     search over it work at all.
+    /// </summary>
+    private CodeElement CreateContainerWithManyMembers()
+    {
+        const string path = "Sample.Core.Services.Billing";
+        var container = _graph.CreateClass("Billing", _namespace, path);
+
+        for (var i = 0; i < 45; i++)
+        {
+            _graph.CreateMethod($"Step{i.ToString(CultureInfo.InvariantCulture)}", container,
+                fullName: $"{path}.Step{i.ToString(CultureInfo.InvariantCulture)}");
+        }
+
+        return container;
     }
 
     [Test]

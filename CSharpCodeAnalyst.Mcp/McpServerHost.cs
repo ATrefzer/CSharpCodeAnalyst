@@ -73,17 +73,29 @@ public sealed class McpServerHost : IAsyncDisposable
         builder.Services
             .AddMcpServer(options =>
             {
+                // Not the product name: this is one of the few strings a client shows a model, and the
+                // product is named after a language it is not limited to. What it serves is a code
+                // graph, whichever language that graph was built from.
                 options.ServerInfo = new Implementation
                 {
-                    Name = "csharp-code-analyst",
+                    Name = "code-graph",
                     Version = GetVersion()
                 };
+                // The application is named after C#, and so is the name most clients are configured
+                // with - but it imports C++, Dart, Python and Java as well, and the graph is the same
+                // model for all of them. Naming the languages here, and saying outright that the name
+                // does not carry the answer, is what keeps a caller from ruling the server out before
+                // asking it anything.
                 options.ServerInstructions =
-                    "Answers questions about the C# dependency graph currently loaded in CSharp Code Analyst: " +
-                    "who calls what, what depends on what, and how two elements are connected. " +
-                    "Element ids are opaque and only valid for the running server - always start with " +
-                    "search_elements to obtain one. Call graph_info first to learn what is loaded and how " +
-                    "current it is.";
+                    "Answers questions about the code dependency graph currently loaded in CSharp Code " +
+                    "Analyst: who calls what, what depends on what, how two elements are connected, and " +
+                    "what a change would hit - dependencies, call graph, blast radius, architecture, " +
+                    "layering. The loaded code base can be C#, C++, Dart, Python or Java; neither the " +
+                    "name of this server nor the name of the application says which, so do not conclude " +
+                    "from either that a question is out of scope. Call graph_info first: it reports the " +
+                    "languages actually loaded, the size of the graph and how current it is. Element ids " +
+                    "are opaque and only valid for the running server - always start with " +
+                    "search_elements to obtain one.";
             })
             // Stateless: every request stands on its own. The tools are read only and answer from a
             // snapshot, so there is no per-session state worth keeping - and none to lose when a client

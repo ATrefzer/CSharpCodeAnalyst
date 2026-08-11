@@ -40,6 +40,12 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         "uppercase letter and the parts must occur in that order, each starting a word, matched " +
         "case-sensitively. So 'OS', 'OrdServ' and 'OrderService' all find 'OrderService', but 'OSvc' " +
         "finds nothing, because 'Svc' does not occur in the name.\n" +
+        "The full name is the whole path down from the assembly, so a path prefix lists what sits " +
+        "inside a container: 'sample.core.orders type:class' finds the classes under that namespace, " +
+        "and a type's path finds its members. Nesting is included - the prefix of an outer namespace " +
+        "also matches everything in the namespaces below it. Write a path term in lowercase; it is " +
+        "then a plain substring, whereas one uppercase letter turns the whole term into a " +
+        "case-sensitive camel-hump pattern that a path rarely survives.\n" +
         "Space means AND, '|' means OR, a leading '-' excludes. 'type:class' (also interface, struct, " +
         "record, method, property, field, event, enum, delegate, namespace, assembly) restricts the " +
         "kind; 'source:extern', 'source:intern' and 'source:generated' restrict the origin.\n" +
@@ -67,9 +73,8 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         var expression = SearchExpressionFactory.CreateSearchExpression(query);
 
         var matches = snapshot.Graph.Nodes.Values
-            .Where(element => expression.Evaluate(element))
-            .OrderBy(element => Rank(element, query))
-            .ThenBy(element => element.IsExternal)
+            .Where(expression.Evaluate)
+            .OrderBy(element => element.IsExternal)
             .ThenBy(element => element.ElementType)
             .ThenBy(element => element.FullName, StringComparer.Ordinal)
             .ToList();
@@ -87,28 +92,16 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
             .AppendLine(ElementFormatter.Summarize(matches, m => m.ElementType.ToString()));
         text.AppendLine();
 
-        ElementFormatter.AppendLimited(text, matches, effectiveLimit);
+        // "Raise the limit" is bad advice once the limit is already at the cap - the caller would spend
+        // a call to get the identical answer back.
+        var hint = effectiveLimit < MaxSearchLimit
+            ? $"Raise limit (up to {MaxSearchLimit.ToString(CultureInfo.InvariantCulture)}) or add " +
+              "terms to narrow the query."
+            : "Add terms to narrow the query - the limit is already at its maximum.";
+
+        ElementFormatter.AppendLimited(text, matches, snapshot.SourceRoot, effectiveLimit, hint);
 
         return text.ToString();
-    }
-
-    /// <summary>
-    ///     Puts the element the caller most likely meant first. The expression itself does not rank -
-    ///     it only says yes or no - so a search for "OrderService" would otherwise bury the type among
-    ///     its own members and everything else whose full name contains the word.
-    ///     <para>
-    ///         Only meaningful when the query is a plain name. For an expression with operators nothing
-    ///         matches exactly, everything lands in the last bucket, and the remaining sort keys decide.
-    ///     </para>
-    /// </summary>
-    private static int Rank(CodeElement element, string query)
-    {
-        if (string.Equals(element.Name, query, StringComparison.OrdinalIgnoreCase))
-        {
-            return 0;
-        }
-
-        return element.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 1 : 2;
     }
 
     [McpServerTool(Name = "describe_element", ReadOnly = true, Destructive = false, Idempotent = true,
@@ -139,9 +132,9 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         text.Append("id: ").AppendLine(element.Id);
 
         AppendFlags(text, element);
-        AppendLocations(text, element);
-        AppendParents(text, element);
-        AppendChildren(text, element);
+        AppendLocations(text, element, snapshot.SourceRoot);
+        AppendParents(text, element, snapshot.SourceRoot);
+        AppendChildren(text, element, snapshot.SourceRoot);
         AppendRelationships(text, snapshot.Graph, element);
 
         return text.ToString();
@@ -174,7 +167,7 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         }
     }
 
-    private static void AppendLocations(StringBuilder text, CodeElement element)
+    private static void AppendLocations(StringBuilder text, CodeElement element, string? sourceRoot)
     {
         if (element.SourceLocations.Count == 0)
         {
@@ -186,8 +179,11 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
 
         foreach (var location in element.SourceLocations.Take(LocationLimit))
         {
-            text.Append("  ").Append(location.File).Append(':')
-                .AppendLine(location.Line.ToString(CultureInfo.InvariantCulture));
+            var formatted = ElementFormatter.Location(location, sourceRoot);
+            if (formatted is not null)
+            {
+                text.Append("  ").AppendLine(formatted);
+            }
         }
 
         if (element.SourceLocations.Count > LocationLimit)
@@ -198,7 +194,7 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         }
     }
 
-    private static void AppendParents(StringBuilder text, CodeElement element)
+    private static void AppendParents(StringBuilder text, CodeElement element, string? sourceRoot)
     {
         var path = element.GetPathToRoot(false);
         if (path.Count == 0)
@@ -210,11 +206,11 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
         text.AppendLine("Contained in:");
         foreach (var ancestor in path)
         {
-            text.Append("  ").AppendLine(ElementFormatter.Line(ancestor));
+            text.Append("  ").AppendLine(ElementFormatter.Line(ancestor, sourceRoot));
         }
     }
 
-    private static void AppendChildren(StringBuilder text, CodeElement element)
+    private static void AppendChildren(StringBuilder text, CodeElement element, string? sourceRoot)
     {
         if (element.Children.Count == 0)
         {
@@ -231,7 +227,14 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
             .Append("): ")
             .AppendLine(ElementFormatter.Summarize(children, child => child.ElementType.ToString()));
 
-        ElementFormatter.AppendLimited(text, children, ChildLimit);
+        // The way to the remaining children is a search over their shared prefix, because a full name
+        // is the path down from the assembly and every child carries this element's. Lower case is not
+        // cosmetic: it keeps the term a plain substring, while a single uppercase letter would make it
+        // a case-sensitive camel-hump pattern and the path would stop matching itself.
+        var hint = $"Use search_elements with '{element.FullName.ToLowerInvariant()}' to list them - " +
+                   "that reports everything below this element, not only the direct children.";
+
+        ElementFormatter.AppendLimited(text, children, sourceRoot, ChildLimit, hint);
     }
 
     private static void AppendRelationships(StringBuilder text, CodeGraph.Graph.CodeGraph graph,
@@ -239,10 +242,7 @@ public sealed class ElementTools(ICodeGraphSnapshotSource snapshotSource)
     {
         text.AppendLine();
 
-        // Outgoing relationships live on the element itself. Incoming ones do not - the graph stores
-        // every relationship on its source - so finding them means one pass over all of them. At the
-        // scale of a solution that is cheap, and the number is worth having: it is the difference
-        // between a leaf and something the whole code base leans on.
+        // Outgoing relationships live on the element itself.
         var outgoing = element.Relationships;
         if (outgoing.Count > 0)
         {

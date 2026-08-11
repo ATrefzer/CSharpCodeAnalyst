@@ -828,7 +828,7 @@ Nothing is reachable until you start it, and only from this machine. All queries
 Use "Copy setup command" to get the line that registers it with Claude Code. Stopping also frees the graph copy the server works on.</value>
   </data>
   <data name="Mcp_CopySetup_Label" xml:space="preserve">
-    <value>Copy setup command</value>
+    <value>Copy setup</value>
   </data>
   <data name="Mcp_CopySetup_Tooltip" xml:space="preserve">
     <value>Copies the command that registers this server with Claude Code, with the right scope and the port actually in use.</value>

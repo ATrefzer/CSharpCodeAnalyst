@@ -1,291 +1,228 @@
-# MCP Server
+# MCP Server: CSharp Code Analyst
 
-CSharp Code Analyst can open a local endpoint that speaks the [Model Context
-Protocol](https://modelcontextprotocol.io), so an AI assistant such as Claude Code can ask questions
-about the dependency graph you currently have loaded.
+CSharp Code Analyst features an embedded endpoint speaking the [Model Context Protocol (MCP)](https://modelcontextprotocol.io). This allows AI assistants like **Claude Code** to query your project’s loaded dependency graph directly.
 
-The point is not another search. It is that the graph knows things a coding assistant cannot easily
-find out on its own: who calls a method transitively, how two classes are connected, what a change
-would break. Grep does not answer those, and a language server only answers the first one, one hop at
-a time.
+The graph is whatever you last loaded — a C# solution, or a C++, Python, Java, Dart or plain text import. The tools are the same for all of them; `graph_info` reports which language you are actually looking at.
 
-The server answers from the graph **loaded in the application** — not from your source files. That has
-consequences worth understanding before you trust an answer; see [What the assistant actually
-sees](#what-the-assistant-actually-sees).
+---
 
 ## Requirements
 
-- The application must be **running** and have a project loaded. The endpoint lives inside it.
-- The **ASP.NET Core 10 runtime** must be installed, in addition to the desktop runtime. It comes with
-  the .NET SDK, so a developer machine almost always has it. Without it the application does not
-  start at all.
-- An MCP-capable client. The instructions below use Claude Code; the endpoint is a standard MCP
-  server and any client that supports the HTTP transport works.
+Before starting, ensure you have:
 
-## Turning it on
+* **Running Application:** The CSharp Code Analyst app must be running with a project loaded. The MCP endpoint lives inside the process.
+* **ASP.NET Core 10 Runtime:** Required alongside the standard desktop runtime. It comes included with the .NET SDK. *Without this runtime, the application will fail to start.*
+* **MCP Client:** An MCP-compliant client. Examples below use Claude Code, but any client with HTTP transport support works.
 
-**Home → AI access → Start MCP server.** Nothing listens until you press it, and pressing it again
-stops the server and frees the graph copy it works on.
+---
 
-The endpoint is
+## Quick Setup Guide
 
-```
-http://127.0.0.1:5178/mcp
-```
+### 1. Start the Server
 
-The button next to it, **Copy setup command**, puts the whole registration line on the clipboard with
-the port actually in use — that is the shortest path to a working client, and it avoids the two
-mistakes that are easy to make by hand (see [Choosing a scope](#choosing-a-scope)).
+In the CSharp Code Analyst application, navigate to:
 
-Two settings in `appsettings.json` **next to the executable**:
+**Home → MCP → Start MCP server**
 
-| Setting | Default | Meaning |
-| --- | --- | --- |
-| `McpServerAutoStart` | `false` | Start the server at application startup, for daily use. |
-| `McpServerPort` | `5178` | Change it if something else holds the port. The client URL has to match. |
+* Nothing listens until you press it.
+* Clicking the button again stops the server and frees memory.
 
-Both are read once at startup, so a change needs a restart. The button does not.
+### 2. Register with Your MCP Client
 
-## Connecting Claude Code
+Run the command in your terminal:
 
 ```bash
-claude mcp add --scope user --transport http csca http://127.0.0.1:5178/mcp
+claude mcp add --scope user --transport http cg http://127.0.0.1:5178/mcp
+
+claude mcp remove cg -s user
 ```
 
-| Part | Meaning |
-| --- | --- |
-| `--scope user` | Register for every project on this machine. See the table below. |
-| `--transport http` | The server already runs; the client only connects. The default, `stdio`, would try to *launch* a process. |
-| `csca` | A name you choose. It prefixes the tool names the assistant sees: `mcp__csca__graph_info`. |
-| the URL | Loopback address, the port from the setting, and the fixed path `/mcp`. |
+> **Parameter Breakdown:**
+> * `--transport http`: Mandatory. Since the server is already running inside the app, the default `stdio` transport will fail by trying to launch a new process.
+> * `--scope user`: Registers the server machine-wide. The default `local` scope binds only to your current working directory. Use `--scope project` if committing a shared `.mcp.json` file to a repository.
+> * `cg`: The client-side name chosen for the server, short for *code graph* (prefixes tool names in logs as `mcp__cg__<tool_name>`). Pick anything you like — but a name mentioning C# invites an assistant to skip the server when the loaded graph is a Dart or Python one.
+> 
+> 
 
-### Choosing a scope
+### 3. Verify Connection
 
-`claude mcp add` writes the entry into a configuration file. Which one depends on the scope, and the
-default is rarely the one you want here:
-
-| Scope | Stored in | Visible |
-| --- | --- | --- |
-| `local` (**default**) | `~/.claude.json`, keyed by the current working directory | Only in that one directory |
-| `user` | `~/.claude.json`, global | Every project on this machine |
-| `project` | `.mcp.json` in the project root | Everyone who checks out the repository |
-
-Use **`user`** for your own machine: the server belongs to the running application, not to one
-repository, so tying it to a directory only means it disappears when you work somewhere else.
-
-Use **`project`** to give a whole team access to their own local instance. The checked-in `.mcp.json`
-points at `127.0.0.1`, so every developer connects to the copy running on their own machine — the
-file is shared, the server is not.
-
-### Verifying
+Run the following check in your terminal:
 
 ```bash
 claude mcp list
 ```
 
-A ✗ means "registered, but not answering". With this server that is the normal state whenever the
-application is closed — it is not a defect. If you start the application in the middle of a session,
-pick the server up with `/mcp` → **reconnect** instead of restarting the session.
+* A `✗` symbol usually indicates the main application is not currently running.
+* **Pro-Tip:** If you start the CSharp Code Analyst app after opening your Claude Code session, run `/mcp` → **reconnect** rather than restarting your entire terminal session.
+* `/mcp` opens an interactive terminal panel, and not every surface can show one. Outside an interactive `claude` terminal — in the desktop app or an IDE integration — the command may answer *"MCP controls aren't available right now"*. That is the surface talking, not the server: it says the same thing whether the server is running or not. There the only way to pick up the connection is a new session.
 
-To test the endpoint without involving any client:
+---
 
-```bash
-curl -sS -X POST http://127.0.0.1:5178/mcp -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+## Configuration & Ports
+
+To change the default port, update the `McpServerPort` setting in the `appsettings.json` file located in the application's **working directory**:
+
+```json
+{
+  "ApplicationSettings": {
+    "McpServerPort": 5178
+  }
+}
 ```
 
-In PowerShell use `Invoke-RestMethod` instead — PowerShell mangles the quotes inside a JSON body when
-passing it to a native executable, and the server rejects the result as malformed:
+* This file is read **once at startup**. Restart the application to apply changes.
+* Remember to update your client’s URL target to match the new port.
 
-```powershell
-Invoke-RestMethod -Uri http://127.0.0.1:5178/mcp -Method Post -ContentType 'application/json' -Headers @{ Accept = 'application/json, text/event-stream' } -Body '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
-```
+---
 
-## Using it
+## How to Ask Questions
 
-### There are no magic words
+**There are no required trigger phrases or magic words.**
 
-You do not invoke a tool. You ask a question, and the assistant decides whether one of the tools can
-answer it.
+When your session begins, the assistant receives descriptions of all available graph tools. It automatically maps your natural language questions against these tool descriptions.
 
-That decision is made from the tool **descriptions** and nothing else. When a session starts, the
-client asks the server which tools it has and puts their names, descriptions and parameters into the
-model's context. From then on the model matches your question against those descriptions — there is no
-keyword list, no trigger phrase, and no configuration that maps a question to a tool.
+To help the assistant choose the right tool, phrase questions around architectural concepts: *who calls what*, *dependencies*, *blast radius*, or *connections*.
 
-The practical consequence: phrase the question the way the descriptions are written. They talk about
-*who calls what*, *what depends on what*, *what breaks if this changes*, and *how two elements are
-connected*. A question in those terms lands; "tell me about the architecture" is too vague to point
-at any particular tool.
+### Example Prompts & Tool Mapping
 
-### How you see that it happened
-
-The tool call appears in the transcript, named `mcp__<server>__<tool>` — with the default registration
-that is `mcp__csca__search_elements`, `mcp__csca__find_incoming_calls`, and so on. You see the
-arguments it passed and the answer it got back.
-
-If no such line appears, the assistant answered from your source files instead. That is not
-necessarily wrong, but it is a different answer: reading files finds text, the graph knows
-relationships.
-
-**One question usually produces several calls.** Element ids cannot be guessed, so almost every
-answer starts with `search_elements` to turn a name into an id, and only then asks the real question.
-A chain of three calls for one question is normal.
-
-### Example questions
-
-| Ask this | The assistant reaches for |
+| Intent / Prompt Example | Assistant Tool Chain |
 | --- | --- |
 | "What is loaded in Code Analyst right now?" | `graph_info` |
 | "Which classes depend on `CodeGraphExplorer`?" | `search_elements` → `find_incoming_relationships` |
 | "Who can end up calling `MainViewModel.LoadCodeGraph`?" | `search_elements` → `find_incoming_calls` |
-| "If I delete the `Importers` feature, what breaks?" | `search_elements` → `find_incoming_relationships` with `deep` |
-| "How does the web graph view end up using the Roslyn parser?" | `search_elements` twice → `find_paths_between` |
-| "Does anything outside the UI use `RefactoringService`?" | `search_elements` → `find_incoming_relationships` |
-| "What does `GraphViewModel` depend on outside its own assembly?" | `search_elements` → `find_outgoing_relationships` with `deep` |
-| "Is `FindPathsBetween` still used anywhere?" | `search_elements` → `find_incoming_calls` |
-| "Find every class whose name contains 'Importer' that is not external" | `search_elements` with `importer type:class -source:extern` |
+| "If I delete the `Importers` feature, what breaks?" | `search_elements` → `find_incoming_relationships` (`deep=true`) |
+| "How does the web graph view end up using the Roslyn parser?" | `search_elements` (x2) → `find_paths_between` |
+| "What does `GraphViewModel` depend on outside its own assembly?" | `search_elements` → `find_outgoing_relationships` (`deep=true`) |
+| "Find every class named '...Importer' that is not external." | `search_elements` (`importer type:class -source:extern`) |
+| "Which classes live in the `Importers` namespace?" | `search_elements` (`csharpcodeanalyst.importers type:class`) |
+| "Who implements `IImporter`?" | `search_elements` → `find_inheritance` |
+| "What does `DependencyRule` derive from, and what derives from it?" | `search_elements` → `find_inheritance` |
 
-Questions that mix both worlds work well, because the assistant can use the graph *and* read your
-files: *"Who calls `Parser.ParseAsync`, and does any of those callers handle the cancellation
-correctly?"* — the first half is the graph, the second half is reading the code it found.
+### Pro-Tips for Asking Questions
 
-### When it does not trigger
+* **Combine Graph & File Reading:** The assistant can use graph context alongside standard file inspection.
+*Example:* *"Who calls `Parser.ParseAsync`, and do those callers handle cancellation correctly?"* (Graph finds the callers; file reader inspects implementation).
+* **Explicit Server Targeting:** If the assistant defaults to standard text file searching, nudge it explicitly:
+*Example:* *"Use the cg MCP server to find out who calls this."*
 
-Name the server, and it will: *"Use the csca MCP server to find out who calls this."* Or name the tool
-outright: *"Call `graph_info`."*
+---
 
-If it still does not work, walk down this list:
+## Available MCP Tools
 
-1. Is the server running? The ribbon button says **Stop MCP server** when it is.
-2. Is a project loaded in the application? Every tool answers "No project is loaded" otherwise —
-   and that answer *does* appear in the transcript, so it is easy to spot.
-3. Was the server started after the session began? Pick it up with `/mcp` → **reconnect**.
-
-### What it cannot tell you
-
-The graph is what the parser found. Reflection, dependency injection, and anything else resolved at
-runtime leave no edge, so "nothing calls this" is a statement about the static graph, not about your
-program. `find_incoming_calls` says so in its own answer for exactly that reason.
-
-## Tools
-
-| Tool | Answers |
+| Tool Name | Purpose & Description |
 | --- | --- |
-| `graph_info` | What is loaded, when it was captured, how large it is, which assemblies it contains. |
-| `search_elements` | Find code elements by name. The entry point — see the syntax below. |
-| `describe_element` | Kind, full path, accessibility, source locations, contents, relationship counts. |
-| `find_outgoing_relationships` | What this element depends on. `deep` includes its members. |
-| `find_incoming_relationships` | What depends on this element — the blast radius of a change. |
-| `find_incoming_calls` | Who calls a method, transitively. |
-| `find_paths_between` | How two elements are connected. |
+| `graph_info` | Reports metadata: source languages, graph size, the element kinds actually present, included assemblies, and the source root paths are relative to. |
+| `search_elements` | **Primary entry point.** Locates code elements by name using pattern matching syntax. |
+| `describe_element` | Returns detailed attributes: element kind, full path, accessibility, source locations, and member counts. |
+| `find_outgoing_relationships` | Analyzes dependencies required by a specific element. |
+| `find_incoming_relationships` | Analyzes elements dependent on a specific target (evaluates blast radius). |
+| `find_incoming_calls` | Traces transitive callers reaching a target method. |
+| `find_inheritance` | Reports the hierarchy around an element in both directions and over any number of levels — base types and interfaces above, subtypes and implementations below. Works for members too (override chains). |
+| `find_paths_between` | Discovers shortest dependency paths connecting two elements. |
 
-Three semantics in that list are easy to misread, so each tool states them in its own description as
-well:
+---
 
-**`deep` means "crossing the boundary", not "everything inside".** Asking a class with `deep=true`
-reports what its members depend on *outside* the class. One method calling another stays inside and is
-not listed — ask about the member itself for that.
+## Important Tool Semantics & Rules
 
-**`find_incoming_calls` follows abstractions by default.** A call to `IOrderService.Place` counts as
-reaching `OrderService.Place`, which is what you want for "who can end up here". It is a heuristic: a
-static graph cannot know which implementation runs. Turn it off for certainty, and accept that callers
-arriving through virtual dispatch or events then go missing — an empty result is *not* proof that a
-method is unused.
+1. **`deep` descends into members:** By default a query answers for the element itself. `deep=true` additionally follows relationships anchored at *contained* elements, so asking a class covers what its methods depend on — or what reaches into them. Only relationships crossing the element's boundary are listed; one member calling another is internal and not shown. Ask about the member itself to see those.
+2. **Abstract Call Resolution:** By default (`followAbstractions=true`), `find_incoming_calls` treats a call to `IOrderService.Place` as reaching `OrderService.Place`. This is a *heuristic* — a static graph cannot know which implementation runs, so a reported caller may never reach the method. Setting it to `false` makes every result certain, but drops callers arriving through virtual dispatch or events: an empty result is then **not** proof that a method is unused.
+3. **Inheritance is transitive and two-way:** one `find_inheritance` call reports both directions, so there is no need to ask twice. It follows `Inherits`, `Implements` and `Overrides` only — a type that merely *uses* the element is not in the answer. Indentation marks the distance in levels. A type reached through two routes (a diamond) is listed once, under the first route found, and an implementation living in code the parser never saw is missing entirely: an empty downward result means "none in this code base", not "none".
+4. **Shortest Paths:** `find_paths_between` yields only the shortest direct chains. Longer parallel paths or implicit containment relationships are omitted.
+5. **Transient Element IDs:** Element IDs are generated dynamically per analysis session. Do not save or hardcode IDs across restarts.
 
-**`find_paths_between` reports only the shortest chains.** If a direct dependency exists, you will not
-see the longer route that also connects the two. Containment is never a path, or every pair of
-elements would be connected through a shared parent.
+---
 
-**Element ids are opaque and only valid while the server runs.** They are regenerated on every parse,
-so an assistant cannot remember one across sessions. Every workflow therefore starts with
-`search_elements` to obtain an id, and `graph_info` says so explicitly.
+## Element Search Syntax
 
-### Search syntax
+The `search_elements` tool supports the exact same query syntax used by the UI's **Search** tab.
 
-The same expression language as the **Search** tab in the application, so what you type there and what
-an assistant sends produce the same result.
+The kind names below are the graph's own vocabulary, not the source language's: every importer maps onto the same fixed set, so a Dart mixin arrives as a `class`. The list is therefore complete for every language — some kinds simply never occur in some of them. Which ones the loaded graph actually holds is reported by `graph_info`.
 
-| Pattern | Matches |
-| --- | --- |
-| `order` | Anywhere in the full name, case-insensitively. |
-| `OS`, `OrdServ`, `OrderService` | Camel-hump matching. Any term containing an uppercase letter is split at each uppercase letter; the parts must occur in that order, each starting a word, matched **case-sensitively**. |
-| `OSvc` | *Nothing* — `Svc` does not occur in `OrderService`. The parts are literal, not abbreviations. |
-| `order service` | AND — both terms must match. |
-| `order \| invoice` | OR. |
-| `-source:extern` | Excludes. |
-| `type:class` | Restricts the kind: `interface`, `struct`, `record`, `method`, `property`, `field`, `event`, `enum`, `delegate`, `namespace`, `assembly`. |
-| `source:intern`, `source:extern`, `source:generated` | Restricts the origin. |
+| Search Pattern | Matching Logic | Example |
+| --- | --- | --- |
+| `order` | Case-insensitive substring anywhere in full name. | Matches `Order`, `recorder`, `Border` |
+| `sample.core.orders` | **Path prefix.** The full name is the whole path from the assembly down, so a lowercase prefix lists what a container holds — a type's path finds its members, and nested namespaces are included. Keep it lowercase, or the camel-hump rule below applies and the path stops matching itself. | `sample.core.orders type:class` lists the classes of that namespace |
+| `OS`, `OrdServ` | **Camel-hump matching.** Any uppercase letter switches modes: the term is split at each uppercase letter, and every part must start a word, matched case-sensitively. | `OS` matches `OrderService` |
+| `OSvc` | *No match.* Parts must be exact word-starting sub-strings, not arbitrary abbreviations. | Fails on `OrderService` |
+| `order service` | **AND** search (all terms required). | Matches `OrderService` |
+| `order \| invoice` | **OR** search (either term matched). | Matches `Order` or `Invoice` |
+| `-source:extern` | **Exclude** matching items. | Drops external library symbols |
+| `type:<kind>` | Filters by entity type (`class`, `interface`, `struct`, `record`, `method`, `property`, `field`, `event`, `enum`, `delegate`, `namespace`, `assembly`). | `type:class` |
+| `source:<origin>` | Filters by origin (`source:intern`, `source:extern`, `source:generated`). | `source:intern` |
 
-The most common surprise is the case rule: `order` is case-insensitive, `Order` is not, because the
-uppercase letter switches modes.
+---
 
-Results are ordered by how likely they are the element you meant — an exact name match first, then a
-prefix match, then the rest — with internal code before external. Long results are truncated with an
-explicit count of what was left out; they are never silently cut.
+## Source File Locations
 
-## What the assistant actually sees
+Source locations are formatted as `path:line` relative to the root reported by `graph_info`:
 
-Three properties of the answer that are invisible in the data itself, and that `graph_info` reports
-for exactly that reason:
+```text
+[Class] CSharpCodeAnalyst.Analyzers.DeadCode.Analyzer  id=…  CSharpCodeAnalyst.Analyzers\DeadCode\Analyzer.cs:12
 
-**A snapshot, not your files.** The graph is a copy taken when the application last loaded or changed
-it. Edit code in your editor and the graph does not follow. `graph_info` reports the capture time so
-the assistant can weigh how much to trust it.
+```
 
-**Possibly a hypothetical code base.** The refactoring simulation changes the loaded graph — moving,
-deleting, cutting relationships — without touching a single source file. Once you have done that, the
-graph describes code that never existed. `graph_info` says so, and any answer derived from it should
-repeat the warning.
+Common root paths are stripped for clarity. Full paths are retained only when no shared root directory exists.
 
-This is also the most interesting thing you can do with the feature: delete a module in the
-simulation, then ask the assistant what breaks.
+---
 
-**Only what the parser found.** External assemblies are leaf nodes; their internals are not analyzed.
-Reflection, dependency injection and anything else resolved at runtime is invisible to a static
-parse.
+## How Much to Trust an Answer
 
-## Troubleshooting
+* **Snapshot vs. Active Files:** The graph represents a static snapshot captured when the application last loaded the project. Editing code in your IDE will not update the graph until you re-analyze the project inside CSharp Code Analyst. The server cannot tell how far the two have drifted apart, and does not pretend to — re-analyze when an answer looks out of date.
+* **Static vs. Runtime Execution:** External assemblies are treated as leaf nodes (their internal structures are unanalyzed). Reflection, dependency injection runtime bindings, or dynamic invocations leave no static edges.
+*(Note: A result of "Nothing calls this" reflects static graph analysis, not guaranteed runtime inactivity.)*
 
-| Symptom | Cause |
-| --- | --- |
-| `claude mcp list` shows ✗ | Application not running, server not started, or a different port. |
-| `claude mcp list` shows nothing at all | The entry was added with the default `local` scope from a different directory. Re-add with `--scope user`. |
-| `Bad Request: The POST body did not contain a valid JSON-RPC message` | PowerShell ate the quotes in the JSON body. Use `Invoke-RestMethod`, or `curl.exe --%`. |
-| Application does not start at all | Missing ASP.NET Core runtime — it is required from the version that introduced this feature onwards, whether or not you use the server. Or `appsettings.json` is not in the working directory: it is read from there, not from next to the executable. |
-| `McpServerPort` change has no effect | The settings are read once at startup. Restart the application; the button alone does not re-read them. |
-| Every tool answers "No project is loaded" | The application is running but empty. Open a solution or a saved project. |
-| Server does not start, port message | Another process holds the port. Change `McpServerPort` and the client URL together. |
+---
 
-## Security
+## Troubleshooting Guide
 
-The endpoint binds to **loopback only** (`127.0.0.1`). It is reachable from this machine and nowhere
-else. That is deliberate: the graph contains the full structure of your source — assembly, namespace
-and member names, file paths, call relationships. On a network interface that would be published.
+| Symptom / Issue | Primary Cause | Resolution |
+| --- | --- | --- |
+| `claude mcp list` shows `✗` | Application inactive or port mismatched. | Start CSharp Code Analyst, verify server state, and check port config. |
+| `claude mcp list` shows nothing | Command was registered with `local` scope from another directory. | Re-add the server using `--scope user`. |
+| Assistant ignores the MCP server | MCP server started *after* Claude session was initialized. | Run `/mcp` → **reconnect** in Claude Code. |
+| Assistant stopped using the server after you toggled the server button | Stopping the server drops the connection; it is not re-established on its own when you start it again. | Same fix: `/mcp` → **reconnect**. |
+| Assistant does not see a tool you just added, renamed or re-described | The tool list is negotiated **once per connection**, right after the handshake, and never re-read. Rebuilding and restarting the application is therefore not enough — the client still works from the list it fetched earlier. | Reconnect the client, or start a new session. |
+| `/mcp` answers *"MCP controls aren't available right now"* | The command opens an interactive terminal panel, which not every surface can display (desktop app, IDE integration). Unrelated to the server — the answer is the same whether it runs or not. | Start a new session; it fetches the tool list on connect. Or use an interactive `claude` terminal, where the panel is available. |
+| Tools report *"No project is loaded"* | Application is running without an open solution. | Open a solution or project file within CSharp Code Analyst. |
+| Application fails to launch | Missing ASP.NET Core 10 runtime or missing config file. | Install the ASP.NET Core 10 runtime. Ensure `appsettings.json` resides in the active working directory. |
+| Port changes have no effect | Config read only at application startup. | Full application restart is required after editing `appsettings.json`. |
+| Port binding error | Port occupied by another process. | Change `McpServerPort` in `appsettings.json` and update the client URL. |
+| `Bad Request: ... not a valid JSON-RPC message` | CLI quote mangling in PowerShell. | Use `Invoke-RestMethod` or `curl.exe --%` when manually testing HTTP payloads. |
 
-There is no authentication. Anything running on the machine can query the endpoint while the server
-is up. All tools are read-only: nothing an assistant does through MCP can change the graph, your
-project file, or your source.
+### Checking the server without a client
 
-## How it works
+Most of the confusion above comes from one question being asked of two different things: *is the server serving what I think it serves*, and *is my client connected to it*. Talking to the endpoint directly separates them — this needs no MCP client at all and works even while a session is stuck on a stale connection.
 
-The server runs inside the WPF application as a Kestrel endpoint (`CSharpCodeAnalyst.Mcp`, a
-UI-free assembly, so the tools can be unit tested against a hand-built graph).
+The endpoint is stateless, so `tools/list` can be called straight away, without a handshake. Note the `Accept` header: the response comes back as a server-sent event, hence the `data:` unwrapping.
 
-Tools never touch the live graph. The application mutates it in place during a refactoring
-simulation, on the UI thread, while tool calls arrive on request threads — a query walking it at the
-same time would see a half-changed structure. Instead, `CodeGraphSnapshotProvider` hands out a
-**copy**. Loading a project or applying a refactoring only marks the current copy stale; the next tool
-call pays for a fresh one, and only if something changed. The copy itself is taken on the UI thread,
-the one moment nothing can mutate. Everything after that runs on the request thread, without a lock
-anywhere.
+```powershell
+$body = '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+$r = Invoke-WebRequest -Uri 'http://127.0.0.1:5178/mcp' -Method Post -Body $body `
+     -ContentType 'application/json' -Headers @{ Accept = 'application/json, text/event-stream' }
+$data = ($r.Content -split "`n" | Where-Object { $_ -like 'data: *' }) -replace '^data: ', ''
+($data | ConvertFrom-Json).result.tools.name
+```
 
-## Status
+If the tool you just added appears here but the assistant does not see it, the server is fine and the client is holding an older connection — reconnect it.
 
-Feature complete: the ribbon toggle, the host, the snapshot mechanism and all seven tools, with unit
-tests in `Tests/UnitTests/Mcp/`.
+The same shape runs a tool. This one answers what is currently loaded:
 
-Known limits, none of them bugs:
+```powershell
+$body = '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"graph_info","arguments":{}}}'
+$r = Invoke-WebRequest -Uri 'http://127.0.0.1:5178/mcp' -Method Post -Body $body `
+     -ContentType 'application/json' -Headers @{ Accept = 'application/json, text/event-stream' }
+$data = ($r.Content -split "`n" | Where-Object { $_ -like 'data: *' }) -replace '^data: ', ''
+($data | ConvertFrom-Json).result.content[0].text
+```
 
-- The server exists only while the application runs, so there is no headless or CI use.
-- The graph is a snapshot of what the application has loaded, not of your source files.
-- Nothing authenticates. Loopback binding and read-only tools are what keeps that acceptable.
+Worth reading the assembly list in that answer before trusting a graph question: a snapshot taken before a project existed does not contain it, and the tools cannot tell you that themselves.
+
+`curl.exe` works too, but PowerShell mangles the quotes in the JSON body — prefix the arguments with the stop-parsing token `--%`, or stay with the cmdlet above.
+
+---
+
+## Security Architecture
+
+* **Loopback Binding Only:** The endpoint binds exclusively to `127.0.0.1` (localhost). It is not exposed to remote network interfaces.
+* **Authentication:** Unauthenticated on local loopback. Any process on the local machine can query the graph while active.
+* **Read-Only Operations:** All MCP tools are strictly read-only. The assistant cannot alter source code, project files, or graph state via MCP.

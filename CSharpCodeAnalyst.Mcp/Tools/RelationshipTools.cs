@@ -108,7 +108,7 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
         var callers = result.Elements.Where(caller => caller.Id != id).ToList();
 
         var text = new StringBuilder();
-        text.Append("Callers of ").AppendLine(ElementFormatter.Line(element));
+        text.Append("Callers of ").AppendLine(ElementFormatter.Line(element, snapshot.SourceRoot));
 
         if (followAbstractions)
         {
@@ -135,7 +135,85 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
         text.Append(callers.Count.ToString(CultureInfo.InvariantCulture)).Append(" caller(s): ")
             .AppendLine(ElementFormatter.Summarize(callers, c => c.ElementType.ToString()));
 
-        ElementFormatter.AppendLimited(text, callers, Math.Clamp(limit, 1, MaxLimit));
+        var effectiveLimit = Math.Clamp(limit, 1, MaxLimit);
+
+        // A caller set cannot be narrowed - the question is already as specific as it gets - so the
+        // only way to the rest is a higher limit, and once that is spent there is none.
+        var hint = effectiveLimit < MaxLimit
+            ? $"Raise limit (up to {MaxLimit.ToString(CultureInfo.InvariantCulture)}) to see the rest."
+            : "The limit is already at its maximum; ask about a caller further down to go on from there.";
+
+        ElementFormatter.AppendLimited(text, callers, snapshot.SourceRoot, effectiveLimit, hint);
+        return text.ToString();
+    }
+
+    [McpServerTool(Name = "find_inheritance", ReadOnly = true, Destructive = false,
+        Idempotent = true, OpenWorld = false)]
+    [Description(
+        "The inheritance hierarchy around an element, both ways and over any number of levels: what it " +
+        "derives from or implements, and what derives from or implements it. This is the tool for 'who " +
+        "implements this interface' and 'what does this class actually extend'.\n" +
+        "Works for a type and for a member alike - asking a method reports the declarations it " +
+        "overrides and the overrides beneath it. Only inheritance counts: a class that merely uses the " +
+        "element is not here, use find_incoming_relationships for that.\n" +
+        "The answer is limited to the analyzed code. An implementation living in code the parser never " +
+        "saw is missing, so an empty result downwards means 'none in this code base', not 'none'.")]
+    public async Task<string> FindInheritanceAsync(
+        [Description("Element id from search_elements.")]
+        string id,
+        [Description("Maximum number of entries listed per direction (default 50, capped at 300).")]
+        int limit = DefaultLimit,
+        CancellationToken cancellationToken = default)
+    {
+        var snapshot = await snapshotSource.GetSnapshotAsync(cancellationToken);
+        if (snapshot is null)
+        {
+            return ToolText.NoProjectLoaded;
+        }
+
+        var element = snapshot.Graph.TryGetCodeElement(id);
+        if (element is null)
+        {
+            return ToolText.UnknownId(id);
+        }
+
+        // One scan, then two lookups. Walking the hierarchy by querying the graph per element would
+        // rescan it once per step, and a widely implemented interface has a lot of steps.
+        var edges = snapshot.Graph.GetAllRelationships().Where(IsInheritance).ToList();
+        var upwards = WalkHierarchy(edges.ToLookup(edge => edge.SourceId), element.Id,
+            edge => edge.TargetId);
+        var downwards = WalkHierarchy(edges.ToLookup(edge => edge.TargetId), element.Id,
+            edge => edge.SourceId);
+
+        var text = new StringBuilder();
+        text.Append("Inheritance around ")
+            .AppendLine(ElementFormatter.Line(element, snapshot.SourceRoot));
+
+        if (upwards.Count == 0 && downwards.Count == 0)
+        {
+            text.AppendLine();
+            text.AppendLine(
+                "No inheritance relationships. Nothing derives from it and it derives from nothing - " +
+                "which says nothing about whether it is used; ask find_incoming_relationships for that.");
+            return text.ToString();
+        }
+
+        // Only worth explaining when something is actually indented; most hierarchies are one level
+        // deep, and there the sentence describes a layout the answer does not use.
+        if (upwards.Concat(downwards).Any(entry => entry.Depth > 1))
+        {
+            text.AppendLine("Indentation is the distance in levels, one step per line of descent.");
+        }
+
+        text.AppendLine();
+
+        var effectiveLimit = Math.Clamp(limit, 1, MaxLimit);
+
+        AppendHierarchy(text, snapshot.Graph, "Derives from / implements", upwards,
+            edge => edge.TargetId, snapshot.SourceRoot, effectiveLimit);
+        AppendHierarchy(text, snapshot.Graph, "Derived from / implemented by", downwards,
+            edge => edge.SourceId, snapshot.SourceRoot, effectiveLimit);
+
         return text.ToString();
     }
 
@@ -182,8 +260,8 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
         var result = explorer.FindPathsBetween([sourceId, targetId], Math.Max(1, maxLength));
 
         var text = new StringBuilder();
-        text.Append("From ").AppendLine(ElementFormatter.Line(source));
-        text.Append("To   ").AppendLine(ElementFormatter.Line(target));
+        text.Append("From ").AppendLine(ElementFormatter.Line(source, snapshot.SourceRoot));
+        text.Append("To   ").AppendLine(ElementFormatter.Line(target, snapshot.SourceRoot));
         text.AppendLine();
 
         if (result.Relationships.Count == 0)
@@ -201,6 +279,110 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
         AppendPaths(text, snapshot.Graph, result, target, source, maxLength);
 
         return text.ToString();
+    }
+
+    /// <summary>
+    ///     The three relationship types that make up a hierarchy. Inherits and Implements carry it
+    ///     between types, Overrides between members - and a member is a perfectly reasonable thing to
+    ///     ask about, so all three belong to the same question.
+    /// </summary>
+    private static bool IsInheritance(Relationship relationship)
+    {
+        return relationship.Type is RelationshipType.Inherits or RelationshipType.Implements
+            or RelationshipType.Overrides;
+    }
+
+    /// <summary>
+    ///     Breadth-first away from the start, so an entry carries the number of levels it sits away.
+    ///     Direction is decided entirely by the two arguments: pass the edges keyed by source and read
+    ///     the target to walk up, key by target and read the source to walk down.
+    ///     <para>
+    ///         An element already seen is not visited again. That bounds a malformed graph that has a
+    ///         cycle where the language allows none, and it collapses a diamond - a type reaching the
+    ///         same ancestor through two interfaces is listed once, under the first route found.
+    ///     </para>
+    /// </summary>
+    private static List<(int Depth, Relationship Edge)> WalkHierarchy(
+        ILookup<string, Relationship> edgesFrom, string startId, Func<Relationship, string> stepTo)
+    {
+        var found = new List<(int Depth, Relationship Edge)>();
+        var visited = new HashSet<string> { startId };
+        var frontier = new List<string> { startId };
+        var depth = 0;
+
+        while (frontier.Count > 0)
+        {
+            depth++;
+            var next = new List<string>();
+
+            foreach (var currentId in frontier)
+            {
+                foreach (var edge in edgesFrom[currentId])
+                {
+                    var otherId = stepTo(edge);
+                    if (!visited.Add(otherId))
+                    {
+                        continue;
+                    }
+
+                    found.Add((depth, edge));
+                    next.Add(otherId);
+                }
+            }
+
+            frontier = next;
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    ///     One direction of the hierarchy. The section is written even when it is empty, because
+    ///     "nothing implements this" is an answer a caller came for just as much as a list.
+    /// </summary>
+    private static void AppendHierarchy(StringBuilder text, CodeGraph.Graph.CodeGraph graph,
+        string title, List<(int Depth, Relationship Edge)> found, Func<Relationship, string> farId,
+        string? sourceRoot, int limit)
+    {
+        text.Append(title).Append(" (").Append(found.Count.ToString(CultureInfo.InvariantCulture))
+            .Append(')');
+
+        if (found.Count == 0)
+        {
+            text.AppendLine(": none");
+            text.AppendLine();
+            return;
+        }
+
+        text.Append(": ")
+            .AppendLine(ElementFormatter.Summarize(found, entry => entry.Edge.Type.ToString()));
+
+        foreach (var (depth, edge) in found.Take(limit))
+        {
+            var far = graph.TryGetCodeElement(farId(edge));
+            if (far is null)
+            {
+                continue;
+            }
+
+            text.Append("  ").Append(' ', (depth - 1) * 2);
+            text.Append(edge.Type.ToString().PadRight(12)).Append(' ');
+            text.AppendLine(ElementFormatter.Line(far, sourceRoot));
+        }
+
+        if (found.Count > limit)
+        {
+            var omitted = found.Count - limit;
+            text.Append("  ... ").Append(omitted.ToString(CultureInfo.InvariantCulture))
+                .Append(" more not shown (")
+                .Append(found.Count.ToString(CultureInfo.InvariantCulture))
+                .Append(" in total). ")
+                .AppendLine(limit < MaxLimit
+                    ? $"Raise limit (up to {MaxLimit.ToString(CultureInfo.InvariantCulture)}) to see the rest."
+                    : "The limit is already at its maximum; ask about one of the listed elements to go on.");
+        }
+
+        text.AppendLine();
     }
 
     /// <summary>
@@ -237,7 +419,7 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
 
         var text = new StringBuilder();
         text.Append(outgoing ? "Outgoing from " : "Incoming to ")
-            .AppendLine(ElementFormatter.Line(element));
+            .AppendLine(ElementFormatter.Line(element, snapshot.SourceRoot));
 
         if (deep)
         {
@@ -272,7 +454,7 @@ public sealed class RelationshipTools(ICodeGraphSnapshotSource snapshotSource)
         text.AppendLine();
 
         RelationshipFormatter.Append(text, snapshot.Graph, relationships, element, outgoing,
-            Math.Clamp(limit, 1, MaxLimit));
+            snapshot.SourceRoot, Math.Clamp(limit, 1, MaxLimit));
 
         return text.ToString();
     }

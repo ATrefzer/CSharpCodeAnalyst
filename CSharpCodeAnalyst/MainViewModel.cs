@@ -1270,7 +1270,6 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _graphViewModel?.HandleCodeGraphRefactored(message);
         _treeViewModel?.HandleCodeGraphRefactored(message);
         _gallery?.HandleCodeGraphRefactored(message);
-        _mcpSnapshotProvider.MarkRefactored();
 
         // Brute force
         // LoadCodeGraph(_codeGraph);

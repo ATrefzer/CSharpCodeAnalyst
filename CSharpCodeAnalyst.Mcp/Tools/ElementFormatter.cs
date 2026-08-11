@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 using CSharpCodeAnalyst.CodeGraph.Graph;
+using CSharpCodeAnalyst.Mcp.Contracts;
 
 namespace CSharpCodeAnalyst.Mcp.Tools;
 
@@ -9,24 +10,24 @@ namespace CSharpCodeAnalyst.Mcp.Tools;
 ///     shape and a caller only has to learn it once.
 ///     <para>
 ///         The format is a compromise between two readers. A human skimming a transcript wants the name
-///         first; the model needs the id, because nothing else lets it ask a follow up question. Both are
-///         on one line, because a block per element would spend most of the answer on structure.
+///         first; the model needs the id to ask a follow-up question. Both are
+///         on one line.
 ///     </para>
 /// </summary>
 internal static class ElementFormatter
 {
     /// <summary>
     ///     A single element, as used in lists: kind, full path, id, and where it is defined.
-    ///     Example: <c>[Class] Sample.Core.OrderService  id=8f3c...  Orders.cs:42</c>
+    ///     Example: <c>[Class] Sample.Core.OrderService  id=8f3c...  Core/Orders/OrderService.cs:42</c>
     /// </summary>
-    public static string Line(CodeElement element)
+    public static string Line(CodeElement element, string? sourceRoot)
     {
         var text = new StringBuilder();
         text.Append('[').Append(element.ElementType).Append("] ");
         text.Append(element.FullName);
         text.Append("  id=").Append(element.Id);
 
-        var location = FirstLocation(element);
+        var location = FirstLocation(element, sourceRoot);
         if (location is not null)
         {
             text.Append("  ").Append(location);
@@ -46,21 +47,36 @@ internal static class ElementFormatter
     }
 
     /// <summary>
-    ///     A source location as <c>file:line</c>, with the directory dropped - the file name plus the line
-    ///     is what a reader needs to find the code, while full paths are long and identical across most of
-    ///     a result. Null when the producer supplied no location, which is the normal case for external
-    ///     elements and for several importers.
+    ///     Where an element is declared, as <c>path:line</c>. Null when the producer supplied no
+    ///     location, which is the normal case for external elements and for several importers.
+    ///     <para>
+    ///         An element declared in several files - a partial class, a type whose members are spread
+    ///         out - reports only the first. That is a lead, not the whole truth; describe_element lists
+    ///         them all.
+    ///     </para>
     /// </summary>
-    public static string? FirstLocation(CodeElement element)
+    public static string? FirstLocation(CodeElement element, string? sourceRoot)
     {
         var location = element.SourceLocations.FirstOrDefault();
-        if (location?.File is null)
+        return location is null ? null : Location(location, sourceRoot);
+    }
+
+    /// <summary>
+    ///     A source location as <c>path:line</c>, relative to the root of the graph it came from. The
+    ///     directory has to stay: file names repeat across a code base - seven <c>Analyzer.cs</c> in
+    ///     this one - so the name alone names no file. Only the shared prefix is dropped, which is the
+    ///     part that is identical on every line of a result and therefore carries nothing.
+    ///     Null when the location has no file, which the graph model permits.
+    /// </summary>
+    public static string? Location(SourceLocation location, string? sourceRoot)
+    {
+        if (location.File is null)
         {
             return null;
         }
 
-        var fileName = Path.GetFileName(location.File);
-        return $"{fileName}:{location.Line.ToString(CultureInfo.InvariantCulture)}";
+        var file = SourcePaths.MakeRelative(location.File, sourceRoot);
+        return $"{file}:{location.Line.ToString(CultureInfo.InvariantCulture)}";
     }
 
     /// <summary>
@@ -83,12 +99,19 @@ internal static class ElementFormatter
     ///     Appends at most <paramref name="limit" /> lines and says plainly how many were left out.
     ///     A silently truncated list is worse than a short one: a caller that cannot tell it is looking at
     ///     a fragment will happily conclude "there are only three callers".
+    ///     <para>
+    ///         <paramref name="hint" /> carries the way back to the missing entries, and it is a parameter
+    ///         because that way differs per caller: a truncated search can be repeated with a higher limit,
+    ///         a truncated list of children cannot - nothing about it is a search yet. Telling a caller to
+    ///         narrow a question it has no means to narrow is the same dead end as saying nothing.
+    ///     </para>
     /// </summary>
-    public static void AppendLimited(StringBuilder text, IReadOnlyList<CodeElement> elements, int limit)
+    public static void AppendLimited(StringBuilder text, IReadOnlyList<CodeElement> elements,
+        string? sourceRoot, int limit, string? hint = null)
     {
         foreach (var element in elements.Take(limit))
         {
-            text.Append("  ").AppendLine(Line(element));
+            text.Append("  ").AppendLine(Line(element, sourceRoot));
         }
 
         if (elements.Count > limit)
@@ -98,7 +121,8 @@ internal static class ElementFormatter
                 .Append(omitted.ToString(CultureInfo.InvariantCulture))
                 .Append(" more not shown (")
                 .Append(elements.Count.ToString(CultureInfo.InvariantCulture))
-                .AppendLine(" in total). Narrow the question to see them.");
+                .Append(" in total). ")
+                .AppendLine(hint ?? "Raise the limit or ask a narrower question.");
         }
     }
 }

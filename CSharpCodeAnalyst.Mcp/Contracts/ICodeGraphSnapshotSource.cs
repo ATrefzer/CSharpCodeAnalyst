@@ -2,13 +2,8 @@
 
 /// <summary>
 ///     Supplies the MCP tools with the code graph to answer questions about. Implemented by the host
-///     application, which owns the live graph; this assembly never touches that graph directly.
-///     <para>
-///         The seam exists for one reason: the live graph is mutated on the UI thread (project load,
-///         refactoring simulation) while tool calls run on request threads. Whoever implements this
-///         is responsible for handing out something that cannot change while a query walks it - see
-///         <see cref="GraphSnapshot" />.
-///     </para>
+///     application, which owns the live graph. The live graph may be mutated during refactoring simulations.
+///     The snapshot for the mcp server is stable.
 /// </summary>
 public interface ICodeGraphSnapshotSource
 {

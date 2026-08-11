@@ -56,6 +56,7 @@ This builds a complete in-memory graph **model** of your solution including asse
 - **[Explore your codebase interactively](#explore-your-codebase)** –trace method calls, expand inheritance trees, and follow relationships on a visual canvas.
 - **[Export your graph](#export-your-graph)** — generate PlantUML, DGML, or PNG/SVG diagrams for your documentation.
 - **[Validate architectural rules](#validate-architectural-rules)** —  define custom rules (like DENY or ISOLATE) and automatically check them in the app or your CI pipeline.
+- **[Ask an AI assistant about your code](#ask-an-ai-assistant-about-your-code)** – start a local MCP server and let Claude Code or another assistant query the loaded graph.
 
 Besides the dependency graph tools, you can also analyze GIT history with the **History Tool**.
 
@@ -248,6 +249,18 @@ This is a heuristic only. There are many situations, like Reflection, DI, and XA
 You can read more about the rules and  the limits here: [Dead Code](Documentation/dead-code.md)
 
 The analysis is accessible via the Analyzer Ribbon, and the result is presented in a table on a separate tab.
+
+## Ask an AI assistant about your code
+
+C# Code Analyst can open a local MCP server, so an AI assistant like Claude Code can query the graph you currently have loaded.
+
+This answers questions that are hard to get from the source files alone: who calls a method transitively, what breaks if you change a class, how two types are connected. Grep finds text, the graph knows relationships.
+
+It works on whatever you have loaded, imported code included — the tools do not care which language the graph came from.
+
+The server is off by default. You start it via **Home → MCP → Start MCP server**, and it only runs while the application does. It listens on localhost only, and all tools are read-only.
+
+Here you can read how to set it up and what you can ask: [MCP Server](Documentation/mcp.md).
 
 ## Other languages
 

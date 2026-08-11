@@ -6,21 +6,15 @@ namespace CSharpCodeAnalyst.Mcp.Tools;
 
 /// <summary>
 ///     Writes down relationships around a known element.
-///     <para>
-///         One end of every relationship is the element the caller asked about, so spelling both ends
-///         out in full would repeat the same name on every line. Only the far end gets its full name and
-///         id - that is the one worth a follow up question. The near end appears only when it differs
-///         from the anchor, which happens in the deep searches, where the relationship may start at a
-///         member rather than at the element itself.
-///     </para>
 /// </summary>
 internal static class RelationshipFormatter
 {
     public static void Append(StringBuilder text, CodeGraph.Graph.CodeGraph graph,
-        IReadOnlyList<Relationship> relationships, CodeElement anchor, bool anchorIsSource, int limit)
+        IReadOnlyList<Relationship> relationships, CodeElement anchor, bool anchorIsSource,
+        string? sourceRoot, int limit)
     {
         var lines = relationships
-            .Select(relationship => Describe(graph, relationship, anchor, anchorIsSource))
+            .Select(relationship => Describe(graph, relationship, anchor, anchorIsSource, sourceRoot))
             .Where(line => line is not null)
             .Select(line => line!)
             .OrderBy(line => line, StringComparer.Ordinal)
@@ -41,8 +35,21 @@ internal static class RelationshipFormatter
         }
     }
 
+    /// <summary>
+    ///     Writes one relationship from the anchor's point of view. A relationship is a directed edge,
+    ///     but the question was asked about one element, so <paramref name="anchorIsSource" /> decides
+    ///     which end is ours (near) and which is the one worth naming (far). The arrow follows that
+    ///     perspective rather than the direction of the edge, so every line reads the same way: our
+    ///     side, arrow, their side.
+    ///     <para>
+    ///         The near element is named only when it is not the anchor itself - it repeats the header
+    ///         line otherwise. That happens on a deep query, where the relationships hang off the
+    ///         contained elements: without the name the caller sees that the class depends on
+    ///         something, but not through which member.
+    ///     </para>
+    /// </summary>
     private static string? Describe(CodeGraph.Graph.CodeGraph graph, Relationship relationship,
-        CodeElement anchor, bool anchorIsSource)
+        CodeElement anchor, bool anchorIsSource, string? sourceRoot)
     {
         var nearId = anchorIsSource ? relationship.SourceId : relationship.TargetId;
         var farId = anchorIsSource ? relationship.TargetId : relationship.SourceId;
@@ -68,15 +75,18 @@ internal static class RelationshipFormatter
         }
 
         text.Append(anchorIsSource ? "-> " : "<- ");
-        text.Append(ElementFormatter.Line(far));
+        text.Append(ElementFormatter.Line(far, sourceRoot));
 
         // The relationship's own location is the call site, which is more specific than the
         // declaration of the far element that ElementFormatter already printed.
         var site = relationship.SourceLocations.FirstOrDefault();
-        if (site?.File is not null)
+        if (site is not null)
         {
-            text.Append("  at ").Append(Path.GetFileName(site.File)).Append(':')
-                .Append(site.Line.ToString(CultureInfo.InvariantCulture));
+            var formatted = ElementFormatter.Location(site, sourceRoot);
+            if (formatted is not null)
+            {
+                text.Append("  at ").Append(formatted);
+            }
         }
 
         return text.ToString();

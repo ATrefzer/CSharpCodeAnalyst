@@ -109,6 +109,114 @@ public class RelationshipToolsTests
         Assert.That(answer, Does.Contain("No relationships found"));
     }
 
+    /// <summary>
+    ///     The question the tool exists for: "who implements this interface". A direct implementation is
+    ///     only half the answer - a type deriving from that implementation is one too, and it is exactly
+    ///     the one a single hop would miss.
+    /// </summary>
+    [Test]
+    public async Task Inheritance_Interface_ReachesImplementationsOverSeveralLevels()
+    {
+        var special = GiveTheContractAnImplementationHierarchy();
+
+        var answer = await _tools.FindInheritanceAsync(_contract.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain($"id={_orderService.Id}"), "the direct implementation");
+            Assert.That(answer, Does.Contain($"id={special.Id}"), "and the type below it");
+            Assert.That(answer, Does.Contain("Derived from / implemented by (2)"));
+        });
+    }
+
+    /// <summary>
+    ///     Indentation is the only thing that tells a reader how far down an entry sits, and the tool
+    ///     says so in its header - so the deeper type has to be indented further than the direct one.
+    /// </summary>
+    [Test]
+    public async Task Inheritance_IndentsAnEntryByItsDistance()
+    {
+        var special = GiveTheContractAnImplementationHierarchy();
+
+        var answer = await _tools.FindInheritanceAsync(_contract.Id);
+
+        Assert.That(IndentOfLineWith(answer, special.Id),
+            Is.GreaterThan(IndentOfLineWith(answer, _orderService.Id)));
+    }
+
+    [Test]
+    public async Task Inheritance_ReportsBothDirectionsAtOnce()
+    {
+        var special = GiveTheContractAnImplementationHierarchy();
+
+        var answer = await _tools.FindInheritanceAsync(_orderService.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain($"id={_contract.Id}"), "the interface above");
+            Assert.That(answer, Does.Contain($"id={special.Id}"), "the type below");
+        });
+    }
+
+    /// <summary>
+    ///     A member is a reasonable thing to ask about: the override chain is the same question one
+    ///     level down, and the tool description promises it works.
+    /// </summary>
+    [Test]
+    public async Task Inheritance_Member_ReportsTheDeclarationItImplements()
+    {
+        var answer = await _tools.FindInheritanceAsync(_place.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain($"id={_contractPlace.Id}"));
+            Assert.That(answer, Does.Contain("Derives from / implements (1)"));
+        });
+    }
+
+    /// <summary>
+    ///     "Nothing derives from this" is one keystroke away from being read as "nothing uses this", and
+    ///     the two have very different consequences. The answer has to keep them apart.
+    /// </summary>
+    [Test]
+    public async Task Inheritance_WithoutAnyHierarchy_DoesNotReadAsUnused()
+    {
+        var answer = await _tools.FindInheritanceAsync(_repository.Id);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(answer, Does.Contain("No inheritance relationships"));
+            Assert.That(answer, Does.Contain("find_incoming_relationships"));
+        });
+    }
+
+    [Test]
+    public async Task Inheritance_UnknownId_SaysSo()
+    {
+        var answer = await _tools.FindInheritanceAsync("no-such-id");
+
+        Assert.That(answer, Does.Contain("search_elements"));
+    }
+
+    /// <summary>
+    ///     Puts a second level under the interface: OrderService implements it, SpecialOrderService
+    ///     inherits from OrderService.
+    /// </summary>
+    private CodeElement GiveTheContractAnImplementationHierarchy()
+    {
+        Link(_orderService, _contract, RelationshipType.Implements);
+
+        var special = _graph.CreateClass("SpecialOrderService", _orderService.Parent);
+        Link(special, _orderService, RelationshipType.Inherits);
+        return special;
+    }
+
+    private static int IndentOfLineWith(string answer, string id)
+    {
+        var line = answer.Split('\n').Single(l => l.Contains($"id={id}", StringComparison.Ordinal));
+        return line.Length - line.TrimStart().Length;
+    }
+
     [Test]
     public async Task Incoming_ListsWhatDependsOnTheElement()
     {

@@ -14,11 +14,9 @@ internal sealed class FakeSnapshotSource(GraphSnapshot? snapshot) : ICodeGraphSn
         return new FakeSnapshotSource(null);
     }
 
-    public static FakeSnapshotSource With(CSharpCodeAnalyst.CodeGraph.Graph.CodeGraph graph,
-        string sourceName = "test.json", bool containsRefactorings = false)
+    public static FakeSnapshotSource With(CSharpCodeAnalyst.CodeGraph.Graph.CodeGraph graph)
     {
-        return new FakeSnapshotSource(
-            new GraphSnapshot(graph, sourceName, DateTimeOffset.UtcNow, containsRefactorings));
+        return new FakeSnapshotSource(new GraphSnapshot(graph));
     }
 
     public Task<GraphSnapshot?> GetSnapshotAsync(CancellationToken cancellationToken = default)

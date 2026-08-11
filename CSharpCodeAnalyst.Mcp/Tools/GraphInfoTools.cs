@@ -16,11 +16,12 @@ public sealed class GraphInfoTools(ICodeGraphSnapshotSource snapshotSource)
     [McpServerTool(Name = "graph_info", ReadOnly = true, Destructive = false, Idempotent = true,
         OpenWorld = false)]
     [Description(
-        "Describes the code graph currently loaded in CSharp Code Analyst: what it was built from, " +
-        "when it was captured, how large it is, and which assemblies it contains. Call this first. " +
-        "The graph is a snapshot, so it can be older than the files on disk, and it can contain " +
-        "simulated refactorings that were never applied to the source - both are reported here and " +
-        "both change how much the other answers can be trusted.")]
+        "Describes the code graph currently loaded in CSharp Code Analyst: which languages it was " +
+        "built from, how large it is, which kinds of element it holds and which assemblies it " +
+        "contains. Call this first - the loaded code base can be C#, C++, Dart, Python or Java, and " +
+        "this is the only way to find out which. It also reports the source root the file locations " +
+        "in every other answer are relative to, which is what turns one of those locations into a " +
+        "path you can open.")]
     public async Task<string> GraphInfoAsync(CancellationToken cancellationToken = default)
     {
         var snapshot = await snapshotSource.GetSnapshotAsync(cancellationToken);
@@ -32,24 +33,39 @@ public sealed class GraphInfoTools(ICodeGraphSnapshotSource snapshotSource)
         var graph = snapshot.Graph;
         var text = new StringBuilder();
 
-        text.Append("Source: ").AppendLine(string.IsNullOrEmpty(snapshot.SourceName)
-            ? "unknown"
-            : snapshot.SourceName);
-        text.Append("Captured: ")
-            .Append(snapshot.CapturedAtUtc.ToString("u", CultureInfo.InvariantCulture))
-            .AppendLine(" (source files may have changed since)");
+        // First line, because it is the one fact the rest of an answer cannot be read without. The
+        // application is named after C#, and the tools are usually registered under a name that is
+        // too - neither says anything about what is loaded right now.
+        AppendLanguages(text, graph);
 
-        if (snapshot.ContainsRefactorings)
+       
+        // If you make code changes re-import and restart the mcp server.
+        text.AppendLine(
+            "Snapshot of the code as it was last analyzed in the application. Edits made on disk " +
+            "since then are not in it; re-analyze there if an answer looks out of date.");
+
+        // Without the root, a relative location cannot be turned back into a file: the caller's
+        // working directory is not necessarily the one the graph was parsed in, and need not even be
+        // on the same machine. Said either way round: a caller told that a root exists, and then not
+        // given one, has to guess whether the locations it sees are relative or absolute.
+        if (!string.IsNullOrEmpty(snapshot.SourceRoot))
+        {
+            text.Append("Source root: ").AppendLine(snapshot.SourceRoot);
+            text.AppendLine("File locations in every answer are relative to it.");
+        }
+        else
         {
             text.AppendLine(
-                "WARNING: this graph contains simulated refactorings. It describes a hypothetical " +
-                "code base, not the code on disk. Say so when reporting anything derived from it.");
+                "Source root: none - the files share no common directory, so every answer reports " +
+                "full paths.");
         }
 
         text.Append("Code elements: ")
             .AppendLine(graph.Nodes.Count.ToString(CultureInfo.InvariantCulture));
         text.Append("Relationships: ")
             .AppendLine(graph.GetAllRelationships().Count().ToString(CultureInfo.InvariantCulture));
+
+        AppendKinds(text, graph);
 
         AppendAssemblies(text, graph);
 
@@ -59,6 +75,44 @@ public sealed class GraphInfoTools(ICodeGraphSnapshotSource snapshotSource)
             "find an element and obtain its id.");
 
         return text.ToString();
+    }
+
+    private static void AppendLanguages(StringBuilder text, CodeGraph.Graph.CodeGraph graph)
+    {
+        var languages = SourceLanguages.Detect(graph);
+        if (languages.Count == 0)
+        {
+            // An import that carries no file locations. Saying nothing here would leave the language
+            // to be guessed from the assembly names, which is exactly what this line exists to stop.
+            text.AppendLine("Languages: unknown - this graph carries no file locations.");
+            return;
+        }
+
+        var formatted = languages.Select(entry =>
+            $"{entry.Language} ({entry.Files.ToString(CultureInfo.InvariantCulture)} " +
+            $"{(entry.Files == 1 ? "file" : "files")})");
+
+        text.Append("Languages: ").AppendLine(string.Join(", ", formatted));
+    }
+
+    /// <summary>
+    ///     Which kinds of element the graph actually holds, and in what proportion. Answers two
+    ///     questions at once: what a code base is made of, and which <c>type:</c> filters are worth
+    ///     spending a search on - the kind names are exactly the values that filter accepts, and a kind
+    ///     missing here will never match. That matters for an imported graph, where several kinds of the
+    ///     model simply never occur.
+    /// </summary>
+    private static void AppendKinds(StringBuilder text, CodeGraph.Graph.CodeGraph graph)
+    {
+        if (graph.Nodes.Count == 0)
+        {
+            return;
+        }
+
+        text.Append("Kinds: ")
+            .AppendLine(ElementFormatter.Summarize(graph.Nodes.Values,
+                element => element.ElementType.ToString()));
+        text.AppendLine("Each name is a valid 'type:<kind>' filter in search_elements.");
     }
 
     private static void AppendAssemblies(StringBuilder text, CodeGraph.Graph.CodeGraph graph)
@@ -76,8 +130,13 @@ public sealed class GraphInfoTools(ICodeGraphSnapshotSource snapshotSource)
         }
 
         text.AppendLine();
+
+        // "Assembly" is what the model calls the top level, because it grew up on C#. For an imported
+        // graph the same node is a package, a module or a jar, and a caller that takes the word
+        // literally will look for something the code base does not have.
         text.Append("Assemblies (").Append(assemblies.Count.ToString(CultureInfo.InvariantCulture))
-            .AppendLine("):");
+            .AppendLine(") - the roots of the graph. Depending on where the code came from, one is an " +
+                        "assembly, a package or a module:");
         foreach (var assembly in assemblies)
         {
             text.Append("  ").Append(assembly.Name);

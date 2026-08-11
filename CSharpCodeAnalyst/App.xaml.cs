@@ -141,7 +141,7 @@ public partial class App
 
         // Hands the MCP server a copy of the loaded graph. Created unconditionally: it costs nothing
         // until something asks it for a snapshot, and MainViewModel notifies it either way.
-        var mcpSnapshotProvider = new CodeGraphSnapshotProvider(Dispatcher, projectService);
+        var mcpSnapshotProvider = new CodeGraphSnapshotProvider(Dispatcher);
         var mcpServerService = new McpServerService(applicationSettings, mcpSnapshotProvider, uiNotification);
         _mcpServerService = mcpServerService;
 
