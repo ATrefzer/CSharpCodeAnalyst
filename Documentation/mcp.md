@@ -11,8 +11,9 @@ The graph is whatever you last loaded — a C# solution, or a C++, Python, Java,
 Before starting, ensure you have:
 
 * **Running Application:** The CSharp Code Analyst app must be running with a project loaded. The MCP endpoint lives inside the process.
-* **ASP.NET Core 10 Runtime:** Required alongside the standard desktop runtime. It comes included with the .NET SDK. *Without this runtime, the application will fail to start.*
 * **MCP Client:** An MCP-compliant client. Examples below use Claude Code, but any client with HTTP transport support works.
+
+No extra runtime is needed. The endpoint runs on `System.Net.HttpListener`, which is part of the base .NET runtime — earlier versions hosted it on Kestrel and therefore required the ASP.NET Core runtime next to the desktop one, which the application could not start without.
 
 ---
 
@@ -184,7 +185,7 @@ Common root paths are stripped for clarity. Full paths are retained only when no
 | Assistant does not see a tool you just added, renamed or re-described | The tool list is negotiated **once per connection**, right after the handshake, and never re-read. Rebuilding and restarting the application is therefore not enough — the client still works from the list it fetched earlier. | Reconnect the client, or start a new session. |
 | `/mcp` answers *"MCP controls aren't available right now"* | The command opens an interactive terminal panel, which not every surface can display (desktop app, IDE integration). Unrelated to the server — the answer is the same whether it runs or not. | Start a new session; it fetches the tool list on connect. Or use an interactive `claude` terminal, where the panel is available. |
 | Tools report *"No project is loaded"* | Application is running without an open solution. | Open a solution or project file within CSharp Code Analyst. |
-| Application fails to launch | Missing ASP.NET Core 10 runtime or missing config file. | Install the ASP.NET Core 10 runtime. Ensure `appsettings.json` resides in the active working directory. |
+| Application fails to launch | Missing config file. (No longer the ASP.NET Core runtime — the server does not use it any more.) | Ensure `appsettings.json` resides in the active working directory. |
 | Port changes have no effect | Config read only at application startup. | Full application restart is required after editing `appsettings.json`. |
 | Port binding error | Port occupied by another process. | Change `McpServerPort` in `appsettings.json` and update the client URL. |
 | `Bad Request: ... not a valid JSON-RPC message` | CLI quote mangling in PowerShell. | Use `Invoke-RestMethod` or `curl.exe --%` when manually testing HTTP payloads. |

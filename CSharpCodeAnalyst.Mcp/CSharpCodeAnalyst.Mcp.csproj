@@ -12,13 +12,17 @@
 
     <ItemGroup>
         <!--
-          Brings a FrameworkReference to Microsoft.AspNetCore.App with it. Through the ProjectReference
-          in CSharpCodeAnalyst.csproj that reference propagates into the application's
-          runtimeconfig.json, so the executable requires the ASP.NET Core runtime next to the desktop
-          runtime. See Documentation/mcp.md for the measurement and for the alternative
-          (ReferenceOutputAssembly="false" plus dynamic loading) should that ever become a problem.
+          Core, not ModelContextProtocol.AspNetCore. The ASP.NET package brings a FrameworkReference to
+          Microsoft.AspNetCore.App, and that reference propagates through the ProjectReference in
+          CSharpCodeAnalyst.csproj into the application's runtimeconfig.json - whereupon the .NET host
+          refuses to start the executable unless the ASP.NET runtime is installed. A missing runtime
+          would cost the whole application, not just the MCP feature.
+
+          Core carries the protocol, the tool model and StreamableHttpServerTransport; the HTTP side is
+          System.Net.HttpListener from the base runtime. Keep it this way: pulling in the ASP.NET
+          package, even transitively, brings the framework requirement back.
         -->
-        <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.1.0" />
+        <PackageReference Include="ModelContextProtocol.Core" Version="2.1.0" />
     </ItemGroup>
 
     <ItemGroup>

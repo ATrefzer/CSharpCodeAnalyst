@@ -16,9 +16,7 @@ server the application can open so an AI assistant can query the loaded code
 graph (see Documentation/mcp.md).
 
 The following packages are used:
-- ModelContextProtocol
 - ModelContextProtocol.Core
-- ModelContextProtocol.AspNetCore
 
 Copyright (c) Model Context Protocol contributors
 
