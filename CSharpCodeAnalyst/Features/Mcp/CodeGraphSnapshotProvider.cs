@@ -25,6 +25,19 @@ public sealed class CodeGraphSnapshotProvider(Dispatcher dispatcher)
     private GraphSnapshot? _snapshot;
     private bool _isStale = true;
 
+    /// <summary>
+    ///     Bumped every time <see cref="_isStale" /> is forced true - i.e. every time the live graph
+    ///     might have moved on. Guards against a lost update: capturing runs on the UI thread and takes
+    ///     real time for a large graph, so a <see cref="SetGraph" /> (or <see cref="Release" />) can land
+    ///     while a capture is already in flight. Without this, whichever of the two writers reaches the
+    ///     lock last below wins - and if that happens to be the in-flight capture, it commits a snapshot
+    ///     of the graph as it was *before* the swap and marks it not-stale, silently resurrecting stale
+    ///     data that nothing will refresh until the *next* unrelated change happens to fix it by
+    ///     accident. Comparing the generation at commit time turns that race into a no-op instead: the
+    ///     caller still gets its answer, but the cache is left alone for the next call to redo properly.
+    /// </summary>
+    private int _generation;
+
     public async Task<GraphSnapshot?> GetSnapshotAsync(CancellationToken cancellationToken = default)
     {
         if (TryGetCurrent(out var current))
@@ -41,13 +54,22 @@ public sealed class CodeGraphSnapshotProvider(Dispatcher dispatcher)
                 return current;
             }
 
+            int generationAtStart;
+            lock (_sync)
+            {
+                generationAtStart = _generation;
+            }
+
             var captured = await dispatcher.InvokeAsync(Capture, DispatcherPriority.Background,
                 cancellationToken);
 
             lock (_sync)
             {
-                _snapshot = captured;
-                _isStale = false;
+                if (_generation == generationAtStart)
+                {
+                    _snapshot = captured;
+                    _isStale = false;
+                }
             }
 
             return captured;
@@ -78,6 +100,7 @@ public sealed class CodeGraphSnapshotProvider(Dispatcher dispatcher)
         {
             _snapshot = null;
             _isStale = true;
+            _generation++;
         }
     }
 
@@ -86,6 +109,7 @@ public sealed class CodeGraphSnapshotProvider(Dispatcher dispatcher)
         lock (_sync)
         {
             _isStale = true;
+            _generation++;
         }
     }
 
