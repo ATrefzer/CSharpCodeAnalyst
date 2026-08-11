@@ -3030,6 +3030,78 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Editor.
+        /// </summary>
+        public static string Settings_Editor {
+            get {
+                return ResourceManager.GetString("Settings_Editor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preferred Editor.
+        /// </summary>
+        public static string Settings_PreferredEditor {
+            get {
+                return ResourceManager.GetString("Settings_PreferredEditor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Editor used for "jump to code". Auto picks the first installed editor from a built-in preference order (Visual Studio, VS Code, Notepad++, Notepad)..
+        /// </summary>
+        public static string Settings_PreferredEditor_Tooltip {
+            get {
+                return ResourceManager.GetString("Settings_PreferredEditor_Tooltip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Auto (recommended).
+        /// </summary>
+        public static string Settings_Editor_Auto {
+            get {
+                return ResourceManager.GetString("Settings_Editor_Auto", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio.
+        /// </summary>
+        public static string Settings_Editor_VisualStudio {
+            get {
+                return ResourceManager.GetString("Settings_Editor_VisualStudio", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Visual Studio Code.
+        /// </summary>
+        public static string Settings_Editor_VsCode {
+            get {
+                return ResourceManager.GetString("Settings_Editor_VsCode", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Notepad++.
+        /// </summary>
+        public static string Settings_Editor_NotepadPlusPlus {
+            get {
+                return ResourceManager.GetString("Settings_Editor_NotepadPlusPlus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Notepad.
+        /// </summary>
+        public static string Settings_Editor_Notepad {
+            get {
+                return ResourceManager.GetString("Settings_Editor_Notepad", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to AI Advisor.
         /// </summary>
         public static string Settings_AiAdvisor {

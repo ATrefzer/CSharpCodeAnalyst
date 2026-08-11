@@ -99,7 +99,25 @@
                         <TextBlock Margin="5,5,5,10" Foreground="Gray"
                                    Text="{x:Static resources:Strings.Settings_Tab_User_Hint}" />
 
-                        <GroupBox Header="{x:Static resources:Strings.Settings_AiAdvisor}" Margin="5,0,0,0">
+                        <GroupBox Header="{x:Static resources:Strings.Settings_Editor}" Margin="5,0,0,0">
+                            <StackPanel Margin="10">
+                                <Label Margin="0 0 0 3"
+                                       Content="{x:Static resources:Strings.Settings_PreferredEditor}"
+                                       ToolTip="{x:Static resources:Strings.Settings_PreferredEditor_Tooltip}" />
+                                <ComboBox x:Name="PreferredEditorComboBox"
+                                          HorizontalAlignment="Stretch"
+                                          Margin="0,0,0,8"
+                                          ToolTip="{x:Static resources:Strings.Settings_PreferredEditor_Tooltip}">
+                                    <ComboBoxItem Tag="Auto" Content="{x:Static resources:Strings.Settings_Editor_Auto}" />
+                                    <ComboBoxItem Tag="VisualStudio" Content="{x:Static resources:Strings.Settings_Editor_VisualStudio}" />
+                                    <ComboBoxItem Tag="VsCode" Content="{x:Static resources:Strings.Settings_Editor_VsCode}" />
+                                    <ComboBoxItem Tag="NotepadPlusPlus" Content="{x:Static resources:Strings.Settings_Editor_NotepadPlusPlus}" />
+                                    <ComboBoxItem Tag="Notepad" Content="{x:Static resources:Strings.Settings_Editor_Notepad}" />
+                                </ComboBox>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="{x:Static resources:Strings.Settings_AiAdvisor}" Margin="5,5,0,0">
                             <StackPanel Margin="10">
                                 <Label Margin="0 0 0 3"
                                        Content="{x:Static resources:Strings.Settings_AiEndpoint}"

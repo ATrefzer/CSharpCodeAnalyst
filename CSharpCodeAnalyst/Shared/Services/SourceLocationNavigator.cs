@@ -12,7 +12,7 @@ public enum EditorType
     Notepad,
     NotepadPlusPlus,
     VisualStudio,
-    Rider
+    VsCode
 }
 
 /// <summary>
@@ -25,10 +25,18 @@ public static class SourceLocationNavigator
 {
 
     /// <summary>
-    ///     Hierarchy of preferred editors to try: Visual Studio (newest first), JetBrains Rider,
+    ///     Hierarchy of preferred editors to try: Visual Studio (newest first), VS Code,
     ///     Notepad++, plain Notepad as the last resort.
     /// </summary>
     private static readonly List<(EditorType Type, string Path)> KnownEditors = BuildKnownEditors();
+
+    /// <summary>
+    ///     User-configured editor (Settings → User Preferences → Preferred Editor). Null means
+    ///     auto-detect: fall back to <see cref="KnownEditors" />'s built-in order. Set once at
+    ///     startup from <c>UserPreferences.PreferredEditor</c> and again whenever the settings
+    ///     dialog is saved.
+    /// </summary>
+    public static EditorType? PreferredEditor { get; set; }
 
     private static List<(EditorType, string)> BuildKnownEditors()
     {
@@ -56,20 +64,10 @@ public static class SourceLocationNavigator
                 Path.Combine(programFilesX86, "Microsoft Visual Studio", "2019", edition, @"Common7\IDE\devenv.exe")));
         }
 
-        // JetBrains Rider: the install folder name carries the version ("JetBrains Rider 2024.3")
-        // for the standalone installer, while the Toolbox app installs to a stable "Rider" folder
-        // under %LocalAppData%\Programs - hence the glob, newest version first.
-        foreach (var root in new[] { Path.Combine(programFiles, "JetBrains"), Path.Combine(localAppData, "Programs") })
-        {
-            if (!Directory.Exists(root))
-            {
-                continue;
-            }
-
-            var riderDirectories = Directory.EnumerateDirectories(root, "*Rider*")
-                .OrderByDescending(d => d, StringComparer.OrdinalIgnoreCase);
-            editors.AddRange(riderDirectories.Select(d => (EditorType.Rider, Path.Combine(d, @"bin\rider64.exe"))));
-        }
+        // VS Code: the default per-user install (what the Windows installer offers by default)
+        // goes under %LocalAppData%\Programs; a system-wide install goes under Program Files.
+        editors.Add((EditorType.VsCode, Path.Combine(localAppData, @"Programs\Microsoft VS Code\Code.exe")));
+        editors.Add((EditorType.VsCode, Path.Combine(programFiles, @"Microsoft VS Code\Code.exe")));
 
         editors.Add((EditorType.NotepadPlusPlus, Path.Combine(programFiles, @"Notepad++\notepad++.exe")));
         editors.Add((EditorType.Notepad,
@@ -124,7 +122,7 @@ public static class SourceLocationNavigator
 
     public static void Open(string? filePath, int line, int column)
     {
-        var (editorType, editorPath) = KnownEditors.First(h => File.Exists(h.Path));
+        var (editorType, editorPath) = SelectEditor();
 
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -138,7 +136,9 @@ public static class SourceLocationNavigator
             throw new FileNotFoundException($"File to open not found: {filePath}", filePath);
         }
 
-        if (OpenFileInRunningVisualStudioInstance(filePath, line))
+        // Reusing a running Visual Studio instance is only appropriate when VS is the (auto-detected
+        // or explicitly preferred) editor - not when the user picked something else.
+        if (editorType == EditorType.VisualStudio && OpenFileInRunningVisualStudioInstance(filePath, line))
         {
             // If we can open in running VS instance, we are done
             return;
@@ -168,9 +168,11 @@ public static class SourceLocationNavigator
                 args = $"/Edit \"{filePath}\" /Command \"Edit.Goto {line}\"";
                 break;
 
-            case EditorType.Rider:
-                // Reuses a running Rider instance automatically.
-                args = $"--line {line} --column {column} \"{filePath}\"";
+            case EditorType.VsCode:
+                // "--goto file:line:column" reuses an already-running window automatically (VS
+                // Code is single-instance by default) regardless of which folder/workspace it has
+                // open - no project-dir gymnastics needed, unlike Rider's CLI.
+                args = $"--goto \"{filePath}:{line}:{column}\"";
                 break;
         }
 
@@ -184,6 +186,25 @@ public static class SourceLocationNavigator
             CreateNoWindow = true
         };
         process.Start();
+    }
+
+    /// <summary>
+    ///     Picks the editor to launch: the user's <see cref="PreferredEditor" /> when it is set and
+    ///     an installation of it was found, otherwise the first installed editor from
+    ///     <see cref="KnownEditors" />'s built-in (auto-detect) order.
+    /// </summary>
+    private static (EditorType Type, string Path) SelectEditor()
+    {
+        if (PreferredEditor is { } preferred)
+        {
+            var match = KnownEditors.FirstOrDefault(h => h.Type == preferred && File.Exists(h.Path));
+            if (match.Path is not null)
+            {
+                return match;
+            }
+        }
+
+        return KnownEditors.First(h => File.Exists(h.Path));
     }
 
     private static object? GetComObject(string progId)

@@ -107,6 +107,7 @@ public partial class App
         }
 
         var userSettings = UserPreferences.LoadOrCreate();
+        SourceLocationNavigator.PreferredEditor = userSettings.PreferredEditor;
 
         var uiNotification = new WindowsUserNotification();
         var messaging = new MessageBus();

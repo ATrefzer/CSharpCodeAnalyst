@@ -143,7 +143,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
         <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4078.44" />
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.8.2">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -205,7 +205,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.8.2">
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

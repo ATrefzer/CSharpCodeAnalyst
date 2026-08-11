@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CSharpCodeAnalyst.Shared.Services;
 
 namespace CSharpCodeAnalyst.Configuration;
 
@@ -33,6 +34,13 @@ public class UserPreferences
     public string AiModel { get; set; } = DefaultAiModel;
 
     /// <summary>
+    ///     Editor to use for "jump to code". Null means auto-detect (the pre-existing behavior):
+    ///     the first installed editor from <see cref="SourceLocationNavigator" />'s built-in
+    ///     preference order.
+    /// </summary>
+    public EditorType? PreferredEditor { get; set; }
+
+    /// <summary>
     ///     Loads user preferences from disk, or creates a new default instance when no file exists.
     ///     Call this once at startup and pass the result through dependency injection.
     /// </summary>
@@ -50,7 +58,9 @@ public class UserPreferences
             try
             {
                 var json = File.ReadAllText(settingsPath);
-                var loaded = JsonSerializer.Deserialize<UserPreferences>(json);
+                var loadOptions = new JsonSerializerOptions();
+                loadOptions.Converters.Add(new JsonStringEnumConverter());
+                var loaded = JsonSerializer.Deserialize<UserPreferences>(json, loadOptions);
                 if (loaded != null)
                 {
                     loaded._settingsPath = settingsPath;
@@ -68,7 +78,9 @@ public class UserPreferences
 
     public void Save()
     {
-        var json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        var options = new JsonSerializerOptions { WriteIndented = true };
+        options.Converters.Add(new JsonStringEnumConverter());
+        var json = JsonSerializer.Serialize(this, options);
         File.WriteAllText(_settingsPath, json);
     }
 
@@ -96,6 +108,7 @@ public class UserPreferences
             RecentFiles = new List<string>(this.RecentFiles),
             AiEndpoint = this.AiEndpoint,
             AiModel = this.AiModel,
+            PreferredEditor = this.PreferredEditor,
             _settingsPath = this._settingsPath
         };
     }

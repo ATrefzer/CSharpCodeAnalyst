@@ -45,6 +45,7 @@ using CSharpCodeAnalyst.Shared.Contracts;
 using CSharpCodeAnalyst.Shared.Filter;
 using CSharpCodeAnalyst.Shared.Messages;
 using CSharpCodeAnalyst.Shared.Notifications;
+using CSharpCodeAnalyst.Shared.Services;
 using CSharpCodeAnalyst.Shared.Tabs;
 using CSharpCodeAnalyst.Shared.UI;
 using CSharpCodeAnalyst.Shared.Wpf;
@@ -670,6 +671,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             _applicationSettings = settingsDialog.AppSettings;
             _userSettings = settingsDialog.UserPreferences;
+            SourceLocationNavigator.PreferredEditor = _userSettings.PreferredEditor;
             SaveSettings();
         }
     }

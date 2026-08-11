@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.Resources;
+using CSharpCodeAnalyst.Shared.Services;
 
 namespace CSharpCodeAnalyst.Configuration;
 
@@ -32,6 +34,8 @@ public partial class SettingsDialog
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
         ShowOverviewOnImportCheckBox.IsChecked = AppSettings.ShowOverviewOnImport;
 
+        SelectComboBoxItemByTag(PreferredEditorComboBox, UserPreferences.PreferredEditor?.ToString() ?? "Auto");
+
         AiEndpointTextBox.Text = UserPreferences.AiEndpoint;
         AiModelTextBox.Text = UserPreferences.AiModel;
         if (AiCredentialStorage.HasApiKey())
@@ -59,6 +63,10 @@ public partial class SettingsDialog
 
         AppSettings.DefaultProjectExcludeFilter = ProjectExcludeFilterTextBox.Text;
 
+        var selectedEditorTag = (PreferredEditorComboBox.SelectedItem as ComboBoxItem)?.Tag as string;
+        UserPreferences.PreferredEditor =
+            Enum.TryParse<EditorType>(selectedEditorTag, out var editor) ? editor : null;
+
         UserPreferences.AiEndpoint = AiEndpointTextBox.Text.Trim();
         UserPreferences.AiModel = AiModelTextBox.Text.Trim();
 
@@ -75,7 +83,14 @@ public partial class SettingsDialog
         AppSettings = new AppSettings();
         UserPreferences.AiEndpoint = UserPreferences.DefaultAiEndpoint;
         UserPreferences.AiModel = UserPreferences.DefaultAiModel;
+        UserPreferences.PreferredEditor = null;
         LoadSettingsToUi();
+    }
+
+    private static void SelectComboBoxItemByTag(ComboBox comboBox, string tag)
+    {
+        comboBox.SelectedItem = comboBox.Items.OfType<ComboBoxItem>()
+            .FirstOrDefault(item => (string)item.Tag == tag) ?? comboBox.Items.OfType<ComboBoxItem>().First();
     }
 
 

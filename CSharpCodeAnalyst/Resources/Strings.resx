@@ -1058,6 +1058,30 @@ Use "Copy setup command" to get the line that registers it with Claude Code. Sto
   <data name="Settings_Tab_User_Hint" xml:space="preserve">
     <value>Stored per user in %LocalAppData% — applies only to you.</value>
   </data>
+  <data name="Settings_Editor" xml:space="preserve">
+    <value>Editor</value>
+  </data>
+  <data name="Settings_PreferredEditor" xml:space="preserve">
+    <value>Preferred Editor</value>
+  </data>
+  <data name="Settings_PreferredEditor_Tooltip" xml:space="preserve">
+    <value>Editor used for "jump to code". Auto picks the first installed editor from a built-in preference order (Visual Studio, VS Code, Notepad++, Notepad).</value>
+  </data>
+  <data name="Settings_Editor_Auto" xml:space="preserve">
+    <value>Auto (recommended)</value>
+  </data>
+  <data name="Settings_Editor_VisualStudio" xml:space="preserve">
+    <value>Visual Studio</value>
+  </data>
+  <data name="Settings_Editor_VsCode" xml:space="preserve">
+    <value>Visual Studio Code</value>
+  </data>
+  <data name="Settings_Editor_NotepadPlusPlus" xml:space="preserve">
+    <value>Notepad++</value>
+  </data>
+  <data name="Settings_Editor_Notepad" xml:space="preserve">
+    <value>Notepad</value>
+  </data>
   <data name="Settings_AiAdvisor" xml:space="preserve">
     <value>AI Advisor</value>
   </data>
