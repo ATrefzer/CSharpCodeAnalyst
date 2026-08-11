@@ -32,6 +32,7 @@ using CSharpCodeAnalyst.Features.Help;
 using CSharpCodeAnalyst.Features.History;
 using CSharpCodeAnalyst.Features.Import;
 using CSharpCodeAnalyst.Features.Info;
+using CSharpCodeAnalyst.Features.Mcp;
 using CSharpCodeAnalyst.Features.Partitions;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Features.Statistics;
@@ -84,6 +85,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     private InfoPanelViewModel? _infoPanelViewModel;
 
     private string _loadMessage;
+
+    /// <summary>
+    ///     Told when the graph is replaced or refactored, so the MCP server can hand out a fresh copy.
+    ///     Always present, even with the server switched off - it does nothing until someone asks it
+    ///     for a snapshot, which keeps the notifications below free of null checks.
+    /// </summary>
+    private readonly CodeGraphSnapshotProvider _mcpSnapshotProvider;
+
+    private readonly McpServerService _mcpServerService;
+
     private LegendDialog? _openedLegendDialog;
     private AdvancedSearchViewModel? _searchViewModel;
 
@@ -92,7 +103,8 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     internal MainViewModel(MessageBus messaging, AppSettings settings, UserPreferences userSettings,
         AnalyzerManager analyzerManager, RefactoringService refactoringService, IProjectService projectService,
-        MetricStore metricStore, ExternalContractStore externalContractStore)
+        MetricStore metricStore, ExternalContractStore externalContractStore,
+        CodeGraphSnapshotProvider mcpSnapshotProvider, McpServerService mcpServerService)
     {
         // Initialize settings
         _applicationSettings = settings;
@@ -101,6 +113,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         _refactoringService = refactoringService;
         _metricStore = metricStore;
         _externalContractStore = externalContractStore;
+        _mcpSnapshotProvider = mcpSnapshotProvider;
+        _mcpServerService = mcpServerService;
+        _mcpServerService.StateChanged += OnMcpServerStateChanged;
 
         analyzerManager.AnalyzerDataChanged += OnAnalyzerDataChanged;
 
@@ -165,6 +180,9 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         OpenRecentFileCommand = new WpfCommand<string>(OnOpenRecentFile);
         SnapshotCommand = new WpfCommand(OnSnapshot);
         RestoreCommand = new WpfCommand(OnRestore);
+        ToggleMcpServerCommand = new WpfCommand(OnToggleMcpServer);
+        CopyMcpSetupCommand = new WpfCommand(_mcpServerService.CopyClientSetupCommand,
+            () => _mcpServerService.IsRunning);
 
         _loadMessage = string.Empty;
 
@@ -305,6 +323,28 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
     public ICommand ExecuteAnalyzerCommand { get; set; }
     public ICommand SnapshotCommand { get; }
+
+    public ICommand ToggleMcpServerCommand { get; }
+    public ICommand CopyMcpSetupCommand { get; }
+
+    public bool IsMcpServerRunning => _mcpServerService.IsRunning;
+
+    /// <summary>
+    ///     The button says what pressing it does, not what the state is - a label that reads "Running"
+    ///     leaves the user guessing whether clicking starts or stops it.
+    /// </summary>
+    public string McpServerLabel =>
+        IsMcpServerRunning ? Strings.Mcp_Stop_Label : Strings.Mcp_Start_Label;
+
+    /// <summary>
+    ///     Carries the endpoint while running. A user who wants to register the server needs the exact
+    ///     URL, and reconstructing it from a settings file is where the first attempt usually goes
+    ///     wrong.
+    /// </summary>
+    public string McpServerTooltip =>
+        IsMcpServerRunning
+            ? string.Format(Strings.Mcp_Tooltip_Running, _mcpServerService.Endpoint)
+            : Strings.Mcp_Tooltip_Stopped;
     public ICommand RestoreCommand { get; }
 
 
@@ -971,6 +1011,7 @@ internal sealed class MainViewModel : INotifyPropertyChanged
     {
         _codeGraph = codeGraph;
         _refactoringService.LoadCodeGraph(codeGraph);
+        _mcpSnapshotProvider.SetGraph(codeGraph);
 
         // Rebuild tree view and graph
         TreeViewModel?.LoadCodeGraph(_codeGraph);
@@ -1274,6 +1315,30 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         {
             _ui.ShowError($"{Strings.Snapshot_Failed}: {ex.Message}");
         }
+    }
+
+    private async void OnToggleMcpServer()
+    {
+        try
+        {
+            await _mcpServerService.ToggleAsync();
+        }
+        catch (Exception ex)
+        {
+            // ToggleAsync reports its own failures; anything arriving here is unexpected and must not
+            // escape an async void handler, which would take the application down.
+            Trace.WriteLine($"Failed {nameof(OnToggleMcpServer)} {ex}");
+        }
+    }
+
+    private void OnMcpServerStateChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsMcpServerRunning));
+        OnPropertyChanged(nameof(McpServerLabel));
+        OnPropertyChanged(nameof(McpServerTooltip));
+
+        // The copy command is only available while the server runs.
+        WpfCommand.RaiseCanExecuteChanged();
     }
 
     private void OnRestore()

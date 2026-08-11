@@ -447,25 +447,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Cmd_AnalysisComplete", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   Looks up a localized string similar to SARIF report written to: {0}.
-        /// </summary>
-        public static string Cmd_SarifWritten {
-            get {
-                return ResourceManager.GetString("Cmd_SarifWritten", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Could not write the log file '{0}', continuing without it: {1}.
-        /// </summary>
-        public static string Cmd_LogFileNotWritable {
-            get {
-                return ResourceManager.GetString("Cmd_LogFileNotWritable", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Parser failures:.
         /// </summary>
@@ -474,7 +456,16 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Cmd_Failures", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not write the log file &apos;{0}&apos;, continuing without it: {1}.
+        /// </summary>
+        public static string Cmd_LogFileNotWritable {
+            get {
+                return ResourceManager.GetString("Cmd_LogFileNotWritable", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to The solution did not load cleanly (see parser failures above). The graph may be missing a few elements tied to those failures; rule results below still reflect everything else that did parse..
         /// </summary>
@@ -499,6 +490,15 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Cmd_RulesFileNotFound {
             get {
                 return ResourceManager.GetString("Cmd_RulesFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SARIF report written to: {0}.
+        /// </summary>
+        public static string Cmd_SarifWritten {
+            get {
+                return ResourceManager.GetString("Cmd_SarifWritten", resourceCulture);
             }
         }
         
@@ -1175,21 +1175,21 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Find outgoing Calls.
+        /// </summary>
+        public static string FindOutgoingCalls {
+            get {
+                return ResourceManager.GetString("FindOutgoingCalls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Find paths between selected
         ///Adds the shortest dependency paths between the selected code elements, including the connecting code elements that are not on the canvas yet. Searches both directions and expands each selection to its children, so two selected classes yield the call chain between their methods. Select at least two code elements..
         /// </summary>
         public static string FindPathsBetweenSelected {
             get {
                 return ResourceManager.GetString("FindPathsBetweenSelected", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Find outgoing Calls.
-        /// </summary>
-        public static string FindOutgoingCalls {
-            get {
-                return ResourceManager.GetString("FindOutgoingCalls", resourceCulture);
             }
         }
         
@@ -2248,6 +2248,102 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copy setup.
+        /// </summary>
+        public static string Mcp_CopySetup_Label {
+            get {
+                return ResourceManager.GetString("Mcp_CopySetup_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copies the command that registers this server with Claude Code, with the right scope and the port actually in use..
+        /// </summary>
+        public static string Mcp_CopySetup_Tooltip {
+            get {
+                return ResourceManager.GetString("Mcp_CopySetup_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MCP.
+        /// </summary>
+        public static string Mcp_Header {
+            get {
+                return ResourceManager.GetString("Mcp_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setup command copied. Run it in a terminal to register the server with Claude Code..
+        /// </summary>
+        public static string Mcp_SetupCopied {
+            get {
+                return ResourceManager.GetString("Mcp_SetupCopied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start MCP server.
+        /// </summary>
+        public static string Mcp_Start_Label {
+            get {
+                return ResourceManager.GetString("Mcp_Start_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MCP server running at {0}.
+        /// </summary>
+        public static string Mcp_Started {
+            get {
+                return ResourceManager.GetString("Mcp_Started", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MCP server could not be started on port {0}. The rest of the application is unaffected; only AI assistants cannot query the code graph. If the port is already in use, change McpServerPort in appsettings.json.
+        ///
+        ///{1}.
+        /// </summary>
+        public static string Mcp_StartFailed {
+            get {
+                return ResourceManager.GetString("Mcp_StartFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stop MCP server.
+        /// </summary>
+        public static string Mcp_Stop_Label {
+            get {
+                return ResourceManager.GetString("Mcp_Stop_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running at {0}
+        ///
+        ///Use &quot;Copy setup command&quot; to get the line that registers it with Claude Code. Stopping also frees the graph copy the server works on..
+        /// </summary>
+        public static string Mcp_Tooltip_Running {
+            get {
+                return ResourceManager.GetString("Mcp_Tooltip_Running", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open a local endpoint so an AI assistant can ask questions about the loaded code graph: who calls what, what depends on what, how two elements are connected.
+        ///
+        ///Nothing is reachable until you start it, and only from this machine. All queries are read-only..
+        /// </summary>
+        public static string Mcp_Tooltip_Stopped {
+            get {
+                return ResourceManager.GetString("Mcp_Tooltip_Stopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show contribution in file.
         /// </summary>
         public static string Menu_ShowFileContribution {
@@ -2273,7 +2369,7 @@ namespace CSharpCodeAnalyst.Resources {
                 return ResourceManager.GetString("Message_NoPathFound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Clear movement parent.
         /// </summary>

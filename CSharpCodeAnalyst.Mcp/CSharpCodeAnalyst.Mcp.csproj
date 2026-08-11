@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!--
+          Deliberately not net10.0-windows: this assembly must stay free of WPF so the tools can be
+          unit tested against a hand built CodeGraph, the same way the analyzers are.
+        -->
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!--
+          Core, not ModelContextProtocol.AspNetCore. The ASP.NET package brings a FrameworkReference to
+          Microsoft.AspNetCore.App, and that reference propagates through the ProjectReference in
+          CSharpCodeAnalyst.csproj into the application's runtimeconfig.json - whereupon the .NET host
+          refuses to start the executable unless the ASP.NET runtime is installed. A missing runtime
+          would cost the whole application, not just the MCP feature.
+
+          Core carries the protocol, the tool model and StreamableHttpServerTransport; the HTTP side is
+          System.Net.HttpListener from the base runtime. Keep it this way: pulling in the ASP.NET
+          package, even transitively, brings the framework requirement back.
+        -->
+        <PackageReference Include="ModelContextProtocol.Core" Version="2.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+    </ItemGroup>
+
+</Project>

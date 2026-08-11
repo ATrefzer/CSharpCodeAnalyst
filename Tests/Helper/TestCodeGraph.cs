@@ -24,10 +24,16 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
+    /// <summary>
+    ///     <paramref name="fullName" /> defaults to the id, which is all most tests need. Pass it where a
+    ///     test depends on the full name being the path down from the assembly, as the parser builds it -
+    ///     anything that searches or filters over a path does.
+    /// </summary>
     public CodeElement CreateClass(string id, CodeElement? parent = null, string? fullName = null,
         AccessLevel accessLevel = AccessLevel.Unknown)
     {
-        var element = new CodeElement(id, CodeElementType.Class, id, id, parent) { AccessLevel = accessLevel };
+        var element = new CodeElement(id, CodeElementType.Class, id, fullName ?? id, parent)
+            { AccessLevel = accessLevel };
         Link(parent, element);
         return element;
     }
@@ -91,10 +97,12 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
+    /// <summary>See <see cref="CreateClass" /> for when <paramref name="fullName" /> is worth passing.</summary>
     public CodeElement CreateMethod(string id, CodeElement? parent = null,
-        AccessLevel accessLevel = AccessLevel.Unknown)
+        AccessLevel accessLevel = AccessLevel.Unknown, string? fullName = null)
     {
-        var element = new CodeElement(id, CodeElementType.Method, id, id, parent) { AccessLevel = accessLevel };
+        var element = new CodeElement(id, CodeElementType.Method, id, fullName ?? id, parent)
+            { AccessLevel = accessLevel };
         Link(parent, element);
         return element;
     }

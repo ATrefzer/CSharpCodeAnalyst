@@ -17,6 +17,7 @@ https://github.com/microsoft/XamlBehaviorsWpf
 The following Microsoft packages are used in this project:
 
 Production Dependencies:
+- Microsoft.Extensions.AI.Abstractions
 - Microsoft.Extensions.Configuration
 - Microsoft.Extensions.Configuration.Binder
 - Microsoft.Extensions.Configuration.Json
@@ -70,6 +71,7 @@ locally under CSharpCodeAnalyst/Features/WebGraph/Web/lib:
 
 (The layered layout engine elkjs is EPL-2.0; see EPL-2.0-LICENSED-LIBRARIES.txt.)
 (The SVG export extension cytoscape-svg is GPL-3.0; see GPL-3.0-LICENSED-LIBRARIES.txt.)
+(The Model Context Protocol C# SDK is Apache-2.0; see APACHE-2.0-LICENSED-LIBRARIES.txt.)
 
 
 ================================================================================

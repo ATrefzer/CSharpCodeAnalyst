@@ -27,6 +27,12 @@ public class AppSettings
     /// </summary>
     public bool ShowOverviewOnImport { get; set; } = true;
 
+    /// <summary>
+    ///     TCP port for the MCP endpoint, bound to loopback only. Configurable because the default may
+    ///     already be taken - the client configuration has to name the same port.
+    /// </summary>
+    public int McpServerPort { get; set; } = 5178;
+
     public static string CleanupProjectFilters(string filterText)
     {
         char[] separators = [';', '\n', '\r'];
@@ -58,7 +64,8 @@ public class AppSettings
             IncludeExternalCode = this.IncludeExternalCode,
             SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
-            ShowOverviewOnImport = this.ShowOverviewOnImport
+            ShowOverviewOnImport = this.ShowOverviewOnImport,
+            McpServerPort = this.McpServerPort
         };
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.CodeGraph.Exploration;
@@ -7,9 +8,12 @@ using CSharpCodeAnalyst.CommandLine;
 using CSharpCodeAnalyst.Configuration;
 using CSharpCodeAnalyst.Features.AdvancedSearch;
 using CSharpCodeAnalyst.Persistence.Json;
+using CSharpCodeAnalyst.Resources;
 using CSharpCodeAnalyst.Features.Analyzers;
 using CSharpCodeAnalyst.Features.Graph;
 using CSharpCodeAnalyst.Features.Info;
+using CSharpCodeAnalyst.Features.Mcp;
+using CSharpCodeAnalyst.Mcp;
 using CSharpCodeAnalyst.Features.Refactoring;
 using CSharpCodeAnalyst.Features.Tree;
 using CSharpCodeAnalyst.Shared.Messages;
@@ -21,6 +25,8 @@ namespace CSharpCodeAnalyst;
 
 public partial class App
 {
+    private McpServerService? _mcpServerService;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
@@ -40,6 +46,12 @@ public partial class App
 
         // Faster debugging
         await LoadProjectFileFromCommandLineAsync(e);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _mcpServerService?.StopWithoutWaiting();
+        base.OnExit(e);
     }
 
     private async Task LoadProjectFileFromCommandLineAsync(StartupEventArgs e)
@@ -127,7 +139,13 @@ public partial class App
         var projectStorage = new JsonProjectStorage();
         var projectService = new ProjectService(projectStorage, uiNotification, userSettings);
 
-        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService, metricStore, externalContractStore);
+        // Hands the MCP server a copy of the loaded graph. Created unconditionally: it costs nothing
+        // until something asks it for a snapshot, and MainViewModel notifies it either way.
+        var mcpSnapshotProvider = new CodeGraphSnapshotProvider(Dispatcher);
+        var mcpServerService = new McpServerService(applicationSettings, mcpSnapshotProvider, uiNotification);
+        _mcpServerService = mcpServerService;
+
+        var viewModel = new MainViewModel(messaging, applicationSettings, userSettings, analyzerManager, refactoringService, projectService, metricStore, externalContractStore, mcpSnapshotProvider, mcpServerService);
         var graphViewModel = new GraphViewModel(graphViewState, explorer, messaging, applicationSettings, refactoringService);
         var treeViewModel = new TreeViewModel(messaging, refactoringService);
         var searchViewModel = new AdvancedSearchViewModel(messaging, refactoringService);

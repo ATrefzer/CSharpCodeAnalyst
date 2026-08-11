@@ -4,9 +4,9 @@ using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
 using CSharpCodeAnalyst.AnalyzerSdk.DynamicDataGrid.Contracts.TabularData;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
-using CSharpCodeAnalyst.AnalyzerSdk.Search;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
 using CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
+using CSharpCodeAnalyst.CodeGraph.Search;
 
 namespace CSharpCodeAnalyst.Analyzers.DeadCode.Presentation;
 

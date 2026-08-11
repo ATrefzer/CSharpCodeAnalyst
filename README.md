@@ -56,6 +56,7 @@ This builds a complete in-memory graph **model** of your solution including asse
 - **[Explore your codebase interactively](#explore-your-codebase)** –trace method calls, expand inheritance trees, and follow relationships on a visual canvas.
 - **[Export your graph](#export-your-graph)** — generate PlantUML, DGML, or PNG/SVG diagrams for your documentation.
 - **[Validate architectural rules](#validate-architectural-rules)** —  define custom rules (like DENY or ISOLATE) and automatically check them in the app or your CI pipeline.
+- **[Ask an AI assistant about your code](#ask-an-ai-assistant-about-your-code)** – start a local MCP server and let Claude Code or another assistant query the loaded graph.
 
 Besides the dependency graph tools, you can also analyze GIT history with the **History Tool**.
 
@@ -249,6 +250,18 @@ You can read more about the rules and  the limits here: [Dead Code](Documentatio
 
 The analysis is accessible via the Analyzer Ribbon, and the result is presented in a table on a separate tab.
 
+## Ask an AI assistant about your code
+
+C# Code Analyst can open a local MCP server, so an AI assistant like Claude Code can query the graph you currently have loaded.
+
+This answers questions that are hard to get from the source files alone: who calls a method transitively, what breaks if you change a class, how two types are connected. Grep finds text, the graph knows relationships.
+
+It works on whatever you have loaded, imported code included — the tools do not care which language the graph came from.
+
+The server is off by default. You start it via **Home → MCP → Start MCP server**, and it only runs while the application does. It listens on localhost only, and all tools are read-only.
+
+Here you can read how to set it up and what you can ask: [MCP Server](Documentation/mcp.md).
+
 ## Other languages
 
 The tool is built for C# (has its own Roslyn-based parser), but you can also import Java, C++, Python and Dart via external tools.
@@ -313,6 +326,9 @@ https://github.com/punker76/gong-wpf-dragdrop
 - Markdown rendering in the AI Advisor window is powered by **Markdig.Wpf** and **Markdig**.
 Copyright (c) Nicolas Musset and Alexandre Mutel. Licensed under BSD-2-Clause.
 https://github.com/Kryptos-FR/markdig.wpf / https://github.com/xoofx/markdig
+- The optional MCP server, which lets an AI assistant query the loaded code graph, is built on the
+**Model Context Protocol C# SDK** (`ModelContextProtocol.Core`), licensed under Apache-2.0.
+https://github.com/modelcontextprotocol/csharp-sdk
 - The dependency structure matrix on the DSM tab is the viewer from **DsmSuite**, licensed under
 GPL-3.0-or-later (same as this project) and originally MIT-licensed by jmuijsenberg. A modified
 subset of it is vendored under [ThirdParty/DsmSuite](ThirdParty/DsmSuite/).
