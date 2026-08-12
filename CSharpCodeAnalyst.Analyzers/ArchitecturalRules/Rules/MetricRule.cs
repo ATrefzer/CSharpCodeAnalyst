@@ -60,6 +60,7 @@ public abstract class MetricRule : RuleBase
     /// </summary>
     public double CreateBaselineThreshold(double actualValue)
     {
+        // Factor to move the comma BaselinePrecision places.
         var factor = Math.Pow(10, BaselinePrecision);
         return Math.Clamp(Math.Ceiling(actualValue * factor) / factor, MinThreshold, MaxThreshold);
     }

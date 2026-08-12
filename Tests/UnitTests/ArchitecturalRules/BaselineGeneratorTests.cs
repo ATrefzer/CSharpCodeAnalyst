@@ -37,7 +37,7 @@ public class BaselineGeneratorTests
 
         var (result, rulesText) = Run("DENY MyApp.Business.** -> MyApp.Data.**");
 
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, rulesText);
+        var baseline = BaselineGenerator.GenerateAllowRules(rulesText, result.Violations, _codeGraph);
 
         // The baseline freezes the exact full paths of the offending elements.
         Assert.That(baseline, Contains.Substring($"ALLOW {orderLogic.FullName} -> {repository.FullName}"));
@@ -59,7 +59,7 @@ public class BaselineGeneratorTests
         Assert.That(result.Violations, Has.Count.EqualTo(1), "sanity: one rule, two relationships");
 
         // Accept the baseline and re-run with the extended rule set.
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
         var newRulesText = originalRules + Environment.NewLine + baseline;
 
         var (afterResult, _) = Run(newRulesText);
@@ -79,7 +79,7 @@ public class BaselineGeneratorTests
 
         var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
         var newRulesText = originalRules + Environment.NewLine + baseline;
 
         // A NEW violation appears later (a second class starts using the data layer).
@@ -105,11 +105,11 @@ public class BaselineGeneratorTests
         var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
 
-        var firstBaseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var firstBaseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
         var textAfterFirst = originalRules + Environment.NewLine + firstBaseline;
 
         // Running the generator again against the already-baselined text must add nothing.
-        var secondBaseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, textAfterFirst);
+        var secondBaseline = BaselineGenerator.GenerateAllowRules(textAfterFirst, result.Violations, _codeGraph);
 
         Assert.That(secondBaseline, Is.Empty);
     }
@@ -126,7 +126,7 @@ public class BaselineGeneratorTests
         var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
 
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
 
         Assert.That(baseline, Contains.Substring("// DENY MyApp.Business.** -> MyApp.Data.**"));
     }
@@ -134,7 +134,7 @@ public class BaselineGeneratorTests
     [Test]
     public void Baseline_NoViolations_ReturnsEmpty()
     {
-        var baseline = BaselineGenerator.GenerateAllowRules([], _codeGraph, "");
+        var baseline = BaselineGenerator.GenerateAllowRules("", [], _codeGraph);
         Assert.That(baseline, Is.Empty);
     }
 
@@ -161,7 +161,7 @@ public class BaselineGeneratorTests
         Assert.That(result.Violations.Sum(v => v.ViolatingRelationships.Count), Is.EqualTo(2),
             "sanity: both overloads violate");
 
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
         var (afterResult, _) = Run(originalRules + Environment.NewLine + baseline);
 
         Assert.That(afterResult.Violations, Is.Empty, "the single ALLOW line must cover every overload");
@@ -187,7 +187,7 @@ public class BaselineGeneratorTests
         var (result, _) = Run(originalRules);
         Assert.That(result.Violations.Sum(v => v.ViolatingRelationships.Count), Is.EqualTo(2), "sanity");
 
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
 
         Assert.Multiple(() =>
         {
@@ -222,7 +222,7 @@ public class BaselineGeneratorTests
 
         var originalRules = "DENY MyApp.Business.** -> MyApp.Data.**";
         var (result, _) = Run(originalRules);
-        var baseline = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, originalRules);
+        var baseline = BaselineGenerator.GenerateAllowRules(originalRules, result.Violations, _codeGraph);
         Assert.That(baseline, Contains.Substring("ALLOW MyApp.Business.Cache -> MyApp.Data.Repository"));
 
         // The generic namesake starts violating afterwards - and is not reported.

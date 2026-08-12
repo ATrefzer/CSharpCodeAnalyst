@@ -1,7 +1,6 @@
 ﻿IMPROVEMENTS
 ---------------------
 
-- Preferred Editor
 - Root folder is quite crowded. Move to sub folders.
 - Track calls should add also Uses relationships. They are called black vs blue anyway.
   This way we see which method define a lambda.

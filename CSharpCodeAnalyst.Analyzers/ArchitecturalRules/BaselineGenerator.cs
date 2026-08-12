@@ -7,9 +7,9 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 ///     Turns the violations of a rule analysis into ALLOW rules ("baseline").
 ///     Accepting the current state as a baseline lets a team introduce rules into an existing
 ///     code base: every current violation is frozen as an explicit exception, so only *new*
-///     violations are reported from then on.
-///     A violated metric rule cannot be excepted; its threshold is relaxed to the measured value
-///     instead (see <see cref="RelaxMetricRules" />).
+///     violations are reported from now on.
+///     A violated metric rule cannot be excepted. Its threshold is relaxed to the measured value
+///     instead (see <see cref="RelaxSystemMetricRules" />).
 /// </summary>
 public static class BaselineGenerator
 {
@@ -23,23 +23,19 @@ public static class BaselineGenerator
     ///         baseline but a repeal.
     ///     </para>
     /// </summary>
-    public static string RelaxMetricRules(string rulesText, IReadOnlyList<Violation> violations)
+    public static string RelaxSystemMetricRules(string rulesText, IReadOnlyList<Violation> violations)
     {
-        var replacements = new Dictionary<string, string>();
-        foreach (var violation in violations)
-        {
-            if (violation.Rule is SystemMetricRule metricRule && violation.MetricValue.HasValue)
-            {
-                var threshold = metricRule.CreateBaselineThreshold(violation.MetricValue.Value);
-                replacements[violation.Rule.RuleText] = metricRule.CreateRuleText(threshold);
-            }
-        }
-
+        var replacements = CreateSystemMetricReplacements(violations);
         if (replacements.Count == 0)
         {
             return rulesText;
         }
 
+        return Replace(rulesText, replacements);
+    }
+
+    private static string Replace(string rulesText, Dictionary<string, string> replacements)
+    {
         var lines = rulesText.Split('\n');
         for (var i = 0; i < lines.Length; i++)
         {
@@ -54,16 +50,28 @@ public static class BaselineGenerator
         return string.Join("\n", lines);
     }
 
+    private static Dictionary<string, string> CreateSystemMetricReplacements(IReadOnlyList<Violation> violations)
+    {
+        var replacements = new Dictionary<string, string>();
+        foreach (var violation in violations)
+        {
+            if (violation is { Rule: SystemMetricRule metricRule, MetricValue: not null })
+            {
+                var threshold = metricRule.CreateBaselineThreshold(violation.MetricValue.Value);
+                replacements[violation.Rule.RuleText] = metricRule.CreateRuleText(threshold);
+            }
+        }
+
+        return replacements;
+    }
+
     /// <summary>
     ///     Builds the ALLOW lines that suppress every given violation. Each violating relationship
     ///     becomes one exact "ALLOW source -> target" line, grouped by the originating rule.
     ///     ALLOW pairs already present in <paramref name="existingRulesText" /> are skipped, so
     ///     the operation is idempotent. Returns an empty string when there is nothing to add.
     /// </summary>
-    public static string GenerateAllowRules(
-        IReadOnlyList<Violation> violations,
-        CodeGraph.Graph.CodeGraph graph,
-        string existingRulesText)
+    public static string GenerateAllowRules(string existingRulesText, IReadOnlyList<Violation> violations, CodeGraph.Graph.CodeGraph graph)
     {
         var existingAllows = GetExistingAllowPairs(existingRulesText);
         var alreadyAdded = new HashSet<(string, string)>();
@@ -71,8 +79,7 @@ public static class BaselineGenerator
 
         foreach (var violation in violations)
         {
-            // A cycle cannot be excepted edge by edge: ALLOW does not apply to NOCYCLES, so
-            // freezing its relationships would add dead exceptions and leave the rule violated.
+            // A cycle cannot be excepted edge by edge: ALLOW does not apply to NOCYCLES
             if (violation.Rule is NoCyclesRule)
             {
                 continue;
@@ -97,14 +104,16 @@ public static class BaselineGenerator
                 lines.Add($"ALLOW {source.FullName} -> {target.FullName}");
             }
 
-            if (lines.Count > 0)
+            if (lines.Count <= 0)
             {
-                // Optional origin comment: which rule these exceptions belong to.
-                sb.AppendLine($"// {violation.Rule.RuleText}");
-                foreach (var line in lines)
-                {
-                    sb.AppendLine(line);
-                }
+                continue;
+            }
+
+            // Origin comment: which rule these exceptions belong to.
+            sb.AppendLine($"// {violation.Rule.RuleText}");
+            foreach (var line in lines)
+            {
+                sb.AppendLine(line);
             }
         }
 

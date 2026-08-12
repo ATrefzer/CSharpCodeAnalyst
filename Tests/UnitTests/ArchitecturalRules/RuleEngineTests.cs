@@ -180,7 +180,7 @@ public class RuleEngineTests
         const string rulesText = "// A comment\nMAXCYCLICITY = 10\n";
         var violations = Execute(rulesText).Violations;
 
-        var relaxed = BaselineGenerator.RelaxMetricRules(rulesText, violations);
+        var relaxed = BaselineGenerator.RelaxSystemMetricRules(rulesText, violations);
 
         Assert.That(relaxed, Is.EqualTo("// A comment\nMAXCYCLICITY = 50\n"));
         Assert.That(Execute(relaxed).Violations, Is.Empty);
@@ -203,7 +203,7 @@ public class RuleEngineTests
         b.Relationships.Add(new Relationship(b.Id, a.Id, RelationshipType.Uses));
 
         const string rulesText = "MAXCYCLICITY = 10";
-        var relaxed = BaselineGenerator.RelaxMetricRules(rulesText, Execute(rulesText).Violations);
+        var relaxed = BaselineGenerator.RelaxSystemMetricRules(rulesText, Execute(rulesText).Violations);
 
         Assert.That(relaxed, Is.EqualTo("MAXCYCLICITY = 66.67"));
         Assert.That(Execute(relaxed).Violations, Is.Empty);
@@ -297,7 +297,7 @@ public class RuleEngineTests
         CreateGraphWithMethodMetrics();
 
         const string rulesText = "MAXLINES = 50";
-        var relaxed = BaselineGenerator.RelaxMetricRules(rulesText, Execute(rulesText).Violations);
+        var relaxed = BaselineGenerator.RelaxSystemMetricRules(rulesText, Execute(rulesText).Violations);
 
         Assert.That(relaxed, Is.EqualTo(rulesText));
     }
@@ -647,7 +647,7 @@ public class RuleEngineTests
         var result = Execute("NOCYCLES MyApp.Domain");
         Assert.That(result.Violations, Has.Count.EqualTo(1));
 
-        var allowRules = BaselineGenerator.GenerateAllowRules(result.Violations, _codeGraph, string.Empty);
+        var allowRules = BaselineGenerator.GenerateAllowRules(string.Empty, result.Violations, _codeGraph);
 
         Assert.That(allowRules, Is.Empty);
     }

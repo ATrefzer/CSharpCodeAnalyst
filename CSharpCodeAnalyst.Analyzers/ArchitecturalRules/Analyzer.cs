@@ -234,8 +234,8 @@ public class Analyzer : IAnalyzer
         }
 
         // A violated system metric rule is relaxed in place, the remaining violations become ALLOW lines.
-        var relaxed = BaselineGenerator.RelaxMetricRules(_openDialog.RulesText, _lastViolations);
-        var allowRules = BaselineGenerator.GenerateAllowRules(_lastViolations, _currentGraph, relaxed);
+        var relaxed = BaselineGenerator.RelaxSystemMetricRules(_openDialog.RulesText, _lastViolations);
+        var allowRules = BaselineGenerator.GenerateAllowRules(relaxed, _lastViolations, _currentGraph);
 
         var nothingToFreeze = string.IsNullOrEmpty(allowRules) && relaxed == _openDialog.RulesText;
         if (nothingToFreeze)

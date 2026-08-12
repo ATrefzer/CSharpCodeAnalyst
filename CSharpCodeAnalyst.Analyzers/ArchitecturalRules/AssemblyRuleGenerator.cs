@@ -5,18 +5,15 @@ namespace CSharpCodeAnalyst.Analyzers.ArchitecturalRules;
 
 /// <summary>
 ///     Generates a starting set of architectural rules from the current code graph, on assembly
-///     level. It simply freezes today's dependency structure - no implicit assumptions: every
+///     level. It simply freezes today's dependency structure. Every
 ///     internal assembly may only depend on exactly the assemblies it depends on right now.
-///
 ///     Per internal assembly:
 ///     <list type="bullet">
 ///         <item>no dependency on another internal assembly - <c>ISOLATE</c></item>
 ///         <item>otherwise a <c>RESTRICT</c> to each assembly it currently depends on</item>
 ///     </list>
-///
-///     The generated rules validate clean against the current graph; only *new* inter-assembly
-///     dependencies get reported afterwards. Only internal assemblies are considered. Imported
-///     external code is no concern: RESTRICT and ISOLATE ignore dependencies to external elements.
+///     The generated rules validate clean against the current graph
+///     External code is no concern: RESTRICT and ISOLATE ignore dependencies to external elements.
 /// </summary>
 public static class AssemblyRuleGenerator
 {
@@ -28,28 +25,13 @@ public static class AssemblyRuleGenerator
             .ToList();
 
         // For each assembly the set of internal assemblies it depends on.
-        var dependsOn = assemblies.ToDictionary(a => a.Id, _ => new HashSet<string>());
+        var dependsOn = CalculateDependenciesBetweenAssemblies(graph, assemblies);
 
-        foreach (var relationship in graph.GetAllRelationships().Where(r => r.Type.IsDependency()))
-        {
-            if (!graph.Nodes.TryGetValue(relationship.SourceId, out var source) ||
-                !graph.Nodes.TryGetValue(relationship.TargetId, out var target))
-            {
-                continue;
-            }
+        return GenerateRules(graph, assemblies, dependsOn);
+    }
 
-            var sourceAssembly = AssemblyOf(source);
-            var targetAssembly = AssemblyOf(target);
-            if (sourceAssembly == null || targetAssembly == null ||
-                sourceAssembly.IsExternal || targetAssembly.IsExternal ||
-                sourceAssembly.Id == targetAssembly.Id)
-            {
-                continue;
-            }
-
-            dependsOn[sourceAssembly.Id].Add(targetAssembly.Id);
-        }
-
+    private static string GenerateRules(CodeGraph.Graph.CodeGraph graph, List<CodeElement> assemblies, Dictionary<string, HashSet<string>> dependsOn)
+    {
         var sb = new StringBuilder();
         foreach (var assembly in assemblies)
         {
@@ -62,8 +44,10 @@ public static class AssemblyRuleGenerator
             }
 
             // Freeze the current dependencies: the assembly may only depend on exactly these.
-            var targets = deps.Select(id => graph.Nodes[id])
+            var targets = deps
+                .Select(id => graph.Nodes[id])
                 .OrderBy(t => t.FullName, StringComparer.OrdinalIgnoreCase);
+
             foreach (var target in targets)
             {
                 sb.AppendLine($"RESTRICT {assembly.FullName}.** -> {target.FullName}.**");
@@ -73,19 +57,33 @@ public static class AssemblyRuleGenerator
         return sb.ToString();
     }
 
-    private static CodeElement? AssemblyOf(CodeElement element)
+    /// <summary>
+    ///     Calculates the mapping: Assembly id -> {Assembly ids}
+    /// </summary>
+    private static Dictionary<string, HashSet<string>> CalculateDependenciesBetweenAssemblies(CodeGraph.Graph.CodeGraph graph, List<CodeElement> assemblies)
     {
-        var current = element;
-        while (current != null)
+        var dependsOn = assemblies.ToDictionary(a => a.Id, _ => new HashSet<string>());
+
+        foreach (var relationship in graph.GetAllRelationships().Where(r => r.Type.IsDependency()))
         {
-            if (current.ElementType == CodeElementType.Assembly)
+            if (!graph.Nodes.TryGetValue(relationship.SourceId, out var source) ||
+                !graph.Nodes.TryGetValue(relationship.TargetId, out var target))
             {
-                return current;
+                continue;
             }
 
-            current = current.Parent;
+            var sourceAssembly = source.AssemblyOf();
+            var targetAssembly = target.AssemblyOf();
+            if (sourceAssembly == null || targetAssembly == null ||
+                sourceAssembly.IsExternal || targetAssembly.IsExternal ||
+                sourceAssembly.Id == targetAssembly.Id)
+            {
+                continue;
+            }
+
+            dependsOn[sourceAssembly.Id].Add(targetAssembly.Id);
         }
 
-        return null;
+        return dependsOn;
     }
 }

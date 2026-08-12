@@ -15,8 +15,27 @@ public static class CodeElementExtensions
     /// <inheritdoc cref="IsType(CodeElement)" />
     public static bool IsType(this CodeElementType elementType)
     {
-        return elementType is CodeElementType.Class or CodeElementType.Interface
-            or CodeElementType.Struct or CodeElementType.Record or CodeElementType.Enum
-            or CodeElementType.Delegate;
+        return elementType is CodeElementType.Class or
+            CodeElementType.Interface or
+            CodeElementType.Struct or
+            CodeElementType.Record or
+            CodeElementType.Enum or
+            CodeElementType.Delegate;
+    }
+
+    public static CodeElement? AssemblyOf(this CodeElement element)
+    {
+        var current = element;
+        while (current != null)
+        {
+            if (current.ElementType == CodeElementType.Assembly)
+            {
+                return current;
+            }
+
+            current = current.Parent;
+        }
+
+        return null;
     }
 }
