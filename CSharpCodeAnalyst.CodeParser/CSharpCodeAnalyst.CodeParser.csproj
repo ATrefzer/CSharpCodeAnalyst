@@ -37,7 +37,7 @@
           project files to find their XAML items. The assemblies are loaded at runtime from the installed
           SDK by MSBuild.Locator - see the note in Directory.Build.props for why they must not land in bin.
         -->
-        <PackageReference Include="Microsoft.Build" Version="18.8.2">
+        <PackageReference Include="Microsoft.Build" Version="18.9.6">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
