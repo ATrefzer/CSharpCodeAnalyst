@@ -803,11 +803,11 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Members.
+        ///   Looks up a localized string similar to Methods.
         /// </summary>
-        public static string Column_TypeCohesion_Members {
+        public static string Column_TypeCohesion_Methods {
             get {
-                return ResourceManager.GetString("Column_TypeCohesion_Members", resourceCulture);
+                return ResourceManager.GetString("Column_TypeCohesion_Methods", resourceCulture);
             }
         }
         

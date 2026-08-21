@@ -79,6 +79,16 @@ Score is the PageRank value normalized so the **average type scores 1.0**:
 - **Score = 5.0** → five times more central than the average type.
 - **Score < 1.0** → below-average centrality (most leaf types).
 
+### Constructors are left out
+
+A constructor assigns most of the fields of a class. In the member graph that makes it a hub that touches everything: it connects every field it writes to every other one, and through them all the methods that read them. **A single constructor is enough to make almost any class report one partition.** It hides exactly the splits this analysis is looking for.
+
+Constructors are therefore removed from the member graph before partitioning, together with the static constructor and the finalizer. None of them is behavior; they exist to bring an object into a valid state or to tear it down. For the same reason they don't count towards the four methods a class needs to be analyzed: nine constructor overloads and one method is not a class with behavior.
+
+This has one consequence worth knowing. State that *only* the constructor touches is now connected to nothing: a dependency the constructor stores but no method reads, a field left over from an earlier design, and — most often — properties that exist for the outside world rather than for the class itself. A view model whose properties are read by XAML bindings is the typical case: nothing *inside* the class touches them.
+
+Such members hold no behavior, so they say nothing about how the class decomposes and are not counted under *Partitions*. They are not hidden either: the *Partitions* tab collects all of them in a single row at the end, **State not used by any method of this class**. Worth a glance — sometimes it is dead state, more often it is simply the data surface the class exposes.
+
 ### Reading the numbers
 
 1. Sort by **Score** (default) to find the types the rest of the code leans on most. These carry the most weight — the highest payoff to understand and the highest risk to change. These foundational types are the system's vocabulary and a natural starting point.
@@ -121,9 +131,11 @@ Available via *Analyzers → Type Cohesion*. The result is a sortable table list
 | Column     | Meaning                                                      |
 | ---------- | ------------------------------------------------------------ |
 | Class      | The full path to the class.                                  |
-| Partitions | Into how many independent groups the class's members fall.   |
-| Members    | Number of direct members in the partition — size / priority context. |
-| Largest %  | Share of the members that sit in the biggest partition (see below). |
+| Partitions | Into how many independent groups the class's behavior falls. |
+| Methods    | Number of methods the split is about — size / priority context. Constructors are not counted, see below. |
+| Largest %  | Share of the methods that sit in the biggest partition (see below). |
+
+All three numbers are about **behavior**. A class can hold a lot of state and still have almost nothing to separate, and it is the behavior that has to be moved when you split it — so the methods are what is counted, not the members.
 
 Double-click a row to open its partitions in the *Partitions* tab.
 
@@ -138,7 +150,7 @@ If a class has multiple partitions, it often means the class has several respons
 
 This is the connected-components view of cohesion (LCOM4).
 
-Only **classes** are analyzed, not structs, records, or interfaces. Pure data holders are skipped. If a class has fewer than two methods, it doesn't have enough behavior for cohesion to matter, and would otherwise appear maximally "incohesive" (each field would be its own partition).
+Only **classes** are analyzed, not structs, records, or interfaces. Pure data holders are skipped. A class needs at least four methods to be looked at — constructors don't count, see below. With less behavior than that, cohesion doesn't mean much, and the class would appear maximally "incohesive" (each field would be its own partition).
 
 ### Base classes are folded in
 
@@ -150,30 +162,32 @@ So, base-class members are included as **connectors**: they link the class's own
 
 **Partitions** shows you if a class can be split up, while **Largest %** tells you if it's worth splitting. Two classes with the same number of partitions can be very different:
 
-| Class | Partitions | Members | Largest % | Reading                                                      |
+| Class | Partitions | Methods | Largest % | Reading                                                      |
 | ----- | ---------- | ------- | --------- | ------------------------------------------------------------ |
-| X     | 2          | 19      | 53 %      | 10 vs 9 — a class that contains two distinct responsibilities. |
-| Y     | 2          | 19      | 95 %      | 18 vs 1 — one cohesive blob plus a stray helper.             |
+| X     | 2          | 19      | 53 %      | 10 vs 9 methods — a class that contains two distinct responsibilities. |
+| Y     | 2          | 19      | 95 %      | 18 vs 1 method — one cohesive blob plus a stray helper.      |
 
-**Largest %** is the size of the biggest partition divided by the total number of members:
+**Largest %** is the number of methods in the biggest partition divided by the total number of methods. Fields and properties ride along inside the partitions — they are the state the methods are grouped by — but they are not what is being counted here:
 
 - If **Largest %** is close to 100%, there is one main group and only a few outliers. Splitting is easy (just remove one method), so it's a low priority.
 - If **Largest %** is close to 1 divided by the number of partitions (evenly divided), the class splits into balanced, separate responsibilities. This is a strong candidate for refactoring and should be a high priority.
 
 Look at all three columns together:
 
-- **Many Partitions + many Members + low Largest %** → the worst offenders: a big class that genuinely breaks into several balanced, separate parts. Sort by **Largest % ascending** to bring these to the top, and use **Members** to pick the higher-priority candidates among them.
+- **Many Partitions + many Methods + low Largest %** → the worst offenders: a big class that genuinely breaks into several balanced, separate parts. Sort by **Largest % ascending** to bring these to the top, and use **Methods** to pick the higher-priority candidates among them.
 - **High Partitions + high Largest %** → the opposite shape: one solid core and many tiny, unrelated helpers. You can peel these off one at a time rather than doing a big split.
-- **Few Members with two or more partitions** means it's low stakes. The class is technically incoherent, but it's too small to worry about.
+- **Few Methods with two or more partitions** means it's low stakes. The class is technically incoherent, but it's too small to worry about. A class with 30 members and 4 methods is a data holder with a bit of logic, not a split candidate.
 
 ### Drilling into the partitions
 
-Double-click a row (or right-click and choose *Show partitions*) to open the specific groups in the *Partitions* tab. This lets you see right away which members would go where.
+Double-click a row (or right-click and choose *Show partitions*) to open the specific groups in the *Partitions* tab. This lets you see right away which members would go where. The groups are the ones the *Partitions* column counted, followed by the single **State not used by any method of this class** row described above.
 
 ### When a god class still shows one partition
 
 A good example is a WPF/MVVM view model. Each observable property setter calls the same 
 `OnPropertyChanged` helper, so all of them are linked through that one method. On top of that, most handlers read the same infrastructure fields — a message bus, a UI notification service, a busy state flag. Those shared members act as connectors among all features. The result: a 1000-line view model with a dozen unrelated commands can report a **single partition** even though it clearly does many separate things.
+
+The constructor used to be the most reliable hub of them all; it is excluded now (see above), so what is left are the hubs that are genuinely behavior.
 
 So, a single partition only shows high structural cohesion. This means no group of members is *structurally* disconnected and pervasive plumbing prevents that almost by design. When you know a class is large and does many unrelated things but still shows one partition, it's probably a hub. Look for a member that is called by almost everything (like `OnPropertyChanged`) or reads (like a shared service).
 

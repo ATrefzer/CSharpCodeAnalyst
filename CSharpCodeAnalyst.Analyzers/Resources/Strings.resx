@@ -346,8 +346,8 @@ Lower is better. 0% means the system is a cleanly layered, acyclic graph.</value
     <data name="Column_TypeCohesion_Partitions" xml:space="preserve">
     <value>Partitions</value>
   </data>
-    <data name="Column_TypeCohesion_Members" xml:space="preserve">
-    <value>Members</value>
+    <data name="Column_TypeCohesion_Methods" xml:space="preserve">
+    <value>Methods</value>
   </data>
     <data name="Column_TypeCohesion_LargestPartition" xml:space="preserve">
     <value>Largest %</value>

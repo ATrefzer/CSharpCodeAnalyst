@@ -107,6 +107,17 @@ public class TestCodeGraph : CodeGraph
         return element;
     }
 
+    /// <summary>
+    ///     A constructor. The parser gives every constructor of a type the same name (".ctor"), only
+    ///     the id stays unique - which is what makes them recognizable as lifecycle members.
+    /// </summary>
+    public CodeElement CreateConstructor(string id, CodeElement? parent = null)
+    {
+        var element = new CodeElement(id, CodeElementType.Method, ".ctor", id, parent);
+        Link(parent, element);
+        return element;
+    }
+
     /// <summary>A method from outside the solution (member of a framework type).</summary>
     public CodeElement CreateExternalMethod(string id, CodeElement? parent = null)
     {

@@ -29,3 +29,5 @@ The result is shown in the Partitions Tab.
 
 
 You can see that this class can fall apart in three independent groups of code elements. This can give you a hint what functionality you can extract from the class.
+
+Constructors are not part of the groups. A constructor writes most of the fields, so it would connect everything to everything and the class would always look like one group. See [Metrics](Metrics.md) for what that means for the numbers.

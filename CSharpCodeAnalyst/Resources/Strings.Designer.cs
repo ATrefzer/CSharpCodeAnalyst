@@ -2454,6 +2454,24 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to State not used by any method of this class.
+        /// </summary>
+        public static string Partition_DetachedStateHeader {
+            get {
+                return ResourceManager.GetString("Partition_DetachedStateHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partition {0}.
+        /// </summary>
+        public static string Partition_Header {
+            get {
+                return ResourceManager.GetString("Partition_Header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Contains {0} code elements.
         /// </summary>
         public static string Partition_Description {
