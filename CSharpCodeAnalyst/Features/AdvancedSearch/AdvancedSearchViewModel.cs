@@ -50,6 +50,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
         JumpToCodeCommand = new WpfCommand<SearchItemViewModel>(JumpToCode, CanJumpToCode);
         SelectAllCommand = new WpfCommand(SelectAll);
         DeselectAllCommand = new WpfCommand(DeselectAll);
+        DeselectAllEverywhereCommand = new WpfCommand(DeselectAllEverywhere);
 
         SetMovementTargetCommand = new WpfCommand<SearchItemViewModel>(RefactoringSetMovementTarget, RefactoringCanSetMovementTarget);
         MoveSelectedCommand = new WpfCommand(RefactoringMoveCodeElement, RefactoringCanMoveCodeElement);
@@ -96,6 +97,7 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     public ICommand JumpToCodeCommand { get; }
     public ICommand SelectAllCommand { get; }
     public ICommand DeselectAllCommand { get; }
+    public ICommand DeselectAllEverywhereCommand { get; }
     public ICommand SetMovementTargetCommand { get; }
     public ICommand MoveSelectedCommand { get; }
 
@@ -231,6 +233,18 @@ public sealed class AdvancedSearchViewModel : INotifyPropertyChanged
     private void DeselectAll()
     {
         foreach (var item in FilteredItems)
+        {
+            item.IsSelected = false;
+        }
+    }
+
+    /// <summary>
+    ///     Clears the selection of all items, also the ones currently filtered out.
+    ///     Without this the user cannot get rid of a selection made before refining the search.
+    /// </summary>
+    private void DeselectAllEverywhere()
+    {
+        foreach (var item in AllItems)
         {
             item.IsSelected = false;
         }

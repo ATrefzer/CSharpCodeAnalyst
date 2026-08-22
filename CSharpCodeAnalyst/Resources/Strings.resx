@@ -1049,6 +1049,9 @@ Use "Copy setup command" to get the line that registers it with Claude Code. Sto
   <data name="DeselectAllVisible_Label" xml:space="preserve">
     <value>Deselect all visible</value>
   </data>
+  <data name="DeselectAllEverywhere_Label" xml:space="preserve">
+    <value>Deselect all (including hidden)</value>
+  </data>
   <data name="Cycle_Name" xml:space="preserve">
     <value>Cycle name</value>
   </data>

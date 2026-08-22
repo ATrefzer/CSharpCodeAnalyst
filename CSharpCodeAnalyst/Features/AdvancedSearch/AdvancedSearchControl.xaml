@@ -66,6 +66,8 @@
                               Command="{Binding SelectAllCommand}" />
                     <MenuItem Header="{x:Static resources:Strings.DeselectAllVisible_Label}"
                               Command="{Binding DeselectAllCommand}" />
+                    <MenuItem Header="{x:Static resources:Strings.DeselectAllEverywhere_Label}"
+                              Command="{Binding DeselectAllEverywhereCommand}" />
                     <Separator />
 
                     <MenuItem Header="{x:Static resources:Strings.AddSelectedToGraph_Label}"

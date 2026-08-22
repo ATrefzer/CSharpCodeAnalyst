@@ -752,6 +752,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deselect all (including hidden).
+        /// </summary>
+        public static string DeselectAllEverywhere_Label {
+            get {
+                return ResourceManager.GetString("DeselectAllEverywhere_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deselect all visible.
         /// </summary>
         public static string DeselectAllVisible_Label {
