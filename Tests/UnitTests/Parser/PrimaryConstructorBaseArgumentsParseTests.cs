@@ -4,11 +4,10 @@ namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
 ///     Arguments of a primary-constructor base call: "class Derived() : Base(Helper.DefaultSize())".
-///     Type declarations have no body walk, and the primary constructor has no method element, so the
-///     argument expressions in the base list are never analyzed. For a classic constructor the same
-///     arguments ARE captured (the constructor initializer is part of the walked constructor declaration) -
-///     the fixture asserts both to document the asymmetry. The missing edges are anchored on the type
-///     element, consistent with how primary-constructor parameter types are handled.
+///     A primary constructor is an element of its own, and its "body" is the argument list of the base
+///     clause - a type declaration has no body walk otherwise. The fixture asserts the classic form
+///     next to it: the two used to differ (the primary form anchored its edges on the type), and the
+///     point of this fixture is now that they no longer do.
 /// </summary>
 [TestFixture]
 public class PrimaryConstructorBaseArgumentsParseTests : InMemoryParseTestBase
@@ -58,6 +57,20 @@ public class PrimaryConstructorBaseArgumentsParseTests : InMemoryParseTestBase
     [Test]
     public void PrimaryConstructorBaseArguments_AreDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Derived -> Helper.DefaultSize"));
+        // On the constructor, exactly like the classic form above - not on the type.
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Derived..ctor -> Helper.DefaultSize"));
+    }
+
+    [Test]
+    public void ThePrimaryConstructorCallsTheBaseConstructor()
+    {
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Derived..ctor -> Base..ctor"));
+    }
+
+    [Test]
+    public void TheTypeItself_NoLongerCarriesTheConstructorsEdges()
+    {
+        // The workaround that anchored them there is gone.
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Not.Contain("Derived -> Helper.DefaultSize"));
     }
 }

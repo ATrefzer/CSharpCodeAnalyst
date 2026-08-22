@@ -106,16 +106,33 @@ public class RecordsAndStructsParseTests
 
         Assert.Multiple(() =>
         {
-            // Positional record params and class primary-ctor params are Uses on the type.
-            Assert.That(Has(recordA, recordB, RelationshipType.Uses), Is.True);
-            Assert.That(Has(recordB, recordA, RelationshipType.Uses), Is.True);
-            Assert.That(Has(Node("Inventory", CodeElementType.Class), Node("Warehouse", CodeElementType.Class),
-                RelationshipType.Uses), Is.True);
+            // The constructor is an element now, so the parameter types sit on it rather than on the
+            // type - the workaround that anchored them one level up is gone. Cycle detection and the
+            // layer rules are unaffected: member edges are lifted to the containing type.
+            Assert.That(Has(Node(".ctor", CodeElementType.Method, "RecordA"), recordB, RelationshipType.Uses), Is.True);
+            Assert.That(Has(Node(".ctor", CodeElementType.Method, "RecordB"), recordA, RelationshipType.Uses), Is.True);
+            Assert.That(Has(Node(".ctor", CodeElementType.Method, "Inventory"),
+                Node("Warehouse", CodeElementType.Class), RelationshipType.Uses), Is.True);
+
+            // A positional parameter also declares a property, which carries the same dependency.
+            Assert.That(Has(Node("RecordB", CodeElementType.Property, "RecordA"), recordB, RelationshipType.Uses), Is.True);
 
             // The synthesized IEquatable<Self> of a record must not create a self-reference.
             Assert.That(Has(recordA, recordA, RelationshipType.Uses), Is.False);
             Assert.That(Has(recordB, recordB, RelationshipType.Uses), Is.False);
         });
+    }
+
+    [Test]
+    public void EveryPrimaryConstructor_IsAnElementMarkedAsOne()
+    {
+        var constructors = _graph.Nodes.Values
+            .Where(n => n.MemberRole == MemberRole.Constructor)
+            .Select(n => n.Parent!.Name)
+            .ToArray();
+
+        // RecordA, RecordB and Inventory each declare one; nothing else in the snippet does.
+        Assert.That(constructors, Is.EquivalentTo(new[] { "RecordA", "RecordB", "Inventory" }));
     }
 
     [Test]

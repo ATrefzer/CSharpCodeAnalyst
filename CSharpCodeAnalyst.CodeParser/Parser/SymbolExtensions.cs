@@ -278,29 +278,6 @@ public static class SymbolExtensions
             : property.DeclaringSyntaxReferences.Concat(otherPart.DeclaringSyntaxReferences);
     }
 
-    /// <summary>
-    ///     Returns true if the ctor is explicit and has a body. False if  implicit or primary ctor.
-    /// </summary>
-    public static bool IsExplicitConstructor(this IMethodSymbol ctor)
-    {
-        if (ctor.MethodKind != MethodKind.Constructor)
-        {
-            return false;
-        }
-
-        // Implicit parameterless ctor
-        if (ctor.IsImplicitlyDeclared)
-        {
-            return false;
-        }
-
-        // Normal ctor → ConstructorDeclarationSyntax.
-        // Primary ctor → TypeDeclarationSyntax (class, record, struct).
-        var isPrimary = ctor.DeclaringSyntaxReferences
-            .Any(r => r.GetSyntax() is TypeDeclarationSyntax);
-
-        return !isPrimary;
-    }
 
     /// <summary>
     ///     Returns the original definition of a symbol.

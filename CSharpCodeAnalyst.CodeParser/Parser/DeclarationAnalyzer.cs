@@ -52,7 +52,6 @@ internal class DeclarationAnalyzer
         {
             AnalyzeInheritanceRelationships(element, typeSymbol);
             AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
-            AnalyzePrimaryConstructorBaseArguments(solution, element, typeSymbol);
             RecordExternalInterfaceImplementations(typeSymbol);
             RecordIfNotifyingType(element, typeSymbol);
         }
@@ -67,6 +66,14 @@ internal class DeclarationAnalyzer
         else if (symbol is IFieldSymbol fieldSymbol)
         {
             AnalyzeFieldRelationships(solution, element, fieldSymbol);
+        }
+        else if (symbol is IParameterSymbol parameterSymbol)
+        {
+            // A captured primary constructor parameter - phase 1 gave it a Field element (see
+            // HierarchyAnalyzer.CreateCapturedParameterElement). There is no initializer to walk, only
+            // its own type, like any other field.
+            _builder.AddTypeRelationship(element, parameterSymbol.Type, RelationshipType.Uses,
+                parameterSymbol.GetSymbolLocations().FirstOrDefault());
         }
 
         // For all type of symbols check if decorated with an attribute.
@@ -107,45 +114,6 @@ internal class DeclarationAnalyzer
                 }
 
                 _bodyAnalyzer.AnalyzeMethodBody(enumElement, member.EqualsValue, semanticModel);
-            }
-        }
-    }
-
-    /// <summary>
-    ///     "class Derived() : Base(Helper.DefaultSize())". The primary constructor has no method element
-    ///     and type declarations have no body walk, so the base-call arguments are handled here, anchored
-    ///     on the type element (consistent with the primary-constructor parameter types). The call to the
-    ///     base constructor mirrors AnalyzeConstructorInitializer (explicit, internal constructors only).
-    /// </summary>
-    private void AnalyzePrimaryConstructorBaseArguments(Solution solution, CodeElement element, INamedTypeSymbol typeSymbol)
-    {
-        foreach (var syntaxReference in typeSymbol.DeclaringSyntaxReferences)
-        {
-            if (syntaxReference.GetSyntax() is not TypeDeclarationSyntax { BaseList: not null } typeDeclaration)
-            {
-                continue;
-            }
-
-            foreach (var baseType in typeDeclaration.BaseList.Types.OfType<PrimaryConstructorBaseTypeSyntax>())
-            {
-                var semanticModel = solution.GetDocument(baseType.SyntaxTree)?.GetSemanticModelAsync().Result;
-                if (semanticModel is null)
-                {
-                    continue;
-                }
-
-                if (semanticModel.GetSymbolInfo(baseType).Symbol is
-                    IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } baseConstructor)
-                {
-                    var normalizedConstructor = baseConstructor.NormalizeToOriginalDefinition();
-                    if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
-                    {
-                        _builder.AddCallsRelationship(element, normalizedConstructor, baseType.GetSyntaxLocation(), RelationshipAttribute.IsBaseCall);
-                    }
-                }
-
-                // The argument expressions run at construction - normal body semantics.
-                _bodyAnalyzer.AnalyzeMethodBody(element, baseType.ArgumentList, semanticModel);
             }
         }
     }
@@ -282,7 +250,53 @@ internal class DeclarationAnalyzer
                 continue;
             }
 
+            if (syntax is TypeDeclarationSyntax typeDeclaration)
+            {
+                // A primary constructor's declaring syntax is the type declaration. Walking that as a
+                // body would attribute every member of the type to the constructor, so only what the
+                // constructor actually runs is analyzed here.
+                AnalyzePrimaryConstructorBody(methodElement, typeDeclaration, semanticModel);
+                continue;
+            }
+
             _bodyAnalyzer.AnalyzeMethodBody(methodElement, syntax, semanticModel);
+        }
+    }
+
+    /// <summary>
+    ///     What a primary constructor runs: the argument list of its base-type clause
+    ///     ("class Derived(int n) : Base(Helper.Scale(n))"). The parameter types are already covered by
+    ///     the ordinary parameter handling, and the field/property initializers are anchored on those
+    ///     members themselves.
+    ///     <para>
+    ///         The call to the base constructor gets the same guard as
+    ///         <c>AnalyzeConstructorInitializer</c>: it is linked when the target is an element of the
+    ///         graph.
+    ///     </para>
+    /// </summary>
+    private void AnalyzePrimaryConstructorBody(CodeElement methodElement, TypeDeclarationSyntax typeDeclaration,
+        SemanticModel semanticModel)
+    {
+        if (typeDeclaration.BaseList is null)
+        {
+            return;
+        }
+
+        foreach (var baseType in typeDeclaration.BaseList.Types.OfType<PrimaryConstructorBaseTypeSyntax>())
+        {
+            if (semanticModel.GetSymbolInfo(baseType).Symbol is
+                IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } baseConstructor)
+            {
+                var normalizedConstructor = baseConstructor.NormalizeToOriginalDefinition();
+                if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
+                {
+                    _builder.AddCallsRelationship(methodElement, normalizedConstructor, baseType.GetSyntaxLocation(),
+                        RelationshipAttribute.IsBaseCall);
+                }
+            }
+
+            // The argument expressions run at construction - normal body semantics.
+            _bodyAnalyzer.AnalyzeMethodBody(methodElement, baseType.ArgumentList, semanticModel);
         }
     }
 
@@ -533,8 +547,6 @@ internal class DeclarationAnalyzer
 
         // Analyze generic type-parameter constraints (where T : Foo)
         AnalyzeTypeParameterConstraints(element, typeSymbol.TypeParameters, typeLocation);
-
-        AnalyzePrimaryConstructorParameters(element, typeSymbol);
     }
 
     /// <summary>
@@ -551,40 +563,6 @@ internal class DeclarationAnalyzer
             foreach (var constraintType in typeParameter.ConstraintTypes)
             {
                 _builder.AddTypeRelationship(element, constraintType, RelationshipType.Uses, location);
-            }
-        }
-    }
-
-    /// <summary>
-    ///     Phase 1 only collects ConstructorDeclarationSyntax, so primary constructors (including the
-    ///     positional parameters of records) have no method element and the parameter types would
-    ///     otherwise create no relationship. A primary constructor is recognized by its declaring
-    ///     syntax being the TypeDeclarationSyntax itself (same detection as IsExplicitConstructor).
-    /// </summary>
-    private void AnalyzePrimaryConstructorParameters(CodeElement element, INamedTypeSymbol typeSymbol)
-    {
-        foreach (var constructor in typeSymbol.InstanceConstructors)
-        {
-            // Synthesized constructors (the record copy constructor, default constructors) are
-            // implicitly declared and carry no user-written parameter types we care about.
-            if (constructor.IsImplicitlyDeclared)
-            {
-                continue;
-            }
-
-            // A primary constructor has no ConstructorDeclarationSyntax of its own; its declaring
-            // syntax is the type declaration itself (same detection as IsExplicitConstructor).
-            var isPrimary = constructor.DeclaringSyntaxReferences
-                .Any(r => r.GetSyntax() is TypeDeclarationSyntax);
-            if (!isPrimary)
-            {
-                continue;
-            }
-
-            foreach (var parameter in constructor.Parameters)
-            {
-                var location = parameter.GetSymbolLocations().FirstOrDefault();
-                _builder.AddTypeRelationship(element, parameter.Type, RelationshipType.Uses, location);
             }
         }
     }
