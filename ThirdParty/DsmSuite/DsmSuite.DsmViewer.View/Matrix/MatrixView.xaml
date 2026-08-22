@@ -125,7 +125,7 @@
 
           Collapsed rather than deleted: the elements stay alive, so the code-behind (UsedWidth,
           CellsViewOnScrollChanged) still resolves them, and bringing a single metric back is a one line
-          change. See Dsm.md.
+          change. See Documentation/dsm-tutorial.md, Appendix A.
         -->
         <matrix:MatrixMetricsSelectorView x:Name="MatrixMetricsSelectorView" Grid.Column="2" Grid.Row="0" Visibility="Collapsed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
         <Canvas Grid.Column="2" Grid.Row="1" Height="Auto" Visibility="Collapsed" HorizontalAlignment="Stretch" ClipToBounds="True">
