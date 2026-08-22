@@ -205,9 +205,7 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 [Command-line arguments](Documentation/command-line-arguments.md)
 
-For a **multi-source evidence pipeline** (Code Analyst as the structural stage, peers for UI/DI/shell, merge without silent overwrite) plus a drop-in GitHub Actions sample pack, see:
-
-[CI + multi-source evidence pipeline](Documentation/ci-and-multi-source-pipeline.md) · [`samples/ci-pipeline/`](samples/ci-pipeline/README.md)
+For an example how to use the architectural rules in a GitHub pipeline see:  [`samples/ci-pipeline/`](samples/ci-pipeline/README.md)
 
 ---
 

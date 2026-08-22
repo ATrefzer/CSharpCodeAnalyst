@@ -1236,12 +1236,23 @@ internal sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        var graph = _codeGraph;
+
         // The request code element may originate from a graph where the children are not present!
-        var originalCodeElement = _codeGraph.Nodes[request.CodeElement.Id];
+        var originalCodeElement = graph.Nodes[request.CodeElement.Id];
 
-        var partitions = CodeElementPartitioner.GetPartitions(_codeGraph, originalCodeElement, request.IncludeBaseClasses);
+        var partitions = CodeElementPartitioner.GetPartitions(graph, originalCodeElement, request.Options);
 
-        if (partitions.Count <= 1)
+        // Without the constructor, state that no method touches falls out as a group per member. A
+        // list of those would bury the two or three groups the user actually came for, so they are
+        // shown as one row at the end - present, but not competing with the real partitions.
+        var split = request.Options.ExcludeLifecycleMembers
+            ? TypeCohesionAnalysis.Split(originalCodeElement, partitions)
+            : new CohesionPartitions(partitions, []);
+        var behaviorPartitions = split.Behavior;
+        var detachedState = split.DetachedState;
+
+        if (behaviorPartitions.Count <= 1)
         {
             _ui.ShowInfo(Strings.Partitions_NoPartitions);
             return;
@@ -1251,11 +1262,16 @@ internal sealed class MainViewModel : INotifyPropertyChanged
 
         var number = 1;
         var pvm = new List<PartitionViewModel>();
-        foreach (var partition in partitions)
+        foreach (var partition in behaviorPartitions)
         {
-            var codeElements = partition.Select(id => new CodeElementLineViewModel(_codeGraph.Nodes[id]));
-            var vm = new PartitionViewModel($"Partition {number++}", codeElements);
+            var vm = new PartitionViewModel(string.Format(Strings.Partition_Header, number++),
+                CreateLines(partition));
             pvm.Add(vm);
+        }
+
+        if (detachedState.Count > 0)
+        {
+            pvm.Add(new PartitionViewModel(Strings.Partition_DetachedStateHeader, CreateLines(detachedState)));
         }
 
         var partitionsVm = new PartitionsViewModel(pvm);
@@ -1264,6 +1280,15 @@ internal sealed class MainViewModel : INotifyPropertyChanged
         // analyzer (or the tree) for different classes does not overwrite each other.
         var title = string.Format(Strings.Partitions_TabHeader, originalCodeElement.Name);
         ShowTabularDataTab($"Partitions:{originalCodeElement.Id}", title, partitionsVm);
+        return;
+
+        IEnumerable<CodeElementLineViewModel> CreateLines(IEnumerable<string> ids)
+        {
+            return ids
+                .Select(id => graph.Nodes[id])
+                .OrderBy(element => element.FullName, StringComparer.OrdinalIgnoreCase)
+                .Select(element => new CodeElementLineViewModel(element));
+        }
     }
 
     public void HandleCodeGraphRefactored(CodeGraphRefactored message)

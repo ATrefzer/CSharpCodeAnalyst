@@ -1,10 +1,12 @@
 # Reading DSMs
 
+[TOC]
+
 ![](Images/full.png)
 
 ## What a Dependency Matrix Reveals About a System
 
-Many tutorials explain what a cell means and then stop. This tutorial takes the next step: it shows which *patterns* live inside a DSM, how to find them systematically, and what they say about the architecture.
+A cell in a DSM is quickly explained. What takes longer to learn is the level above it: which *patterns* live inside a matrix, how to find them systematically, and what they say about the architecture. That is what this tutorial is about.
 
 All examples follow this convention:
 
@@ -17,7 +19,9 @@ Two reading directions follow from this, and you should internalize them before 
 
 Most DSM tools sort the rows so that consumers sit at the top and producers at the bottom. This sort order will become important shortly.
 
-Careful: roughly half the literature uses the mirrored convention (rows depend on columns). If a tutorial seems "illogical", check the convention first. Everything below is written consistently in *this* convention.
+Careful: roughly half the literature uses the mirrored convention (rows depend on columns). If a matrix seems to say the opposite of what you expect, check its convention first. Everything below is written consistently in *this* convention.
+
+The screenshots come from the **DSM** tab of **C# Code Analyst**. If you want to follow along there: **Appendix A** describes what is in the matrix, what its colours mean and how to operate it.
 
 ---
 
@@ -27,7 +31,7 @@ Before reading individual cells, step back and look at the matrix like a picture
 
 **The triangle.** A healthy, layered architecture can be sorted so that all entries lie on *one* side of the diagonal. In our convention, with the usual sort order (consumers on top, foundation at the bottom), that means: all entries lie in the **lower left triangle**. Every entry there says: an element listed higher up uses an element listed further down. Dependencies flow downhill like water.
 
-The matrix above is a textbook example: every single entry lies below the diagonal. At the assembly level, the system is **cycle-free and cleanly layered**. Enjoy the sight for a moment before we discuss why this is not yet the end of the analysis.
+In the matrix above, every single entry lies below the diagonal. At the assembly level, the system is **cycle-free and cleanly layered**. That is the picture to compare against — and, as the following chapters show, not yet the end of the analysis.
 
 **The block diagonal.** The second healthy pattern: dense blocks along the diagonal (lots of communication *within* modules), with few, deliberate entries in between (little communication *between* modules). That is the visual definition of "high cohesion, loose coupling". If your matrix is hierarchical (namespaces can be expanded), you only see this after expanding: inside `DsmViewer.ViewModel` things may swarm, between `ViewModel` and `CodeParser` there should be a yawning void.
 
@@ -36,7 +40,7 @@ The matrix above is a textbook example: every single entry lies below the diagon
 Mnemonic for the first look: **A healthy system looks boring in the DSM.** Triangle, blocks, lots of whitespace. Everything that immediately attracts the eye — outliers in the upper triangle, squares, cross patterns, lonely numbers far away from everything — is a possible finding.
 
 Note:
-In **C# Code Analyst**, expanded modules are rendered as shaded squares of varying color along the diagonal. This serves readability. Each shade is one nesting level. The actual dependencies are the individual entries or dots in a cell, and some coloring carries extra information (e.g., cells participating in cycles). From the hierarchy shading you therefore read module sizes and nesting depth, **not** coupling or cohesion.
+In **C# Code Analyst**, an expanded module is drawn as a shaded square along the diagonal, one shade per nesting level. That shading is a reading aid: from it you read module size and nesting depth, **not** coupling or cohesion. The dependencies themselves are the entries in the cells, and some cell colours carry extra information (e.g., cells participating in cycles). Appendix A has the details.
 
 ---
 
@@ -108,7 +112,7 @@ Every element has a fingerprint in the DSM, made up of two values: how full is m
 
 ## 5. Finding a Module's Public Interface
 
-This is one of the strongest and most rarely explained DSM analyses. Procedure:
+The DSM answers this question well, and it is worth walking through the procedure in detail:
 
 1. Expand a namespace, e.g. `CSharpCodeAnalyst.CodeParser`, so that you see its classes as individual rows.
 2. Ignore all entries *within* its own diagonal block — that is internals.
@@ -153,7 +157,7 @@ The DSM is not only a diagnostic but a planning instrument. Suppose you want to 
 2. For each affected party, read *its* row in turn: the indirectly affected.
 3. Repeat until nothing new appears. The result is the **transitive closure** — the maximum shockwave of a change.
 
-> Incidentally, **C# Code Analyst** computes this transitive closure for all types as "Propagation Cost" in the system metrics (the average share of the system potentially affected by a random change). The absolute value is hard to interpret, but as a **trend across releases** it is gold: if it rises, the system is felting up, however good the individual commits felt.
+> Incidentally, **C# Code Analyst** computes this transitive closure for all types as "Propagation Cost" in the system metrics (the average share of the system potentially affected by a random change). The absolute value is hard to interpret, but the **trend across releases** is worth tracking: if it rises, the system is felting up, however good the individual commits felt.
 
 In a cleanly layered system (lower triangle), the wave only spreads upward and ends at the application at the latest. In a system with cycles, the wave can **run in circles** — that is one of the reasons why cycles make changes so expensive: the impact analysis does not terminate at a layer but captures the entire cycle cluster — all elements of the square, no matter where inside it you touch.
 
@@ -190,10 +194,86 @@ The architecture is fundamentally cleanly layered (block-diagonal, hardly any cy
 
 ---
 
-## Appendix: What the DSM Keeps From You
+## Appendix A: The Matrix View in C# Code Analyst
 
-So that you do not believe it more than it promises:
+What is in the matrix on the **DSM** tab, what its colours mean, and how to operate it. Most of it is not visible in the UI itself, so this is the place to look it up.
 
-The DSM shows **static** dependencies. Coupling via reflection, configuration files, message queues, or database schemas is invisible to it — your "island" may in truth be the most-loaded plugin. And it shows no **semantic or temporal** coupling: two modules that share no reference but are touched together in 80% of commits in the Git history are coupled — just at a spot the compiler cannot see.
+### What is in the matrix
 
-The DSM is an X-ray: it shows the skeleton completely and the soft tissue not at all. But skeletons rarely lie — and no other image shows fractures this early.
+- **One row per type.** Methods, fields and properties are not shown; their dependencies are counted towards the type that contains them. Types from outside the solution are left out entirely.
+- **Namespaces that hold nothing but a single other namespace are merged into one row**, so a row can read `CSharpCodeAnalyst.CodeGraph` rather than forcing you through two expands that show one line each. A row label is always the namespace path relative to the element it sits in.
+- **Rows and columns are ordered so dependencies fall below the diagonal**, and the members of a cycle cluster are kept as one contiguous block — that is what chapter 3 relies on when it merges squares.
+
+Every dependency appears **once**: reading from a column at the top to a row on the left. The opposite direction is left empty; the colours there are used for nesting depth instead.
+
+### The order number
+
+Every row carries a number, and every column header repeats it. It is the cross reference between a column and its row — find the number at the top of a column, look for the same number on the left, and you have the element that column stands for.
+
+It is numbered straight through the tree as it currently stands, so **it changes whenever you expand or collapse something**. Do not write it down or use it to refer to an element later.
+
+The column header carries the element **name** next to the number as well, so a column is legible without the cross reference. That name is what makes the header tall. The **toggle button in the top-left corner** collapses the header back to the number alone, which reclaims that vertical space when you only need to read the shape.
+
+### The blocks on the diagonal
+
+Expanding an element paints a square block on the diagonal covering everything inside it:
+
+> **Inside the square = internal to that assembly or namespace.
+> Outside it = crosses the boundary.**
+
+The shade tells you the nesting depth — deeper elements are darker. **There are four shades and they repeat**: the fifth level down looks like the first. On a deeply nested tree, check where a block actually starts and ends rather than trusting the shade alone.
+
+### Cell colours
+
+| Colour | Meaning |
+|---|---|
+| light neutral | no dependency, and not inside an expanded block |
+| blue-grey ramp, 4 shades | inside an expanded block, darker = deeper |
+| **warm orange** | **the two elements depend on each other — a cycle** |
+
+Orange overwrites every other colour, so it stays visible inside a block.
+
+Hovering or selecting a row or column darkens it into a crosshair, so you can follow a cell back to the two elements it belongs to.
+
+### The number in a cell
+
+The number is the **dependency weight**: how many distinct type-to-type dependencies are aggregated under those two elements. Above `9999` it reads `>9K`; the exact value is always in the cell's tooltip.
+
+> **Fully expanded, every populated cell reads `1`.** One type depending on another is counted once, no matter how many calls or field accesses are behind it. The larger numbers you see on a collapsed row are the sums of the cells inside it.
+
+So the number answers "how much of this is there", not "how strong is this one call" — chapter 6 is about what to make of the values.
+
+### Zoomed out
+
+Below roughly a third of full size the numbers are too small to read, so they are dropped and the cells say only whether they are populated:
+
+| | |
+|---|---|
+| empty cell | light, as always |
+| **populated cell** | **filled near-black** |
+| cycle | keeps its orange |
+
+The blocks keep their normal shades, so structure and dependencies stay readable together. This is the view for the first look of chapter 1: where are the dependencies at all, is this layered or tangled, does anything sit far off the diagonal. Zoom back in for the numbers, or hover a cell — the tooltip carries the exact weight at any zoom.
+
+### The coloured bar beside the row headers
+
+The bar at the right edge of each row header is **relative to the row you last clicked**. It answers "how does this row relate to the thing I selected", not "what is this row".
+
+| Colour | Meaning |
+|---|---|
+| Green | this row **uses** the selected element |
+| Blue | this row **is used by** the selected element |
+| Orange | both — **mutual, a cycle** |
+
+It needs a **row** selection. Clicking a column header draws the crosshair but clears the bars, and with nothing selected there are none at all.
+
+### Controls
+
+- **Ctrl + mouse wheel** zooms the whole matrix.
+- **Plain wheel** scrolls up and down, **shift + wheel** sideways — from anywhere in the matrix, headers included. The scroll bars scale with the matrix and get too thin to grab once you zoom out, so the wheel is usually the better way. Its step grows with the zoom, so panning stays quick even when you have zoomed right in and the matrix no longer fits.
+- **Click a row header** to select it — this is what drives the indicator bars. Clicking a column header selects the column but clears them.
+- **Click the arrow** in a row header to expand or collapse; hold **shift** to do it recursively.
+- **Hover a cell** for the consumer and provider names plus the weight; **hover a row or column header** for the element's full name and type.
+- **Toggle button in the top-left corner** collapses the column headers from name + number down to the number alone, and back. Use it to reclaim the tall header band when you only need the shape. It hides itself once you zoom far out, where the names are unreadable anyway.
+
+The view is **read-only**: it is a projection of the parsed code, so there is nothing to edit here. Metrics are not shown next to the rows either; the application computes those on its own tabs.

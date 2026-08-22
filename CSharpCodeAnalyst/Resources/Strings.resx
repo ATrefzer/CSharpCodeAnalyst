@@ -286,6 +286,12 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Partitions_NoPartitions" xml:space="preserve">
     <value>No distinct partitions found!</value>
   </data>
+  <data name="Partition_Header" xml:space="preserve">
+    <value>Partition {0}</value>
+  </data>
+  <data name="Partition_DetachedStateHeader" xml:space="preserve">
+    <value>State not used by any method of this class</value>
+  </data>
   <data name="Partition_Description" xml:space="preserve">
     <value>Contains {0} code elements</value>
   </data>
@@ -1042,6 +1048,9 @@ Use "Copy setup command" to get the line that registers it with Claude Code. Sto
   </data>
   <data name="DeselectAllVisible_Label" xml:space="preserve">
     <value>Deselect all visible</value>
+  </data>
+  <data name="DeselectAllEverywhere_Label" xml:space="preserve">
+    <value>Deselect all (including hidden)</value>
   </data>
   <data name="Cycle_Name" xml:space="preserve">
     <value>Cycle name</value>

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using CSharpCodeAnalyst.Analyzers.Resources;
 using CSharpCodeAnalyst.AnalyzerSdk.Contracts;
@@ -41,8 +41,8 @@ internal class TypeCohesionViewModel : Table
             new()
             {
                 Type = ColumnType.Text,
-                Header = Strings.Column_TypeCohesion_Members,
-                PropertyName = nameof(TypeCohesionRowViewModel.Members)
+                Header = Strings.Column_TypeCohesion_Methods,
+                PropertyName = nameof(TypeCohesionRowViewModel.Methods)
             },
             new()
             {
@@ -102,8 +102,8 @@ internal class TypeCohesionViewModel : Table
 
     private void ShowPartitions(TypeCohesionRowViewModel row)
     {
-        // Base-aware, to match the partition count shown in the table.
-        _messaging.Publish(new ShowPartitionsRequest(row.Element, true));
+        // The same options the metric used, so the groups shown are the groups counted.
+        _messaging.Publish(new ShowPartitionsRequest(row.Element, PartitionOptions.Cohesion));
     }
 
     private static bool CanJumpToCode(TypeCohesionRowViewModel row)

@@ -752,6 +752,15 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deselect all (including hidden).
+        /// </summary>
+        public static string DeselectAllEverywhere_Label {
+            get {
+                return ResourceManager.GetString("DeselectAllEverywhere_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deselect all visible.
         /// </summary>
         public static string DeselectAllVisible_Label {
@@ -2450,6 +2459,24 @@ namespace CSharpCodeAnalyst.Resources {
         public static string Partition {
             get {
                 return ResourceManager.GetString("Partition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to State not used by any method of this class.
+        /// </summary>
+        public static string Partition_DetachedStateHeader {
+            get {
+                return ResourceManager.GetString("Partition_DetachedStateHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Partition {0}.
+        /// </summary>
+        public static string Partition_Header {
+            get {
+                return ResourceManager.GetString("Partition_Header", resourceCulture);
             }
         }
         

@@ -1,10 +1,8 @@
-# Sample: CI + multi-source evidence pipeline
-
-This pack turns C# Code Analyst into a **repeatable CI stage** and shows how to merge it with other auditors without pretending any single tool is omniscient.
+# Sample: CI pipeline
 
 Copy what you need into your product repo. Nothing here is required for day-to-day desktop use of Code Analyst.
 
-## Quick start (structure-only)
+## Quick start
 
 1. Write `architecture.rules.txt` (see [`rules/example-layer.rules.txt`](rules/example-layer.rules.txt)).
 2. Drop [`workflows/codeanalyst-validate.example.yml`](workflows/codeanalyst-validate.example.yml) into your `.github/workflows/` and edit every line marked `# EDIT ME` in it (your solution path, rules path, default branch name).
@@ -92,7 +90,6 @@ python samples/ci-pipeline/scripts/merge_edges_example.py \
 ```
 
 Schema: [`schema/edge.schema.json`](schema/edge.schema.json).  
-Design doc: [`../../Documentation/ci-and-multi-source-pipeline.md`](../../Documentation/ci-and-multi-source-pipeline.md).
 
 ## Requirements
 
