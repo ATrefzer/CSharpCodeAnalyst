@@ -781,16 +781,20 @@ public static class DeadCodeAnalysis
 
     /// <summary>
     ///     Members only the runtime ever calls: the static constructor (run before the first use of the
-    ///     type) and the finalizer (run by the garbage collector - C# cannot even spell a call to it;
-    ///     the destructor arrives from the parser as an ordinary method named "Finalize"). No code can
-    ///     reference them, so "nothing references it" carries no information here: on a live type the
-    ///     row would be wrong in every single case, and on a dead type they disappear into the roll-up.
-    ///     Unlike an entry point this is not a doubt worth a note - the finding is dropped. Both are
-    ///     effectively private, so without this they would land in the highest confidence band.
+    ///     type) and the finalizer or destructor (run by the garbage collector - C# cannot even spell a
+    ///     call to it). No code can reference them, so "nothing references it" carries no information
+    ///     here: on a live type the row would be wrong in every single case, and on a dead type they
+    ///     disappear into the roll-up. Unlike an entry point this is not a doubt worth a note - the
+    ///     finding is dropped. Both are effectively private, so without this they would land in the
+    ///     highest confidence band.
+    ///     <para>
+    ///         The instance constructor is deliberately not here: it is called from ordinary code, so
+    ///         "nothing constructs this" is a real finding.
+    ///     </para>
     /// </summary>
     private static bool IsRuntimeInvoked(CodeElement element)
     {
-        return element is { ElementType: CodeElementType.Method, Name: ".cctor" or "Finalize" };
+        return element.MemberRole is MemberRole.StaticConstructor or MemberRole.Finalizer;
     }
 
     /// <summary>

@@ -6,8 +6,10 @@ namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
 ///     A destructor and a static constructor reach the graph as ordinary methods named "Finalize" and
-///     ".cctor" - the Roslyn symbol names. The dead code analysis relies on exactly these names to drop
-///     them: no code can reference either, the runtime calls them.
+///     ".cctor" - the Roslyn symbol names. The dead code analysis drops them because no code can
+///     reference either, the runtime calls them. What identifies them is their
+///     <see cref="MemberRole" />, not their name (see <see cref="MemberRoleParseTests" />); the names
+///     are still asserted here because saved graphs from before the role rely on them.
 /// </summary>
 [TestFixture]
 public class RuntimeInvokedMemberParseTests

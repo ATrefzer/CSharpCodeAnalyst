@@ -222,8 +222,10 @@ public class TypeCohesionAnalysisTests
     {
         // Same hub argument: both touch state without expressing how the class decomposes.
         var c = BuildTwoGroupsAroundTwoFields();
-        var cctor = new CodeElement("A..cctor", CodeElementType.Method, ".cctor", "A..cctor", c);
-        var finalizer = new CodeElement("A.Finalize", CodeElementType.Method, "Finalize", "A.Finalize", c);
+        var cctor = new CodeElement("A..cctor", CodeElementType.Method, ".cctor", "A..cctor", c)
+            { MemberRole = MemberRole.StaticConstructor };
+        var finalizer = new CodeElement("A.Finalize", CodeElementType.Method, "Finalize", "A.Finalize", c)
+            { MemberRole = MemberRole.Finalizer };
         foreach (var member in new[] { cctor, finalizer })
         {
             c.Children.Add(member);

@@ -304,8 +304,8 @@ public class DeadCodeAnalysisTests
         // No code can reference either - the runtime calls them. On a live type the row would be wrong
         // in every case, so it is dropped rather than annotated; on a dead type the roll-up covers them.
         var cache = _graph.CreateClass("Cache");
-        _graph.CreateMethod(".cctor", cache);
-        _graph.CreateMethod("Finalize", cache);
+        _graph.CreateMethod(".cctor", cache, memberRole: MemberRole.StaticConstructor);
+        _graph.CreateMethod("Finalize", cache, memberRole: MemberRole.Finalizer);
         var used = _graph.CreateMethod("Cache.Used", cache);
 
         var user = _graph.CreateClass("User");
@@ -320,7 +320,7 @@ public class DeadCodeAnalysisTests
         // An unused type's static constructor never runs. It must not push the class finding down to
         // the lowest confidence the way a real entry point would.
         var cache = _graph.CreateClass("Cache");
-        _graph.CreateMethod(".cctor", cache);
+        _graph.CreateMethod(".cctor", cache, memberRole: MemberRole.StaticConstructor);
 
         Assert.That(FindingFor(cache).Hints, Is.EqualTo(DeadCodeHint.None));
     }

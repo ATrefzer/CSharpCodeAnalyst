@@ -12,7 +12,8 @@ public class SerializableCodeElement(
     HashSet<string> attributes,
     bool isExternal = false,
     AccessLevel accessLevel = AccessLevel.Unknown,
-    bool isGenerated = false)
+    bool isGenerated = false,
+    MemberRole memberRole = MemberRole.Unknown)
 {
     public string Id { get; set; } = id;
     public string Name { get; set; } = name;
@@ -37,4 +38,11 @@ public class SerializableCodeElement(
     ///     this existed keeps loading - the elements simply carry no visibility until the next parse.
     /// </summary>
     public AccessLevel AccessLevel { get; set; } = accessLevel;
+
+    /// <summary>
+    ///     What the member is there for. Defaults to Unknown, so a project file written before this
+    ///     existed keeps loading - but its elements carry no role, so nothing in it counts as a
+    ///     lifecycle member until the project is imported again.
+    /// </summary>
+    public MemberRole MemberRole { get; set; } = memberRole;
 }

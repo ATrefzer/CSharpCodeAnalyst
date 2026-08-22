@@ -488,7 +488,8 @@ public class HierarchyAnalyzer
 
         var element = new CodeElement(newId, elementType, name, fullName, parent)
         {
-            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility)
+            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility),
+            MemberRole = symbol.GetMemberRole()
         };
 
         UpdateCodeElementLocations(element, location);
@@ -541,7 +542,8 @@ public class HierarchyAnalyzer
         var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement)
         {
             // An accessor may narrow the property ("public int P { get; private set; }").
-            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility)
+            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility),
+            MemberRole = accessor.GetMemberRole()
         };
 
         foreach (var accessorLocation in accessor.GetSymbolLocations())

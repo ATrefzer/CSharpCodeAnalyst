@@ -8,28 +8,20 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 /// </summary>
 public static class CodeElementPartitioner
 {
-    /// <summary>Name the parser gives an instance constructor.</summary>
-    private const string ConstructorName = ".ctor";
-
-    /// <summary>Name the parser gives a static constructor.</summary>
-    private const string StaticConstructorName = ".cctor";
-
-    /// <summary>Name the parser gives a finalizer.</summary>
-    private const string FinalizerName = "Finalize";
-
     /// <summary>
     ///     Members that exist to bring an object into (or out of) a valid state rather than to do
     ///     work: constructors, the static constructor and the finalizer. A constructor assigns most
     ///     of the state, so in the member graph it is a clique over all fields and merges everything
     ///     into a single partition - see <see cref="PartitionOptions.ExcludeLifecycleMembers" />.
+    ///     <para>
+    ///         Which members those are is the producer's statement, not a guess from the name: a C++
+    ///         constructor is called like its class and a Dart one may be called anything at all, so
+    ///         no name test could hold for more than one language.
+    ///     </para>
     /// </summary>
     public static bool IsLifecycleMember(CodeElement element)
     {
-        return element is
-        {
-            ElementType: CodeElementType.Method,
-            Name: ConstructorName or StaticConstructorName or FinalizerName
-        };
+        return element.MemberRole.IsLifecycle();
     }
 
     /// <summary>
