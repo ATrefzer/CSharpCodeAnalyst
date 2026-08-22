@@ -23,8 +23,9 @@ public class DartGraphConverter
     ///     (the deployment copies the tool out of the application directory), so a mismatch means a
     ///     broken installation rather than an old tool - hence the strict check.
     ///     2: added the per-member "metrics" map.
+    ///     3: added "role" on an element - see MemberRole.
     /// </summary>
-    public const int SupportedFormat = 2;
+    public const int SupportedFormat = 3;
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -136,7 +137,14 @@ public class DartGraphConverter
             var fullName = parent is null ? dto.Name : parent.FullName + "." + dto.Name;
             var element = new CodeElement(dto.Id, elementType, dto.Name, fullName, parent)
             {
-                IsExternal = dto.External
+                IsExternal = dto.External,
+
+                // The extractor decides this - a named constructor "Foo.fromJson" is a method called
+                // "fromJson", so nothing here could work it out. An unreadable value stays Unknown
+                // rather than being guessed, exactly like an unresolvable element type.
+                MemberRole = dto.Role is not null && Enum.TryParse<MemberRole>(dto.Role, out var role)
+                    ? role
+                    : MemberRole.Unknown
             };
 
             if (dto.Location is { } location)
@@ -176,7 +184,8 @@ public class DartGraphConverter
 
     internal sealed record LocationDto(string File, int Line, int Column);
 
-    internal sealed record ElementDto(string Id, string Type, string Name, string? Parent, bool External, LocationDto? Location);
+    internal sealed record ElementDto(string Id, string Type, string Name, string? Parent, bool External, LocationDto? Location,
+        string? Role);
 
     internal sealed record RelationshipDto(string Source, string Target, string Type);
 

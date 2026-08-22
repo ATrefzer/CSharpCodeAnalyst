@@ -12,6 +12,7 @@
 UNHANDLED CASES
 ---------------------
 
+- (!) Primary Constructors are missing!
 - (!) Primary constructors of records do not create the properties in the Navigation tree
 
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]

@@ -32,6 +32,19 @@ public class DoxygenXmlConverter
 {
     private static readonly HashSet<string> TypeKinds = ["class", "struct", "union", "interface", "enum"];
 
+    /// <summary>The element types a member can be a constructor of. A Java enum may declare one.</summary>
+    private static readonly HashSet<CodeElementType> TypeElementTypes =
+    [
+        CodeElementType.Class, CodeElementType.Interface, CodeElementType.Struct,
+        CodeElementType.Record, CodeElementType.Enum
+    ];
+
+    /// <summary>Python's constructor. Doxygen reports it as an ordinary function of the class.</summary>
+    private const string PythonConstructorName = "__init__";
+
+    /// <summary>Python's finalizer.</summary>
+    private const string PythonFinalizerName = "__del__";
+
     private static readonly Dictionary<string, CodeElementType> MemberKindMap = new()
     {
         ["function"] = CodeElementType.Method,
@@ -409,11 +422,68 @@ public class DoxygenXmlConverter
             var location = memberDef.Element("location");
             var memberParent = parent ?? ResolveDirectoryNamespace(location);
 
-            var element = new CodeElement(id, elementType, name, memberParent.FullName + "." + name, memberParent);
+            var element = new CodeElement(id, elementType, name, memberParent.FullName + "." + name, memberParent)
+            {
+                // Deliberately from the owning compound, not from memberParent: in directory mode the
+                // latter is the namespace a free function was filed under.
+                MemberRole = DetermineMemberRole(elementType, name, parent)
+            };
             memberParent.Children.Add(element);
             AddLocation(element, location);
             _elementsById[id] = element;
         }
+    }
+
+    /// <summary>
+    ///     Which methods construct or destroy an object. Doxygen has no flag for it - the XML says
+    ///     "function" for a constructor just as for anything else - so it is decided by the naming rule
+    ///     of the language, of which every one doxygen feeds us has exactly one:
+    ///     <list type="bullet">
+    ///         <item>C++ and Java: a constructor carries the name of its type, a C++ destructor "~Type".</item>
+    ///         <item>Python: "__init__" and "__del__".</item>
+    ///     </list>
+    ///     The converter does not know which language it is looking at (and does not need to elsewhere -
+    ///     see the class comment), so all of them are applied. They cannot collide: "~Type" is not a legal
+    ///     name outside C++, and the dunder names are not used as ordinary methods anywhere. The one
+    ///     accepted inaccuracy is a Python method deliberately named like its own class, which is legal
+    ///     and would be read as a constructor here.
+    /// </summary>
+    private static MemberRole DetermineMemberRole(CodeElementType elementType, string memberName, CodeElement? owner)
+    {
+        if (elementType != CodeElementType.Method)
+        {
+            // A role is a statement about a method; a field or an enum has none.
+            return MemberRole.Unknown;
+        }
+
+        if (owner is null || !TypeElementTypes.Contains(owner.ElementType))
+        {
+            // A free function, or a member of a namespace compound. Nobody's constructor.
+            return MemberRole.Normal;
+        }
+
+        // The compound of a class template is named "Foo< T >" (whitespace already removed), while its
+        // constructor memberdef is plain "Foo".
+        var typeName = StripTemplateArguments(owner.Name);
+
+        if (memberName == typeName || memberName == PythonConstructorName)
+        {
+            return MemberRole.Constructor;
+        }
+
+        if (memberName == "~" + typeName || memberName == PythonFinalizerName)
+        {
+            return MemberRole.Finalizer;
+        }
+
+        return MemberRole.Normal;
+    }
+
+    /// <summary>"Foo&lt;T&gt;" -> "Foo". Everything from the first top-level '&lt;' on is dropped.</summary>
+    private static string StripTemplateArguments(string name)
+    {
+        var index = name.IndexOf('<');
+        return index < 0 ? name : name[..index];
     }
 
     private void AddInheritance(CompoundInfo compound)

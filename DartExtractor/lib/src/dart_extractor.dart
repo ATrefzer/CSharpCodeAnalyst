@@ -315,6 +315,7 @@ class DartExtractor {
         name: name,
         parentId: parent.id,
         isExternal: !_projectLibraryUris.contains(library.uri),
+        role: _memberRoleOf(canonical, type),
         location: _locationOf(canonical),
       ));
     } finally {
@@ -378,6 +379,20 @@ class DartExtractor {
     // An unnamed extension ("extension on String") cannot be referenced by name
     // and would produce an anonymous node - drop it and keep its members out too.
     return null;
+  }
+
+  /// What the member is there for, as the literal name of a MemberRole. Dart states
+  /// it because no name test on the C# side could: a named constructor
+  /// `Foo.fromJson` is a method called `fromJson`, indistinguishable from an
+  /// ordinary method of that name, and the unnamed one is called `new`.
+  ///
+  /// Dart has neither a static constructor nor a finalizer, so only Constructor
+  /// and Normal ever occur. Anything that is not a method carries no role at all.
+  String? _memberRoleOf(Element element, String type) {
+    if (type != 'Method') {
+      return null;
+    }
+    return element is ConstructorElement ? 'Constructor' : 'Normal';
   }
 
   String? _mapElementType(Element element) {

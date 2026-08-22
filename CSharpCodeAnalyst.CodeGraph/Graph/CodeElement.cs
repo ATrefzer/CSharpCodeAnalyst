@@ -59,6 +59,14 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
     /// </summary>
     public AccessLevel AccessLevel { get; init; }
 
+    /// <summary>
+    ///     What the member is there for - ordinary work, or construction / destruction of the object.
+    ///     <see cref="Graph.MemberRole.Unknown" /> when the producer does not supply it, which is not the
+    ///     same as <see cref="Graph.MemberRole.Normal" /> and must never be read as it. A graph whose
+    ///     producer fills no roles simply has no lifecycle members; re-import it to get them.
+    /// </summary>
+    public MemberRole MemberRole { get; init; }
+
     public override bool Equals(object? obj)
     {
         if (obj != null && obj.GetType() == GetType())
@@ -127,7 +135,8 @@ public class CodeElement(string id, CodeElementType elementType, string name, st
         {
             IsExternal = IsExternal,
             IsGenerated = IsGenerated,
-            AccessLevel = AccessLevel
+            AccessLevel = AccessLevel,
+            MemberRole = MemberRole
         };
 
         element.SourceLocations.AddRange(SourceLocations);

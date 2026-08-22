@@ -99,21 +99,24 @@ public class TestCodeGraph : CodeGraph
 
     /// <summary>See <see cref="CreateClass" /> for when <paramref name="fullName" /> is worth passing.</summary>
     public CodeElement CreateMethod(string id, CodeElement? parent = null,
-        AccessLevel accessLevel = AccessLevel.Unknown, string? fullName = null)
+        AccessLevel accessLevel = AccessLevel.Unknown, string? fullName = null,
+        MemberRole memberRole = MemberRole.Unknown)
     {
         var element = new CodeElement(id, CodeElementType.Method, id, fullName ?? id, parent)
-            { AccessLevel = accessLevel };
+            { AccessLevel = accessLevel, MemberRole = memberRole };
         Link(parent, element);
         return element;
     }
 
     /// <summary>
-    ///     A constructor. The parser gives every constructor of a type the same name (".ctor"), only
-    ///     the id stays unique - which is what makes them recognizable as lifecycle members.
+    ///     A constructor, marked as one the way a producer marks it. The name is what the C# parser
+    ///     gives every constructor of a type (".ctor"), so a test that wants the legacy name fallback
+    ///     instead can pass <see cref="MemberRole.Unknown" />.
     /// </summary>
-    public CodeElement CreateConstructor(string id, CodeElement? parent = null)
+    public CodeElement CreateConstructor(string id, CodeElement? parent = null,
+        MemberRole memberRole = MemberRole.Constructor)
     {
-        var element = new CodeElement(id, CodeElementType.Method, ".ctor", id, parent);
+        var element = new CodeElement(id, CodeElementType.Method, ".ctor", id, parent) { MemberRole = memberRole };
         Link(parent, element);
         return element;
     }

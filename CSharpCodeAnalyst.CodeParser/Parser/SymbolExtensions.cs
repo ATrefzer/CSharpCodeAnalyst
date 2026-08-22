@@ -37,6 +37,35 @@ public static class SymbolExtensions
     }
 
     /// <summary>
+    ///     Roslyn's method kind onto our member role. Roslyn knows exactly what it declared, so this
+    ///     replaces the name test the analyses used to do (".ctor" / ".cctor" / "Finalize") - names that
+    ///     only ever held for the C# parser, and that a method deliberately named "Finalize" could fool.
+    ///     <para>
+    ///         Anything that is not a method has no role: <see cref="MemberRole.Unknown" /> stands for
+    ///         "does not apply" just as well as for "nobody looked".
+    ///     </para>
+    /// </summary>
+    public static MemberRole GetMemberRole(this ISymbol symbol)
+    {
+        if (symbol is not IMethodSymbol method)
+        {
+            return MemberRole.Unknown;
+        }
+
+        return method.MethodKind switch
+        {
+            MethodKind.Constructor => MemberRole.Constructor,
+            MethodKind.StaticConstructor => MemberRole.StaticConstructor,
+            MethodKind.Destructor => MemberRole.Finalizer,
+
+            // Everything else is a member that does work: ordinary methods, operators, conversions,
+            // property and event accessors, local functions. Saying so positively matters - it is what
+            // stops a consumer from falling back to guessing by name.
+            _ => MemberRole.Normal
+        };
+    }
+
+    /// <summary>
     ///     The declared type parameters as they belong in a name, or an empty string.
     ///     <para>
     ///         Built from the type <i>parameters</i>, never from the arguments of a constructed type. That
