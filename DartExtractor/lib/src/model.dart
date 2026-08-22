@@ -22,6 +22,7 @@ class GraphElement {
     required this.name,
     required this.parentId,
     required this.isExternal,
+    this.role,
     this.location,
   });
 
@@ -36,6 +37,12 @@ class GraphElement {
   /// packages. Modelled the same way the C# parser models referenced assemblies.
   final bool isExternal;
 
+  /// The literal name of a CodeElementType member's MemberRole, or `null` for
+  /// anything that is not a method. Dart is the reason this travels on the wire
+  /// at all: a named constructor `Foo.fromJson` arrives as a method called
+  /// `fromJson`, so nothing on the C# side could tell it from an ordinary one.
+  final String? role;
+
   final SourceLocation? location;
 
   Map<String, Object?> toJson() => {
@@ -44,6 +51,7 @@ class GraphElement {
         'name': name,
         if (parentId != null) 'parent': parentId,
         if (isExternal) 'external': true,
+        if (role != null) 'role': role,
         if (location != null) 'location': location!.toJson(),
       };
 }

@@ -99,6 +99,19 @@ visible as such rather than collapsing onto the type.
 Ids are `<library uri>#<qualified name>`, e.g. `package:app/main.dart#MyApp.build`. Dart has no
 overloading, so a name is unique inside its container.
 
+**Every method carries its `MemberRole`.** The extractor emits `role` (`Constructor` or `Normal`) on
+each `Method` element, and `DartGraphConverter` only parses it — the decision is `element is
+ConstructorElement`, on the Dart side, like every other modelling decision here.
+
+This is the case that made the role a graph property in the first place. C# constructors are all called
+`.ctor`, so the analyses used to recognize them by name; in Dart the unnamed constructor is called `new`
+and a **named** one, `Account.empty`, arrives as a method called `empty` — nothing on the C# side could
+tell it from an ordinary method of that name. `MarksEveryConstructor_IncludingTheNamedOnes` pins exactly
+that against the fixture.
+
+Dart has neither a static constructor nor a finalizer, so `StaticConstructor` and `Finalizer` never
+occur. Anything that is not a method carries no role.
+
 **Field and accessor induce each other.** Dart models the same declaration twice, and the two halves
 carry the same name — so without a rule the outcome would depend on iteration order. `_canonicalize`
 decides both directions:

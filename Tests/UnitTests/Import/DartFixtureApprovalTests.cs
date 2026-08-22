@@ -232,6 +232,49 @@ public class DartFixtureApprovalTests
     }
 
     /// <summary>
+    ///     Dart is the reason the role travels on the wire instead of being worked out on this side:
+    ///     the unnamed constructor is called "new", and a named one ("Account.empty") arrives as a
+    ///     method called "empty" - indistinguishable by name from an ordinary method.
+    /// </summary>
+    [Test]
+    public void MarksEveryConstructor_IncludingTheNamedOnes()
+    {
+        var constructors = ProjectElements
+            .Where(e => e.MemberRole == MemberRole.Constructor)
+            .Select(e => e.FullName)
+            .ToHashSet();
+
+        Assert.That(constructors, Is.EquivalentTo(new[]
+        {
+            "test_suite_dart.types.Meters.new",
+            "test_suite_dart.members.Account.new",
+            "test_suite_dart.members.Account.empty",
+            "test_suite_dart.members.Account.copy",
+            "test_suite_dart.library_with_part.PartLocalHelper.new",
+            "test_suite_dart.features.reporting.report_builder.Important.new",
+            "test_suite_dart.features.reporting.report_builder.ReportBuilder.new"
+        }));
+    }
+
+    [Test]
+    public void MarksEveryOtherMethodNormal_AndLeavesNonMethodsWithoutARole()
+    {
+        var methods = ProjectElements.Where(e => e.ElementType == CodeElementType.Method).ToList();
+        var others = ProjectElements.Where(e => e.ElementType != CodeElementType.Method).ToList();
+
+        Assert.Multiple(() =>
+        {
+            // Dart has neither a static constructor nor a finalizer, so nothing else can occur.
+            Assert.That(methods.Where(m => m.MemberRole != MemberRole.Constructor).Select(m => m.MemberRole),
+                Is.All.EqualTo(MemberRole.Normal));
+
+            // Unknown stays reserved for "the producer does not fill roles" - never for a method.
+            Assert.That(methods.Select(m => m.MemberRole), Has.None.EqualTo(MemberRole.Unknown));
+            Assert.That(others.Select(e => e.MemberRole), Is.All.EqualTo(MemberRole.Unknown));
+        });
+    }
+
+    /// <summary>
     ///     The same property access is a call in a method body and a use inside a closure - a closure
     ///     body is not executed where it is written.
     /// </summary>

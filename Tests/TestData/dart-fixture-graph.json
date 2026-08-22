@@ -1,5 +1,5 @@
 {
-  "format": 2,
+  "format": 3,
   "projectName": "TestSuiteDart",
   "elements": [
     {
@@ -40,7 +40,8 @@
       "id": "package:test_suite_dart/features/reporting/report_builder.dart#Important.new",
       "type": "Method",
       "name": "new",
-      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#Important"
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#Important",
+      "role": "Constructor"
     },
     {
       "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
@@ -151,6 +152,7 @@
       "type": "Method",
       "name": "template",
       "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
         "line": 20,
@@ -173,6 +175,7 @@
       "type": "Method",
       "name": "template",
       "parent": "package:test_suite_dart/types.dart#AbstractBase",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 11,
@@ -184,6 +187,7 @@
       "type": "Method",
       "name": "merge",
       "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
         "line": 23,
@@ -195,6 +199,7 @@
       "type": "Method",
       "name": "balancesDeferred",
       "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
         "line": 33,
@@ -206,6 +211,7 @@
       "type": "Method",
       "name": "_pickColor",
       "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
         "line": 42,
@@ -217,6 +223,7 @@
       "type": "Method",
       "name": "describe",
       "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\features\\reporting\\report_builder.dart",
         "line": 45,
@@ -239,7 +246,8 @@
       "id": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder.new",
       "type": "Method",
       "name": "new",
-      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder"
+      "parent": "package:test_suite_dart/features/reporting/report_builder.dart#ReportBuilder",
+      "role": "Constructor"
     },
     {
       "id": "package:test_suite_dart/types.dart#Greeting",
@@ -296,6 +304,7 @@
       "type": "Method",
       "name": "total",
       "parent": "package:test_suite_dart/library_with_part.dart#Bookkeeper",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\library_with_part.dart",
         "line": 12,
@@ -317,13 +326,15 @@
       "id": "package:test_suite_dart/library_with_part.dart#PartLocalHelper.new",
       "type": "Method",
       "name": "new",
-      "parent": "package:test_suite_dart/library_with_part.dart#PartLocalHelper"
+      "parent": "package:test_suite_dart/library_with_part.dart#PartLocalHelper",
+      "role": "Constructor"
     },
     {
       "id": "package:test_suite_dart/library_with_part.dart#_sumBalances",
       "type": "Method",
       "name": "_sumBalances",
       "parent": "ns:pkg:test_suite_dart/library_with_part",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\parts\\ledger_part.dart",
         "line": 6,
@@ -391,6 +402,7 @@
       "type": "Method",
       "name": "\u002B",
       "parent": "package:test_suite_dart/members.dart#Account",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\members.dart",
         "line": 36,
@@ -401,13 +413,15 @@
       "id": "package:test_suite_dart/members.dart#Account.new",
       "type": "Method",
       "name": "new",
-      "parent": "package:test_suite_dart/members.dart#Account"
+      "parent": "package:test_suite_dart/members.dart#Account",
+      "role": "Constructor"
     },
     {
       "id": "package:test_suite_dart/members.dart#Account.empty",
       "type": "Method",
       "name": "empty",
       "parent": "package:test_suite_dart/members.dart#Account",
+      "role": "Constructor",
       "location": {
         "file": "TestSuiteDart\\lib\\members.dart",
         "line": 18,
@@ -419,6 +433,7 @@
       "type": "Method",
       "name": "copy",
       "parent": "package:test_suite_dart/members.dart#Account",
+      "role": "Constructor",
       "location": {
         "file": "TestSuiteDart\\lib\\members.dart",
         "line": 21,
@@ -441,6 +456,7 @@
       "type": "Method",
       "name": "pickFirst",
       "parent": "ns:pkg:test_suite_dart/members",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\members.dart",
         "line": 7,
@@ -485,6 +501,7 @@
       "type": "Method",
       "name": "shared",
       "parent": "package:test_suite_dart/types.dart#AbstractBase",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 13,
@@ -507,6 +524,7 @@
       "type": "Method",
       "name": "contract",
       "parent": "package:test_suite_dart/types.dart#PureInterface",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 20,
@@ -562,6 +580,7 @@
       "type": "Method",
       "name": "template",
       "parent": "package:test_suite_dart/types.dart#Combined",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 50,
@@ -573,6 +592,7 @@
       "type": "Method",
       "name": "greet",
       "parent": "package:test_suite_dart/types.dart#Greeting",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 30,
@@ -618,6 +638,7 @@
       "type": "Method",
       "name": "log",
       "parent": "package:test_suite_dart/types.dart#CountingLog",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 37,
@@ -702,6 +723,7 @@
       "type": "Method",
       "name": "padBoth",
       "parent": "package:test_suite_dart/types.dart#StringPadding",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 64,
@@ -757,7 +779,8 @@
       "id": "package:test_suite_dart/types.dart#Meters.new",
       "type": "Method",
       "name": "new",
-      "parent": "package:test_suite_dart/types.dart#Meters"
+      "parent": "package:test_suite_dart/types.dart#Meters",
+      "role": "Constructor"
     },
     {
       "id": "package:test_suite_dart/types.dart#ColorPicker",
@@ -786,6 +809,7 @@
       "type": "Method",
       "name": "doubleIt",
       "parent": "ns:pkg:test_suite_dart/types",
+      "role": "Normal",
       "location": {
         "file": "TestSuiteDart\\lib\\types.dart",
         "line": 75,
@@ -822,6 +846,7 @@
       "name": "toList",
       "parent": "dart:core#Iterable",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\iterable.dart",
         "line": 516,
@@ -834,6 +859,7 @@
       "name": "map",
       "parent": "dart:core#Iterable",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\iterable.dart",
         "line": 257,
@@ -846,6 +872,7 @@
       "name": "[]",
       "parent": "dart:core#List",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\list.dart",
         "line": 356,
@@ -870,6 +897,7 @@
       "name": "%",
       "parent": "dart:core#num",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
         "line": 152,
@@ -894,6 +922,7 @@
       "name": "==",
       "parent": "dart:core#num",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
         "line": 47,
@@ -906,6 +935,7 @@
       "name": "\u002B",
       "parent": "dart:core#num",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\num.dart",
         "line": 110,
@@ -918,6 +948,7 @@
       "name": "==",
       "parent": "dart:core#Object",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\object.dart",
         "line": 53,
@@ -930,6 +961,7 @@
       "name": "padRight",
       "parent": "dart:core#String",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\string.dart",
         "line": 482,
@@ -942,6 +974,7 @@
       "name": "padLeft",
       "parent": "dart:core#String",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\string.dart",
         "line": 458,
@@ -954,6 +987,7 @@
       "name": "*",
       "parent": "dart:core#double",
       "external": true,
+      "role": "Normal",
       "location": {
         "file": "C:\\Users\\ATrefzer\\develop\\flutter\\bin\\cache\\dart-sdk\\lib\\core\\double.dart",
         "line": 37,

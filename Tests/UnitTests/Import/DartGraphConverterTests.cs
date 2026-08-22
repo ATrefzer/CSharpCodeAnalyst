@@ -158,31 +158,68 @@ public class DartGraphConverterTests
         }
     }
 
+    [Test]
+    public void TakesTheMemberRoleFromTheExtractor()
+    {
+        // The extractor decides it - "new" is the unnamed constructor and a named one would arrive
+        // under its own name, so nothing on this side could work it out.
+        Assert.Multiple(() =>
+        {
+            Assert.That(_graph.Nodes["c:LoginPage.new"].MemberRole, Is.EqualTo(MemberRole.Constructor));
+            Assert.That(_graph.Nodes["m:build"].MemberRole, Is.EqualTo(MemberRole.Normal));
+            Assert.That(_graph.Nodes["t:LoginPage"].MemberRole, Is.EqualTo(MemberRole.Unknown));
+        });
+    }
+
+    [Test]
+    public void AnUnreadableRole_StaysUnknownInsteadOfThrowing()
+    {
+        // Same stance as an unresolvable element type: a newer extractor must not break an import.
+        const string json = """
+                            {"format":3,"projectName":"app","elements":[
+                              {"id":"pkg:app","type":"Assembly","name":"app"},
+                              {"id":"m:x","type":"Method","name":"x","parent":"pkg:app","role":"Nonsense"}
+                            ],"relationships":[],"metrics":{}}
+                            """;
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".json");
+        File.WriteAllText(path, json);
+        try
+        {
+            var graph = new DartGraphConverter().ConvertFile(path);
+
+            Assert.That(graph.Nodes["m:x"].MemberRole, Is.EqualTo(MemberRole.Unknown));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private const string Json =
         """
         {
-          "format": 2,
+          "format": 3,
           "projectName": "app",
           "elements": [
-            { "id": "m:build", "type": "Method", "name": "build", "parent": "t:LoginPage",
+            { "id": "m:build", "type": "Method", "name": "build", "parent": "t:LoginPage", "role": "Normal",
               "location": { "file": "lib/features/login_page.dart", "line": 20, "column": 3 } },
             { "id": "t:LoginPage", "type": "Class", "name": "LoginPage", "parent": "ns:app/features/login_page",
               "location": { "file": "lib/features/login_page.dart", "line": 12, "column": 7 } },
             { "id": "f:title", "type": "Field", "name": "title", "parent": "t:LoginPage" },
-            { "id": "c:LoginPage.new", "type": "Method", "name": "new", "parent": "t:LoginPage" },
+            { "id": "c:LoginPage.new", "type": "Method", "name": "new", "parent": "t:LoginPage", "role": "Constructor" },
             { "id": "ns:app/features/login_page", "type": "Namespace", "name": "login_page", "parent": "ns:app/features" },
             { "id": "ns:app/features", "type": "Namespace", "name": "features", "parent": "pkg:app" },
             { "id": "pkg:app", "type": "Assembly", "name": "app" },
 
             { "id": "ns:app/global", "type": "Namespace", "name": "global", "parent": "pkg:app" },
-            { "id": "m:main", "type": "Method", "name": "main", "parent": "ns:app/global" },
+            { "id": "m:main", "type": "Method", "name": "main", "parent": "ns:app/global", "role": "Normal" },
 
             { "id": "pkg:flutter", "type": "Assembly", "name": "flutter", "external": true },
             { "id": "ns:flutter/src", "type": "Namespace", "name": "src", "parent": "pkg:flutter", "external": true },
             { "id": "ns:flutter/src/widgets", "type": "Namespace", "name": "widgets", "parent": "ns:flutter/src", "external": true },
             { "id": "ns:flutter/src/widgets/framework", "type": "Namespace", "name": "framework", "parent": "ns:flutter/src/widgets", "external": true },
             { "id": "t:StatelessWidget", "type": "Class", "name": "StatelessWidget", "parent": "ns:flutter/src/widgets/framework", "external": true },
-            { "id": "m:StatelessWidget.build", "type": "Method", "name": "build", "parent": "t:StatelessWidget", "external": true },
+            { "id": "m:StatelessWidget.build", "type": "Method", "name": "build", "parent": "t:StatelessWidget", "external": true, "role": "Normal" },
 
             { "id": "t:Gadget", "type": "ExtensionType", "name": "Gadget", "parent": "ns:app/features" }
           ],
