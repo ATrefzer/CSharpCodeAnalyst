@@ -150,6 +150,8 @@ If a class has multiple partitions, it often means the class has several respons
 
 This is the connected-components view of cohesion (LCOM4).
 
+Only relationships that are a **real reference** connect. The `Handles` edge is the one to know about: it points from an event handler to the event, but the handler's code never mentions that event — whoever wrote the `+=` knows both, and that may be a different class entirely. So a handler is grouped through the member that registers it, and if that is the constructor, it is not grouped at all. Wiring is not behavior, the same judgment the excluded constructor makes.
+
 Only **classes** are analyzed, not structs, records, or interfaces. Pure data holders are skipped. A class needs at least four methods to be looked at — constructors don't count, see below. With less behavior than that, cohesion doesn't mean much, and the class would appear maximally "incohesive" (each field would be its own partition).
 
 ### Base classes are folded in

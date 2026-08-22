@@ -64,14 +64,13 @@ public static class TypeCohesionAnalysis
     ///         since <see cref="CodeElementPartitioner" /> stopped cloning the graph per class.
     ///     </para>
     /// </summary>
-    public const int DefaultMinBehaviorMembers = 4;
+    private const int DefaultMinBehaviorMembers = 4;
 
     /// <param name="minBehaviorMembers">
     ///     See <see cref="DefaultMinBehaviorMembers" />. Raising it hides small classes, and a small
     ///     class that splits cleanly is usually the easier refactoring of the two.
     /// </param>
-    public static List<TypeCohesionInfo> Calculate(Graph.CodeGraph graph,
-        int minBehaviorMembers = DefaultMinBehaviorMembers)
+    public static List<TypeCohesionInfo> Calculate(Graph.CodeGraph graph, int minBehaviorMembers = DefaultMinBehaviorMembers)
     {
         ArgumentNullException.ThrowIfNull(graph);
 

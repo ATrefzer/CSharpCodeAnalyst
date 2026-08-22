@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.CodeGraph.Graph;
+﻿using CSharpCodeAnalyst.CodeGraph.Graph;
 
 namespace CSharpCodeAnalyst.CodeGraph.Algorithms.Partitioning;
 
@@ -33,45 +33,18 @@ public static class CodeElementPartitioner
     }
 
     /// <summary>
-    ///     Convenience overload for the common case: any relationship connects, lifecycle members
-    ///     included.
-    /// </summary>
-    public static List<HashSet<string>> GetPartitions(Graph.CodeGraph codeGraph, CodeElement parentElement,
-        bool includeBaseClasses)
-    {
-        return GetPartitions(codeGraph, parentElement, new PartitionOptions(includeBaseClasses, false));
-    }
-
-    /// <summary>
     ///     Groups the members of <paramref name="parentElement" /> into connected components: two
     ///     members end up in the same partition when they interact directly or through a shared
-    ///     element (typically a field). The container itself is never a node, otherwise it would pull
-    ///     all its members into a single partition.
+    ///     element (typically a field). The container itself is never a node, otherwise it would
+    ///     pull all its members into a single partition.
     /// </summary>
-    public static List<HashSet<string>> GetPartitions(Graph.CodeGraph codeGraph, CodeElement parentElement,
-        PartitionOptions options)
+    public static List<HashSet<string>> GetPartitions(Graph.CodeGraph codeGraph, CodeElement parentElement, PartitionOptions options)
     {
         ArgumentNullException.ThrowIfNull(codeGraph);
         ArgumentNullException.ThrowIfNull(parentElement);
         ArgumentNullException.ThrowIfNull(options);
 
-        // The member graph is built directly from the elements. Cloning a sub graph would be easier
-        // to read, but Clone walks all nodes of the whole graph, which makes an analysis over every
-        // class of a solution quadratic.
-        var nodes = new Dictionary<string, CodeElement>();
-        var ownIds = CollectMembers(parentElement, options, nodes);
-
-        // Base classes are folded in as connectors: their members link the own members that interact
-        // through shared inherited state / behavior, but are removed from the reported partitions
-        // afterward (a split concerns the own members).
-        var baseMemberIds = new HashSet<string>();
-        if (options.IncludeBaseClasses)
-        {
-            foreach (var baseClass in GetBaseClasses(codeGraph, parentElement))
-            {
-                baseMemberIds.UnionWith(CollectMembers(baseClass, options, nodes));
-            }
-        }
+        var (nodes, ownIds, baseMemberIds) = CollectNodes(codeGraph, parentElement, options);
 
         var partitions = new UnionFind(nodes.Keys);
 
@@ -88,13 +61,14 @@ public static class CodeElementPartitioner
             }
         }
 
-        foreach (var (id, element) in nodes)
+        // A relationship always sits on the element it starts at, so SourceId identifies the owner.
+        foreach (var element in nodes.Values)
         {
             foreach (var relationship in element.Relationships)
             {
-                if (nodes.ContainsKey(relationship.TargetId) && IsConnector(id, relationship))
+                if (Connects(relationship))
                 {
-                    partitions.Union(id, relationship.TargetId);
+                    partitions.Union(relationship.SourceId, relationship.TargetId);
                 }
             }
         }
@@ -120,12 +94,21 @@ public static class CodeElementPartitioner
             .ThenBy(partition => partition.Min(StringComparer.Ordinal), StringComparer.Ordinal)
             .ToList();
 
-        bool IsConnector(string sourceId, Relationship relationship)
+        // Whether this relationship joins its two endpoints. Not to be confused with the base
+        // members, which are the connector *nodes*: this is about the edge.
+        bool Connects(Relationship relationship)
         {
-            // Own <-> own: any relationship connects.
-            if (ownIds.Contains(sourceId) && ownIds.Contains(relationship.TargetId))
+            if (!nodes.ContainsKey(relationship.TargetId))
             {
-                return true;
+                // Target is not within the analyzed code elements.
+                return false;
+            }
+
+            // Own <-> own: any relationship that is a real dependency connects. 
+            // "handles" is not included.
+            if (ownIds.Contains(relationship.SourceId) && ownIds.Contains(relationship.TargetId))
+            {
+                return relationship.Type.IsDependency();
             }
 
             // Anything touching a base member connects only through real interaction, so structural
@@ -135,11 +118,38 @@ public static class CodeElementPartitioner
     }
 
     /// <summary>
+    ///     Builds the node set the partitioning runs on: the own members, plus the base class
+    ///     members that act as connectors between them.
+    /// </summary>
+    private static (Dictionary<string, CodeElement> nodes, HashSet<string> ownIds, HashSet<string> baseMemberIds)
+        CollectNodes(Graph.CodeGraph codeGraph, CodeElement parentElement, PartitionOptions options)
+    {
+        // The member graph is built directly from the elements. Cloning a sub graph would be easier
+        // to read, but Clone walks all nodes of the whole graph, which makes an analysis over every
+        // class of a solution quadratic.
+        var nodes = new Dictionary<string, CodeElement>();
+        var ownIds = CollectMembers(parentElement, options, nodes);
+
+        // Base classes are folded in as connectors: their members link the own members that interact
+        // through shared inherited state / behavior, but are removed from the reported partitions
+        // afterward (a split concerns the own members).
+        var baseMemberIds = new HashSet<string>();
+        if (options.IncludeBaseClasses)
+        {
+            foreach (var baseClass in GetBaseClasses(codeGraph, parentElement))
+            {
+                baseMemberIds.UnionWith(CollectMembers(baseClass, options, nodes));
+            }
+        }
+
+        return (nodes, ownIds, baseMemberIds);
+    }
+
+    /// <summary>
     ///     The members of <paramref name="container" /> (the container itself excluded) with their
     ///     subtrees, added to <paramref name="nodes" />. Returns the ids collected here.
     /// </summary>
-    private static HashSet<string> CollectMembers(CodeElement container, PartitionOptions options,
-        Dictionary<string, CodeElement> nodes)
+    private static HashSet<string> CollectMembers(CodeElement container, PartitionOptions options, Dictionary<string, CodeElement> nodes)
     {
         var collected = new HashSet<string>();
         foreach (var member in container.Children)
@@ -161,7 +171,7 @@ public static class CodeElementPartitioner
 
     /// <summary>
     ///     Returns the in-solution base classes of the given class, walking the Inherits chain.
-    ///     External base classes are skipped (their members are not in the graph).
+    ///     External base classes are skipped (their members may not be in the graph).
     /// </summary>
     private static List<CodeElement> GetBaseClasses(Graph.CodeGraph codeGraph, CodeElement element)
     {
@@ -196,86 +206,5 @@ public static class CodeElementPartitioner
         }
 
         return baseClasses;
-    }
-
-    /// <summary>
-    ///     Disjoint set over element ids. Every id starts in its own partition; merging is near
-    ///     constant time, so partitioning costs O(members + relationships) per container.
-    /// </summary>
-    private sealed class UnionFind
-    {
-        private readonly Dictionary<string, string> _parent;
-        private readonly Dictionary<string, int> _rank;
-
-        public UnionFind(IEnumerable<string> ids)
-        {
-            _parent = ids.ToDictionary(id => id, id => id);
-            _rank = new Dictionary<string, int>(_parent.Count);
-        }
-
-        public void Union(string left, string right)
-        {
-            var leftRoot = Find(left);
-            var rightRoot = Find(right);
-            if (leftRoot == rightRoot)
-            {
-                return;
-            }
-
-            var leftRank = _rank.GetValueOrDefault(leftRoot);
-            var rightRank = _rank.GetValueOrDefault(rightRoot);
-
-            if (leftRank < rightRank)
-            {
-                _parent[leftRoot] = rightRoot;
-            }
-            else if (leftRank > rightRank)
-            {
-                _parent[rightRoot] = leftRoot;
-            }
-            else
-            {
-                _parent[rightRoot] = leftRoot;
-                _rank[leftRoot] = leftRank + 1;
-            }
-        }
-
-        public List<HashSet<string>> GetGroups()
-        {
-            var groups = new Dictionary<string, HashSet<string>>();
-            foreach (var id in _parent.Keys)
-            {
-                var root = Find(id);
-                if (!groups.TryGetValue(root, out var group))
-                {
-                    group = [];
-                    groups[root] = group;
-                }
-
-                group.Add(id);
-            }
-
-            return groups.Values.ToList();
-        }
-
-        private string Find(string id)
-        {
-            var root = id;
-            while (_parent[root] != root)
-            {
-                root = _parent[root];
-            }
-
-            // Path compression.
-            var current = id;
-            while (_parent[current] != root)
-            {
-                var next = _parent[current];
-                _parent[current] = root;
-                current = next;
-            }
-
-            return root;
-        }
     }
 }

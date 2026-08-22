@@ -45,7 +45,7 @@ public class CodeElementPartitionerBaseClassTests
         // Documents the limitation: without base awareness the inherited link is invisible.
         var (derived, _, _, _) = BuildDerivedSharingBaseField();
 
-        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, false);
+        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, new PartitionOptions(false, false));
 
         Assert.That(partitions, Has.Count.EqualTo(3));
     }
@@ -55,7 +55,7 @@ public class CodeElementPartitionerBaseClassTests
     {
         var (derived, a, b, c) = BuildDerivedSharingBaseField();
 
-        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, true);
+        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, new PartitionOptions(true, false));
 
         Assert.Multiple(() =>
         {
@@ -83,7 +83,7 @@ public class CodeElementPartitionerBaseClassTests
         Rel(a, m, RelationshipType.Calls);
         Rel(b, m, RelationshipType.Calls);
 
-        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, true);
+        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, new PartitionOptions(true, false));
 
         Assert.That(partitions, Has.Count.EqualTo(1));
         Assert.That(partitions[0], Is.EquivalentTo(new[] { a.Id, b.Id }));
@@ -102,7 +102,7 @@ public class CodeElementPartitionerBaseClassTests
         var b = _graph.CreateMethod("Derived.B", derived);
         Rel(a, m, RelationshipType.Overrides);
 
-        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, true);
+        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, new PartitionOptions(true, false));
 
         Assert.That(partitions, Has.Count.EqualTo(2), "Overrides does not connect A to anything");
     }
@@ -119,7 +119,7 @@ public class CodeElementPartitionerBaseClassTests
         _graph.CreateMethod("Derived.A", derived);
         _graph.CreateMethod("Derived.B", derived);
 
-        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, true);
+        var partitions = CodeElementPartitioner.GetPartitions(_graph, derived, new PartitionOptions(true, false));
 
         Assert.That(partitions, Has.Count.EqualTo(2));
     }
