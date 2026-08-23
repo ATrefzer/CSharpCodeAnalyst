@@ -402,10 +402,10 @@ public class HierarchyAnalyzer
         {
             var element = GetOrCreateCodeElementWithNamespaceHierarchy(symbol, elementType, parent, location);
 
-            // Split the property into get/set accessor children (when configured). Covers properties
-            // and indexers, including auto-properties and record positional properties, because the
-            // accessors are taken from the symbol, not the syntax.
-            if (_config.SplitPropertyAccessors && symbol is IPropertySymbol propertySymbol)
+            // Every property is split into get/set accessor children. Covers properties and indexers,
+            // including auto-properties and record positional properties, because the accessors are
+            // taken from the symbol, not the syntax.
+            if (symbol is IPropertySymbol propertySymbol)
             {
                 CreatePropertyAccessorElements(propertySymbol, element);
             }

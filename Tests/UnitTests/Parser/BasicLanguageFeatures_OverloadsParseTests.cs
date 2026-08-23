@@ -120,8 +120,8 @@ public class BasicLanguageFeatures_OverloadsParseTests : InMemoryParseTestBase
             "Repository._byKey -> TextStore",
             "Repository.this[] -> IntStore",
             "Repository.this[] -> TextStore",
-            "Repository.this[] -> Repository._byIndex",
-            "Repository.this[] -> Repository._byKey"
+            "Repository.this[].get_Item -> Repository._byIndex",
+            "Repository.this[].get_Item -> Repository._byKey"
         };
 
         Assert.That(RelsOf(RelationshipType.Uses), Is.EquivalentTo(expected));

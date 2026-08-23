@@ -43,8 +43,8 @@ public class RelationshipAnalyzer
         ArgumentNullException.ThrowIfNull(externalContracts, nameof(externalContracts));
 
         var builder = new RelationshipBuilder(codeGraph, artifacts, _config);
-        var bodyAnalyzer = new SyntaxNodeAnalyzer(builder, _config);
-        var declarationAnalyzer = new DeclarationAnalyzer(builder, bodyAnalyzer, artifacts, _config, externalContracts);
+        var bodyAnalyzer = new SyntaxNodeAnalyzer(builder);
+        var declarationAnalyzer = new DeclarationAnalyzer(builder, bodyAnalyzer, artifacts, externalContracts);
 
         var numberOfCodeElements = codeGraph.Nodes.Count;
         _processedCodeElements = 0;

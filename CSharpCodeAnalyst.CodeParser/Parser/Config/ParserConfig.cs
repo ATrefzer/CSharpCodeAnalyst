@@ -5,11 +5,10 @@ public class ParserConfig
     private readonly ProjectExclusionRegExCollection _projectExclusionFilters;
 
     public ParserConfig(ProjectExclusionRegExCollection projectExclusionFilters, bool includeExternals,
-        bool splitPropertyAccessors = false, bool includeXamlReferences = true)
+        bool includeXamlReferences = true)
     {
         _projectExclusionFilters = projectExclusionFilters;
         IncludeExternals = includeExternals;
-        SplitPropertyAccessors = splitPropertyAccessors;
         IncludeXamlReferences = includeXamlReferences;
     }
 
@@ -21,13 +20,11 @@ public class ParserConfig
     // field), which turns them into dead code. What a tool wrote carries CodeElement.IsGenerated instead,
     // so a result can leave it out without the graph losing an edge.
 
-    /// <summary>
-    ///     When enabled, each property is split into its getter and setter accessor as separate child
-    ///     elements (e.g. <c>get_Prop</c> / <c>set_Prop</c>). This lets the dependency graph distinguish
-    ///     read access from write access and avoids false cycles that arise when both directions are
-    ///     merged onto a single property node.
-    /// </summary>
-    public bool SplitPropertyAccessors { get; }
+    // There is no "split property accessors" option either, for the same reason: every property is
+    // always split into its getter and setter as separate child elements (get_Prop / set_Prop). This
+    // lets the dependency graph distinguish read access from write access and avoids false cycles that
+    // arise when both directions are merged onto a single property node - there was never a good reason
+    // to turn that off, so the toggle was removed rather than defaulted (see corrections-and-updates.md).
 
     /// <summary>
     ///     When enabled, the XAML files next to the analyzed projects are scanned for the references the

@@ -41,7 +41,6 @@ public class MemberAccessDuplicateParseTests
     [OneTimeSetUp]
     public void Setup()
     {
-        // Split off to mirror the original parser configuration of this scenario.
         var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult().CodeGraph;
     }
@@ -62,7 +61,8 @@ public class MemberAccessDuplicateParseTests
             .Where(r => r.Type == RelationshipType.Calls)
             .Select(r => _graph.Nodes[r.TargetId].Name);
 
-        Assert.That(callTargets, Is.EquivalentTo(new[] { "OriginalElement", "Name" }));
+        // Both accesses are reads, so both route to the getter accessor (accessors are always split).
+        Assert.That(callTargets, Is.EquivalentTo(new[] { "get_OriginalElement", "get_Name" }));
     }
 
     [Test]
@@ -73,7 +73,7 @@ public class MemberAccessDuplicateParseTests
         // OriginalElement is accessed on two different lines; each line must contribute exactly one location
         // (the bug produced two for the same line via double processing).
         var toOriginalElement = testMethod.Relationships
-            .Single(r => r.Type == RelationshipType.Calls && _graph.Nodes[r.TargetId].Name == "OriginalElement");
+            .Single(r => r.Type == RelationshipType.Calls && _graph.Nodes[r.TargetId].Name == "get_OriginalElement");
 
         foreach (var lineGroup in toOriginalElement.SourceLocations.GroupBy(l => l.Line))
         {

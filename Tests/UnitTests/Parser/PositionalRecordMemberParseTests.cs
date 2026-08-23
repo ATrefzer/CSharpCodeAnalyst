@@ -111,17 +111,12 @@ public class PositionalRecordMemberParseTests
     }
 
     [Test]
-    public async Task WithSplitAccessors_APositionalPropertyGetsItsAccessorsLikeAnyOther()
+    public void APositionalPropertyGetsItsAccessorsLikeAnyOther()
     {
         // CreatePropertyAccessorElements takes the accessors from the symbol, not from syntax, so a
-        // positional property is covered - but it is the one configuration where this fixture's default
-        // (split off) would hide a problem.
-        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(
-            new ParserConfig(new ProjectExclusionRegExCollection(), false, splitPropertyAccessors: true));
-        var graph = (await parser.ParseSourceAsync(Code)).CodeGraph;
-
-        var id = graph.Nodes.Values.Single(n => n.Name == "Id" && n.ElementType == CodeElementType.Property
-                                                && n.Parent?.Name == "Order");
+        // positional property is covered exactly like a written-out one.
+        var id = _graph.Nodes.Values.Single(n => n.Name == "Id" && n.ElementType == CodeElementType.Property
+                                                 && n.Parent?.Name == "Order");
 
         // An init accessor is called set_Id - that is its metadata name, init is a modreq on it.
         Assert.That(id.Children.Select(c => c.Name), Is.EquivalentTo(new[] { "get_Id", "set_Id" }));
@@ -131,13 +126,14 @@ public class PositionalRecordMemberParseTests
     public void AUseOfAPositionalProperty_ResolvesToTheMemberInsteadOfTheType()
     {
         // Phase 2 needs no change for this - the property carries a normal symbol key, so the existing
-        // property path finds it.
+        // property path finds it. The read is then routed one level further, to the getter accessor
+        // (accessors are always split), same as for any other property.
         var read = _graph.Nodes.Values.Single(n => n.Name == "Read");
         var targets = read.Relationships
             .Select(r => _graph.Nodes[r.TargetId])
             .Select(t => t.FullName)
             .ToList();
 
-        Assert.That(targets, Has.Some.EndsWith("Demo.Order.Id"));
+        Assert.That(targets, Has.Some.EndsWith("Demo.Order.Id.get_Id"));
     }
 }

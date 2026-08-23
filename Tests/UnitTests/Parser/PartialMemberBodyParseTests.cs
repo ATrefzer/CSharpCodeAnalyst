@@ -88,6 +88,6 @@ public class PartialMemberBodyParseTests : InMemoryParseTestBase
     [Test]
     public void PartialProperty_DefinitionPartFirst_BodyIsAnalyzed()
     {
-        Assert.That(RelsOf(RelationshipType.Creates), Does.Contain("Store.Current -> Item"));
+        Assert.That(RelsOf(RelationshipType.Creates), Does.Contain("Store.Current.get_Current -> Item"));
     }
 }

@@ -62,9 +62,9 @@ symbol = GetDeclaredSymbol(node)          // per syntax kind
 The `null` branch is more important than it looks: **a syntax node without an element is skipped, not
 cut off.** 
 
-Two things happen after the element is created: property accessors are split off when configured
-(`SplitPropertyAccessors`), and a type declaration gets its primary constructor plus any captured
-parameters.
+Two things happen after the element is created: a property always has its accessors split off into
+separate `get_Prop`/`set_Prop` elements, and a type declaration gets its primary constructor plus any
+captured parameters.
 
 Source-generated documents are walked too. What is generated is *marked*
 instead (`MarkGeneratedElements`, which runs at the very end because the decision needs all declarations

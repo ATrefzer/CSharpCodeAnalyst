@@ -249,24 +249,28 @@ public class GenericsParseTests : InMemoryParseTestBase
     [Test]
     public void MethodCalls_AreDetected()
     {
+        // Accessors are always split, so a read/write of a property or an indexer routes to its accessor,
+        // not to the property container (e.g. "BaseEntity.Id.get_Id" instead of "BaseEntity.Id").
         var expected = new[]
         {
             "GenericManager<T>.ProcessAll -> IProcessor.Process",
-            "EntityManager<T>.AddEntity -> BaseEntity.Id",
+            "EntityManager<T>.AddEntity -> BaseEntity.Id.get_Id",
             "EntityManager<T>.SaveAll -> BaseEntity.Save",
             "GenericConverter<TSource,TTarget>.ConvertMany -> GenericConverter<TSource,TTarget>.Convert",
-            "ProcessableItem.Process -> ProcessableItem.Name",
-            "ComparableItem.CompareTo -> ComparableItem.Value",
-            "DatabaseEntity.Save -> BaseEntity.Id",
-            "DatabaseEntity.Save -> DatabaseEntity.Name",
+            "ProcessableItem.Process -> ProcessableItem.Name.get_Name",
+            "ComparableItem.CompareTo -> ComparableItem.Value.get_Value",
+            "DatabaseEntity.Save -> BaseEntity.Id.get_Id",
+            "DatabaseEntity.Save -> DatabaseEntity.Name.get_Name",
             "GenericMethodsClass.ProcessItems<T> -> IProcessor.Process",
             "GenericMethodsClass.SaveEntities<T> -> BaseEntity.Save",
-            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.First",
-            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.Second",
+            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.First.set_First",
+            "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.Second.set_Second",
+            "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First.get_First",
+            "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First.set_First",
             "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First",
-            "GenericTree<T>.Node<U>..ctor -> GenericTree<T>.Node<U>.Value",
-            "GenericTree<T>.Node<U>.AddChild -> GenericTree<T>.Node<U>.Children",
-            "GenericTree<T>.SetRoot -> GenericTree<T>.Root",
+            "GenericTree<T>.Node<U>..ctor -> GenericTree<T>.Node<U>.Value.set_Value",
+            "GenericTree<T>.Node<U>.AddChild -> GenericTree<T>.Node<U>.Children.get_Children",
+            "GenericTree<T>.SetRoot -> GenericTree<T>.Root.set_Root",
             "GenericCreator.CreateContainer<T> -> GenericContainer<T>..ctor",
             "GenericCreator.CreatePair<T,U> -> GenericPair<TFirst,TSecond>..ctor",
             "GenericService<TEntity>.WrapResult<TResult> -> GenericContainer<T>..ctor",

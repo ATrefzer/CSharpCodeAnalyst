@@ -3,17 +3,15 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
-///     Indexer usage with SplitPropertyAccessors enabled: a read must be routed to the getter, a write to
-///     the setter, a compound assignment to both - exactly like normal property accesses.
-///     PropertyAccessClassifier already documents ElementAccessExpressionSyntax as an expected input, but
-///     element access is never wired into the walkers. Note: Roslyn names indexer accessors after the
-///     metadata name, i.e. get_Item / set_Item (not get_this[]).
+///     Indexer usage: a read must be routed to the getter, a write to the setter, a compound assignment to
+///     both - exactly like normal property accesses. PropertyAccessClassifier already documents
+///     ElementAccessExpressionSyntax as an expected input, but element access is never wired into the
+///     walkers. Note: Roslyn names indexer accessors after the metadata name, i.e. get_Item / set_Item
+///     (not get_this[]).
 /// </summary>
 [TestFixture]
 public class IndexerUsageSplitAccessorsParseTests : InMemoryParseTestBase
 {
-    protected override bool SplitPropertyAccessors => true;
-
     protected override string Code => """
                                       namespace Demo;
 

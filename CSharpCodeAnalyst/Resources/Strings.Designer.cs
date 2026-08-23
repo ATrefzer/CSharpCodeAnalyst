@@ -3372,24 +3372,6 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Split property _getter/setter.
-        /// </summary>
-        public static string Settings_SplitPropertyAccessors {
-            get {
-                return ResourceManager.GetString("Settings_SplitPropertyAccessors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Model the getter and setter of each property as separate elements (get_Prop / set_Prop). This distinguishes read from write access and avoids false cycles caused by merging both directions onto a single property node..
-        /// </summary>
-        public static string Settings_SplitPropertyAccessors_Tooltip {
-            get {
-                return ResourceManager.GetString("Settings_SplitPropertyAccessors_Tooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Application Settings.
         /// </summary>
         public static string Settings_Tab_Application {

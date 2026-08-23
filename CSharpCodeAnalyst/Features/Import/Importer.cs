@@ -44,8 +44,7 @@ public class Importer
         _progress = new Progress<string>(msg => _busy.Report(new BusyState(msg, true)));
     }
 
-    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode,
-        bool splitPropertyAccessors)
+    public async Task<Result<ParseResult>> ImportSolutionAsync(ProjectExclusionRegExCollection filters, bool includeExternalCode)
     {
         var fileName = TryGetImportSolutionPath();
         if (string.IsNullOrEmpty(fileName))
@@ -56,7 +55,7 @@ public class Importer
         var result = await ExecuteGuardedImportAsync(
             Strings.Load_Message_Default,
             async () => (ParseResult?)await Task.Run(() =>
-                ImportSolutionFuncAsync(fileName, filters, includeExternalCode, splitPropertyAccessors)));
+                ImportSolutionFuncAsync(fileName, filters, includeExternalCode)));
 
         if (_parserDiagnostics is { HasDiagnostics: true })
         {
@@ -87,9 +86,9 @@ public class Importer
     }
 
     private async Task<ParseResult> ImportSolutionFuncAsync(string solutionPath, ProjectExclusionRegExCollection filters,
-        bool includeExternalCode, bool splitPropertyAccessors)
+        bool includeExternalCode)
     {
-        var parser = new Parser(new ParserConfig(filters, includeExternalCode, splitPropertyAccessors), _progress);
+        var parser = new Parser(new ParserConfig(filters, includeExternalCode), _progress);
 
         _parserDiagnostics = null;
         var parseResult = await parser.ParseAsync(solutionPath).ConfigureAwait(true);

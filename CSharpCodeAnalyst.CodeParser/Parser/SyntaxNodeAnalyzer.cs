@@ -1,5 +1,4 @@
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,12 +15,10 @@ namespace CSharpCodeAnalyst.CodeParser.Parser;
 internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
 {
     private readonly RelationshipBuilder _builder;
-    private readonly ParserConfig _config;
 
-    internal SyntaxNodeAnalyzer(RelationshipBuilder builder, ParserConfig config)
+    internal SyntaxNodeAnalyzer(RelationshipBuilder builder)
     {
         _builder = builder;
-        _config = config;
     }
 
     /// <summary>
@@ -629,10 +626,10 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
     }
 
     /// <summary>
-    ///     Routes a property access to the correct accessor element when splitting is enabled.
-    ///     A read access targets the getter, a write access the setter, and a read-modify-write access
-    ///     (<c>+=</c>, <c>++</c>, ...) both. If splitting is disabled, or the property is external (no
-    ///     accessor elements exist), the access falls back to a relationship to the property itself.
+    ///     Routes a property access to the correct accessor element. A read access targets the getter, a
+    ///     write access the setter, and a read-modify-write access (<c>+=</c>, <c>++</c>, ...) both. If the
+    ///     property is external (no accessor elements exist), the access falls back to a relationship to
+    ///     the property itself.
     /// </summary>
     private void AddPropertyAccessRelationship(CodeElement sourceElement, IPropertySymbol propertySymbol,
         ExpressionSyntax accessExpression, RelationshipType relationshipType, SourceLocation location,
@@ -647,23 +644,19 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             return;
         }
 
-        if (_config.SplitPropertyAccessors)
+        var accessKind = PropertyAccessClassifier.Classify(accessExpression);
+
+        var addedGetter = accessKind is PropertyAccessKind.Read or PropertyAccessKind.ReadWrite &&
+                          TryAddAccessorRelationship(sourceElement, propertySymbol.GetMethod, relationshipType, location);
+        var addedSetter = accessKind is PropertyAccessKind.Write or PropertyAccessKind.ReadWrite &&
+                          TryAddAccessorRelationship(sourceElement, propertySymbol.SetMethod, relationshipType, location);
+
+        if (addedGetter || addedSetter)
         {
-            var accessKind = PropertyAccessClassifier.Classify(accessExpression);
-
-            var addedGetter = accessKind is PropertyAccessKind.Read or PropertyAccessKind.ReadWrite &&
-                              TryAddAccessorRelationship(sourceElement, propertySymbol.GetMethod, relationshipType, location);
-            var addedSetter = accessKind is PropertyAccessKind.Write or PropertyAccessKind.ReadWrite &&
-                              TryAddAccessorRelationship(sourceElement, propertySymbol.SetMethod, relationshipType, location);
-
-            if (addedGetter || addedSetter)
-            {
-                return;
-            }
-
-            // No internal accessor element found (external property): fall through to the default below.
+            return;
         }
 
+        // No internal accessor element found (external property): fall back to the property itself.
         _builder.AddRelationshipWithFallbackToContainingType(sourceElement, propertySymbol, relationshipType, [location], RelationshipAttribute.None);
     }
 

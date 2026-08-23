@@ -59,24 +59,30 @@ public class IndexerUsageParseTests : InMemoryParseTestBase
     [Test]
     public void IndexerRead_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Read -> Store.this[]"));
+        // Accessors are always split, so a read targets the getter, not the indexer container.
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Read -> Store.this[].get_Item"));
     }
 
     [Test]
     public void IndexerWrite_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Write -> Store.this[]"));
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Write -> Store.this[].set_Item"));
     }
 
     [Test]
     public void IndexerCompoundAssignment_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Increment -> Store.this[]"));
+        // "store[3] += 1" both reads and writes - both accessors get the edge.
+        Assert.Multiple(() =>
+        {
+            Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Increment -> Store.this[].get_Item"));
+            Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.Increment -> Store.this[].set_Item"));
+        });
     }
 
     [Test]
     public void ConditionalIndexerAccess_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.ConditionalRead -> Store.this[]"));
+        Assert.That(RelsOf(RelationshipType.Calls), Does.Contain("Client.ConditionalRead -> Store.this[].get_Item"));
     }
 }

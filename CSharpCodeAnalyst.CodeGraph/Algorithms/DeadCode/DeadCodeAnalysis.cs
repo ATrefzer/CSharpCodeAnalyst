@@ -65,8 +65,8 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         A single property accessor <i>is</i> reported. Rolling it up into the property used to halve the
 ///         output, but it answered a question nobody asked: "is this property used at all" instead of "is
 ///         anything reading it". A setter nothing calls is a real finding, and hiding it contradicts the
-///         rest of this class, which reports and annotates rather than drops. Accessors only exist in the
-///         graph at all when <c>ParserConfig.SplitPropertyAccessors</c> is on.
+///         rest of this class, which reports and annotates rather than drops. Every property is split into
+///         get_Prop/set_Prop accessors, so this is the only shape the graph has.
 ///     </para>
 ///     <para>
 ///         Limitations, by construction: references the parser cannot see (reflection, dependency

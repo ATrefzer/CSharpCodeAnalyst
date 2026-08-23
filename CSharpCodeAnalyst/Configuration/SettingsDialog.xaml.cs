@@ -30,7 +30,6 @@ public partial class SettingsDialog
         // Internal format to new line separated.
         ProjectExcludeFilterTextBox.Text = AppSettings.DefaultProjectExcludeFilter.Replace(";", Environment.NewLine);
         IncludeExternalCodeCheckBox.IsChecked = AppSettings.IncludeExternalCode;
-        SplitPropertyAccessorsCheckBox.IsChecked = AppSettings.SplitPropertyAccessors;
         WarnIfFiltersActiveCheckBox.IsChecked = AppSettings.WarnIfFiltersActive;
         ShowOverviewOnImportCheckBox.IsChecked = AppSettings.ShowOverviewOnImport;
 
@@ -52,7 +51,6 @@ public partial class SettingsDialog
     {
         AppSettings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
         AppSettings.IncludeExternalCode = IncludeExternalCodeCheckBox.IsChecked ?? true;
-        AppSettings.SplitPropertyAccessors = SplitPropertyAccessorsCheckBox.IsChecked ?? false;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
         AppSettings.ShowOverviewOnImport = ShowOverviewOnImportCheckBox.IsChecked ?? true;
 

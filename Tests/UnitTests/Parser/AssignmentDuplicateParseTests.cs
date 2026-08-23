@@ -35,7 +35,6 @@ public class AssignmentDuplicateParseTests
     [OneTimeSetUp]
     public async Task Setup()
     {
-        // Split off to mirror the original parser configuration of this scenario.
         var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         var result = await parser.ParseSourceAsync(Code);
         _graph = result.CodeGraph;
@@ -50,17 +49,19 @@ public class AssignmentDuplicateParseTests
     [Test]
     public void PropertyAndFieldAccess_AreRecorded()
     {
+        // Every access to TestProperty in TestMethod is a write, so it routes to the setter accessor
+        // (accessors are always split), not to the property container.
         var testMethod = Node("TestMethod", CodeElementType.Method);
 
         Assert.Multiple(() =>
         {
-            Assert.That(Has(testMethod, Node("TestProperty", CodeElementType.Property), RelationshipType.Calls), Is.True);
+            Assert.That(Has(testMethod, Node("set_TestProperty", CodeElementType.PropertyAccessor), RelationshipType.Calls), Is.True);
             Assert.That(Has(testMethod, Node("TestField", CodeElementType.Field), RelationshipType.Uses), Is.True);
         });
     }
 
     [Test]
-    public void TheOnlyCall_IsToTheProperty()
+    public void TheOnlyCall_IsToTheSetter()
     {
         var testMethod = Node("TestMethod", CodeElementType.Method);
 
@@ -68,7 +69,7 @@ public class AssignmentDuplicateParseTests
             .Where(r => r.Type == RelationshipType.Calls)
             .Select(r => _graph.Nodes[r.TargetId].Name);
 
-        Assert.That(callTargets, Is.EquivalentTo(new[] { "TestProperty" }));
+        Assert.That(callTargets, Is.EquivalentTo(new[] { "set_TestProperty" }));
     }
 
     [Test]
@@ -76,7 +77,7 @@ public class AssignmentDuplicateParseTests
     {
         var testMethod = Node("TestMethod", CodeElementType.Method);
 
-        var property = Single(testMethod, "TestProperty", RelationshipType.Calls);
+        var property = Single(testMethod, "set_TestProperty", RelationshipType.Calls);
         var field = Single(testMethod, "TestField", RelationshipType.Uses);
 
         Assert.Multiple(() =>

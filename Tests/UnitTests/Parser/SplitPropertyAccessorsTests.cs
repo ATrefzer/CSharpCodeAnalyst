@@ -5,9 +5,9 @@ using CSharpCodeAnalyst.CodeParser.Parser.Config;
 namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
-///     Integration test for the SplitPropertyAccessors parser option. Parses the TestSuite solution once
-///     with the option enabled and verifies that properties are split into get_/set_ accessor children and
-///     that accessor bodies are attributed to the accessor element (not the property container).
+///     Integration test for property-accessor splitting. Parses the TestSuite solution once and verifies
+///     that every property is split into get_/set_ accessor children and that accessor bodies are
+///     attributed to the accessor element (not the property container).
 /// </summary>
 [TestFixture]
 public class SplitPropertyAccessorsTests
@@ -27,8 +27,7 @@ public class SplitPropertyAccessorsTests
             // already registered
         }
 
-        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false,
-            splitPropertyAccessors: true));
+        var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         _graph = (await parser.ParseAsync(@"..\..\..\..\TestSuite\TestSuite.sln")).CodeGraph;
     }
 

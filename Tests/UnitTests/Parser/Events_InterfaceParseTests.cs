@@ -141,13 +141,13 @@ public class Events_InterfaceParseTests : InMemoryParseTestBase
             "EmailNotificationService.TriggerError -> ErrorEventArgs..ctor",
             "SmsNotificationService.SendNotification -> ErrorEventArgs..ctor",
             "ErrorEventArgs..ctor -> ErrorEventArgs.Exception",
-            "NotificationMonitor.HandleError -> ErrorEventArgs.Exception",
+            "NotificationMonitor.HandleError -> ErrorEventArgs.Exception.get_Exception",
             "ProcessedDataEventArgs..ctor -> ProcessedDataEventArgs.OriginalData",
             "ProcessedDataEventArgs..ctor -> ProcessedDataEventArgs.ProcessedData",
             "DataProcessor.ReceiveData -> DataProcessor.ProcessData",
             "DataProcessor.ReceiveData -> ProcessedDataEventArgs..ctor",
-            "DataListener.HandleDataProcessed -> ProcessedDataEventArgs.OriginalData",
-            "DataListener.HandleDataProcessed -> ProcessedDataEventArgs.ProcessedData"
+            "DataListener.HandleDataProcessed -> ProcessedDataEventArgs.OriginalData.get_OriginalData",
+            "DataListener.HandleDataProcessed -> ProcessedDataEventArgs.ProcessedData.get_ProcessedData"
         };
 
         Assert.That(RelsOf(RelationshipType.Calls), Is.EquivalentTo(expected));

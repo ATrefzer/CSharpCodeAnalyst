@@ -88,10 +88,11 @@ public class BasicLanguageFeatures_BasicCallsParseTests : InMemoryParseTestBase
         {
             "BasicCalls..ctor -> BasicCalls.InitializeData",
             "BasicCalls..ctor -> BasicCalls.SetProperty",
-            "BasicCalls.SetProperty -> BasicCalls.PublicProperty",
+            "BasicCalls.SetProperty -> BasicCalls.PublicProperty.set_PublicProperty",
             "BasicCalls.TestMethodCalls -> BasicCalls.CalculateLength",
             "BasicCalls.TestMethodCalls -> BasicCalls.ProcessData",
-            "BasicCalls.TestMethodCalls -> BasicCalls.PublicProperty"
+            "BasicCalls.TestMethodCalls -> BasicCalls.PublicProperty.get_PublicProperty",
+            "BasicCalls.TestMethodCalls -> BasicCalls.PublicProperty.set_PublicProperty"
         };
 
         Assert.That(RelsOf(RelationshipType.Calls), Is.EquivalentTo(expected));

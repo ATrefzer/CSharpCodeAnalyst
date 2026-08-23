@@ -116,7 +116,7 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
             "ModuleLevel1.global.ModuleLevel1.Model.ModelB.Do -> ModuleLevel2.global.ModuleLevel2.TheEnum",
             "ModuleLevel1.global.ModuleLevel1.Model.ModelC.MethodOnModelC -> ModuleLevel2.global.ModuleLevel2.TheEnum",
             "ModuleLevel1.global.ModuleLevel1.Model.ModelC.MethodOnModelCCalledFromLambda -> ModuleLevel2.global.ModuleLevel2.TheEnum",
-            "ModuleLevel1.global.ModuleLevel1.Model.StructA.DependencyToConstant -> ModuleLevel2.global.ModuleLevel2.Constants.Constant1",
+            "ModuleLevel1.global.ModuleLevel1.Model.StructA.DependencyToConstant.get_DependencyToConstant -> ModuleLevel2.global.ModuleLevel2.Constants.Constant1",
             "ModuleLevel1.global.ModuleLevel1.ServiceC.Do -> ModuleLevel2.global.ModuleLevel2.Utility.UtilityMethod1",
 
             // LocalDeclarationSyntax
@@ -135,7 +135,8 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
         var actual = GetAllPropertyImplementations(graph);
         var expected = new HashSet<string>
         {
-            "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty -> ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty"
+            "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty.get_IfProperty -> ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty.get_IfProperty",
+            "ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty.set_IfProperty -> ModuleLevel1.global.ModuleLevel1.IServiceC.IfProperty.set_IfProperty"
         };
 
 
@@ -166,7 +167,8 @@ public class ModuleLevelApprovalTests : ApprovalTestBase
 
         var expected = new HashSet<string>
         {
-            "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty -> ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty"
+            "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty.get_IfProperty -> ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty.get_IfProperty",
+            "ModuleLevel1.global.ModuleLevel1.ServiceC.IfProperty.set_IfProperty -> ModuleLevel1.global.ModuleLevel1.ServiceBase.IfProperty.set_IfProperty"
         };
 
 

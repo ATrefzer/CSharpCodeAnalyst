@@ -106,7 +106,7 @@ public class GenericInterfaceImplementsParseTests : InMemoryParseTestBase
     [Test]
     public void PropertyMember_Implements_IsDetected()
     {
-        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemProvider.Current -> IProvider<T>.Current"));
+        Assert.That(RelsOf(RelationshipType.Implements), Does.Contain("ItemProvider.Current.get_Current -> IProvider<T>.Current.get_Current"));
     }
 
     [Test]

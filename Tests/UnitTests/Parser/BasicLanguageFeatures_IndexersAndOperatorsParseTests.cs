@@ -99,7 +99,7 @@ public class BasicLanguageFeatures_IndexersAndOperatorsParseTests : InMemoryPars
             "Catalog.Absorb -> Catalog",
             "Catalog.op_Addition -> Catalog",
             "Catalog.op_Implicit -> Catalog",
-            "Catalog.this[] -> Catalog._store"
+            "Catalog.this[].get_Item -> Catalog._store"
         };
 
         Assert.That(RelsOf(RelationshipType.Uses), Is.EquivalentTo(expected));
@@ -110,12 +110,13 @@ public class BasicLanguageFeatures_IndexersAndOperatorsParseTests : InMemoryPars
     {
         var expected = new[]
         {
-            "Catalog.Absorb -> Catalog.Count",
-            "Catalog.ComputeTotal -> Catalog.Count",
+            "Catalog.Absorb -> Catalog.Count.set_Count",
+            "Catalog.Absorb -> Catalog.Count.get_Count",
+            "Catalog.ComputeTotal -> Catalog.Count.get_Count",
             "Catalog.Finalize -> Catalog.Cleanup",
             "Catalog.op_Addition -> Catalog.Absorb",
             "Catalog.op_Implicit -> Catalog.ComputeTotal",
-            "Catalog.this[] -> DataStore.Compute"
+            "Catalog.this[].get_Item -> DataStore.Compute"
         };
 
         Assert.That(RelsOf(RelationshipType.Calls), Is.EquivalentTo(expected));

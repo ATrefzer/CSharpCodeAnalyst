@@ -884,12 +884,6 @@ Use "Copy setup command" to get the line that registers it with Claude Code. Sto
   <data name="Settings_IncludeExternalCode_Tooltip" xml:space="preserve">
     <value>Include external code when parsing the solution.</value>
   </data>
-  <data name="Settings_SplitPropertyAccessors" xml:space="preserve">
-    <value>Split property _getter/setter</value>
-  </data>
-  <data name="Settings_SplitPropertyAccessors_Tooltip" xml:space="preserve">
-    <value>Model the getter and setter of each property as separate elements (get_Prop / set_Prop). This distinguishes read from write access and avoids false cycles caused by merging both directions onto a single property node.</value>
-  </data>
   <data name="Message_FiltersAreActive" xml:space="preserve">
     <value>Hide filters are active!</value>
   </data>

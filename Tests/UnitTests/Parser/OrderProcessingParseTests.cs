@@ -171,13 +171,13 @@ public class OrderProcessingParseTests : InMemoryParseTestBase
     {
         var expected = new[]
         {
-            "OrderEventArgs..ctor -> OrderEventArgs.OrderId",
-            "OrderEventArgs..ctor -> OrderEventArgs.Amount",
+            "OrderEventArgs..ctor -> OrderEventArgs.OrderId.set_OrderId",
+            "OrderEventArgs..ctor -> OrderEventArgs.Amount.set_Amount",
             "OrderProcessor.ProcessMultipleOrders -> OrderProcessor.OnOrderCompleted",
             "OrderProcessor.ProcessMultipleOrders -> OrderEventArgs..ctor",
             "OrderEventHandler.HandleOrderCompleted -> INotificationService.SendNotification",
-            "OrderEventHandler.HandleOrderCompleted -> OrderEventArgs.OrderId",
-            "OrderEventHandler.HandleOrderCompleted -> OrderEventArgs.Amount",
+            "OrderEventHandler.HandleOrderCompleted -> OrderEventArgs.OrderId.get_OrderId",
+            "OrderEventHandler.HandleOrderCompleted -> OrderEventArgs.Amount.get_Amount",
             "OrderEventHandler.HandleOrderCompleted -> OrderEventHandler.LogOrderCompletion",
             "Program.Main -> OrderProcessor..ctor",
             "Program.Main -> OrderEventHandler..ctor",

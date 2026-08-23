@@ -198,27 +198,34 @@ public abstract class ApprovalTestBase
         return actual;
     }
 
+    /// <summary>
+    ///     Property overrides, at the accessor level - accessors are always split, so the Overrides edge
+    ///     lives on get_Prop/set_Prop, not on the property container.
+    /// </summary>
     public static HashSet<string> GetAllPropertyOverrides(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
             .Where(d => d.Type == RelationshipType.Overrides)
             .Select(d => (graph.Nodes[d.SourceId], graph.Nodes[d.TargetId]))
-            .Where(t => t.Item1.ElementType == CodeElementType.Property &&
-                        t.Item2.ElementType == CodeElementType.Property)
+            .Where(t => t.Item1.ElementType == CodeElementType.PropertyAccessor &&
+                        t.Item2.ElementType == CodeElementType.PropertyAccessor)
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToHashSet();
         return actual;
     }
 
+    /// <summary>
+    ///     Property implementations, at the accessor level - see <see cref="GetAllPropertyOverrides" />.
+    /// </summary>
     protected static HashSet<string> GetAllPropertyImplementations(CodeGraph graph)
     {
         var actual = graph.Nodes.Values
             .SelectMany(n => n.Relationships)
             .Where(d => d.Type == RelationshipType.Implements)
             .Select(d => (graph.Nodes[d.SourceId], graph.Nodes[d.TargetId]))
-            .Where(t => t.Item1.ElementType == CodeElementType.Property &&
-                        t.Item2.ElementType == CodeElementType.Property)
+            .Where(t => t.Item1.ElementType == CodeElementType.PropertyAccessor &&
+                        t.Item2.ElementType == CodeElementType.PropertyAccessor)
             .Select(t => $"{t.Item1.FullName} -> {t.Item2.FullName}")
             .ToHashSet();
         return actual;

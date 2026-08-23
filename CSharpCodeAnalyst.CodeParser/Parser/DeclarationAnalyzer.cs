@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using CSharpCodeAnalyst.CodeGraph.Declarations;
 using CSharpCodeAnalyst.CodeGraph.Graph;
-using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,16 +19,14 @@ internal class DeclarationAnalyzer
     private readonly Artifacts _artifacts;
     private readonly SyntaxNodeAnalyzer _bodyAnalyzer;
     private readonly RelationshipBuilder _builder;
-    private readonly ParserConfig _config;
     private readonly ExternalContractStore _externalContracts;
 
     internal DeclarationAnalyzer(RelationshipBuilder builder, SyntaxNodeAnalyzer bodyAnalyzer, Artifacts artifacts,
-        ParserConfig config, ExternalContractStore externalContracts)
+        ExternalContractStore externalContracts)
     {
         _builder = builder;
         _bodyAnalyzer = bodyAnalyzer;
         _artifacts = artifacts;
-        _config = config;
         _externalContracts = externalContracts;
     }
 
@@ -588,42 +585,23 @@ internal class DeclarationAnalyzer
             _builder.AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
         }
 
-        // Interface implementation and override relationships. When accessors are split these are
-        // modeled at the accessor level (get/set), otherwise on the property element.
-        AnalyzePropertyAbstractions(propertyElement, propertySymbol);
+        // Interface implementation and override relationships, modeled at the accessor level (get/set).
+        AnalyzePropertyAbstractions(propertySymbol);
 
         // Analyze the property body (including accessors)
         AnalyzePropertyBody(solution, propertyElement, propertySymbol);
     }
 
     /// <summary>
-    ///     Creates the Implements (interface) and Overrides relationships for a property.
-    ///     When accessors are split, these are modeled at the accessor level (a getter implements/overrides
-    ///     a getter, a setter a setter), so the abstraction walk in the explorer and the cycle classifier
-    ///     treat them exactly like method implementations/overrides. Without splitting they stay on the
-    ///     property element.
+    ///     Creates the Implements (interface) and Overrides relationships for a property. Accessors are
+    ///     always split, so these are modeled at the accessor level (a getter implements/overrides a
+    ///     getter, a setter a setter), which lets the abstraction walk in the explorer and the cycle
+    ///     classifier treat them exactly like method implementations/overrides.
     /// </summary>
-    private void AnalyzePropertyAbstractions(CodeElement propertyElement, IPropertySymbol propertySymbol)
+    private void AnalyzePropertyAbstractions(IPropertySymbol propertySymbol)
     {
-        if (_config.SplitPropertyAccessors)
-        {
-            AnalyzeAccessorAbstractions(propertySymbol.GetMethod);
-            AnalyzeAccessorAbstractions(propertySymbol.SetMethod);
-            return;
-        }
-
-        if (propertySymbol.ContainingType.TypeKind == TypeKind.Interface)
-        {
-            AddImplementationsForInterfaceMember(propertyElement, propertySymbol);
-        }
-
-        if (propertySymbol.IsOverride && propertySymbol.OverriddenProperty is { } overriddenProperty)
-        {
-            _builder.AddRelationshipWithFallbackToContainingType(propertyElement, overriddenProperty,
-                RelationshipType.Overrides, propertySymbol.GetSymbolLocations(), RelationshipAttribute.None);
-
-            RecordIfExternalContract(propertyElement, overriddenProperty);
-        }
+        AnalyzeAccessorAbstractions(propertySymbol.GetMethod);
+        AnalyzeAccessorAbstractions(propertySymbol.SetMethod);
     }
 
     /// <summary>
@@ -657,15 +635,11 @@ internal class DeclarationAnalyzer
 
     private void AnalyzePropertyBody(Solution solution, CodeElement propertyElement, IPropertySymbol propertySymbol)
     {
-        // When splitting is enabled, accessor bodies are attributed to their own getter/setter element
-        // instead of the property container. The elements were created in phase 1; if (for whatever
-        // reason) one is missing we fall back to the property container.
-        var getElement = _config.SplitPropertyAccessors
-            ? _builder.FindInternalCodeElement(propertySymbol.GetMethod) ?? propertyElement
-            : propertyElement;
-        var setElement = _config.SplitPropertyAccessors
-            ? _builder.FindInternalCodeElement(propertySymbol.SetMethod) ?? propertyElement
-            : propertyElement;
+        // Accessor bodies are attributed to their own getter/setter element instead of the property
+        // container. The elements were created in phase 1; if (for whatever reason) one is missing we
+        // fall back to the property container.
+        var getElement = _builder.FindInternalCodeElement(propertySymbol.GetMethod) ?? propertyElement;
+        var setElement = _builder.FindInternalCodeElement(propertySymbol.SetMethod) ?? propertyElement;
 
         // For a partial property both parts are walked - the stored symbol may be the body-less
         // definition part (see GetDeclaringSyntaxReferencesIncludingPartial).

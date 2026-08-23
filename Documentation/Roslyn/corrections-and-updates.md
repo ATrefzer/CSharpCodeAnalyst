@@ -73,7 +73,7 @@ TestCase in TestSuit: GenericUtilities.GenericPair in TestSuite.
 
 A property is a single symbol to Roslyn, but merging its getter and setter onto one node in the dependency graph creates **phantom cycles**: if type A only *reads* `B.Value` while type B only *writes* `A.Other`, the merged property nodes carry edges that never occur together. Cycle detection then reports a cycle that does not actually exist, because in reality the getter and the setter are independent.
 
-To fix this each property is split into separate `get_Prop` / `set_Prop` accessor nodes. This is gated behind the `SplitPropertyAccessors` parser option (on by default, because cycle accuracy is the main goal).
+To fix this each property is split into separate `get_Prop` / `set_Prop` accessor nodes. This used to be gated behind a `SplitPropertyAccessors` parser option, on by default; the option was later removed and splitting made unconditional - there was no scenario where turning it off was the right call, so the toggle was deleted rather than left sitting at its default.
 
 ### The Roslyn side: the symbol does not tell you get vs set
 

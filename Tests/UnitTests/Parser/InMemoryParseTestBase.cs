@@ -5,8 +5,11 @@ namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
 ///     Base class for self-contained in-memory parser tests: a fixture supplies a single C# snippet via
-///     <see cref="Code" />, the base parses it once through the full pipeline (split OFF, to match the
-///     former approval fixtures) and exposes path/relationship projections below the namespace level.
+///     <see cref="Code" />, the base parses it once through the full pipeline and exposes
+///     path/relationship projections below the namespace level. Every property is split into get_/set_
+///     accessor children - there is no toggle for it any more (see corrections-and-updates.md). A
+///     relationship that reads or writes a property therefore targets the accessor, not the property
+///     container: expect paths like <c>"Type.Prop.get_Prop"</c>, not <c>"Type.Prop"</c>.
 ///     The <see cref="PathOf" /> projection strips the assembly and all namespace nodes, so it equals the
 ///     suffix the old fixtures had after the "&lt;Assembly&gt;.global.&lt;Namespace&gt;." prefix.
 /// </summary>
@@ -17,14 +20,11 @@ public abstract class InMemoryParseTestBase
     /// <summary>The C# snippet to parse. One compilation unit; typically under <c>namespace Demo;</c>.</summary>
     protected abstract string Code { get; }
 
-    /// <summary>Override to parse with the SplitPropertyAccessors option (get_/set_ accessor children).</summary>
-    protected virtual bool SplitPropertyAccessors => false;
-
     [OneTimeSetUp]
     public async Task ParseCode()
     {
         var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(
-            new ParserConfig(new ProjectExclusionRegExCollection(), false, splitPropertyAccessors: SplitPropertyAccessors));
+            new ParserConfig(new ProjectExclusionRegExCollection(), false));
         var result = await parser.ParseSourceAsync(Code);
         Graph = result.CodeGraph;
     }

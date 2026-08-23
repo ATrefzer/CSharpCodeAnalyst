@@ -17,8 +17,6 @@ public class AppSettings
 
     public bool IncludeExternalCode { get; set; }
 
-    public bool SplitPropertyAccessors { get; set; } = true;
-
     public bool WarnIfFiltersActive { get; set; } = true;
 
     /// <summary>
@@ -62,7 +60,6 @@ public class AppSettings
             DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,
             AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
             IncludeExternalCode = this.IncludeExternalCode,
-            SplitPropertyAccessors = this.SplitPropertyAccessors,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
             ShowOverviewOnImport = this.ShowOverviewOnImport,
             McpServerPort = this.McpServerPort

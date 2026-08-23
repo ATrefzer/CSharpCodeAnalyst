@@ -74,7 +74,6 @@ public class RecordsAndStructsParseTests
     [OneTimeSetUp]
     public void Setup()
     {
-        // Split off to mirror the original parser configuration of this scenario.
         var parser = new CSharpCodeAnalyst.CodeParser.Parser.Parser(new ParserConfig(new ProjectExclusionRegExCollection(), false));
         _graph = parser.ParseSourceAsync(Code).GetAwaiter().GetResult().CodeGraph;
     }
@@ -138,12 +137,17 @@ public class RecordsAndStructsParseTests
     [Test]
     public void MethodCalls_AreDetected()
     {
+        // Both accesses read the property, so they route to the getter accessor (accessors are always
+        // split) - qualified by the declaring type, because "Value" is also RecordB's positional property.
+        var structValueGetter = Node("Value", CodeElementType.Property, "StructWithInterface")
+            .Children.Single(c => c.Name == "get_Value");
+        var extendedDataGetter = Node("Data", CodeElementType.Property, "ExtendedType")
+            .Children.Single(c => c.Name == "get_Data");
+
         Assert.Multiple(() =>
         {
-            Assert.That(Has(Node("CompareTo", CodeElementType.Method),
-                Node("Value", CodeElementType.Property, "StructWithInterface"), RelationshipType.Calls), Is.True);
-            Assert.That(Has(Node("Slice", CodeElementType.Method),
-                Node("Data", CodeElementType.Property, "ExtendedType"), RelationshipType.Calls), Is.True);
+            Assert.That(Has(Node("CompareTo", CodeElementType.Method), structValueGetter, RelationshipType.Calls), Is.True);
+            Assert.That(Has(Node("Slice", CodeElementType.Method), extendedDataGetter, RelationshipType.Calls), Is.True);
             Assert.That(Has(Node("CreateInstance", CodeElementType.Method),
                 Node("OnCreated", CodeElementType.Method), RelationshipType.Calls), Is.True);
         });

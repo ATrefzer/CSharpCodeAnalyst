@@ -3,17 +3,15 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 namespace CodeParserTests.UnitTests.Parser;
 
 /// <summary>
-///     The PropertyChain scenario parsed with SplitPropertyAccessors enabled: a getter-only property is
-///     split into a single get_ accessor child, the accessor body (not the property container) carries the
-///     outgoing call, a read access targets the getter, and FollowIncomingCallsHeuristically traverses
-///     through the getter accessor to reach the reader. Migrated from the FollowHeuristic.PropertyChain
-///     parts of the former SplitPropertyAccessorsTests (which parsed the whole TestSuite solution).
+///     The PropertyChain scenario: a getter-only property is split into a single get_ accessor child, the
+///     accessor body (not the property container) carries the outgoing call, a read access targets the
+///     getter, and FollowIncomingCallsHeuristically traverses through the getter accessor to reach the
+///     reader. Migrated from the FollowHeuristic.PropertyChain parts of the former
+///     SplitPropertyAccessorsTests (which parsed the whole TestSuite solution).
 /// </summary>
 [TestFixture]
 public class FollowHeuristic_PropertyChainSplitAccessorsParseTests : InMemoryFollowIncomingCallsTestBase
 {
-    protected override bool SplitPropertyAccessors => true;
-
     protected override string Code => """
                                      namespace FollowHeuristic.PropertyChain;
 
