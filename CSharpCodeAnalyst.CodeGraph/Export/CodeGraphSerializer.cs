@@ -81,6 +81,11 @@ public static class CodeGraphSerializer
             sb.Append($"{Separator}access={element.AccessLevel}");
         }
 
+        if (element.MemberRole != MemberRole.Unknown)
+        {
+            sb.Append($"{Separator}role={element.MemberRole}");
+        }
+
         if (element.Attributes.Count > 0)
         {
             var attrs = string.Join(",", element.Attributes.OrderBy(a => a));
@@ -262,6 +267,7 @@ public static class CodeGraphSerializer
         string? parentId = null;
         var isExternal = false;
         var accessLevel = AccessLevel.Unknown;
+        var memberRole = MemberRole.Unknown;
         var attributes = new HashSet<string>();
 
         // Parse optional fields
@@ -290,6 +296,11 @@ public static class CodeGraphSerializer
                 // An unreadable value stays Unknown - never guess a visibility.
                 Enum.TryParse(part.Substring("access=".Length), out accessLevel);
             }
+            else if (part.StartsWith("role="))
+            {
+                // An unreadable value stays Unknown - never guess a role.
+                Enum.TryParse(part.Substring("role=".Length), out memberRole);
+            }
             else if (part.StartsWith("attr="))
             {
                 var attrList = part.Substring("attr=".Length).Split(',');
@@ -308,7 +319,8 @@ public static class CodeGraphSerializer
         var element = new CodeElement(id, elementType, name, fullName, null)
         {
             IsExternal = isExternal,
-            AccessLevel = accessLevel
+            AccessLevel = accessLevel,
+            MemberRole = memberRole
         };
 
         foreach (var attr in attributes)

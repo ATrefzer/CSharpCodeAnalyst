@@ -141,7 +141,7 @@ The fix records the constructor too, as a `Uses` edge (mirroring the method-call
 
 Both relationships are downgraded from "hard" to "soft" inside a lambda. We deliberately do **not** emit a `Calls` between the constructors (some tools, e.g. NDepend, do): the outer constructor only *builds* the lambda; that `Select` later invokes it is library knowledge the parser does not have. A `Calls` would assert a control-flow edge that does not exist. `Uses` is the honest relationship - a real compile-time dependency (rename/remove the constructor and the lambda no longer compiles) without claiming a run-time call.
 
-Same guard as the normal path (see `AnalyzeObjectCreation`): only explicit, internal constructors get the edge; implicit/primary/external constructors are already covered by the type `Uses`.
+Same guard as the normal path (see `AnalyzeObjectCreation`): a constructor gets the edge when it is an element of the graph. Implicit and external constructors are not, and are covered by the type `Uses`.
 
 
 
@@ -222,7 +222,7 @@ A consequence worth knowing (observed on the Jellyfin reference repo, accepted d
 
 **Enum member initializers.** Enum members are deliberately not code elements, but that also meant `enum Level { Highest = Limits.Max }` was never walked. The initializer expressions are now walked with the dependencies anchored on the enum element itself. Note: a member referencing another member of the same enum (`All = A | B`) falls back to the containing type and yields a self-edge - consistent with recursive methods.
 
-**Primary-constructor base-call arguments.** `class Derived() : Base(Helper.DefaultSize())` - the primary constructor has no method element and type declarations have no body walk, so the argument expressions were lost (with a classic `: base(...)` they are part of the walked constructor declaration). The arguments are now walked anchored on the type element, consistent with the primary-constructor parameter types; the call to the base constructor itself gets a `Calls` edge with `IsBaseCall`, same guard as constructor initializers (explicit, internal constructors only).
+**Primary-constructor base-call arguments.** `class Derived() : Base(Helper.DefaultSize())` - type declarations have no body walk, so the argument expressions were lost (with a classic `: base(...)` they are part of the walked constructor declaration). They are now walked as the primary constructor's body, anchored on its own element - see the chapter on primary constructors below, which replaced the earlier type-level anchoring.
 
 **Type arguments of constructed generics in expression position.** `Registry<Token>.Instance` - the member edge is found via normalization to `Registry<T>`, but `Token` was lost: the receiver is a `GenericNameSyntax` whose type-argument identifiers resolve to plain type symbols, which the identifier analysis ignores. A constructed generic type named in expression position now records `Uses` edges for its type arguments. In type positions (declarations, casts, creations) the same edges are already produced by the declaration handlers and simply merge.
 
@@ -476,10 +476,10 @@ The dead code analysis uses it for the confidence of a finding, and reads it ove
 chain: a `public` method of an `internal` class is just as unreachable from another assembly, so it is the
 *most restrictive* container that decides.
 
-Two members were found only through this: a **static constructor** (`.cctor`) and a **finalizer** (the
-destructor arrives from the parser as an ordinary method named `Finalize` - the Roslyn symbol name). Both
-are run by the runtime, can never be referenced from code, and are effectively private, so they landed in
-the highest confidence band. The static constructor started out annotated as an entry point; both are now
+Two members were found only through this: a **static constructor** and a **finalizer**. Both are run by
+the runtime, can never be referenced from code, and are effectively private, so they landed in the highest
+confidence band. (They were recognized by their names at the time; today that is
+`MemberRole` - see below.) The static constructor started out annotated as an entry point; both are now
 dropped from the result entirely - on a live type such a row is wrong in every case, and on a dead type
 the roll-up covers them.
 
@@ -530,3 +530,114 @@ One consumer had to be taught about it, and one turned out to be *fixed* by it:
   matches `Cache` and `Cache<T>`, `MyApp.Cache.Add` also `MyApp.Cache<T>.Add`. Writing the list out
   selects exactly one of them. Where a short path names both, the rule means both - the same reading that
   has always applied to overloaded members.
+
+## What a member is for: `MemberRole`
+
+Two analyses need to know whether a method exists to do work or to bring an object into (or out of) a
+valid state. The type cohesion metric drops the lifecycle members before partitioning - a constructor
+assigns most of the state, so in the member graph it is a clique over all fields and would merge every
+group into one, which is exactly what makes the partition count an LCOM4 reading rather than a
+reachability check. The dead code analysis drops the static constructor and the finalizer, because
+nothing can reference them and "nothing references it" therefore carries no information.
+
+Both used to ask by **name**: `.ctor`, `.cctor`, `Finalize`. Those are the CLR metadata names, which
+Roslyn reports as `ISymbol.Name` - so the test worked, but only ever for the C# parser, and the two
+analyses had written it out separately. `CodeElement.MemberRole` replaces it with a statement from
+whoever produced the element, filled in `SymbolExtensions.GetMemberRole` from `IMethodSymbol.MethodKind`.
+
+The reason it is not simply a wider name list: **no name test can hold for more than one language.** A
+C++ constructor is called like its class and its destructor `~Foo`; Python uses `__init__` and `__del__`;
+and a Dart named constructor `Foo.fromJson` arrives as a method called `fromJson`, which no rule could
+ever tell apart from an ordinary method of that name. The producer knows; the graph did not carry the
+answer.
+
+The enum is deliberately four-valued plus `Unknown`, and the pair `Unknown` / `Normal` is the load-bearing
+part:
+
+- `Unknown` means **nobody told us** - a producer that does not fill roles, or an element that is not a
+  method at all. As with `AccessLevel`, it must never be read as a value.
+- `Normal` means the producer **looked and says this is ordinary**. A producer that fills roles at all
+  says this about every method it creates, which is what keeps `Unknown` reserved for "not filled in".
+
+There is deliberately **no name-based fallback**. A graph whose producer does not fill roles simply has
+no lifecycle members - the cohesion numbers of such a graph are a reachability check rather than an LCOM4
+reading, and the dead code analysis reports its static constructors. That is the visible consequence of
+loading a **project file saved before this existed**: it keeps loading, but it has to be imported again
+to be measured correctly. Keeping the C# names alive as a shim was considered and dropped - it would have
+been a second, silent definition of what a constructor is, in the one layer that is supposed to be free
+of language conventions.
+
+One thing got *fixed* on the way: a method deliberately named `Finalize` (legal C#, `public new void
+Finalize()`) was read as a finalizer by the name test - excluded from the partitioning and never reported
+as dead code. Roslyn calls it `MethodKind.Ordinary`, so it is now `Normal`.
+`MemberRoleParseTests.AMethodMerelyNamedFinalize_IsNotAFinalizer` pins it.
+
+Persisted in both formats, the same way `AccessLevel` is: an optional constructor parameter on
+`SerializableCodeElement`, and `role=` in the text serializer, written only when it is not `Unknown` and
+falling back to `Unknown` when it cannot be parsed.
+
+(Primary constructors and a positional record's members were not in the graph when this was written -
+see the next chapter, which fixed that.)
+
+## Primary constructors, positional records and captured parameters
+
+Phase 1 walks declaration syntax, and a primary constructor has none of its own: its declaring syntax is
+the type declaration. For a long time that meant `record Order(int Id, Money Total)` and
+`class Service(ILogger logger)` had **no constructor element and no members at all** - a record was an
+empty type in the tree, and the dependency was kept alive by anchoring `Uses` edges for the parameter
+types on the *type* element (`AnalyzePrimaryConstructorParameters`). That was a deliberate decision, and
+for cycles and layers it is enough.
+
+For the **type cohesion metric** it is not, and the measurement is the reason this changed:
+
+```
+class Captured(ILogger logger)              // C# 12: the parameter is captured
+  Start, Stop  →  2 partitions              ← looks like a class that should be split
+
+class Explicit { ILogger _logger; ... }     // the same class written out
+  _logger, Start, Stop  →  1 partition      ← correctly cohesive
+```
+
+The captured parameter *is* the shared state, but it was not a node, so the two methods shared nothing.
+A false split - and it gets worse the more the C# 12 idiom is used.
+
+Three things now exist as elements:
+
+- **The primary constructor**, found through `INamedTypeSymbol.InstanceConstructors` and the declaring
+  syntax being the type declaration. Its body walk has to be restricted: handing the type declaration to
+  `AnalyzeMethodBody` would attribute every member of the type to the constructor. What it actually runs
+  is the argument list of the base clause, nothing else - field and property initializers are anchored on
+  those members themselves.
+- **A positional record's properties.** Contrary to what one expects they are *not* implicitly declared:
+  they are ordinary `IPropertySymbol`s whose declaring syntax is the `ParameterSyntax`, with a normal
+  symbol key. Phase 2 therefore needed no change at all - `order.Id` resolves through the existing
+  property path. Roslyn offers no route from the parameter to that property, so it is found the other way
+  round: the property whose declaration *is* this parameter. That also settles
+  `record Order(int Id) { public int Id { get; init; } = Id; }`, where the member's declaration is the
+  property and the ordinary path creates it.
+- **A captured parameter**, as a `Field`. Whether a parameter is captured is the compiler's decision and
+  it is readable: it emits a field named `<name>P`, implicitly declared and with no `AssociatedSymbol`. A
+  parameter that is never used gets none, and one used only in a field initializer gets none either -
+  there the declared field already carries the state. A record's positional parameter produces a property
+  *backing* field instead, which does carry an `AssociatedSymbol` and is excluded here.
+
+Two decisions about the captured parameter are worth stating, because the obvious alternatives are
+wrong:
+
+- It is **keyed on the parameter symbol**, not on `<name>P`. A body referring to `logger` binds to the
+  parameter, so that is what phase 2 looks up. `AnalyzeIdentifier` gained a branch for it, guarded by
+  "an element exists" - deliberately without the containing-type fallback, which would turn every
+  ordinary parameter use in the codebase into an edge. Only the identifier path needs it: the left side
+  of `logger.Log()` is visited there by the walker, and the right side of a member access can never be a
+  parameter.
+- It is a **child of the type**, not of the constructor. The constructor is dropped from the member graph
+  as a lifecycle member (see `MemberRole`), and it would take the field with it - which is exactly the
+  split this was meant to fix.
+
+With the constructor in the graph, `IsExplicitConstructor` disappeared. It existed only to say "this
+constructor has no element"; the four call sites already asked `FindInternalCodeElement(...) is not null`
+next to it, which is the honest question. The visible consequence: `new Service(x)` now records
+`Calls Service..ctor` alongside `Creates Service`, exactly as the long form always did. The type-level
+`Uses` edges for the parameter types moved onto the constructor, where the ordinary parameter handling
+produces them anyway - cycle detection and the layer rules are unaffected, because member edges are
+lifted to the containing type.

@@ -42,6 +42,14 @@ The same caveat as for Python applies to the call references: doxygen resolves a
 
 Only your own source is in the graph. References into the JDK or into libraries are dropped, since doxygen never saw those types.
 
+#### Constructors and destructors
+
+Doxygen reports a constructor as an ordinary function — its XML has no flag for it — so the importer recognizes it by the naming rule of the language: a constructor carries the name of its type (`Widget::Widget`, also for a class template, whose constructor is written without the template arguments), a C++ destructor is `~Widget`, and Python uses `__init__` and `__del__`.
+
+This matters for the metrics rather than for the graph you see. The **type cohesion** analysis leaves constructors out before it looks for groups — a constructor usually touches most fields of its class and would merge every group into one — and the **dead code** analysis does not report a destructor, since nothing calls it from code. Both used to work only for C#; a method that is genuinely a free function named like a nearby class is unaffected, because only the class a member actually belongs to is compared.
+
+The one inaccuracy: a Python method deliberately named like its own class is read as a constructor.
+
 ### Dart and Flutter
 
 Dart projects are not imported via doxygen — doxygen does not support the language at all. Instead

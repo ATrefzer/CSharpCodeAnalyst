@@ -164,13 +164,14 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         SemanticModel semanticModel)
     {
         // ": base(...)" / ": this(...)". The arguments are visited separately by the walker.
-        // We mirror the constructor handling in AnalyzeObjectCreation: only link explicit, internal
-        // constructors. Implicit base constructors and external ones are left to the Inherits edge.
+        // We mirror the constructor handling in AnalyzeObjectCreation: a constructor is linked when it
+        // is an element of the graph. Implicit and external ones are not, and are left to the Inherits
+        // edge.
         if (semanticModel.GetSymbolInfo(initializerSyntax).Symbol is
             IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
         {
             var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
-            if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
+            if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
             {
                 var attribute = initializerSyntax.IsKind(SyntaxKind.BaseConstructorInitializer)
                     ? RelationshipAttribute.IsBaseCall
@@ -192,10 +193,10 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
 
     /// <summary>
     ///     <inheritdoc cref="ISyntaxNodeHandler.AddConstructorReferenceFromLambda" />
-    ///     Mirrors the constructor handling in <see cref="AnalyzeObjectCreation" /> (same guard: explicit,
-    ///     internal constructors only) but records a "Uses" instead of a "Calls" relationship, because a
-    ///     lambda only references the constructor. Implicit/primary/external constructors carry no edge here;
-    ///     the type "Uses" the lambda walker already adds covers them.
+    ///     Mirrors the constructor handling in <see cref="AnalyzeObjectCreation" /> (same guard: the
+    ///     constructor has to be an element of the graph) but records a "Uses" instead of a "Calls"
+    ///     relationship, because a lambda only references the constructor. Implicit and external
+    ///     constructors carry no edge here; the type "Uses" the lambda walker already adds covers them.
     /// </summary>
     public void AddConstructorReferenceFromLambda(CodeElement sourceElement,
         BaseObjectCreationExpressionSyntax objectCreationSyntax, SemanticModel semanticModel)
@@ -204,7 +205,7 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } constructorSymbol)
         {
             var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
-            if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
+            if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
             {
                 var location = objectCreationSyntax.GetSyntaxLocation();
                 _builder.AddRelationshipWithFallbackToContainingType(sourceElement, normalizedConstructor,
@@ -263,6 +264,20 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         {
             // Foo passed/assigned/returned as a delegate (method group), not invoked.
             AddMethodGroupRelationship(sourceElement, methodSymbol, identifierSyntax.GetSyntaxLocation());
+        }
+        else if (symbol is IParameterSymbol parameterSymbol &&
+                 _builder.FindInternalCodeElement(parameterSymbol) is { } capturedParameter)
+        {
+            // A captured primary constructor parameter is state of the type, and phase 1 gave it a Field
+            // element. Every other parameter and local has none, and that lookup is what keeps this from
+            // firing for them - deliberately no fallback to the containing type, which would turn every
+            // ordinary parameter use into an edge.
+            //
+            // Only the identifier path needs this: the left side of "logger.Log()" is visited here by the
+            // walker (VisitMemberAccessExpression -> Visit(node.Expression)), and the right side of a
+            // member access can never be one of these.
+            _builder.AddRelationship(sourceElement, RelationshipType.Uses, capturedParameter,
+                [identifierSyntax.GetSyntaxLocation()], RelationshipAttribute.None);
         }
         else if (identifierSyntax is GenericNameSyntax && symbol is INamedTypeSymbol { IsGenericType: true } constructedType)
         {
@@ -440,7 +455,8 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
                 objectCreationSyntax.GetSyntaxLocation());
         }
 
-        // Add "calls" relationship to constructor. Primary, implicit and external constructors are ignored.
+        // Add "calls" relationship to constructor. Implicit and external constructors are ignored - they
+        // are not elements of the graph. A primary constructor is one, and is linked like any other.
         // (!) We do not want a fallback to the containing class here (!) We still have the "creates" relationship.
         // Adding this relationship allows following method invocations later. It used to be skipped for
         // field initializers, which left a constructor only called from them without a single incoming
@@ -451,7 +467,7 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             // Constructors are never generic in C#. We use the symbol of the definition found in phase 1
             // So IsGeneric is never true, yet we need the original definition.
             var normalizedConstructor = constructorSymbol.NormalizeToOriginalDefinition();
-            if (normalizedConstructor.IsExplicitConstructor() && _builder.FindInternalCodeElement(normalizedConstructor) is not null)
+            if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
             {
                 var location = objectCreationSyntax.GetSyntaxLocation();
                 _builder.AddCallsRelationship(sourceElement, normalizedConstructor, location, RelationshipAttribute.None);

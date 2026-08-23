@@ -118,7 +118,8 @@ internal class ExternalCodeElementCache
         var elementType = DetermineCodeElementType(symbol);
         var element = new CodeElement(id, elementType, name, fullName, parent)
         {
-            IsExternal = true
+            IsExternal = true,
+            MemberRole = symbol.GetMemberRole()
         };
 
         // Add child relationship to parent

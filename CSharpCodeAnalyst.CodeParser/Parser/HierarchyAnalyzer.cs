@@ -358,6 +358,15 @@ public class HierarchyAnalyzer
                 symbol = semanticModel.GetDeclaredSymbol(node) as IPropertySymbol;
                 elementType = CodeElementType.Property;
                 break;
+
+            case ParameterSyntax parameterSyntax:
+
+                // A record's positional parameter declares a public property as well. Without this the
+                // record is an empty type in the tree, and every use of "order.Id" falls back to the
+                // type. Null for every other parameter, which then simply creates no element.
+                symbol = FindPositionalProperty(parameterSyntax, semanticModel);
+                elementType = CodeElementType.Property;
+                break;
             case DelegateDeclarationSyntax:
                 symbol = semanticModel.GetDeclaredSymbol(node) as INamedTypeSymbol;
                 elementType = CodeElementType.Delegate;
@@ -402,6 +411,11 @@ public class HierarchyAnalyzer
                 CreatePropertyAccessorElements(propertySymbol, element);
             }
 
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+            {
+                CreatePrimaryConstructorElement(namedTypeSymbol, node, element);
+            }
+
             foreach (var childNode in node.ChildNodes())
             {
                 ProcessNodeForHierarchy(childNode, semanticModel, element);
@@ -415,6 +429,132 @@ public class HierarchyAnalyzer
                 ProcessNodeForHierarchy(childNode, semanticModel, parent);
             }
         }
+    }
+
+    /// <summary>
+    ///     The element for a primary constructor. It has no <see cref="ConstructorDeclarationSyntax" /> -
+    ///     its declaring syntax is the type declaration itself - so the ordinary case never sees it, and
+    ///     without this the constructor of every record and of every "class Foo(...)" is missing from the
+    ///     graph while the long form has one.
+    ///     <para>
+    ///         A partial type is walked once per declaration; only one of them can carry the parameter
+    ///         list, and <see cref="GetOrCreateCodeElement" /> deduplicates by symbol key anyway.
+    ///     </para>
+    /// </summary>
+    private void CreatePrimaryConstructorElement(INamedTypeSymbol typeSymbol, SyntaxNode node, CodeElement typeElement)
+    {
+        if (node is not TypeDeclarationSyntax { ParameterList: { } parameterList })
+        {
+            return;
+        }
+
+        var primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(constructor =>
+            !constructor.IsImplicitlyDeclared &&
+            constructor.DeclaringSyntaxReferences.Any(reference => reference.GetSyntax() == node));
+
+        if (primaryConstructor is null)
+        {
+            return;
+        }
+
+        // The parameter list, not the whole declaration - that is where the constructor is written.
+        GetOrCreateCodeElement(primaryConstructor, CodeElementType.Method, typeElement, parameterList.GetSyntaxLocation());
+
+        foreach (var parameter in primaryConstructor.Parameters)
+        {
+            CreateCapturedParameterElement(typeSymbol, parameter, typeElement);
+        }
+    }
+
+    /// <summary>
+    ///     The field a captured primary constructor parameter really is. "class Service(ILogger logger)"
+    ///     with a method that uses <c>logger</c> stores it, and that storage is state shared by every
+    ///     member touching it - without an element for it, two methods using the same parameter share
+    ///     nothing and the type cohesion metric splits a class that is perfectly cohesive.
+    ///     <para>
+    ///         Whether a parameter is captured is the compiler's decision, and it is readable: it emits a
+    ///         field named <c>&lt;name&gt;P</c>. A parameter that is never used gets none, and one used
+    ///         only in a field initializer gets none either - there the declared field already carries
+    ///         the state. A record's positional parameter produces a property backing field instead,
+    ///         which carries an <see cref="IFieldSymbol.AssociatedSymbol" /> and is excluded here; the
+    ///         property itself is the element (see <see cref="FindPositionalProperty" />).
+    ///     </para>
+    ///     <para>
+    ///         The element is keyed on the <b>parameter</b>, not on that mangled field: a body referring
+    ///         to <c>logger</c> binds to the parameter, so that is what phase 2 has to look up. It is a
+    ///         child of the type rather than of the constructor, because the constructor is dropped from
+    ///         the member graph as a lifecycle member and would take the field with it.
+    ///     </para>
+    /// </summary>
+    private void CreateCapturedParameterElement(INamedTypeSymbol typeSymbol, IParameterSymbol parameter, CodeElement typeElement)
+    {
+        var captureFieldName = $"<{parameter.Name}>P";
+        var isCaptured = typeSymbol.GetMembers()
+            .OfType<IFieldSymbol>()
+            .Any(field => field is { IsImplicitlyDeclared: true, AssociatedSymbol: null } && field.Name == captureFieldName);
+
+        if (!isCaptured)
+        {
+            return;
+        }
+
+        var symbolKey = parameter.Key();
+        if (_symbolKeyToElementMap.ContainsKey(symbolKey))
+        {
+            return;
+        }
+
+        var id = Guid.NewGuid().ToString();
+        var element = new CodeElement(id, CodeElementType.Field, parameter.Name,
+            typeElement.FullName + "." + parameter.Name, typeElement)
+        {
+            // The capture is not addressable from outside the type, whatever the parameter looks like.
+            AccessLevel = CodeGraph.Graph.AccessLevel.Private
+        };
+
+        foreach (var parameterLocation in parameter.GetSymbolLocations())
+        {
+            element.SourceLocations.Add(parameterLocation);
+        }
+
+        typeElement.Children.Add(element);
+        _codeGraph.Nodes[id] = element;
+        _symbolKeyToElementMap[symbolKey] = element;
+        _elementIdToSymbolMap[id] = parameter;
+    }
+
+    /// <summary>
+    ///     The property a record's positional parameter declares, or null when the parameter declares
+    ///     none - an ordinary method parameter, a primary constructor parameter of a class or struct
+    ///     (those declare no member), or a record parameter whose property the type writes out itself.
+    ///     <para>
+    ///         Roslyn offers no direct route from the parameter to that property:
+    ///         <c>GetDeclaredSymbol(ParameterSyntax)</c> yields the <see cref="IParameterSymbol" />. The
+    ///         property is found the other way round - it is the one whose declaration <i>is</i> this
+    ///         parameter. That also settles the write-it-out case: in
+    ///         <c>record Order(int Id) { public int Id { get; init; } = Id; }</c> the member's declaring
+    ///         syntax is the property declaration, so nothing is found here and the ordinary
+    ///         <see cref="PropertyDeclarationSyntax" /> case creates it.
+    ///     </para>
+    /// </summary>
+    private static IPropertySymbol? FindPositionalProperty(ParameterSyntax parameterSyntax, SemanticModel semanticModel)
+    {
+        if (parameterSyntax.Parent?.Parent is not TypeDeclarationSyntax)
+        {
+            // Not a primary constructor parameter at all.
+            return null;
+        }
+
+        if (semanticModel.GetDeclaredSymbol(parameterSyntax) is not { } parameterSymbol)
+        {
+            return null;
+        }
+
+        return parameterSymbol.ContainingType?
+            .GetMembers(parameterSymbol.Name)
+            .OfType<IPropertySymbol>()
+            .FirstOrDefault(property => property.DeclaringSyntaxReferences
+                .Any(reference => reference.GetSyntax() == parameterSyntax));
     }
 
     private bool IsProjectFile(string filePath)
@@ -488,7 +628,8 @@ public class HierarchyAnalyzer
 
         var element = new CodeElement(newId, elementType, name, fullName, parent)
         {
-            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility)
+            AccessLevel = MapAccessLevel(symbol.DeclaredAccessibility),
+            MemberRole = symbol.GetMemberRole()
         };
 
         UpdateCodeElementLocations(element, location);
@@ -541,7 +682,8 @@ public class HierarchyAnalyzer
         var accessorElement = new CodeElement(id, CodeElementType.PropertyAccessor, name, fullName, propertyElement)
         {
             // An accessor may narrow the property ("public int P { get; private set; }").
-            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility)
+            AccessLevel = MapAccessLevel(accessor.DeclaredAccessibility),
+            MemberRole = accessor.GetMemberRole()
         };
 
         foreach (var accessorLocation in accessor.GetSymbolLocations())
