@@ -3048,11 +3048,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automatically _add containing type.
+        ///   Looks up a localized string similar to Automatically _fill gaps in hierarchy.
         /// </summary>
-        public static string Settings_AddContainingType {
+        public static string Settings_FillGapsInHierarchy {
             get {
-                return ResourceManager.GetString("Settings_AddContainingType", resourceCulture);
+                return ResourceManager.GetString("Settings_FillGapsInHierarchy", resourceCulture);
             }
         }
         
@@ -3345,11 +3345,11 @@ namespace CSharpCodeAnalyst.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to When adding methods or fields to the graph, automatically include their containing class/type.
+        ///   Looks up a localized string similar to When adding elements to the canvas, automatically fill in any containers missing between them and what is already shown (e.g. the class between a method and its namespace). Does not add a containing type nobody asked for - use "Complete to containing types" on the graph toolbar for that.
         /// </summary>
-        public static string Settings_Settings_AddContainingType_Tooltip {
+        public static string Settings_FillGapsInHierarchy_Tooltip {
             get {
-                return ResourceManager.GetString("Settings_Settings_AddContainingType_Tooltip", resourceCulture);
+                return ResourceManager.GetString("Settings_FillGapsInHierarchy_Tooltip", resourceCulture);
             }
         }
         

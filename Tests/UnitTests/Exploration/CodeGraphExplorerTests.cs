@@ -232,6 +232,46 @@ public class CodeGraphExplorerTests
     }
 
     [Test]
+    public void FindGapsInHierarchy_WithIdsToCompleteNarrowerThanKnownIds_StillFindsTheGap()
+    {
+        // The canvas already has Asm and Ns; only M is newly added. Walking just the new id (not every
+        // id in knownIds) must still find the gap, because ancestry is checked against knownIds, not
+        // against idsToComplete. The walk starts at the outermost known ancestor (Asm) and adds
+        // everything from there down to M, which includes Ns even though it is already known too - the
+        // result can overlap knownIds, that overlap is harmless for a caller that unions the two.
+        var asm = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", asm);
+        var cls = _graph.CreateClass("Cls", ns);
+        var m = _graph.CreateMethod("M", cls);
+
+        var idsToComplete = new HashSet<string> { m.Id };
+        var knownIds = new HashSet<string> { asm.Id, ns.Id, m.Id }; // Cls missing
+
+        var result = _explorer.FindGapsInHierarchy(idsToComplete, knownIds);
+
+        Assert.That(result.Elements.Select(e => e.Id), Is.EquivalentTo(new[] { ns.Id, cls.Id }));
+    }
+
+    [Test]
+    public void FindGapsInHierarchy_NeverIntroducesAnIdOutsideTheKnownHierarchy()
+    {
+        // The narrower overload only ever completes ancestry that is actually reachable from the given
+        // ids - it must not pull in unrelated siblings just because they exist in the same graph.
+        var asm = _graph.CreateAssembly("Asm");
+        var ns = _graph.CreateNamespace("Ns", asm);
+        var cls = _graph.CreateClass("Cls", ns);
+        var m = _graph.CreateMethod("M", cls);
+        var unrelated = _graph.CreateClass("Unrelated", ns);
+
+        var idsToComplete = new HashSet<string> { m.Id };
+        var knownIds = new HashSet<string> { asm.Id, m.Id };
+
+        var result = _explorer.FindGapsInHierarchy(idsToComplete, knownIds);
+
+        Assert.That(result.Elements.Select(e => e.Id), Does.Not.Contain(unrelated.Id));
+    }
+
+    [Test]
     public void FindOutgoingCalls_DirectCalls()
     {
         var cls = _graph.CreateClass("Cls");

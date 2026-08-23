@@ -24,7 +24,7 @@ public partial class SettingsDialog
 
     private void LoadSettingsToUi()
     {
-        AutoAddContainingTypeCheckBox.IsChecked = AppSettings.AutomaticallyAddContainingType;
+        AutoFillGapsInHierarchyCheckBox.IsChecked = AppSettings.AutomaticallyFillGapsInHierarchy;
         WarningLimitTextBox.Text = AppSettings.WarningCodeElementLimit.ToString();
 
         // Internal format to new line separated.
@@ -49,7 +49,7 @@ public partial class SettingsDialog
 
     private void SaveSettingsFromUi()
     {
-        AppSettings.AutomaticallyAddContainingType = AutoAddContainingTypeCheckBox.IsChecked ?? true;
+        AppSettings.AutomaticallyFillGapsInHierarchy = AutoFillGapsInHierarchyCheckBox.IsChecked ?? true;
         AppSettings.IncludeExternalCode = IncludeExternalCodeCheckBox.IsChecked ?? true;
         AppSettings.WarnIfFiltersActive = WarnIfFiltersActiveCheckBox.IsChecked ?? true;
         AppSettings.ShowOverviewOnImport = ShowOverviewOnImportCheckBox.IsChecked ?? true;

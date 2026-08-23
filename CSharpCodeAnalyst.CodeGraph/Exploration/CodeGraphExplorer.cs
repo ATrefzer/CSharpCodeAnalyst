@@ -69,7 +69,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         }
 
         // Fill also gaps.
-        var gapFillingIds = FillGapsInHierarchy(knownIds);
+        var gapFillingIds = FillGapsInHierarchy(knownIds, knownIds);
         var elementIds = gapFillingIds.Union(parentIds);
 
         var elements = elementIds.Select(p => _codeGraph.Nodes[p]).ToHashSet();
@@ -217,7 +217,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         // Found elements can be deep inside the given roots (e.g. two methods buried in two
         // selected assemblies). Fill in the namespaces/classes connecting them to a root that is
         // already known, so they don't end up added without their hierarchy.
-        var gapIds = FillGapsInHierarchy(rootIds.Union(relationshipElementIds).ToHashSet());
+        var knownIds = rootIds.Union(relationshipElementIds).ToHashSet();
+        var gapIds = FillGapsInHierarchy(knownIds, knownIds);
 
         var elements = relationshipElementIds
             .Union(gapIds)
@@ -287,7 +288,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
         // connect them to something already known, so they don't end up added without their hierarchy.
         var knownIds = pathIds.Union(ids).ToHashSet();
         var elements = knownIds
-            .Union(FillGapsInHierarchy(knownIds))
+            .Union(FillGapsInHierarchy(knownIds, knownIds))
             .Where(_codeGraph.Nodes.ContainsKey)
             .Select(id => _codeGraph.Nodes[id])
             .ToHashSet();
@@ -833,7 +834,8 @@ public class CodeGraphExplorer : ICodeGraphExplorer
 
         // The involved elements can sit deep inside the start element; fill in the containers
         // connecting them to it, so they are not added without their hierarchy.
-        var gapIds = FillGapsInHierarchy(relationshipElementIds.Union([startElement.Id]).ToHashSet());
+        var knownIds = relationshipElementIds.Union([startElement.Id]).ToHashSet();
+        var gapIds = FillGapsInHierarchy(knownIds, knownIds);
 
         var elements = relationshipElementIds
             .Union(gapIds)
@@ -874,19 +876,33 @@ public class CodeGraphExplorer : ICodeGraphExplorer
     /// </summary>
     public SearchResult FindGapsInHierarchy(HashSet<string> knownIds)
     {
+        return FindGapsInHierarchy(knownIds, knownIds);
+    }
+
+    /// <summary>
+    ///     Like <see cref="FindGapsInHierarchy(HashSet{string})" />, but only walks the hierarchy from
+    ///     <paramref name="idsToComplete" /> - typically the handful of elements just added - instead of
+    ///     from every id in <paramref name="knownIds" />. Elements already fully connected to the rest of
+    ///     <paramref name="knownIds" /> contribute nothing new anyway, so re-walking their root path on
+    ///     every call is wasted work; this matters once <paramref name="knownIds" /> is "the whole
+    ///     canvas" (as when this runs automatically on every insert), where that waste would otherwise
+    ///     scale with canvas size on every single call.
+    /// </summary>
+    public SearchResult FindGapsInHierarchy(HashSet<string> idsToComplete, HashSet<string> knownIds)
+    {
         if (_codeGraph is null)
         {
             return new SearchResult([], []);
         }
 
-        var newElements = FillGapsInHierarchy(knownIds);
+        var newElements = FillGapsInHierarchy(idsToComplete, knownIds);
 
         var elements = newElements.Select(p => _codeGraph.Nodes[p]).ToHashSet();
         return new SearchResult(elements, []);
     }
 
 
-    private HashSet<string> FillGapsInHierarchy(HashSet<string> knownIds)
+    private HashSet<string> FillGapsInHierarchy(HashSet<string> idsToComplete, HashSet<string> knownIds)
     {
         var added = new HashSet<string>();
 
@@ -895,7 +911,7 @@ public class CodeGraphExplorer : ICodeGraphExplorer
             return added;
         }
 
-        foreach (var id in knownIds)
+        foreach (var id in idsToComplete)
         {
             if (!_codeGraph.Nodes.TryGetValue(id, out var current))
             {

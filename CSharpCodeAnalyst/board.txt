@@ -5,15 +5,10 @@
 - Track calls should add also Uses relationships. They are called black vs blue anyway.
   This way we see which method define a lambda.
 
-- Property has not much contrast to method
-
 - Improve heuristic call tracking with instance calls.
 
 UNHANDLED CASES
 ---------------------
-
-- (!) Primary Constructors are missing!
-- (!) Primary constructors of records do not create the properties in the Navigation tree
 
 - Attributes are caught at the class or method level. Not for the parameters like [CallerMemberName]
   => Not useful enough to implement.

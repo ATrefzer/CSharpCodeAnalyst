@@ -13,7 +13,14 @@ public class AppSettings
         set => field = CleanupProjectFilters(value);
     } = string.Empty;
 
-    public bool AutomaticallyAddContainingType { get; set; } = true;
+    /// <summary>
+    ///     When elements are added to the canvas (exploring, dragging from the tree, ...), fill in any
+    ///     containers missing between them and what is already shown, so a method does not show up
+    ///     disconnected below a namespace several levels above it. Unlike the "complete to containing
+    ///     types" toolbar command this never reaches out to add a containing type nobody asked for - it
+    ///     only fills gaps between elements that are already known.
+    /// </summary>
+    public bool AutomaticallyFillGapsInHierarchy { get; set; } = true;
 
     public bool IncludeExternalCode { get; set; }
 
@@ -58,7 +65,7 @@ public class AppSettings
         {
             WarningCodeElementLimit = this.WarningCodeElementLimit,
             DefaultProjectExcludeFilter = this.DefaultProjectExcludeFilter,
-            AutomaticallyAddContainingType = this.AutomaticallyAddContainingType,
+            AutomaticallyFillGapsInHierarchy = this.AutomaticallyFillGapsInHierarchy,
             IncludeExternalCode = this.IncludeExternalCode,
             WarnIfFiltersActive = this.WarnIfFiltersActive,
             ShowOverviewOnImport = this.ShowOverviewOnImport,

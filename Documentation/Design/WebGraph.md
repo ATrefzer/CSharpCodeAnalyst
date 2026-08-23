@@ -1157,7 +1157,7 @@ private void AddToGraph(IEnumerable<CodeElement> originalCodeElements,
 
     PushUndo();
     _state.SetFocusHint(focusId);     // Anker für den kommenden Render
-    // … AutomaticallyAddContainingType, dann _state.AddToGraph(...)
+    // … AutomaticallyFillGapsInHierarchy, dann _state.AddToGraph(...)
 }
 ```
 

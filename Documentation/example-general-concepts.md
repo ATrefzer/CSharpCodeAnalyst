@@ -16,6 +16,8 @@ In the tree view below, we can see a namespace, a class, and a method. Each of t
 
 If you add the namespace and the method to the canvas they are not related yet.
 
+> ⚠️There is now also the setting **Automatically fill gaps in hierarchy**. This is set to true in newer versions. Whenever you add something to the graph, gaps in the hierarchy are filled automatically. Deleting the`CodeElementClassifier` class from the canvas still ends up in the shown state and  **Complete to containing types fixes it**.
+
 
 
 ![](Images/example-unrelated-code-elements.png)
@@ -33,10 +35,6 @@ But as soon as you add the class, the hierarchical information is complete, show
 You can achieve the same by clicking the **Complete to containing types** tool button.
 
 ![](Images/example-complete-to-containing-types.png)
-
-
-
-
 
 ## Example - Exploring relationships
 
@@ -61,12 +59,6 @@ This function adds all existing dependencies between the visual code elements.
 
 
 The method calls alone are sometimes not helpful without context. Again, click the  **Complete to containing types** button. This gives you a better picture. There is one "calls" and one "implements" relationship.
-
-Note:
-
-In the appsettings.json file, there is a setting **called AutomaticallyAddContainingType**, which allows you to automatically add the class or interface of a method to the canvas.
-
-
 
 ![](Images/example-complete-to-types.png)
 

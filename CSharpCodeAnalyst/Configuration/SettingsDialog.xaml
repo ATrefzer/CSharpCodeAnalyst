@@ -31,10 +31,10 @@
 
                         <GroupBox Header="{x:Static resources:Strings.Settings_General}" Margin="5,0,0,0">
                             <StackPanel Margin="10">
-                                <CheckBox x:Name="AutoAddContainingTypeCheckBox"
-                                          Content="{x:Static resources:Strings.Settings_AddContainingType}"
+                                <CheckBox x:Name="AutoFillGapsInHierarchyCheckBox"
+                                          Content="{x:Static resources:Strings.Settings_FillGapsInHierarchy}"
                                           Margin="0,5"
-                                          ToolTip="{x:Static resources:Strings.Settings_Settings_AddContainingType_Tooltip}" />
+                                          ToolTip="{x:Static resources:Strings.Settings_FillGapsInHierarchy_Tooltip}" />
 
                                 <CheckBox x:Name="IncludeExternalCodeCheckBox"
                                           Content="{x:Static resources:Strings.Settings_IncludeExternalCode}"

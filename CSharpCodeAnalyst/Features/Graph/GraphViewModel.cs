@@ -813,15 +813,18 @@ internal sealed class GraphViewModel : INotifyPropertyChanged
         // so a full re-layout does not leave the user lost. Consumed by the next render.
         _state.SetFocusHint(focusId);
 
-        // Apply "Automatically add containing type" setting
-        if (_settings.AutomaticallyAddContainingType)
+        // Complete the hierarchy so newly added elements don't show up disconnected from what is
+        // already on the canvas (e.g. adding a method below a namespace that is already shown fills in
+        // the missing class in between). This is deliberately narrower than "complete to containing
+        // types" (the toolbar command): it only fills gaps between elements that are already known,
+        // never reaches out to add a containing type nobody asked for. Only the new ids are walked, not
+        // the whole canvas, so the cost stays proportional to what is being added, not to canvas size.
+        if (_settings.AutomaticallyFillGapsInHierarchy)
         {
-            // Merge with existing ones so that we can fill container gaps directly
-            var elementIds = elementsToAdd
-                .Select(e => e.Id)
-                .Union(_state.CodeGraph.Nodes.Keys).ToHashSet();
+            var newIds = elementsToAdd.Select(e => e.Id).ToHashSet();
+            var knownIds = newIds.Union(_state.CodeGraph.Nodes.Keys).ToHashSet();
 
-            var result = _explorer.FindMissingTypesForLonelyTypeMembers(elementIds);
+            var result = _explorer.FindGapsInHierarchy(newIds, knownIds);
             elementsToAdd.AddRange(result.Elements);
             relationshipsToAdd.AddRange(result.Relationships);
         }

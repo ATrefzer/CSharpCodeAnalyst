@@ -630,14 +630,14 @@ If you abort the graph is maintained but not rendered. Use undo to get to the pr
   <data name="Settings_QuickHelpByDefault" xml:space="preserve">
     <value>Show quick help by default</value>
   </data>
-  <data name="Settings_AddContainingType" xml:space="preserve">
-    <value>Automatically _add containing type</value>
+  <data name="Settings_FillGapsInHierarchy" xml:space="preserve">
+    <value>Automatically _fill gaps in hierarchy</value>
   </data>
   <data name="Settings_General" xml:space="preserve">
     <value>General settings</value>
   </data>
-  <data name="Settings_Settings_AddContainingType_Tooltip" xml:space="preserve">
-    <value>When adding methods or fields to the graph, automatically include their containing class/type</value>
+  <data name="Settings_FillGapsInHierarchy_Tooltip" xml:space="preserve">
+    <value>When adding elements to the canvas, automatically fill in any containers missing between them and what is already shown (e.g. the class between a method and its namespace). Does not add a containing type nobody asked for - use "Complete to containing types" on the graph toolbar for that.</value>
   </data>
   <data name="Settings_CodeElementWarningLimit" xml:space="preserve">
     <value>Code Element Warning _Limit:</value>

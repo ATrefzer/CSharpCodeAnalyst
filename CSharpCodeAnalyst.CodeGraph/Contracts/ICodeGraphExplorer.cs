@@ -79,6 +79,23 @@ public interface ICodeGraphExplorer
     /// </summary>
     SearchResult FindMissingTypesForLonelyTypeMembers(HashSet<string> ids);
 
+    /// <summary>
+    ///     Finds the code elements missing between the given ids and the rest of the hierarchy they
+    ///     belong to (e.g. a method and a namespace several levels above it on the canvas: the class and
+    ///     any intermediate namespaces in between). Unlike <see cref="FindMissingTypesForLonelyTypeMembers" />
+    ///     this never reaches beyond what is already known - a lonely element with no known ancestor at
+    ///     all yields nothing.
+    /// </summary>
+    SearchResult FindGapsInHierarchy(HashSet<string> knownIds);
+
+    /// <summary>
+    ///     Like <see cref="FindGapsInHierarchy(HashSet{string})" />, but only walks the hierarchy from
+    ///     <paramref name="idsToComplete" /> instead of every id in <paramref name="knownIds" /> - cheaper
+    ///     when <paramref name="knownIds" /> is large (e.g. the whole canvas) and only a few ids actually
+    ///     need completing (e.g. the elements just added).
+    /// </summary>
+    SearchResult FindGapsInHierarchy(HashSet<string> idsToComplete, HashSet<string> knownIds);
+
     SearchResult FindOutgoingRelationshipsDeep(string id);
     SearchResult FindIncomingRelationshipsDeep(string id);
 
