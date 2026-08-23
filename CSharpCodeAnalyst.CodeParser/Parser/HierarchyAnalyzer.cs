@@ -361,9 +361,8 @@ public class HierarchyAnalyzer
 
             case ParameterSyntax parameterSyntax:
 
-                // A record's positional parameter declares a public property as well. Without this the
-                // record is an empty type in the tree, and every use of "order.Id" falls back to the
-                // type. Null for every other parameter, which then simply creates no element.
+                // Only added to create the properties for a record's positional parameters.
+                // Null for every other parameter, which then simply creates no element.
                 symbol = FindPositionalProperty(parameterSyntax, semanticModel);
                 elementType = CodeElementType.Property;
                 break;
@@ -448,6 +447,7 @@ public class HierarchyAnalyzer
             return;
         }
 
+        // User actually wrote this: public record Order(int Id, Money Total). So the primary ctor is not "implicit".
         var primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(constructor =>
             !constructor.IsImplicitlyDeclared &&
             constructor.DeclaringSyntaxReferences.Any(reference => reference.GetSyntax() == node));
@@ -462,20 +462,17 @@ public class HierarchyAnalyzer
 
         foreach (var parameter in primaryConstructor.Parameters)
         {
-            CreateCapturedParameterElement(typeSymbol, parameter, typeElement);
+            CreateCapturedParameterField(typeSymbol, parameter, typeElement);
         }
     }
 
     /// <summary>
-    ///     The field a captured primary constructor parameter really is. "class Service(ILogger logger)"
-    ///     with a method that uses <c>logger</c> stores it, and that storage is state shared by every
-    ///     member touching it - without an element for it, two methods using the same parameter share
-    ///     nothing and the type cohesion metric splits a class that is perfectly cohesive.
+    ///     Creates the field a captured primary constructor parameter really is.
     ///     <para>
-    ///         Whether a parameter is captured is the compiler's decision, and it is readable: it emits a
+    ///         Whether a parameter is captured is the compiler's decision. It emits a
     ///         field named <c>&lt;name&gt;P</c>. A parameter that is never used gets none, and one used
-    ///         only in a field initializer gets none either - there the declared field already carries
-    ///         the state. A record's positional parameter produces a property backing field instead,
+    ///         only in a field initializer gets none either.
+    ///         A record's positional parameter produces a property backing field instead,
     ///         which carries an <see cref="IFieldSymbol.AssociatedSymbol" /> and is excluded here; the
     ///         property itself is the element (see <see cref="FindPositionalProperty" />).
     ///     </para>
@@ -486,7 +483,7 @@ public class HierarchyAnalyzer
     ///         the member graph as a lifecycle member and would take the field with it.
     ///     </para>
     /// </summary>
-    private void CreateCapturedParameterElement(INamedTypeSymbol typeSymbol, IParameterSymbol parameter, CodeElement typeElement)
+    private void CreateCapturedParameterField(INamedTypeSymbol typeSymbol, IParameterSymbol parameter, CodeElement typeElement)
     {
         var captureFieldName = $"<{parameter.Name}>P";
         var isCaptured = typeSymbol.GetMembers()

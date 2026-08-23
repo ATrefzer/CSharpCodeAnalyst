@@ -70,7 +70,7 @@ internal class DeclarationAnalyzer
         else if (symbol is IParameterSymbol parameterSymbol)
         {
             // A captured primary constructor parameter - phase 1 gave it a Field element (see
-            // HierarchyAnalyzer.CreateCapturedParameterElement). There is no initializer to walk, only
+            // HierarchyAnalyzer.CreateCapturedParameterField). There is no initializer to walk, only
             // its own type, like any other field.
             _builder.AddTypeRelationship(element, parameterSymbol.Type, RelationshipType.Uses,
                 parameterSymbol.GetSymbolLocations().FirstOrDefault());
