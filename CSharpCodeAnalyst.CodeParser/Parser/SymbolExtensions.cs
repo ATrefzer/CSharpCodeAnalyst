@@ -174,6 +174,20 @@ public static class SymbolExtensions
             return $"{name}";
         }
 
+        // A `file` type (C# 11) is only unique within the file that declares it - unrelated files may each
+        // declare their own type of the same name. Source generators lean on exactly this: .NET's
+        // ComInterfaceGenerator emits one `file class InterfaceImplementation` per [GeneratedComInterface]
+        // interface, so a project with several such interfaces ends up with several distinct types that
+        // all share the simple name "InterfaceImplementation". Without the file in the key they collapse
+        // onto one CodeElement, and phase 2 silently derives every relationship from whichever declaration
+        // happened to be visited first - a choice that depends on Roslyn's internal (and not guaranteed
+        // stable across compiler versions) ordering of generated syntax trees, not on the source itself.
+        if (symbol is INamedTypeSymbol { IsFileLocal: true } fileLocalType)
+        {
+            var filePath = fileLocalType.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "";
+            return $"{name}{genericPart}_{kind}_{filePath}";
+        }
+
         if (symbol is IMethodSymbol methodSymbol)
         {
             var parameters = string.Join("_", methodSymbol.Parameters.Select(GetParameterKey));

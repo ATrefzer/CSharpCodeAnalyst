@@ -10,13 +10,13 @@
 
     <ItemGroup>
         <!-- AnalyzerSdk carries IUserNotification, which an importer needs for its dialog. -->
-        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
+        <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- The tests drive the runners directly, without going through the dialogs. -->
-        <InternalsVisibleTo Include="Tests"/>
+        <InternalsVisibleTo Include="Tests" />
     </ItemGroup>
 
     <ItemGroup>
@@ -58,11 +58,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

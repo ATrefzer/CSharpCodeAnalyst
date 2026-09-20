@@ -9,12 +9,12 @@
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
-    <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
+    <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
+    <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

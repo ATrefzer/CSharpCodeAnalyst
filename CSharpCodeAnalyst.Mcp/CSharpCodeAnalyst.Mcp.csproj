@@ -23,11 +23,11 @@
           package, even transitively, brings the framework requirement back.
         -->
         <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

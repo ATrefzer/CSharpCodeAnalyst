@@ -11,21 +11,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="Resources\blue-info_16.png"/>
-        <Resource Include="Resources\error.png"/>
-        <Resource Include="Resources\clipboard_32.png"/>
+        <Resource Include="Resources\blue-info_16.png" />
+        <Resource Include="Resources\error.png" />
+        <Resource Include="Resources\clipboard_32.png" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

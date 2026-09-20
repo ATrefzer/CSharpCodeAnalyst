@@ -9,15 +9,15 @@
 
     <ItemGroup>
         <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.9.6">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj"/>
-        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj"/>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeParser\CSharpCodeAnalyst.CodeParser.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,7 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.9.6">
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
