@@ -299,7 +299,7 @@ The formulas behind the tables. Each heading names the analysis the number belon
 PageRank is computed by power iteration on the type-level graph:
 
 $$
-PR(v) = \frac{1 - d}{N} \;+\; d \sum_{u \rightarrow v} \frac{PR(u)}{\mathrm{outdegree}(u)}
+PR(v) = \frac{1 - d}{N} \\; + \\; d \sum_{u \rightarrow v} \frac{PR(u)}{\mathrm{outdegree}(u)}
 $$
 
 - $N$ = number of types, $d$ = damping factor ($0.85$).
@@ -330,7 +330,7 @@ Relationships are lifted to their containing type, deduplicated, and external ty
 graph we take the *transitive* reach of every type and average it:
 
 $$
-\text{propagation const} = \frac{num \left\lbrace (A, B) : A \neq B,  A \leadsto B \right\rbrace}{N \cdot (N - 1)}
+\text{propagation const} = \frac{\left\lvert (A, B)  \\; : \\;  A \neq B,  A \leadsto B \right\rvert}{N \cdot (N - 1)}
 $$
 
 where $A \leadsto B$ means *A can transitively reach B*. The denominator $N \cdot (N - 1)$ is simply the maximum number of all possible directed pairs between different types.
