@@ -330,7 +330,7 @@ Relationships are lifted to their containing type, deduplicated, and external ty
 graph we take the *transitive* reach of every type and average it:
 
 $$
-\text{propagation cost} = \frac{count\{(A, B) \;:\; A \neq B, \; A \leadsto B\}}{N \cdot (N - 1)}
+\text{propagation const} = \frac{num \left\lbrace (A, B) : A \neq B,  A \leadsto B \right\rbrace}{N \cdot (N - 1)}
 $$
 
 where $A \leadsto B$ means *A can transitively reach B*. The denominator $N \cdot (N - 1)$ is simply the maximum number of all possible directed pairs between different types.
