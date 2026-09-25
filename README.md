@@ -1,8 +1,14 @@
 # C# Code Analyst
 
-[TOC]
-
 **An interactive dependency graph explorer for C# that helps you find cycles, simulate refactorings, and get AI-powered refactoring advice**
+
+<p align="center">
+  <img
+    src="Documentation/Images/gpt-identity.png"
+    alt="C# Code Analyst"
+    width="520"
+  />
+</p>
 
 You can import C++, Python and Java via doxygen, Java also via jdeps, and Dart/Flutter via the Dart analyzer.
 
