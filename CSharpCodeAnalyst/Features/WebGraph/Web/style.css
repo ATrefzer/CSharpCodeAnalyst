@@ -59,6 +59,44 @@ html, body {
     display: none;
 }
 
+/* Minimap toggle. Above the navigator (vendor z-index 99999). While the minimap is shown it
+   sits in the minimap's top-right corner (bottom = 12 + 150 - 22 - 4); once collapsed it
+   drops to the canvas corner, where the minimap used to be. */
+#navigator-toggle {
+    position: fixed;
+    z-index: 100000;
+    bottom: 136px;
+    right: 16px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #c0c0c0;
+    border-radius: 3px;
+    background: #ffffff;
+    color: #505050;
+    font: 14px/20px "Segoe UI", sans-serif;
+    text-align: center;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+#navigator-toggle:hover {
+    opacity: 1;
+    background: #e8f0fe;
+}
+
+#navigator-toggle.collapsed {
+    bottom: 12px;
+    right: 12px;
+    width: auto;
+    padding: 0 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+#navigator-toggle.hidden {
+    display: none;
+}
+
 /* The text block. It carries its own scroll context so a small window (or a tall hint)
    shows a scrollbar here instead of clipping the top: capped to the viewport height and
    scrollable. pointer-events is re-enabled only on this block, so the wheel / scrollbar

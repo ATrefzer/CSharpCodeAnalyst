@@ -35,6 +35,11 @@
      Starts hidden; app.js shows it once the first non-empty graph is rendered. -->
 <div id="navigator" class="cytoscape-navigator hidden"></div>
 
+<!-- Minimap show / hide toggle. A sibling of #navigator, not a child: the navigator's
+     overlay would swallow its clicks. app.js moves it between the minimap's corner
+     (minimap shown) and the canvas corner (minimap collapsed). -->
+<button id="navigator-toggle" class="hidden" type="button"></button>
+
 <!-- Empty-state guide. Shown until the first graph is rendered, then hidden for the
      rest of the session by app.js. Non-interactive (pointer-events: none). -->
 <div id="hint">
@@ -47,6 +52,7 @@
             <li><b>Right-click</b> &mdash; context menu with commands</li>
             <li><b>Drag</b> the background to pan, <b>mouse wheel</b> to zoom</li>
             <li><b>Shift + drag</b> &mdash; select multiple nodes</li>
+            <li><b>M</b> &mdash; show / hide the minimap</li>
         </ul>
         <p>Keyboard (acts on the selected nodes):</p>
         <ul>

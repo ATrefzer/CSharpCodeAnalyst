@@ -794,7 +794,11 @@ Beteiligte Dateien:
 | **⇟** Page Down  | Incoming relationships **deep**     | `ExploreSelectedRequest`        |
 | **Entf** Delete  | Selektierte Elemente (mit Kindern) entfernen | `RemoveSelectedElementsRequest` |
 
-Alle fünf operieren auf **allen** gerade selektierten Knoten gleichzeitig. Das
+Dazu kommt **M**: blendet die MiniMap ein/aus (unabhängig von der Selektion, rein in
+JavaScript, keine Nachricht an C#). Derselbe Schalter sitzt als Knopf in der Ecke der
+MiniMap; der Zustand wird im `localStorage` des WebView2-Profils gemerkt.
+
+Die fünf Explore-/Lösch-Tasten operieren auf **allen** gerade selektierten Knoten gleichzeitig. Das
 Erweitern von Abhängigkeiten („was ruft das auf / was ruft hier rein") ist beim
 Erforschen der häufigste Schritt — deshalb liegt er auf den Pfeiltasten direkt an der
 Auswahl, ohne den Umweg übers Kontextmenü Knoten für Knoten.

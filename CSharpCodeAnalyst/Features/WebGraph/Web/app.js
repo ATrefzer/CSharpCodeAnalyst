@@ -329,7 +329,45 @@ function dismissHintIfGraph(graph) {
 // Created lazily on the first non-empty graph (so the container already has its real size
 // when the navigator measures it), then shown / hidden in step with whether the graph has
 // nodes. Guarded by typeof so a missing offline lib never breaks rendering (like layouts).
+//
+// On a large graph the minimap covers part of it, so the user can collapse it with the
+// toggle button (or the M key). The choice is remembered in localStorage, which lives in the
+// persistent WebView2 user-data folder; storage failures just fall back to "shown".
+const NAV_COLLAPSED_KEY = "navigatorCollapsed";
 let navInstance = null;
+let navCollapsed = readNavCollapsed();
+
+function readNavCollapsed() {
+    try {
+        return localStorage.getItem(NAV_COLLAPSED_KEY) === "true";
+    } catch {
+        return false;
+    }
+}
+
+function setNavCollapsed(collapsed) {
+    navCollapsed = collapsed;
+    try {
+        localStorage.setItem(NAV_COLLAPSED_KEY, String(collapsed));
+    } catch {
+        // Not persisted; the toggle still works for this session.
+    }
+    updateNavigator();
+}
+
+function updateNavToggle(hasNodes) {
+    const toggle = document.getElementById("navigator-toggle");
+    if (!toggle) {
+        return;
+    }
+
+    toggle.classList.toggle("hidden", !hasNodes);
+    toggle.classList.toggle("collapsed", navCollapsed);
+    toggle.textContent = navCollapsed ? "Minimap" : "–";
+    toggle.title = navCollapsed ? "Show minimap (M)" : "Hide minimap (M)";
+}
+
+document.getElementById("navigator-toggle")?.addEventListener("click", () => setNavCollapsed(!navCollapsed));
 
 function updateNavigator() {
     const navEl = document.getElementById("navigator");
@@ -337,7 +375,10 @@ function updateNavigator() {
         return;
     }
 
-    if (cy.nodes().length === 0) {
+    const hasNodes = cy.nodes().length > 0;
+    updateNavToggle(hasNodes);
+
+    if (!hasNodes || navCollapsed) {
         navEl.classList.add("hidden");
         return;
     }
@@ -354,7 +395,7 @@ function updateNavigator() {
             removeCustomContainer: false, // keep our #navigator div if ever destroyed
         });
     } else if (navInstance && wasHidden) {
-        // Was hidden while the graph was empty; recompute sizes and refresh the thumbnail.
+        // Was hidden (empty graph or collapsed); recompute sizes and refresh the thumbnail.
         navInstance.resize();
     }
 }
@@ -638,6 +679,15 @@ const EXPLORE_KEYS = {
 };
 
 document.addEventListener("keydown", evt => {
+    // M toggles the minimap; independent of the selection.
+    if ((evt.key === "m" || evt.key === "M") && !evt.ctrlKey && !evt.altKey && !evt.metaKey) {
+        if (cy.nodes().length > 0) {
+            evt.preventDefault();
+            setNavCollapsed(!navCollapsed);
+        }
+        return;
+    }
+
     const action = EXPLORE_KEYS[evt.key];
     const isDelete = evt.key === "Delete";
     if (!action && !isDelete) {
