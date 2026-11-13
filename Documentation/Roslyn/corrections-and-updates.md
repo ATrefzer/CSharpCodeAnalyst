@@ -556,8 +556,13 @@ an edge. Within tier 3 C# goes on to compare parameter counts and element types 
 `params object[]`). That is not rebuilt; when several constructors are left in a tier, **all** are linked.
 An edge too many hides a finding, an edge on the wrong constructor invents one.
 
-Private constructors only count when the derived type is nested in the base type (the closed hierarchy
-`abstract class Shape { private Shape() { } class Circle : Shape; }`).
+Only constructors the derived type may call are candidates, and they are filtered **before** the ranking:
+an internal `Base(int value = 0)` in another assembly is the better match on paper and cannot be called at
+all, so the protected `Base(params int[] values)` next to it is the one that runs. Accessibility is asked
+of Roslyn (`Compilation.IsSymbolAccessibleWithin`) rather than rebuilt - the first version only excluded
+`private` and got exactly that case wrong. A private constructor still counts for a type nested in the
+base type (the closed hierarchy `abstract class Shape { private Shape() { } class Circle : Shape; }`), an
+internal one inside its assembly or for a friend assembly.
 
 What gets no edge:
 

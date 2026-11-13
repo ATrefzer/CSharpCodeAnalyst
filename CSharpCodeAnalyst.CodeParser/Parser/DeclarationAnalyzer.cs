@@ -49,7 +49,7 @@ internal class DeclarationAnalyzer
         else if (symbol is INamedTypeSymbol typeSymbol)
         {
             AnalyzeInheritanceRelationships(element, typeSymbol);
-            LinkBaseCallOfTheCompilerGeneratedConstructor(element, typeSymbol);
+            LinkBaseCallOfTheCompilerGeneratedConstructor(solution, element, typeSymbol);
             AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
             RecordExternalInterfaceImplementations(typeSymbol);
             RecordIfNotifyingType(element, typeSymbol);
@@ -262,7 +262,7 @@ internal class DeclarationAnalyzer
                 // body would attribute every member of the type to the constructor, so only what the
                 // constructor actually runs is analyzed here.
                 LinkPositionalPropertyInitialization(methodElement, methodSymbol);
-                AnalyzePrimaryConstructorBody(methodElement, methodSymbol.ContainingType, typeDeclaration, semanticModel);
+                AnalyzePrimaryConstructorBody(methodElement, typeDeclaration, semanticModel);
                 continue;
             }
 
@@ -282,7 +282,8 @@ internal class DeclarationAnalyzer
     ///     base constructor like a written one would. The generated constructor is not an element, so
     ///     the type carries the edge - the same anchoring an enum member initializer gets.
     /// </summary>
-    private void LinkBaseCallOfTheCompilerGeneratedConstructor(CodeElement typeElement, INamedTypeSymbol typeSymbol)
+    private void LinkBaseCallOfTheCompilerGeneratedConstructor(Solution solution, CodeElement typeElement,
+        INamedTypeSymbol typeSymbol)
     {
         if (typeSymbol.InstanceConstructors.Any(constructor => !constructor.IsImplicitlyDeclared))
         {
@@ -290,10 +291,19 @@ internal class DeclarationAnalyzer
             return;
         }
 
-        var location = typeSymbol.GetSymbolLocations().FirstOrDefault();
-        if (location is not null)
+        if (typeSymbol.BaseType is not { } baseType || _builder.FindInternalCodeElement(baseType.OriginalDefinition) is null)
         {
-            LinkImplicitBaseConstructorCall(typeElement, typeSymbol, location);
+            // An external base type has no constructor element to link - most classes end here, before
+            // a semantic model is needed.
+            return;
+        }
+
+        var declaration = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+        var semanticModel = declaration is null ? null : solution.GetDocument(declaration.SyntaxTree)?.GetSemanticModelAsync().Result;
+        var location = typeSymbol.GetSymbolLocations().FirstOrDefault();
+        if (declaration is not null && semanticModel is not null && location is not null)
+        {
+            LinkImplicitBaseConstructorCall(typeElement, declaration, semanticModel, location);
         }
     }
 
@@ -329,10 +339,20 @@ internal class DeclarationAnalyzer
     ///     The same call where no constructor is written out: a primary constructor without base
     ///     arguments, and the constructor the compiler generates. Roslyn has no operation for either, so
     ///     the target is worked out here (<see cref="FindBaseConstructorsCalledWithoutArguments" />).
+    ///     <para>
+    ///         The type symbol is taken from the semantic model rather than from phase 1, so that it and
+    ///         the compilation asked about accessibility belong together.
+    ///     </para>
     /// </summary>
-    private void LinkImplicitBaseConstructorCall(CodeElement sourceElement, INamedTypeSymbol type, SourceLocation location)
+    private void LinkImplicitBaseConstructorCall(CodeElement sourceElement, SyntaxNode typeDeclaration,
+        SemanticModel semanticModel, SourceLocation location)
     {
-        foreach (var baseConstructor in FindBaseConstructorsCalledWithoutArguments(type))
+        if (semanticModel.GetDeclaredSymbol(typeDeclaration) is not INamedTypeSymbol type)
+        {
+            return;
+        }
+
+        foreach (var baseConstructor in FindBaseConstructorsCalledWithoutArguments(type, semanticModel.Compilation))
         {
             LinkConstructorCall(sourceElement, baseConstructor, location, RelationshipAttribute.IsBaseCall);
         }
@@ -350,26 +370,24 @@ internal class DeclarationAnalyzer
     ///     element types; that is not rebuilt here. When several constructors are left, all of them are
     ///     returned: an edge too many hides a finding, an edge on the wrong one invents a finding.
     ///     <para>
-    ///         Private constructors only count for a type nested in the base type - the closed hierarchy
-    ///         (<c>abstract class Shape { private Shape() { } class Circle : Shape; }</c>).
+    ///         Only constructors the derived type may call are candidates, and that is Roslyn's answer
+    ///         (<see cref="Compilation.IsSymbolAccessibleWithin" />), not ours: a private constructor
+    ///         counts for a type nested in the base type, an internal one inside its assembly or for a
+    ///         friend assembly. Ranking first and checking access never would prefer a constructor
+    ///         that cannot be called at all.
     ///     </para>
     /// </summary>
-    private static IReadOnlyList<IMethodSymbol> FindBaseConstructorsCalledWithoutArguments(INamedTypeSymbol type)
+    private static IReadOnlyList<IMethodSymbol> FindBaseConstructorsCalledWithoutArguments(INamedTypeSymbol type,
+        Compilation compilation)
     {
         if (type.TypeKind != TypeKind.Class || type.BaseType is not { } baseType)
         {
             return [];
         }
 
-        var isNestedInBaseType = false;
-        for (var outer = type.ContainingType; outer is not null; outer = outer.ContainingType)
-        {
-            isNestedInBaseType |= SymbolEqualityComparer.Default.Equals(outer.OriginalDefinition, baseType.OriginalDefinition);
-        }
-
         var candidates = baseType.InstanceConstructors
             .Where(constructor => !constructor.IsImplicitlyDeclared)
-            .Where(constructor => isNestedInBaseType || constructor.DeclaredAccessibility != Accessibility.Private)
+            .Where(constructor => compilation.IsSymbolAccessibleWithin(constructor, type))
             .ToList();
 
         var parameterless = candidates.Where(constructor => constructor.Parameters.Length == 0).ToList();
@@ -468,15 +486,15 @@ internal class DeclarationAnalyzer
     ///         <see cref="LinkImplicitBaseConstructorCall" />.
     ///     </para>
     /// </summary>
-    private void AnalyzePrimaryConstructorBody(CodeElement methodElement, INamedTypeSymbol containingType,
-        TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel)
+    private void AnalyzePrimaryConstructorBody(CodeElement methodElement, TypeDeclarationSyntax typeDeclaration,
+        SemanticModel semanticModel)
     {
         var baseType = typeDeclaration.BaseList?.Types.OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault();
         if (baseType is null)
         {
             // "class Derived(int n) : Base" - no argument list, the base constructor runs all the same.
             var location = (typeDeclaration.ParameterList ?? (SyntaxNode)typeDeclaration).GetSyntaxLocation();
-            LinkImplicitBaseConstructorCall(methodElement, containingType, location);
+            LinkImplicitBaseConstructorCall(methodElement, typeDeclaration, semanticModel, location);
             return;
         }
 

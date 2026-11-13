@@ -183,8 +183,8 @@ generierter Konstruktor hat gar keine Syntax. `FindBaseConstructorsCalledWithout
 Kandidaten deshalb in der Reihenfolge ein, die C# bei leerer Argumentliste anwendet:
 
 ```
-Kandidaten = geschriebene Instanzkonstruktoren des Basistyps
-             (private nur, wenn der abgeleitete Typ im Basistyp geschachtelt ist)
+Kandidaten = geschriebene Instanzkonstruktoren des Basistyps,
+             die der abgeleitete Typ aufrufen darf
 1. der parameterlose
 2. sonst die, deren Parameter alle optional sind              Base(int size = 4)
 3. sonst die, die ihr params-Array brauchen                   Base(params int[] values)
@@ -198,8 +198,28 @@ Innerhalb der dritten Stufe vergleicht C# noch Parameterzahl und Elementtyp (`pa
 `params object[]`). Das ist nicht nachgebaut. Bleiben in einer Stufe mehrere Konstruktoren übrig, werden
 **alle** verknüpft: Eine Kante zu viel verdeckt einen Fund, eine Kante auf dem falschen erfindet einen.
 
-Die Ausnahme für `private` gibt es wegen der geschlossenen Hierarchie:
-`abstract class Shape { private Shape() { } public sealed class Circle : Shape { } }`.
+**Erst filtern, dann einstufen.** Ob ein Konstruktor aufrufbar ist, beantwortet Roslyn
+(`Compilation.IsSymbolAccessibleWithin`), und zwar vor der Einstufung. Sonst gewinnt ein Konstruktor, den
+man gar nicht aufrufen kann:
+
+```csharp
+// Assembly A
+public class Base {
+    protected Base(params int[] values) { }
+    internal Base(int value = 0) { }      // passt besser, ist aus B aber nicht erreichbar
+}
+// Assembly B
+public class Derived : Base { }           // ruft den params-Konstruktor
+```
+
+Die erste Fassung schloss nur `private` aus und lag hier falsch. Ein privater Konstruktor zählt weiterhin
+für einen Typ, der im Basistyp geschachtelt ist
+(`abstract class Shape { private Shape() { } public sealed class Circle : Shape { } }`), ein interner
+innerhalb seiner Assembly.
+
+Dafür braucht die Regel eine `Compilation`. Beim Primärkonstruktor ist das semantische Modell ohnehin da.
+Beim generierten Konstruktor wird es nur geholt, wenn der Basistyp ein Element des Graphen ist; die
+meisten Klassen scheiden vorher aus.
 
 ### Was keine Kante bekommt
 
@@ -281,6 +301,10 @@ sieht `AnalyzeAttributeRelationships` sie nicht. Für sie entsteht weder die Kon
 - [ImplicitBaseConstructorOverloadParseTests.cs](../../Tests/UnitTests/Parser/ImplicitBaseConstructorOverloadParseTests.cs):
   mehrere Basiskonstruktoren, die ohne Argumente aufrufbar sind - optional gegen `params`, zwei
   `params`-Arrays, parameterlos gegen optional.
+- [ImplicitBaseConstructorAccessibilityParseTests.cs](../../Tests/UnitTests/Parser/ImplicitBaseConstructorAccessibilityParseTests.cs):
+  zwei Projekte, interner Konstruktor in der anderen Assembly, privater Konstruktor mit und ohne
+  geschachtelten Typ. Der Test baut seine Solution selbst; dafür ist `Parser.ParseSolutionInternal` jetzt
+  `internal` statt `private`.
 - [AttributeConstructorParseTests.cs](../../Tests/UnitTests/Parser/AttributeConstructorParseTests.cs):
   Konstruktor von jeder Art Element aus, die richtige Überladung, benannte Argumente als Schreibzugriff.
 - [PropertyAccessClassifierTests.cs](../../Tests/UnitTests/Parser/PropertyAccessClassifierTests.cs):
