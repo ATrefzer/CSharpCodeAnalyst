@@ -517,26 +517,47 @@ public class Derived : Base
 ```
 
 A written `: base(...)` is a `ConstructorInitializerSyntax` and has always produced a `Calls` edge. Without
-it there is no syntax node at all, and Roslyn has no symbol for a call that is not written - so `Base()`
-had no incoming reference. That is the normal situation for a protected constructor, and the dead code
-analysis reported it.
+it there is no syntax node to visit - so `Base()` had no incoming reference. That is the normal situation
+for a protected constructor, and the dead code analysis reported it.
 
-The call is now linked in all three shapes it takes (`LinkImplicitBaseConstructorCall`):
+The call is now linked in all three shapes it takes:
 
-| The derived class has | Source of the `Calls` edge |
-|---|---|
-| a constructor without initializer | that constructor |
-| a primary constructor, base clause without argument list | the primary constructor |
-| no constructor at all | the **type** |
+| The derived class has | Source of the `Calls` edge | Target comes from |
+|---|---|---|
+| a constructor without initializer | that constructor | Roslyn |
+| a primary constructor, base clause without argument list | the primary constructor | our own ranking |
+| no constructor at all | the **type** | our own ranking |
 
 The third row is the modelling decision. The compiler generates a constructor there, and that one makes the
 call - but a generated constructor is not an element. The type carries the edge instead, the same anchoring
 an enum member initializer gets: the graph models which element owns a dependency.
 
-Which base constructor is meant has to be worked out by hand. With an empty argument list overload
-resolution shrinks to two rules: the parameterless constructor wins, otherwise the one whose parameters are
-all optional or `params`. Private constructors only count when the derived type is nested in the base type
-(the closed hierarchy `abstract class Shape { private Shape() { } class Circle : Shape; }`).
+**Which base constructor is meant** has two answers, because Roslyn only gives one for the first row.
+
+For a written constructor the compiler has bound the call although nobody wrote it:
+`SemanticModel.GetOperation(constructorDeclaration)` returns an `IConstructorBodyOperation` whose
+`Initializer` is an implicit invocation of the base constructor (`LinkImplicitBaseCallOfWrittenConstructor`).
+That is the compiler's own overload resolution and therefore exact. The first version of this chapter
+claimed Roslyn had no symbol for an unwritten call - true for the syntax-based `GetSymbolInfo`, wrong for
+the operation tree.
+
+For the other two rows there is nothing to ask: `GetOperation` returns null for the type declaration, its
+parameter list and its base type, and a generated constructor has no syntax at all. There the candidates
+are ranked by hand (`FindBaseConstructorsCalledWithoutArguments`), in the order C# ranks them for an empty
+argument list:
+
+1. the parameterless constructor,
+2. a constructor whose parameters are all optional,
+3. a constructor that needs its `params` array to be callable without arguments.
+
+The order matters: with `Base(params int[] values)` declared before `Base(int value = 0)`, C# calls the
+second, and a "first applicable" rule linked the first - leaving the constructor that really runs without
+an edge. Within tier 3 C# goes on to compare parameter counts and element types (`params string[]` beats
+`params object[]`). That is not rebuilt; when several constructors are left in a tier, **all** are linked.
+An edge too many hides a finding, an edge on the wrong constructor invents one.
+
+Private constructors only count when the derived type is nested in the base type (the closed hierarchy
+`abstract class Shape { private Shape() { } class Circle : Shape; }`).
 
 What gets no edge:
 

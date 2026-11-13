@@ -4,6 +4,7 @@ using CSharpCodeAnalyst.CodeGraph.Graph;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace CSharpCodeAnalyst.CodeParser.Parser;
 
@@ -265,10 +266,11 @@ internal class DeclarationAnalyzer
                 continue;
             }
 
-            if (syntax is ConstructorDeclarationSyntax { Initializer: null } && methodSymbol.MethodKind == MethodKind.Constructor)
+            if (syntax is ConstructorDeclarationSyntax { Initializer: null } constructorDeclaration &&
+                methodSymbol.MethodKind == MethodKind.Constructor)
             {
                 // No ": base(...)" and no ": this(...)" - the base constructor runs all the same.
-                LinkImplicitBaseConstructorCall(methodElement, methodSymbol.ContainingType, syntax.GetSyntaxLocation());
+                LinkImplicitBaseCallOfWrittenConstructor(methodElement, constructorDeclaration, semanticModel);
             }
 
             _bodyAnalyzer.AnalyzeMethodBody(methodElement, syntax, semanticModel);
@@ -301,34 +303,62 @@ internal class DeclarationAnalyzer
     ///     a base constructor reached only this way - the normal case for a <c>protected Base()</c> -
     ///     has no incoming reference at all.
     ///     <para>
+    ///         For a written constructor Roslyn has bound the call although no syntax spells it: the
+    ///         operation tree carries it as an implicit initializer. That is the compiler's own overload
+    ///         resolution, so the target is exact.
+    ///     </para>
+    ///     <para>
     ///         Same guard as the written base call (<c>AnalyzeConstructorInitializer</c>): linked when
     ///         the target is an element of the graph. A compiler-generated or external base constructor
     ///         is none, and the Inherits edge has to do.
     ///     </para>
     /// </summary>
+    private void LinkImplicitBaseCallOfWrittenConstructor(CodeElement constructorElement,
+        ConstructorDeclarationSyntax declaration, SemanticModel semanticModel)
+    {
+        if (semanticModel.GetOperation(declaration) is IConstructorBodyOperation
+            {
+                Initializer: IExpressionStatementOperation { Operation: IInvocationOperation baseCall }
+            })
+        {
+            LinkConstructorCall(constructorElement, baseCall.TargetMethod, declaration.GetSyntaxLocation(), RelationshipAttribute.IsBaseCall);
+        }
+    }
+
+    /// <summary>
+    ///     The same call where no constructor is written out: a primary constructor without base
+    ///     arguments, and the constructor the compiler generates. Roslyn has no operation for either, so
+    ///     the target is worked out here (<see cref="FindBaseConstructorsCalledWithoutArguments" />).
+    /// </summary>
     private void LinkImplicitBaseConstructorCall(CodeElement sourceElement, INamedTypeSymbol type, SourceLocation location)
     {
-        var baseConstructor = FindBaseConstructorCalledWithoutArguments(type);
-        if (baseConstructor is not null)
+        foreach (var baseConstructor in FindBaseConstructorsCalledWithoutArguments(type))
         {
             LinkConstructorCall(sourceElement, baseConstructor, location, RelationshipAttribute.IsBaseCall);
         }
     }
 
     /// <summary>
-    ///     Overload resolution for <c>base()</c>, reduced to what an empty argument list leaves of it:
-    ///     the parameterless constructor wins, otherwise the one whose parameters are all optional or
-    ///     <c>params</c>. Roslyn offers no symbol for a call that is not written.
+    ///     Overload resolution for <c>base()</c>, reduced to what an empty argument list leaves of it.
+    ///     Three tiers, the first that has a candidate wins:
+    ///     <list type="number">
+    ///         <item>the parameterless constructor,</item>
+    ///         <item>a constructor whose parameters are all optional (<c>Base(int size = 4)</c>),</item>
+    ///         <item>a constructor that needs its <c>params</c> array to be callable without arguments.</item>
+    ///     </list>
+    ///     C# ranks them in this order. Within the last tier it goes on to compare parameter counts and
+    ///     element types; that is not rebuilt here. When several constructors are left, all of them are
+    ///     returned: an edge too many hides a finding, an edge on the wrong one invents a finding.
     ///     <para>
     ///         Private constructors only count for a type nested in the base type - the closed hierarchy
     ///         (<c>abstract class Shape { private Shape() { } class Circle : Shape; }</c>).
     ///     </para>
     /// </summary>
-    private static IMethodSymbol? FindBaseConstructorCalledWithoutArguments(INamedTypeSymbol type)
+    private static IReadOnlyList<IMethodSymbol> FindBaseConstructorsCalledWithoutArguments(INamedTypeSymbol type)
     {
         if (type.TypeKind != TypeKind.Class || type.BaseType is not { } baseType)
         {
-            return null;
+            return [];
         }
 
         var isNestedInBaseType = false;
@@ -342,8 +372,23 @@ internal class DeclarationAnalyzer
             .Where(constructor => isNestedInBaseType || constructor.DeclaredAccessibility != Accessibility.Private)
             .ToList();
 
-        return candidates.FirstOrDefault(constructor => constructor.Parameters.Length == 0)
-               ?? candidates.FirstOrDefault(constructor => constructor.Parameters.All(parameter => parameter.IsOptional || parameter.IsParams));
+        var parameterless = candidates.Where(constructor => constructor.Parameters.Length == 0).ToList();
+        if (parameterless.Count > 0)
+        {
+            return parameterless;
+        }
+
+        var allOptional = candidates
+            .Where(constructor => constructor.Parameters.All(parameter => parameter.IsOptional))
+            .ToList();
+        if (allOptional.Count > 0)
+        {
+            return allOptional;
+        }
+
+        return candidates
+            .Where(constructor => constructor.Parameters.All(parameter => parameter.IsOptional || parameter.IsParams))
+            .ToList();
     }
 
     /// <summary>

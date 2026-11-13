@@ -143,8 +143,8 @@ public class Derived : Base
 ```
 
 Ein geschriebenes `: base(...)` ist ein `ConstructorInitializerSyntax`, den der `MethodBodyWalker` besucht.
-Fehlt es, gibt es keinen Knoten, und Roslyn liefert für einen nicht geschriebenen Aufruf auch kein Symbol.
-`Base()` hatte also keine eingehende Kante. Für einen `protected`-Konstruktor ist das der Normalfall.
+Fehlt es, gibt es keinen Knoten, den ein Walker besuchen könnte. `Base()` hatte also keine eingehende
+Kante. Für einen `protected`-Konstruktor ist das der Normalfall.
 
 ### Die drei Formen
 
@@ -160,19 +160,43 @@ Die dritte Zeile ist die Modellierungsentscheidung. Der Compiler erzeugt dort ei
 macht den Aufruf. Ein generierter Konstruktor ist aber kein Element. Also trägt der Typ die Kante,
 genauso wie ein Enum die Abhängigkeiten seiner Member-Initialisierer trägt.
 
-Alle drei landen in `LinkImplicitBaseConstructorCall`.
-
 ### Welcher Basiskonstruktor gemeint ist
 
-Das muss der Parser selbst ausrechnen (`FindBaseConstructorCalledWithoutArguments`). Bei leerer
-Argumentliste schrumpft die Überladungsauflösung auf zwei Regeln:
+Die Frage lautet: Hat die Basisklasse mehrere Konstruktoren, welchen ruft ein `base()` ohne Argumente?
+Meistens gibt es nur einen Kandidaten. Bei mehreren entscheidet die Überladungsauflösung von C#, und die
+Antwort kommt bei uns aus zwei Quellen, weil Roslyn sie nur für die erste Form gibt.
+
+**Geschriebener Konstruktor: Roslyn fragen.** Der Compiler hat den Aufruf gebunden, obwohl ihn niemand
+geschrieben hat. Er steht nicht im Syntaxbaum, aber im Operationsbaum:
+
+```csharp
+semanticModel.GetOperation(constructorDeclaration)   // IConstructorBodyOperation
+    .Initializer                                     // implizites base(...)
+    .Operation.TargetMethod                          // der gemeinte Konstruktor
+```
+
+Das ist die Auflösung des Compilers selbst und damit exakt (`LinkImplicitBaseCallOfWrittenConstructor`).
+
+**Primärkonstruktor und generierter Konstruktor: selbst einstufen.** Hier gibt es nichts zu fragen.
+`GetOperation` liefert für die Typdeklaration, ihre Parameterliste und den Basistyp `null`, und ein
+generierter Konstruktor hat gar keine Syntax. `FindBaseConstructorsCalledWithoutArguments` stuft die
+Kandidaten deshalb in der Reihenfolge ein, die C# bei leerer Argumentliste anwendet:
 
 ```
 Kandidaten = geschriebene Instanzkonstruktoren des Basistyps
              (private nur, wenn der abgeleitete Typ im Basistyp geschachtelt ist)
-1. der parameterlose, falls vorhanden
-2. sonst der, dessen Parameter alle optional oder params sind
+1. der parameterlose
+2. sonst die, deren Parameter alle optional sind              Base(int size = 4)
+3. sonst die, die ihr params-Array brauchen                   Base(params int[] values)
 ```
+
+Die Reihenfolge ist der Punkt: Steht `Base(params int[] values)` vor `Base(int value = 0)`, ruft C# den
+zweiten. Die erste Fassung nahm den zuerst deklarierten und ließ damit den Konstruktor, der wirklich
+läuft, ohne Kante.
+
+Innerhalb der dritten Stufe vergleicht C# noch Parameterzahl und Elementtyp (`params string[]` schlägt
+`params object[]`). Das ist nicht nachgebaut. Bleiben in einer Stufe mehrere Konstruktoren übrig, werden
+**alle** verknüpft: Eine Kante zu viel verdeckt einen Fund, eine Kante auf dem falschen erfindet einen.
 
 Die Ausnahme für `private` gibt es wegen der geschlossenen Hierarchie:
 `abstract class Shape { private Shape() { } public sealed class Circle : Shape { } }`.
@@ -254,6 +278,9 @@ sieht `AnalyzeAttributeRelationships` sie nicht. Für sie entsteht weder die Kon
 - [ImplicitBaseConstructorCallParseTests.cs](../../Tests/UnitTests/Parser/ImplicitBaseConstructorCallParseTests.cs):
   alle drei Formen, dazu `this(...)`, statischer Konstruktor, optionale Parameter, geschachtelter Typ mit
   privatem Basiskonstruktor, generische Basis, generierte und externe Basis.
+- [ImplicitBaseConstructorOverloadParseTests.cs](../../Tests/UnitTests/Parser/ImplicitBaseConstructorOverloadParseTests.cs):
+  mehrere Basiskonstruktoren, die ohne Argumente aufrufbar sind - optional gegen `params`, zwei
+  `params`-Arrays, parameterlos gegen optional.
 - [AttributeConstructorParseTests.cs](../../Tests/UnitTests/Parser/AttributeConstructorParseTests.cs):
   Konstruktor von jeder Art Element aus, die richtige Überladung, benannte Argumente als Schreibzugriff.
 - [PropertyAccessClassifierTests.cs](../../Tests/UnitTests/Parser/PropertyAccessClassifierTests.cs):
