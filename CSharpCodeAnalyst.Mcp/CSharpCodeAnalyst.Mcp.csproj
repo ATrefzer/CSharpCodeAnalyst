@@ -22,12 +22,12 @@
           System.Net.HttpListener from the base runtime. Keep it this way: pulling in the ASP.NET
           package, even transitively, brings the framework requirement back.
         -->
-        <PackageReference Include="ModelContextProtocol.Core" Version="2.2.0" />
-        <PackageReference Update="Microsoft.Build.Framework" Version="18.10.1">
+        <PackageReference Include="ModelContextProtocol.Core" Version="2.4.0" />
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.12.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.10.1">
+        <PackageReference Update="Microsoft.NET.StringTools" Version="18.12.2">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

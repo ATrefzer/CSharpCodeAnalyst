@@ -26,8 +26,9 @@ internal enum PropertyAccessKind
 ///     The key simplification: C# does not allow a property to be passed by <c>ref</c>/<c>out</c>
 ///     (CS0206).  Therefore, the only contexts that invoke the setter are
 ///     <list type="bullet">
-///         <item>the target of a (simple or compound) assignment, and</item>
-///         <item>the operand of an increment/decrement (<c>++</c>/<c>--</c>).</item>
+///         <item>the target of a (simple or compound) assignment,</item>
+///         <item>the operand of an increment/decrement (<c>++</c>/<c>--</c>), and</item>
+///         <item>a named attribute argument (<c>[Mark(Name = "x")]</c>), which is no assignment in the syntax tree.</item>
 ///     </list>
 ///     Every other position is a pure getter access. A compound assignment (<c>+=</c>, <c>??=</c>, ...)
 ///     and increment/decrement read the current value before writing it back, so they are
@@ -64,6 +65,11 @@ internal static class PropertyAccessClassifier
                 return assignment.IsKind(SyntaxKind.SimpleAssignmentExpression)
                     ? PropertyAccessKind.Write
                     : PropertyAccessKind.ReadWrite;
+
+            case NameEqualsSyntax { Parent: AttributeArgumentSyntax }:
+                // [Mark(Name = "x")] sets the property, but a named attribute argument is not an
+                // assignment expression in the syntax tree.
+                return PropertyAccessKind.Write;
 
             case PrefixUnaryExpressionSyntax prefix when IsIncrementOrDecrement(prefix):
                 return PropertyAccessKind.ReadWrite;

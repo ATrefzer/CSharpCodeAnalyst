@@ -249,9 +249,6 @@
     <data name="DeadCode_Hint_UsedOnlyByTests" xml:space="preserve">
     <value>Used only by tests: {0}</value>
   </data>
-    <data name="DeadCode_Hint_UsedOnlyByTestsWithoutCaller" xml:space="preserve">
-    <value>Used only by tests</value>
-  </data>
     <data name="DeadCode_Hint_Generated" xml:space="preserve">
     <value>Generated code</value>
   </data>

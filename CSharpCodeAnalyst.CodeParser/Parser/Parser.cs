@@ -186,7 +186,11 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
     /// <summary>
     ///     Internal method that does the actual parsing work.
     /// </summary>
-    private async Task<ParseResult> ParseSolutionInternal(Solution solution)
+    /// <remarks>
+    ///     Internal rather than private so a test can hand in a solution it built itself - the only way to
+    ///     parse two in-memory projects that reference each other.
+    /// </remarks>
+    internal async Task<ParseResult> ParseSolutionInternal(Solution solution)
     {
         var sw = Stopwatch.StartNew();
 

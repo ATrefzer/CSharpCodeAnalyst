@@ -113,7 +113,16 @@ Zwei Dinge folgen daraus, und beide entsprechen dem, was man von Hand urteilen w
 - Jedes Interface-Member sähe benutzt aus (die Implementierung „verweist" ja darauf).
 - Jede Implementierung sähe unbenutzt aus (auf sie zeigt nichts).
 
-Also wird die Lebendigkeit stattdessen in die andere Richtung geschoben: **Wird `IService.Run` aufgerufen, leben alle Implementierungen von `Run`** – und die Typen, die sie enthalten. Transitiv, denn ein Override kann selbst überschrieben werden.
+Also wird die Lebendigkeit stattdessen in die andere Richtung geschoben: **Ein Aufruf von `IService.Run` ist ein Aufruf jeder Implementierung von `Run` – vom selben Aufrufer aus.** Transitiv, denn ein Override kann selbst überschrieben werden. Technisch ist das kein eigener Durchlauf mehr, sondern Teil von Schritt 2: Betritt eine Kante ein Contract-Member, wird die Kernregel mit derselben Quelle auch auf jede Implementierung angewendet.
+
+Dass die Quelle erhalten bleibt, ist der Punkt. Ein Decorator leitet über sein eigenes Interface weiter:
+
+```csharp
+class LoggingRepo : IRepo { IRepo _inner;  public void Save() { _inner.Save(); } }
+class SqlRepo     : IRepo {                public void Save() { } }
+```
+
+`LoggingRepo.Save → IRepo.Save` erreicht `SqlRepo.Save` von außen – aber für `LoggingRepo.Save` ist es ein Aufruf aus sich selbst, genau wie eine rekursive Methode. Benutzt sonst niemand `IRepo`, ist `LoggingRepo` der Fund. Eine frühere Version markierte jede Implementierung pauschal „von außen" und hielt damit jede Decorator- oder Composite-Familie am Leben, die sonst niemand benutzte.
 
 Wird der Contract nie aufgerufen, stirbt er zusammen mit seinen Implementierungen. Genau das will man sehen.
 
@@ -128,7 +137,9 @@ Schritt 2 und 3 laufen zweimal über dieselben Kanten:
 
 Testcode wird **pro Typ** entschieden: Ein Typ ist ein Test-Typ, wenn er selbst oder etwas in seinem Subtree ein Testattribut trägt (`[Test]`, `[Fact]`, `[TestFixture]`, … – der Subtree, weil xUnit kein Klassen-Attribut hat). Früher galt die ganze Assembly; das vergiftete bei einer eingebetteten Testklasse alle Referenzen der Assembly und unterdrückte zugleich Funde neben den eingebetteten Tests.
 
-Wichtig: Die Contract-Propagation läuft **pro Farbe**, nicht einmal am Ende. Ruft die UI `ICodeGraphExplorer.FindIncomingCalls`, lebt die Implementierung produktiv. Ruft nur ein Test sie, nicht. Eine gemeinsame Propagation würde jede Implementierung eines Contracts, den irgendein Test benutzt, für produktiv erklären.
+Eine Fixture **vererbt** ihre Tests: Jedes Framework führt die geerbten `[Test]`-Methoden einer abgeleiteten Klasse aus, also ist ein Typ, der von einer Fixture erbt, selbst eine – mit oder ohne Attribut. Das ist das Muster „abstrakte Contract-Tests": Die Basisklasse hält die Tests, jede abgeleitete Klasse überschreibt nur die Factory-Methode. Ohne diese Regel galt die abgeleitete Klasse als Produktionscode, und das `new SqlRepository()` in ihrer Factory zählte als Produktionsreferenz. Verfolgt wird nur die Fixture selbst, nicht ein Typ, der bloß eine enthält.
+
+Die Contract-Propagation ist Teil des Durchlaufs jeder einzelnen Kante und läuft damit von selbst **pro Farbe**. Ruft die UI `ICodeGraphExplorer.FindIncomingCalls`, lebt die Implementierung produktiv. Ruft nur ein Test sie, nicht.
 
 Daraus ergibt sich:
 
@@ -148,9 +159,13 @@ Jetzt geht es einmal über alle Knoten. Vier Filter, in dieser Reihenfolge:
 - Steht es in `FromProduction`? → lebendig, fertig.
 - Sonst: gar nicht referenziert **oder** nur von Tests. Eine Helper-*Klasse* außerhalb der Fixtures trägt kein Attribut, ist also Produktionscode für die Analyse und wird als used-only-by-tests gemeldet – der akzeptierte Preis der Typ-Granularität: Die Aussage stimmt (der Helper geht mit den Tests), sie ist nur Rauschen, solange er seinen Job tut.
 
-**2. Serialisierte Property?** Eine public Property auf einem Typ mit `[Serializable]`, `[DataContract]`, `[JsonObject]` … wird fallengelassen. Der Serializer greift per Reflection zu; auf so einem Typ wäre jede Property ein Fund.
+**2. Vom Serializer erreicht?** Eine public Property oder ein public Konstruktor auf einem Typ mit `[Serializable]`, `[DataContract]`, `[JsonObject]` … wird fallengelassen. Der Serializer greift per Reflection zu und baut die Objekte selbst; auf so einem Typ wäre jede Property ein Fund, und ein Typ, der nur aus einer Datei gelesen wird, hat einen Konstruktor ohne einzigen Aufrufer.
 
-**3. Roll-up.** Würde der Parent auch gemeldet, überspringen. Eine tote Klasse ergibt eine Zeile, nicht eine pro Methode.
+Gilt nur für Member eines Typs, der benutzt wird. Ein Serialisierungs-Ziel, das niemand referenziert, ist als Typ der Fund.
+
+Das Attribut ist der einzige Hinweis, der ausgewertet wird. `System.Text.Json` braucht keines – ein DTO ohne Attribut, das an `JsonSerializer` übergeben wird, wird nicht erkannt, und seine Properties werden gemeldet. Den Aufruf zu erkennen hieße, dem Parser Serializer beizubringen, nur für diese eine Analyse. Das wurde gebaut und wieder entfernt: Der Codegraph soll ein Codegraph bleiben.
+
+**3. Roll-up.** Würde irgendein Vorfahr auch gemeldet, überspringen. Eine tote Klasse ergibt eine Zeile, nicht eine pro Methode. Die ganze Kette, nicht nur der Parent: In einer toten Klasse referenzieren sich die Member weiter gegenseitig. Liest eine Geschwister-Methode den Getter einer Property, gilt die Property als referenziert – ihr ungenutzter Setter hat dann einen lebendigen Parent und einen toten Großvater. Nur den Parent zu fragen meldete diesen Setter als zweite Zeile neben der Klasse.
 
 **4. Notizen und Confidence sammeln** (`CreateFinding`).
 
@@ -170,8 +185,8 @@ Zwei Sorten. **Zweifel** – der Verweis könnte da sein, wo der Parser nicht hi
 | Notiz                             | Woher                                                        |
 | --------------------------------- | ------------------------------------------------------------ |
 | `Implemented but never called: …` | Sieht den **Contract**: mich implementieren A und B, aber niemand ruft durch mich hindurch. |
-| `Implements unused contract: …`   | Sieht die **Implementierung**: der Contract, den ich erfülle, ist selbst tot |
-| `Used only by tests: …`           | plus die Namen der Tests                                     |
+| `Implements unused contract: …`   | Sieht die **Implementierung**: der Contract, den ich erfülle, ist selbst tot. Fehlt, wenn der Contract lebt und nur ich selbst ihn aufrufe (Decorator) – dann ist der Fund wie eine rekursive Methode, ohne Notiz. |
+| `Used only by tests: …`           | plus die Namen der Tests – auch wenn der Test nur den Contract aufruft |
 
 Entry-Point- und Attribut-Notizen werden über den **ganzen Teilbaum** gesammelt. Gemeldet wird eine tote Klasse – aber `Main` oder die Framework-Attribute hängen an ihren Methoden.
 
@@ -246,6 +261,6 @@ Zwei Abzüge von High:
 
 Eine frühere Version kaskadierte. Sie funktionierte, aber sie multiplizierte jeden Fehlalarm: ein unsichtbares `{Binding}` riss sieben weitere Elemente mit.
 
-**Keine toten Zyklen.** Zwei Elemente, die nur einander referenzieren, halten sich gegenseitig am Leben. Das zu finden bräuchte Erreichbarkeit von einer expliziten Menge von Einstiegspunkten – eine andere Analyse als diese.
+**Keine toten Zyklen.** Zwei Elemente, die nur einander referenzieren, halten sich gegenseitig am Leben. Das zu finden bräuchte Erreichbarkeit von einer expliziten Menge von Einstiegspunkten – eine andere Analyse als diese. (Ein Element, das nur *sich selbst* referenziert, ist kein Zyklus in diesem Sinn und wird gefunden – auch über den Umweg durch das eigene Interface, siehe Schritt 3.)
 
 **Keine Instanziierungs-Prüfung bei der Contract-Propagation.** Ein aufgerufener Contract-Member hält *jede* Implementierung am Leben – auch die einer Klasse, die nirgends sichtbar instanziiert wird (Class Hierarchy Analysis, nicht Rapid Type Analysis). Die Verfeinerung „nur Implementierungen, deren Typ auch erzeugt wird" wurde bewusst verworfen: Implementierungen von Interfaces sind genau die Klassen, die ein Dependency Container instanziiert, und eine Container-Registrierung erzeugt keine `Creates`-Kante (beim Assembly-Scanning gar keine). Die Verfeinerung würde also genau den Code melden, dessen Erzeugung sie nicht sehen kann.

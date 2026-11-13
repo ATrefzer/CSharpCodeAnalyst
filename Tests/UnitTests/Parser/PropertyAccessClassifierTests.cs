@@ -118,6 +118,26 @@ public class PropertyAccessClassifierTests
         Assert.That(PropertyAccessClassifier.Classify(reference), Is.EqualTo(PropertyAccessKind.Write));
     }
 
+    [Test]
+    public void NamedAttributeArgument_IsWrite()
+    {
+        // "[Mark(Prop = 1)]" sets the property, but it is a NameEquals node, not an assignment.
+        var code = """
+                   [Mark(Prop = 1)]
+                   class C
+                   {
+                   }
+                   """;
+        Assert.That(ClassifyPropIn(code), Is.EqualTo(PropertyAccessKind.Write));
+    }
+
+    [Test]
+    public void AnonymousObjectMemberName_IsNotAWrite()
+    {
+        // "new { Prop = 1 }" uses the same NameEquals node; only the attribute argument is a setter call.
+        Assert.That(ClassifyProp("var a = new { Prop = 1 };"), Is.EqualTo(PropertyAccessKind.Read));
+    }
+
     /// <summary>
     ///     Parses a statement, finds the first identifier named "Prop" and classifies it.
     /// </summary>

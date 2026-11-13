@@ -218,7 +218,7 @@ A collection of smaller cases, fixed together. Common theme: the dependency is r
 
 **Attribute arguments on classes, properties, fields, events.** `[Handler(typeof(Payload))]` on a *method* was captured, because phase 2 walks the whole method declaration including its attribute lists. Types, properties, fields and events have no such declaration walk - only the `UsesAttribute` edge to the attribute class existed and the `typeof` argument was lost. `AnalyzeAttributeRelationships` now walks the attribute argument list for all non-method symbols (methods stay covered by their declaration walk, so nothing is processed twice).
 
-A consequence worth knowing (observed on the Jellyfin reference repo, accepted deliberately): a **named attribute argument** like `[JellyfinMigrationBackup(JellyfinDb = true)]` runs through the normal property-access classification and therefore yields a `Calls` edge from the decorated element to the attribute's *property* (`JellyfinDb`), classified as a write. That is technically accurate - instantiating the attribute really does set the property - even though no user code spells out the call. We keep it: special-casing attribute arguments to `Uses` would add a context check for little gain, and the edge makes attribute properties visible as used.
+A consequence worth knowing (observed on the Jellyfin reference repo, accepted deliberately): a **named attribute argument** like `[JellyfinMigrationBackup(JellyfinDb = true)]` runs through the normal property-access classification and therefore yields a `Calls` edge from the decorated element to the attribute's *property* (`JellyfinDb`), classified as a write (in fact it was classified as a read until November 2026 - see "Applying an attribute runs its constructor" below). That is technically accurate - instantiating the attribute really does set the property - even though no user code spells out the call. We keep it: special-casing attribute arguments to `Uses` would add a context check for little gain, and the edge makes attribute properties visible as used.
 
 **Enum member initializers.** Enum members are deliberately not code elements, but that also meant `enum Level { Highest = Limits.Max }` was never walked. The initializer expressions are now walked with the dependencies anchored on the enum element itself. Note: a member referencing another member of the same enum (`All = A | B`) falls back to the containing type and yields a self-edge - consistent with recursive methods.
 
@@ -452,6 +452,154 @@ bindable properties of such view models with the highest confidence, which is ex
 The single-file parse (`ParseSourceAsync`) needed `System.ObjectModel.dll` added to its metadata
 references for this: `netstandard.dll` only *forwards* `INotifyPropertyChanged`, and a forward whose
 target assembly is missing leaves the type unresolved — it then silently misses from `AllInterfaces`.
+
+### Not recorded: types handed to a serializer
+
+A serializer reads and writes public properties by reflection, so the accessors of a DTO have no incoming
+reference. Types that say so with an attribute (`[DataContract]`, `[Serializable]`) are handled in the dead
+code analysis. `System.Text.Json` needs no attribute, and there the only evidence is the call:
+`JsonSerializer.Serialize(log)`.
+
+Recognizing that call in the parser was built and taken out again (November 2026). It worked - but it
+meant a list of serializer type names, three hooks in the phase 2 analyzers and a walk over property
+types, all of it for one analysis. That is knowledge about libraries, not about the code, and it does not
+belong in the component that builds the code graph. The line this draws: the parser records what the
+code *is* (an override of an external member, an interface in the type's interface set); it does not
+learn what a particular library *does* with it.
+
+The consequence is accepted: an attribute-less DTO shows up in the dead code analysis with its unread
+getters or uncalled setters.
+
+## The primary constructor initializes the positional properties
+
+```csharp
+public record Order(int Id, Money Total);
+```
+
+`Id` is a property with a `get` and an `init` accessor, and both are elements. The constructor stores the
+argument - but the compiler writes the backing field directly, so nothing ever *calls* `set_Id`. The init
+accessor is only called by a `with` expression or an object initializer, and most records see neither.
+
+The dead code analysis reported one accessor per positional parameter for it: 87 findings on this
+repository, 60 of them with the highest confidence. Every one is true to the letter and none can be acted
+on - the accessor is not written anywhere, so there is nothing to delete.
+
+The primary constructor now gets a `Calls` edge to the init accessor of each property its parameter list
+declares (`LinkPositionalPropertyInitialization`). That is not what the IL does, but it is what happens:
+the constructor sets the property. The graph models which element owns a dependency, and the backing field
+is not an element - the same reasoning that anchors an initializer on its field rather than on the
+invisible constructor that really runs it.
+
+What is deliberately left alone:
+
+- **The getter.** "Nobody reads `Order.Total`" is a real statement about the record - an unused parameter -
+  and stays a finding.
+- **A written-out property.** In `record Explicit(int Id) { public int Id { get; init; } = Id; }` the
+  property's declaration is the property, not the parameter, so it is not found here; its initializer is
+  anchored on the property itself. That `init` is the developer's own and can be removed.
+- **Class and struct primary constructors.** Their parameters declare no members at all.
+
+For every other analysis the edge is invisible: it stays inside the type, so cycles, layers and the type
+graph do not see it, and the constructor is dropped from the cohesion partitioning as a lifecycle member.
+
+## The base constructor call nobody writes
+
+```csharp
+public abstract class Base
+{
+    protected Base() { _log = CreateLog(); }
+}
+
+public class Derived : Base
+{
+    public Derived() { }          // runs Base() - no ": base()" needed
+}
+```
+
+A written `: base(...)` is a `ConstructorInitializerSyntax` and has always produced a `Calls` edge. Without
+it there is no syntax node to visit - so `Base()` had no incoming reference. That is the normal situation
+for a protected constructor, and the dead code analysis reported it.
+
+The call is now linked in all three shapes it takes:
+
+| The derived class has | Source of the `Calls` edge | Target comes from |
+|---|---|---|
+| a constructor without initializer | that constructor | Roslyn |
+| a primary constructor, base clause without argument list | the primary constructor | our own ranking |
+| no constructor at all | the **type** | our own ranking |
+
+The third row is the modelling decision. The compiler generates a constructor there, and that one makes the
+call - but a generated constructor is not an element. The type carries the edge instead, the same anchoring
+an enum member initializer gets: the graph models which element owns a dependency.
+
+**Which base constructor is meant** has two answers, because Roslyn only gives one for the first row.
+
+For a written constructor the compiler has bound the call although nobody wrote it:
+`SemanticModel.GetOperation(constructorDeclaration)` returns an `IConstructorBodyOperation` whose
+`Initializer` is an implicit invocation of the base constructor (`LinkImplicitBaseCallOfWrittenConstructor`).
+That is the compiler's own overload resolution and therefore exact. The first version of this chapter
+claimed Roslyn had no symbol for an unwritten call - true for the syntax-based `GetSymbolInfo`, wrong for
+the operation tree.
+
+For the other two rows there is nothing to ask: `GetOperation` returns null for the type declaration, its
+parameter list and its base type, and a generated constructor has no syntax at all. There the candidates
+are ranked by hand (`FindBaseConstructorsCalledWithoutArguments`), in the order C# ranks them for an empty
+argument list:
+
+1. the parameterless constructor,
+2. a constructor whose parameters are all optional,
+3. a constructor that needs its `params` array to be callable without arguments.
+
+The order matters: with `Base(params int[] values)` declared before `Base(int value = 0)`, C# calls the
+second, and a "first applicable" rule linked the first - leaving the constructor that really runs without
+an edge. Within tier 3 C# goes on to compare parameter counts and element types (`params string[]` beats
+`params object[]`). That is not rebuilt; when several constructors are left in a tier, **all** are linked.
+An edge too many hides a finding, an edge on the wrong constructor invents one.
+
+Only constructors the derived type may call are candidates, and they are filtered **before** the ranking:
+an internal `Base(int value = 0)` in another assembly is the better match on paper and cannot be called at
+all, so the protected `Base(params int[] values)` next to it is the one that runs. Accessibility is asked
+of Roslyn (`Compilation.IsSymbolAccessibleWithin`) rather than rebuilt - the first version only excluded
+`private` and got exactly that case wrong. A private constructor still counts for a type nested in the
+base type (the closed hierarchy `abstract class Shape { private Shape() { } class Circle : Shape; }`), an
+internal one inside its assembly or for a friend assembly.
+
+What gets no edge:
+
+- **A constructor chaining to `this(...)`** - it reaches the base through the other constructor.
+- **A static constructor** - it runs no base constructor.
+- **A generated or external base constructor** - neither is an element. Same guard as the written call;
+  the `Inherits` edge has to do.
+
+The edge carries `IsBaseCall` like its written twin, so following incoming calls treats both alike. It adds
+no dependency between types that the `Inherits` edge did not already state.
+
+## Applying an attribute runs its constructor
+
+```csharp
+[Mark(1, Name = "x")]
+public class Decorated;
+```
+
+Two things happen here that the syntax does not spell as calls.
+
+**The constructor.** `[Mark(1)]` names the attribute *type*; the only edge was `UsesAttribute` to the class,
+and `MarkAttribute(int)` had no incoming reference. Roslyn has resolved the overload already
+(`AttributeData.AttributeConstructor`), so `AnalyzeAttributeRelationships` adds a `Calls` edge from the
+decorated element to it - for every element kind, in the one place that also writes `UsesAttribute`. As
+with object creation there is no fallback to the type: an attribute without a written constructor gets no
+edge.
+
+**The named argument.** `Name = "x"` sets the property, but it is a `NameEqualsSyntax`, not an assignment
+expression. The property access classifier only knew assignments and increments as writes, so this fell
+through to "read": the decorated element called `get_Name`, and `set_Name` - the accessor that really
+runs - was reported as dead. The classifier has a third case now. It is restricted to a `NameEquals` whose
+parent is an attribute argument, because the same node appears in `new { Name = x }`, where no setter
+exists.
+
+Not covered: attributes on **parameters, return values and type parameters**. Those symbols are not
+elements, so `AnalyzeAttributeRelationships` never sees them - not for the constructor, and not for
+`UsesAttribute` either.
 
 ## Visibility on the code element
 
