@@ -54,7 +54,7 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             }
             else
             {
-                var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
+                var attributes = DetermineCallAttributes(invocationSyntax, calledMethod);
                 _builder.AddCallsRelationship(sourceElement, calledMethod, location, attributes);
             }
 
@@ -682,77 +682,26 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         return true;
     }
 
-    private static RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation,
-        IMethodSymbol method, SemanticModel semanticModel)
+    private static RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation, IMethodSymbol method)
     {
         if (method.IsExtensionMethod)
         {
             return RelationshipAttribute.IsExtensionMethodCall;
         }
 
-        switch (invocation.Expression)
+        // Dispatch is a property of the bound method, independent of qualification, aliases or generics.
+        if (method.IsStatic)
         {
-            case MemberAccessExpressionSyntax memberAccess:
-                return AnalyzeMemberAccessCallType(memberAccess, semanticModel);
-
-            case IdentifierNameSyntax:
-                // Direct method call - could be this.Method() or static
-                return method.IsStatic ? RelationshipAttribute.IsStaticCall : RelationshipAttribute.None;
-
-            case MemberBindingExpressionSyntax:
-                // Conditional access: obj?.Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            default:
-                // Fallback for complex expressions
-                return RelationshipAttribute.None;
+            return RelationshipAttribute.IsStaticCall;
         }
-    }
 
-    private static RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
-    {
-        switch (memberAccess.Expression)
+        return invocation.Expression switch
         {
-            case BaseExpressionSyntax:
-                // base.Method()
-                return RelationshipAttribute.IsBaseCall;
-
-            case ThisExpressionSyntax:
-                // this.Method()
-                return RelationshipAttribute.IsThisCall;
-
-            case IdentifierNameSyntax identifier:
-                var symbolInfo = semanticModel.GetSymbolInfo(identifier);
-                if (symbolInfo.Symbol is INamedTypeSymbol)
-                {
-                    // Type.StaticMethod()
-                    return RelationshipAttribute.IsStaticCall;
-                }
-
-                if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
-                {
-                    // field.Method() or property.Method()
-                    return RelationshipAttribute.IsInstanceCall;
-                }
-
-                // Local variable or parameter
-                return RelationshipAttribute.IsInstanceCall;
-
-            case MemberAccessExpressionSyntax:
-                // Chained calls: obj.Property.Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            case InvocationExpressionSyntax:
-                // Method call result: GetObject().Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            case ObjectCreationExpressionSyntax:
-                // new Object().Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            default:
-                // Complex expression - default to instance call
-                return RelationshipAttribute.IsInstanceCall;
-        }
+            MemberAccessExpressionSyntax { Expression: BaseExpressionSyntax } => RelationshipAttribute.IsBaseCall,
+            MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } => RelationshipAttribute.IsThisCall,
+            MemberAccessExpressionSyntax or MemberBindingExpressionSyntax => RelationshipAttribute.IsInstanceCall,
+            // Unqualified instance calls, including GenericMethod<T>(), dispatch on the current instance.
+            _ => RelationshipAttribute.None
+        };
     }
 }

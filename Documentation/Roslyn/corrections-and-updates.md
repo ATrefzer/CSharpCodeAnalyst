@@ -858,3 +858,8 @@ Each event variable initializer is walked with the same semantics as a field ini
 ## Expression lambda results include deferred conversions
 
 Expression lambdas have neither a ReturnStatement nor an ArrowExpressionClause, so their contextual result conversion needs an explicit check at the lambda-body boundary. User-defined conversions produce Uses edges on the owning element, including nested and async lambdas; they are not immediate Calls. Block returns retain their existing handling. Nested-lambda visitors keep normal traversal after checking the result, preserving other references and source locations.
+
+
+## Classify static calls from the bound method
+
+After preserving the dedicated extension-call classification, the bound method's IsStatic flag determines static dispatch. Namespace qualification, global aliases, closed generic receivers and unqualified generic method syntax cannot change that classification. Instance calls retain the existing implicit-this, explicit-this, base and other-receiver distinctions. Lambda invocations continue to use deferred Uses semantics without ordinary call-dispatch flags.
