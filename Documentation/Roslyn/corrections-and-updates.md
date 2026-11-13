@@ -853,3 +853,8 @@ Property access classification follows tuple leaves, parentheses, member binding
 ## Field-like event initializers own their dependencies
 
 Each event variable initializer is walked with the same semantics as a field initializer, anchored on the event element. Only the matching declarator is visited, so events declared together do not inherit each other's handlers. Factory calls and receiver construction run immediately; method groups and lambda bodies remain Uses references. This change does not introduce Handles or registration edges for initialization; those keep their existing assignment-based policy.
+
+
+## Expression lambda results include deferred conversions
+
+Expression lambdas have neither a ReturnStatement nor an ArrowExpressionClause, so their contextual result conversion needs an explicit check at the lambda-body boundary. User-defined conversions produce Uses edges on the owning element, including nested and async lambdas; they are not immediate Calls. Block returns retain their existing handling. Nested-lambda visitors keep normal traversal after checking the result, preserving other references and source locations.

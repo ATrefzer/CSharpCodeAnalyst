@@ -112,7 +112,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     {
         // Use a specialized walker that tracks types and method/member references with "Uses" relationships
         var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
-        lambdaWalker.Visit(node.Body);
+        lambdaWalker.AnalyzeLambdaBody(node.Body);
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     {
         // Use a specialized walker that tracks types and method/member references with "Uses" relationships
         var lambdaWalker = new LambdaBodyWalker(Analyzer, SourceElement, SemanticModel);
-        lambdaWalker.Visit(node.Body);
+        lambdaWalker.AnalyzeLambdaBody(node.Body);
     }
 
     /// <summary>
