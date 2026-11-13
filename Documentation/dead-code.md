@@ -61,7 +61,9 @@ Here's what each specific note means:
 - **Deletions happen in rounds.** After you delete a finding, run the analysis again — deleting code can reveal more dead code.
 - **Two rows can look identical.** Generic types and overloaded methods (`Foo(int)` vs `Foo(string)`) can display with the same name. Use *Jump to code* to confirm you're looking at the right one.
 - **XAML bindings aren't seen.** `{Binding}` and `{StaticResource}` in XAML are invisible to the analysis. This is why properties on view models get capped confidence.
-- **Reflection, DI, and serialization are invisible.** Anything only referenced at runtime through these mechanisms can't be detected — the tool has some built-in protections for common cases (like serialized DTOs), but not all.
+- **Reflection and DI are invisible.** Anything only referenced at runtime through these mechanisms can't be detected.
+- **Serialized types are only recognized by their attribute.** The public properties and constructors of a type are not reported when the type carries a serialization attribute (`[DataContract]`, `[Serializable]`, `[JsonObject]`, ...). A plain class that is serialized without one — the normal case with `System.Text.Json` — is not recognized: its properties show up as unread or unwritten. Use the filter box to hide such types.
+- **A derived test class counts as a test class.** A class inheriting from a test fixture runs the inherited tests, so it is treated as test code even without an attribute of its own.
 - **External libraries aren't in scope.** If you're building a library consumed by other solutions, its public API will look "dead" here even if it's actively used elsewhere.
 - **Circular dead code isn't caught.** Two classes that only reference each other, and nothing else, will each look "used" — because they reference one another. The tool can't detect this kind of mutual dead code.
 

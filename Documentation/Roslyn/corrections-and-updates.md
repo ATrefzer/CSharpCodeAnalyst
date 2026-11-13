@@ -453,6 +453,55 @@ The single-file parse (`ParseSourceAsync`) needed `System.ObjectModel.dll` added
 references for this: `netstandard.dll` only *forwards* `INotifyPropertyChanged`, and a forward whose
 target assembly is missing leaves the type unresolved — it then silently misses from `AllInterfaces`.
 
+### Not recorded: types handed to a serializer
+
+A serializer reads and writes public properties by reflection, so the accessors of a DTO have no incoming
+reference. Types that say so with an attribute (`[DataContract]`, `[Serializable]`) are handled in the dead
+code analysis. `System.Text.Json` needs no attribute, and there the only evidence is the call:
+`JsonSerializer.Serialize(log)`.
+
+Recognizing that call in the parser was built and taken out again (November 2026). It worked - but it
+meant a list of serializer type names, three hooks in the phase 2 analyzers and a walk over property
+types, all of it for one analysis. That is knowledge about libraries, not about the code, and it does not
+belong in the component that builds the code graph. The line this draws: the parser records what the
+code *is* (an override of an external member, an interface in the type's interface set); it does not
+learn what a particular library *does* with it.
+
+The consequence is accepted: an attribute-less DTO shows up in the dead code analysis with its unread
+getters or uncalled setters.
+
+## The primary constructor initializes the positional properties
+
+```csharp
+public record Order(int Id, Money Total);
+```
+
+`Id` is a property with a `get` and an `init` accessor, and both are elements. The constructor stores the
+argument - but the compiler writes the backing field directly, so nothing ever *calls* `set_Id`. The init
+accessor is only called by a `with` expression or an object initializer, and most records see neither.
+
+The dead code analysis reported one accessor per positional parameter for it: 87 findings on this
+repository, 60 of them with the highest confidence. Every one is true to the letter and none can be acted
+on - the accessor is not written anywhere, so there is nothing to delete.
+
+The primary constructor now gets a `Calls` edge to the init accessor of each property its parameter list
+declares (`LinkPositionalPropertyInitialization`). That is not what the IL does, but it is what happens:
+the constructor sets the property. The graph models which element owns a dependency, and the backing field
+is not an element - the same reasoning that anchors an initializer on its field rather than on the
+invisible constructor that really runs it.
+
+What is deliberately left alone:
+
+- **The getter.** "Nobody reads `Order.Total`" is a real statement about the record - an unused parameter -
+  and stays a finding.
+- **A written-out property.** In `record Explicit(int Id) { public int Id { get; init; } = Id; }` the
+  property's declaration is the property, not the parameter, so it is not found here; its initializer is
+  anchored on the property itself. That `init` is the developer's own and can be removed.
+- **Class and struct primary constructors.** Their parameters declare no members at all.
+
+For every other analysis the edge is invisible: it stays inside the type, so cycles, layers and the type
+graph do not see it, and the constructor is dropped from the cohesion partitioning as a lifecycle member.
+
 ## Visibility on the code element
 
 `CodeElement.AccessLevel` carries what `ISymbol.DeclaredAccessibility` says, mapped in `HierarchyAnalyzer`
