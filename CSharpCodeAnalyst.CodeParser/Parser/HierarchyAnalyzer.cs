@@ -59,6 +59,17 @@ public class HierarchyAnalyzer
             // would all turn into dead code. What is generated is marked instead (see MarkGeneratedElements).
             var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
 
+            // A workspace can load successfully even when references or source code do not bind.
+            // Keep the useful part of the graph, but expose compiler errors through the same
+            // diagnostics the UI and CLI already show for incomplete workspace loads.
+            foreach (var diagnostic in compilation.GetDiagnostics())
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error && !diagnostic.IsSuppressed)
+                {
+                    _diagnostics.AddFailure($"Project '{project.Name}' may have an incomplete graph: {diagnostic}");
+                }
+            }
+
             // Build also a list of all named types in the solution
             // We need this in phase 2 to resolve relationships
             // Constructed types are not contained in this list!

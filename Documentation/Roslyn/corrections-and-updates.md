@@ -789,3 +789,47 @@ next to it, which is the honest question. The visible consequence: `new Service(
 `Uses` edges for the parameter types moved onto the constructor, where the ordinary parameter handling
 produces them anyway - cycle detection and the layer rules are unaffected, because member edges are
 lifted to the containing type.
+
+
+## Conversion operators with the same source type
+
+Two conversions can legally have the same name and parameter list:
+`implicit operator First(Source value)` and `implicit operator Second(Source value)`.
+Their return type is the conversion target and distinguishes them. The ordinary method key was not
+enough: phase 1 merged the declarations, kept only the first symbol, and phase 2 attributed calls to
+both conversions to the body of the first.
+
+For `MethodKind.Conversion`, `SymbolExtensions.Key()` now includes the fully qualified return type.
+Other method keys stay unchanged. This gives each conversion its own body, return-type dependencies
+and incoming calls; normalization of constructed generic members still happens before call lookup.
+`ConversionOperatorIdentityParseTests` covers implicit and explicit conversions, both declaration
+orders, separate body dependencies and the target of each incoming call.
+
+## External types first referenced by top-level statements
+
+Global statements are analyzed after the parallel member loop and may be the first reference to an
+external type, such as `Console` in a top-level program. Flushing `ExternalCodeElementCache` immediately
+after the member loop left those later edges pointing to IDs missing from `CodeGraph.Nodes`.
+
+The cache is now flushed after global statements as well. External aggregation and the
+`IncludeExternals` policy are unchanged; the final graph simply contains every target that was created.
+`TopLevelExternalRelationshipParseTests` verifies edge endpoints and the complete parent/child
+hierarchy, with a new external type, a type already cached by another member, and externals disabled.
+
+## Compiler errors make a partial graph visible
+
+A successful workspace load does not mean the code binds: missing types, unresolved calls and syntax
+errors can leave dependencies absent. For each project selected for analysis, phase 1 now adds
+unsuppressed compiler errors from `Compilation.GetDiagnostics()` to `ParserDiagnostics.Failures`,
+including the project name and Roslyn's diagnostic ID and source location.
+
+Parsing remains best effort. Resolvable elements and relationships are returned, while the existing
+UI diagnostic dialog and CLI diagnostic output can warn that the graph may be incomplete. This does
+not change CLI exit-code policy, and ordinary compiler warnings are not imported into parser
+diagnostics. Diagnostics still clear at the next public parse entry point.
+
+The in-memory/single-file path selects a console compilation when the source contains top-level
+statements and a library compilation otherwise. This avoids reporting CS8805 for a valid top-level
+program or CS5001 for an ordinary class snippet solely because of our synthetic project.
+`CompilationDiagnosticsParseTests` covers unresolved code with preserved valid relationships,
+syntax errors, clearing between parses, and valid library/top-level/warnings-only input.

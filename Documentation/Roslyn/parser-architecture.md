@@ -43,7 +43,7 @@ There are some exceptions to this two-pass design.
 | Exception | Why |
 | --- | --- |
 | `GlobalStatements` / `Execute` — phase 2 creates nodes | Top-level statements belong to no type and no method, so a synthetic class/method per assembly hosts their dependencies.<br /><br />Also, a synthetic "global" namespace is introduced at the end if at least one Assembly has code elements without a namespace defined. This simplifies later cycle search. |
-| External elements — phase 2 creates nodes | You only learn that the external class `List<T>` is needed while resolving an edge. Collected in `ExternalCodeElementCache` and flushed into the graph *after* the parallel loop. |
+| External elements — phase 2 creates nodes | You only learn that the external class `List<T>` is needed while resolving an edge. Collected in `ExternalCodeElementCache` and flushed into the graph after both the parallel loop and the global-statements analysis. |
 | Primary constructors and captured parameters | Handled during Phase 1 by inspecting symbol models alongside syntax. See [corrections-and-updates.md](corrections-and-updates.md). |
 
 ## Phase 1 — Hierarchy Walk
