@@ -252,11 +252,56 @@ internal class DeclarationAnalyzer
                 // A primary constructor's declaring syntax is the type declaration. Walking that as a
                 // body would attribute every member of the type to the constructor, so only what the
                 // constructor actually runs is analyzed here.
+                LinkPositionalPropertyInitialization(methodElement, methodSymbol);
                 AnalyzePrimaryConstructorBody(methodElement, typeDeclaration, semanticModel);
                 continue;
             }
 
             _bodyAnalyzer.AnalyzeMethodBody(methodElement, syntax, semanticModel);
+        }
+    }
+
+    /// <summary>
+    ///     A record's primary constructor initializes the positional properties: <c>record Point(int X)</c>
+    ///     stores the argument in <c>X</c>. That is the only write most of them ever see - the init
+    ///     accessor itself is called by a <c>with</c> expression or an object initializer and by nothing
+    ///     else. Without an edge it has no incoming reference, and the dead code analysis reported one
+    ///     accessor per positional parameter: rows that are true to the letter and that nobody can act
+    ///     on, because the accessor is not written anywhere and cannot be deleted.
+    ///     <para>
+    ///         The edge says what happens: the constructor sets the property. It is not what the
+    ///         compiler emits (that writes the backing field directly), but the graph models which
+    ///         element owns a dependency, and a backing field is not an element.
+    ///     </para>
+    ///     <para>
+    ///         Only the properties the parameter list itself declares are linked, found the same way
+    ///         phase 1 finds them (<c>HierarchyAnalyzer.FindPositionalProperty</c>). A class or struct
+    ///         primary constructor declares none, and a record that writes the property out
+    ///         (<c>public int X { get; init; } = X;</c>) has an initializer that is anchored on the
+    ///         property - there the init accessor is the developer's own and stays reportable.
+    ///     </para>
+    /// </summary>
+    private void LinkPositionalPropertyInitialization(CodeElement constructorElement, IMethodSymbol primaryConstructor)
+    {
+        foreach (var parameter in primaryConstructor.Parameters)
+        {
+            var parameterSyntax = parameter.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+            if (parameterSyntax is null)
+            {
+                continue;
+            }
+
+            var property = primaryConstructor.ContainingType
+                .GetMembers(parameter.Name)
+                .OfType<IPropertySymbol>()
+                .FirstOrDefault(candidate => candidate.DeclaringSyntaxReferences
+                    .Any(reference => reference.GetSyntax() == parameterSyntax));
+
+            if (property?.SetMethod is { } setter && _builder.FindInternalCodeElement(setter) is not null)
+            {
+                _builder.AddCallsRelationship(constructorElement, setter, parameterSyntax.GetSyntaxLocation(),
+                    RelationshipAttribute.None);
+            }
         }
     }
 

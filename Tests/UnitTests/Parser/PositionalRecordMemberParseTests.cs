@@ -122,6 +122,40 @@ public class PositionalRecordMemberParseTests
         Assert.That(id.Children.Select(c => c.Name), Is.EquivalentTo(new[] { "get_Id", "set_Id" }));
     }
 
+    /// <summary>The members the primary constructor of the given type calls, as "Property.accessor".</summary>
+    private string[] CalledByThePrimaryConstructorOf(string typeName)
+    {
+        var constructor = Type(typeName).Children.Single(c => c.MemberRole == MemberRole.Constructor);
+        return constructor.Relationships
+            .Where(r => r.Type == RelationshipType.Calls)
+            .Select(r => _graph.Nodes[r.TargetId])
+            .Select(t => $"{t.Parent?.Name}.{t.Name}")
+            .ToArray();
+    }
+
+    [Test]
+    public void ThePrimaryConstructor_InitializesThePositionalProperties()
+    {
+        // "new Order(1, total)" is the only write most positional properties ever see. Without the
+        // edge the init accessor has no incoming reference at all - one dead code row per parameter,
+        // for an accessor nobody wrote and nobody can delete.
+        Assert.That(CalledByThePrimaryConstructorOf("Order"), Is.EquivalentTo(new[] { "Id.set_Id", "Total.set_Total" }));
+    }
+
+    [Test]
+    public void AWrittenOutProperty_IsNotInitializedByTheConstructor()
+    {
+        // "public int Id { get; init; } = Id;" - the initializer is anchored on the property, and the
+        // init accessor is the developer's own. If nothing calls it, that is a finding.
+        Assert.That(CalledByThePrimaryConstructorOf("Explicit"), Is.Empty);
+    }
+
+    [Test]
+    public void AClassPrimaryConstructor_InitializesNoProperty()
+    {
+        Assert.That(CalledByThePrimaryConstructorOf("Service"), Is.Empty);
+    }
+
     [Test]
     public void AUseOfAPositionalProperty_ResolvesToTheMemberInsteadOfTheType()
     {
