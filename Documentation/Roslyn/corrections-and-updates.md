@@ -848,3 +848,8 @@ Type dependencies now include concrete arguments from the entire containing-type
 ## Classify deconstruction and null-conditional assignment targets
 
 Property access classification follows tuple leaves, parentheses, member bindings and the guarded branch of conditional access to the assignment. Simple assignments use setters; compound assignments use getters and setters. Receivers, index arguments and right-hand tuple values remain reads. Lambda bodies retain Uses edges rather than immediate Calls. Named attribute arguments keep their setter treatment from PR #115. End-to-end tests cover nested deconstruction, chained conditional access, indexers and deferred assignments.
+
+
+## Field-like event initializers own their dependencies
+
+Each event variable initializer is walked with the same semantics as a field initializer, anchored on the event element. Only the matching declarator is visited, so events declared together do not inherit each other's handlers. Factory calls and receiver construction run immediately; method groups and lambda bodies remain Uses references. This change does not introduce Handles or registration edges for initialization; those keep their existing assignment-based policy.

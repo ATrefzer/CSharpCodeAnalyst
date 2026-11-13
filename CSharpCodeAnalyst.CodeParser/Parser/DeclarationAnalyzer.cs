@@ -189,6 +189,22 @@ internal class DeclarationAnalyzer
             AddImplementationsForInterfaceMember(eventElement, eventSymbol);
         }
 
+        // Each field-like event owns its initializer, just as a field owns its initializer.
+        // Walk only this declarator: a declaration can contain several events with different handlers.
+        foreach (var syntaxReference in eventSymbol.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is not VariableDeclaratorSyntax { Initializer: not null } declarator)
+            {
+                continue;
+            }
+
+            var semanticModel = solution.GetDocument(declarator.SyntaxTree)?.GetSemanticModelAsync().Result;
+            if (semanticModel is not null)
+            {
+                _bodyAnalyzer.AnalyzeMethodBody(eventElement, declarator.Initializer, semanticModel);
+            }
+        }
+
         // If the event has "add"/"remove" accessors, analyze them
         if (eventSymbol.AddMethod != null)
         {
