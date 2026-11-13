@@ -863,3 +863,8 @@ Expression lambdas have neither a ReturnStatement nor an ArrowExpressionClause, 
 ## Classify static calls from the bound method
 
 After preserving the dedicated extension-call classification, the bound method's IsStatic flag determines static dispatch. Namespace qualification, global aliases, closed generic receivers and unqualified generic method syntax cannot change that classification. Instance calls retain the existing implicit-this, explicit-this, base and other-receiver distinctions. Lambda invocations continue to use deferred Uses semantics without ordinary call-dispatch flags.
+
+
+## Explicit type dependencies in delegate and local-function signatures
+
+Delegate type constraints use the existing constraint analysis. Local-function parameter, return and constraint types contribute Uses edges to the owning member, including nested functions and functions inside lambdas. Local functions remain aggregated: no new nodes or call relationships are introduced. Special constraints such as class/new() carry no type dependency; existing traversal of function bodies is unchanged.

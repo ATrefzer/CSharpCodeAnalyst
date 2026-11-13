@@ -165,6 +165,8 @@ internal class DeclarationAnalyzer
         var delegateLocations = delegateSymbol.GetSymbolLocations();
         var delegateLocation = delegateLocations.FirstOrDefault();
 
+        AnalyzeTypeParameterConstraints(delegateElement, delegateSymbol.TypeParameters, delegateLocation);
+
         // Analyze return type
         _builder.AddTypeRelationship(delegateElement, methodSymbol.ReturnType, RelationshipType.Uses, delegateLocation);
 
