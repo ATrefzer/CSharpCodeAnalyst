@@ -218,7 +218,7 @@ A collection of smaller cases, fixed together. Common theme: the dependency is r
 
 **Attribute arguments on classes, properties, fields, events.** `[Handler(typeof(Payload))]` on a *method* was captured, because phase 2 walks the whole method declaration including its attribute lists. Types, properties, fields and events have no such declaration walk - only the `UsesAttribute` edge to the attribute class existed and the `typeof` argument was lost. `AnalyzeAttributeRelationships` now walks the attribute argument list for all non-method symbols (methods stay covered by their declaration walk, so nothing is processed twice).
 
-A consequence worth knowing (observed on the Jellyfin reference repo, accepted deliberately): a **named attribute argument** like `[JellyfinMigrationBackup(JellyfinDb = true)]` runs through the normal property-access classification and therefore yields a `Calls` edge from the decorated element to the attribute's *property* (`JellyfinDb`), classified as a write. That is technically accurate - instantiating the attribute really does set the property - even though no user code spells out the call. We keep it: special-casing attribute arguments to `Uses` would add a context check for little gain, and the edge makes attribute properties visible as used.
+A consequence worth knowing (observed on the Jellyfin reference repo, accepted deliberately): a **named attribute argument** like `[JellyfinMigrationBackup(JellyfinDb = true)]` runs through the normal property-access classification and therefore yields a `Calls` edge from the decorated element to the attribute's *property* (`JellyfinDb`), classified as a write (in fact it was classified as a read until November 2026 - see "Applying an attribute runs its constructor" below). That is technically accurate - instantiating the attribute really does set the property - even though no user code spells out the call. We keep it: special-casing attribute arguments to `Uses` would add a context check for little gain, and the edge makes attribute properties visible as used.
 
 **Enum member initializers.** Enum members are deliberately not code elements, but that also meant `enum Level { Highest = Limits.Max }` was never walked. The initializer expressions are now walked with the dependencies anchored on the enum element itself. Note: a member referencing another member of the same enum (`All = A | B`) falls back to the containing type and yields a self-edge - consistent with recursive methods.
 
@@ -501,6 +501,79 @@ What is deliberately left alone:
 
 For every other analysis the edge is invisible: it stays inside the type, so cycles, layers and the type
 graph do not see it, and the constructor is dropped from the cohesion partitioning as a lifecycle member.
+
+## The base constructor call nobody writes
+
+```csharp
+public abstract class Base
+{
+    protected Base() { _log = CreateLog(); }
+}
+
+public class Derived : Base
+{
+    public Derived() { }          // runs Base() - no ": base()" needed
+}
+```
+
+A written `: base(...)` is a `ConstructorInitializerSyntax` and has always produced a `Calls` edge. Without
+it there is no syntax node at all, and Roslyn has no symbol for a call that is not written - so `Base()`
+had no incoming reference. That is the normal situation for a protected constructor, and the dead code
+analysis reported it.
+
+The call is now linked in all three shapes it takes (`LinkImplicitBaseConstructorCall`):
+
+| The derived class has | Source of the `Calls` edge |
+|---|---|
+| a constructor without initializer | that constructor |
+| a primary constructor, base clause without argument list | the primary constructor |
+| no constructor at all | the **type** |
+
+The third row is the modelling decision. The compiler generates a constructor there, and that one makes the
+call - but a generated constructor is not an element. The type carries the edge instead, the same anchoring
+an enum member initializer gets: the graph models which element owns a dependency.
+
+Which base constructor is meant has to be worked out by hand. With an empty argument list overload
+resolution shrinks to two rules: the parameterless constructor wins, otherwise the one whose parameters are
+all optional or `params`. Private constructors only count when the derived type is nested in the base type
+(the closed hierarchy `abstract class Shape { private Shape() { } class Circle : Shape; }`).
+
+What gets no edge:
+
+- **A constructor chaining to `this(...)`** - it reaches the base through the other constructor.
+- **A static constructor** - it runs no base constructor.
+- **A generated or external base constructor** - neither is an element. Same guard as the written call;
+  the `Inherits` edge has to do.
+
+The edge carries `IsBaseCall` like its written twin, so following incoming calls treats both alike. It adds
+no dependency between types that the `Inherits` edge did not already state.
+
+## Applying an attribute runs its constructor
+
+```csharp
+[Mark(1, Name = "x")]
+public class Decorated;
+```
+
+Two things happen here that the syntax does not spell as calls.
+
+**The constructor.** `[Mark(1)]` names the attribute *type*; the only edge was `UsesAttribute` to the class,
+and `MarkAttribute(int)` had no incoming reference. Roslyn has resolved the overload already
+(`AttributeData.AttributeConstructor`), so `AnalyzeAttributeRelationships` adds a `Calls` edge from the
+decorated element to it - for every element kind, in the one place that also writes `UsesAttribute`. As
+with object creation there is no fallback to the type: an attribute without a written constructor gets no
+edge.
+
+**The named argument.** `Name = "x"` sets the property, but it is a `NameEqualsSyntax`, not an assignment
+expression. The property access classifier only knew assignments and increments as writes, so this fell
+through to "read": the decorated element called `get_Name`, and `set_Name` - the accessor that really
+runs - was reported as dead. The classifier has a third case now. It is restricted to a `NameEquals` whose
+parent is an attribute argument, because the same node appears in `new { Name = x }`, where no setter
+exists.
+
+Not covered: attributes on **parameters, return values and type parameters**. Those symbols are not
+elements, so `AnalyzeAttributeRelationships` never sees them - not for the constructor, and not for
+`UsesAttribute` either.
 
 ## Visibility on the code element
 

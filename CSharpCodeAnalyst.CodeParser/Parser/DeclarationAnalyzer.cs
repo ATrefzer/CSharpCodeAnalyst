@@ -48,6 +48,7 @@ internal class DeclarationAnalyzer
         else if (symbol is INamedTypeSymbol typeSymbol)
         {
             AnalyzeInheritanceRelationships(element, typeSymbol);
+            LinkBaseCallOfTheCompilerGeneratedConstructor(element, typeSymbol);
             AnalyzeEnumMemberInitializers(solution, element, typeSymbol);
             RecordExternalInterfaceImplementations(typeSymbol);
             RecordIfNotifyingType(element, typeSymbol);
@@ -126,6 +127,13 @@ internal class DeclarationAnalyzer
 
                 element.Attributes.Add(attributeData.AttributeClass.Name);
                 _builder.AddTypeRelationship(element, attributeData.AttributeClass, RelationshipType.UsesAttribute, location);
+
+                // Applying an attribute runs one of its constructors. "[Mark(1)]" names only the type,
+                // so nothing in the syntax is a call - Roslyn has resolved the overload already.
+                if (attributeData.AttributeConstructor is not null && location is not null)
+                {
+                    LinkConstructorCall(element, attributeData.AttributeConstructor, location, RelationshipAttribute.None);
+                }
 
                 // Attribute arguments (typeof(...), constants) are real dependencies. Method
                 // declarations are walked as a whole in AnalyzeMethodRelationships including their
@@ -253,11 +261,109 @@ internal class DeclarationAnalyzer
                 // body would attribute every member of the type to the constructor, so only what the
                 // constructor actually runs is analyzed here.
                 LinkPositionalPropertyInitialization(methodElement, methodSymbol);
-                AnalyzePrimaryConstructorBody(methodElement, typeDeclaration, semanticModel);
+                AnalyzePrimaryConstructorBody(methodElement, methodSymbol.ContainingType, typeDeclaration, semanticModel);
                 continue;
             }
 
+            if (syntax is ConstructorDeclarationSyntax { Initializer: null } && methodSymbol.MethodKind == MethodKind.Constructor)
+            {
+                // No ": base(...)" and no ": this(...)" - the base constructor runs all the same.
+                LinkImplicitBaseConstructorCall(methodElement, methodSymbol.ContainingType, syntax.GetSyntaxLocation());
+            }
+
             _bodyAnalyzer.AnalyzeMethodBody(methodElement, syntax, semanticModel);
+        }
+    }
+
+    /// <summary>
+    ///     A class without a constructor of its own gets one from the compiler, and that one calls the
+    ///     base constructor like a written one would. The generated constructor is not an element, so
+    ///     the type carries the edge - the same anchoring an enum member initializer gets.
+    /// </summary>
+    private void LinkBaseCallOfTheCompilerGeneratedConstructor(CodeElement typeElement, INamedTypeSymbol typeSymbol)
+    {
+        if (typeSymbol.InstanceConstructors.Any(constructor => !constructor.IsImplicitlyDeclared))
+        {
+            // Written constructors (a primary one included) are elements and carry their own edge.
+            return;
+        }
+
+        var location = typeSymbol.GetSymbolLocations().FirstOrDefault();
+        if (location is not null)
+        {
+            LinkImplicitBaseConstructorCall(typeElement, typeSymbol, location);
+        }
+    }
+
+    /// <summary>
+    ///     A constructor without an initializer calls the base constructor that takes no arguments:
+    ///     <c>Derived() { }</c> runs <c>Base()</c>. Nothing in the syntax says so, and without the edge
+    ///     a base constructor reached only this way - the normal case for a <c>protected Base()</c> -
+    ///     has no incoming reference at all.
+    ///     <para>
+    ///         Same guard as the written base call (<c>AnalyzeConstructorInitializer</c>): linked when
+    ///         the target is an element of the graph. A compiler-generated or external base constructor
+    ///         is none, and the Inherits edge has to do.
+    ///     </para>
+    /// </summary>
+    private void LinkImplicitBaseConstructorCall(CodeElement sourceElement, INamedTypeSymbol type, SourceLocation location)
+    {
+        var baseConstructor = FindBaseConstructorCalledWithoutArguments(type);
+        if (baseConstructor is not null)
+        {
+            LinkConstructorCall(sourceElement, baseConstructor, location, RelationshipAttribute.IsBaseCall);
+        }
+    }
+
+    /// <summary>
+    ///     Overload resolution for <c>base()</c>, reduced to what an empty argument list leaves of it:
+    ///     the parameterless constructor wins, otherwise the one whose parameters are all optional or
+    ///     <c>params</c>. Roslyn offers no symbol for a call that is not written.
+    ///     <para>
+    ///         Private constructors only count for a type nested in the base type - the closed hierarchy
+    ///         (<c>abstract class Shape { private Shape() { } class Circle : Shape; }</c>).
+    ///     </para>
+    /// </summary>
+    private static IMethodSymbol? FindBaseConstructorCalledWithoutArguments(INamedTypeSymbol type)
+    {
+        if (type.TypeKind != TypeKind.Class || type.BaseType is not { } baseType)
+        {
+            return null;
+        }
+
+        var isNestedInBaseType = false;
+        for (var outer = type.ContainingType; outer is not null; outer = outer.ContainingType)
+        {
+            isNestedInBaseType |= SymbolEqualityComparer.Default.Equals(outer.OriginalDefinition, baseType.OriginalDefinition);
+        }
+
+        var candidates = baseType.InstanceConstructors
+            .Where(constructor => !constructor.IsImplicitlyDeclared)
+            .Where(constructor => isNestedInBaseType || constructor.DeclaredAccessibility != Accessibility.Private)
+            .ToList();
+
+        return candidates.FirstOrDefault(constructor => constructor.Parameters.Length == 0)
+               ?? candidates.FirstOrDefault(constructor => constructor.Parameters.All(parameter => parameter.IsOptional || parameter.IsParams));
+    }
+
+    /// <summary>
+    ///     A call to a constructor, linked only when the constructor is an element of the graph. There
+    ///     is deliberately no fallback to the containing type: the Creates, Inherits or UsesAttribute
+    ///     edge already says that much.
+    /// </summary>
+    private void LinkConstructorCall(CodeElement sourceElement, IMethodSymbol constructor, SourceLocation location,
+        RelationshipAttribute attribute)
+    {
+        if (constructor.IsImplicitlyDeclared)
+        {
+            return;
+        }
+
+        // The base type or attribute may be a constructed generic; phase 1 knows the definition.
+        var normalizedConstructor = constructor.NormalizeToOriginalDefinition();
+        if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
+        {
+            _builder.AddCallsRelationship(sourceElement, normalizedConstructor, location, attribute);
         }
     }
 
@@ -313,33 +419,29 @@ internal class DeclarationAnalyzer
     ///     <para>
     ///         The call to the base constructor gets the same guard as
     ///         <c>AnalyzeConstructorInitializer</c>: it is linked when the target is an element of the
-    ///         graph.
+    ///         graph. Without an argument list the call is implicit, see
+    ///         <see cref="LinkImplicitBaseConstructorCall" />.
     ///     </para>
     /// </summary>
-    private void AnalyzePrimaryConstructorBody(CodeElement methodElement, TypeDeclarationSyntax typeDeclaration,
-        SemanticModel semanticModel)
+    private void AnalyzePrimaryConstructorBody(CodeElement methodElement, INamedTypeSymbol containingType,
+        TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel)
     {
-        if (typeDeclaration.BaseList is null)
+        var baseType = typeDeclaration.BaseList?.Types.OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault();
+        if (baseType is null)
         {
+            // "class Derived(int n) : Base" - no argument list, the base constructor runs all the same.
+            var location = (typeDeclaration.ParameterList ?? (SyntaxNode)typeDeclaration).GetSyntaxLocation();
+            LinkImplicitBaseConstructorCall(methodElement, containingType, location);
             return;
         }
 
-        foreach (var baseType in typeDeclaration.BaseList.Types.OfType<PrimaryConstructorBaseTypeSyntax>())
+        if (semanticModel.GetSymbolInfo(baseType).Symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } baseConstructor)
         {
-            if (semanticModel.GetSymbolInfo(baseType).Symbol is
-                IMethodSymbol { MethodKind: MethodKind.Constructor, IsImplicitlyDeclared: false } baseConstructor)
-            {
-                var normalizedConstructor = baseConstructor.NormalizeToOriginalDefinition();
-                if (_builder.FindInternalCodeElement(normalizedConstructor) is not null)
-                {
-                    _builder.AddCallsRelationship(methodElement, normalizedConstructor, baseType.GetSyntaxLocation(),
-                        RelationshipAttribute.IsBaseCall);
-                }
-            }
-
-            // The argument expressions run at construction - normal body semantics.
-            _bodyAnalyzer.AnalyzeMethodBody(methodElement, baseType.ArgumentList, semanticModel);
+            LinkConstructorCall(methodElement, baseConstructor, baseType.GetSyntaxLocation(), RelationshipAttribute.IsBaseCall);
         }
+
+        // The argument expressions run at construction - normal body semantics.
+        _bodyAnalyzer.AnalyzeMethodBody(methodElement, baseType.ArgumentList, semanticModel);
     }
 
     /// <summary>
