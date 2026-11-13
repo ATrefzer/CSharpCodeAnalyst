@@ -868,3 +868,8 @@ After preserving the dedicated extension-call classification, the bound method's
 ## Explicit type dependencies in delegate and local-function signatures
 
 Delegate type constraints use the existing constraint analysis. Local-function parameter, return and constraint types contribute Uses edges to the owning member, including nested functions and functions inside lambdas. Local functions remain aggregated: no new nodes or call relationships are introduced. Special constraints such as class/new() carry no type dependency; existing traversal of function bodies is unchanged.
+
+
+## Signature attributes are dependencies, not owner annotations
+
+Parameter and return attributes are anchored on their owning method/constructor or delegate. Indexer parameters belong to the property; getter returns and setter value parameters belong to their accessor nodes. The existing attribute handling supplies UsesAttribute, constructor and argument dependencies. These signature attributes are not added to the owner's Attributes metadata: an annotated parameter does not annotate the method itself. Ordinary owner annotations retain their metadata. No parameter or return nodes are introduced.
