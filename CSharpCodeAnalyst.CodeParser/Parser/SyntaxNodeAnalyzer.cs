@@ -54,7 +54,7 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             }
             else
             {
-                var attributes = DetermineCallAttributes(invocationSyntax, calledMethod, semanticModel);
+                var attributes = DetermineCallAttributes(invocationSyntax, calledMethod);
                 _builder.AddCallsRelationship(sourceElement, calledMethod, location, attributes);
             }
 
@@ -276,16 +276,10 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             _builder.AddRelationship(sourceElement, RelationshipType.Uses, capturedParameter,
                 [identifierSyntax.GetSyntaxLocation()], RelationshipAttribute.None);
         }
-        else if (identifierSyntax is GenericNameSyntax && symbol is INamedTypeSymbol { IsGenericType: true } constructedType)
+        else if (symbol is INamedTypeSymbol constructedType)
         {
-            // A constructed generic type named in expression position (Registry<Token>.Instance):
-            // the member edge is normalized to Registry<T>, so the type arguments would be lost.
-            // In type positions the same edges are produced by the declaration handlers and merge.
-            var location = identifierSyntax.GetSyntaxLocation();
-            foreach (var typeArg in constructedType.TypeArguments)
-            {
-                _builder.AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
-            }
+            // Includes aliases to closed types, whose syntax is an ordinary identifier.
+            _builder.AddTypeArgumentRelationships(sourceElement, constructedType, identifierSyntax.GetSyntaxLocation());
         }
     }
 
@@ -318,6 +312,12 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         {
             // obj.Foo passed/assigned/returned as a delegate (method group), not invoked.
             AddMethodGroupRelationship(sourceElement, methodSymbol, memberAccessSyntax.GetSyntaxLocation());
+        }
+
+        if (symbol is INamedTypeSymbol constructedType)
+        {
+            // The walker intentionally skips Name, so handle qualified type expressions here.
+            _builder.AddTypeArgumentRelationships(sourceElement, constructedType, memberAccessSyntax.GetSyntaxLocation());
         }
 
         // Note: We don't recursively handle the Expression here.
@@ -682,77 +682,26 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         return true;
     }
 
-    private static RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation,
-        IMethodSymbol method, SemanticModel semanticModel)
+    private static RelationshipAttribute DetermineCallAttributes(InvocationExpressionSyntax invocation, IMethodSymbol method)
     {
         if (method.IsExtensionMethod)
         {
             return RelationshipAttribute.IsExtensionMethodCall;
         }
 
-        switch (invocation.Expression)
+        // Dispatch is a property of the bound method, independent of qualification, aliases or generics.
+        if (method.IsStatic)
         {
-            case MemberAccessExpressionSyntax memberAccess:
-                return AnalyzeMemberAccessCallType(memberAccess, semanticModel);
-
-            case IdentifierNameSyntax:
-                // Direct method call - could be this.Method() or static
-                return method.IsStatic ? RelationshipAttribute.IsStaticCall : RelationshipAttribute.None;
-
-            case MemberBindingExpressionSyntax:
-                // Conditional access: obj?.Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            default:
-                // Fallback for complex expressions
-                return RelationshipAttribute.None;
+            return RelationshipAttribute.IsStaticCall;
         }
-    }
 
-    private static RelationshipAttribute AnalyzeMemberAccessCallType(MemberAccessExpressionSyntax memberAccess, SemanticModel semanticModel)
-    {
-        switch (memberAccess.Expression)
+        return invocation.Expression switch
         {
-            case BaseExpressionSyntax:
-                // base.Method()
-                return RelationshipAttribute.IsBaseCall;
-
-            case ThisExpressionSyntax:
-                // this.Method()
-                return RelationshipAttribute.IsThisCall;
-
-            case IdentifierNameSyntax identifier:
-                var symbolInfo = semanticModel.GetSymbolInfo(identifier);
-                if (symbolInfo.Symbol is INamedTypeSymbol)
-                {
-                    // Type.StaticMethod()
-                    return RelationshipAttribute.IsStaticCall;
-                }
-
-                if (symbolInfo.Symbol is IFieldSymbol || symbolInfo.Symbol is IPropertySymbol)
-                {
-                    // field.Method() or property.Method()
-                    return RelationshipAttribute.IsInstanceCall;
-                }
-
-                // Local variable or parameter
-                return RelationshipAttribute.IsInstanceCall;
-
-            case MemberAccessExpressionSyntax:
-                // Chained calls: obj.Property.Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            case InvocationExpressionSyntax:
-                // Method call result: GetObject().Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            case ObjectCreationExpressionSyntax:
-                // new Object().Method()
-                return RelationshipAttribute.IsInstanceCall;
-
-            default:
-                // Complex expression - default to instance call
-                return RelationshipAttribute.IsInstanceCall;
-        }
+            MemberAccessExpressionSyntax { Expression: BaseExpressionSyntax } => RelationshipAttribute.IsBaseCall,
+            MemberAccessExpressionSyntax { Expression: ThisExpressionSyntax } => RelationshipAttribute.IsThisCall,
+            MemberAccessExpressionSyntax or MemberBindingExpressionSyntax => RelationshipAttribute.IsInstanceCall,
+            // Unqualified instance calls, including GenericMethod<T>(), dispatch on the current instance.
+            _ => RelationshipAttribute.None
+        };
     }
 }

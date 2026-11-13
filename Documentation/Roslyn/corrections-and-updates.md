@@ -789,3 +789,87 @@ next to it, which is the honest question. The visible consequence: `new Service(
 `Uses` edges for the parameter types moved onto the constructor, where the ordinary parameter handling
 produces them anyway - cycle detection and the layer rules are unaffected, because member edges are
 lifted to the containing type.
+
+
+## Conversion operators with the same source type
+
+Two conversions can legally have the same name and parameter list:
+`implicit operator First(Source value)` and `implicit operator Second(Source value)`.
+Their return type is the conversion target and distinguishes them. The ordinary method key was not
+enough: phase 1 merged the declarations, kept only the first symbol, and phase 2 attributed calls to
+both conversions to the body of the first.
+
+For `MethodKind.Conversion`, `SymbolExtensions.Key()` now includes the fully qualified return type.
+Other method keys stay unchanged. This gives each conversion its own body, return-type dependencies
+and incoming calls; normalization of constructed generic members still happens before call lookup.
+`ConversionOperatorIdentityParseTests` covers implicit and explicit conversions, both declaration
+orders, separate body dependencies and the target of each incoming call.
+
+## External types first referenced by top-level statements
+
+Global statements are analyzed after the parallel member loop and may be the first reference to an
+external type, such as `Console` in a top-level program. Flushing `ExternalCodeElementCache` immediately
+after the member loop left those later edges pointing to IDs missing from `CodeGraph.Nodes`.
+
+The cache is now flushed after global statements as well. External aggregation and the
+`IncludeExternals` policy are unchanged; the final graph simply contains every target that was created.
+`TopLevelExternalRelationshipParseTests` verifies edge endpoints and the complete parent/child
+hierarchy, with a new external type, a type already cached by another member, and externals disabled.
+
+## Compiler errors make a partial graph visible
+
+A successful workspace load does not mean the code binds: missing types, unresolved calls and syntax
+errors can leave dependencies absent. For each project selected for analysis, phase 1 now adds
+unsuppressed compiler errors from `Compilation.GetDiagnostics()` to `ParserDiagnostics.Failures`,
+including the project name and Roslyn's diagnostic ID and source location.
+
+Parsing remains best effort. Resolvable elements and relationships are returned, while the existing
+UI diagnostic dialog and CLI diagnostic output can warn that the graph may be incomplete. This does
+not change CLI exit-code policy, and ordinary compiler warnings are not imported into parser
+diagnostics. Diagnostics still clear at the next public parse entry point.
+
+The in-memory/single-file path selects a console compilation when the source contains top-level
+statements and a library compilation otherwise. This avoids reporting CS8805 for a valid top-level
+program or CS5001 for an ordinary class snippet solely because of our synthetic project.
+`CompilationDiagnosticsParseTests` covers unresolved code with preserved valid relationships,
+syntax errors, clearing between parses, and valid library/top-level/warnings-only input.
+
+
+## Normalize internal member lookup centrally
+
+All internal symbol lookups now prefer an exact match, then resolve reduced extension methods and original definitions. Constructed generic accessors, inherited interface implementations and event handlers therefore target the declared member instead of losing the edge or falling back to a property container. Named-type analysis still visits concrete type arguments after a successful normalized lookup. Existing expectations that encoded the generic property fallback now target the appropriate getter/setter.
+
+
+## Keep arguments of qualified and nested generic types
+
+Type dependencies now include concrete arguments from the entire containing-type chain, e.g. Outer<Token>.Inner<Other> uses both Token and Other. Qualified type expressions and aliases use the same argument collector as type signatures; the walkers still avoid visiting member names twice. This also applies in deferred lambda bodies. The existing record/CRTP self-reference suppression is retained.
+
+
+## Classify deconstruction and null-conditional assignment targets
+
+Property access classification follows tuple leaves, parentheses, member bindings and the guarded branch of conditional access to the assignment. Simple assignments use setters; compound assignments use getters and setters. Receivers, index arguments and right-hand tuple values remain reads. Lambda bodies retain Uses edges rather than immediate Calls. Named attribute arguments keep their setter treatment from PR #115. End-to-end tests cover nested deconstruction, chained conditional access, indexers and deferred assignments.
+
+
+## Field-like event initializers own their dependencies
+
+Each event variable initializer is walked with the same semantics as a field initializer, anchored on the event element. Only the matching declarator is visited, so events declared together do not inherit each other's handlers. Factory calls and receiver construction run immediately; method groups and lambda bodies remain Uses references. This change does not introduce Handles or registration edges for initialization; those keep their existing assignment-based policy.
+
+
+## Expression lambda results include deferred conversions
+
+Expression lambdas have neither a ReturnStatement nor an ArrowExpressionClause, so their contextual result conversion needs an explicit check at the lambda-body boundary. User-defined conversions produce Uses edges on the owning element, including nested and async lambdas; they are not immediate Calls. Block returns retain their existing handling. Nested-lambda visitors keep normal traversal after checking the result, preserving other references and source locations.
+
+
+## Classify static calls from the bound method
+
+After preserving the dedicated extension-call classification, the bound method's IsStatic flag determines static dispatch. Namespace qualification, global aliases, closed generic receivers and unqualified generic method syntax cannot change that classification. Instance calls retain the existing implicit-this, explicit-this, base and other-receiver distinctions. Lambda invocations continue to use deferred Uses semantics without ordinary call-dispatch flags.
+
+
+## Explicit type dependencies in delegate and local-function signatures
+
+Delegate type constraints use the existing constraint analysis. Local-function parameter, return and constraint types contribute Uses edges to the owning member, including nested functions and functions inside lambdas. Local functions remain aggregated: no new nodes or call relationships are introduced. Special constraints such as class/new() carry no type dependency; existing traversal of function bodies is unchanged.
+
+
+## Signature attributes are dependencies, not owner annotations
+
+Parameter and return attributes are anchored on their owning method/constructor or delegate. Indexer parameters belong to the property; getter returns and setter value parameters belong to their accessor nodes. The existing attribute handling supplies UsesAttribute, constructor and argument dependencies. These signature attributes are not added to the owner's Attributes metadata: an annotated parameter does not annotate the method itself. Ordinary owner annotations retain their metadata. No parameter or return nodes are introduced.

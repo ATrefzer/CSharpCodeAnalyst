@@ -24,6 +24,36 @@ internal class LambdaBodyWalker : SyntaxWalkerBase
     /// </summary>
     protected override RelationshipType MemberReferenceType => RelationshipType.Uses;
 
+    /// <summary>
+    ///     An expression lambda has no return statement or arrow clause to carry its result conversion.
+    ///     Analyze that conversion at the body boundary, with the same deferred semantics as its body.
+    /// </summary>
+    public void AnalyzeLambdaBody(CSharpSyntaxNode body)
+    {
+        AnalyzeResultConversion(body);
+        Visit(body);
+    }
+
+    public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+    {
+        AnalyzeResultConversion(node.Body);
+        base.VisitSimpleLambdaExpression(node);
+    }
+
+    public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+    {
+        AnalyzeResultConversion(node.Body);
+        base.VisitParenthesizedLambdaExpression(node);
+    }
+
+    private void AnalyzeResultConversion(CSharpSyntaxNode body)
+    {
+        if (body is ExpressionSyntax expression)
+        {
+            Analyzer.AnalyzeImplicitConversion(SourceElement, expression, SemanticModel, RelationshipType.Uses);
+        }
+    }
+
     public override void VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
         TrackObjectCreationAsUses(node);

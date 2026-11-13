@@ -27,6 +27,7 @@ public abstract class InMemoryParseTestBase
             new ParserConfig(new ProjectExclusionRegExCollection(), false));
         var result = await parser.ParseSourceAsync(Code);
         Graph = result.CodeGraph;
+        GraphInvariantAssertions.AssertValid(Graph);
     }
 
     /// <summary>All element paths of the given type (e.g. every class as "Outer.Inner").</summary>

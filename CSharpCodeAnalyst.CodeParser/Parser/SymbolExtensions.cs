@@ -191,6 +191,14 @@ public static class SymbolExtensions
         if (symbol is IMethodSymbol methodSymbol)
         {
             var parameters = string.Join("_", methodSymbol.Parameters.Select(GetParameterKey));
+            // Unlike ordinary methods, conversions can share a name and parameter list while
+            // differing by their target type. Keep both declarations and their bodies separate.
+            if (methodSymbol.MethodKind == MethodKind.Conversion)
+            {
+                var targetType = methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                return $"{name}{genericPart}_{parameters}_to_{targetType}_{kind}";
+            }
+
             return $"{name}{genericPart}_{parameters}_{kind}";
         }
 
