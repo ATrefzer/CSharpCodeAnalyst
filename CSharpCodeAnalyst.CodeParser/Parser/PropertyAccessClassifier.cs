@@ -26,7 +26,7 @@ internal enum PropertyAccessKind
 ///     The key simplification: C# does not allow a property to be passed by <c>ref</c>/<c>out</c>
 ///     (CS0206).  Therefore, the only contexts that invoke the setter are
 ///     <list type="bullet">
-///         <item>the target of a (simple or compound) assignment,</item>
+///         <item>the target of a simple, compound, deconstruction or null-conditional assignment,</item>
 ///         <item>the operand of an increment/decrement (<c>++</c>/<c>--</c>), and</item>
 ///         <item>a named attribute argument (<c>[Mark(Name = "x")]</c>), which is no assignment in the syntax tree.</item>
 ///     </list>
@@ -55,8 +55,8 @@ internal static class PropertyAccessClassifier
     /// </summary>
     public static PropertyAccessKind Classify(ExpressionSyntax propertyReference)
     {
-        // Parentheses are transparent for assignment targeting: (Prop) = x writes Prop.
-        var node = AscendPastParentheses(propertyReference);
+        // Follow only syntax that preserves the assignment target, never its receiver or indices.
+        var node = AscendAssignmentTarget(propertyReference);
 
         switch (node.Parent)
         {
@@ -82,14 +82,31 @@ internal static class PropertyAccessClassifier
         }
     }
 
-    private static ExpressionSyntax AscendPastParentheses(ExpressionSyntax node)
+    private static ExpressionSyntax AscendAssignmentTarget(ExpressionSyntax node)
     {
-        while (node.Parent is ParenthesizedExpressionSyntax parenthesized)
+        while (true)
         {
-            node = parenthesized;
+            switch (node.Parent)
+            {
+                case ParenthesizedExpressionSyntax parenthesized:
+                    node = parenthesized;
+                    break;
+                case ArgumentSyntax { Parent: TupleExpressionSyntax tuple }:
+                    // (P, (Q, R)) = ... writes each leaf. On the right side it still reads.
+                    node = tuple;
+                    break;
+                case MemberBindingExpressionSyntax memberBinding when memberBinding.Name == node:
+                    // AnalyzeIdentifier receives P inside the ".P" part of receiver?.P.
+                    node = memberBinding;
+                    break;
+                case ConditionalAccessExpressionSyntax conditional when conditional.WhenNotNull == node:
+                    // The guarded target may be assigned, but conditional.Expression is a read.
+                    node = conditional;
+                    break;
+                default:
+                    return node;
+            }
         }
-
-        return node;
     }
 
     private static bool IsIncrementOrDecrement(ExpressionSyntax node)

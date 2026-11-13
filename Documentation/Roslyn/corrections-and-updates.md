@@ -843,3 +843,8 @@ All internal symbol lookups now prefer an exact match, then resolve reduced exte
 ## Keep arguments of qualified and nested generic types
 
 Type dependencies now include concrete arguments from the entire containing-type chain, e.g. Outer<Token>.Inner<Other> uses both Token and Other. Qualified type expressions and aliases use the same argument collector as type signatures; the walkers still avoid visiting member names twice. This also applies in deferred lambda bodies. The existing record/CRTP self-reference suppression is retained.
+
+
+## Classify deconstruction and null-conditional assignment targets
+
+Property access classification follows tuple leaves, parentheses, member bindings and the guarded branch of conditional access to the assignment. Simple assignments use setters; compound assignments use getters and setters. Receivers, index arguments and right-hand tuple values remain reads. Lambda bodies retain Uses edges rather than immediate Calls. Named attribute arguments keep their setter treatment from PR #115. End-to-end tests cover nested deconstruction, chained conditional access, indexers and deferred assignments.
