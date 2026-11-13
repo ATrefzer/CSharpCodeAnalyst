@@ -197,3 +197,26 @@ surroundings accumulated.
 
 Neither is a structural problem. The two-phase split and "only the builder writes" hold, and fitting
 primary constructors in afterward required bending neither. This is the best available evidence that the foundation is sound.
+
+
+## Coverage boundary and regression checks
+
+The graph represents source-level dependencies for architecture analysis and member navigation. It is not a complete runtime call graph or a proof of reachability. An element with no incoming edge is a candidate for investigation, not proof that it is dead code. Reflection, dynamic binding, DI configuration and all possible virtual-dispatch targets remain outside this model.
+
+Prefer explicit type dependencies through existing Uses/UsesAttribute edges over new node kinds. Local functions remain aggregated on the owning member. Parameter and return annotations also use existing owners; they do not become owner annotations in Attributes metadata. The current signature-attribute pass covers represented methods/constructors, delegates, indexer parameters and getter-return/setter-value sites. Attributes on local-function/lambda signatures, type parameters, assemblies and modules are not expanded by this pass.
+
+Implicit language protocols are intentionally partial. For example, foreach records its enumeration entry point without expanding every MoveNext/Current/disposal operation. Await/disposal protocols, collection-expression lowering and extension-block receiver coverage should be extended only when concrete use cases justify the extra parser rules. Project language settings remain authoritative; compilation errors are reported while parsing continues best effort.
+
+The fast in-memory fixtures validate graph structure after parsing: every edge has the correct source and an existing target, parents/children reference the registered objects in both directions, roots are assemblies and containment has no cycles. A mixed top-level/generic/record/attribute fixture also checks both IncludeExternals modes. These checks do not require more production parsing logic.
+
+Two explicit MSBuild smoke tests import the repository's CodeGraph and CodeParser projects, assert clean compilation diagnostics and validate graph structure. Run them from the restored repository root with an installed .NET SDK:
+
+```powershell
+dotnet test Tests/Tests.csproj -c Release --filter "FullyQualifiedName~ParserRepositorySmokeTests"
+```
+
+They remain opt-in because design-time builds and MSBuild host communication depend on the environment. A failure to start/connect to that host is not a successful parser validation. The fast parser suite can be selected separately:
+
+```powershell
+dotnet test Tests/Tests.csproj -c Release --filter "FullyQualifiedName~UnitTests.Parser&FullyQualifiedName!~ParserRepositorySmokeTests"
+```
