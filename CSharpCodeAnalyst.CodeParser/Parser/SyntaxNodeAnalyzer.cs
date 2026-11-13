@@ -276,16 +276,10 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
             _builder.AddRelationship(sourceElement, RelationshipType.Uses, capturedParameter,
                 [identifierSyntax.GetSyntaxLocation()], RelationshipAttribute.None);
         }
-        else if (identifierSyntax is GenericNameSyntax && symbol is INamedTypeSymbol { IsGenericType: true } constructedType)
+        else if (symbol is INamedTypeSymbol constructedType)
         {
-            // A constructed generic type named in expression position (Registry<Token>.Instance):
-            // the member edge is normalized to Registry<T>, so the type arguments would be lost.
-            // In type positions the same edges are produced by the declaration handlers and merge.
-            var location = identifierSyntax.GetSyntaxLocation();
-            foreach (var typeArg in constructedType.TypeArguments)
-            {
-                _builder.AddTypeRelationship(sourceElement, typeArg, RelationshipType.Uses, location);
-            }
+            // Includes aliases to closed types, whose syntax is an ordinary identifier.
+            _builder.AddTypeArgumentRelationships(sourceElement, constructedType, identifierSyntax.GetSyntaxLocation());
         }
     }
 
@@ -318,6 +312,12 @@ internal class SyntaxNodeAnalyzer : ISyntaxNodeHandler
         {
             // obj.Foo passed/assigned/returned as a delegate (method group), not invoked.
             AddMethodGroupRelationship(sourceElement, methodSymbol, memberAccessSyntax.GetSyntaxLocation());
+        }
+
+        if (symbol is INamedTypeSymbol constructedType)
+        {
+            // The walker intentionally skips Name, so handle qualified type expressions here.
+            _builder.AddTypeArgumentRelationships(sourceElement, constructedType, memberAccessSyntax.GetSyntaxLocation());
         }
 
         // Note: We don't recursively handle the Expression here.

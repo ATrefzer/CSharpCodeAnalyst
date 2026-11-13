@@ -30,7 +30,7 @@ internal class MethodBodyWalker : SyntaxWalkerBase
     /// <summary>
     ///     Standalone generic names: the method group "Create&lt;Widget&gt;" is a GenericNameSyntax, not an
     ///     IdentifierNameSyntax. Generic names in type positions (List&lt;Foo&gt; x) resolve to a type
-    ///     symbol and are ignored by AnalyzeIdentifier; as invocation target (Create&lt;Widget&gt;()) the
+    ///     symbol and contribute type-argument dependencies; as invocation target (Create&lt;Widget&gt;()) the
     ///     method-group guard applies. The .Name of a member access is never visited (see
     ///     VisitMemberAccessExpression), so there is no double handling.
     /// </summary>

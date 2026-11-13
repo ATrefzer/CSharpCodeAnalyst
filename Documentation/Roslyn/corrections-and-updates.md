@@ -838,3 +838,8 @@ syntax errors, clearing between parses, and valid library/top-level/warnings-onl
 ## Normalize internal member lookup centrally
 
 All internal symbol lookups now prefer an exact match, then resolve reduced extension methods and original definitions. Constructed generic accessors, inherited interface implementations and event handlers therefore target the declared member instead of losing the edge or falling back to a property container. Named-type analysis still visits concrete type arguments after a successful normalized lookup. Existing expectations that encoded the generic property fallback now target the appropriate getter/setter.
+
+
+## Keep arguments of qualified and nested generic types
+
+Type dependencies now include concrete arguments from the entire containing-type chain, e.g. Outer<Token>.Inner<Other> uses both Token and Other. Qualified type expressions and aliases use the same argument collector as type signatures; the walkers still avoid visiting member names twice. This also applies in deferred lambda bodies. The existing record/CRTP self-reference suppression is retained.

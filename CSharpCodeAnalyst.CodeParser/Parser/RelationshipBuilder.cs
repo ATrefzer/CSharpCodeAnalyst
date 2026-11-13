@@ -254,10 +254,18 @@ internal class RelationshipBuilder
             AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
         }
 
-        // For generic types, add "Uses" relationships to type arguments
-        if (namedTypeSymbol.IsGenericType)
+        AddTypeArgumentRelationships(sourceElement, namedTypeSymbol, location);
+    }
+
+    /// <summary>
+    ///     Keeps concrete type arguments before normalization erases them, including arguments of
+    ///     containing types (Outer&lt;Token&gt;.Inner). Does not add a separate edge to the type itself.
+    /// </summary>
+    public void AddTypeArgumentRelationships(CodeElement sourceElement, INamedTypeSymbol namedTypeSymbol, SourceLocation? location)
+    {
+        for (var current = namedTypeSymbol; current != null; current = current.ContainingType)
         {
-            foreach (var typeArg in namedTypeSymbol.TypeArguments)
+            foreach (var typeArg in current.TypeArguments)
             {
                 // A type parameterized with itself (records implement IEquatable<Self>; CRTP like
                 // class Foo : IComparable<Foo>) would otherwise gain a meaningless self-reference.
