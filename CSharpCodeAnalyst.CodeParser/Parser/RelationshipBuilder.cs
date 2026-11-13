@@ -27,7 +27,8 @@ internal class RelationshipBuilder
     }
 
     /// <summary>
-    ///     The caller has to take care that the symbol is normalized to original definition if necessary
+    ///     Resolves constructed generic members and reduced extension methods to their declarations.
+    ///     An exact match takes precedence when the graph contains a specific instantiation.
     /// </summary>
     public CodeElement? FindInternalCodeElement(ISymbol? symbol)
     {
@@ -36,7 +37,21 @@ internal class RelationshipBuilder
             return null;
         }
 
-        _artifacts.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element);
+        if (_artifacts.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out var element))
+        {
+            return element;
+        }
+
+        if (symbol is IMethodSymbol { ReducedFrom: { } unreduced })
+        {
+            symbol = unreduced;
+            if (_artifacts.SymbolKeyToElementMap.TryGetValue(symbol.Key(), out element))
+            {
+                return element;
+            }
+        }
+
+        _artifacts.SymbolKeyToElementMap.TryGetValue(symbol.OriginalDefinition.Key(), out element);
         return element;
     }
 
@@ -134,7 +149,7 @@ internal class RelationshipBuilder
         locations ??= [];
 
         // Step 1: Try to find internal element (direct or normalized)
-        var targetElement = TryFindInternalElementWithNormalization(targetSymbol);
+        var targetElement = FindInternalCodeElement(targetSymbol);
         if (targetElement != null)
         {
             AddRelationship(sourceElement, relationshipType, targetElement, locations, attributes);
@@ -229,22 +244,9 @@ internal class RelationshipBuilder
         SourceLocation? location)
     {
         var targetElement = FindInternalCodeElement(namedTypeSymbol);
-        if (targetElement != null)
-        {
-            // The type is internal (part of our codebase)
-            AddRelationship(sourceElement, relationshipType, targetElement, location != null ? [location] : [], RelationshipAttribute.None);
-            return;
-        }
-
-        // Note the constructed type is not in our CodeElement map!
-        // It is not found in phase1 the way we parse it but the original definition is.
-        // For constructed generic types (List<int>), use the original definition (List<T>)
-        var normalizedSymbol = namedTypeSymbol.NormalizeToOriginalDefinition();
-
-        targetElement = FindInternalCodeElement(normalizedSymbol);
         if (targetElement == null && _config.IncludeExternals)
         {
-            targetElement = TryGetOrCreateExternalCodeElement(normalizedSymbol);
+            targetElement = TryGetOrCreateExternalCodeElement(namedTypeSymbol.NormalizeToOriginalDefinition());
         }
 
         if (targetElement is not null)
@@ -280,26 +282,6 @@ internal class RelationshipBuilder
         }
 
         return _externalCodeElementCache.TryGetOrCreateExternalCodeElement(symbol);
-    }
-
-    /// <summary>
-    ///     Tries to find an internal element for the symbol, with normalization fallback.
-    ///     Handles constructed generics (List&lt;int&gt; → List&lt;T&gt;).
-    /// </summary>
-    private CodeElement? TryFindInternalElementWithNormalization(ISymbol symbol)
-    {
-        // Try direct lookup first
-        var element = FindInternalCodeElement(symbol);
-        if (element != null)
-        {
-            return element;
-        }
-
-        // Try normalized version (for constructed generics)
-        // NormalizeToOriginalDefinition might return the same symbol or a normalized version
-        // The Key() method will determine uniqueness across compilations
-        var normalizedSymbol = symbol.NormalizeToOriginalDefinition();
-        return FindInternalCodeElement(normalizedSymbol);
     }
 
     /// <summary>

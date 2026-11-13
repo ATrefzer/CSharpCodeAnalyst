@@ -267,7 +267,6 @@ public class GenericsParseTests : InMemoryParseTestBase
             "GenericPair<TFirst,TSecond>..ctor -> GenericPair<TFirst,TSecond>.Second.set_Second",
             "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First.get_First",
             "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First.set_First",
-            "GenericPair<TFirst,TSecond>.Swap -> GenericPair<TFirst,TSecond>.First",
             "GenericTree<T>.Node<U>..ctor -> GenericTree<T>.Node<U>.Value.set_Value",
             "GenericTree<T>.Node<U>.AddChild -> GenericTree<T>.Node<U>.Children.get_Children",
             "GenericTree<T>.SetRoot -> GenericTree<T>.Root.set_Root",

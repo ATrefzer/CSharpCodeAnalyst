@@ -833,3 +833,8 @@ statements and a library compilation otherwise. This avoids reporting CS8805 for
 program or CS5001 for an ordinary class snippet solely because of our synthetic project.
 `CompilationDiagnosticsParseTests` covers unresolved code with preserved valid relationships,
 syntax errors, clearing between parses, and valid library/top-level/warnings-only input.
+
+
+## Normalize internal member lookup centrally
+
+All internal symbol lookups now prefer an exact match, then resolve reduced extension methods and original definitions. Constructed generic accessors, inherited interface implementations and event handlers therefore target the declared member instead of losing the edge or falling back to a property container. Named-type analysis still visits concrete type arguments after a successful normalized lookup. Existing expectations that encoded the generic property fallback now target the appropriate getter/setter.
