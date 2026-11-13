@@ -108,6 +108,115 @@ public class DeadCodeAnalysisTests
     }
 
     [Test]
+    public void Calculate_UnusedMemberBelowALiveMemberOfADeadClass_IsRolledUpIntoTheClass()
+    {
+        // Inside the dead class, Read uses the getter - so the property counts as referenced, while its
+        // setter does not. The setter has a live parent and a dead grandparent; it is still part of
+        // the dead class and must not become a second finding.
+        var dead = _graph.CreateClass("Dead");
+        var property = _graph.CreateProperty("Dead.Value", dead);
+        var getter = _graph.CreatePropertyAccessor("Dead.get_Value", property);
+        _graph.CreatePropertyAccessor("Dead.set_Value", property);
+        var read = _graph.CreateMethod("Dead.Read", dead);
+        Rel(read, getter, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Dead" }));
+    }
+
+    [Test]
+    public void Calculate_UnusedMemberOfANestedClassUsedByItsDeadOuterClass_IsRolledUpIntoTheOuterClass()
+    {
+        var outer = _graph.CreateClass("Outer");
+        var inner = _graph.CreateClass("Outer.Inner", outer);
+        var used = _graph.CreateMethod("Outer.Inner.Used", inner);
+        _graph.CreateMethod("Outer.Inner.Unused", inner);
+        var method = _graph.CreateMethod("Outer.M", outer);
+        Rel(method, used, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Outer" }));
+    }
+
+    /// <summary>A decorator: implements the contract and forwards to another implementation of it.</summary>
+    private (CodeElement Decorator, CodeElement DecoratorSave) CreateDecoratorFamily()
+    {
+        var contract = _graph.CreateInterface("IRepo");
+        var save = _graph.CreateMethod("IRepo.Save", contract);
+
+        var decorator = _graph.CreateClass("LoggingRepo");
+        var decoratorSave = _graph.CreateMethod("LoggingRepo.Save", decorator);
+        var real = _graph.CreateClass("SqlRepo");
+        var realSave = _graph.CreateMethod("SqlRepo.Save", real);
+
+        Rel(decorator, contract, RelationshipType.Implements);
+        Rel(real, contract, RelationshipType.Implements);
+        Rel(decoratorSave, save, RelationshipType.Implements);
+        Rel(realSave, save, RelationshipType.Implements);
+
+        // _inner.Save() - through the interface.
+        Rel(decoratorSave, save, RelationshipType.Calls);
+        return (decorator, decoratorSave);
+    }
+
+    [Test]
+    public void Calculate_DecoratorForwardingThroughItsOwnContract_DoesNotKeepItselfAlive()
+    {
+        // The call reaches SqlRepo.Save from the outside, but for LoggingRepo.Save it is a call from
+        // itself. Nothing else uses the family, so the decorator is the one thing nothing references.
+        CreateDecoratorFamily();
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "LoggingRepo" }));
+    }
+
+    [Test]
+    public void Calculate_DecoratorMethodOnlyCalledByItself_IsReportedWithoutBlamingTheContract()
+    {
+        // The decorator is created, so the class is alive - but nobody calls Save from the outside.
+        // The contract member is referenced (by the decorator), so "implements unused contract" would
+        // be wrong: this is a method only it itself calls.
+        var (decorator, decoratorSave) = CreateDecoratorFamily();
+        var user = _graph.CreateClass("User");
+        Rel(user, decorator, RelationshipType.Creates);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Reported(), Is.EquivalentTo(new[] { "LoggingRepo.Save", "User" }));
+            Assert.That(FindingFor(decoratorSave).Hints, Is.EqualTo(DeadCodeHint.None));
+        });
+    }
+
+    [Test]
+    public void Calculate_DecoratorCalledThroughTheContractFromOutside_IsAlive()
+    {
+        var (decorator, _) = CreateDecoratorFamily();
+        var user = _graph.CreateClass("User");
+        Rel(user, decorator, RelationshipType.Creates);
+        Rel(user, _graph.Nodes["IRepo.Save"], RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_CallIntoAContractProperty_ReachesTheImplementingAccessor()
+    {
+        // Contracts are modelled on the accessors. Entering IFoo.get_Value also enters the property
+        // above it; the propagation must start from the accessor the call actually hit.
+        var contract = _graph.CreateInterface("IFoo");
+        var contractProperty = _graph.CreateProperty("IFoo.Value", contract);
+        var contractGetter = _graph.CreatePropertyAccessor("IFoo.get_Value", contractProperty);
+
+        var impl = _graph.CreateClass("C");
+        var implProperty = _graph.CreateProperty("C.Value", impl);
+        var implGetter = _graph.CreatePropertyAccessor("C.get_Value", implProperty);
+        Rel(impl, contract, RelationshipType.Implements);
+        Rel(implGetter, contractGetter, RelationshipType.Implements);
+
+        var user = _graph.CreateClass("User");
+        Rel(user, contractGetter, RelationshipType.Calls);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
     public void Calculate_ContainersAndExternalElements_NeverReported()
     {
         var assembly = _graph.CreateAssembly("Asm");
@@ -459,6 +568,30 @@ public class DeadCodeAnalysisTests
         Rel(user, getter, RelationshipType.Calls);
 
         Assert.That(Reported(), Is.EquivalentTo(new[] { "User" }));
+    }
+
+    [Test]
+    public void Calculate_PublicConstructorOfASerializationTarget_NotReported()
+    {
+        // A type that is only ever read from a file: the deserializer builds it, no code calls the
+        // constructor. A constructor the serializer cannot reach stays a finding.
+        var type = CreateSerializableType();
+        _graph.CreateMethod("Config..ctor(public)", type, AccessLevel.Public, memberRole: MemberRole.Constructor);
+        _graph.CreateMethod("Config..ctor(private)", type, AccessLevel.Private, memberRole: MemberRole.Constructor);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Config..ctor(private)", "User" }));
+    }
+
+    [Test]
+    public void Calculate_UnreferencedSerializationTarget_IsReportedAsTheType()
+    {
+        // The exception covers members of a type that is in use. Nothing uses this one.
+        var dto = _graph.CreateClass("Dto");
+        dto.Attributes.Add("DataContract");
+        _graph.CreateProperty("Dto.Title", dto, AccessLevel.Public);
+        _graph.CreateMethod("Dto..ctor", dto, AccessLevel.Public, memberRole: MemberRole.Constructor);
+
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Dto" }));
     }
 
     [Test]

@@ -17,9 +17,11 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         Polymorphism is handled by propagating liveness instead of counting the edge as a reference.
 ///         "Implements" / "Overrides" point from the implementation to the contract, so an implementation
 ///         never has an incoming reference and a contract member always looks used. Both are wrong. We
-///         therefore ignore those edges as references and instead push liveness the other way: a contract
-///         member that is called keeps all its implementations (and their types) alive. A contract that is
-///         never called dies together with its implementations, which is exactly the finding one wants.
+///         therefore ignore those edges as references and instead push liveness the other way: a call to a
+///         contract member is a call to every implementation of it, <i>from the same caller</i>. The
+///         caller matters - a decorator forwarding through its own interface does not keep itself alive,
+///         exactly like a method that only calls itself. A contract that is never called dies together
+///         with its implementations, which is exactly the finding one wants.
 ///         Contracts from outside the analyzed code are the exception - we cannot see who calls them, so
 ///         the implementation is still reported, but with
 ///         <see cref="DeadCodeHint.ImplementsExternalContract" /> and the lowest confidence: the decision
@@ -52,9 +54,10 @@ namespace CSharpCodeAnalyst.CodeGraph.Algorithms.DeadCode;
 ///         that level - which is the honest answer, not a penalty.
 ///     </para>
 ///     <para>
-///         Three cases are dropped instead of reported. A public property of a type marked as a
-///         serialization target (see <see cref="IsSerializedProperty" />): a serializer reaches it by
-///         reflection, so on such a type an unreferenced property is the rule rather than the exception.
+///         Three cases are dropped instead of reported. A public property or constructor of a type
+///         marked as a serialization target (see <see cref="IsReachedBySerializer" />): a serializer
+///         reaches it by reflection, so on such a type an unreferenced property is the rule rather than
+///         the exception.
 ///         The members only the runtime ever calls, static constructor and finalizer (see
 ///         <see cref="IsRuntimeInvoked" />): no code can reference them, so the row would be wrong on
 ///         every live type. And the test types: the runner calls what carries the test attributes, so a
@@ -187,6 +190,7 @@ public static class DeadCodeAnalysis
         CollectEdges(graph, referenceEdges, external, implementations, contracts);
 
         var testTypes = FindTestTypes(graph);
+        var implementationClosure = new ImplementationClosure(implementations);
 
         // The types whose public properties a XAML {Binding} may read - see IsBindable. Recorded by the
         // parser; an importer graph or a project file saved before the set existed simply has none.
@@ -194,9 +198,9 @@ public static class DeadCodeAnalysis
 
         var context = new AnalysisContext(external, implementations, contracts,
             bindingSources, FindSerializableTypes(graph),
-            testTypes, CollectTestReferences(referenceEdges, testTypes));
+            testTypes, CollectTestReferences(referenceEdges, implementationClosure, testTypes));
 
-        var references = ComputeReferenced(referenceEdges, implementations, testTypes);
+        var references = ComputeReferenced(referenceEdges, implementationClosure, testTypes);
 
         return Report(graph, references, context)
             .OrderBy(f => f.Element.FullName, StringComparer.Ordinal)
@@ -239,10 +243,21 @@ public static class DeadCodeAnalysis
     ///         now reported as used-only-by-tests. That is accepted, and it is a true statement: the
     ///         helper goes when the tests go.
     ///     </para>
+    ///     <para>
+    ///         A fixture hands its tests down: every framework runs the inherited [Test] methods of a
+    ///         derived class, so a type deriving from a fixture is a fixture, attribute or not. That is
+    ///         the abstract-contract-test pattern - the base class holds the tests, each derived class
+    ///         only overrides a factory method. Without this the derived class was production code to the
+    ///         analysis, and the <c>new SqlRepository()</c> in its factory method counted as a production
+    ///         reference - hiding exactly what the two colours are there to show. Only the fixture
+    ///         itself is followed down the inheritance edges, not the types that merely contain one.
+    ///     </para>
     /// </summary>
     private static HashSet<string> FindTestTypes(Graph.CodeGraph graph)
     {
-        var testTypes = new HashSet<string>();
+        // The fixtures proper: the innermost type around an element carrying a test attribute.
+        var fixtures = new Dictionary<string, CodeElement>();
+        var pending = new Queue<CodeElement>();
 
         foreach (var element in graph.Nodes.Values)
         {
@@ -251,7 +266,37 @@ public static class DeadCodeAnalysis
                 continue;
             }
 
-            for (var current = element; current is not null; current = current.Parent)
+            var fixture = ContainingType(element);
+            if (fixture is not null && fixtures.TryAdd(fixture.Id, fixture))
+            {
+                pending.Enqueue(fixture);
+            }
+        }
+
+        if (pending.Count > 0)
+        {
+            var derivedTypes = CollectDerivedTypes(graph);
+            while (pending.Count > 0)
+            {
+                if (!derivedTypes.TryGetValue(pending.Dequeue().Id, out var derived))
+                {
+                    continue;
+                }
+
+                foreach (var type in derived)
+                {
+                    if (fixtures.TryAdd(type.Id, type))
+                    {
+                        pending.Enqueue(type);
+                    }
+                }
+            }
+        }
+
+        var testTypes = new HashSet<string>();
+        foreach (var fixture in fixtures.Values)
+        {
+            for (var current = fixture; current is not null; current = current.Parent)
             {
                 if (current.IsType())
                 {
@@ -261,6 +306,29 @@ public static class DeadCodeAnalysis
         }
 
         return testTypes;
+    }
+
+    /// <summary>Base type -&gt; the types directly deriving from it ("Inherits" between two types).</summary>
+    private static Dictionary<string, List<CodeElement>> CollectDerivedTypes(Graph.CodeGraph graph)
+    {
+        var derivedTypes = new Dictionary<string, List<CodeElement>>();
+
+        foreach (var relationship in graph.GetAllRelationships())
+        {
+            if (relationship.Type != RelationshipType.Inherits)
+            {
+                continue;
+            }
+
+            var derived = graph.TryGetCodeElement(relationship.SourceId);
+            var baseType = graph.TryGetCodeElement(relationship.TargetId);
+            if (derived is not null && baseType is not null && derived.IsType() && baseType.IsType())
+            {
+                Add(derivedTypes, baseType.Id, derived);
+            }
+        }
+
+        return derivedTypes;
     }
 
     /// <summary>Whether the element is a test type or sits inside one.</summary>
@@ -282,13 +350,14 @@ public static class DeadCodeAnalysis
     ///     to be deleted with it. Only the relationships starting in test code are walked.
     /// </summary>
     private static Dictionary<string, List<CodeElement>> CollectTestReferences(
-        List<(CodeElement Source, CodeElement Target)> referenceEdges, HashSet<string> testTypes)
+        List<(CodeElement Source, CodeElement Target)> referenceEdges, ImplementationClosure implementations,
+        HashSet<string> testTypes)
     {
         var testReferences = new Dictionary<string, List<CodeElement>>();
 
-        // Reused across relationships, like in ComputeReferenced.
+        // Reused across relationships, like in Mark.
         var reached = new HashSet<string>();
-        var sourceChain = new HashSet<string>();
+        var scratch = new MarkScratch();
 
         foreach (var (source, target) in referenceEdges)
         {
@@ -298,7 +367,7 @@ public static class DeadCodeAnalysis
             }
 
             reached.Clear();
-            MarkReferenced(source, target, reached, sourceChain);
+            MarkReferenced(source, target, implementations, reached, scratch);
 
             foreach (var id in reached)
             {
@@ -323,6 +392,12 @@ public static class DeadCodeAnalysis
     ///     The types a serializer drives: everything carrying one of the
     ///     <see cref="SerializationAttributes" />. Unlike the binding sources this is not spread down the
     ///     inheritance edges - none of those attributes is inherited, a derived type has to carry its own.
+    ///     <para>
+    ///         The attribute is the only evidence used. System.Text.Json needs none, so a plain DTO
+    ///         handed to <c>JsonSerializer</c> is not recognized and its properties are reported.
+    ///         Recognizing the call would mean teaching the parser about serializers for the sake of
+    ///         this one analysis - deliberately not done; the code graph stays a code graph.
+    ///     </para>
     /// </summary>
     private static HashSet<string> FindSerializableTypes(Graph.CodeGraph graph)
     {
@@ -347,15 +422,14 @@ public static class DeadCodeAnalysis
     ///     Everything a relationship enters from the outside, plus what a used contract keeps alive - the
     ///     same walk twice, once over all relationships and once leaving out those that start in test code.
     ///     <para>
-    ///         The contract propagation has to run per colour, not once at the end: the UI calling
-    ///         <c>ICodeGraphExplorer.FindIncomingCalls</c> keeps the implementation alive for production,
-    ///         a test calling it does not. Sharing one propagation would mark every implementation of a
-    ///         contract that any test uses as production code.
+    ///         The contract propagation is part of the walk of each relationship and therefore runs per
+    ///         colour by construction: the UI calling <c>ICodeGraphExplorer.FindIncomingCalls</c> keeps
+    ///         the implementation alive for production, a test calling it does not.
     ///     </para>
     /// </summary>
     private static ReferenceSets ComputeReferenced(
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
-        Dictionary<string, List<CodeElement>> implementations,
+        ImplementationClosure implementations,
         HashSet<string> testTypes)
     {
         return new ReferenceSets(
@@ -365,23 +439,22 @@ public static class DeadCodeAnalysis
 
     private static HashSet<string> Mark(
         List<(CodeElement Source, CodeElement Target)> referenceEdges,
-        Dictionary<string, List<CodeElement>> implementations,
+        ImplementationClosure implementations,
         Func<CodeElement, bool> includeSource)
     {
         var referenced = new HashSet<string>();
 
         // Reused across relationships to keep the walk allocation free.
-        var sourceChain = new HashSet<string>();
+        var scratch = new MarkScratch();
 
         foreach (var (source, target) in referenceEdges)
         {
             if (includeSource(source))
             {
-                MarkReferenced(source, target, referenced, sourceChain);
+                MarkReferenced(source, target, implementations, referenced, scratch);
             }
         }
 
-        PropagateContractUsage(referenced, implementations);
         return referenced;
     }
 
@@ -422,16 +495,54 @@ public static class DeadCodeAnalysis
     ///     from the target, that is everything below the lowest common ancestor with the source. The common
     ///     ancestor and everything above it contain the source as well, so for them the relationship is an
     ///     internal one and proves nothing.
+    ///     <para>
+    ///         Entering a contract member enters every implementation of it as well, from the same
+    ///         source: calling IFoo.Bar calls every implementation of Bar, so the implementations and the
+    ///         types holding them are alive. Keeping the source is what stops a class from keeping
+    ///         itself alive through its own contract - a decorator forwarding to <c>_inner.Save()</c>
+    ///         reaches the other implementations of Save, but for its own Save the call is an internal
+    ///         one, exactly like a method calling itself. (Marking every implementation "from the
+    ///         outside" instead, as this once did, kept a whole decorator or composite family alive
+    ///         that nothing else used.)
+    ///     </para>
+    ///     <para>
+    ///         Deliberately <i>every</i> implementation, not only those whose type is visibly instantiated
+    ///         (the class-hierarchy-analysis choice, not the rapid-type-analysis refinement). The
+    ///         refinement would need a Creates edge to exist for every live type - but implementations of
+    ///         an interface are exactly the classes a dependency container instantiates, and a container
+    ///         registration produces no Creates edge (or, with assembly scanning, no edge at all). The
+    ///         refinement would report precisely the code it cannot see being created.
+    ///     </para>
     /// </summary>
-    private static void MarkReferenced(CodeElement source, CodeElement target, HashSet<string> referenced,
-        HashSet<string> sourceChain)
+    private static void MarkReferenced(CodeElement source, CodeElement target,
+        ImplementationClosure implementations, HashSet<string> referenced, MarkScratch scratch)
     {
-        sourceChain.Clear();
+        scratch.SourceChain.Clear();
         for (var current = source; current is not null; current = current.Parent)
         {
-            sourceChain.Add(current.Id);
+            scratch.SourceChain.Add(current.Id);
         }
 
+        // The contract members the relationship enters. Collected first, because entering their
+        // implementations walks other chains.
+        scratch.EnteredContracts.Clear();
+        Enter(target, scratch.SourceChain, referenced, implementations, scratch.EnteredContracts);
+
+        foreach (var contractId in scratch.EnteredContracts)
+        {
+            foreach (var implementation in implementations.Of(contractId))
+            {
+                Enter(implementation, scratch.SourceChain, referenced, null, null);
+            }
+        }
+    }
+
+    /// <summary>
+    ///     Walks up from the target and marks everything below the lowest common ancestor with the source.
+    /// </summary>
+    private static void Enter(CodeElement target, HashSet<string> sourceChain, HashSet<string> referenced,
+        ImplementationClosure? implementations, List<string>? enteredContracts)
+    {
         for (var current = target; current is not null; current = current.Parent)
         {
             if (sourceChain.Contains(current.Id))
@@ -440,18 +551,66 @@ public static class DeadCodeAnalysis
             }
 
             referenced.Add(current.Id);
+
+            if (implementations is not null && implementations.IsContract(current.Id))
+            {
+                enteredContracts!.Add(current.Id);
+            }
         }
     }
 
-    /// <summary>
-    ///     Marks an element alive whose caller is not part of the graph (a contract call reaching all
-    ///     implementations). Without a source there is no common ancestor, so the whole chain is alive.
-    /// </summary>
-    private static void MarkReferencedFromOutside(CodeElement element, HashSet<string> referenced)
+    /// <summary>Buffers reused across relationships to keep the walk allocation free.</summary>
+    private sealed class MarkScratch
     {
-        for (var current = element; current is not null; current = current.Parent)
+        public HashSet<string> SourceChain { get; } = [];
+        public List<string> EnteredContracts { get; } = [];
+    }
+
+    /// <summary>
+    ///     Contract member -&gt; every member implementing or overriding it, directly or further down:
+    ///     an override can itself be overridden. Computed on first use per contract, because most
+    ///     contract members are never asked for.
+    /// </summary>
+    private sealed class ImplementationClosure(Dictionary<string, List<CodeElement>> direct)
+    {
+        private readonly Dictionary<string, List<CodeElement>> _transitive = new();
+
+        public bool IsContract(string elementId)
         {
-            referenced.Add(current.Id);
+            return direct.ContainsKey(elementId);
+        }
+
+        public List<CodeElement> Of(string contractId)
+        {
+            if (_transitive.TryGetValue(contractId, out var known))
+            {
+                return known;
+            }
+
+            var result = new List<CodeElement>();
+            var seen = new HashSet<string> { contractId };
+            var queue = new Queue<string>();
+            queue.Enqueue(contractId);
+
+            while (queue.Count > 0)
+            {
+                if (!direct.TryGetValue(queue.Dequeue(), out var implementations))
+                {
+                    continue;
+                }
+
+                foreach (var implementation in implementations)
+                {
+                    if (seen.Add(implementation.Id))
+                    {
+                        result.Add(implementation);
+                        queue.Enqueue(implementation.Id);
+                    }
+                }
+            }
+
+            _transitive[contractId] = result;
+            return result;
         }
     }
 
@@ -484,62 +643,27 @@ public static class DeadCodeAnalysis
     }
 
     /// <summary>
-    ///     Pushes liveness from a used contract member to its implementations: calling IFoo.Bar calls every
-    ///     implementation of Bar, so the implementations and the types holding them are alive. Transitive,
-    ///     because an override can itself be overridden.
-    ///     <para>
-    ///         Deliberately <i>every</i> implementation, not only those whose type is visibly instantiated
-    ///         (the class-hierarchy-analysis choice, not the rapid-type-analysis refinement). The
-    ///         refinement would need a Creates edge to exist for every live type - but implementations of
-    ///         an interface are exactly the classes a dependency container instantiates, and a container
-    ///         registration produces no Creates edge (or, with assembly scanning, no edge at all). The
-    ///         refinement would report precisely the code it cannot see being created.
-    ///     </para>
-    /// </summary>
-    private static void PropagateContractUsage(HashSet<string> referenced,
-        Dictionary<string, List<CodeElement>> implementations)
-    {
-        var queue = new Queue<string>(implementations.Keys.Where(referenced.Contains));
-        var enqueued = new HashSet<string>(queue);
-
-        while (queue.Count > 0)
-        {
-            foreach (var implementation in implementations[queue.Dequeue()])
-            {
-                MarkReferencedFromOutside(implementation, referenced);
-
-                if (implementations.ContainsKey(implementation.Id) && enqueued.Add(implementation.Id))
-                {
-                    queue.Enqueue(implementation.Id);
-                }
-            }
-        }
-    }
-
-    /// <summary>
     ///     Everything the production code does not reference, reduced to the topmost element of each dead
     ///     subtree.
     /// </summary>
     private static List<DeadCodeFinding> Report(Graph.CodeGraph graph, ReferenceSets references,
         AnalysisContext context)
     {
+        var unreferenced = graph.Nodes.Values
+            .Where(element => IsReported(element, references, context))
+            .ToList();
+        var unreferencedIds = unreferenced.Select(element => element.Id).ToHashSet();
+
         var findings = new List<DeadCodeFinding>();
 
-        foreach (var element in graph.Nodes.Values)
+        foreach (var element in unreferenced)
         {
-            if (!IsReported(element, references, context))
+            if (IsReachedBySerializer(element, context.SerializableTypes))
             {
                 continue;
             }
 
-            if (IsSerializedProperty(element, context.SerializableTypes))
-            {
-                continue;
-            }
-
-            // Roll-up: a dead element inside a dead element is reported as part of it. Namespaces and
-            // assemblies are no candidates, so an element directly below them is always the topmost one.
-            if (element.Parent is not null && IsReported(element.Parent, references, context))
+            if (HasUnreferencedAncestor(element, unreferencedIds))
             {
                 continue;
             }
@@ -548,6 +672,29 @@ public static class DeadCodeAnalysis
         }
 
         return findings;
+    }
+
+    /// <summary>
+    ///     Roll-up: a dead element inside a dead element is reported as part of it.
+    ///     <para>
+    ///         The whole chain has to be asked, not just the parent. Inside a dead class the members
+    ///         still reference each other, and those references are internal to the class but not to
+    ///         the member: a property whose getter a sibling method reads counts as referenced, so its
+    ///         unused setter has a live parent and a dead grandparent. Looking at the parent alone
+    ///         reported that setter as a second finding next to the class.
+    ///     </para>
+    /// </summary>
+    private static bool HasUnreferencedAncestor(CodeElement element, HashSet<string> unreferencedIds)
+    {
+        for (var current = element.Parent; current is not null; current = current.Parent)
+        {
+            if (unreferencedIds.Contains(current.Id))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -603,12 +750,21 @@ public static class DeadCodeAnalysis
 
         var related = new List<CodeElement>();
 
-        // Reported although it implements an internal contract means the contract is dead as well -
-        // otherwise the propagation would have marked this element alive.
+        // Reported although it implements an internal contract usually means the contract is dead as
+        // well - otherwise the propagation would have marked this element alive. The one exception is
+        // a contract only this element itself calls (a decorator forwarding to its own interface):
+        // there the contract is referenced, so it is asked rather than assumed.
         if (context.Contracts.TryGetValue(element.Id, out var implemented))
         {
-            hints |= DeadCodeHint.ImplementsDeadContract;
-            related.AddRange(implemented);
+            var deadContracts = implemented
+                .Where(contract => !references.FromProduction.Contains(contract.Id))
+                .ToList();
+
+            if (deadContracts.Count > 0)
+            {
+                hints |= DeadCodeHint.ImplementsDeadContract;
+                related.AddRange(deadContracts);
+            }
         }
 
         if (context.Implementations.TryGetValue(element.Id, out var implementors))
@@ -718,6 +874,28 @@ public static class DeadCodeAnalysis
     private static bool IsSerializedProperty(CodeElement element, HashSet<string> serializableTypes)
     {
         return IsPublicPropertyOf(element, serializableTypes);
+    }
+
+    /// <summary>
+    ///     What a serializer reaches by reflection on a serialization target: the public properties
+    ///     (<see cref="IsSerializedProperty" />) and the public constructors - a deserializer has to
+    ///     build the object, and nothing in the code calls the constructor it picks. A type that is
+    ///     only ever read from a file therefore has a constructor without a single caller, which is
+    ///     the normal state of a DTO and not a finding.
+    ///     <para>
+    ///         Only what would otherwise be reported is affected: when the whole type is unreferenced
+    ///         the type is the finding, and its members never get here.
+    ///     </para>
+    /// </summary>
+    private static bool IsReachedBySerializer(CodeElement element, HashSet<string> serializableTypes)
+    {
+        if (IsSerializedProperty(element, serializableTypes))
+        {
+            return true;
+        }
+
+        return element is { MemberRole: MemberRole.Constructor, AccessLevel: AccessLevel.Public, Parent: not null } &&
+               element.Parent.IsType() && serializableTypes.Contains(element.Parent.Id);
     }
 
     /// <summary>

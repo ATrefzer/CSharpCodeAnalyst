@@ -229,8 +229,8 @@ public class DeadCodeTestOnlyTests
     }
 
     /// <summary>
-    ///     ...and a test calling the contract does not. The hint is set although no caller can be named:
-    ///     liveness arriving through a contract member is not an edge.
+    ///     ...and a test calling the contract does not. The test is named as the caller: a call to the
+    ///     contract is a call to the implementation from the same source.
     /// </summary>
     [Test]
     public void Calculate_ImplementationOfAContractOnlyTestsCall_IsReported()
@@ -252,9 +252,64 @@ public class DeadCodeTestOnlyTests
         Assert.Multiple(() =>
         {
             Assert.That(finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests), Is.True);
-            Assert.That(finding.TestReferences, Is.Empty);
+            Assert.That(finding.TestReferences.Select(m => m.FullName), Is.EqualTo(new[] { "ServiceTests" }));
             Assert.That(finding.Confidence, Is.EqualTo(DeadCodeConfidence.Medium));
         });
+    }
+
+    /// <summary>
+    ///     The abstract-contract-test pattern: the base class holds the tests, the derived class only
+    ///     overrides the factory method and carries no attribute of its own. Every framework runs the
+    ///     inherited tests, so the derived class is a fixture - and what its factory method creates is
+    ///     used by tests, not by production code.
+    /// </summary>
+    [Test]
+    public void Calculate_ClassDerivedFromAFixture_IsATestTypeToo()
+    {
+        var repository = _graph.CreateClass("SqlRepository", _production);
+
+        var baseFixture = _graph.CreateClass("RepositoryContractTests", _tests);
+        var test = _graph.CreateMethod("RepositoryContractTests.Saves", baseFixture);
+        test.Attributes.Add("Test");
+        var factory = _graph.CreateMethod("RepositoryContractTests.Create", baseFixture);
+        Rel(test, factory, RelationshipType.Calls);
+
+        var derivedFixture = _graph.CreateClass("SqlRepositoryTests", _tests);
+        var factoryOverride = _graph.CreateMethod("SqlRepositoryTests.Create", derivedFixture);
+        Rel(derivedFixture, baseFixture, RelationshipType.Inherits);
+        Rel(factoryOverride, factory, RelationshipType.Overrides);
+        Rel(factoryOverride, repository, RelationshipType.Creates);
+
+        var finding = FindingFor(repository);
+
+        Assert.Multiple(() =>
+        {
+            // The derived fixture is no finding, and its reference is a test reference.
+            Assert.That(Reported(), Is.EquivalentTo(new[] { "SqlRepository" }));
+            Assert.That(finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests), Is.True);
+            Assert.That(finding.TestReferences.Select(m => m.FullName),
+                Is.EqualTo(new[] { "SqlRepositoryTests.Create" }));
+        });
+    }
+
+    /// <summary>
+    ///     Only the fixture is followed down the inheritance edges. A class that merely contains a nested
+    ///     fixture is a test type itself (the chain rule), but deriving from it does not make test code.
+    /// </summary>
+    [Test]
+    public void Calculate_ClassDerivedFromTheContainerOfAFixture_IsNotATestType()
+    {
+        var container = _graph.CreateClass("Container", _production);
+        _graph.CreateClass("Container.NestedTests", container).Attributes.Add("TestFixture");
+
+        var derived = _graph.CreateClass("Derived", _production);
+        Rel(derived, container, RelationshipType.Inherits);
+
+        var helper = _graph.CreateClass("Helper", _production);
+        Rel(derived, helper, RelationshipType.Uses);
+
+        // Derived is production code: it is reported itself, and its reference keeps Helper alive.
+        Assert.That(Reported(), Is.EquivalentTo(new[] { "Derived" }));
     }
 
     /// <summary>

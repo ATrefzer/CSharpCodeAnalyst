@@ -115,9 +115,8 @@ public sealed class DeadCodeFinding(CodeElement element)
 
     /// <summary>
     ///     The test elements that reference this one, set together with
-    ///     <see cref="DeadCodeHint.UsedOnlyByTests" /> - what has to go with it. Can be empty although the
-    ///     hint is set: liveness reaching the element through a contract member is not an edge we could
-    ///     name a caller for.
+    ///     <see cref="DeadCodeHint.UsedOnlyByTests" /> - what has to go with it. A test calling a contract
+    ///     member is listed for every implementation of that member.
     /// </summary>
     public IReadOnlyList<CodeElement> TestReferences { get; init; } = [];
 }

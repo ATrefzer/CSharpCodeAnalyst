@@ -393,15 +393,6 @@ namespace CSharpCodeAnalyst.Analyzers.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Used only by tests.
-        /// </summary>
-        public static string DeadCode_Hint_UsedOnlyByTestsWithoutCaller {
-            get {
-                return ResourceManager.GetString("DeadCode_Hint_UsedOnlyByTestsWithoutCaller", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Generated code.
         /// </summary>
         public static string DeadCode_Hint_Generated {

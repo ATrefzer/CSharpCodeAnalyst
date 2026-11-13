@@ -64,9 +64,7 @@ public class DeadCodeRowViewModel : TableRow
 
         if (finding.Hints.HasFlag(DeadCodeHint.UsedOnlyByTests))
         {
-            parts.Add(finding.TestReferences.Count == 0
-                ? Strings.DeadCode_Hint_UsedOnlyByTestsWithoutCaller
-                : string.Format(Strings.DeadCode_Hint_UsedOnlyByTests, Format(finding.TestReferences)));
+            parts.Add(string.Format(Strings.DeadCode_Hint_UsedOnlyByTests, Format(finding.TestReferences)));
         }
 
         if (finding.Hints.HasFlag(DeadCodeHint.ContractNeverCalled))
