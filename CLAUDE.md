@@ -72,6 +72,8 @@ Every project inherits a `Microsoft.Build.Framework` `PackageReference` with `Ex
 
 **Document parser modelling decisions:** when you change how the parser maps C# to the graph — a new/changed relationship, a Roslyn quirk worked around, a deliberate "this looks like X but we model it as Y" choice — add or update a short chapter in `Documentation/Roslyn/corrections-and-updates.md` (English, in the existing style: the construct, why it is tricky, how we model it and the reasoning). This file is the running record of those non-obvious decisions; keep it in sync with parser changes.
 
+For new or substantially revised entries, follow [Maintaining this log](Documentation/Roslyn/corrections-and-updates.md#maintaining-this-log): include a verified implementation commit, a small C# example, the relevant Roslyn syntax tree or symbol/pipeline structure, the before/after graph decision, explicit coverage limits, and regression-test references. Verify tree shapes against the repository's Roslyn version; do not infer them from surface syntax. Older unrelated entries need not be reformatted.
+
 ### MVVM with a message bus
 The UI is not built on a DI container. `App.StartUi` wires up singletons manually (one `MessageBus`, one `CodeGraphExplorer`, one `GraphViewer`, etc.) and injects them into view models. Cross-view-model communication goes through `Shared/Messages/MessageBus.cs` (`Publish`/`Subscribe` on strongly-typed message records in `Shared/Messages/`). When adding a new cross-feature interaction, prefer defining a new message type over introducing direct view-model references.
 
