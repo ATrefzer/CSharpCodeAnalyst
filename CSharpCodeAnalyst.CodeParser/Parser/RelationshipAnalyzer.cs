@@ -56,11 +56,12 @@ public class RelationshipAnalyzer
         var options = new ParallelOptions { MaxDegreeOfParallelism = maxDegreeOfParallelism };
         Parallel.ForEach(internalElements, options, AnalyzeRelationshipsLocal);
 
-        // After parallel processing, add all external elements to the graph
-        builder.FlushExternalElementsToGraph();
-
         // Analyze global statements for each assembly
         AnalyzeGlobalStatementsForAssembly(solution, artifacts, builder, bodyAnalyzer);
+
+        // Global statements can be the first use of an external type too. Flush only after all
+        // relationship producers have finished, so every edge target exists in the returned graph.
+        builder.FlushExternalElementsToGraph();
 
         SendParserPhase2Progress(numberOfCodeElements, numberOfCodeElements);
 

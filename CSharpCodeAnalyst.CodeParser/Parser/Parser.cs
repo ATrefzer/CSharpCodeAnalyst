@@ -7,6 +7,7 @@ using CSharpCodeAnalyst.CodeParser.Parser.Config;
 using CSharpCodeAnalyst.CodeParser.Xaml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
 
@@ -129,13 +130,19 @@ public class Parser(ParserConfig config, IProgress<string>? progress = null)
     {
         var projectId = ProjectId.CreateNewId();
 
+        // Snippets containing top-level statements are executable programs; ordinary declarations
+        // are libraries. Choosing the matching output kind avoids artificial CS8805/CS5001 errors
+        // now that compilation errors are reported to callers.
+        var hasGlobalStatements = SyntaxFactory.ParseCompilationUnit(code).Members.OfType<GlobalStatementSyntax>().Any();
+        var outputKind = hasGlobalStatements ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary;
+
         // The project file path is a synthetic identifier, not a real file. A ".csproj" extension is
         // required so the project passes HierarchyAnalyzer.ShouldAnalyzeProject. The project name is fixed
         // (not derived from the document) so a user exclusion filter like ".*Tests" cannot accidentally
         // drop a single file named e.g. "FooTests.cs".
         var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "InMemory", "InMemory",
                 LanguageNames.CSharp, "InMemory.csproj")
-            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .WithCompilationOptions(new CSharpCompilationOptions(outputKind))
             .WithMetadataReferences(FrameworkReferences);
 
         var workspace = new AdhocWorkspace();

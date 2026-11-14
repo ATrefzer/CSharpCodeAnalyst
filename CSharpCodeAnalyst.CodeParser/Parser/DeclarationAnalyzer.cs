@@ -44,7 +44,7 @@ internal class DeclarationAnalyzer
         else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate } delegateSymbol)
         {
             // Handle before the type relationships.
-            AnalyzeDelegateRelationships(element, delegateSymbol);
+            AnalyzeDelegateRelationships(solution, element, delegateSymbol);
         }
         else if (symbol is INamedTypeSymbol typeSymbol)
         {
@@ -119,14 +119,35 @@ internal class DeclarationAnalyzer
 
     private void AnalyzeAttributeRelationships(Solution solution, CodeElement element, ISymbol symbol)
     {
-        foreach (var attributeData in symbol.GetAttributes())
+        AnalyzeAttributeRelationships(solution, element, symbol.GetAttributes(), true, symbol is not IMethodSymbol);
+    }
+
+    private void AnalyzeSignatureAttributes(Solution solution, CodeElement owner, IMethodSymbol method)
+    {
+        foreach (var parameter in method.Parameters)
+        {
+            AnalyzeAttributeRelationships(solution, owner, parameter.GetAttributes(), false);
+        }
+
+        AnalyzeAttributeRelationships(solution, owner, method.GetReturnTypeAttributes(), false);
+    }
+
+    private void AnalyzeAttributeRelationships(Solution solution, CodeElement element, IEnumerable<AttributeData> attributes,
+        bool recordAsOwnAttribute, bool analyzeArguments = true)
+    {
+        foreach (var attributeData in attributes)
         {
             if (attributeData.AttributeClass != null)
             {
                 var attributeSyntax = attributeData.ApplicationSyntaxReference?.GetSyntax();
                 var location = attributeSyntax?.GetSyntaxLocation();
 
-                element.Attributes.Add(attributeData.AttributeClass.Name);
+                // Parameters and returns have no nodes, but their annotations must not decorate the owner.
+                if (recordAsOwnAttribute)
+                {
+                    element.Attributes.Add(attributeData.AttributeClass.Name);
+                }
+
                 _builder.AddTypeRelationship(element, attributeData.AttributeClass, RelationshipType.UsesAttribute, location);
 
                 // Applying an attribute runs one of its constructors. "[Mark(1)]" names only the type,
@@ -136,10 +157,10 @@ internal class DeclarationAnalyzer
                     LinkConstructorCall(element, attributeData.AttributeConstructor, location, RelationshipAttribute.None);
                 }
 
-                // Attribute arguments (typeof(...), constants) are real dependencies. Method
-                // declarations are walked as a whole in AnalyzeMethodRelationships including their
-                // attribute lists, so only the other element kinds need the walk here.
-                if (symbol is not IMethodSymbol &&
+                // Attribute arguments (typeof(...), constants, named setters) are dependencies too.
+                // Signature sites are walked explicitly, including primary constructors and delegates.
+                // Ordinary method-owned attributes already get their argument walk with the body.
+                if (analyzeArguments &&
                     attributeSyntax is AttributeSyntax { ArgumentList: not null } attributeWithArguments)
                 {
                     var semanticModel = solution.GetDocument(attributeWithArguments.SyntaxTree)?.GetSemanticModelAsync().Result;
@@ -152,7 +173,7 @@ internal class DeclarationAnalyzer
         }
     }
 
-    private void AnalyzeDelegateRelationships(CodeElement delegateElement, INamedTypeSymbol delegateSymbol)
+    private void AnalyzeDelegateRelationships(Solution solution, CodeElement delegateElement, INamedTypeSymbol delegateSymbol)
     {
         var methodSymbol = delegateSymbol.DelegateInvokeMethod;
         if (methodSymbol is null)
@@ -161,9 +182,13 @@ internal class DeclarationAnalyzer
             return;
         }
 
+        AnalyzeSignatureAttributes(solution, delegateElement, methodSymbol);
+
         // Get delegate declaration location
         var delegateLocations = delegateSymbol.GetSymbolLocations();
         var delegateLocation = delegateLocations.FirstOrDefault();
+
+        AnalyzeTypeParameterConstraints(delegateElement, delegateSymbol.TypeParameters, delegateLocation);
 
         // Analyze return type
         _builder.AddTypeRelationship(delegateElement, methodSymbol.ReturnType, RelationshipType.Uses, delegateLocation);
@@ -189,6 +214,22 @@ internal class DeclarationAnalyzer
             AddImplementationsForInterfaceMember(eventElement, eventSymbol);
         }
 
+        // Each field-like event owns its initializer, just as a field owns its initializer.
+        // Walk only this declarator: a declaration can contain several events with different handlers.
+        foreach (var syntaxReference in eventSymbol.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.GetSyntax() is not VariableDeclaratorSyntax { Initializer: not null } declarator)
+            {
+                continue;
+            }
+
+            var semanticModel = solution.GetDocument(declarator.SyntaxTree)?.GetSemanticModelAsync().Result;
+            if (semanticModel is not null)
+            {
+                _bodyAnalyzer.AnalyzeMethodBody(eventElement, declarator.Initializer, semanticModel);
+            }
+        }
+
         // If the event has "add"/"remove" accessors, analyze them
         if (eventSymbol.AddMethod != null)
         {
@@ -206,6 +247,8 @@ internal class DeclarationAnalyzer
     /// </summary>
     private void AnalyzeMethodRelationships(Solution solution, CodeElement methodElement, IMethodSymbol methodSymbol)
     {
+        AnalyzeSignatureAttributes(solution, methodElement, methodSymbol);
+
         // Get method declaration location for parameter and return type references
         var methodLocations = methodSymbol.GetSymbolLocations();
         var methodLocation = methodLocations.FirstOrDefault();
@@ -793,6 +836,20 @@ internal class DeclarationAnalyzer
         foreach (var parameter in propertySymbol.Parameters)
         {
             _builder.AddTypeRelationship(propertyElement, parameter.Type, RelationshipType.Uses, propertyLocation);
+            AnalyzeAttributeRelationships(solution, propertyElement, parameter.GetAttributes(), false);
+        }
+
+        if (propertySymbol.GetMethod is { } getter)
+        {
+            var owner = _builder.FindInternalCodeElement(getter) ?? propertyElement;
+            AnalyzeAttributeRelationships(solution, owner, getter.GetReturnTypeAttributes(), false);
+        }
+
+        if (propertySymbol.SetMethod is { Parameters.Length: > 0 } setter)
+        {
+            var owner = _builder.FindInternalCodeElement(setter) ?? propertyElement;
+            // Indexer parameters belong to the property; only the final implicit value parameter belongs here.
+            AnalyzeAttributeRelationships(solution, owner, setter.Parameters[^1].GetAttributes(), false);
         }
 
         // Interface implementation and override relationships, modeled at the accessor level (get/set).

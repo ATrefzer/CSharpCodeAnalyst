@@ -1,5 +1,37 @@
 ﻿# Corrections and updates
 
+## Maintaining this log
+
+New or substantially revised entries should explain the decision, not just list the changed methods.
+Use the PR #116 entries below as examples; older chapters need not be reformatted without a reason.
+
+Include:
+
+1. **Provenance:** link the commit that introduced the behavior and, when useful, the PR. Use the
+   implementation commit rather than a later documentation-only commit. Verify the hash; do not guess it.
+2. **A small C# example:** show the trigger and enough context to understand which symbols are involved.
+   Mark excerpts that depend on surrounding declarations.
+3. **The relevant Roslyn shape:** a reduced syntax tree with actual node kinds and named child roles.
+   For a symbol-resolution issue, also show the bound symbol and declaration it resolves to. For a
+   pipeline-ordering issue, supplement the syntax with the processing order instead of inventing a
+   syntax distinction.
+4. **Before and after:** describe the previous graph error, the intended owner/target/relationship type,
+   and why this is the right level of detail.
+5. **Boundaries:** distinguish graph conventions from runtime claims and explicitly identify cases
+   that the change does not cover.
+6. **Evidence:** name/link the relevant regression fixtures and describe what their assertions establish.
+
+Validate syntax diagrams with the repository's Roslyn version, not by analogy with similar source
+text. The PR #116 diagrams in this document were checked with Roslyn 5.9.0. They are reduced trees:
+tokens, trivia, argument lists or unrelated declaration children may be omitted, but retained
+parent/child paths must remain accurate. Labels such as `Left` and `WhenNotNull` name syntax
+properties; displayed node kinds are not new CodeGraph node kinds.
+
+Only `GetSymbolInfo` is insufficient to answer some contextual questions; avoid claiming Roslyn
+cannot answer them at all when its operations model or other semantic APIs can provide the context.
+Keep performance concerns separate from measured results and pending proposals separate from
+implemented behavior.
+
 ## Field and property initializers
 
 Constructors may be called as part of a field or property initialization:
@@ -789,3 +821,685 @@ next to it, which is the honest question. The visible consequence: `new Service(
 `Uses` edges for the parameter types moved onto the constructor, where the ordinary parameter handling
 produces them anyway - cycle detection and the layer rules are unaffected, because member edges are
 lifted to the containing type.
+
+
+## Conversion operators with the same source type
+
+**Introduced by:** [`df0f6f9`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/df0f6f9f7149ed39109b56644aae6c3c54e303a1)
+(PR #116). **Implementation:** `SymbolExtensions.GetKeyInternal`.
+
+### Example and Roslyn shape
+
+~~~csharp
+class First { }
+class Second { }
+class Source
+{
+    public static implicit operator First(Source value) => new First();
+    public static implicit operator Second(Source value) => new Second();
+}
+~~~
+
+Each declaration has the same parameter type but a different target type:
+
+~~~text
+ConversionOperatorDeclaration
+├─ Type: IdentifierName "First"             // "Second" in the other declaration
+├─ ParameterList
+│  └─ Parameter "value"
+│     └─ Type: IdentifierName "Source"
+└─ ArrowExpressionClause
+   └─ ObjectCreationExpression "new First()"
+~~~
+
+Roslyn exposes both as `IMethodSymbol` values with `MethodKind.Conversion`. Their name
+(`op_Implicit`) and parameters are equal; their `ReturnType` distinguishes them.
+
+### Previous failure and graph decision
+
+The ordinary method key collapsed these declarations into one element. Phase 1 kept one symbol,
+and calls to either conversion could be attributed to the body of that symbol.
+
+For conversions only, the key now includes the fully qualified return type. Each conversion keeps
+its own body, type dependencies and incoming calls. Other method keys are unchanged. The graph's
+display names may still both be `op_Implicit`; distinct identity does not require distinct labels.
+
+**Regression coverage:** [ConversionOperatorIdentityParseTests](../../Tests/UnitTests/Parser/ConversionOperatorIdentityParseTests.cs)
+checks implicit/explicit operators, both declaration orders, separate bodies and call targets.
+This is an identity fix, not a claim that all possible conversion contexts are visited.
+
+## External types first referenced by top-level statements
+
+**Introduced by:** [`df0f6f9`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/df0f6f9f7149ed39109b56644aae6c3c54e303a1).
+**Implementation:** `RelationshipAnalyzer.AnalyzeRelationships`.
+
+### Example and Roslyn shape
+
+~~~csharp
+System.Console.WriteLine(1);
+~~~
+
+~~~text
+CompilationUnit
+└─ GlobalStatement
+   └─ ExpressionStatement
+      └─ InvocationExpression
+         ├─ Expression: SimpleMemberAccessExpression "System.Console.WriteLine"
+         └─ ArgumentList
+            └─ Argument → NumericLiteralExpression "1"
+~~~
+
+There is no written method declaration to own this statement. The parser anchors it on the synthetic
+`GlobalStatements.Execute` element. With externals enabled, the external method reference is
+aggregated to its containing type, `Console`, through the existing `Uses` policy.
+
+### Previous failure and graph decision
+
+Global statements run through analysis after the parallel member loop. They can create external cache
+entries for the first time. The old flush happened before that analysis, leaving an edge whose target
+ID did not exist in `CodeGraph.Nodes`.
+
+~~~text
+member analysis → global-statement analysis → flush external elements → returned graph
+~~~
+
+The flush now occurs after all relationship producers have finished. It is a change of ordering,
+not a second pass over external references. External aggregation and `IncludeExternals` are unchanged.
+
+**Regression coverage:** [TopLevelExternalRelationshipParseTests](../../Tests/UnitTests/Parser/TopLevelExternalRelationshipParseTests.cs)
+checks newly discovered and already cached external types, complete parent/child links and externals
+disabled. The graph invariants described below also check endpoint existence.
+
+## Compiler errors make a partial graph visible
+
+**Introduced by:** [`df0f6f9`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/df0f6f9f7149ed39109b56644aae6c3c54e303a1).
+**Implementation:** `HierarchyAnalyzer.BuildHierarchy`, `Parser.BuildAdhocSolution`.
+
+### Example and the syntax/semantics distinction
+
+~~~csharp
+class Caller
+{
+    void Run() { MissingLibrary.DoWork(); }
+}
+~~~
+
+~~~text
+InvocationExpression
+└─ Expression: SimpleMemberAccessExpression
+   ├─ Expression: IdentifierName "MissingLibrary"
+   └─ Name: IdentifierName "DoWork"
+~~~
+
+The syntax tree exists even though the name cannot be resolved. A successful workspace load and a
+successful syntax walk therefore do not establish that all dependencies were found.
+
+### Previous failure and graph decision
+
+Phase 1 now adds unsuppressed compiler errors from `Compilation.GetDiagnostics()` for each selected
+project to `ParserDiagnostics.Failures`. Entries include project context, diagnostic ID and source
+location. Resolvable graph elements and relationships are retained: parsing remains best effort.
+
+For snippets, a compilation unit containing global statements uses `OutputKind.ConsoleApplication`;
+other snippets use `DynamicallyLinkedLibrary`. This avoids synthetic CS8805/CS5001 errors caused only
+by choosing the wrong output kind. Ordinary compiler warnings are not copied to parser diagnostics,
+diagnostics clear at the next public parse entry, and CLI exit-code policy is unchanged.
+
+**Current limit:** this commit does not cap the number of compiler-error entries. Also, collecting
+all compilation diagnostics entails binding work; limiting displayed entries would not eliminate
+that work. Do not describe either a diagnostic cap or a measured performance improvement as part
+of this change.
+
+**Regression coverage:** [CompilationDiagnosticsParseTests](../../Tests/UnitTests/Parser/CompilationDiagnosticsParseTests.cs)
+covers unresolved calls alongside resolvable edges, syntax errors, clearing and valid input.
+
+## Normalize internal member lookup centrally
+
+**Introduced by:** [`9c2b747`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/9c2b747e2f05bda81e2a57bada42ad35f2080ecf).
+**Implementation:** `RelationshipBuilder.FindInternalCodeElement`.
+
+### Example and Roslyn shape
+
+~~~csharp
+class Box<T> { public T Value { get; set; } }
+// Inside a method whose parameter is Box<int> box:
+box.Value = 1;
+~~~
+
+~~~text
+SimpleAssignmentExpression
+├─ Left: SimpleMemberAccessExpression
+│  ├─ Expression: IdentifierName "box"
+│  └─ Name: IdentifierName "Value"
+└─ Right: NumericLiteralExpression "1"
+
+bound accessor:       Box<int>.set_Value
+OriginalDefinition:   Box<T>.set_Value
+stored graph element: Box<T>.Value.set_Value
+~~~
+
+The syntax shape is ordinary member access. The missing step was symbol resolution: phase 1 stores
+declarations, while phase 2 often sees constructed symbols.
+
+### Previous failure and graph decision
+
+Some callers normalized symbols themselves, while accessor, interface-implementation and event-handler
+lookups could miss the declared member. A generic property access could fall back to its container;
+an inherited implementation or `Handles` edge could disappear entirely.
+
+The shared lookup now tries an exact key, an unreduced extension-method key when applicable, and the
+original-definition key. Exact matches retain precedence. No constructed-instance graph nodes are added.
+
+Named-type analysis must still collect concrete type arguments after a successful lookup. Returning
+early merely because normalization found the type would lose dependencies such as `Box<Token> → Token`.
+
+**Regression coverage:** [GenericMemberResolutionParseTests](../../Tests/UnitTests/Parser/GenericMemberResolutionParseTests.cs)
+checks property/indexer accessors, inherited generic implementations, event handlers and retained type
+arguments. Existing tests that expected property-container fallbacks now expect accessor edges.
+
+## Keep arguments of qualified and nested generic types
+
+**Introduced by:** [`4129550`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/41295507f8fc9835280cac1c010c29b86ffd17f8).
+**Implementation:** `RelationshipBuilder.AddTypeArgumentRelationships`,
+`SyntaxNodeAnalyzer.AnalyzeIdentifier` and `AnalyzeMemberAccess`.
+
+### Example and Roslyn shape
+
+~~~csharp
+_ = N.Outer<Token>.Inner<Other>.Value;
+~~~
+
+The relevant expression subtree is a chain of member accesses, not a declaration-style
+`QualifiedNameSyntax`:
+
+~~~text
+SimpleMemberAccessExpression
+├─ Expression: SimpleMemberAccessExpression
+│  ├─ Expression: SimpleMemberAccessExpression
+│  │  ├─ Expression: IdentifierName "N"
+│  │  └─ Name: GenericName "Outer<Token>"
+│  └─ Name: GenericName "Inner<Other>"
+└─ Name: IdentifierName "Value"
+~~~
+
+For the bound `Inner<Other>` type, `TypeArguments` supplies `Other`; its constructed
+`ContainingType` supplies `Token`. An alias to this closed type can instead be an ordinary
+`IdentifierNameSyntax`.
+
+### Previous failure and graph decision
+
+The member-access walkers intentionally visit the receiver but not the member name twice.
+Previously a generic type in that skipped name position could lose its arguments. Processing only
+the innermost type's `TypeArguments` also missed arguments of enclosing types.
+
+The collector now follows the containing-type chain and adds `Uses` edges for concrete arguments.
+Both standalone identifiers (including aliases) and member accesses that bind to named types invoke
+it. Type signatures use the same collector. Existing record/CRTP self-reference suppression remains.
+
+**Expected effect:** the member edge to `Value` is retained, and the owning element also uses
+`Token` and `Other`. No separate instantiation nodes are needed.
+
+**Regression coverage:** [QualifiedGenericDependencyParseTests](../../Tests/UnitTests/Parser/QualifiedGenericDependencyParseTests.cs)
+covers namespace/global qualification, aliases, containing types, arrays and lambda bodies.
+
+## Classify deconstruction and null-conditional assignment targets
+
+**Introduced by:** [`49020ed`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/49020edbedebb478cf1d1d91bc9fe91556c579fc).
+**Implementation:** `PropertyAccessClassifier.Classify` / `AscendAssignmentTarget`;
+consumer: `SyntaxNodeAnalyzer.AddPropertyAccessRelationship`.
+Named attribute argument handling predates this commit and is retained from [PR #115](https://github.com/ATrefzer/CSharpCodeAnalyst/pull/115).
+
+### What is being classified
+
+`GetSymbolInfo` identifies the property, not a getter/setter choice for that occurrence.
+This does not mean Roslyn cannot describe the context: its operations model can represent assignment
+and property-reference operations. This parser deliberately uses a small syntax classifier after
+semantic property resolution.
+
+For ordinary value-returning properties, the classifier answers `Read`, `Write` or `ReadWrite`.
+It first climbs wrappers that preserve the target, then inspects the parent:
+
+| Context after climbing | Classification |
+|---|---|
+| Left of a simple assignment (`=`) | `Write` |
+| Left of a compound assignment (`+=`, `??=`, etc.) | `ReadWrite` |
+| Operand of prefix/postfix `++` or `--` | `ReadWrite` |
+| `NameEquals` under an `AttributeArgument` | `Write` |
+| Other contexts | `Read` |
+
+This is a dependency classification, not a prediction that a conditional setter will run on every
+execution. For example, `??=` may only read when the value is already non-null.
+
+### Ordinary member access: pass the entire property expression
+
+~~~csharp
+obj.Prop = 5;
+~~~
+
+~~~text
+SimpleAssignmentExpression
+├─ Left: SimpleMemberAccessExpression "obj.Prop"   ← classifier input
+│  ├─ Expression: IdentifierName "obj"
+│  └─ Name: IdentifierName "Prop"
+└─ Right: NumericLiteralExpression "5"
+~~~
+
+The caller passes the whole member access. Its parent is already the assignment, so climbing stops.
+`assignment.Left == node` is true and the result is `Write`.
+
+For `x = obj.Prop`, the same test is false and the result is `Read`. For
+`obj.Prop += 1`, the assignment is not simple and the result is `ReadWrite`.
+A property used as the receiver in `obj.Container.Prop = 5` remains a read: climbing does not
+cross a member access from its `Expression` child into the final target.
+
+### Null-conditional assignment: the assignment is inside WhenNotNull
+
+~~~csharp
+Receiver?.P = 1;
+~~~
+
+With the repository's Roslyn 5.9.0 parser, the actual subtree is:
+
+~~~text
+ConditionalAccessExpression
+├─ Expression: IdentifierName "Receiver"          ← receiver read
+└─ WhenNotNull: SimpleAssignmentExpression
+   ├─ Left: MemberBindingExpression ".P"           ← climb here, then stop
+   │  └─ Name: IdentifierName "P"                  ← classifier input for P
+   └─ Right: NumericLiteralExpression "1"
+~~~
+
+For `P`, the steps are:
+
+1. `AnalyzeIdentifier` passes the inner `IdentifierNameSyntax`.
+2. Its parent is a member binding whose `Name` is that node, so climbing moves to `.P`.
+3. The next parent is the assignment. Climbing stops; `.P` is the left operand.
+4. The result is `Write`, producing the setter reference.
+
+The assignment is **not** the parent of the complete `Receiver?.P` expression in this tree.
+Consequently this example does not use the classifier's conditional-access ascent branch.
+
+For `Receiver`, the parent is a conditional access, but the node is its `Expression`, not its
+`WhenNotNull`. It must not climb. If `Receiver` is a property, it contributes a getter reference.
+
+The conditional-access ascent branch only follows a node that is exactly `WhenNotNull`. For an
+ordinary read such as `var x = Receiver?.P;`, it can climb from `.P` through that conditional access
+and still conclude `Read`. It never treats the receiver as a write target.
+
+For `Receiver?.P += 1`, the guarded child is an `AddAssignmentExpression`; the same member-binding
+step reaches it and yields `ReadWrite`.
+
+### Deconstruction: tuple leaves on the left are writes
+
+~~~csharp
+(P, Q) = (Q, P);
+~~~
+
+~~~text
+SimpleAssignmentExpression
+├─ Left: TupleExpression
+│  ├─ Argument → IdentifierName "P"                ← Write
+│  └─ Argument → IdentifierName "Q"                ← Write
+└─ Right: TupleExpression
+   ├─ Argument → IdentifierName "Q"                ← Read
+   └─ Argument → IdentifierName "P"                ← Read
+~~~
+
+An `ArgumentSyntax` is transparent only when its parent is a `TupleExpressionSyntax`.
+Climbing jumps to that tuple and repeats, supporting nested targets such as `(P, (Q, R))`.
+The left/right assignment check then distinguishes the two sides.
+
+The resulting dependency set includes `get_P`, `set_P`, `get_Q` and `set_Q`.
+For `Foo(P)`, the argument belongs to an `ArgumentList`, so climbing stops and `P` stays a read.
+
+### Conditional indexer: index arguments are reads too
+
+~~~csharp
+Receiver?[P] = Q;
+~~~
+
+~~~text
+ConditionalAccessExpression
+├─ Expression: IdentifierName "Receiver"
+└─ WhenNotNull: SimpleAssignmentExpression
+   ├─ Left: ElementBindingExpression
+   │  └─ BracketedArgumentList
+   │     └─ Argument → IdentifierName "P"
+   └─ Right: IdentifierName "Q"
+~~~
+
+The indexer analyzer passes the `ElementBindingExpression` itself, which is directly on the left
+of the assignment. It is a write. In contrast, `P` is under a bracketed argument list, not a tuple;
+both `P` and the right-hand `Q` are reads. The receiver remains a read as well.
+
+This explains why the old identifier-based `?.P` path failed even though some conditional-indexer
+assignment cases already worked: the two callers start from different node kinds.
+
+### Named attribute arguments and other boundaries
+
+~~~csharp
+[Mark(Name = "x")]
+~~~
+
+~~~text
+Attribute
+└─ AttributeArgumentList
+   └─ AttributeArgument
+      ├─ NameEquals
+      │  └─ IdentifierName "Name"                 ← classifier input
+      └─ StringLiteralExpression "x"
+~~~
+
+There is no assignment-expression node here. The explicit `NameEquals` case selects the setter,
+preserving PR #115's behavior. Parentheses are also transparent: `(Prop) = x` reaches the same
+assignment as `Prop = x`. Increment/decrement expressions select both accessors.
+
+`nameof(Prop)` is intercepted by the caller before classification. It contributes a `Uses`
+reference to the property container, not a getter or setter reference.
+
+Do not generalize the ordinary-property model to ref-return properties. A property such as
+`ref int RefProp => ref storage;` can supply a writable reference, and `RefProp = 1` writes through
+that reference rather than invoking a setter. Syntax alone has the same assignment shape; precise
+accessor modelling for that case is outside this classifier's current coverage. Similarly, this
+chapter does not claim complete modelling of every newer user-defined assignment operator.
+
+`foreach ((P, Q) in pairs)` with existing properties is not a missing setter case: C# rejects it
+with CS8186 because iteration variables must be declared.
+
+### How the result becomes graph edges
+
+~~~text
+Read       → propertySymbol.GetMethod
+Write      → propertySymbol.SetMethod
+ReadWrite  → both, when available
+
+ordinary body → Calls
+lambda body   → Uses
+~~~
+
+Accessor symbols resolve through the central normalized lookup. If no requested accessor can be
+linked, the existing property/containing-type/external fallback policy applies; classification does
+not manufacture accessor nodes. Externals retain their aggregated `Uses` treatment.
+
+**Previous failure:** climbing only parentheses left deconstruction leaves under `ArgumentSyntax`
+and conditional property names under `MemberBindingExpressionSyntax`; both incorrectly became reads.
+
+**Regression coverage:** [AssignmentAccessorParseTests](../../Tests/UnitTests/Parser/AssignmentAccessorParseTests.cs)
+covers nested tuples, right-hand reads, receiver chains, index arguments, simple/compound/coalescing
+conditional assignments and lambdas. [PropertyAccessClassifierTests](../../Tests/UnitTests/Parser/PropertyAccessClassifierTests.cs)
+covers the classifier directly, including the retained named-attribute behavior.
+
+## Field-like event initializers own their dependencies
+
+**Introduced by:** [`4ee545b`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/4ee545b5a361ce30d6028a954c53f151bf9b082a).
+**Implementation:** `DeclarationAnalyzer.AnalyzeEventRelationships`.
+
+### Example and Roslyn shape
+
+~~~csharp
+public event System.Action Changed = Helper.Handle;
+~~~
+
+~~~text
+EventFieldDeclaration
+└─ VariableDeclaration
+   ├─ Type: QualifiedName "System.Action"
+   └─ VariableDeclarator "Changed"
+      └─ EqualsValueClause
+         └─ SimpleMemberAccessExpression "Helper.Handle"
+~~~
+
+The event symbol's declaring syntax identifies the variable declarator. A declaration can contain
+several event variables with different initializers, so walking the entire declaration for each event
+would mix their dependencies.
+
+### Previous failure and graph decision
+
+Event type and add/remove bodies were analyzed, but field-like initializers were skipped. The fix
+walks only the matching initializer, starting at its `EqualsValueClause`, and anchors dependencies
+on that event, consistently with field initializers.
+
+| Initializer | Dependency owned by the event |
+|---|---|
+| `Helper.Handle` | `Uses Handle` with `IsMethodGroup` |
+| `() => Helper.Handle()` | deferred `Uses Handle` |
+| `Helper.Create()` | `Calls Create` |
+| `new Handler().Handle` | `Creates Handler`, explicit constructor `Calls`, method-group `Uses Handle` |
+
+No additional `Handles` or event-registration policy is introduced for initialization. Existing
+assignment-based registration handling remains separate.
+
+**Regression coverage:** [EventInitializerParseTests](../../Tests/UnitTests/Parser/EventInitializerParseTests.cs)
+covers static/instance events, lambdas, anonymous methods, factories, receiver construction, multiple
+declarators and empty initializers.
+
+## Expression lambda results include deferred conversions
+
+**Introduced by:** [`4a44792`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/4a4479263a12677813d229bc4f65d11f7c03311b).
+**Implementation:** `LambdaBodyWalker.AnalyzeLambdaBody` / `AnalyzeResultConversion`,
+and the simple/parenthesized lambda visitors.
+
+### Example and Roslyn shape
+
+~~~csharp
+class Target
+{
+    public static implicit operator Target(int value) => new Target();
+}
+// Inside a method:
+System.Func<Target> callback = () => 1;
+~~~
+
+~~~text
+VariableDeclarator "callback"
+└─ EqualsValueClause
+   └─ ParenthesizedLambdaExpression
+      ├─ ParameterList (empty)
+      └─ Body: NumericLiteralExpression "1"
+~~~
+
+Although the source contains an arrow token, this body is not an `ArrowExpressionClauseSyntax`.
+It also has no `ReturnStatementSyntax`. The literal's contextual conversion to `Target` is available
+from the semantic model, not as a written cast node.
+
+### Previous failure and graph decision
+
+The previous conversion hooks for return statements and arrow clauses never saw this boundary.
+The lambda walker now checks an expression body's conversion explicitly, then traverses the body.
+Its nested-lambda visitors perform the same check while preserving normal traversal.
+
+A user-defined conversion contributes a `Uses` edge to its operator, owned by the enclosing element.
+It is not an immediate `Calls` edge. Block returns retain their existing handling; built-in numeric,
+reference and identity conversions do not invent operator edges.
+
+**Regression coverage:** [LambdaResultConversionParseTests](../../Tests/UnitTests/Parser/LambdaResultConversionParseTests.cs)
+covers simple, typed, parenthesized, nested and async lambdas, block/anonymous-method controls,
+explicit casts, built-in conversions and lambdas in event initializers.
+
+## Classify static calls from the bound method
+
+**Introduced by:** [`e4ba44c`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/e4ba44c68a112f8dbb20bf67fd9cc106629bc72d).
+**Implementation:** `SyntaxNodeAnalyzer.DetermineCallAttributes`.
+
+### Example and Roslyn shape
+
+~~~csharp
+G<int>.F();
+Demo.Tools.F();
+Generic<int>();
+~~~
+
+~~~text
+InvocationExpression
+└─ Expression: SimpleMemberAccessExpression
+   ├─ Expression: GenericName "G<int>"
+   └─ Name: IdentifierName "F"
+
+InvocationExpression
+└─ Expression: SimpleMemberAccessExpression
+   ├─ Expression: SimpleMemberAccessExpression "Demo.Tools"
+   └─ Name: IdentifierName "F"
+
+InvocationExpression
+└─ Expression: GenericName "Generic<int>"
+~~~
+
+All three can bind to static methods. Receiver syntax is not a reliable static/instance test.
+
+### Previous failure and graph decision
+
+The former syntax-based classification could label qualified/generic static calls as instance calls,
+or leave an unqualified generic static call without a static flag. The target edge could be correct
+while its dispatch metadata was wrong.
+
+After preserving the dedicated extension-method classification, `IMethodSymbol.IsStatic` decides
+static dispatch. Remaining instance syntax distinguishes `base`, explicit `this`, another receiver
+and an unqualified current-instance call. Lambda invocations retain deferred `Uses` semantics rather
+than acquiring ordinary call-dispatch flags.
+
+**Regression coverage:** [CallClassificationParseTests](../../Tests/UnitTests/Parser/CallClassificationParseTests.cs)
+covers short/qualified/global/alias/generic forms plus instance, this/base, extension and deferred
+controls. This changes edge metadata, not the set of runtime dispatch targets.
+
+## Explicit type dependencies in delegate and local-function signatures
+
+**Introduced by:** [`c167316`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/c167316819fdb5a25587bc97e32a99d57ebc3a1c).
+**Implementation:** `DeclarationAnalyzer.AnalyzeDelegateRelationships`,
+`SyntaxWalkerBase.VisitLocalFunctionStatement`.
+
+### Examples and Roslyn shapes
+
+~~~csharp
+interface IMarker { }
+delegate void Callback<T>() where T : IMarker;
+~~~
+
+~~~text
+DelegateDeclaration "Callback"
+├─ TypeParameterList → TypeParameter "T"
+└─ TypeParameterConstraintClause
+   ├─ Name: IdentifierName "T"
+   └─ TypeConstraint → IdentifierName "IMarker"
+~~~
+
+~~~csharp
+// Inside Run:
+Token Local(Token value) => value;
+~~~
+
+~~~text
+LocalFunctionStatement "Local"
+├─ ReturnType: IdentifierName "Token"
+├─ ParameterList
+│  └─ Parameter "value"
+│     └─ Type: IdentifierName "Token"
+└─ ArrowExpressionClause → IdentifierName "value"
+~~~
+
+### Previous failure and graph decision
+
+Delegate parameters and returns were handled, but delegate constraints were not. Local functions
+have no graph elements; merely traversing their bodies did not reliably record their signature types.
+
+Delegates now use the existing constraint helper: `Callback<T> Uses IMarker`. Local-function
+parameter, return and constraint types contribute `Uses` edges to the owning member, for example
+`Run Uses Token`. This also applies to nested functions and functions inside lambdas.
+
+No local-function, parameter or return nodes are introduced. Special constraints such as
+`class`/`new()` contribute no type edges. Local-function body traversal is unchanged; these edges
+describe declared dependencies even if the function is never invoked.
+
+**Regression coverage:** [DeclarativeTypeDependencyParseTests](../../Tests/UnitTests/Parser/DeclarativeTypeDependencyParseTests.cs)
+covers simple/generic/multiple constraints, arrays, returns, nesting, lambdas, special constraints and
+the absence of local-function nodes.
+
+## Signature attributes are dependencies, not owner annotations
+
+**Introduced by:** [`8223391`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/8223391674f5cf66d43aa9e0f341b9a934afc929).
+**Implementation:** `DeclarationAnalyzer.AnalyzeSignatureAttributes`,
+the attribute-data overload of `AnalyzeAttributeRelationships`, and property signature handling.
+
+### Example and Roslyn shape
+
+~~~csharp
+[return: Mark(typeof(Token))]
+int Run([Mark(typeof(Token))] int value) => value;
+~~~
+
+~~~text
+MethodDeclaration "Run"
+├─ AttributeList
+│  ├─ AttributeTargetSpecifier (identifier token: return)
+│  └─ Attribute "Mark"
+│     └─ AttributeArgumentList
+│        └─ AttributeArgument → TypeOfExpression → IdentifierName "Token"
+├─ ParameterList
+│  └─ Parameter "value"
+│     └─ AttributeList
+│        └─ Attribute "Mark"
+│           └─ AttributeArgumentList
+│              └─ AttributeArgument → TypeOfExpression → IdentifierName "Token"
+└─ ArrowExpressionClause → IdentifierName "value"
+~~~
+
+The attributes belong to different semantic sites:
+`method.GetReturnTypeAttributes()` and `parameter.GetAttributes()`, rather than the method's own
+`GetAttributes()` collection.
+
+### Previous failure and graph decision
+
+Only examining the owning element's attributes lost these attribute-type dependencies.
+The existing attribute analysis is reused with ownership and annotation metadata separated:
+
+- `Run UsesAttribute MarkAttribute` records both application locations.
+- `Run Uses Token` retains the `typeof` dependency.
+- The existing graph convention records an explicit internal attribute constructor as `Calls`;
+  named property arguments retain setter references.
+- `Run.Attributes` does not acquire `MarkAttribute` merely because a parameter or return is annotated.
+  An annotation directly on `Run` still appears there.
+
+This graph convention describes dependencies; an attribute constructor reference is not a claim
+that the owning method eagerly constructs the attribute on each invocation.
+
+| Attribute site | Existing graph owner |
+|---|---|
+| Method/constructor parameter or method return | Method/constructor |
+| Delegate parameter or return | Delegate |
+| Indexer parameter | Property/indexer container |
+| Getter return | Getter accessor |
+| Setter's final value parameter | Setter accessor |
+
+Property accessor elements are deliberately absent from `ElementIdToSymbolMap`; the general phase-2
+method loop skips them. Property analysis therefore supplies their signature handling. The setter
+path visits only its final value parameter, not copied indexer parameters, so indexer annotations do
+not automatically spread to both accessors.
+
+**Regression coverage:** [SignatureAttributeParseTests](../../Tests/UnitTests/Parser/SignatureAttributeParseTests.cs)
+covers the ownership sites above, partial methods, record primary constructors, distinct source
+locations, argument dependencies and preservation of direct-owner annotation metadata.
+
+**Boundary:** attributes on local-function/lambda signatures, type parameters, assemblies and modules
+are not expanded by this pass. There are no new parameter/return nodes.
+
+## Graph invariants and deliberate coverage boundaries
+
+**Introduced by:** [`bc8f3b0`](https://github.com/ATrefzer/CSharpCodeAnalyst/commit/bc8f3b07be2dc659fe5046ba69c73db5c73a4657).
+**Implementation:** test-only `GraphInvariantAssertions`, the shared in-memory fixture base and
+explicit repository smoke tests.
+
+A syntactically valid input can still expose a graph-construction error. For example, the
+`GlobalStatement → InvocationExpression` tree shown above previously led to an external edge target
+that was never inserted. Syntax coverage alone does not establish graph integrity.
+
+The shared fixture base now checks correct source ownership and existing targets for every edge,
+registered parent/child object identity, reciprocal containment, assembly roots and absence of
+containment cycles. `ParserGraphInvariantTests` combines top-level statements, generics, a record,
+events and attributes, with externals both enabled and disabled.
+
+`ParserRepositorySmokeTests` provides opt-in MSBuild imports of the real CodeGraph and CodeParser
+projects. These need a restored checkout and working SDK/build-host communication. They are not a
+claim that every environment can load those projects successfully.
+
+See [parser-architecture.md](parser-architecture.md#coverage-boundary-and-regression-checks) for commands
+and scope. The graph remains a source-dependency model, not a complete runtime call graph; an
+unreferenced element is a candidate for investigation, not proof of dead code.

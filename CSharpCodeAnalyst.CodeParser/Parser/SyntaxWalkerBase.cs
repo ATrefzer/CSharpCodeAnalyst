@@ -62,6 +62,32 @@ internal class SyntaxWalkerBase : CSharpSyntaxWalker
         base.VisitAssignmentExpression(node);
     }
 
+    public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+    {
+        // Local functions have no graph nodes. Their declared types belong to the owning member,
+        // even if the function is never invoked or is nested inside a lambda.
+        if (SemanticModel.GetDeclaredSymbol(node) is { } method)
+        {
+            if (!method.ReturnsVoid)
+            {
+                Analyzer.AddTypeRelationship(SourceElement, method.ReturnType, RelationshipType.Uses, node.ReturnType.GetSyntaxLocation());
+            }
+
+            foreach (var parameter in method.Parameters)
+            {
+                Analyzer.AddTypeRelationship(SourceElement, parameter.Type, RelationshipType.Uses,
+                    parameter.GetSymbolLocations().FirstOrDefault());
+            }
+
+            foreach (var constraint in node.ConstraintClauses.SelectMany(clause => clause.Constraints).OfType<TypeConstraintSyntax>())
+            {
+                Analyzer.AnalyzeTypeSyntax(SourceElement, SemanticModel, constraint.Type);
+            }
+        }
+
+        base.VisitLocalFunctionStatement(node);
+    }
+
     public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
     {
         Analyzer.AnalyzeLocalDeclaration(SourceElement, node, SemanticModel);
