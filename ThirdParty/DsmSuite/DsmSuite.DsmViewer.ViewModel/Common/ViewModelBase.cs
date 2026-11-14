@@ -12,16 +12,16 @@ namespace DsmSuite.DsmViewer.ViewModel.Common
     {
         private readonly List<RelayCommand<object>> _commands = [];
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        protected ICommand RegisterCommand(Action<object?> execute, Predicate<object?> canExecute)
+        protected ICommand RegisterCommand(Action<object> execute, Predicate<object> canExecute)
         {
             var command = new RelayCommand<object>(execute, canExecute);
             _commands.Add(command);
             return command;
         }
 
-        protected ICommand RegisterCommand(Action<object?> execute)
+        protected ICommand RegisterCommand(Action<object> execute)
         {
             var command = new RelayCommand<object>(execute);
             _commands.Add(command);
@@ -36,7 +36,7 @@ namespace DsmSuite.DsmViewer.ViewModel.Common
             }
         }
 
-        protected virtual void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

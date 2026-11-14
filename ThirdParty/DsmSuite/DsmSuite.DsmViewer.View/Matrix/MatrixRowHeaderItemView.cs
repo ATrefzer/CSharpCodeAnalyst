@@ -199,7 +199,7 @@ namespace DsmSuite.DsmViewer.View.Matrix
         /// Return the brush to use for the right hand consumer/producer indicator in the row,
         /// or null if this element is neither producer nor consumer.
         /// </summary>
-        private Brush? GetIndicatorColor()
+        private Brush GetIndicatorColor()
         {
             Brush brush = null;
             if (_viewModel.IsConsumer  &&  _viewModel.IsProvider)

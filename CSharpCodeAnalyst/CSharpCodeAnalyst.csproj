@@ -143,10 +143,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="11.0.0" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.161" />
         <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
-        <PackageReference Update="Microsoft.NET.StringTools" Version="18.12.2">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>

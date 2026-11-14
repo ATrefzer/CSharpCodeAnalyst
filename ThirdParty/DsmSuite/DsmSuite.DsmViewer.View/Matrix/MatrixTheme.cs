@@ -37,19 +37,23 @@ namespace DsmSuite.DsmViewer.View.Matrix
             UpArrow = (string)_frameworkElement.FindResource("UpArrowIcon");
             DownArrow = (string)_frameworkElement.FindResource("DownArrowIcon");
 
+            double pixelsPerDip = VisualTreeHelper.GetDpi(_frameworkElement).PixelsPerDip;
+
             RightArrowFormattedText = new FormattedText(RightArrow,
                 CultureInfo.GetCultureInfo("en-us"),
                 FlowDirection.LeftToRight,
                 new Typeface("Verdana"),
                 10,
-                TextColor);
+                TextColor,
+                pixelsPerDip);
 
             DownArrowFormattedText = new FormattedText(DownArrow,
                 CultureInfo.GetCultureInfo("en-us"),
                 FlowDirection.LeftToRight,
                 new Typeface("Verdana"),
                 10,
-                TextColor);
+                TextColor,
+                pixelsPerDip);
         }
 
         public double ScrollBarWidth => 20.0;

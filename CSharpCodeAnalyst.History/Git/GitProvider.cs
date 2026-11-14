@@ -266,6 +266,12 @@ public sealed class GitProvider : GitProviderBase, ISourceControlProvider
 
             // We have to clone the merge scope. The same node may be processed later again as a parent node. Therefore, we
             // have to keep its scope untouched.
+
+            if (mergeInto.Scope == null)
+            {
+                throw new InvalidOperationException("Merge target has no scope assigned!");
+            }
+
             var mergeIntoScope = mergeInto.Scope.Clone();
 
             scope = mergeIntoScope;
