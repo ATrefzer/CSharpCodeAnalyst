@@ -6,12 +6,9 @@ namespace CSharpCodeAnalyst.History.Git;
 
 public sealed class GitCommandLine
 {
-    private const string MainBranch = "master";
-
     // Git gives up the inexact rename detection for a commit with more candidates than this.
     private const int RenameLimit = 99999;
 
-    private readonly string _branch;
     private readonly ProcessRunner _runner;
     private readonly string _workingDirectory;
 
@@ -19,7 +16,6 @@ public sealed class GitCommandLine
     {
         _workingDirectory = workingDirectory;
         _runner = new ProcessRunner { DefaultEncoding = Encoding.UTF8 };
-        _branch = GetCheckedOutBranch();
     }
 
     public string Annotate(string localPath)
@@ -129,24 +125,6 @@ public sealed class GitCommandLine
     {
         var result = ExecuteCommandLine("git", "rev-list --count HEAD");
         return int.Parse(result.StdOut.Trim());
-    }
-
-    public string GetCheckedOutBranch()
-    {
-        var program = "git";
-        var args = "symbolic-ref --short -q HEAD";
-
-        // Exits with 1 (and no output) on a detached HEAD. Not an error here.
-        var result = ExecuteCommandLine(program, args, false);
-        return result.StdOut.Trim();
-    }
-
-    public bool IsMasterGetCheckedOut()
-    {
-        const string program = "git";
-        const string args = "symbolic-ref --short -q HEAD";
-        var result = ExecuteCommandLine(program, args, false);
-        return string.Compare(result.StdOut.Trim('\n'), _branch, StringComparison.OrdinalIgnoreCase) == 0;
     }
 
     private ProcessResult ExecuteCommandLine(string program, string args, bool throwOnError = true)
