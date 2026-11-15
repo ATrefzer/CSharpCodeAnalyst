@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Model;
@@ -66,8 +64,9 @@ public abstract class GitProviderBase
     public HashSet<string> GetAllTrackedFiles(string? hash)
     {
         var serverPaths = _gitCli.GetAllTrackedFiles(hash);
-        var all = serverPaths.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        return new HashSet<string>(all.Select(Decoder.DecodeEscapedBytes));
+        // NUL terminated and verbatim (ls-tree -z). Nothing to decode.
+        var all = serverPaths.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+        return new HashSet<string>(all);
     }
 
     public List<string> GetAllTrackedLocalFiles()
@@ -78,9 +77,17 @@ public abstract class GitProviderBase
         return trackedServerPaths.Select(sp => _mapper.MapToLocalFile(sp)).ToList();
     }
 
-    protected string GetHeadHash()
+    /// <summary>
+    ///     Streams the whole history reachable from HEAD, newest first. See <see cref="GitLogReader" />.
+    /// </summary>
+    protected void ReadLog(Action<TextReader> readLog)
     {
-        return _gitCli.GetHeadHash();
+        _gitCli.ReadLog(readLog);
+    }
+
+    protected int GetCommitCount()
+    {
+        return _gitCli.GetCommitCount();
     }
 
 
@@ -122,12 +129,6 @@ public abstract class GitProviderBase
         return fileToContribution.ToCaseInsensitivePathKeys();
     }
 
-    protected ChangeSetHistory ParseLogString(string gitLogString)
-    {
-        var parser = new Parser(_mapper);
-        return parser.ParseLogStringNoGraph(gitLogString);
-    }
-
     protected void VerifyGitPreConditions()
     {
         if (!Directory.Exists(Path.Combine(_projectBase, ".git")))
@@ -146,36 +147,5 @@ public abstract class GitProviderBase
         {
             throw new ArgumentException("There are local changes that are not committed yet. This may give invalid results.");
         }
-    }
-    
-    private string GetPathToExportedFile(DirectoryInfo cache, FileInfo localFile, string revision)
-    {
-        var name = new StringBuilder();
-
-        // Stable hash. string.GetHashCode is randomized per process on .NET (Core),
-        // which would defeat the cache on every restart.
-        name.Append(GetStableHash(localFile.FullName));
-        name.Append("_");
-        name.Append(revision);
-        name.Append("_");
-        name.Append(localFile.Name);
-
-        return Path.Combine(cache.Name, name.ToString());
-    }
-
-    private static string GetStableHash(string text)
-    {
-        using (var sha = SHA256.Create())
-        {
-            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(text.ToLowerInvariant()));
-            return Convert.ToHexString(bytes, 0, 8);
-        }
-    }
-    
-
-    protected void SaveFullLogToDisk(string path)
-    {
-        var log = _gitCli.Log();
-        File.WriteAllText(Path.Combine(), log);
     }
 }

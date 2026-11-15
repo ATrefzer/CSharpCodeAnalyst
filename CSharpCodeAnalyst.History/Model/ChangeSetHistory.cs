@@ -12,11 +12,6 @@ public sealed class ChangeSetHistory
 
     public List<ChangeSet> ChangeSets { get; }
 
-    public void CleanupHistory()
-    {
-        CleanupHistory(this);
-    }
-
     /// <summary>
     ///     Returns a flat summary of all artifacts found in the commit history.
     /// </summary>
@@ -119,60 +114,6 @@ public sealed class ChangeSetHistory
         };
 
         return artifact;
-    }
-
-    /// <summary>
-    ///     Removes all non tracked files.
-    ///     Note that after this step we still may find Delete actions that were not merged.
-    ///     So the function by default drops all deleted items.
-    /// </summary>
-    public void CleanupHistory(HashSet<string> aliveIds, bool dropDeletes = true)
-    {
-        foreach (var set in ChangeSets)
-        {
-            // Analysis path: every item carries a tracking id (see ChangeItem.Id).
-            set.Items.RemoveAll(item => !aliveIds.Contains(item.Id!));
-            if (dropDeletes)
-            {
-                set.Items.RemoveAll(item => item.IsDelete());
-            }
-        }
-
-        ClearEmptyCommits(this);
-    }
-
-    /// <summary>
-    ///     Removes all files that were deleted and are no longer available
-    /// </summary>
-    private void CleanupHistory(ChangeSetHistory history)
-    {
-        // Analysis path: every item carries a tracking id (see ChangeItem.Id).
-        var deleted = history.ChangeSets
-            .SelectMany(set => set.Items)
-            .Where(item => item.IsDelete())
-            .Select(item => item.Id!);
-
-        var deletedIdsHash = new HashSet<string>(deleted);
-
-        foreach (var set in history.ChangeSets)
-        {
-            set.Items.RemoveAll(item => deletedIdsHash.Contains(item.Id!));
-        }
-
-        ClearEmptyCommits(history);
-    }
-
-    private static void ClearEmptyCommits(ChangeSetHistory history)
-    {
-        // Delete empty commits
-        var changeSetsCopy = history.ChangeSets.ToList();
-        foreach (var changeSet in changeSetsCopy)
-        {
-            if (!changeSet.Items.Any())
-            {
-                history.ChangeSets.Remove(changeSet);
-            }
-        }
     }
 
     private bool Exists(ChangeItem item)
