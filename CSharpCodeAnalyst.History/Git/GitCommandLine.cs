@@ -6,23 +6,9 @@ namespace CSharpCodeAnalyst.History.Git;
 
 public sealed class GitCommandLine
 {
-    // Note: Use Committer Date. Otherwise, children of a commit may appear before the parent.
+    // Git gives up the inexact rename detection for a commit with more candidates than this.
+    private const int RenameLimit = 99999;
 
-    /// <summary>
-    ///     %H   Hash (abbreviated is %h)
-    ///     %n   Newline
-    ///     %aN  Author name
-    ///     %cN  Committer name
-    ///     %ad  Author date (format respects --date= option)
-    ///     %cd  Committer date (format respects --date= option)
-    ///     %s   Subject (commit message)
-    ///     %P   Parents (all sha1s in one line) First commit does not have a parent!
-    ///     Log of the whole branch or a single file shall have the same output for easier parsing.
-    /// </summary>
-    private const string LogFormat = "START_HEADER%n%H%n%aN%n%cd%n%P%n%s%nEND_HEADER";
-
-    private const string MainBranch = "master";
-    private readonly string _branch;
     private readonly ProcessRunner _runner;
     private readonly string _workingDirectory;
 
@@ -30,7 +16,6 @@ public sealed class GitCommandLine
     {
         _workingDirectory = workingDirectory;
         _runner = new ProcessRunner { DefaultEncoding = Encoding.UTF8 };
-        _branch = GetCheckedOutBranch();
     }
 
     public string Annotate(string localPath)
@@ -60,8 +45,8 @@ public sealed class GitCommandLine
             hash = "HEAD";
         }
 
-        // Optional HEAD
-        var args = $"ls-tree -r --name-only {hash}";
+        // -z: NUL terminated and verbatim. Without it git quotes and escapes unusual paths.
+        var args = $"ls-tree -r --name-only -z {hash}";
 
         var result = ExecuteCommandLine(program, args);
         return result.StdOut;
@@ -111,102 +96,59 @@ public sealed class GitCommandLine
     }
 
 
-    public string LogWithoutRenames()
+    /// <summary>
+    ///     The whole history reachable from HEAD in a single call, newest first, in the format
+    ///     of <see cref="GitLogReader" />. The output is streamed because it can get large.
+    /// </summary>
+    public void ReadLog(Action<TextReader> readLog)
     {
-        // git log --all --numstat --date=short --pretty=format:'--%h--%ad--%aN' --no-renames 
-        var program = "git";
-
-        var args = $"log --pretty=format:{LogFormat} --date=iso-strict-local --name-status --no-renames";
-
-        //-c diff.renameLimit=99999 log --pretty=format:{START_HEADER%n%H%n%aN%n%cd%n%P%n%s%nEND_HEADER --date=iso-strict --name-status --simplify-merges --full-history
-
-        var result = ExecuteCommandLine(program, args);
-        return result.StdOut;
-    }
-
-    public string Log()
-    {
-        // --num_stat Would shows added and removed lines
-
-        var program = "git";
-
-        // Full history, simplify merges. Renames are tracked by default.
-        // We could use --find-renames -M9 to change the similarity to 90% but to results are not so good
+        // Everything that shapes the output is given explicitly. Otherwise, the result depends
+        // on the configuration of the user (diff.renames, log.diffMerges, log.showSignature ...).
         //
-        // --cc implies the -c option and further compresses merge commits.
-        //
-        var args = $"-c diff.renameLimit=99999 log --pretty=format:{LogFormat} --date=iso-strict-local --name-status --simplify-merges --full-history";
+        // --topo-order   No parent before all of its children. The reader of the log relies on it.
+        // -M             Detect renames.
+        // -m             For a merge, the diff against each parent (log.diffMerges=separate).
+        //                By default, git log shows no diff for merges at all.
+        // -z             NUL terminated, paths verbatim.
+        var args = $"-c diff.renameLimit={RenameLimit} -c log.diffMerges=separate -c log.showRoot=true " +
+                   "log --topo-order -m -M --name-status -z --no-color --no-show-signature --encoding=UTF-8 " +
+                   $"--format={GitLogReader.Format}";
 
-        var result = ExecuteCommandLine(program, args);
-        return result.StdOut;
+        var result = _runner.RunProcess("git", args, _workingDirectory, readLog);
+        ThrowOnError("git", args, result);
     }
 
     /// <summary>
-    ///     Git by default simplifies the history for a single file. This means the parent relationships may be incomplete.
-    ///     Renames are tracked. Merge commits that do not contribute are not part of the history.
+    ///     Number of commits reachable from HEAD.
     /// </summary>
-    public string Log(string localPath)
+    public int GetCommitCount()
     {
-        localPath = localPath.Replace("\\", "/");
-        const string program = "git";
-
-        // --follow to track renaming, works only for a single file!
-        // When --follow is used --full-history has no effect. We don't see merge commits that do contribute to the file.
-
-        // I had a single case where --follow caused the output to be empty!
-
-        var args = $"log --follow --pretty=format:{LogFormat} --date=iso-strict-local --name-status -- \"{localPath}\"";
-
-        var result = ExecuteCommandLine(program, args);
-        return result.StdOut;
-    }
-
-
-    public string GetCheckedOutBranch()
-    {
-        var program = "git";
-        var args = "symbolic-ref --short -q HEAD";
-
-        // Exits with 1 (and no output) on a detached HEAD. Not an error here.
-        var result = ExecuteCommandLine(program, args, false);
-        return result.StdOut.Trim();
-    }
-
-    public bool IsMasterGetCheckedOut()
-    {
-        const string program = "git";
-        const string args = "symbolic-ref --short -q HEAD";
-        var result = ExecuteCommandLine(program, args, false);
-        return string.Compare(result.StdOut.Trim('\n'), _branch, StringComparison.OrdinalIgnoreCase) == 0;
+        var result = ExecuteCommandLine("git", "rev-list --count HEAD");
+        return int.Parse(result.StdOut.Trim());
     }
 
     private ProcessResult ExecuteCommandLine(string program, string args, bool throwOnError = true)
     {
         var result = _runner.RunProcess(program, args, _workingDirectory);
+        if (throwOnError)
+        {
+            ThrowOnError(program, args, result);
+        }
 
+        return result;
+    }
+
+    private static void ThrowOnError(string program, string args, ProcessResult result)
+    {
         // Decide by exit code, not by stderr. Git writes harmless warnings
         // (line ending hints, rename limit etc.) to stderr while succeeding.
-        if (throwOnError && result.ExitCode != 0)
+        if (result.ExitCode != 0)
         {
             var message = string.IsNullOrEmpty(result.StdErr)
                 ? $"'{program} {args}' failed with exit code {result.ExitCode}."
                 : result.StdErr;
             throw new ProviderException(message);
         }
-
-        return result;
     }
 
-    /// <summary>
-    ///     Returns the hash of the commit HEAD points to.
-    ///     Note: We must not read .git\refs\heads\... directly. The loose ref file
-    ///     disappears as soon as git packs the refs (git gc).
-    /// </summary>
-    public string GetHeadHash()
-    {
-        const string program = "git";
-        const string args = "rev-parse HEAD";
-        var result = ExecuteCommandLine(program, args);
-        return result.StdOut.Trim();
-    }
 }

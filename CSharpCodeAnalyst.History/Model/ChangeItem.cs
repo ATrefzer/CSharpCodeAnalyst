@@ -22,10 +22,8 @@
     {
         /// <summary>
         ///     File-identity tracking id (stable across renames). This is NOT a git concept - it is
-        ///     derived by the graph-walking <see cref="Git.GitProvider" />, which always assigns one.
-        ///     The plain log parser (<see cref="Git.Parser" />) cannot know it and leaves it null;
-        ///     its only consumer (single-file export) never reads the id. So the id is null on the
-        ///     raw-parse path and non-null on the analysis path (GetArtifactSummary / CleanupHistory).
+        ///     derived by the <see cref="Git.GitProvider" /> (see <see cref="Git.FileIdentityTracker" />),
+        ///     which assigns one to every item. So consumers treat it as set.
         /// </summary>
         public string? Id { get; set; }
 
