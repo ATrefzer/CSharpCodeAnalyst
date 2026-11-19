@@ -102,13 +102,13 @@ public sealed class GitCommandLine
     /// </summary>
     public void ReadLog(Action<TextReader> readLog)
     {
-        // Everything that shapes the output is given explicitly. Otherwise the result depends
+        // Everything that shapes the output is given explicitly. Otherwise, the result depends
         // on the configuration of the user (diff.renames, log.diffMerges, log.showSignature ...).
         //
         // --topo-order   No parent before all of its children. The reader of the log relies on it.
         // -M             Detect renames.
         // -m             For a merge, the diff against each parent (log.diffMerges=separate).
-        //                By default git log shows no diff for merges at all.
+        //                By default, git log shows no diff for merges at all.
         // -z             NUL terminated, paths verbatim.
         var args = $"-c diff.renameLimit={RenameLimit} -c log.diffMerges=separate -c log.showRoot=true " +
                    "log --topo-order -m -M --name-status -z --no-color --no-show-signature --encoding=UTF-8 " +

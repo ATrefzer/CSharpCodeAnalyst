@@ -130,7 +130,7 @@ public sealed class GitProvider
         // NUL terminated and verbatim (ls-tree -z). Nothing to decode.
         var serverPaths = _gitCli.GetAllTrackedFiles();
         var all = serverPaths.Split('\0', StringSplitOptions.RemoveEmptyEntries);
-        return new HashSet<string>(all);
+        return [.. all];
     }
 
     public List<string> GetAllTrackedLocalFiles()

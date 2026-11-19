@@ -146,9 +146,11 @@ public sealed class FileIdentityTracker
         if (commit.Diffs.Count < commit.Parents.Count)
         {
             // Identical to at least one parent, so nothing differs from all of them.
+            // In other words: If we have changes in this merge commit itself, we are different to all other parents.
             return [];
         }
 
+        // Files that are changed in the merge commit itself. These files are different from every parent, and in each diff!
         var changedAgainstOtherParents = commit.Diffs
             .Skip(1)
             .Select(diff => diff.Select(change => change.Path).ToHashSet(StringComparer.Ordinal))
