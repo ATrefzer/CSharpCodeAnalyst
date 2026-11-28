@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.TreeMap.Common;
 using CSharpCodeAnalyst.TreeMap.Drawing;
 using CSharpCodeAnalyst.TreeMap.Interfaces;

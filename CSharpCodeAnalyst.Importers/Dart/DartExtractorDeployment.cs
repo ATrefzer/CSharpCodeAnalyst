@@ -2,7 +2,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
-using CSharpCodeAnalyst.Importers.Shared;
+using CSharpCodeAnalyst.Common.Processes;
 
 namespace CSharpCodeAnalyst.Importers.Dart;
 

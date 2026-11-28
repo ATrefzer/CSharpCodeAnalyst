@@ -1,4 +1,4 @@
-namespace CSharpCodeAnalyst.Contracts
+namespace CSharpCodeAnalyst.Common.Contracts
 {
     /// <summary>
     ///     How raw leaf weights (e.g. commit counts) are mapped onto the 0..1 color scale of a tree map.

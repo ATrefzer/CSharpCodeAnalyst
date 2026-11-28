@@ -1,15 +1,19 @@
 using System.Diagnostics;
 
-namespace CSharpCodeAnalyst.Importers.Shared;
+namespace CSharpCodeAnalyst.Common.Processes;
 
 /// <summary>
-///     Runs an external tool and waits for it. Shared by every importer that shells out - doxygen
-///     and the Dart extractor - so the three things that are easy to get wrong are solved once:
+///     Runs an external tool and waits for it. Used by the importers that shell out - doxygen and
+///     the Dart extractor - so the three things that are easy to get wrong are solved once:
 ///     both output streams are drained while waiting (a child that fills a redirected pipe blocks
-///     forever otherwise), arguments are quoted by the framework, and a cancelled run actually
-///     kills the child.
+///     forever otherwise - reading stdout to the end before touching stderr is exactly that bug),
+///     arguments are quoted by the framework, and a cancelled run actually kills the child.
+///     <para>
+///         The git history still has its own runner (CSharpCodeAnalyst.History/System); folding it
+///         in here is a separate step.
+///     </para>
 /// </summary>
-internal static class ProcessRunner
+public static class ProcessRunner
 {
     /// <summary>
     ///     Every await is configured not to resume on the caller's context, so that
@@ -91,9 +95,12 @@ internal static class ProcessRunner
         }
     }
 
-    internal sealed record Options(string FileName, IReadOnlyList<string> Arguments, string? WorkingDirectory = null);
+    /// <param name="FileName">The executable; looked up on the PATH when it is not a path.</param>
+    /// <param name="Arguments">One entry per argument, unquoted - the framework quotes them.</param>
+    /// <param name="WorkingDirectory">Null for the current directory.</param>
+    public sealed record Options(string FileName, IReadOnlyList<string> Arguments, string? WorkingDirectory = null);
 
-    internal sealed record Result(int ExitCode, string StandardOutput, string StandardError)
+    public sealed record Result(int ExitCode, string StandardOutput, string StandardError)
     {
         /// <summary>
         ///     The last few lines of whichever stream carries the diagnosis, for an error message.

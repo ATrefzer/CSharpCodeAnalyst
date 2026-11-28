@@ -1,4 +1,4 @@
-namespace CSharpCodeAnalyst.Contracts
+namespace CSharpCodeAnalyst.Common.Contracts
 {
     /// <summary>
     ///     Contract for a node in a weighted hierarchy that a tree map renders. This is the only

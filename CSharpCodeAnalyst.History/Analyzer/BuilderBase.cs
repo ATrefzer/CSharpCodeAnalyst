@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Hierarchy;
 using CSharpCodeAnalyst.History.Model;

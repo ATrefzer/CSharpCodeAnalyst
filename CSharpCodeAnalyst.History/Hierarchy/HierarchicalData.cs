@@ -1,5 +1,5 @@
 using System.Collections;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 
 namespace CSharpCodeAnalyst.History.Hierarchy;
 

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      What several projects share and that has nothing to do with the code graph:
+        Processes/  ProcessRunner, how the importers start an external tool (doxygen, Dart).
+                    The git history still has its own, see the comment on ProcessRunner.
+        Contracts/  Types that connect two libraries without either referencing the other - today
+                    IHierarchicalData and WeightNormalizationStrategy between the history
+                    analysis (producer) and the tree map (renderer).
+      Plain net10.0 without any reference, so that every project - including the Linux command
+      line - can use it. Domain types belong in CSharpCodeAnalyst.CodeGraph, anything with UI in
+      the application.
+    -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>CSharpCodeAnalyst.Common</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.12.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>

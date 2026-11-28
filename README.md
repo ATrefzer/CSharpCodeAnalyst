@@ -211,6 +211,8 @@ To integrate the tool into a build pipeline, you can call it without a user inte
 
 [Command-line arguments](Documentation/command-line-arguments.md)
 
+C++, Python or Java code on a Linux machine can be imported there with `CSharpCodeAnalyst.Linux` (doxygen only, a single self-contained file) and then analyzed on Windows — see [Doxygen import on Linux](Documentation/command-line-arguments.md#doxygen-import-on-linux).
+
 For an example how to use the architectural rules in a GitHub pipeline see:  [`samples/ci-pipeline/`](samples/ci-pipeline/README.md)
 
 ---

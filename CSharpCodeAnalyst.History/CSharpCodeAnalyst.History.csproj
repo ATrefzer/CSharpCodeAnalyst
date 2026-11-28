@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CSharpCodeAnalyst.Contracts\CSharpCodeAnalyst.Contracts.csproj" />
+      <ProjectReference Include="..\CSharpCodeAnalyst.Common\CSharpCodeAnalyst.Common.csproj" />
     </ItemGroup>
 
 </Project>
