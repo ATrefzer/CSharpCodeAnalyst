@@ -36,6 +36,14 @@ jobs:
       - name: Zip Release
         run: Compress-Archive -Path publish/* -DestinationPath latest-release.zip
 
+      # CSharpCodeAnalyst.Linux (doxygen import on Linux): one self-contained file, see
+      # Documentation/command-line-arguments.md. The zip carries no executable bit - chmod +x after unpacking.
+      - name: Publish CSharpCodeAnalyst.Linux (linux-x64)
+        run: dotnet publish .\CSharpCodeAnalyst.Linux\CSharpCodeAnalyst.Linux.csproj -c Release -r linux-x64 -o publish-linux-x64 -p:Version=$env:BUILD_VERSION -p:FileVersion=$env:BUILD_VERSION -p:AssemblyVersion=$env:BUILD_VERSION -p:PackageVersion=$env:BUILD_VERSION
+
+      - name: Zip CSharpCodeAnalyst.Linux (linux-x64)
+        run: Compress-Archive -Path publish-linux-x64/* -DestinationPath CSharpCodeAnalyst.Linux-x64.zip
+
       # Delete existing "latest"-Release & Tag
       - name: Delete existing "latest" release if present
         run: |
@@ -48,7 +56,7 @@ jobs:
       # Create or update Release with fix tag "latest"
       - name: Create Latest Release
         run: |
-          gh release create latest latest-release.zip `
+          gh release create latest latest-release.zip CSharpCodeAnalyst.Linux-x64.zip `
             --title "v${{ env.BUILD_VERSION }} (Latest)" `
             --notes "Automated build **v${{ env.BUILD_VERSION }}**
           - Build number: ${{ github.run_number }}

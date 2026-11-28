@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      Command line for Linux, where the WPF application cannot run: imports a code base with
+      doxygen and writes a graph file that the application then opens on Windows. (It builds for
+      any runtime identifier, but Linux is what it is for - on Windows the application's own
+      doxygen import does the same.)
+
+      Deliberately references neither the WPF projects nor the Roslyn parser: without Roslyn and
+      MSBuildLocator there is nothing that probes for files next to the DLLs, so the tool can be
+      published as one self-contained file (see Documentation/command-line-arguments.md).
+    -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>CSharpCodeAnalyst.Linux</RootNamespace>
+
+        <!-- A minimal Linux (a container, a build agent) often has no libicu. Nothing here is
+             culture-sensitive, so the tool does not need it. -->
+        <InvariantGlobalization>true</InvariantGlobalization>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    </PropertyGroup>
+
+    <!-- "dotnet publish -r linux-x64" (or any other RID) gives one self-contained, trimmed file:
+         nothing to install on the target besides doxygen. Trimming is safe here - the code uses
+         no reflection, and the publish reports no trim warnings (keep it that way). Only applied
+         with a RID, so the plain build and the test project's reference are unaffected. -->
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+        <SelfContained>true</SelfContained>
+        <PublishSingleFile>true</PublishSingleFile>
+        <PublishTrimmed>true</PublishTrimmed>
+        <DebugType>none</DebugType>
+        <!-- Without this the referenced projects' .pdb files still land next to the single file. -->
+        <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Importers.Doxygen\CSharpCodeAnalyst.Importers.Doxygen.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.12.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>

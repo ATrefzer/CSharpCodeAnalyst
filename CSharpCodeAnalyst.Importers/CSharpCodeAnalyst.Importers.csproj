@@ -12,6 +12,9 @@
         <!-- AnalyzerSdk carries IUserNotification, which an importer needs for its dialog. -->
         <ProjectReference Include="..\CSharpCodeAnalyst.AnalyzerSdk\CSharpCodeAnalyst.AnalyzerSdk.csproj" />
         <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Common\CSharpCodeAnalyst.Common.csproj" />
+        <!-- The doxygen runner and converter, without the dialog - shared with CSharpCodeAnalyst.Linux. -->
+        <ProjectReference Include="..\CSharpCodeAnalyst.Importers.Doxygen\CSharpCodeAnalyst.Importers.Doxygen.csproj" />
     </ItemGroup>
 
     <ItemGroup>

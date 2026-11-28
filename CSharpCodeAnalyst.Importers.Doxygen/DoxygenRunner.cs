@@ -1,5 +1,5 @@
 using System.IO;
-using CSharpCodeAnalyst.Importers.Shared;
+using CSharpCodeAnalyst.Common.Processes;
 
 namespace CSharpCodeAnalyst.Importers.Doxygen;
 
@@ -8,7 +8,7 @@ namespace CSharpCodeAnalyst.Importers.Doxygen;
 ///     the XML output consumed by <see cref="DoxygenXmlConverter" />. The Doxyfile is generated
 ///     into the working directory; all options not listed keep their doxygen defaults.
 /// </summary>
-internal static class DoxygenRunner
+public static class DoxygenRunner
 {
     private static readonly TimeSpan AvailabilityTimeout = TimeSpan.FromSeconds(10);
 

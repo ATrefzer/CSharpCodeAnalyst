@@ -1,4 +1,4 @@
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.History.Analyzer;
 using CSharpCodeAnalyst.History.Metrics;
 using CSharpCodeAnalyst.History.Model;

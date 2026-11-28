@@ -1,6 +1,6 @@
 using System.IO;
 
-using CSharpCodeAnalyst.Importers.Shared;
+using CSharpCodeAnalyst.Common.Processes;
 
 namespace CSharpCodeAnalyst.Importers.Dart;
 

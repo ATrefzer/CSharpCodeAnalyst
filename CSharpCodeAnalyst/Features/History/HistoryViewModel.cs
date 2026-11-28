@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using CSharpCodeAnalyst.AnalyzerSdk.Messages;
 using CSharpCodeAnalyst.AnalyzerSdk.Notifications;
 using CSharpCodeAnalyst.AnalyzerSdk.Wpf;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.History.Extensions;
 using CSharpCodeAnalyst.History.Git;
 using CSharpCodeAnalyst.History.Hierarchy;

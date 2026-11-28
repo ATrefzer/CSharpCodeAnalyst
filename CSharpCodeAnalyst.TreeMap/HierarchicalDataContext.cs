@@ -1,4 +1,4 @@
-﻿using CSharpCodeAnalyst.Contracts;
+﻿using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.TreeMap.Interfaces;
 
 namespace CSharpCodeAnalyst.TreeMap

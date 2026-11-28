@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!--
+      The doxygen import without its dialog: the runner that generates the Doxyfile and starts
+      doxygen, and the converter from doxygen's XML to a code graph. Plain net10.0 - no WPF, no
+      AnalyzerSdk - so that CSharpCodeAnalyst.Linux can run the same import on Linux. The dialog
+      and the IImporter wrapper stay in CSharpCodeAnalyst.Importers/Doxygen (same namespace).
+    -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>CSharpCodeAnalyst.Importers.Doxygen</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\CSharpCodeAnalyst.CodeGraph\CSharpCodeAnalyst.CodeGraph.csproj" />
+        <ProjectReference Include="..\CSharpCodeAnalyst.Common\CSharpCodeAnalyst.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Update="Microsoft.Build.Framework" Version="18.12.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+</Project>

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.TreeMap.Resources;
 
 namespace CSharpCodeAnalyst.TreeMap.Tools

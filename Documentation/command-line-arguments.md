@@ -162,6 +162,72 @@ nothing to do with each other. `-sarif` is only the destination of the file and 
 `-source-root` is applied to the source file paths *inside* the report. Writing the report into
 `artifacts\` or a temp directory must not change how the findings point at the code.
 
+## Doxygen import on Linux
+
+`CSharpCodeAnalyst.exe` is a WPF application and runs on Windows only. For a C++, Python or Java
+code base that lives on a Linux machine there is a second, much smaller tool,
+**`CSharpCodeAnalyst.Linux`**. It runs doxygen over the source directory, converts the result into
+a code graph exactly like the doxygen import in the application, and writes it to a file in the
+[plain text graph format](plain-text-graph-format.md). You then copy that file to Windows and
+open it with **Import > Plain text** — and analyze it there as usual.
+
+The plain text format loses nothing here: it carries elements, relationships, attributes and
+source locations, and doxygen reports no metrics anyway.
+
+### Building it
+
+The release build attaches it as `CSharpCodeAnalyst.Linux-x64.zip` next to the application.
+The tool is published as **one self-contained file** — no .NET installation needed on the target,
+only doxygen. It can be built on Windows for Linux:
+
+```powershell
+dotnet publish .\CSharpCodeAnalyst.Linux\CSharpCodeAnalyst.Linux.csproj -c Release -r linux-x64 -o publish-linux
+```
+
+Any other runtime identifier works as well (`linux-arm64`, `osx-arm64`, `win-x64`). The project
+switches on self-contained, single file and trimming as soon as a runtime identifier is given;
+the result is a single file of roughly 18 MB.
+
+> Unlike the C# import, this tool contains neither Roslyn nor MSBuild. That is what makes the
+> single file possible: Roslyn's `MSBuildWorkspace` and `Microsoft.Build.Locator` look for files
+> next to their DLLs, which do not exist inside a single-file bundle. The C# solution import is
+> therefore not available in this tool.
+
+### Running it
+
+```bash
+sudo apt install doxygen                # once
+chmod +x CSharpCodeAnalyst.Linux          # a file copied from Windows has no executable bit
+./CSharpCodeAnalyst.Linux -doxygen -source:/home/me/myproject -out:myproject.graph.txt
+```
+
+| Argument             | Required | Description                                                                                         |
+| -------------------- | :------- | --------------------------------------------------------------------------------------------------- |
+| -doxygen             | yes      | The command: import via doxygen.                                                                    |
+| -source:<dir>        | yes      | Source directory doxygen runs over, recursively.                                                    |
+| -out:<file>          | yes      | Graph file to write. The directory is created if it does not exist.                                 |
+| -language:<language> | no       | `cpp` (default), `python` or `java`. Decides which files doxygen reads and which directories are excluded. |
+| -hierarchy:<mode>    | no       | `declared` (default): namespaces / packages as declared in the code. `directories`: namespaces from the directory structure below `-source`. |
+| -name:<name>         | no       | Project name, the root element of the graph. Default: the name of the source directory. Whitespace is removed (`My Project` becomes `MyProject`), because the graph file cannot carry it — the same rule the import applies to all C++ names. |
+| -work-dir:<dir>      | no       | Keep the generated Doxyfile and doxygen's XML in this directory. Default: a temporary directory that is deleted afterwards. |
+| -help                | no       | Show the usage.                                                                                     |
+
+The options and their defaults are the same as in the import dialog of the application, so the
+graph is the same one an interactive import of the same directory would produce. Unknown
+arguments are rejected rather than ignored, so a typo fails the run instead of silently falling
+back to a default.
+
+| Exit code | Description                                   |
+| --------- | --------------------------------------------- |
+| 0         | Graph written                                 |
+| 2         | Wrong arguments or the import failed, see the error output |
+
+Ctrl+C stops doxygen and removes the temporary directory.
+
+**Source locations** in the graph are the paths on the machine that ran doxygen
+(`/home/me/myproject/...`). They are kept as they are, so jumping to the source from the
+application on Windows does not find the files unless the same paths exist there.
+
 ## Rules file syntax
 
 See [README.md](../README.md) and [Architectural rules](architectural-rules.md).

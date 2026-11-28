@@ -1,5 +1,5 @@
 ﻿using System.Windows;
-using CSharpCodeAnalyst.Contracts;
+using CSharpCodeAnalyst.Common.Contracts;
 using CSharpCodeAnalyst.TreeMap.TreeMap;
 
 namespace CSharpCodeAnalyst.TreeMap.Common

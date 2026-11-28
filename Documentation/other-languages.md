@@ -10,6 +10,8 @@ Use the "Import C++/Python/Java project (doxygen)" menu.
 
 The wizard asks you for the root directory of your source code, the language, the hierarchy (see below), and a project name. The project name results in a single root node containing all code elements.
 
+**Code on a Linux machine?** The same import is available as a small command line tool, `CSharpCodeAnalyst.Linux`, that needs nothing but doxygen on the target. It writes the graph to a file that you open on Windows with **Import > Plain text**. See [Doxygen import on Linux](command-line-arguments.md#doxygen-import-on-linux).
+
 ![](Images/import-wizard.png)
 
 #### Hierarchy: namespaces or directories
